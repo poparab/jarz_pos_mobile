@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/courier_balances_provider.dart';
+import '../../data/repositories/courier_repository.dart';
 
 class CourierBalancesScreen extends ConsumerWidget {
   const CourierBalancesScreen({super.key});
@@ -104,14 +105,31 @@ class CourierBalancesScreen extends ConsumerWidget {
                                         dense: true,
                                         title: Text(d.invoice),
                                         subtitle: Text('City: ${d.city}\nOrder: ${d.amount.toStringAsFixed(2)} • Shipping: ${d.shipping.toStringAsFixed(2)}'),
-                                        trailing: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment: CrossAxisAlignment.end,
+                                        trailing: Row(
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Text('Net'),
-                                            Text(
-                                              net.toStringAsFixed(2),
-                                              style: const TextStyle(fontWeight: FontWeight.bold),
+                                            Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              children: [
+                                                const Text('Net'),
+                                                Text(
+                                                  net.toStringAsFixed(2),
+                                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(width: 8),
+                                            IconButton(
+                                              tooltip: 'Preview Settlement',
+                                              icon: const Icon(Icons.account_balance_wallet_outlined),
+                                              onPressed: () => _showSettlementPreview(
+                                                context,
+                                                ref,
+                                                invoice: d.invoice,
+                                                partyType: b.partyType,
+                                                party: b.party,
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -133,6 +151,66 @@ class CourierBalancesScreen extends ConsumerWidget {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+Future<void> _showSettlementPreview(
+  BuildContext context,
+  WidgetRef ref, {
+  required String invoice,
+  required String partyType,
+  required String party,
+}) async {
+  final repo = ref.read(courierRepositoryProvider);
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => const Center(child: CircularProgressIndicator()),
+  );
+  try {
+    final preview = await repo.getSettlementPreview(
+      invoice: invoice,
+      partyType: partyType.isNotEmpty ? partyType : null,
+      party: party.isNotEmpty ? party : null,
+    );
+    if (!context.mounted) return;
+    Navigator.of(context).pop(); // remove loader
+    final action = preview['branch_action'] as String? ?? '';
+    final courierAmount = (preview['courier_amount'] ?? 0).toString();
+    final message = preview['message'] as String? ?? 'No details';
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Settlement Preview – $invoice'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(message),
+            const SizedBox(height: 12),
+            Text(
+              'Branch will ${action == 'collect' ? 'COLLECT' : 'PAY'}: $courierAmount',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  } catch (e) {
+    if (!context.mounted) return;
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to load settlement preview: $e'),
+        backgroundColor: Theme.of(context).colorScheme.error,
       ),
     );
   }

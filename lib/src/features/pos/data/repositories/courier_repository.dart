@@ -17,4 +17,16 @@ class CourierRepository {
         .map((e) => CourierBalance.fromMap(Map<String, dynamic>.from(e as Map)))
         .toList();
   }
+
+  Future<Map<String, dynamic>> getSettlementPreview({
+    required String invoice,
+    String? partyType,
+    String? party,
+  }) async {
+    return _service.getSettlementPreview(
+      invoice: invoice,
+      partyType: partyType,
+      party: party,
+    );
+  }
 }
