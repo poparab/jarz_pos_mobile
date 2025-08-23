@@ -177,9 +177,12 @@ Future<void> _showSettlementPreview(
     );
     if (!context.mounted) return;
     Navigator.of(context).pop(); // remove loader
-    final action = preview['branch_action'] as String? ?? '';
-    final courierAmount = (preview['courier_amount'] ?? 0).toString();
-    final message = preview['message'] as String? ?? 'No details';
+  final action = preview['branch_action'] as String? ?? '';
+  final net = (preview['net_amount'] ?? 0).toString();
+  final netVal = (preview['net_amount'] is num)
+    ? (preview['net_amount'] as num).toDouble()
+    : double.tryParse(preview['net_amount'].toString()) ?? 0.0;
+  final message = preview['message'] as String? ?? 'No details';
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -191,7 +194,11 @@ Future<void> _showSettlementPreview(
             Text(message),
             const SizedBox(height: 12),
             Text(
-              'Branch will ${action == 'collect' ? 'COLLECT' : 'PAY'}: $courierAmount',
+              netVal > 0
+                  ? 'COLLECT: ${netVal.toStringAsFixed(2)}'
+                  : netVal < 0
+                      ? 'PAY: ${(-netVal).toStringAsFixed(2)}'
+                      : 'Nothing to pay or collect',
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
