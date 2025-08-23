@@ -1,0 +1,471 @@
+import 'package:flutter/material.dart';
+import '../models/kanban_models.dart';
+
+class KanbanFiltersWidget extends StatefulWidget {
+  final KanbanFilters filters;
+  final List<CustomerOption> cust    if (_currentFilters.dateFrom != null || _currentFilters.dateTo != null) {
+      count++;
+    }
+    if (_currentFilters.amountFrom != null || _currentFilters.amountTo != null) {      
+      count++;
+    }s;
+  final Function(KanbanFilters) onFiltersChanged;
+
+  const KanbanFiltersWidget({
+    super.key,
+    required this.filters,
+    required this.customers,
+    required this.onFiltersChanged,
+  });
+
+  @override
+  State<KanbanFiltersWidget> createState() => _KanbanFiltersWidgetState();
+}
+
+class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
+  late KanbanFilters _currentFilters;
+  bool _isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentFilters = widget.filters;
+  }
+
+  @override
+  void didUpdateWidget(KanbanFiltersWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filters != widget.filters) {
+      setState(() {
+        _currentFilters = widget.filters;
+      });
+    }
+  }
+
+  void _applyFilters() {
+    widget.onFiltersChanged(_currentFilters);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Filter header with expand/collapse
+          ListTile(
+            title: Text(
+              'Filters',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            subtitle: _hasActiveFilters()
+                ? Text('${_getActiveFiltersCount()} filters active')
+                : null,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_hasActiveFilters())
+                  TextButton(
+                    onPressed: _clearAllFilters,
+                    child: const Text('Clear All'),
+                  ),
+                IconButton(
+                  icon: Icon(
+                    _isExpanded ? Icons.expand_less : Icons.expand_more,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isExpanded = !_isExpanded;
+                    });
+                  },
+                ),
+              ],
+            ),
+            tileColor: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+          ),
+
+          // Collapsible filter content
+          if (_isExpanded) ...[
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Search term
+                  TextField(
+                    decoration: const InputDecoration(
+                      labelText: 'Search',
+                      hintText: 'Search invoices...',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _currentFilters = _currentFilters.copyWith(
+                          searchTerm: value,
+                        );
+                      });
+                      _applyFilters();
+                    },
+                    controller: TextEditingController(
+                      text: _currentFilters.searchTerm,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Quick filter chips
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      // Customer filter
+                      FilterChip(
+                        label: Text(
+                          (_currentFilters.customer?.isEmpty ?? true)
+                              ? 'All Customers'
+                              : _currentFilters.customer!,
+                        ),
+                        selected: _currentFilters.customer?.isNotEmpty == true,
+                        onSelected: (_) => _showCustomerPicker(context),
+                      ),
+
+                      // Status filter
+                      FilterChip(
+                        label: Text(
+                          (_currentFilters.status?.isEmpty ?? true)
+                              ? 'All Statuses'
+                              : _currentFilters.status!,
+                        ),
+                        selected: _currentFilters.status?.isNotEmpty == true,
+                        onSelected: (_) => _showStatusPicker(context),
+                      ),
+
+                      // Date range filter
+                      FilterChip(
+                        label: Text(_getDateRangeText()),
+                        selected:
+                            _currentFilters.dateFrom != null ||
+                            _currentFilters.dateTo != null,
+                        onSelected: (_) => _showDateRangePicker(context),
+                      ),
+
+                      // Amount range filter
+                      FilterChip(
+                        label: Text(_getAmountRangeText()),
+                        selected:
+                            _currentFilters.amountFrom != null ||
+                            _currentFilters.amountTo != null,
+                        onSelected: (_) => _showAmountRangePicker(context),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Active filters display
+                  if (_hasActiveFilters()) ...[
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Active Filters:',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: _buildActiveFilterChips(),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  bool _hasActiveFilters() {
+    return _currentFilters.searchTerm.isNotEmpty ||
+        (_currentFilters.customer?.isNotEmpty == true) ||
+        (_currentFilters.status?.isNotEmpty == true) ||
+        _currentFilters.dateFrom != null ||
+        _currentFilters.dateTo != null ||
+        _currentFilters.amountFrom != null ||
+        _currentFilters.amountTo != null;
+  }
+
+  int _getActiveFiltersCount() {
+    int count = 0;
+    if (_currentFilters.searchTerm.isNotEmpty) count++;
+    if (_currentFilters.customer?.isNotEmpty == true) count++;
+    if (_currentFilters.status?.isNotEmpty == true) count++;
+    if (_currentFilters.dateFrom != null || _currentFilters.dateTo != null)
+      count++;
+    if (_currentFilters.amountFrom != null || _currentFilters.amountTo != null)
+      count++;
+    return count;
+  }
+
+  List<Widget> _buildActiveFilterChips() {
+    List<Widget> chips = [];
+
+    if (_currentFilters.searchTerm.isNotEmpty) {
+      chips.add(
+        _buildRemovableChip('Search: ${_currentFilters.searchTerm}', () {
+          setState(() {
+            _currentFilters = _currentFilters.copyWith(searchTerm: '');
+          });
+          _applyFilters();
+        }),
+      );
+    }
+
+    if (_currentFilters.customer?.isNotEmpty == true) {
+      chips.add(
+        _buildRemovableChip('Customer: ${_currentFilters.customer}', () {
+          setState(() {
+            _currentFilters = _currentFilters.copyWith(customer: null);
+          });
+          _applyFilters();
+        }),
+      );
+    }
+
+    if (_currentFilters.status?.isNotEmpty == true) {
+      chips.add(
+        _buildRemovableChip('Status: ${_currentFilters.status}', () {
+          setState(() {
+            _currentFilters = _currentFilters.copyWith(status: null);
+          });
+          _applyFilters();
+        }),
+      );
+    }
+
+    return chips;
+  }
+
+  Widget _buildRemovableChip(String label, VoidCallback onRemove) {
+    return Chip(
+      label: Text(label),
+      deleteIcon: const Icon(Icons.close, size: 18),
+      onDeleted: onRemove,
+    );
+  }
+
+  void _clearAllFilters() {
+    setState(() {
+      _currentFilters = const KanbanFilters();
+    });
+    _applyFilters();
+  }
+
+  String _getDateRangeText() {
+    if (_currentFilters.dateFrom != null && _currentFilters.dateTo != null) {
+      return 'Date Range';
+    } else if (_currentFilters.dateFrom != null) {
+      return 'From Date';
+    } else if (_currentFilters.dateTo != null) {
+      return 'To Date';
+    }
+    return 'All Dates';
+  }
+
+  String _getAmountRangeText() {
+    if (_currentFilters.amountFrom != null &&
+        _currentFilters.amountTo != null) {
+      return 'Amount Range';
+    } else if (_currentFilters.amountFrom != null) {
+      return 'Min Amount';
+    } else if (_currentFilters.amountTo != null) {
+      return 'Max Amount';
+    }
+    return 'All Amounts';
+  }
+
+  void _showCustomerPicker(BuildContext context) {
+    // Simple customer filter for now
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Customer Filter'),
+        content: TextField(
+          decoration: const InputDecoration(
+            labelText: 'Customer Name',
+            hintText: 'Enter customer name...',
+          ),
+          onChanged: (value) {
+            setState(() {
+              _currentFilters = _currentFilters.copyWith(customer: value);
+            });
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _currentFilters = _currentFilters.copyWith(customer: null);
+              });
+              Navigator.of(context).pop();
+              _applyFilters();
+            },
+            child: const Text('Clear'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _applyFilters();
+            },
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showStatusPicker(BuildContext context) {
+    final statuses = ['Draft', 'Paid', 'Unpaid', 'Cancelled', 'Return'];
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Status Filter'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('All Statuses'),
+              leading: Radio<String?>(
+                value: null,
+                groupValue: _currentFilters.status,
+                onChanged: (value) {
+                  setState(() {
+                    _currentFilters = _currentFilters.copyWith(status: null);
+                  });
+                  Navigator.of(context).pop();
+                  _applyFilters();
+                },
+              ),
+            ),
+            ...statuses.map(
+              (status) => ListTile(
+                title: Text(status),
+                leading: Radio<String?>(
+                  value: status,
+                  groupValue: _currentFilters.status,
+                  onChanged: (value) {
+                    setState(() {
+                      _currentFilters = _currentFilters.copyWith(
+                        status: value!,
+                      );
+                    });
+                    Navigator.of(context).pop();
+                    _applyFilters();
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDateRangePicker(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDateRange:
+          _currentFilters.dateFrom != null && _currentFilters.dateTo != null
+          ? DateTimeRange(
+              start: _currentFilters.dateFrom!,
+              end: _currentFilters.dateTo!,
+            )
+          : null,
+    );
+
+    if (picked != null) {
+      setState(() {
+        _currentFilters = _currentFilters.copyWith(
+          dateFrom: picked.start,
+          dateTo: picked.end,
+        );
+      });
+      _applyFilters();
+    }
+  }
+
+  void _showAmountRangePicker(BuildContext context) {
+    final fromController = TextEditingController(
+      text: _currentFilters.amountFrom?.toString() ?? '',
+    );
+    final toController = TextEditingController(
+      text: _currentFilters.amountTo?.toString() ?? '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Amount Range'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: fromController,
+              decoration: const InputDecoration(
+                labelText: 'From Amount',
+                prefixText: '\$',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: toController,
+              decoration: const InputDecoration(
+                labelText: 'To Amount',
+                prefixText: '\$',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _currentFilters = _currentFilters.copyWith(
+                  amountFrom: null,
+                  amountTo: null,
+                );
+              });
+              Navigator.of(context).pop();
+              _applyFilters();
+            },
+            child: const Text('Clear'),
+          ),
+          TextButton(
+            onPressed: () {
+              final fromAmount = double.tryParse(fromController.text);
+              final toAmount = double.tryParse(toController.text);
+
+              setState(() {
+                _currentFilters = _currentFilters.copyWith(
+                  amountFrom: fromAmount,
+                  amountTo: toAmount,
+                );
+              });
+              Navigator.of(context).pop();
+              _applyFilters();
+            },
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
+  }
+}

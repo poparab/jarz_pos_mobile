@@ -1,0 +1,691 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../state/pos_notifier.dart';
+import 'bundle_selection_widget.dart';
+import 'delivery_slot_selection.dart';
+
+class CartWidget extends ConsumerWidget {
+  const CartWidget({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(posNotifierProvider);
+    final cartItems = state.cartItems;
+    // Get cart total from state if needed
+    // final cartTotal = state.cartTotal;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          left: BorderSide(
+            color: Theme.of(context).colorScheme.outline,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Cart header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).colorScheme.outline,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.shopping_cart,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Cart (${cartItems.length})',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                if (cartItems.isNotEmpty)
+                  IconButton(
+                    icon: Icon(
+                      Icons.clear_all,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                    onPressed: () => _showClearCartDialog(context, ref),
+                    tooltip: 'Clear cart',
+                  ),
+              ],
+            ),
+          ),
+
+          // Cart items
+          Expanded(
+            child: cartItems.isEmpty
+                ? _buildEmptyCart(context)
+                : ListView.builder(
+                    padding: const EdgeInsets.all(8),
+                    itemCount: cartItems.length,
+                    itemBuilder: (context, index) {
+                      final cartItem = cartItems[index];
+                      return _buildCartItem(context, ref, cartItem, index);
+                    },
+                  ),
+          ),
+
+          // Cart summary and checkout
+          if (cartItems.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                border: Border(
+                  top: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Column(
+                children: [
+                  // Customer info
+                  if (state.selectedCustomer != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.person,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              state.selectedCustomer!['customer_name'] ??
+                                  'Unknown Customer',
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  // Delivery Slot Selection (always show when there are items)
+                  if (state.selectedProfile != null)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: () {
+                        if (kDebugMode) {
+                          debugPrint(
+                            '🎯 Rendering DeliverySlotSelection for profile: ${state.selectedProfile!['name']}',
+                          );
+                        }
+                        return DeliverySlotSelection(
+                          posProfile: state.selectedProfile!['name'],
+                          selectedSlot: state.selectedDeliverySlot,
+                          onSlotChanged: (slot) {
+                            if (kDebugMode) {
+                              debugPrint('🔄 Delivery slot changed: ${slot?.label}');
+                            }
+                            ref
+                                .read(posNotifierProvider.notifier)
+                                .setDeliverySlot(slot);
+                          },
+                          isRequired:
+                              true, // Make delivery time selection mandatory
+                        );
+                      }(),
+                    ),
+
+                  // Subtotal, Delivery, and Total
+                  Column(
+                    children: [
+                      // Subtotal
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Subtotal:',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          Text(
+                            '\$${state.cartTotal.toStringAsFixed(2)}',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+
+                      // Delivery income (if customer selected and has delivery charge)
+                      if (state.selectedCustomer != null &&
+                          state.shippingCost > 0) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Delivery:',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            Text(
+                              '\$${state.shippingCost.toStringAsFixed(2)}',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ],
+                        ),
+                      ],
+
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
+
+                      // Final Total
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total:',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            '\$${state.totalWithShipping.toStringAsFixed(2)}',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Checkout button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: state.isLoading
+                          ? null
+                          : () => _handleCheckout(context, ref),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: state.isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text(
+                              'Checkout',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+
+                  // Shipping expense (operational info)
+                  if (state.selectedCustomer != null &&
+                      state.selectedCustomer!['delivery_expense'] != null &&
+                      state.selectedCustomer!['delivery_expense'] > 0) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.errorContainer.withValues(alpha: 0.1),
+                        border: Border.all(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withValues(alpha: 0.3),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Operational Info',
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                                    ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Delivery Expense:',
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface.withValues(alpha: 0.8),
+                                    ),
+                              ),
+                              Text(
+                                '\$${state.selectedCustomer!['delivery_expense'].toStringAsFixed(2)}',
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Cost to ${state.selectedCustomer!['territory'] ?? 'deliver'}',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withValues(alpha: 0.6),
+                                  fontStyle: FontStyle.italic,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyCart(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.shopping_cart_outlined,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 16),
+          Text('Cart is empty', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Text(
+            'Add items to get started',
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCartItem(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> cartItem,
+    int index,
+  ) {
+    final quantity = (cartItem['quantity'] ?? 1) as int;
+    final rate = (cartItem['rate'] ?? 0.0) as double;
+    final total = quantity.toDouble() * rate;
+    final isBundle = cartItem['type'] == 'bundle';
+    final isShipping = cartItem['is_shipping'] == true;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+    color: isShipping
+      ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
+      : null,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Item name and action buttons
+            Row(
+              children: [
+                if (isBundle)
+                  Icon(
+                    Icons.local_offer,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.tertiary,
+                  ),
+                if (isShipping)
+                  Icon(
+                    Icons.local_shipping,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                if (isBundle || isShipping) const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    cartItem['item_name'] ?? 'Unknown Item',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isShipping
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (isBundle)
+                  IconButton(
+                    icon: const Icon(Icons.edit, size: 18),
+                    onPressed: () => _editBundle(context, ref, cartItem, index),
+                    tooltip: 'Edit Bundle',
+                  ),
+                if (!isShipping) // Don't allow removing shipping items
+                  IconButton(
+                    icon: const Icon(Icons.delete, size: 20),
+                    onPressed: () => ref
+                        .read(posNotifierProvider.notifier)
+                        .removeFromCart(index),
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+              ],
+            ),
+
+            // Show bundle items if it's a bundle
+            if (isBundle && cartItem['bundle_details'] != null)
+              _buildBundleDetails(context, cartItem['bundle_details']),
+
+            const SizedBox(height: 8),
+
+            // Price and quantity controls
+            Row(
+              children: [
+                // Price per unit
+                Text(
+                  '\$${rate.toStringAsFixed(2)}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isShipping
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                  ),
+                ),
+                const Spacer(),
+
+                // Quantity controls (disabled for shipping items)
+                if (!isShipping)
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove),
+                        onPressed: quantity > 1
+                            ? () => ref
+                                  .read(posNotifierProvider.notifier)
+                                  .updateCartItemQuantity(index, quantity - 1)
+                            : null,
+                        iconSize: 20,
+                      ),
+                      Container(
+                        constraints: const BoxConstraints(minWidth: 40),
+                        child: Text(
+                          quantity.toString(),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () => ref
+                            .read(posNotifierProvider.notifier)
+                            .updateCartItemQuantity(index, quantity + 1),
+                        iconSize: 20,
+                      ),
+                    ],
+                  )
+                else
+                  // For shipping items, show quantity but make it non-editable
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Qty: $quantity',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            // Total for this item
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Total:', style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  '\$${total.toStringAsFixed(2)}',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isShipping
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showClearCartDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear Cart'),
+        content: const Text(
+          'Are you sure you want to remove all items from the cart?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(posNotifierProvider.notifier).clearCart();
+              Navigator.pop(context);
+            },
+            child: const Text('Clear'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleCheckout(BuildContext context, WidgetRef ref) async {
+    final state = ref.read(posNotifierProvider);
+
+    // Validate delivery slot is selected
+    if (state.selectedDeliverySlot == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please select a delivery time'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
+    await ref.read(posNotifierProvider.notifier).checkout();
+    final updatedState = ref.read(posNotifierProvider);
+
+    if (context.mounted) {
+      if (updatedState.error == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Order placed successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to place order: ${updatedState.error}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildBundleDetails(
+    BuildContext context,
+    Map<String, dynamic> bundleDetails,
+  ) {
+    final selectedItems =
+        bundleDetails['selected_items']
+            as Map<String, List<Map<String, dynamic>>>? ??
+        {};
+
+    if (selectedItems.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Theme.of(
+          context,
+  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Bundle Contents:',
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 4),
+          ...selectedItems.entries.map((entry) {
+            final groupName = entry.key;
+            final items = entry.value;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
+                '$groupName: ${items.map((item) => item['name']).join(', ')}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  void _editBundle(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> cartItem,
+    int index,
+  ) {
+    final bundleDetails = cartItem['bundle_details'] as Map<String, dynamic>?;
+    if (bundleDetails == null) return;
+
+    final bundleInfo = bundleDetails['bundle_info'] as Map<String, dynamic>?;
+    final currentSelections =
+        bundleDetails['selected_items']
+            as Map<String, List<Map<String, dynamic>>>? ??
+        {};
+
+    if (bundleInfo == null) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+          child: BundleSelectionWidget(
+            bundle: bundleInfo,
+            initialSelections: currentSelections,
+            isEditing: true,
+            onCancel: () => Navigator.of(context).pop(),
+            onBundleSelected: (selectedItems) {
+              Navigator.of(context).pop();
+              ref
+                  .read(posNotifierProvider.notifier)
+                  .updateBundleInCart(index, selectedItems);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Bundle updated successfully!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}

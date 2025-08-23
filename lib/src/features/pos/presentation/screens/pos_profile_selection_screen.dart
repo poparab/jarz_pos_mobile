@@ -1,0 +1,164 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../state/pos_notifier.dart';
+
+class PosProfileSelectionScreen extends ConsumerWidget {
+  const PosProfileSelectionScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(posNotifierProvider);
+    if (!state.isLoading && state.profiles.isEmpty) {
+      // Attempt reload after hot reload scenario
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(posNotifierProvider.notifier).loadProfiles();
+      });
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Select POS Profile'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      ),
+      body: state.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : state.error != null
+          ? _buildError(context, state.error!, ref)
+          : _buildProfileList(context, state.profiles, ref),
+    );
+  }
+
+  Widget _buildError(BuildContext context, String error, WidgetRef ref) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Error loading POS profiles',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            error,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () =>
+                ref.read(posNotifierProvider.notifier).loadProfiles(),
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileList(
+    BuildContext context,
+    List<Map<String, dynamic>> profiles,
+    WidgetRef ref,
+  ) {
+    if (profiles.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.store_outlined,
+              size: 64,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No POS Profiles Available',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Contact your administrator to assign you to a POS profile',
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 1.2,
+        ),
+        itemCount: profiles.length,
+        itemBuilder: (context, index) {
+          final profile = profiles[index];
+          return _buildProfileCard(context, profile, ref);
+        },
+      ),
+    );
+  }
+
+  Widget _buildProfileCard(
+    BuildContext context,
+    Map<String, dynamic> profile,
+    WidgetRef ref,
+  ) {
+    return Card(
+      elevation: 4,
+      child: InkWell(
+        onTap: () async {
+          if (ref.read(posNotifierProvider).isLoading) return; // prevent double taps
+          await ref.read(posNotifierProvider.notifier).selectProfile(profile);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) context.go('/pos');
+          });
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.store,
+                size: 48,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                profile['title'] ?? profile['name'] ?? 'Unknown Profile',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              if (profile['warehouse'] != null)
+                Text(
+                  'Warehouse: ${profile['warehouse']}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

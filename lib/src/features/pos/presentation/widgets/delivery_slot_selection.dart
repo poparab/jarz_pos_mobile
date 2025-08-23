@@ -1,0 +1,344 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../domain/models/delivery_slot.dart';
+import '../../data/repositories/pos_repository.dart';
+
+class DeliverySlotSelection extends ConsumerStatefulWidget {
+  final String posProfile;
+  final DeliverySlot? selectedSlot;
+  final Function(DeliverySlot?) onSlotChanged;
+  final bool isRequired;
+
+  const DeliverySlotSelection({
+    super.key,
+    required this.posProfile,
+    this.selectedSlot,
+    required this.onSlotChanged,
+    this.isRequired = false,
+  });
+
+  @override
+  ConsumerState<DeliverySlotSelection> createState() =>
+      _DeliverySlotSelectionState();
+}
+
+class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
+  List<DeliverySlot> _slots = [];
+  bool _isLoading = false;
+  String? _error;
+  DeliverySlot? _selectedSlot;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kDebugMode) {
+      debugPrint(
+        '🚀 DeliverySlotSelection widget initialized for profile: ${widget.posProfile}',
+      );
+    }
+    _selectedSlot = widget.selectedSlot;
+    _loadDeliverySlots();
+  }
+
+  @override
+  void didUpdateWidget(DeliverySlotSelection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.posProfile != widget.posProfile) {
+      _loadDeliverySlots();
+    }
+    if (oldWidget.selectedSlot != widget.selectedSlot) {
+      _selectedSlot = widget.selectedSlot;
+    }
+  }
+
+  Future<void> _loadDeliverySlots() async {
+    if (kDebugMode) {
+      debugPrint('🕐 Loading delivery slots for profile: ${widget.posProfile}');
+    }
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final repository = ref.read(posRepositoryProvider);
+      if (kDebugMode) {
+        debugPrint('🌐 Making API call to get delivery slots...');
+      }
+      final slots = await repository.getDeliverySlots(widget.posProfile);
+      if (kDebugMode) {
+        debugPrint('✅ Received ${slots.length} delivery slots from API');
+      }
+
+      setState(() {
+        _slots = slots;
+        _isLoading = false;
+
+        // Auto-select the default slot if none is selected
+        if (_selectedSlot == null && slots.isNotEmpty) {
+          final defaultSlot = slots.firstWhere(
+            (slot) => slot.isDefault,
+            orElse: () => slots.first,
+          );
+          _selectedSlot = defaultSlot;
+          widget.onSlotChanged(_selectedSlot);
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _showSlotSelectionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Delivery Time'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: _buildSlotList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSlotList() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error, size: 48, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            Text(
+              'Failed to load delivery slots',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _error!,
+              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadDeliverySlots,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_slots.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.schedule, size: 48, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'No delivery slots available',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Please check the POS profile timetable configuration',
+              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Group slots by day
+    Map<String, List<DeliverySlot>> slotsByDay = {};
+    for (final slot in _slots) {
+      slotsByDay.putIfAbsent(slot.dayLabel, () => []).add(slot);
+    }
+
+    return ListView.builder(
+      itemCount: slotsByDay.keys.length,
+      itemBuilder: (context, index) {
+        final dayLabel = slotsByDay.keys.elementAt(index);
+        final daySlots = slotsByDay[dayLabel]!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                dayLabel,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            ...daySlots.map((slot) => _buildSlotTile(slot)),
+            const SizedBox(height: 8),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSlotTile(DeliverySlot slot) {
+    final isSelected = _selectedSlot?.datetime == slot.datetime;
+
+    return ListTile(
+      title: Text(
+        slot.timeLabel,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          color: isSelected ? Theme.of(context).primaryColor : null,
+        ),
+      ),
+      trailing: isSelected
+          ? Icon(Icons.check_circle, color: Theme.of(context).primaryColor)
+          : slot.isDefault
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.green[100],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Next',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.green[700],
+                ),
+              ),
+            )
+          : null,
+      onTap: () {
+        setState(() {
+          _selectedSlot = slot;
+        });
+        widget.onSlotChanged(slot);
+        Navigator.of(context).pop();
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 12),
+            Text('Loading delivery slots...'),
+          ],
+        ),
+      );
+    }
+
+    return InkWell(
+      onTap: _slots.isNotEmpty ? _showSlotSelectionDialog : null,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: widget.isRequired && _selectedSlot == null
+                ? Colors.red[300]!
+                : Colors.grey[300]!,
+          ),
+          borderRadius: BorderRadius.circular(8),
+          color: _slots.isEmpty ? Colors.grey[50] : null,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.schedule,
+              color: _slots.isEmpty
+                  ? Colors.grey[400]
+                  : Theme.of(context).primaryColor,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Delivery Time',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _selectedSlot?.label ??
+                        (_error != null
+                            ? 'Error loading slots'
+                            : _slots.isEmpty
+                            ? 'No slots available'
+                            : 'Select delivery time'),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: _selectedSlot != null
+                          ? Colors.black87
+                          : Colors.grey[500],
+                    ),
+                  ),
+                  if (widget.isRequired && _selectedSlot == null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'Please select a delivery time',
+                        style: TextStyle(fontSize: 12, color: Colors.red[600]),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (_slots.isNotEmpty)
+              Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
+          ],
+        ),
+      ),
+    );
+  }
+}

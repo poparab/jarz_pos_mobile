@@ -1,0 +1,551 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../state/pos_notifier.dart';
+import 'bundle_selection_widget.dart';
+
+class ItemGridWidget extends ConsumerStatefulWidget {
+  const ItemGridWidget({super.key});
+
+  @override
+  ConsumerState<ItemGridWidget> createState() => _ItemGridWidgetState();
+}
+
+class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
+  String? selectedCategory;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = ref.watch(posNotifierProvider.select((state) => state.items));
+    final bundles = ref.watch(
+      posNotifierProvider.select((state) => state.bundles),
+    );
+    final selectedCustomer = ref.watch(
+      posNotifierProvider.select((state) => state.selectedCustomer),
+    );
+
+    // Group items by category and ensure Bundles is first
+    final itemsByCategory = <String, List<Map<String, dynamic>>>{};
+
+    // Add bundles first if they exist
+    if (bundles.isNotEmpty) {
+      itemsByCategory['Bundles'] = bundles;
+    }
+
+    // Then add item categories
+    for (final item in items) {
+      final category = item['item_group'] ?? 'Uncategorized';
+      itemsByCategory.putIfAbsent(category, () => []).add(item);
+    }
+
+    // Filter items based on search and category
+    final filteredData = _getFilteredData(items, bundles);
+
+    return Column(
+      children: [
+        // Category filter chips
+        if (itemsByCategory.isNotEmpty)
+          Container(
+            height: 50,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                FilterChip(
+                  label: const Text('All'),
+                  selected: selectedCategory == null,
+                  onSelected: (selected) {
+                    setState(() {
+                      selectedCategory = null;
+                    });
+                  },
+                ),
+                const SizedBox(width: 8),
+                ...itemsByCategory.keys.map(
+                  (category) => Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      label: Text(category),
+                      selected: selectedCategory == category,
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedCategory = selected ? category : null;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        const SizedBox(height: 16),
+
+        // Customer selection warning
+        if (selectedCustomer == null)
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.error,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.warning,
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Please select a customer before adding items or bundles to cart',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // Items grid
+        Expanded(
+          child: filteredData.isEmpty
+              ? _buildEmptyState()
+              : _buildItemsView(
+                  filteredData,
+                  itemsByCategory,
+                  selectedCustomer,
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemsView(
+    List<Map<String, dynamic>> items,
+    Map<String, List<Map<String, dynamic>>> itemsByCategory,
+    Map<String, dynamic>? selectedCustomer,
+  ) {
+    // If "All" is selected and no search, show categorized view
+    if (selectedCategory == null && itemsByCategory.isNotEmpty) {
+      return _buildCategorizedView(itemsByCategory, selectedCustomer);
+    }
+
+    // Otherwise show filtered grid
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 5, // Increased from 3 to 5 for smaller cards
+          crossAxisSpacing: 8, // Reduced spacing
+          mainAxisSpacing: 8,
+          childAspectRatio: 1.5, // Made cards half height
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          final isBundle = item['type'] == 'bundle';
+          return isBundle
+              ? _buildBundleCard(item, selectedCustomer)
+              : _buildItemCard(item, selectedCustomer);
+        },
+      ),
+    );
+  }
+
+  Widget _buildCategorizedView(
+    Map<String, List<Map<String, dynamic>>> itemsByCategory,
+    Map<String, dynamic>? selectedCustomer,
+  ) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: itemsByCategory.keys.length,
+      itemBuilder: (context, index) {
+        final category = itemsByCategory.keys.elementAt(index);
+        final categoryItems = itemsByCategory[category]!;
+        final isBundleCategory = category == 'Bundles';
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Category header
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isBundleCategory
+                          ? Theme.of(context).colorScheme.tertiaryContainer
+                          : Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isBundleCategory)
+                          Icon(
+                            Icons.local_offer,
+                            size: 16,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onTertiaryContainer,
+                          ),
+                        if (isBundleCategory) const SizedBox(width: 4),
+                        Text(
+                          category,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: isBundleCategory
+                                    ? Theme.of(
+                                        context,
+                                      ).colorScheme.onTertiaryContainer
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '(${categoryItems.length} ${isBundleCategory ? 'bundles' : 'items'})',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Category items grid
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 5, // Smaller cards
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 1.5, // Made cards half height
+              ),
+              itemCount: categoryItems.length,
+              itemBuilder: (context, itemIndex) {
+                final item = categoryItems[itemIndex];
+                return isBundleCategory
+                    ? _buildBundleCard(item, selectedCustomer)
+                    : _buildItemCard(item, selectedCustomer);
+              },
+            ),
+
+            const SizedBox(height: 20), // Space between categories
+          ],
+        );
+      },
+    );
+  }
+
+  List<Map<String, dynamic>> _getFilteredData(
+    List<Map<String, dynamic>> items,
+    List<Map<String, dynamic>> bundles,
+  ) {
+    List<Map<String, dynamic>> allData = [];
+
+    // Add items with type marker
+    allData.addAll(items.map((item) => {...item, 'type': 'item'}));
+
+    // Add bundles with type marker
+    allData.addAll(bundles.map((bundle) => {...bundle, 'type': 'bundle'}));
+
+    var filtered = allData;
+
+    // Filter by category
+    if (selectedCategory != null) {
+      if (selectedCategory == 'Bundles') {
+        filtered = filtered.where((item) => item['type'] == 'bundle').toList();
+      } else {
+        filtered = filtered
+            .where(
+              (item) =>
+                  item['type'] == 'item' &&
+                  item['item_group'] == selectedCategory,
+            )
+            .toList();
+      }
+    }
+
+    return filtered;
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.inventory_2_outlined,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            selectedCategory != null
+                ? 'No items or bundles found'
+                : 'No items or bundles available',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            selectedCategory != null
+                ? 'Try selecting a different category'
+                : 'Items and bundles will appear here when available',
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBundleCard(
+    Map<String, dynamic> bundle,
+    Map<String, dynamic>? selectedCustomer,
+  ) {
+    final canAddToCart = selectedCustomer != null;
+
+    return Card(
+      elevation: 1,
+      child: InkWell(
+        onTap: canAddToCart
+            ? () {
+                _showBundleSelection(bundle);
+              }
+            : () {
+                _showCannotAddToCartMessage(selectedCustomer, false);
+              },
+        borderRadius: BorderRadius.circular(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Bundle icon and label
+            Icon(
+              Icons.local_offer,
+              size: 20,
+              color: !canAddToCart
+                  ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)
+                  : Theme.of(context).colorScheme.tertiary,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              bundle['name'] ?? 'Unknown Bundle',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: !canAddToCart
+                    ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)
+                    : null,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '\$${(bundle['price'] ?? 0.0).toStringAsFixed(2)}',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: !canAddToCart
+                    ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)
+                    : Theme.of(context).colorScheme.tertiary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItemCard(
+    Map<String, dynamic> item,
+    Map<String, dynamic>? selectedCustomer,
+  ) {
+    // Extract stock information
+    final stockQty = (item['actual_qty'] ?? 0).toDouble();
+    final isOutOfStock = stockQty <= 0;
+    // Debug: Log the stock values for comparison
+    if (kDebugMode) {
+      debugPrint(
+        'Main item ${item['item_name']} - actual_qty: ${item['actual_qty']}, final stock: $stockQty',
+      );
+    }
+    final canAddToCart = selectedCustomer != null && !isOutOfStock;
+
+    // Determine stock color based on quantity
+    Color stockColor;
+    if (stockQty <= 0) {
+      stockColor = Colors.red;
+    } else if (stockQty <= 20) {
+      stockColor = Colors.orange;
+    } else {
+      stockColor = Colors.green;
+    }
+
+    return Card(
+      elevation: 1,
+      child: InkWell(
+        onTap: canAddToCart
+            ? () {
+                ref.read(posNotifierProvider.notifier).addToCart(item);
+                _showAddedToCartSnackbar(item);
+              }
+            : () {
+                _showCannotAddToCartMessage(selectedCustomer, isOutOfStock);
+              },
+        borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          children: [
+            // Main card content
+            Padding(
+              padding: const EdgeInsets.all(6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    item['item_name'] ?? item['name'] ?? 'Unknown Item',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: !canAddToCart
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.5)
+                          : null,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '\$${item['rate']?.toStringAsFixed(2) ?? '0.00'}',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: !canAddToCart
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.5)
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+
+            // Small stock indicator in top-right corner
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: stockColor,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      stockQty <= 0 ? Icons.warning : Icons.inventory,
+                      size: 10,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      '${stockQty.toInt()}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddedToCartSnackbar(Map<String, dynamic> item) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${item['item_name']} added to cart'),
+        duration: const Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showCannotAddToCartMessage(
+    Map<String, dynamic>? selectedCustomer,
+    bool isOutOfStock,
+  ) {
+    String message;
+    if (selectedCustomer == null) {
+      message = 'Please select a customer first';
+    } else if (isOutOfStock) {
+      message = 'Item is out of stock';
+    } else {
+      message = 'Cannot add item to cart';
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
+    );
+  }
+
+  void _showBundleSelection(Map<String, dynamic> bundle) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+          child: BundleSelectionWidget(
+            bundle: bundle,
+            onCancel: () => Navigator.of(context).pop(),
+          ),
+        ),
+      ),
+    );
+  }
+}
