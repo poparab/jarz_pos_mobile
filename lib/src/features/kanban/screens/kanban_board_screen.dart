@@ -8,6 +8,7 @@ import '../widgets/kanban_filters_widget.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../../core/router.dart';
 import '../../pos/presentation/widgets/courier_balances_dialog.dart';
+import '../../../core/network/courier_service.dart';
 
 class KanbanBoardScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
@@ -358,125 +359,20 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           )
           .then((res) async {
         if (mode == 'pay_now') {
-          final rawAmt = res != null
-              ? (res['shipping_amount'] ?? res['shipping_expense'] ?? res['shippingExpense'] ?? res['shipping'])
-              : null;
-          double? shippingAmt;
-          if (rawAmt is num) {
-            shippingAmt = rawAmt.toDouble();
-          } else if (rawAmt is String) {
-            shippingAmt = double.tryParse(rawAmt);
-          }
-          shippingAmt ??= inv?.shippingExpense; // fallback to card value
-          final shippingLabel = (shippingAmt != null) ? '\$${shippingAmt.toStringAsFixed(2)}' : null;
-
-          if (!isPaid) {
-            // Unpaid before: we created a payment entry. Instruct staff to collect net from courier.
-            final orderTotal = inv?.grandTotal ?? 0;
-            final net = (shippingAmt != null) ? (orderTotal - shippingAmt) : null;
-            final orderLabel = '\$${orderTotal.toStringAsFixed(2)}';
-            final netLabel = (net != null) ? '\$${net.toStringAsFixed(2)}' : null;
-            if (!mounted) return; // ensure context is valid before showing dialog
-            await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Collect From Courier'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (netLabel != null) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.indigo.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.indigo.withValues(alpha: 0.3)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: const [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.account_balance_wallet, size: 20, color: Colors.indigo),
-                                SizedBox(width: 8),
-                                Text('Net to Collect', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.indigo)),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Center(
-                        child: Text(
-                          netLabel,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.indigo),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    if ((inv?.territory ?? '').isNotEmpty) ...[
-                      Row(children: [
-                        const Icon(Icons.map, size: 18, color: Colors.blueGrey),
-                        const SizedBox(width: 6),
-                        Text('Territory: ${inv!.territory}', style: const TextStyle(fontSize: 12)),
-                      ]),
-                      const SizedBox(height: 8),
-                    ],
-                    Row(children: [
-                      const Icon(Icons.receipt_long, size: 20, color: Colors.teal),
-                      const SizedBox(width: 8),
-                      Text('Order Total: $orderLabel', style: const TextStyle(fontWeight: FontWeight.w500)),
-                    ]),
-                    const SizedBox(height: 6),
-                    Row(children: [
-                      const Icon(Icons.local_shipping, size: 20, color: Colors.deepOrange),
-                      const SizedBox(width: 8),
-                      Text('Shipping: ${shippingLabel ?? '-'}'),
-                    ]),
-                  ],
-                ),
-                actions: [
-                  TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Done')),
-                ],
-              ),
+          // Fetch settlement preview to drive UI (signed net logic)
+          try {
+            final courierService = ref.read(courierServiceProvider);
+            final preview = await courierService.getSettlementPreview(
+              invoice: invoiceId,
+              partyType: partyType,
+              party: party,
             );
-          } else {
-            // Paid before: prompt to pay courier shipping expense now
-            if (!mounted) return; // ensure context is valid before showing dialog
-            await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Pay Courier Shipping'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Pay the courier the shipping expense amount now:', style: TextStyle(fontSize: 14)),
-                    const SizedBox(height: 12),
-                    if (shippingLabel != null)
-                      Row(children: [
-                        const Icon(Icons.local_shipping, color: Colors.deepOrange, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          shippingLabel,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepOrange),
-                        ),
-                      ])
-                    else
-                      const Text('Amount not returned by server. Please verify in system.',
-                          style: TextStyle(fontSize: 12, color: Colors.redAccent)),
-                  ],
-                ),
-                actions: [
-                  TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Done')),
-                ],
-              ),
+            if (!mounted) return;
+            await _showSettlementResultDialog(preview, inv);
+          } catch (e) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Preview failed: $e')),
             );
           }
         }
@@ -788,6 +684,107 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           );
         });
       },
+    );
+  }
+
+  Future<void> _showSettlementResultDialog(Map<String, dynamic> preview, InvoiceCard? inv) async {
+    final net = (preview['net_amount'] is num)
+        ? (preview['net_amount'] as num).toDouble()
+        : double.tryParse(preview['net_amount']?.toString() ?? '0') ?? 0.0;
+    final shipping = (preview['shipping_amount'] is num)
+        ? (preview['shipping_amount'] as num).toDouble()
+        : double.tryParse(preview['shipping_amount']?.toString() ?? '0') ?? 0.0;
+    final orderAmt = (preview['order_amount'] is num)
+        ? (preview['order_amount'] as num).toDouble()
+        : double.tryParse(preview['order_amount']?.toString() ?? '0') ?? 0.0;
+    final invoiceTotal = (preview['invoice_total'] is num)
+        ? (preview['invoice_total'] as num).toDouble()
+        : double.tryParse(preview['invoice_total']?.toString() ?? '0') ?? orderAmt;
+    final actionCollect = net > 0;
+    final absNet = net.abs();
+    final orderLabel = '\$${invoiceTotal.toStringAsFixed(2)}';
+    final shipLabel = '\$${shipping.toStringAsFixed(2)}';
+    final netLabel = '\$${absNet.toStringAsFixed(2)}';
+    final title = actionCollect ? 'Collect From Courier' : (net < 0 ? 'Pay Courier' : 'Courier Settlement');
+    final territory = inv?.territory;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (actionCollect) ...[
+              const Text('Collect the following amount (Order - Shipping):'),
+              const SizedBox(height: 8),
+              _netChip(netLabel, Colors.indigo, 'Net to Collect'),
+            ] else if (net < 0) ...[
+              const Text('Pay the courier (Shipping - Order):'),
+              const SizedBox(height: 8),
+              _netChip(netLabel, Colors.deepOrange, 'Pay Amount'),
+            ] else ...[
+              const Text('Nothing to pay or collect.'),
+            ],
+            const SizedBox(height: 12),
+            Row(children: [
+              const Icon(Icons.receipt_long, size: 18, color: Colors.teal),
+              const SizedBox(width: 6),
+              Text('Order Total: $orderLabel'),
+            ]),
+            const SizedBox(height: 6),
+            Row(children: [
+              const Icon(Icons.local_shipping, size: 18, color: Colors.deepOrange),
+              const SizedBox(width: 6),
+              Text('Shipping: $shipLabel'),
+            ]),
+            if ((territory ?? '').isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Row(children: [
+                const Icon(Icons.map, size: 18, color: Colors.blueGrey),
+                const SizedBox(width: 6),
+                Text('Territory: $territory'),
+              ]),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Done')),
+        ],
+      ),
+    );
+  }
+
+  Widget _netChip(String value, Color color, String label) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.account_balance_wallet, size: 20, color: color),
+              const SizedBox(width: 8),
+              Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: color),
+          ),
+        ],
+      ),
     );
   }
 }
