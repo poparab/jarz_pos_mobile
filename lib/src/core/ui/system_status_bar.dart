@@ -5,6 +5,8 @@ import '../sync/offline_sync_service.dart';
 import '../websocket/websocket_service.dart';
 import '../../features/pos/state/courier_balances_provider.dart';
 import '../../features/pos/presentation/widgets/courier_balances_dialog.dart';
+import '../../features/pos/state/pos_notifier.dart';
+import '../../features/pos/presentation/widgets/sales_partner_selector.dart';
 
 class SystemStatusBar extends ConsumerWidget {
   const SystemStatusBar({super.key});
@@ -36,7 +38,7 @@ class SystemStatusBar extends ConsumerWidget {
               label: 'Checking...',
               color: Colors.orange,
             ),
-            error: (_, __) => const _StatusChip(
+            error: (err, stack) => const _StatusChip(
               icon: Icons.wifi_off,
               label: 'Error',
               color: Colors.red,
@@ -102,6 +104,60 @@ class SystemStatusBar extends ConsumerWidget {
               label: 'Couriers',
               color: Colors.grey,
             ),
+
+          const SizedBox(width: 12),
+
+          // Sales Partner chip (view/edit/remove)
+          Consumer(
+            builder: (context, ref, _) {
+              final partner = ref.watch(
+                posNotifierProvider.select((s) => s.selectedSalesPartner),
+              );
+              final theme = Theme.of(context);
+              if (partner == null) {
+                // Show subtle add chip for quick access
+                return InkWell(
+                  onTap: () async {
+                    final sel = await showDialog<Map<String, dynamic>?>(
+                      context: context,
+                      builder: (_) => const SalesPartnerSelectorDialog(),
+                    );
+                    if (sel != null) {
+                      ref.read(posNotifierProvider.notifier).setSalesPartner(sel);
+                    }
+                  },
+                  child: _StatusChip(
+                    icon: Icons.handshake,
+                    label: 'Partner',
+                    color: theme.colorScheme.primary,
+                  ),
+                );
+              }
+
+              final partnerLabel = partner['title'] ??
+                  partner['partner_name'] ??
+                  partner['name'] ??
+                  'Sales Partner';
+
+              return InputChip(
+                avatar: const Icon(Icons.handshake, size: 16),
+                label: Text(partnerLabel),
+                onPressed: () async {
+                  final sel = await showDialog<Map<String, dynamic>?>(
+                    context: context,
+                    builder: (_) => const SalesPartnerSelectorDialog(),
+                  );
+                  if (sel != null) {
+                    ref.read(posNotifierProvider.notifier).setSalesPartner(sel);
+                  }
+                },
+                onDeleted: () {
+                  ref.read(posNotifierProvider.notifier).setSalesPartner(null);
+                },
+                deleteIcon: const Icon(Icons.close),
+              );
+            },
+          ),
 
           // Current Time
           StreamBuilder(

@@ -101,6 +101,25 @@ class PosRepository {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getSalesPartners({String? search, int limit = 10}) async {
+    try {
+      final response = await _dio.post(
+        '/api/method/jarz_pos.api.pos.get_sales_partners',
+        data: {
+          if (search != null && search.isNotEmpty) 'search': search,
+          'limit': limit,
+        },
+      );
+      if (response.statusCode == 200 && response.data['message'] != null) {
+        final List<dynamic> data = response.data['message'];
+        return data.cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to fetch sales partners: $e');
+    }
+  }
+
   Future<List<Map<String, dynamic>>> searchCustomers(String query) async {
     try {
       // Check if query contains only digits/phone characters (phone search) or contains letters (name search)
@@ -155,6 +174,8 @@ class PosRepository {
     required List<Map<String, dynamic>> items,
     Map<String, dynamic>? customer,
     String? requiredDeliveryDatetime,
+    String? salesPartner,
+  String? paymentType, // 'cash' | 'online' (optional, advisory)
   }) async {
     try {
       // Convert cart items to backend format (preserve discount fields if present)
@@ -191,7 +212,7 @@ class PosRepository {
       }
 
       // Prepare request data
-      Map<String, dynamic> requestData = {
+  Map<String, dynamic> requestData = {
         'cart_json': jsonEncode(cartItems),
         'customer_name': customer?['name'] ?? 'Walking Customer',
         'pos_profile_name': posProfile,
@@ -215,6 +236,15 @@ class PosRepository {
       if (requiredDeliveryDatetime != null &&
           requiredDeliveryDatetime.isNotEmpty) {
         requestData['required_delivery_datetime'] = requiredDeliveryDatetime;
+      }
+
+      if (salesPartner != null && salesPartner.isNotEmpty) {
+        requestData['sales_partner'] = salesPartner;
+      }
+
+      // Optional advisory flag for backend – lets server record intended payment channel
+      if (paymentType != null && paymentType.isNotEmpty) {
+        requestData['payment_type'] = paymentType; // values: 'cash' | 'online'
       }
 
       if (kDebugMode) {

@@ -40,6 +40,7 @@ class InvoiceCard {
   final String? courierPartyType; // Employee/Supplier
   final String? courierParty; // party id
   final bool hasUnsettledCourierTxn; // new flag from backend
+  final String? salesPartner; // optional sales partner on the invoice
 
   InvoiceCard({
     required this.id,
@@ -63,6 +64,7 @@ class InvoiceCard {
   this.courierPartyType,
   this.courierParty,
   this.hasUnsettledCourierTxn = false,
+  this.salesPartner,
   });
 
   factory InvoiceCard.fromJson(Map<String, dynamic> json) {
@@ -90,6 +92,7 @@ class InvoiceCard {
   // Backend may return 0/1 int, bool, or string variants; normalize to bool
   hasUnsettledCourierTxn: [1, true, '1', 'true', 'True']
       .contains(json['has_unsettled_courier_txn']),
+  salesPartner: (json['sales_partner'] ?? json['salesPartner'] ?? json['partner'])?.toString(),
     );
   }
 
@@ -115,6 +118,7 @@ class InvoiceCard {
   'party_type': courierPartyType,
   'party': courierParty,
   'has_unsettled_courier_txn': hasUnsettledCourierTxn,
+  'sales_partner': salesPartner,
     };
   }
 
@@ -140,6 +144,7 @@ class InvoiceCard {
   String? courierPartyType,
   String? courierParty,
   bool? hasUnsettledCourierTxn,
+  String? salesPartner,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -163,6 +168,7 @@ class InvoiceCard {
   courierPartyType: courierPartyType ?? this.courierPartyType,
   courierParty: courierParty ?? this.courierParty,
   hasUnsettledCourierTxn: hasUnsettledCourierTxn ?? this.hasUnsettledCourierTxn,
+  salesPartner: salesPartner ?? this.salesPartner,
     );
   }
 

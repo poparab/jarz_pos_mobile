@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kanban_models.dart';
 import '../providers/kanban_provider.dart';
 import '../../pos/state/pos_notifier.dart';
+import '../../../core/network/courier_service.dart';
+import 'settlement_preview_dialog.dart';
 
 class InvoiceCardWidget extends ConsumerStatefulWidget {
   final InvoiceCard invoice;
@@ -104,10 +106,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
   Widget _buildCard() {
     final hasProfile = ref.read(posNotifierProvider).selectedProfile != null;
-  final isOutForDelivery = _isPostOutForDelivery(widget.invoice.status);
-  // Show settlement only when backend indicates there is an unsettled courier transaction
-  final hasUnsettled = widget.invoice.hasUnsettledCourierTxn;
-  final canSettleSingle = isOutForDelivery && hasUnsettled && (widget.invoice.courierPartyType != null && widget.invoice.courierParty != null);
+    // Show settlement only when backend indicates there is an unsettled courier transaction
+    final hasUnsettled = widget.invoice.hasUnsettledCourierTxn;
     if (widget.compact) {
       return Card(
         elevation: 10,
@@ -163,7 +163,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       margin: const EdgeInsets.only(bottom: 12),
       child: Card(
         elevation: widget.isDragging ? 8 : 2,
-  shadowColor: widget.isDragging ? Colors.blue.withValues(alpha: 0.3) : null,
+        shadowColor: widget.isDragging ? Colors.blue.withValues(alpha: 0.3) : null,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
@@ -220,6 +220,18 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            if ((widget.invoice.salesPartner ?? '').isNotEmpty)
+                              Tooltip(
+                                message: 'Sales Partner',
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 2),
+                                  child: Icon(
+                                    Icons.handshake,
+                                    size: 18,
+                                    color: Colors.deepPurple,
+                                  ),
+                                ),
+                              ),
                             if (widget.invoice.effectiveStatus.toLowerCase() != 'paid' && !hasUnsettled)
                               Tooltip(
                                 message: 'Pay',
@@ -805,12 +817,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final posState = container.read(posNotifierProvider);
     final messenger = ScaffoldMessenger.of(context);
 
-  final result = await _showCourierSettlementDialog(context);
+    final result = await _showCourierSettlementDialog(context);
     if (result == null) return; // cancelled
-  final courier = result['courier'] as String;
-  final partyType = result['party_type'] as String?;
-  final party = result['party'] as String?;
-  final courierDisplay = result['courier_display'] as String?;
+    final courier = result['courier'] as String;
+    final partyType = result['party_type'] as String?;
+    final party = result['party'] as String?;
+    final courierDisplay = result['courier_display'] as String?;
     final mode = result['mode'] as String; // pay_now | settle_later
     final posProfile = posState.selectedProfile?['name'];
     if (posProfile == null) {
@@ -820,8 +832,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       return;
     }
 
-    // If invoice is unpaid and user chose settle_later -> use backend to mark courier outstanding
-    final isUnpaid = widget.invoice.status.toLowerCase() == 'unpaid';
+  // Treat invoice as unpaid if status is Unpaid/Overdue/Partially Paid, or outstanding > ~0
+  final statusL = (widget.invoice.status).toString().toLowerCase();
+  final effStatusL = (widget.invoice.effectiveStatus).toString().toLowerCase();
+  final isUnpaid = statusL == 'unpaid' || effStatusL == 'unpaid' || statusL == 'overdue' || effStatusL == 'overdue' || statusL.contains('part') || effStatusL.contains('part');
     if (isUnpaid && mode == 'settle_later') {
       try {
         final res = await notifier.markCourierOutstanding(
@@ -849,102 +863,104 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       return;
     }
 
-    // If invoice is unpaid and user chose pay_now we perform a Cash payment first
+    // If invoice is unpaid and user chose pay_now -> new two-step flow (server-driven)
     if (isUnpaid && mode == 'pay_now') {
       try {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Collecting cash payment...')),
+        final courierService = container.read(courierServiceProvider);
+  final preview = await courierService.generateSettlementPreview(
+          invoice: widget.invoice.name,
+          partyType: partyType,
+          party: party,
+          mode: mode,
+          recentPaymentSeconds: 30,
         );
-        final payRes = await notifier.payInvoice(
-          invoiceId: widget.invoice.name,
-          paymentMode: 'Cash',
-          posProfile: posProfile,
+  if (!context.mounted) return;
+        final confirmed = await showSettlementConfirmDialog(
+          context,
+          preview,
+          invoice: widget.invoice.name,
+          territory: widget.invoice.territory,
+          orderFallback: widget.invoice.grandTotal,
+          shippingFallback: widget.invoice.shippingExpenseDisplay,
         );
-        if (payRes == null || payRes['success'] != true) {
-          messenger.showSnackBar(
-            const SnackBar(content: Text('Payment failed, aborting delivery')),
-          );
+        if (confirmed != true) return;
+
+        final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
+        if (token.isEmpty) {
+          messenger.showSnackBar(const SnackBar(content: Text('Preview expired. Please retry.')));
           return;
         }
-        messenger.showSnackBar(
-          SnackBar(content: Text('Payment OK (${payRes['payment_entry']})')),
+        messenger.showSnackBar(const SnackBar(content: Text('Confirming settlement...')));
+        final res = await courierService.confirmSettlement(
+          invoice: widget.invoice.name,
+          previewToken: token,
+          mode: mode,
+          posProfile: posProfile,
+          partyType: partyType,
+          party: party,
+          paymentMode: 'Cash',
+          // Pass the courier party/id, not the display label
+          courier: courier,
         );
+        if (res['success'] != true) {
+          messenger.showSnackBar(const SnackBar(content: Text('Settlement failed')));
+          return;
+        }
+        messenger.showSnackBar(const SnackBar(content: Text('Settlement confirmed')));
+        // Continue to rest (OFD status feedback handled server-side)
       } catch (e) {
-        messenger.showSnackBar(
-          SnackBar(content: Text('Payment error: $e')),
-        );
-        return; // abort delivery if payment errored
+        messenger.showSnackBar(SnackBar(content: Text('Settlement error: $e')));
+        return;
       }
     }
     try {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Processing Delivery...')),
-      );
-      final res = await notifier.outForDeliveryUnified(
-        invoiceId: widget.invoice.name,
-        courier: courier,
-        mode: mode,
-        posProfile: posProfile,
-  partyType: partyType,
-  party: party,
-  courierDisplay: courierDisplay,
-      );
-  if (res != null && res['success'] == true) {
+      // For unpaid+pay_now, the server already handled OFD inside confirm_settlement.
+      // For all other modes (e.g., already paid paths), use existing unified endpoint.
+      Map<String, dynamic>? res;
+      if (!(isUnpaid && mode == 'pay_now')) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Processing Delivery...')),
+        );
+        res = await notifier.outForDeliveryUnified(
+          invoiceId: widget.invoice.name,
+          courier: courier,
+          mode: mode,
+          posProfile: posProfile,
+          partyType: partyType,
+          party: party,
+          courierDisplay: courierDisplay,
+        );
+      } else {
+        res = {"success": true};
+      }
+      if (res != null && res['success'] == true) {
         messenger.showSnackBar(
           SnackBar(content: Text('Updated: JE ${res['journal_entry'] ?? '-'}')),
         );
-        // If invoice already paid & choosing pay_now: show confirmation dialog to pay courier shipping expense
-        final wasPaidBefore = (widget.invoice.status.toLowerCase() == 'paid' || widget.invoice.effectiveStatus.toLowerCase() == 'paid');
-        if (mode == 'pay_now') { // show regardless, but wording differs
-          final rawAmt = res['shipping_amount'] ?? res['shipping_expense'] ?? res['shippingExpense'] ?? res['shipping'];
-          double? amt;
-          if (rawAmt is num) {
-            amt = rawAmt.toDouble();
-          } else if (rawAmt is String) {
-            amt = double.tryParse(rawAmt);
+        // For pay_now flows, show the unified settlement info dialog driven by preview
+        if (mode == 'pay_now') {
+          try {
+            final courierService = ref.read(courierServiceProvider);
+            final preview = await courierService.getSettlementPreview(
+              invoice: widget.invoice.name,
+              partyType: partyType,
+              party: party,
+            );
+            if (!context.mounted) return;
+            await showSettlementInfoDialog(
+              context,
+              preview,
+              invoice: widget.invoice.name,
+              territory: widget.invoice.territory,
+              orderFallback: widget.invoice.grandTotal,
+              shippingFallback: widget.invoice.shippingExpenseDisplay,
+            );
+          } catch (e) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Preview failed: $e')),
+            );
           }
-                    final amountLabel = amt != null ? '\$${amt.toStringAsFixed(2)}' : null;
-          if (!context.mounted) return; // ensure valid context before dialog
-          await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (ctx) {
-              return AlertDialog(
-                title: const Text('Pay Courier Shipping'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      wasPaidBefore
-                                    ? 'Pay the courier the shipping expense amount now:'
-                                    : 'Pay the courier the shipping expense amount now:',
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 12),
-                    if (amountLabel != null)
-                      Row(
-                        children: [
-                          const Icon(Icons.local_shipping, color: Colors.deepOrange, size: 20),
-                          const SizedBox(width: 8),
-                          Text(amountLabel,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepOrange)),
-                        ],
-                      ),
-                    if (amountLabel == null)
-                      const Text('Amount not returned by server. Please verify in system.',
-                          style: TextStyle(fontSize: 12, color: Colors.redAccent)),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text('Done'),
-                  ),
-                ],
-              );
-            },
-          );
         }
       } else {
         messenger.showSnackBar(
@@ -959,17 +975,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   }
 
   Future<Map<String, dynamic>?> _showCourierSettlementDialog(BuildContext context) async {
-  String? courier;
-  String? partyType;
-  String? party;
+    String? courier;
+    String? partyType;
+    String? party;
     String mode = 'pay_now';
     bool loading = true;
-  List<Map<String, String>> couriers = [];
-  bool creating = false;
-  String newPartyType = 'Employee';
-  final firstNameController = TextEditingController();
-  final lastNameController = TextEditingController();
-  final phoneController = TextEditingController();
+    List<Map<String, String>> couriers = [];
+    bool creating = false;
+    String newPartyType = 'Employee';
+    final firstNameController = TextEditingController();
+    final lastNameController = TextEditingController();
+    final phoneController = TextEditingController();
 
     final container = ProviderScope.containerOf(context, listen: false);
     try {
@@ -981,7 +997,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     } catch (_) {}
     loading = false;
 
-  if (!context.mounted) return null; // avoid context use if widget disposed
+    if (!context.mounted) return null; // avoid context use if widget disposed
     return showDialog<Map<String, dynamic>>(
       context: context,
       barrierDismissible: false,
@@ -997,218 +1013,218 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                        if (widget.invoice.status.toLowerCase() == 'unpaid')
-                          Container(
-                            width: double.infinity,
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.amber[50],
-                              border: Border.all(color: Colors.amber.shade300),
-                              borderRadius: BorderRadius.circular(8),
+                          if (widget.invoice.status.toLowerCase() == 'unpaid')
+                            Container(
+                              width: double.infinity,
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.amber[50],
+                                border: Border.all(color: Colors.amber.shade300),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.info_outline, size: 18, color: Colors.amber),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Invoice is UNPAID. Choose "Courier Collects Cash Now" to record a cash payment before marking Out For Delivery, or use "Settle Later" to defer collection.',
+                                      style: const TextStyle(fontSize: 12, height: 1.3),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          if (!creating) ...[
+                            if (couriers.isEmpty) ...[
+                              const Icon(Icons.local_shipping_outlined, size: 48, color: Colors.orange),
+                              const SizedBox(height: 12),
+                              Text('No couriers available', style: Theme.of(context).textTheme.titleMedium),
+                              const SizedBox(height: 8),
+                              Text('Create a courier then proceed.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                              const SizedBox(height: 16),
+                            ] else ...[
+                              LayoutBuilder(
+                                builder: (ctx, constraints) {
+                                  final isWide = constraints.maxWidth > 560;
+                                  final crossAxisCount = isWide ? 3 : 2;
+                                  return GridView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: couriers.length,
+                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: crossAxisCount,
+                                      crossAxisSpacing: 12,
+                                      mainAxisSpacing: 12,
+                                      childAspectRatio: 2.8,
+                                    ),
+                                    itemBuilder: (ctx, i) {
+                                      final c = couriers[i];
+                                      final selected = courier == c['party'];
+                                      return InkWell(
+                                        onTap: () => setState(() {
+                                          courier = c['party'];
+                                          partyType = c['party_type'];
+                                          party = c['party'];
+                                        }),
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(milliseconds: 180),
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: selected ? Colors.blue : Colors.grey[300]!,
+                                              width: selected ? 2 : 1,
+                                            ),
+                                            color: selected ? Colors.blue.withValues(alpha: 0.06) : Colors.white,
+                                            boxShadow: [
+                                              if (selected)
+                                                BoxShadow(
+                                                  color: Colors.blue.withValues(alpha: 0.15),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 18,
+                                                backgroundColor: selected ? Colors.blue : Colors.grey[200],
+                                                child: Icon(Icons.person, color: selected ? Colors.white : Colors.grey[600]),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    Text(
+                                                      c['display_name'] ?? c['party']!,
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: selected ? Colors.blue[800] : Colors.black87,
+                                                      ),
+                                                    ),
+                                                    if (c['party_type'] != null)
+                                                      Text(
+                                                        c['party_type']!,
+                                                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton.icon(
+                                icon: const Icon(Icons.add),
+                                label: const Text('New Courier'),
+                                onPressed: () => setState(() => creating = true),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                          ] else ...[
+                            Row(
                               children: [
-                                const Icon(Icons.info_outline, size: 18, color: Colors.amber),
-                                const SizedBox(width: 8),
                                 Expanded(
-                                  child: Text(
-                                    'Invoice is UNPAID. Choose "Courier Collects Cash Now" to record a cash payment before marking Out For Delivery, or use "Settle Later" to defer collection.',
-                                    style: const TextStyle(fontSize: 12, height: 1.3),
+                                  child: TextFormField(
+                                    controller: firstNameController,
+                                    decoration: const InputDecoration(labelText: 'First Name'),
+                                    textInputAction: TextInputAction.next,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: lastNameController,
+                                    decoration: const InputDecoration(labelText: 'Last Name'),
+                                    textInputAction: TextInputAction.next,
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        if (!creating) ...[
-                          if (couriers.isEmpty) ...[
-                            const Icon(Icons.local_shipping_outlined, size: 48, color: Colors.orange),
-                            const SizedBox(height: 12),
-                            Text('No couriers available', style: Theme.of(context).textTheme.titleMedium),
                             const SizedBox(height: 8),
-                            Text('Create a courier then proceed.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
-                            const SizedBox(height: 16),
-                          ] else ...[
-                            LayoutBuilder(
-                              builder: (ctx, constraints) {
-                                final isWide = constraints.maxWidth > 560;
-                                final crossAxisCount = isWide ? 3 : 2;
-                                return GridView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: couriers.length,
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: crossAxisCount,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 12,
-                                    childAspectRatio: 2.8,
-                                  ),
-                                  itemBuilder: (ctx, i) {
-                                    final c = couriers[i];
-                                    final selected = courier == c['party'];
-                                    return InkWell(
-                                      onTap: () => setState(() {
-                                        courier = c['party'];
-                                        partyType = c['party_type'];
-                                        party = c['party'];
-                                      }),
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 180),
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(
-                                            color: selected ? Colors.blue : Colors.grey[300]!,
-                                            width: selected ? 2 : 1,
-                                          ),
-                                          color: selected ? Colors.blue.withValues(alpha: 0.06) : Colors.white,
-                                          boxShadow: [
-                                            if (selected)
-                                              BoxShadow(
-                                                color: Colors.blue.withValues(alpha: 0.15),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                          ],
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 18,
-                                              backgroundColor: selected ? Colors.blue : Colors.grey[200],
-                                              child: Icon(Icons.person, color: selected ? Colors.white : Colors.grey[600]),
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    c['display_name'] ?? c['party']!,
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontSize: 13,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: selected ? Colors.blue[800] : Colors.black87,
-                                                    ),
-                                                  ),
-                                                  if (c['party_type'] != null)
-                                                    Text(
-                                                      c['party_type']!,
-                                                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                                                    ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
+                            TextFormField(
+                              controller: phoneController,
+                              decoration: const InputDecoration(labelText: 'Phone'),
+                              keyboardType: TextInputType.phone,
+                            ),
+                            const SizedBox(height: 8),
+                            DropdownButtonFormField<String>(
+                              initialValue: newPartyType,
+                              decoration: const InputDecoration(labelText: 'Type'),
+                              items: const [
+                                DropdownMenuItem(value: 'Employee', child: Text('Employee')),
+                                DropdownMenuItem(value: 'Supplier', child: Text('Supplier')),
+                              ],
+                              onChanged: (v) => setState(() => newPartyType = v ?? 'Employee'),
                             ),
                             const SizedBox(height: 12),
-                          ],
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: TextButton.icon(
-                              icon: const Icon(Icons.add),
-                              label: const Text('New Courier'),
-                              onPressed: () => setState(() => creating = true),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                        ] else ...[
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  controller: firstNameController,
-                                  decoration: const InputDecoration(labelText: 'First Name'),
-                                  textInputAction: TextInputAction.next,
+                            Row(
+                              children: [
+                                OutlinedButton(
+                                  onPressed: loading ? null : () => setState(() => creating = false),
+                                  child: const Text('Back'),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: lastNameController,
-                                  decoration: const InputDecoration(labelText: 'Last Name'),
-                                  textInputAction: TextInputAction.next,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: phoneController,
-                            decoration: const InputDecoration(labelText: 'Phone'),
-                            keyboardType: TextInputType.phone,
-                          ),
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<String>(
-                            initialValue: newPartyType,
-                            decoration: const InputDecoration(labelText: 'Type'),
-                            items: const [
-                              DropdownMenuItem(value: 'Employee', child: Text('Employee')),
-                              DropdownMenuItem(value: 'Supplier', child: Text('Supplier')),
-                            ],
-                            onChanged: (v) => setState(() => newPartyType = v ?? 'Employee'),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              OutlinedButton(
-                                onPressed: loading ? null : () => setState(() => creating = false),
-                                child: const Text('Back'),
-                              ),
-                              const SizedBox(width: 12),
-                              ElevatedButton.icon(
-                                onPressed: loading
-                                    ? null
-                                    : () async {
-                                        final firstName = firstNameController.text.trim();
-                                        final lastName = lastNameController.text.trim();
-                                        final phone = phoneController.text.trim();
-                                        if (firstName.isEmpty || lastName.isEmpty) return;
-                                        setState(() => loading = true);
-                                        try {
-                                          final posProfile = container.read(posNotifierProvider).selectedProfile?['name'];
-                                          final created = await container.read(kanbanProvider.notifier).createDeliveryParty(
-                                            partyType: newPartyType,
-                                            firstName: firstName,
-                                            lastName: lastName,
-                                            phone: phone,
-                                            posProfile: posProfile,
-                                          );
-                                          if (created != null) {
-                                            couriers = [...couriers, created];
-                                            courier = created['party'];
-                                            partyType = created['party_type'];
-                                            party = created['party'];
-                                            creating = false;
-                                          }
-                                        } catch (e) {
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Create failed: $e')),
+                                const SizedBox(width: 12),
+                                ElevatedButton.icon(
+                                  onPressed: loading
+                                      ? null
+                                      : () async {
+                                          final firstName = firstNameController.text.trim();
+                                          final lastName = lastNameController.text.trim();
+                                          final phone = phoneController.text.trim();
+                                          if (firstName.isEmpty || lastName.isEmpty) return;
+                                          setState(() => loading = true);
+                                          try {
+                                            final posProfile = container.read(posNotifierProvider).selectedProfile?['name'];
+                                            final created = await container.read(kanbanProvider.notifier).createDeliveryParty(
+                                              partyType: newPartyType,
+                                              firstName: firstName,
+                                              lastName: lastName,
+                                              phone: phone,
+                                              posProfile: posProfile,
                                             );
+                                            if (created != null) {
+                                              couriers = [...couriers, created];
+                                              courier = created['party'];
+                                              partyType = created['party_type'];
+                                              party = created['party'];
+                                              creating = false;
+                                            }
+                                          } catch (e) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('Create failed: $e')),
+                                              );
+                                            }
+                                          } finally {
+                                            setState(() => loading = false);
                                           }
-                                        } finally {
-                                          setState(() => loading = false);
-                                        }
-                                      },
-                                icon: const Icon(Icons.check),
-                                label: const Text('Save'),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                        ],
+                                        },
+                                  icon: const Icon(Icons.check),
+                                  label: const Text('Save'),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                          ],
                           const SizedBox(height: 8),
                           Align(
                             alignment: Alignment.centerLeft,
@@ -1267,80 +1283,93 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   Future<void> _settleCourierTransaction(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final posProfile = ref.read(posNotifierProvider).selectedProfile?['name'];
-    final partyType = widget.invoice.courierPartyType;
-    final party = widget.invoice.courierParty;
+    // Treat blank strings from model as null so we can adopt backend preview values
+    String? partyType = (widget.invoice.courierPartyType?.trim().isEmpty ?? true)
+        ? null
+        : widget.invoice.courierPartyType;
+    String? party = (widget.invoice.courierParty?.trim().isEmpty ?? true)
+        ? null
+        : widget.invoice.courierParty;
     if (posProfile == null) {
       messenger.showSnackBar(const SnackBar(content: Text('Select POS profile first')));
       return;
     }
-    // Backend now has fallback logic, so we don't need to check for party info here
-    final isPaid = widget.invoice.effectiveStatus.toLowerCase() == 'paid';
+
     try {
-      messenger.showSnackBar(const SnackBar(content: Text('Settling courier...')));
+      // 1. Fetch settlement preview (signed net amount logic)
+      final courierService = ref.read(courierServiceProvider);
+      // Fallback: if invoice missing party info try preview without filters first to derive existing CT party
+      Map<String, dynamic> preview;
+      try {
+        preview = await courierService.getSettlementPreview(
+          invoice: widget.invoice.name,
+          partyType: partyType,
+          party: party,
+        );
+      } catch (_) {
+        preview = await courierService.getSettlementPreview(invoice: widget.invoice.name);
+      }
+      // Adopt party derived by backend if we passed blanks / nulls
+      if (partyType == null || partyType.trim().isEmpty) {
+        final pv = (preview['party_type'] ?? '').toString().trim();
+        if (pv.isNotEmpty) partyType = pv;
+      }
+      if (party == null || party.trim().isEmpty) {
+        final pv = (preview['party'] ?? '').toString().trim();
+        if (pv.isNotEmpty) party = pv;
+      }
+      // Validate we now have party identifiers (backend endpoints require them)
+      if (partyType == null || partyType.isEmpty || party == null || party.isEmpty) {
+        messenger.showSnackBar(const SnackBar(content: Text('Cannot settle: courier party not resolved. Assign courier or retry.')));
+        return;
+      }
+  if (!context.mounted) return;
+
+      // 2. Show confirmation dialog with collect / pay details (shared helper)
+      final confirmed = await showSettlementConfirmDialog(
+        context,
+        preview,
+        invoice: widget.invoice.name,
+        territory: widget.invoice.territory,
+        orderFallback: widget.invoice.grandTotal, // use invoice total when preview omits
+        shippingFallback: (widget.invoice.shippingExpenseDisplay).toDouble(),
+      );
+      if (confirmed != true) return; // user cancelled
+
+      // 3. Determine which backend endpoint based on net amount sign
+      final netRaw = preview['net_amount'];
+      final net = (netRaw is num) ? netRaw.toDouble() : double.tryParse(netRaw?.toString() ?? '0') ?? 0.0;
+
       final notifier = ref.read(kanbanProvider.notifier);
       Map<String, dynamic>? res;
-      if (isPaid) {
-        res = await notifier.settleSingleInvoicePaid(
-          invoiceId: widget.invoice.name,
-          posProfile: posProfile,
-          partyType: partyType ?? '',
-          party: party ?? '',
-        );
-      } else {
+
+      if (net > 0) {
+        // Branch collects from courier (courier collected payment from customer)
         res = await notifier.settleCourierCollectedPayment(
           invoiceId: widget.invoice.name,
           posProfile: posProfile,
-          partyType: partyType ?? '',
-          party: party ?? '',
+          partyType: partyType,
+          party: party,
         );
+      } else if (net < 0) {
+        // Branch pays courier shipping expense
+        res = await notifier.settleSingleInvoicePaid(
+          invoiceId: widget.invoice.name,
+          posProfile: posProfile,
+          partyType: partyType,
+          party: party,
+        );
+      } else {
+        messenger.showSnackBar(const SnackBar(content: Text('Nothing to settle')));
+        return;
       }
-      res ??= {};
-      if (!mounted) return;
-      if (res['success'] == true) {
-        final amt = (res['shipping_amount'] as num?)?.toDouble();
-        final courierName = party;
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Courier Settlement'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Pay the courier $courierName amount',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 12),
-                if (amt != null)
-                  Row(
-                    children: [
-                      const Icon(Icons.local_shipping, color: Colors.teal, size: 22),
-                      const SizedBox(width: 8),
-                      Text(
-                        '\$${amt.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal,
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                  const Text('Amount not found', style: TextStyle(fontSize: 12, color: Colors.redAccent)),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Done'),
-              ),
-            ],
-          ),
-        );
-        try { await ref.read(kanbanProvider.notifier).loadInvoices(); } catch (_) {}
+
+  if (!context.mounted) return;
+      if (res != null && (res['success'] == true || res['journal_entry'] != null)) {
+        messenger.showSnackBar(const SnackBar(content: Text('Settlement complete')));
+        try {
+          await ref.read(kanbanProvider.notifier).loadInvoices();
+        } catch (_) {}
       } else {
         messenger.showSnackBar(const SnackBar(content: Text('Settlement failed')));
       }

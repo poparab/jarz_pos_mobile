@@ -124,7 +124,7 @@ class CheckoutButtonWidget extends ConsumerWidget {
 
   Future<void> _performCheckout(WidgetRef ref, BuildContext context) async {
     try {
-      await ref.read(posNotifierProvider.notifier).checkout(ref);
+  await ref.read(posNotifierProvider.notifier).checkout(ref: ref);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

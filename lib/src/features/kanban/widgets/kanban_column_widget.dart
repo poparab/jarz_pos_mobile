@@ -186,7 +186,7 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
             dragAnchorStrategy: pointerDragAnchorStrategy,
             maxSimultaneousDrags: 1,
             onDragStarted: () => setState(() => _draggingId = invoice.id),
-            onDraggableCanceled: (_, __) {
+            onDraggableCanceled: (velocity, offset) {
               setState(() => _draggingId = null);
               widget.onCardPointerActive?.call(false);
             },

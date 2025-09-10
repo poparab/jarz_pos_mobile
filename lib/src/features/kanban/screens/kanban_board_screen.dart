@@ -9,6 +9,7 @@ import '../../pos/state/pos_notifier.dart';
 import '../../../core/router.dart';
 import '../../pos/presentation/widgets/courier_balances_dialog.dart';
 import '../../../core/network/courier_service.dart';
+import '../widgets/settlement_preview_dialog.dart';
 
 class KanbanBoardScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
@@ -318,16 +319,29 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         return; // handled
       }
 
-      // If unpaid and choosing pay_now, perform a cash payment first
+      // If unpaid and choosing pay_now -> use two-step server-driven flow (preview -> confirm)
       if (!isPaid && mode == 'pay_now') {
         try {
-          final payRes = await ref.read(kanbanProvider.notifier).payInvoice(
-            invoiceId: invoiceId,
-            paymentMode: 'Cash',
-            posProfile: posProfile,
+          final courierService = ref.read(courierServiceProvider);
+          final preview = await courierService.generateSettlementPreview(
+            invoice: invoiceId,
+            partyType: partyType,
+            party: party,
+            mode: mode,
+            recentPaymentSeconds: 30,
           );
-          if (payRes == null || payRes['success'] != true) {
-            messenger.showSnackBar(const SnackBar(content: Text('Payment failed; aborting move')));
+          if (!mounted) return;
+
+          final confirmed = await showSettlementConfirmDialog(
+            context,
+            preview,
+            invoice: invoiceId,
+            territory: inv?.territory,
+            orderFallback: inv?.grandTotal,
+            shippingFallback: inv?.shippingExpenseDisplay,
+          );
+          if (confirmed != true) {
+            // Revert visual move if user cancelled
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
               orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
@@ -335,8 +349,45 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
             return;
           }
+
+          final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
+          if (token.isEmpty) {
+            messenger.showSnackBar(const SnackBar(content: Text('Preview expired. Please retry.')));
+            // revert
+            final fromCol = ref.read(kanbanProvider).columns.firstWhere(
+              (c) => c.id == fromColumnId,
+              orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
+            );
+            ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
+            return;
+          }
+
+          messenger.showSnackBar(const SnackBar(content: Text('Confirming settlement...')));
+          final res = await courierService.confirmSettlement(
+            invoice: invoiceId,
+            previewToken: token,
+            mode: mode,
+            posProfile: posProfile,
+            partyType: partyType,
+            party: party,
+            paymentMode: 'Cash',
+            courier: courier ?? courierDisplay ?? 'UNKNOWN',
+          );
+          if (res['success'] != true) {
+            messenger.showSnackBar(const SnackBar(content: Text('Settlement failed')));
+            // revert
+            final fromCol = ref.read(kanbanProvider).columns.firstWhere(
+              (c) => c.id == fromColumnId,
+              orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
+            );
+            ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
+            return;
+          }
+          messenger.showSnackBar(const SnackBar(content: Text('Settlement confirmed')));
+          return; // handled: server already performed OFD
         } catch (e) {
-          messenger.showSnackBar(SnackBar(content: Text('Payment error: $e')));
+          messenger.showSnackBar(SnackBar(content: Text('Settlement error: $e')));
+          // revert
           final fromCol = ref.read(kanbanProvider).columns.firstWhere(
             (c) => c.id == fromColumnId,
             orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
@@ -688,103 +739,13 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   }
 
   Future<void> _showSettlementResultDialog(Map<String, dynamic> preview, InvoiceCard? inv) async {
-    final net = (preview['net_amount'] is num)
-        ? (preview['net_amount'] as num).toDouble()
-        : double.tryParse(preview['net_amount']?.toString() ?? '0') ?? 0.0;
-    final shipping = (preview['shipping_amount'] is num)
-        ? (preview['shipping_amount'] as num).toDouble()
-        : double.tryParse(preview['shipping_amount']?.toString() ?? '0') ?? 0.0;
-    final orderAmt = (preview['order_amount'] is num)
-        ? (preview['order_amount'] as num).toDouble()
-        : double.tryParse(preview['order_amount']?.toString() ?? '0') ?? 0.0;
-    final invoiceTotal = (preview['invoice_total'] is num)
-        ? (preview['invoice_total'] as num).toDouble()
-        : double.tryParse(preview['invoice_total']?.toString() ?? '0') ?? orderAmt;
-    final actionCollect = net > 0;
-    final absNet = net.abs();
-    final orderLabel = '\$${invoiceTotal.toStringAsFixed(2)}';
-    final shipLabel = '\$${shipping.toStringAsFixed(2)}';
-    final netLabel = '\$${absNet.toStringAsFixed(2)}';
-    final title = actionCollect ? 'Collect From Courier' : (net < 0 ? 'Pay Courier' : 'Courier Settlement');
-    final territory = inv?.territory;
-
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (actionCollect) ...[
-              const Text('Collect the following amount (Order - Shipping):'),
-              const SizedBox(height: 8),
-              _netChip(netLabel, Colors.indigo, 'Net to Collect'),
-            ] else if (net < 0) ...[
-              const Text('Pay the courier (Shipping - Order):'),
-              const SizedBox(height: 8),
-              _netChip(netLabel, Colors.deepOrange, 'Pay Amount'),
-            ] else ...[
-              const Text('Nothing to pay or collect.'),
-            ],
-            const SizedBox(height: 12),
-            Row(children: [
-              const Icon(Icons.receipt_long, size: 18, color: Colors.teal),
-              const SizedBox(width: 6),
-              Text('Order Total: $orderLabel'),
-            ]),
-            const SizedBox(height: 6),
-            Row(children: [
-              const Icon(Icons.local_shipping, size: 18, color: Colors.deepOrange),
-              const SizedBox(width: 6),
-              Text('Shipping: $shipLabel'),
-            ]),
-            if ((territory ?? '').isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Row(children: [
-                const Icon(Icons.map, size: 18, color: Colors.blueGrey),
-                const SizedBox(width: 6),
-                Text('Territory: $territory'),
-              ]),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Done')),
-        ],
-      ),
-    );
-  }
-
-  Widget _netChip(String value, Color color, String label) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.account_balance_wallet, size: 20, color: color),
-              const SizedBox(width: 8),
-              Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: color),
-          ),
-        ],
-      ),
+    await showSettlementInfoDialog(
+      context,
+      preview,
+      invoice: inv?.name,
+      territory: inv?.territory,
+      orderFallback: inv?.grandTotal,
+      shippingFallback: inv?.shippingExpenseDisplay,
     );
   }
 }

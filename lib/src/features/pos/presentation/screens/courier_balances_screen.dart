@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/courier_balances_provider.dart';
 import '../../data/repositories/courier_repository.dart';
+import '../../../kanban/widgets/settlement_preview_dialog.dart';
 
 class CourierBalancesScreen extends ConsumerWidget {
   const CourierBalancesScreen({super.key});
@@ -97,7 +98,7 @@ class CourierBalancesScreen extends ConsumerWidget {
                                     controller: scrollController,
                                     padding: const EdgeInsets.all(12),
                                     itemCount: b.details.length,
-                                    separatorBuilder: (_, __) => const Divider(height: 1),
+                                    separatorBuilder: (context, index) => const Divider(height: 1),
                                     itemBuilder: (context, index) {
                                       final d = b.details[index];
                                       final net = d.amount - d.shipping;
@@ -146,7 +147,7 @@ class CourierBalancesScreen extends ConsumerWidget {
                   },
                 );
               },
-              separatorBuilder: (_, __) => const Divider(height: 1),
+              separatorBuilder: (context, index) => const Divider(height: 1),
               itemCount: balances.length,
             );
           },
@@ -164,8 +165,9 @@ Future<void> _showSettlementPreview(
   required String party,
 }) async {
   final repo = ref.read(courierRepositoryProvider);
+  final ctx = context;
   showDialog(
-    context: context,
+    context: ctx,
     barrierDismissible: false,
     builder: (_) => const Center(child: CircularProgressIndicator()),
   );
@@ -175,46 +177,19 @@ Future<void> _showSettlementPreview(
       partyType: partyType.isNotEmpty ? partyType : null,
       party: party.isNotEmpty ? party : null,
     );
-    if (!context.mounted) return;
-    Navigator.of(context).pop(); // remove loader
-  final action = preview['branch_action'] as String? ?? '';
-  final net = (preview['net_amount'] ?? 0).toString();
-  final netVal = (preview['net_amount'] is num)
-    ? (preview['net_amount'] as num).toDouble()
-    : double.tryParse(preview['net_amount'].toString()) ?? 0.0;
-  final message = preview['message'] as String? ?? 'No details';
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('Settlement Preview – $invoice'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(message),
-            const SizedBox(height: 12),
-            Text(
-              netVal > 0
-                  ? 'COLLECT: ${netVal.toStringAsFixed(2)}'
-                  : netVal < 0
-                      ? 'PAY: ${(-netVal).toStringAsFixed(2)}'
-                      : 'Nothing to pay or collect',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
+    if (!ctx.mounted) return;
+    Navigator.of(ctx).pop(); // remove loader
+    await showSettlementInfoDialog(
+      ctx,
+      preview,
+      invoice: invoice,
+      orderFallback: null, // not available here
+      shippingFallback: null,
     );
   } catch (e) {
-    if (!context.mounted) return;
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
+    if (!ctx.mounted) return;
+    Navigator.of(ctx).pop();
+    ScaffoldMessenger.of(ctx).showSnackBar(
       SnackBar(
         content: Text('Failed to load settlement preview: $e'),
         backgroundColor: Theme.of(context).colorScheme.error,

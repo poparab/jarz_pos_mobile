@@ -6,6 +6,7 @@ import '../../../../core/router.dart';
 import '../../../../core/ui/system_status_bar.dart';
 import '../../state/pos_notifier.dart';
 import '../widgets/customer_search_widget.dart';
+import '../widgets/sales_partner_selector.dart';
 import '../widgets/item_grid_widget.dart';
 import '../widgets/cart_widget.dart';
 import '../widgets/courier_balances_dialog.dart';
@@ -57,6 +58,20 @@ class _PosScreenState extends ConsumerState<PosScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
         actions: [
+          // Sales Partner quick selector (icon opens modal)
+          IconButton(
+            icon: const Icon(Icons.handshake),
+            tooltip: 'Select Sales Partner',
+            onPressed: () async {
+              final sel = await showDialog<Map<String, dynamic>?>(
+                context: context,
+                builder: (_) => const SalesPartnerSelectorDialog(),
+              );
+              if (sel != null) {
+                ref.read(posNotifierProvider.notifier).setSalesPartner(sel);
+              }
+            },
+          ),
           // Couriers shortcut (opens big popup)
           IconButton(
             icon: const Icon(Icons.local_shipping),

@@ -15,6 +15,7 @@ class PosState {
   final List<Map<String, dynamic>> cartItems;
   final Map<String, dynamic>? selectedCustomer;
   final DeliverySlot? selectedDeliverySlot;
+  final Map<String, dynamic>? selectedSalesPartner;
   final bool isLoading;
   final String? error;
 
@@ -26,6 +27,7 @@ class PosState {
     this.cartItems = const [],
     this.selectedCustomer,
     this.selectedDeliverySlot,
+  this.selectedSalesPartner,
     this.isLoading = false,
     this.error,
   });
@@ -38,6 +40,7 @@ class PosState {
     List<Map<String, dynamic>>? cartItems,
     Map<String, dynamic>? selectedCustomer,
     DeliverySlot? selectedDeliverySlot,
+  Map<String, dynamic>? selectedSalesPartner,
     bool? isLoading,
     String? error,
     bool clearSelectedCustomer = false,
@@ -56,6 +59,7 @@ class PosState {
       selectedDeliverySlot: clearSelectedDeliverySlot
           ? null
           : (selectedDeliverySlot ?? this.selectedDeliverySlot),
+  selectedSalesPartner: selectedSalesPartner ?? this.selectedSalesPartner,
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
     );
@@ -276,6 +280,10 @@ class PosNotifier extends StateNotifier<PosState> {
     state = state.copyWith(selectedDeliverySlot: slot);
   }
 
+  void setSalesPartner(Map<String, dynamic>? partner) {
+    state = state.copyWith(selectedSalesPartner: partner);
+  }
+
   void unselectCustomer() {
     if (kDebugMode) {
       debugPrint('unselectCustomer called - clearing customer state'); // Debug
@@ -302,7 +310,7 @@ class PosNotifier extends StateNotifier<PosState> {
     state = state.copyWith(cartItems: []);
   }
 
-  Future<void> checkout([WidgetRef? ref]) async {
+  Future<void> checkout({WidgetRef? ref, String? paymentType}) async {
     if (state.cartItems.isEmpty) {
       state = state.copyWith(error: 'Cart is empty', clearError: false);
       return;
@@ -341,6 +349,8 @@ class PosNotifier extends StateNotifier<PosState> {
         items: state.cartItems,
         customer: state.selectedCustomer,
         requiredDeliveryDatetime: state.selectedDeliverySlot?.datetime,
+        salesPartner: state.selectedSalesPartner?['name'],
+        paymentType: paymentType,
       );
 
       if (kDebugMode) {
@@ -355,6 +365,7 @@ class PosNotifier extends StateNotifier<PosState> {
         cartItems: [],
         clearSelectedCustomer: true,
         clearSelectedDeliverySlot: true,
+  selectedSalesPartner: null,
         isLoading: false,
       );
 

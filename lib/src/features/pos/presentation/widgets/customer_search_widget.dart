@@ -546,6 +546,11 @@ class _QuickAddCustomerWidgetState
 
   @override
   Widget build(BuildContext context) {
+    // If a Sales Partner is selected on the POS, address becomes optional
+    final selectedSalesPartner = ref.watch(
+      posNotifierProvider.select((s) => s.selectedSalesPartner),
+    );
+    final bool hasPartner = selectedSalesPartner != null;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Form(
@@ -647,15 +652,22 @@ class _QuickAddCustomerWidgetState
                     TextFormField(
                       controller: _addressController,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Detailed Address *',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.location_on),
+                      decoration: InputDecoration(
+                        labelText: hasPartner
+                            ? 'Detailed Address (Optional)'
+                            : 'Detailed Address *',
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.location_on),
                         alignLabelWithHint: true,
+                        helperText: hasPartner
+                            ? 'Optional when Sales Partner is selected'
+                            : null,
                       ),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Address is required';
+                        if (!hasPartner) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Address is required';
+                          }
                         }
                         return null;
                       },
@@ -769,11 +781,26 @@ class _QuickAddCustomerWidgetState
     });
 
     try {
+      // If Sales Partner is selected and address is empty, auto-fill with partner name
+      final selectedSalesPartner = ref.read(
+        posNotifierProvider.select((s) => s.selectedSalesPartner),
+      );
+      final bool hasPartner = selectedSalesPartner != null;
+      String addressValue = _addressController.text.trim();
+      if (hasPartner && addressValue.isEmpty) {
+        final sp = selectedSalesPartner ?? const <String, dynamic>{};
+        final partnerLabel = sp['title'] ??
+            sp['partner_name'] ??
+            sp['name'] ??
+            'Sales Partner';
+        addressValue = partnerLabel;
+      }
+
       final customerData = <String, String>{
         'customerName': _nameController.text.trim(),
         'mobileNumber': _mobileController.text.trim(),
         'territoryId': _selectedTerritoryId!,
-        'detailedAddress': _addressController.text.trim(),
+        'detailedAddress': addressValue,
         if (_locationController.text.trim().isNotEmpty)
           'locationLink': _locationController.text.trim(),
       };

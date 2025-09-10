@@ -29,4 +29,18 @@ class CourierRepository {
       party: party,
     );
   }
+
+  Future<Map<String, dynamic>> settleAllForParty({
+    required String posProfile,
+    String? partyType,
+    String? party,
+    String? legacyCourier,
+  }) {
+    return _service.settleAllForParty(
+      posProfile: posProfile,
+      partyType: partyType,
+      party: party,
+      legacyCourier: legacyCourier,
+    );
+  }
 }
