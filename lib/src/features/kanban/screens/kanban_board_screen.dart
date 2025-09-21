@@ -10,6 +10,10 @@ import '../../../core/router.dart';
 import '../../pos/presentation/widgets/courier_balances_dialog.dart';
 import '../../../core/network/courier_service.dart';
 import '../widgets/settlement_preview_dialog.dart';
+import '../../printing/pos_printer_provider.dart';
+import '../../printing/printer_status.dart';
+import '../../../core/widgets/app_drawer.dart';
+import '../../../core/widgets/branch_filter_dialog.dart';
 
 class KanbanBoardScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
@@ -68,10 +72,124 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     }
 
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: widget.showAppBar
           ? AppBar(
+              automaticallyImplyLeading: false,
+              leading: Builder(
+                builder: (ctx) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(ctx).openDrawer(),
+                  tooltip: 'Menu',
+                ),
+              ),
               title: const Text('Sales Invoice Kanban'),
               actions: [
+                // Branch filter control (compact dropdown with checkboxes)
+                const _BranchFilterButton(),
+                // Unified Printer Status Chip (same behavior/visuals as POS header)
+                Consumer(
+                  builder: (context, ref, _) {
+                    final printer = ref.watch(posPrinterServiceProvider);
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                      child: InkWell(
+                        onTap: () => context.push('/printers'),
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: () {
+                              switch (printer.unifiedStatus) {
+                                case PrinterUnifiedStatus.connectedBle:
+                                case PrinterUnifiedStatus.connectedClassic:
+                                  return Colors.green.withValues(alpha: 0.15);
+                                case PrinterUnifiedStatus.connecting:
+                                  return Colors.orange.withValues(alpha: 0.15);
+                                case PrinterUnifiedStatus.error:
+                                  return Colors.red.withValues(alpha: 0.18);
+                                case PrinterUnifiedStatus.disconnected:
+                                  return Colors.red.withValues(alpha: 0.15);
+                              }
+                            }(),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: () {
+                                switch (printer.unifiedStatus) {
+                                  case PrinterUnifiedStatus.connectedBle:
+                                  case PrinterUnifiedStatus.connectedClassic:
+                                    return Colors.green;
+                                  case PrinterUnifiedStatus.connecting:
+                                    return Colors.orange;
+                                  case PrinterUnifiedStatus.error:
+                                    return Colors.red;
+                                  case PrinterUnifiedStatus.disconnected:
+                                    return Colors.red;
+                                }
+                              }().withValues(alpha: 0.7),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.print,
+                                size: 16,
+                                color: () {
+                                  switch (printer.unifiedStatus) {
+                                    case PrinterUnifiedStatus.connectedBle:
+                                    case PrinterUnifiedStatus.connectedClassic:
+                                      return Colors.greenAccent;
+                                    case PrinterUnifiedStatus.connecting:
+                                      return Colors.orangeAccent;
+                                    case PrinterUnifiedStatus.error:
+                                      return Colors.redAccent;
+                                    case PrinterUnifiedStatus.disconnected:
+                                      return Colors.redAccent;
+                                  }
+                                }(),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                () {
+                                  switch (printer.unifiedStatus) {
+                                    case PrinterUnifiedStatus.connectedBle:
+                                      return 'Printer: BLE';
+                                    case PrinterUnifiedStatus.connectedClassic:
+                                      return 'Printer: Classic';
+                                    case PrinterUnifiedStatus.connecting:
+                                      return 'Printer: Connecting…';
+                                    case PrinterUnifiedStatus.error:
+                                      return printer.lastErrorMessage ?? 'Printer Error';
+                                    case PrinterUnifiedStatus.disconnected:
+                                      return 'Printer: Not Connected';
+                                  }
+                                }(),
+                                style: TextStyle(
+                                  color: () {
+                                    switch (printer.unifiedStatus) {
+                                      case PrinterUnifiedStatus.connectedBle:
+                                      case PrinterUnifiedStatus.connectedClassic:
+                                        return Colors.green;
+                                      case PrinterUnifiedStatus.connecting:
+                                        return Colors.orange;
+                                      case PrinterUnifiedStatus.error:
+                                        return Colors.red;
+                                      case PrinterUnifiedStatus.disconnected:
+                                        return Colors.red;
+                                    }
+                                  }(),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
                 IconButton(
                   tooltip: 'Courier Balances',
                   icon: const Icon(Icons.local_shipping),
@@ -92,6 +210,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           : null,
       body: Column(
         children: [
+          // Removed full-width branch chips to maximize kanban space; filter now in header
           if (_showFilters)
             Container(
               padding: const EdgeInsets.all(16),
@@ -251,8 +370,19 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       (normName.contains('out') && normName.contains('delivery'))
     );
     if (movingToOut) {
-      // Launch courier/mode dialog
-  final dialogResult = await _showCourierSettlementDialog();
+      final inv = _findInvoice(invoiceId);
+      final isPaid = (inv?.docStatus ?? '').toLowerCase() == 'paid' || (inv?.effectiveStatus.toLowerCase() == 'paid');
+      final hasPartner = ((inv?.salesPartner ?? '').isNotEmpty);
+      if (hasPartner) {
+        // Fast-path for ANY Sales Partner invoice (paid or unpaid):
+        // Provider logic distinguishes paid vs unpaid and will:
+        //  - Paid: simple state update
+        //  - Unpaid: create cash Payment Entry + auto OFD via backend endpoint
+        await ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, 'Out For Delivery');
+        return;
+      }
+    // Launch courier/mode dialog
+  final dialogResult = await _showCourierSettlementDialog(hideSettleLater: hasPartner);
       if (dialogResult == null) {
         // Revert visual move if user cancelled (pass label)
         final fromCol = ref.read(kanbanProvider).columns.firstWhere(
@@ -278,8 +408,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
         return;
       }
-      final inv = _findInvoice(invoiceId);
-      final isPaid = (inv?.docStatus ?? '').toLowerCase() == 'paid' || (inv?.effectiveStatus.toLowerCase() == 'paid');
+  // inv and isPaid already computed above
 
     // New: Unpaid + settle_later -> backend handles Payment Entry + Courier Transaction + state change
     // UX: No collect-now popup for settle_later
@@ -450,7 +579,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     return posState.selectedProfile?['name'];
   }
 
-  Future<Map<String, dynamic>?> _showCourierSettlementDialog() async {
+  Future<Map<String, dynamic>?> _showCourierSettlementDialog({bool hideSettleLater = false}) async {
     String? courier;
     String mode = 'pay_now';
     bool loading = true;
@@ -681,17 +810,18 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                             onChanged: (v) => setState(() => mode = v!),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                RadioListTile<String>(
+                              children: [
+                                const RadioListTile<String>(
                                   title: Text('Pay Now (Cash)'),
                                   value: 'pay_now',
                                   dense: true,
                                 ),
-                                RadioListTile<String>(
-                                  title: Text('Settle Later'),
-                                  value: 'settle_later',
-                                  dense: true,
-                                ),
+                                if (!hideSettleLater)
+                                  const RadioListTile<String>(
+                                    title: Text('Settle Later'),
+                                    value: 'settle_later',
+                                    dense: true,
+                                  ),
                               ],
                             ),
                           ),
@@ -746,6 +876,72 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       territory: inv?.territory,
       orderFallback: inv?.grandTotal,
       shippingFallback: inv?.shippingExpenseDisplay,
+    );
+  }
+}
+
+
+class _BranchFilterButton extends ConsumerWidget {
+  const _BranchFilterButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final posState = ref.watch(posNotifierProvider);
+    final sel = ref.watch(kanbanProvider).selectedBranches;
+    final profiles = posState.profiles;
+    if (profiles.isEmpty) return const SizedBox.shrink();
+
+    final selectedCount = sel.length;
+    final label = selectedCount == 0
+        ? 'All Branches'
+        : (selectedCount == 1 ? '1 Branch' : '$selectedCount Branches');
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      child: InkWell(
+        onTap: () async {
+          final current = Set<String>.from(sel);
+          final result = await showDialog<Set<String>>(
+            context: context,
+            useRootNavigator: true,
+            builder: (ctx) => BranchFilterDialog(
+              profiles: profiles,
+              initiallySelected: current,
+              title: 'Filter by Branches',
+            ),
+          );
+          if (result != null) {
+            ref.read(kanbanProvider.notifier).setSelectedBranches(result);
+          }
+        },
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.filter_alt, size: 16, color: theme.colorScheme.onSurface),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Icon(Icons.arrow_drop_down, size: 18, color: theme.colorScheme.onSurface),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

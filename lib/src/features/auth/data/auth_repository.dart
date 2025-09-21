@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/dio_provider.dart';
 import '../../../core/session/session_manager.dart';
+import '../../../core/network/cookie_manager.dart';
 
 class AuthRepository {
   AuthRepository(this._dio, this._sessionManager);
@@ -48,6 +49,7 @@ class AuthRepository {
       // Ignore logout errors
     } finally {
       await _sessionManager.clearSession();
+      await CookieManager.clearCookies();
     }
   }
 }

@@ -16,6 +16,7 @@ class PosState {
   final Map<String, dynamic>? selectedCustomer;
   final DeliverySlot? selectedDeliverySlot;
   final Map<String, dynamic>? selectedSalesPartner;
+  final List<DeliverySlot> deliverySlots; // Cached delivery slots for current profile
   final bool isLoading;
   final String? error;
 
@@ -28,6 +29,7 @@ class PosState {
     this.selectedCustomer,
     this.selectedDeliverySlot,
   this.selectedSalesPartner,
+  this.deliverySlots = const [],
     this.isLoading = false,
     this.error,
   });
@@ -45,7 +47,10 @@ class PosState {
     String? error,
     bool clearSelectedCustomer = false,
     bool clearSelectedDeliverySlot = false,
+    bool clearSelectedSalesPartner = false,
     bool clearError = false,
+    bool clearDeliverySlots = false,
+    List<DeliverySlot>? deliverySlots,
   }) {
     return PosState(
       profiles: profiles ?? this.profiles,
@@ -59,7 +64,12 @@ class PosState {
       selectedDeliverySlot: clearSelectedDeliverySlot
           ? null
           : (selectedDeliverySlot ?? this.selectedDeliverySlot),
-  selectedSalesPartner: selectedSalesPartner ?? this.selectedSalesPartner,
+      selectedSalesPartner: clearSelectedSalesPartner
+          ? null
+          : (selectedSalesPartner ?? this.selectedSalesPartner),
+      deliverySlots: clearDeliverySlots
+          ? const []
+          : (deliverySlots ?? this.deliverySlots),
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
     );
@@ -74,6 +84,8 @@ class PosState {
   }
 
   double get shippingCost {
+    // If a Sales Partner is selected, we suppress delivery income entirely
+    if (selectedSalesPartner != null) return 0.0;
     if (selectedCustomer != null &&
         selectedCustomer!['delivery_income'] != null &&
         selectedCustomer!['delivery_income'] > 0) {
@@ -98,6 +110,7 @@ class PosNotifier extends StateNotifier<PosState> {
   PosNotifier(this._repository) : super(PosState());
 
   final PosRepository _repository;
+  bool _isPrefetchingSlots = false; // Guard against concurrent prefetch
 
   Future<void> loadProfiles() async {
     state = state.copyWith(isLoading: true, clearError: true);
@@ -139,7 +152,13 @@ class PosNotifier extends StateNotifier<PosState> {
 
   Future<void> selectProfile(Map<String, dynamic> profile) async {
     // Optimistically set selected profile to prevent redirect loop
-    state = state.copyWith(selectedProfile: profile, isLoading: true, clearError: true);
+    state = state.copyWith(
+      selectedProfile: profile,
+      isLoading: true,
+      clearError: true,
+      clearDeliverySlots: true,
+      clearSelectedDeliverySlot: true,
+    );
     try {
       final profileName = profile['name'] as String;
 
@@ -167,6 +186,24 @@ class PosNotifier extends StateNotifier<PosState> {
   }
 
   void addToCart(Map<String, dynamic> item) {
+    // Block adding delivery/shipping related items when a Sales Partner is selected
+    if (state.selectedSalesPartner != null) {
+      final group = (item['item_group'] ?? '').toString().toLowerCase();
+      final name = (item['item_name'] ?? item['name'] ?? '').toString().toLowerCase();
+      final code = (item['name'] ?? '').toString().toLowerCase();
+      if (group.contains('delivery') ||
+          group.contains('shipping') ||
+          name.contains('delivery') ||
+          name.contains('shipping') ||
+          code.contains('delivery') ||
+          code.contains('shipping') ||
+          (item['is_shipping'] == true)) {
+        if (kDebugMode) {
+          debugPrint('🚫 Skipping add: delivery/shipping charge is hidden for Sales Partner invoices');
+        }
+        return;
+      }
+    }
     final existingItemIndex = state.cartItems.indexWhere(
       (cartItem) => cartItem['item_code'] == item['name'],
     );
@@ -274,6 +311,10 @@ class PosNotifier extends StateNotifier<PosState> {
     // Simply select the customer without adding shipping to cart
     // Shipping will be handled separately in the UI total calculation
     state = state.copyWith(selectedCustomer: customer);
+    // Trigger background prefetch of delivery slots (only if profile selected & not already cached)
+    if (state.selectedProfile != null && state.deliverySlots.isEmpty) {
+      _prefetchDeliverySlots();
+    }
   }
 
   void setDeliverySlot(DeliverySlot? slot) {
@@ -281,7 +322,11 @@ class PosNotifier extends StateNotifier<PosState> {
   }
 
   void setSalesPartner(Map<String, dynamic>? partner) {
-    state = state.copyWith(selectedSalesPartner: partner);
+    if (partner == null) {
+      state = state.copyWith(clearSelectedSalesPartner: true);
+    } else {
+      state = state.copyWith(selectedSalesPartner: partner);
+    }
   }
 
   void unselectCustomer() {
@@ -310,13 +355,43 @@ class PosNotifier extends StateNotifier<PosState> {
     state = state.copyWith(cartItems: []);
   }
 
-  Future<void> checkout({WidgetRef? ref, String? paymentType}) async {
+  Future<void> _prefetchDeliverySlots() async {
+    if (_isPrefetchingSlots) return; // avoid duplicate concurrent calls
+    final profile = state.selectedProfile; 
+    if (profile == null) return;
+    final profileName = profile['name']?.toString();
+    if (profileName == null || profileName.isEmpty) return;
+    _isPrefetchingSlots = true;
+    try {
+      final slots = await _repository.getDeliverySlots(profileName);
+      if (slots.isNotEmpty) {
+        // Choose default slot if none selected
+        DeliverySlot? selected = state.selectedDeliverySlot;
+        selected ??= slots.firstWhere(
+          (s) => s.isDefault,
+          orElse: () => slots.first,
+        );
+        state = state.copyWith(
+          deliverySlots: slots,
+          selectedDeliverySlot: selected,
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ Prefetch delivery slots failed: $e');
+      }
+    } finally {
+      _isPrefetchingSlots = false;
+    }
+  }
+
+  Future<void> checkout({WidgetRef? ref, String? paymentType, String? overridePosProfileName}) async {
     if (state.cartItems.isEmpty) {
       state = state.copyWith(error: 'Cart is empty', clearError: false);
       return;
     }
 
-    if (state.selectedProfile == null) {
+    if (state.selectedProfile == null && (overridePosProfileName == null || overridePosProfileName.isEmpty)) {
       state = state.copyWith(error: 'No profile selected', clearError: false);
       return;
     }
@@ -345,7 +420,9 @@ class PosNotifier extends StateNotifier<PosState> {
     try {
       // Always create invoice without printing; printing moved to Kanban / separate action
       final invoice = await _repository.createInvoice(
-        posProfile: state.selectedProfile!['name'],
+        posProfile: (overridePosProfileName != null && overridePosProfileName.isNotEmpty)
+            ? overridePosProfileName
+            : state.selectedProfile!['name'],
         items: state.cartItems,
         customer: state.selectedCustomer,
         requiredDeliveryDatetime: state.selectedDeliverySlot?.datetime,
@@ -361,11 +438,12 @@ class PosNotifier extends StateNotifier<PosState> {
 
       ref?.loading.hide();
 
+      // Reset invoice context (cart, customer, delivery slot, sales partner) for a fresh start.
       state = state.copyWith(
         cartItems: [],
         clearSelectedCustomer: true,
         clearSelectedDeliverySlot: true,
-  selectedSalesPartner: null,
+        clearSelectedSalesPartner: true,
         isLoading: false,
       );
 
@@ -390,7 +468,28 @@ class PosNotifier extends StateNotifier<PosState> {
     state = state.copyWith(clearError: true);
   }
 
+  // Explicit public method to start a new invoice manually (also clears sales partner)
+  void startNewInvoice() {
+    state = state.copyWith(
+      cartItems: [],
+      clearSelectedCustomer: true,
+      clearSelectedDeliverySlot: true,
+      clearSelectedSalesPartner: true,
+      isLoading: false,
+    );
+  }
+
   void addCartPosItem(PosCartItem item) {
+    // Safeguard: prevent adding delivery/shipping-like items when Sales Partner is selected
+    if (state.selectedSalesPartner != null) {
+      final codeLower = item.itemCode.toLowerCase();
+      if (codeLower.contains('delivery') || codeLower.contains('shipping')) {
+        if (kDebugMode) {
+          debugPrint('🚫 Skipping add(PosCartItem): delivery/shipping blocked for Sales Partner');
+        }
+        return;
+      }
+    }
     final cartEntry = {
       'item_code': item.itemCode,
       'item_name': item.itemCode,

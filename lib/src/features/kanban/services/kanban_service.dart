@@ -13,6 +13,15 @@ class KanbanService {
 
   KanbanService(this._dio);
 
+  Future<dynamic> rawPost(String path, Map<String, dynamic> data) async {
+    final resp = await _dio.post(path, data: data);
+    return resp.data['message'] ?? resp.data;
+  }
+
+  Future<Map<String, List<InvoiceCard>>> fetchInvoices() async {
+    return await getKanbanInvoices();
+  }
+
   /// Fetch kanban columns from the API
   Future<List<KanbanColumn>> getKanbanColumns() async {
     try {
@@ -432,6 +441,56 @@ class KanbanService {
       throw Exception(msg is Map ? msg['error'] ?? 'Courier collected settlement failed' : 'Courier collected settlement failed');
     } catch (e) {
       _logger.error('Failed courier collected settlement', e);
+      rethrow;
+    }
+  }
+
+  /// Sales Partner UNPAID -> Out For Delivery fast-path (auto cash payment + DN + state change)
+  Future<Map<String, dynamic>> salesPartnerUnpaidOutForDelivery({
+    required String invoiceName,
+    required String posProfile,
+    String modeOfPayment = 'Cash',
+  }) async {
+    try {
+      _logger.info('SalesPartner unpaid OFD invoice=$invoiceName pos_profile=$posProfile');
+      final resp = await _dio.post(
+        '/api/method/jarz_pos.jarz_pos.services.delivery_handling.sales_partner_unpaid_out_for_delivery',
+        data: {
+          'invoice_name': invoiceName,
+          'pos_profile': posProfile,
+          'mode_of_payment': modeOfPayment,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && (msg['success'] == true)) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? (msg['error'] ?? 'Sales partner unpaid OFD failed') : 'Sales partner unpaid OFD failed');
+    } catch (e) {
+      _logger.error('Failed sales partner unpaid OFD', e);
+      rethrow;
+    }
+  }
+
+  /// Sales Partner PAID -> Out For Delivery fast-path (ensure DN + state change)
+  Future<Map<String, dynamic>> salesPartnerPaidOutForDelivery({
+    required String invoiceId,
+  }) async {
+    try {
+      _logger.info('SalesPartner paid OFD invoice=$invoiceId');
+      final resp = await _dio.post(
+        '/api/method/jarz_pos.jarz_pos.services.delivery_handling.sales_partner_paid_out_for_delivery',
+        data: {
+          'invoice_name': invoiceId,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && (msg['success'] == true)) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? (msg['error'] ?? 'Sales partner paid OFD failed') : 'Sales partner paid OFD failed');
+    } catch (e) {
+      _logger.error('Failed sales partner paid OFD', e);
       rethrow;
     }
   }

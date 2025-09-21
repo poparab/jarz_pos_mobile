@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-
-import '../../../auth/state/login_notifier.dart';
 import '../../../../core/widgets/app_drawer.dart';
 
 class PosHomeScreen extends ConsumerWidget {
@@ -13,16 +10,15 @@ class PosHomeScreen extends ConsumerWidget {
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
-        title: const Text('Jarz POS'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await ref.read(loginNotifierProvider.notifier).logout();
-              if (context.mounted) context.go('/login');
-            },
+        automaticallyImplyLeading: true,
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu),
+            tooltip: 'Menu',
+            onPressed: () => Scaffold.maybeOf(ctx)?.openDrawer(),
           ),
-        ],
+        ),
+        title: const Text('Jarz POS'),
       ),
       body: Center(
         child: Text(

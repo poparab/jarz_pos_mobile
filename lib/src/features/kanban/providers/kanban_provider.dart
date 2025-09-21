@@ -1,12 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart';
 import 'dart:async';
 import '../models/kanban_models.dart';
 import '../services/kanban_service.dart';
 import '../services/notification_polling_service.dart';
-import '../../../core/network/dio_provider.dart';
+import '../../../core/network/dio_provider.dart'; // shared Dio instance
 import '../../../core/websocket/websocket_service.dart';
 import '../../../core/offline/offline_queue.dart';
 import '../../../core/connectivity/connectivity_service.dart';
+import '../../../core/router.dart';
+import '../../pos/state/pos_notifier.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/foundation.dart';
 
@@ -25,6 +28,7 @@ class KanbanState {
   final KanbanFilters filters;
   final List<CustomerOption> customers;
   final Set<String> transitioningInvoices; // Phase 7
+  final Set<String> selectedBranches; // POS profile names filter
 
   KanbanState({
     this.columns = const [],
@@ -34,6 +38,7 @@ class KanbanState {
     this.filters = const KanbanFilters(),
     this.customers = const [],
     this.transitioningInvoices = const {},
+    this.selectedBranches = const {},
   });
 
   KanbanState copyWith({
@@ -44,6 +49,7 @@ class KanbanState {
     KanbanFilters? filters,
     List<CustomerOption>? customers,
     Set<String>? transitioningInvoices,
+    Set<String>? selectedBranches,
   }) {
     return KanbanState(
       columns: columns ?? this.columns,
@@ -53,6 +59,7 @@ class KanbanState {
       filters: filters ?? this.filters,
       customers: customers ?? this.customers,
       transitioningInvoices: transitioningInvoices ?? this.transitioningInvoices,
+      selectedBranches: selectedBranches ?? this.selectedBranches,
     );
   }
 }
@@ -73,6 +80,51 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     _listenConnectivity();
   }
 
+  // Lightweight passthrough helpers (some widgets expect these names)
+  Future<Map<String, List<InvoiceCard>>> fetchInvoices() async {
+    return _kanbanService.getKanbanInvoices(filters: state.filters.toJson());
+  }
+
+  Future<dynamic> rawPost(String path, Map<String, dynamic> data) async {
+    return _kanbanService.rawPost(path, data);
+  }
+
+  Future<dynamic> callBackend(String path, {Map<String, dynamic>? data}) async {
+    // Use underlying KanbanService dio instance (exposed via method) or create lightweight post
+    try {
+      return await _kanbanService.rawPost(path, data ?? {});
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> refreshSingle(String invoiceId) async {
+    try {
+  final data = await fetchInvoices();
+      // Find updated invoice card in result set, then patch existing state without full reload
+      InvoiceCard? updated;
+      for (final list in data.values) {
+        final idx = list.indexWhere((c) => c.id == invoiceId || c.name == invoiceId);
+        if (idx >= 0) { updated = list[idx]; break; }
+      }
+      if (updated == null) return; // not found; skip
+      final current = Map<String, List<InvoiceCard>>.from(state.invoices);
+      // Remove from any column
+      for (final key in current.keys) {
+        final list = List<InvoiceCard>.from(current[key] ?? []);
+        final before = list.length;
+        list.removeWhere((c) => c.id == invoiceId || c.name == invoiceId);
+        if (before != list.length) current[key] = list;
+      }
+      final destKey = _stateKey(updated.status);
+      final dest = List<InvoiceCard>.from(current[destKey] ?? []);
+      dest.removeWhere((c) => c.id == updated!.id);
+      dest.add(updated);
+      current[destKey] = dest;
+      state = state.copyWith(invoices: current);
+    } catch (_) {}
+  }
+
   Future<void> _initializeKanban() async {
     await loadColumns();
     await loadInvoices();
@@ -88,9 +140,33 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       // Listen for kanban state change updates
       _kanbanSub = _wsService?.kanbanUpdates.listen((event) {
         final invoiceId = event['invoice'] as String? ?? event['invoice_id'] as String?;
+        // Pre-payment collect prompt for Sales Partner unpaid flow
+        try {
+          final mode = (event['mode'] ?? '').toString();
+          if (invoiceId != null && mode == 'sales_partner_collect_prompt') {
+            final amt = (event['outstanding'] ?? event['amount'] ?? '').toString();
+            _showCollectCashDialog(amount: amt, invoiceId: invoiceId);
+            // don't return; allow subsequent handlers to patch board if needed
+          }
+        } catch (_) {}
+        // Detect Sales Partner unpaid Out For Delivery fast-path realtime event
+        // Backend event: jarz_pos_sales_partner_unpaid_ofd (mode == sales_partner_unpaid_cash)
+        try {
+          final mode = (event['mode'] ?? '').toString();
+          final paymentEntry = event['payment_entry'];
+          final amt = (event['amount'] ?? '').toString();
+          final hasPartner = (event['sales_partner'] ?? event['salesPartner'] ?? '').toString().isNotEmpty;
+          if (invoiceId != null && hasPartner && mode == 'sales_partner_unpaid_cash' && paymentEntry != null) {
+            // Ensure card patched to Out For Delivery
+            _patchInvoiceOutForDelivery(invoiceId, event);
+            // Show collect cash dialog informing staff (idempotent UI attempt)
+            _showCollectCashDialog(amount: amt, invoiceId: invoiceId);
+            return; // handled
+          }
+        } catch (_) {}
         // If it's a new invoice broadcast (no old state), just refresh invoices
-        if ((event['old_state_key'] == null || (event['old_state_key'] as String?)?.isEmpty == true) &&
-            event['new_state_key'] != null) {
+        final oldKeyForNew = event['old_state_key'] as String?;
+        if ((oldKeyForNew == null || oldKeyForNew.isEmpty) && event['new_state_key'] != null) {
           // New cards created from other devices/sources
           loadInvoices();
           return;
@@ -105,6 +181,19 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         final newKey = event['new_state_key'] as String?;
         if (invoiceId != null && newKey != null) {
             _applyRealtimeMove(invoiceId, oldKey, newKey);
+            // POPUP TRIGGER: Sales Partner + Cash on Out For Delivery
+            try {
+              final becameOFD = (newKey == 'out_for_delivery');
+              if (becameOFD) {
+                final hadPartner = (((event['sales_partner'] ?? event['salesPartner'])?.toString()) ?? '').isNotEmpty;
+                // Backend now includes cash_payment_entry when cash PE was created on OFD transition
+                final cashPE = event['cash_payment_entry'] ?? event['cashPaymentEntry'];
+                final amt = (event['amount'] ?? '').toString();
+                if (hadPartner && cashPE != null) {
+                  _showCollectCashDialog(amount: amt, invoiceId: invoiceId);
+                }
+              }
+            } catch (_) {}
         }
       });
   // Also listen for new POS invoices and refresh the Received column
@@ -121,6 +210,55 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         }
       }
     }
+  }
+
+  // UI helper: show collect cash dialog; requires root navigator context.
+  void _showCollectCashDialog({required String amount, String? invoiceId}) {
+    try {
+      // Prefer global navigator key context so dialog is shown even if focus is elsewhere
+      final navKey = _ref.read(navigatorKeyProvider);
+      BuildContext? ctx = navKey.currentContext;
+      ctx ??= WidgetsBinding.instance.rootElement;
+      ctx ??= WidgetsBinding.instance.focusManager.primaryFocus?.context;
+      if (ctx == null) return; // no context available to anchor dialog
+      // Parse amount to a nicely formatted value
+      String amountLabel;
+      try {
+        final v = double.parse(amount.toString());
+        amountLabel = v.toStringAsFixed(2);
+      } catch (_) {
+        amountLabel = amount.toString();
+      }
+      showDialog(
+        context: ctx,
+        builder: (c) => AlertDialog(
+          title: const Text('Collect Cash'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Emphasize amount
+              Text(
+                amountLabel,
+                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              const Text('Collect the full order amount now from the Sales Partner courier.'),
+              if (invoiceId != null && invoiceId.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text('Invoice: $invoiceId', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(c).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } catch (_) {}
   }
 
   void _attachNotificationPolling() {
@@ -275,7 +413,12 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final filterMap = state.filters.hasFilters ? state.filters.toJson() : null;
+      Map<String, dynamic> filterMap = state.filters.hasFilters ? state.filters.toJson() : {};
+      // Inject branch filter if any selected (subset of allowed profiles)
+      if (state.selectedBranches.isNotEmpty) {
+        // Send as list of names under 'branches' key
+        filterMap['branches'] = state.selectedBranches.toList();
+      }
       final invoices = await _kanbanService.getKanbanInvoices(filters: filterMap);
 
       // Sort the "Received" column by posting date (newest first)
@@ -340,19 +483,68 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       canonical = byId?.name ?? newState;
     }
 
-    // Guard: prevent direct drag into OFD without unified flow (we expect drag handler to intercept)
+    // Guard: Out For Delivery handling
     if (canonical.toLowerCase() == 'out for delivery') {
       final all = state.invoices.values.expand((e) => e).toList();
       final card = all.firstWhere((c) => c.id == invoiceId, orElse: () => InvoiceCard.fromJson({'name': invoiceId}));
       final isPaid = (card.docStatus ?? '').toLowerCase() == 'paid' || (card.effectiveStatus.toLowerCase() == 'paid');
-      if (!isPaid) {
-        state = state.copyWith(error: 'Invoice must be paid before Out for Delivery');
+  final hasPartner = (card.salesPartner ?? '').isNotEmpty;
+      if (hasPartner) {
+        // Branch: Sales Partner invoice
+        if (!isPaid) {
+          // UNPAID + Sales Partner -> invoke fast-path backend (auto cash PE & OFD)
+          try {
+            // Need POS Profile for branch cash account; attempt to resolve from POS notifier
+            final posProfile = _ref.read(posNotifierProvider).selectedProfile?['name'];
+            if (posProfile == null) {
+              state = state.copyWith(error: 'Select POS Profile before dispatching unpaid Sales Partner invoice');
+              return;
+            }
+            final res = await _kanbanService.salesPartnerUnpaidOutForDelivery(
+              invoiceName: invoiceId,
+              posProfile: posProfile,
+            );
+            // Patch board optimistically
+            _patchInvoiceOutForDelivery(invoiceId, {
+              'invoice': invoiceId,
+              'mode': 'sales_partner_unpaid_cash',
+              'payment_entry': res['payment_entry'],
+              'sales_partner': card.salesPartner,
+              'shipping_amount': 0, // backend event will correct later if needed
+            });
+            // Show collect prompt immediately (in addition to realtime listener) for reliability
+            final amt = (res['amount'] ?? '').toString();
+            if (amt.isNotEmpty) {
+              _showCollectCashDialog(amount: amt, invoiceId: invoiceId);
+            }
+            // Refresh authoritative data
+            await loadInvoices();
+            return;
+          } catch (e) {
+            state = state.copyWith(error: 'Sales Partner unpaid dispatch failed: $e');
+            return;
+          }
+        } else {
+          // Already paid + Sales Partner -> call dedicated backend endpoint to ensure DN & realtime
+          try {
+            final res = await _kanbanService.salesPartnerPaidOutForDelivery(invoiceId: invoiceId);
+            if (res['success'] != true) {
+              state = state.copyWith(error: 'Sales Partner paid dispatch failed');
+              return;
+            }
+            // Optimistically move, then reload authoritative data
+            _optimisticMove(invoiceId, canonical);
+            await loadInvoices();
+          } catch (e) {
+            state = state.copyWith(error: 'Sales Partner paid dispatch error: $e');
+          }
+          return;
+        }
+      } else {
+        // Non-partner invoices must use courier flow – block drag direct change
+        state = state.copyWith(error: 'Use Out For Delivery flow (courier required)');
         return;
       }
-      // If paid, we still prefer the unified OFD function (adds courier + Journal Entry).
-      // So block here to avoid state-only move.
-      state = state.copyWith(error: 'Use Out For Delivery flow (courier required)');
-      return;
     }
 
     final prevState = state;
@@ -403,6 +595,25 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
   void updateFilters(KanbanFilters newFilters) {
     state = state.copyWith(filters: newFilters);
     loadInvoices(); // Reload with new filters
+  }
+
+  // Branch multi-select helpers
+  void setSelectedBranches(Set<String> branches) {
+    // If empty set, treat as ALL (i.e., clear filter)
+    final newSet = Set<String>.from(branches);
+    state = state.copyWith(selectedBranches: newSet);
+    loadInvoices();
+  }
+
+  void toggleBranch(String branchName) {
+    final s = Set<String>.from(state.selectedBranches);
+    if (s.contains(branchName)) {
+      s.remove(branchName);
+    } else {
+      s.add(branchName);
+    }
+    state = state.copyWith(selectedBranches: s);
+    loadInvoices();
   }
 
   void clearError() {
@@ -623,7 +834,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
 
   void _optimisticOutForDelivery(String invoiceId, {String? courier, String? mode}) {
   final targetKey = _stateKey('Out For Delivery'); // keep label
-    if (state.invoices[targetKey]?.any((c) => c.id == invoiceId) == true) return;
+    if ((state.invoices[targetKey]?.any((c) => c.id == invoiceId)) ?? false) return;
     final current = Map<String, List<InvoiceCard>>.from(state.invoices);
     InvoiceCard? card;
     for (final e in current.entries) {

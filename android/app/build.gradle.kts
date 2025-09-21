@@ -37,6 +37,10 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    // Removed custom splits { abi { ... } } block because Flutter manages ABI outputs.
+    // To produce per-ABI APKs use: flutter build apk --split-per-abi
+    // (Not supported directly on 'flutter run')
 }
 
 flutter {

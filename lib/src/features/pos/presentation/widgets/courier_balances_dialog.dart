@@ -2,9 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/courier_balances_provider.dart';
+import '../../state/courier_ws_bridge.dart';
 import '../../data/models/courier_balance.dart';
 import '../../../pos/state/pos_notifier.dart';
 import '../../../../core/network/courier_service.dart';
+import '../../../kanban/providers/kanban_provider.dart';
 import '../../data/repositories/courier_repository.dart';
 import '../../../kanban/widgets/settlement_preview_dialog.dart';
 
@@ -22,6 +24,13 @@ class CourierBalancesDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(courierBalancesProvider);
+    // Activate websocket bridge for auto-refresh while dialog is open
+    ref.watch(courierWsBridgeProvider);
+    // Auto-load if empty & not already loading
+    if (!state.loading && state.balances.isEmpty && state.error == null) {
+      // schedule microtask to avoid setState during build warning
+      Future.microtask(() => ref.read(courierBalancesProvider.notifier).load());
+    }
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -117,14 +126,15 @@ class _CourierTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final amount = b.balance;
-    final isPayCourier = amount > 0;
-    final color = amount == 0
-        ? Colors.grey
-        : (isPayCourier ? Colors.red : Colors.green);
-    final label = amount == 0
-        ? 'Settled'
-        : (isPayCourier ? 'Pay courier' : 'Courier pays us');
+  final amount = b.balance;
+  // Domain correction: positive balance -> collect from courier (they owe us); negative -> pay courier
+  final collectFromCourier = amount > 0;
+  final color = amount == 0
+    ? Colors.grey
+    : (collectFromCourier ? Colors.green : Colors.red);
+  final label = amount == 0
+    ? 'Settled'
+    : (collectFromCourier ? 'Collect from courier' : 'Pay courier');
     return ListTile(
       title: Text(b.courierName.isNotEmpty ? b.courierName : b.courier),
       subtitle: Text(label),
@@ -182,9 +192,9 @@ class _CourierTile extends StatelessWidget {
                       Expanded(
                         child: Text(
                           'Details – ${b.courierName.isNotEmpty ? b.courierName : b.courier}',
-          style: Theme.of(sheetCtx).textTheme.titleMedium?.copyWith(
-            color: Theme.of(sheetCtx).colorScheme.onPrimary,
-                              ),
+                          style: Theme.of(sheetCtx).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(sheetCtx).colorScheme.onPrimary,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -239,15 +249,11 @@ class _CourierTile extends StatelessWidget {
                                           String partyType = b.partyType.isNotEmpty ? b.partyType : 'Supplier';
                                           String party = b.party.isNotEmpty ? b.party : b.courier;
 
-                                          // Two-step: generate preview → confirm
-                                          final preview = await ref.read(courierServiceProvider).generateSettlementPreview(
+                                          final preview = await ref.read(courierServiceProvider).getSettlementPreview(
                                             invoice: d.invoice,
                                             partyType: partyType,
                                             party: party,
-                                            mode: 'pay_now',
-                                            recentPaymentSeconds: 30,
                                           );
-                                          // adopt backend provided party if missing/blank
                                           if (partyType.isEmpty && (preview['party_type'] ?? '') != '') partyType = preview['party_type'];
                                           if (party.isEmpty && (preview['party'] ?? '') != '') party = preview['party'];
                                           if (!ctx.mounted) return;
@@ -261,31 +267,35 @@ class _CourierTile extends StatelessWidget {
                                           );
                                           if (confirmed != true) return;
 
-                                          final token = preview['preview_token']?.toString();
-                                          if (token == null || token.isEmpty) {
-                                            messenger.showSnackBar(const SnackBar(content: Text('Missing preview token')));
+                                          final netRaw = preview['net_amount'];
+                                          final net = (netRaw is num) ? netRaw.toDouble() : double.tryParse(netRaw?.toString() ?? '0') ?? 0.0;
+
+                                          Map<String, dynamic>? res;
+                                          if (net > 0) {
+                                            // Courier collected customer money; we record that collection.
+                                            res = await ref.read(kanbanProvider.notifier).settleCourierCollectedPayment(
+                                              invoiceId: d.invoice,
+                                              posProfile: posProfile,
+                                              partyType: partyType,
+                                              party: party,
+                                            );
+                                          } else if (net < 0) {
+                                            // Store owes courier (shipping higher or order already paid) → pay courier.
+                                            res = await ref.read(kanbanProvider.notifier).settleSingleInvoicePaid(
+                                              invoiceId: d.invoice,
+                                              posProfile: posProfile,
+                                              partyType: partyType,
+                                              party: party,
+                                            );
+                                          } else {
+                                            messenger.showSnackBar(const SnackBar(content: Text('Nothing to settle')));
                                             return;
                                           }
 
-                                          final res = await ref.read(courierServiceProvider).confirmSettlement(
-                                            invoice: d.invoice,
-                                            previewToken: token,
-                                            mode: 'pay_now',
-                                            posProfile: posProfile,
-                                            partyType: partyType.isNotEmpty ? partyType : null,
-                                            party: party.isNotEmpty ? party : null,
-                                            paymentMode: 'Cash',
-                                            courier: b.courier,
-                                          );
-
                                           if (!ctx.mounted) return;
-                                          if (res['success'] == true || res['journal_entry'] != null || res['payment_entry'] != null) {
+                                          if (res != null && (res['success'] == true || res['journal_entry'] != null)) {
                                             messenger.showSnackBar(const SnackBar(content: Text('Settlement complete')));
-                                            try {
-                                              await ref.read(courierBalancesProvider.notifier).load();
-                                            } catch (e) {
-                                              debugPrint('Failed to refresh courier balances after settlement: $e');
-                                            }
+                                            try { await ref.read(courierBalancesProvider.notifier).load(); } catch (_) {}
                                           } else {
                                             messenger.showSnackBar(const SnackBar(content: Text('Settlement failed')));
                                           }
@@ -351,8 +361,8 @@ class _InlineSettleAllButtonState extends ConsumerState<_InlineSettleAllButton> 
   }
 
   Future<void> _run(BuildContext context) async {
-    final b = widget.balance;
-    final posProfile = ref.read(posNotifierProvider).selectedProfile?['name'];
+  final b = widget.balance;
+  final posProfile = ref.read(posNotifierProvider).selectedProfile?['name'];
     if (posProfile == null || posProfile.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select POS profile first')));
       return;
@@ -401,7 +411,7 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
 
   @override
   Widget build(BuildContext context) {
-    final b = widget.balance;
+  final b = widget.balance;
     final disabled = (b.balance).abs() < 0.0001 || _loading;
     return SizedBox(
       height: 32,
@@ -425,8 +435,8 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select POS profile first')));
       return;
     }
-    final payCourier = b.balance > 0; // same logic as tile (positive => pay courier)
-    final actionLabel = payCourier ? 'Pay Courier' : 'Collect From Courier';
+  final collectFromCourier = b.balance > 0; // positive -> collect (courier owes store)
+  final actionLabel = collectFromCourier ? 'Collect From Courier' : 'Pay Courier';
     final netLabel = b.balance.abs().toStringAsFixed(2);
     final invoices = b.details.map((d) => d.invoice).toList();
 
@@ -456,9 +466,9 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
                 ),
               ),
               const SizedBox(height: 12),
-              Text(payCourier
-                  ? 'You will pay the courier the net amount now.'
-                  : 'You will collect the net amount from the courier.'),
+        Text(collectFromCourier
+          ? 'You will collect the net amount from the courier.'
+          : 'You will pay the courier the net amount now.'),
             ],
           ),
         ),
@@ -472,26 +482,54 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
 
     setState(() => _loading = true);
     try {
-      final res = await ref.read(courierRepositoryProvider).settleAllForParty(
-        posProfile: posProfile,
-        partyType: b.partyType.isNotEmpty ? b.partyType : null,
-        party: b.party.isNotEmpty ? b.party : null,
-        legacyCourier: b.courier.isNotEmpty ? b.courier : null,
-      );
-      if (!mounted) return;
-      if (res['journal_entry'] != null || res['net_balance'] != null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('All settled')));
+      final messenger = ScaffoldMessenger.of(context);
+      int success = 0;
+      int failed = 0;
+      for (final d in b.details) {
         try {
-          await ref.read(courierBalancesProvider.notifier).load();
-        } catch (e) {
-          debugPrint('Failed to refresh courier balances after settle-all: $e');
+          // Per-invoice preview & settlement (kanban aligned)
+          String partyType = b.partyType.isNotEmpty ? b.partyType : 'Supplier';
+          String party = b.party.isNotEmpty ? b.party : b.courier;
+          final preview = await ref.read(courierServiceProvider).getSettlementPreview(
+            invoice: d.invoice,
+            partyType: partyType,
+            party: party,
+          );
+          final netRaw = preview['net_amount'];
+          final net = (netRaw is num) ? netRaw.toDouble() : double.tryParse(netRaw?.toString() ?? '0') ?? 0.0;
+          Map<String, dynamic>? res;
+          if (net > 0) {
+            // store collects from courier (courier had customer cash)
+            res = await ref.read(kanbanProvider.notifier).settleCourierCollectedPayment(
+              invoiceId: d.invoice,
+              posProfile: posProfile,
+              partyType: partyType,
+              party: party,
+            );
+          } else if (net < 0) {
+            // store pays courier (shipping greater or order prepaid)
+            res = await ref.read(kanbanProvider.notifier).settleSingleInvoicePaid(
+              invoiceId: d.invoice,
+              posProfile: posProfile,
+              partyType: partyType,
+              party: party,
+            );
+          } else {
+            // nothing to do for zero net
+            continue;
+          }
+          if (res != null && (res['success'] == true || res['journal_entry'] != null)) {
+            success++;
+          } else {
+            failed++;
+          }
+        } catch (_) {
+          failed++;
         }
-        if (Navigator.of(context).canPop()) {
-          // Optionally close bottom sheet after success
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settlement failed')));
       }
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('Settle All complete: $success ok, $failed failed')));
+      try { await ref.read(courierBalancesProvider.notifier).load(); } catch (_) {}
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));

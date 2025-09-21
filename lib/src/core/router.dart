@@ -10,6 +10,8 @@ import '../features/kanban/screens/kanban_board_screen.dart';
 import 'session/session_manager.dart';
 import '../features/pos/state/pos_notifier.dart';
 import '../features/pos/presentation/screens/courier_balances_screen.dart';
+import '../features/printing/printer_selection_screen.dart';
+import '../features/manager/presentation/manager_dashboard_screen.dart';
 
 // Global RouteObserver for navigation lifecycle (used by Kanban to refresh on return)
 final RouteObserver<PageRoute<dynamic>> routeObserver = RouteObserver<PageRoute<dynamic>>();
@@ -35,6 +37,12 @@ final currentAuthStateProvider = StateProvider<bool>((ref) {
     orElse: () => false,
   );
 });
+
+// Global navigator key so logic outside widgets (e.g., websocket handlers) can show dialogs
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+
+// Expose as provider for consumers needing context
+final navigatorKeyProvider = Provider<GlobalKey<NavigatorState>>((ref) => rootNavigatorKey);
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(currentAuthStateProvider);
@@ -106,8 +114,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'courier-balances',
         builder: (context, state) => const CourierBalancesScreen(),
       ),
+      GoRoute(
+        path: '/printers',
+        name: 'printers',
+        builder: (context, state) => const PrinterSelectionScreen(),
+      ),
+      GoRoute(
+        path: '/manager',
+        name: 'manager',
+        builder: (context, state) => const ManagerDashboardScreen(),
+      ),
   GoRoute(path: '/', redirect: (context, state) => '/kanban'),
     ],
+  navigatorKey: rootNavigatorKey,
   );
 });
 

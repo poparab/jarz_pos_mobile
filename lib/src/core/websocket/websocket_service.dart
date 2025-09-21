@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
+import '../router.dart';
+import 'package:flutter/material.dart';
 
 class WebSocketService {
   WebSocketChannel? _channel;
@@ -13,6 +15,7 @@ class WebSocketService {
   final _posUpdateStreamController = StreamController<Map<String, dynamic>>.broadcast();
   final _connectionStatusController = StreamController<bool>.broadcast();
   final _kanbanUpdateStreamController = StreamController<Map<String, dynamic>>.broadcast();
+  final _courierUpdateStreamController = StreamController<Map<String, dynamic>>.broadcast();
   Timer? _reconnectTimer;
   Timer? _heartbeatTimer;
   bool _isConnecting = false;
@@ -22,6 +25,7 @@ class WebSocketService {
   Stream<Map<String, dynamic>> get posUpdateStream => _posUpdateStreamController.stream;
   Stream<bool> get connectionStatus => _connectionStatusController.stream;
   Stream<Map<String, dynamic>> get kanbanUpdates => _kanbanUpdateStreamController.stream;
+  Stream<Map<String, dynamic>> get courierUpdates => _courierUpdateStreamController.stream;
 
   void connect() {
     if (_isConnecting) return;
@@ -96,6 +100,10 @@ class WebSocketService {
           'jarz_pos_courier_outstanding',
           'jarz_pos_courier_expense_paid',
           'jarz_pos_courier_settled',
+          // Sales Partner specific events
+          'jarz_pos_sales_partner_collect_prompt',
+          'jarz_pos_sales_partner_unpaid_ofd',
+          'jarz_pos_sales_partner_paid_ofd',
   ]) { bindEvent(ev); }
         // Generic fallback
         _io!.on('message', (data) {
@@ -289,6 +297,7 @@ class WebSocketService {
       case 'jarz_pos_courier_outstanding':
         if (data != null) {
           _kanbanUpdateStreamController.add(data);
+          _courierUpdateStreamController.add(data);
           if (kDebugMode) {
             debugPrint('🚚 WEBSOCKET: Courier Outstanding set for ${data['invoice']} courier=${data['courier']}');
           }
@@ -297,9 +306,82 @@ class WebSocketService {
       case 'jarz_pos_courier_settled':
         if (data != null) {
           _kanbanUpdateStreamController.add(data);
+          _courierUpdateStreamController.add(data);
           if (kDebugMode) {
             debugPrint('✅ WEBSOCKET: Courier settled ${data['courier']}');
           }
+        }
+        break;
+      case 'jarz_pos_sales_partner_unpaid_ofd':
+        if (data != null) {
+          _kanbanUpdateStreamController.add(data);
+          if (kDebugMode) {
+            debugPrint('🤝 WEBSOCKET: Sales Partner unpaid OFD ${data['invoice']} PE=${data['payment_entry']}');
+          }
+        }
+        break;
+      case 'jarz_pos_sales_partner_paid_ofd':
+        if (data != null) {
+          _kanbanUpdateStreamController.add(data);
+          if (kDebugMode) {
+            debugPrint('🤝 WEBSOCKET: Sales Partner paid OFD ${data['invoice']} DN=${data['delivery_note']}');
+          }
+        }
+        break;
+      case 'jarz_pos_courier_expense_paid':
+        if (data != null) {
+          _kanbanUpdateStreamController.add(data);
+          _courierUpdateStreamController.add(data);
+          if (kDebugMode) {
+            debugPrint('💸 WEBSOCKET: Courier expense paid JE=${data['journal_entry']}');
+          }
+        }
+        break;
+      case 'jarz_pos_sales_partner_collect_prompt':
+        if (data != null) {
+          _kanbanUpdateStreamController.add(data);
+          if (kDebugMode) {
+            debugPrint('🤝 WEBSOCKET: Sales Partner collect prompt ${data['invoice']} amount=${data['amount']}');
+          }
+          // Fire an immediate UI prompt using the global navigator if available
+          try {
+            final navigatorKey = rootNavigatorKey; // imported via router.dart
+            final ctx = navigatorKey.currentContext;
+            if (ctx != null) {
+              final inv = (data['invoice'] ?? '').toString();
+              final amtRaw = (data['outstanding'] ?? data['amount'] ?? '').toString();
+              String amt = amtRaw;
+              try { amt = double.parse(amtRaw).toStringAsFixed(2); } catch (_) {}
+              showDialog(
+                context: ctx,
+                builder: (c) => AlertDialog(
+                  title: const Text('Collect Cash'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        amt,
+                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text('Collect the full order amount now from the Sales Partner courier.'),
+                      if (inv.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text('Invoice: $inv', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                      ],
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(c).pop(),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          } catch (_) {}
         }
         break;
       case 'pong':
@@ -376,6 +458,7 @@ class WebSocketService {
     _posUpdateStreamController.close();
     _connectionStatusController.close();
     _kanbanUpdateStreamController.close();
+  _courierUpdateStreamController.close();
   }
 }
 

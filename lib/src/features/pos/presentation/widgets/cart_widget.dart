@@ -133,6 +133,7 @@ class CartWidget extends ConsumerWidget {
                       ),
                     ),
 
+
                   // Delivery Slot Selection (always show when there are items)
                   if (state.selectedProfile != null)
                     Container(
@@ -178,9 +179,10 @@ class CartWidget extends ConsumerWidget {
                         ],
                       ),
 
-                      // Delivery income (if customer selected and has delivery charge)
-                      if (state.selectedCustomer != null &&
-                          state.shippingCost > 0) ...[
+            // Delivery income (hidden when a Sales Partner is selected)
+            if (state.selectedSalesPartner == null &&
+              state.selectedCustomer != null &&
+              state.shippingCost > 0) ...[
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -254,10 +256,11 @@ class CartWidget extends ConsumerWidget {
                     ),
                   ),
 
-                  // Shipping expense (operational info)
-                  if (state.selectedCustomer != null &&
-                      state.selectedCustomer!['delivery_expense'] != null &&
-                      state.selectedCustomer!['delivery_expense'] > 0) ...[
+          // Shipping expense (operational info) - hide when Sales Partner is selected
+          if (state.selectedSalesPartner == null &&
+            state.selectedCustomer != null &&
+            state.selectedCustomer!['delivery_expense'] != null &&
+            state.selectedCustomer!['delivery_expense'] > 0) ...[
                     const SizedBox(height: 16),
                     Container(
                       width: double.infinity,
@@ -582,7 +585,23 @@ class CartWidget extends ConsumerWidget {
       if (paymentType == null) return; // user dismissed dialog
     }
 
-    await ref.read(posNotifierProvider.notifier).checkout(paymentType: paymentType);
+    // If user has multiple POS profiles, prompt which branch to use for this order (per-order override)
+    String? overridePosProfileName;
+    final profiles = state.profiles;
+    if (profiles.length > 1) {
+      overridePosProfileName = await _pickBranchForOrder(
+        context: context,
+        profiles: profiles,
+        current: state.selectedProfile?['name']?.toString(),
+      );
+      if (overridePosProfileName == null) {
+        return; // user cancelled
+      }
+    }
+
+    await ref
+        .read(posNotifierProvider.notifier)
+        .checkout(paymentType: paymentType, overridePosProfileName: overridePosProfileName);
     final updatedState = ref.read(posNotifierProvider);
 
     if (context.mounted) {
@@ -602,6 +621,60 @@ class CartWidget extends ConsumerWidget {
         );
       }
     }
+  }
+
+  Future<String?> _pickBranchForOrder({
+    required BuildContext context,
+    required List<Map<String, dynamic>> profiles,
+    String? current,
+  }) async {
+    String? tempSelection = current ?? (profiles.isNotEmpty ? profiles.first['name']?.toString() : null);
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Choose Branch for this Order'),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 320, maxWidth: 420),
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: profiles.length,
+                        itemBuilder: (context, index) {
+                          final p = profiles[index];
+                          final name = p['name']?.toString() ?? '';
+                          return RadioListTile<String>(
+                            value: name,
+                            groupValue: tempSelection,
+                            onChanged: (val) => setState(() => tempSelection = val),
+                            title: Text(name),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(tempSelection),
+              child: const Text('Use Branch'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<String?> _pickPaymentTypeQuick(BuildContext context) async {

@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/dio_provider.dart';
-import '../../../../core/services/receipt_service.dart';
 import '../../domain/models/delivery_slot.dart';
 
 class PosRepository {
@@ -163,9 +162,61 @@ class PosRepository {
       if (response.statusCode == 200 && response.data['message'] != null) {
         return response.data['message'] as Map<String, dynamic>;
       }
-      throw Exception('Failed to create customer');
+      throw ApiException('Failed to create customer');
+    } on DioException catch (e) {
+      // Try to extract a friendly error from Frappe/ERPNext error payload
+      final data = e.response?.data;
+      String? exceptionType;
+      String? message;
+      if (data is Map) {
+        exceptionType = data['exception']?.toString();
+        // Frappe can return nested messages; prefer explicit message if present
+        message = data['message']?.toString();
+        // Sometimes error text is under _error_message or _server_messages
+        message ??= data['_error_message']?.toString();
+        message ??= data['_server_messages']?.toString();
+      }
+      // Fallback to Dio error message
+      message ??= e.message;
+
+      // Specific friendly mapping: duplicate customer
+      if ((exceptionType == 'ValidationError' || exceptionType == 'frappe.exceptions.ValidationError') &&
+          message != null && message.toLowerCase().contains('already exists')) {
+        // Try to extract the conflicted name if present within quotes without using RegExp
+        String? conflictedName;
+        try {
+          final lowerMsg = message.toLowerCase();
+          final namePos = lowerMsg.indexOf('name');
+          if (namePos >= 0) {
+            final tail = message.substring(namePos);
+            int firstQuoteIndex = -1;
+            String? quoteChar;
+            for (final q in ['"', "'"]) {
+              final i = tail.indexOf(q);
+              if (i >= 0 && (firstQuoteIndex == -1 || i < firstQuoteIndex)) {
+                firstQuoteIndex = i;
+                quoteChar = q;
+              }
+            }
+            if (firstQuoteIndex >= 0 && quoteChar != null) {
+              final start = firstQuoteIndex + 1;
+              final end = tail.indexOf(quoteChar, start);
+              if (end > start) {
+                conflictedName = tail.substring(start, end);
+              }
+            }
+          }
+        } catch (_) {}
+        final friendly = conflictedName != null
+            ? "Customer '$conflictedName' already exists. Please search and select it, or use a different name."
+            : 'Customer already exists. Please search and select it, or use a different name.';
+        throw ApiException(friendly, code: 'DUPLICATE_CUSTOMER');
+      }
+
+      // Generic friendly
+      throw ApiException(message ?? 'Failed to create customer');
     } catch (e) {
-      throw Exception('Failed to create customer: $e');
+      throw ApiException('Failed to create customer');
     }
   }
 
@@ -211,15 +262,17 @@ class PosRepository {
         }
       }
 
-      // Prepare request data
+  // Prepare request data
   Map<String, dynamic> requestData = {
         'cart_json': jsonEncode(cartItems),
         'customer_name': customer?['name'] ?? 'Walking Customer',
         'pos_profile_name': posProfile,
       };
 
-      // Add delivery charges if customer has delivery income
-      if (customer != null &&
+      // Add delivery charges if customer has delivery income (but NOT when sales partner is selected)
+      final bool partnerActive = salesPartner != null && salesPartner.isNotEmpty;
+      if (!partnerActive &&
+          customer != null &&
           customer['delivery_income'] != null &&
           customer['delivery_income'] > 0) {
         requestData['delivery_charges_json'] = jsonEncode([
@@ -347,34 +400,6 @@ class PosRepository {
     );
   }
 
-  // Print receipt for existing invoice
-  Future<void> printInvoiceReceipt(Map<String, dynamic> invoice) async {
-    try {
-      if (await ReceiptService.canPrint()) {
-        await ReceiptService.printReceipt(invoice);
-        if (kDebugMode) {
-          debugPrint('✅ RECEIPT: Reprinted successfully for ${invoice['name']}');
-        }
-      } else {
-        throw Exception('Printing not available');
-      }
-    } catch (e) {
-      throw Exception('Failed to print receipt: $e');
-    }
-  }
-
-  // Share receipt as PDF
-  Future<void> shareInvoiceReceipt(Map<String, dynamic> invoice) async {
-    try {
-      await ReceiptService.shareReceipt(invoice);
-      if (kDebugMode) {
-        debugPrint('✅ RECEIPT: Shared successfully for ${invoice['name']}');
-      }
-    } catch (e) {
-      throw Exception('Failed to share receipt: $e');
-    }
-  }
-
   // Register payment for an invoice (Wallet / InstaPay / Cash)
   // Wallet & InstaPay: backend will AUTO-GENERATE referenceNo/referenceDate if omitted, but UI should collect real values.
   Future<Map<String, dynamic>> payInvoice({
@@ -409,9 +434,18 @@ class PosRepository {
 
   // Check if printing is available
   Future<bool> canPrint() async {
-    return await ReceiptService.canPrint();
+    // Legacy always-false after removal of PDF receipt system.
+    return false;
   }
 
+}
+
+class ApiException implements Exception {
+  final String message;
+  final String? code;
+  ApiException(this.message, {this.code});
+  @override
+  String toString() => message;
 }
 
 final posRepositoryProvider = Provider<PosRepository>((ref) {

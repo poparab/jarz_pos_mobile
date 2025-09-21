@@ -5,6 +5,7 @@ import 'dart:async';
 
 import '../../state/pos_notifier.dart';
 import '../../data/repositories/pos_repository.dart';
+// providers file not present; we use repository providers directly
 
 // Dynamic customer search provider that switches between name and phone search
 final dynamicCustomerSearchProvider =
@@ -27,6 +28,14 @@ final dynamicCustomerSearchProvider =
         return [];
       }
     });
+
+// Territories provider (local) backed by PosRepository
+final territoriesProvider = FutureProvider.family<List<Map<String, dynamic>>, String?>(
+  (ref, search) async {
+    final repo = ref.watch(posRepositoryProvider);
+    return await repo.getTerritories(search: search);
+  },
+);
 
 class CustomerSearchWidget extends ConsumerStatefulWidget {
   const CustomerSearchWidget({super.key});
@@ -781,32 +790,31 @@ class _QuickAddCustomerWidgetState
     });
 
     try {
-      // If Sales Partner is selected and address is empty, auto-fill with partner name
-      final selectedSalesPartner = ref.read(
-        posNotifierProvider.select((s) => s.selectedSalesPartner),
-      );
+        // If Sales Partner is selected and address is empty, auto-fill with partner name
+  final selectedSalesPartner = ref.read(posNotifierProvider.select((s) => s.selectedSalesPartner));
       final bool hasPartner = selectedSalesPartner != null;
       String addressValue = _addressController.text.trim();
       if (hasPartner && addressValue.isEmpty) {
-        final sp = selectedSalesPartner ?? const <String, dynamic>{};
-        final partnerLabel = sp['title'] ??
-            sp['partner_name'] ??
-            sp['name'] ??
-            'Sales Partner';
+  final Map<String, dynamic> sp = selectedSalesPartner;
+        String partnerLabel = 'Sales Partner';
+        for (final key in const ['title', 'partner_name', 'name']) {
+          final val = sp[key];
+          if (val != null && val.toString().trim().isNotEmpty) {
+            partnerLabel = val.toString();
+            break;
+          }
+        }
         addressValue = partnerLabel;
       }
 
-      final customerData = <String, String>{
-        'customerName': _nameController.text.trim(),
-        'mobileNumber': _mobileController.text.trim(),
-        'territoryId': _selectedTerritoryId!,
-        'detailedAddress': addressValue,
-        if (_locationController.text.trim().isNotEmpty)
-          'locationLink': _locationController.text.trim(),
-      };
-
-      final newCustomer = await ref.read(
-        createCustomerProvider(customerData).future,
+  final newCustomer = await ref.read(posRepositoryProvider).createCustomer(
+    customerName: _nameController.text.trim(),
+    mobileNumber: _mobileController.text.trim(),
+    territoryId: _selectedTerritoryId!,
+    detailedAddress: addressValue,
+    locationLink: _locationController.text.trim().isNotEmpty
+        ? _locationController.text.trim()
+        : null,
       );
 
       if (mounted) {
@@ -820,9 +828,10 @@ class _QuickAddCustomerWidgetState
       }
     } catch (e) {
       if (mounted) {
+        final friendly = e is ApiException ? e.message : 'Failed to create customer';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create customer: $e'),
+            content: Text(friendly),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

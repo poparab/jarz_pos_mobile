@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/models/delivery_slot.dart';
 import '../../data/repositories/pos_repository.dart';
+import '../../state/pos_notifier.dart';
 
 class DeliverySlotSelection extends ConsumerStatefulWidget {
   final String posProfile;
@@ -39,14 +40,40 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
       );
     }
     _selectedSlot = widget.selectedSlot;
-    _loadDeliverySlots();
+    // Attempt to use cached slots from POS state first to avoid visible loading delay
+    final cached = ref.read(posNotifierProvider.select((s) => s.deliverySlots));
+    if (cached.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint('⚡ Using ${cached.length} cached delivery slots');
+      }
+      _slots = cached;
+      // Auto-select default if needed
+      if (_selectedSlot == null) {
+        final defaultSlot = cached.firstWhere(
+          (slot) => slot.isDefault,
+          orElse: () => cached.first,
+        );
+        _selectedSlot = defaultSlot;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          widget.onSlotChanged(_selectedSlot);
+        });
+      }
+    } else {
+      _loadDeliverySlots();
+    }
   }
 
   @override
   void didUpdateWidget(DeliverySlotSelection oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.posProfile != widget.posProfile) {
-      _loadDeliverySlots();
+      final cached = ref.read(posNotifierProvider.select((s) => s.deliverySlots));
+      if (cached.isNotEmpty) {
+        _slots = cached;
+        setState(() {});
+      } else {
+        _loadDeliverySlots();
+      }
     }
     if (oldWidget.selectedSlot != widget.selectedSlot) {
       _selectedSlot = widget.selectedSlot;

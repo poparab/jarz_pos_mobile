@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kanban_models.dart';
@@ -5,12 +6,14 @@ import '../providers/kanban_provider.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../../core/network/courier_service.dart';
 import 'settlement_preview_dialog.dart';
+import '../../printing/pos_printer_provider.dart';
+import '../../printing/pos_printer_service.dart';
+// Invoice card widget displaying a Sales Invoice within the Kanban board.
 
 class InvoiceCardWidget extends ConsumerStatefulWidget {
   final InvoiceCard invoice;
   final bool isDragging;
-  final bool compact; // new: compact representation for drag feedback
-
+  final bool compact;
   const InvoiceCardWidget({
     super.key,
     required this.invoice,
@@ -56,6 +59,79 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         _animationController.reverse();
       }
     });
+  }
+
+  Future<void> _printInvoice(BuildContext context) async {
+    final printer = ref.read(posPrinterServiceProvider);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preparing receipt...'), duration: Duration(seconds: 1)));
+    // Attempt to fetch enriched invoice details for phone/address/shipping if not already present
+    InvoiceCard enriched = widget.invoice;
+    try {
+      // Only fetch if phone missing (we don't currently store phone on card) or to ensure latest shipping
+      final details = await ref.read(invoiceDetailsProvider(widget.invoice.id).future);
+      if (details != null) {
+        enriched = details;
+      }
+    } catch (_) {}
+    // Map items (fallback aggregated item if list empty)
+    final items = enriched.items.isNotEmpty
+        ? enriched.items
+            .map((e) => PrintableInvoiceItem(name: e.itemName, qty: e.qty, rate: e.rate))
+            .toList()
+        : [PrintableInvoiceItem(name: 'Items (${enriched.itemsCount})', qty: 1, rate: enriched.netTotal)];
+    // Paid/outstanding heuristic from card
+    final isPaid = (enriched.docStatus?.toLowerCase() == 'paid') || (enriched.effectiveStatus.toLowerCase() == 'paid');
+    final paid = isPaid ? enriched.total : 0.0;
+    final outstanding = ((enriched.total - paid).clamp(0.0, enriched.total)).toDouble();
+    // Use delivery slot from model if available
+    final deliveryDT = enriched.deliveryStartDateTime ?? _parseDelivery(enriched.requiredDeliveryDate);
+    final inv = PrintableInvoice(
+      id: enriched.name,
+      date: DateTime.now(),
+      customer: enriched.customerName,
+      customerAddress: enriched.address.isNotEmpty ? enriched.address : null,
+      customerPhone: enriched.customerPhone, // may be null if backend does not supply
+      deliveryDateTime: deliveryDT,
+      total: enriched.total,
+      paid: paid,
+      outstanding: outstanding,
+      shipping: enriched.shippingIncome,
+      items: items,
+    );
+    // If not connected attempt reconnect to last saved printer silently
+    if (!printer.isConnected && !printer.isClassicConnected) {
+      final ok = await printer.connectLastSaved();
+      if (!ok) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Printer not connected. Open Printer Selection from menu.')));
+        return;
+      }
+    }
+    final res = await printer.printInvoice(inv);
+    if (!mounted) return; // avoid using context after async gap
+    switch (res) {
+      case PrintResult.success:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Printed successfully')),
+        );
+        break;
+      case PrintResult.disconnected:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Printer disconnected')),);
+        break;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Print failed: $res')),);
+    }
+  }
+
+  DateTime? _parseDelivery(String? text) {
+    if (text == null || text.trim().isEmpty) return null;
+    try {
+      // Accept common formats like '2025-01-31 14:20' or ISO
+      return DateTime.tryParse(text);
+    } catch (_) {
+      return null;
+    }
   }
 
   String _shortInvoiceName(String full) {
@@ -232,7 +308,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                   ),
                                 ),
                               ),
-                            if (widget.invoice.effectiveStatus.toLowerCase() != 'paid' && !hasUnsettled)
+                            // Hide Pay action when Sales Partner present; otherwise show for unpaid invoices
+                            if ((widget.invoice.salesPartner ?? '').isEmpty && widget.invoice.effectiveStatus.toLowerCase() != 'paid' && !hasUnsettled)
                               Tooltip(
                                 message: 'Pay',
                                 child: IconButton(
@@ -241,18 +318,33 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                   onPressed: ref.read(kanbanProvider.select((s) => s.transitioningInvoices.contains(widget.invoice.id))) ? null : () => _payInvoice(context),
                                 ),
                               ),
-                            if (widget.invoice.effectiveStatus.toLowerCase() == 'paid' &&
-                                !_isPostOutForDelivery(widget.invoice.status))
+                            // Show Delivery action:
+                            // - Always for Sales Partner (regardless of paid) until already Out For Delivery or later
+                            // - For non-partner only when paid and not yet Out For Delivery
+                            if ((((widget.invoice.salesPartner ?? '').isNotEmpty) && !_isPostOutForDelivery(widget.invoice.status)) ||
+                                (((widget.invoice.salesPartner ?? '').isEmpty) && widget.invoice.effectiveStatus.toLowerCase() == 'paid' && !_isPostOutForDelivery(widget.invoice.status)))
                               Tooltip(
                                 message: 'Delivery',
                                 child: IconButton(
                                   icon: const Icon(Icons.local_shipping, size: 18),
                                   splashRadius: 18,
-                                  onPressed: widget.invoice.docStatus?.toLowerCase() != 'paid'
-                                      ? null
-                                      : (!hasProfile || ref.read(kanbanProvider.select((s) => s.transitioningInvoices.contains(widget.invoice.id)))
-                                          ? null
-                                          : () => _handleOutForDelivery(context)),
+                                  onPressed: () {
+                                    final isTransitioning = ref.read(kanbanProvider.select((s) => s.transitioningInvoices.contains(widget.invoice.id)));
+                                    final hasPartner = ((widget.invoice.salesPartner ?? '').isNotEmpty);
+                                    if (!hasPartner) {
+                                      // Non-partner requires invoice to be paid to enable delivery
+                                      if ((widget.invoice.docStatus?.toLowerCase() != 'paid') || !hasProfile || isTransitioning) {
+                                        return; // disabled noop
+                                      }
+                                      _handleOutForDelivery(context);
+                                    } else {
+                                      // Partner flow: allow even when unpaid; _handleOutForDelivery contains fast-path logic
+                                      if (!hasProfile || isTransitioning) {
+                                        return; // disable if no POS profile or transitioning
+                                      }
+                                      _handleOutForDelivery(context);
+                                    }
+                                  },
                                 ),
                               ),
                             Tooltip(
@@ -309,6 +401,22 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
+                              if ((widget.invoice.phone ?? widget.invoice.customerPhone ?? '').isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    Icon(Icons.phone, size: 11, color: Colors.grey[600]),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        (widget.invoice.phone ?? widget.invoice.customerPhone)!,
+                                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -330,7 +438,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                 color: Colors.green,
                               ),
                             ),
-                            if (widget.invoice.shippingExpenseDisplay > 0) ...[
+                            // Hide shipping expense line for Sales Partner invoices per new rule
+                            if ((widget.invoice.salesPartner == null || widget.invoice.salesPartner!.isEmpty) && widget.invoice.shippingExpenseDisplay > 0) ...[
                               const SizedBox(height: 6),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -385,15 +494,18 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                             ),
                           ),
                         ),
-                        Text(
-                          widget.invoice.requiredDeliveryDate != null && widget.invoice.requiredDeliveryDate!.isNotEmpty
-                              ? widget.invoice.requiredDeliveryDate!
-                              : widget.invoice.date,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
+                        // Show delivery slot label if available; fallback to posting date
+                        Builder(builder: (context) {
+                          final label = (widget.invoice.deliveryDateTimeLabel).trim();
+                          final show = label.isNotEmpty;
+                          return Text(
+                            show ? label : widget.invoice.postingDateHumanized,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          );
+                        }),
                       ],
                     ),
                   ],
@@ -507,6 +619,48 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   }
 
   Widget _buildTotalsSection() {
+    final hasPartner = (widget.invoice.salesPartner ?? '').isNotEmpty;
+    final children = <Widget>[
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Net Total', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+          Text('\$${widget.invoice.netTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+        ],
+      ),
+      const SizedBox(height: 4),
+    ];
+    if (!hasPartner) {
+      children.add(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Shipping Income', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+            Text('\$${widget.invoice.shippingIncomeDisplay.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+          ],
+        ),
+      );
+      children.add(const SizedBox(height: 4));
+      children.add(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Shipping Expense', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+            Text('\$${widget.invoice.shippingExpenseDisplay.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+          ],
+        ),
+      );
+    }
+    children.addAll([
+      const Divider(height: 12),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Grand Total', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          Text('\$${widget.invoice.total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green)),
+        ],
+      ),
+    ]);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -514,78 +668,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[200]!),
       ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Net Total',
-                style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-              ),
-              Text(
-                '\$${widget.invoice.netTotal.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Shipping Income',
-                style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-              ),
-              Text(
-                '\$${widget.invoice.shippingIncomeDisplay.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Shipping Expense',
-                style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-              ),
-              Text(
-                '\$${widget.invoice.shippingExpenseDisplay.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Grand Total',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                '\$${widget.invoice.total.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+      child: Column(children: children),
     );
   }
 
@@ -801,23 +884,61 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     }
   }
 
-  void _printInvoice(BuildContext context) {
-    // TODO: Integrate with receipt/printing service
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Print invoice ${widget.invoice.name}'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
   Future<void> _handleOutForDelivery(BuildContext context) async {
     final container = ProviderScope.containerOf(context, listen: false);
     final notifier = container.read(kanbanProvider.notifier);
     final posState = container.read(posNotifierProvider);
     final messenger = ScaffoldMessenger.of(context);
 
-    final result = await _showCourierSettlementDialog(context);
+    // Fast-path for Sales Partner invoices:
+    // 1. If already paid + has Sales Partner -> direct state change (legacy fast path retained)
+    // 2. NEW: If UNPAID + has Sales Partner -> auto create cash Payment Entry & OFD via backend endpoint (skip courier UI completely)
+    final hasPartner = ((widget.invoice.salesPartner ?? '').isNotEmpty);
+    final isPaid = (widget.invoice.status).toString().toLowerCase() == 'paid' || (widget.invoice.effectiveStatus).toString().toLowerCase() == 'paid';
+    final posProfileName = posState.selectedProfile?['name'];
+
+    if (hasPartner) {
+      final statusLower = (widget.invoice.status).toString().toLowerCase();
+      final effLower = (widget.invoice.effectiveStatus).toString().toLowerCase();
+      final isUnpaid = statusLower == 'unpaid' || effLower == 'unpaid' || statusLower == 'overdue' || effLower == 'overdue' || statusLower.contains('part') || effLower.contains('part');
+      if (isUnpaid) {
+        if (posProfileName == null) {
+          messenger.showSnackBar(const SnackBar(content: Text('Select POS Profile first')));
+          return;
+        }
+        messenger.showSnackBar(const SnackBar(content: Text('Collecting cash & dispatching (Sales Partner)...')));
+        try {
+          // We don't have a direct method: call raw endpoint via notifier/apiService if available
+          final raw = await container.read(kanbanProvider.notifier).callBackend(
+            '/api/method/jarz_pos.jarz_pos.services.delivery_handling.sales_partner_unpaid_out_for_delivery',
+            data: {
+              'invoice_name': widget.invoice.name,
+              'pos_profile': posProfileName,
+              'mode_of_payment': 'Cash',
+            },
+          );
+          if ((raw['success'] == true) || (raw['message']?['success'] == true)) {
+            messenger.showSnackBar(const SnackBar(content: Text('Cash collected & sent Out For Delivery')));
+            await notifier.refreshSingle(widget.invoice.name);
+          } else {
+            messenger.showSnackBar(SnackBar(content: Text('Failed: ${(raw['message'] ?? raw).toString()}')));
+          }
+        } catch (e) {
+          messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+        }
+        return;
+      } else if (isPaid) {
+        try {
+          await notifier.updateInvoiceState(widget.invoice.name, 'Out For Delivery');
+          messenger.showSnackBar(const SnackBar(content: Text('Sent Out For Delivery (DN will be created)')));
+        } catch (e) {
+          messenger.showSnackBar(SnackBar(content: Text('Action failed: $e')));
+        }
+        return;
+      }
+    }
+
+  final result = await _showCourierSettlementDialog(context, hideSettleLater: hasPartner);
     if (result == null) return; // cancelled
     final courier = result['courier'] as String;
     final partyType = result['party_type'] as String?;
@@ -833,9 +954,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     }
 
   // Treat invoice as unpaid if status is Unpaid/Overdue/Partially Paid, or outstanding > ~0
-  final statusL = (widget.invoice.status).toString().toLowerCase();
-  final effStatusL = (widget.invoice.effectiveStatus).toString().toLowerCase();
-  final isUnpaid = statusL == 'unpaid' || effStatusL == 'unpaid' || statusL == 'overdue' || effStatusL == 'overdue' || statusL.contains('part') || effStatusL.contains('part');
+  final statusNow = (widget.invoice.status).toString().toLowerCase();
+  final effStatusNow = (widget.invoice.effectiveStatus).toString().toLowerCase();
+  final isUnpaid = statusNow == 'unpaid' || effStatusNow == 'unpaid' || statusNow == 'overdue' || effStatusNow == 'overdue' || statusNow.contains('part') || effStatusNow.contains('part');
     if (isUnpaid && mode == 'settle_later') {
       try {
         final res = await notifier.markCourierOutstanding(
@@ -974,7 +1095,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     }
   }
 
-  Future<Map<String, dynamic>?> _showCourierSettlementDialog(BuildContext context) async {
+  Future<Map<String, dynamic>?> _showCourierSettlementDialog(BuildContext context, {bool hideSettleLater = false}) async {
     String? courier;
     String? partyType;
     String? party;
@@ -983,6 +1104,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     List<Map<String, String>> couriers = [];
     bool creating = false;
     String newPartyType = 'Employee';
+
     final firstNameController = TextEditingController();
     final lastNameController = TextEditingController();
     final phoneController = TextEditingController();
@@ -996,14 +1118,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       }
     } catch (_) {}
     loading = false;
+    if (!context.mounted) return null;
 
-    if (!context.mounted) return null; // avoid context use if widget disposed
     return showDialog<Map<String, dynamic>>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setState) => AlertDialog(
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) {
+          return AlertDialog(
             title: const Text('Delivery'),
             content: SizedBox(
               width: 640,
@@ -1236,18 +1358,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                RadioListTile<String>(
-                                  title: Text(widget.invoice.status.toLowerCase() == 'unpaid'
-                                      ? 'Courier Collects Cash Now'
-                                      : 'Pay Now (Already Paid)'),
+                                const RadioListTile<String>(
+                                  title: Text('Pay Now (Cash)'),
                                   value: 'pay_now',
                                   dense: true,
                                 ),
-                                const RadioListTile<String>(
-                                  title: Text('Settle Later'),
-                                  value: 'settle_later',
-                                  dense: true,
-                                ),
+                                if (!hideSettleLater)
+                                  const RadioListTile<String>(
+                                    title: Text('Settle Later'),
+                                    value: 'settle_later',
+                                    dense: true,
+                                  ),
                               ],
                             ),
                           ),
@@ -1256,27 +1377,32 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                     ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
               if (!creating)
                 ElevatedButton(
-                  onPressed: courier == null || loading ? null : () => Navigator.pop(ctx, {
-                    'courier': courier,
-                    'mode': mode,
-                    'party_type': partyType,
-                    'party': party,
-                    'courier_display': couriers.firstWhere(
-                      (e) => e['party'] == courier,
-                      orElse: () => const {},
-                    )['display_name'],
-                  }),
+                  onPressed: courier == null || loading
+                      ? null
+                      : () => Navigator.pop(ctx, {
+                            'courier': courier,
+                            'mode': mode,
+                            'party_type': partyType,
+                            'party': party,
+                            'courier_display': couriers.firstWhere(
+                              (e) => e['party'] == courier,
+                              orElse: () => const {},
+                            )['display_name'],
+                          }),
                   child: const Text('Confirm'),
                 )
               else
                 const SizedBox.shrink(),
             ],
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -1323,7 +1449,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         messenger.showSnackBar(const SnackBar(content: Text('Cannot settle: courier party not resolved. Assign courier or retry.')));
         return;
       }
-  if (!context.mounted) return;
+      if (!context.mounted) return;
 
       // 2. Show confirmation dialog with collect / pay details (shared helper)
       final confirmed = await showSettlementConfirmDialog(
@@ -1378,3 +1504,5 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     }
   }
 }
+
+// End of InvoiceCardWidget state class

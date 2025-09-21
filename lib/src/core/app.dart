@@ -6,6 +6,8 @@ import 'ui/loading_overlay.dart';
 import 'websocket/websocket_service.dart';
 import 'sync/offline_sync_service.dart';
 import '../features/pos/state/courier_ws_bridge.dart';
+import '../features/printing/pos_printer_provider.dart';
+import 'network/user_service.dart';
 
 class JarzPosApp extends ConsumerWidget {
   const JarzPosApp({super.key});
@@ -17,6 +19,10 @@ class JarzPosApp extends ConsumerWidget {
     // Initialize services
     ref.watch(webSocketServiceProvider);
     ref.watch(offlineSyncServiceProvider);
+  // Initialize printer service early so it can auto-reconnect if a device was saved
+  ref.watch(posPrinterServiceProvider);
+    // Prefetch current user roles (safe if unauthenticated; will be retried post-login)
+    ref.watch(userRolesFutureProvider);
     
     // Initialize courier websocket bridge
     ref.watch(courierWsBridgeProvider);

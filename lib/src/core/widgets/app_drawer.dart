@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/auth/state/login_notifier.dart';
 import '../../features/pos/presentation/widgets/courier_balances_dialog.dart';
+import '../../features/manager/state/manager_providers.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -57,6 +60,23 @@ class AppDrawer extends StatelessWidget {
               showCourierBalancesDialog(context);
             },
           ),
+          Consumer(
+            builder: (context, ref, _) {
+              final allowed = ref.watch(managerAccessProvider).maybeWhen(
+                    data: (v) => v,
+                    orElse: () => false,
+                  );
+              if (!allowed) return const SizedBox.shrink();
+              return ListTile(
+                leading: const Icon(Icons.dashboard),
+                title: const Text('Manager Dashboard'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/manager');
+                },
+              );
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.home),
             title: const Text('Home'),
@@ -77,10 +97,10 @@ class AppDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Logout'),
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
-              // TODO: Implement logout
-              context.go('/login');
+              await ref.read(loginNotifierProvider.notifier).logout();
+              if (context.mounted) context.go('/login');
             },
           ),
         ],
