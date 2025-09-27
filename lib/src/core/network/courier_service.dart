@@ -13,7 +13,7 @@ class CourierService {
 
   Future<List<dynamic>> getBalances() async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.jarz_pos.api.couriers.get_courier_balances',
+      '/api/method/jarz_pos.api.couriers.get_courier_balances',
       data: {},
     );
     // Frappe packs data in 'message' for /api/method
@@ -31,7 +31,7 @@ class CourierService {
     String? party,
   }) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.jarz_pos.api.invoices.get_invoice_settlement_preview',
+      '/api/method/jarz_pos.api.invoices.get_invoice_settlement_preview',
       data: {
         'invoice_name': invoice,
         if (partyType != null) 'party_type': partyType,
@@ -55,7 +55,7 @@ class CourierService {
     int recentPaymentSeconds = 30,
   }) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.jarz_pos.api.couriers.generate_settlement_preview',
+      '/api/method/jarz_pos.api.couriers.generate_settlement_preview',
       data: {
         'invoice': invoice,
         if (partyType != null) 'party_type': partyType,
@@ -83,7 +83,7 @@ class CourierService {
   String? courier,
   }) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.jarz_pos.api.couriers.confirm_settlement',
+      '/api/method/jarz_pos.api.couriers.confirm_settlement',
       data: {
         'invoice': invoice,
         'preview_token': previewToken,

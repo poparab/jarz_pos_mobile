@@ -15,7 +15,7 @@ class ManagerApi {
 
   Future<DashboardSummary> getSummary({String? company}) async {
     final resp = await _dio.get(
-      '/api/method/jarz_pos.jarz_pos.api.manager.get_manager_dashboard_summary',
+      '/api/method/jarz_pos.api.manager.get_manager_dashboard_summary',
       queryParameters: {if (company != null) 'company': company},
     );
     final data = resp.data is String ? json.decode(resp.data) : resp.data;
@@ -24,7 +24,7 @@ class ManagerApi {
 
   Future<List<ManagerInvoice>> getOrders({String? branch, String? state, int limit = 200}) async {
     final resp = await _dio.get(
-      '/api/method/jarz_pos.jarz_pos.api.manager.get_manager_orders',
+      '/api/method/jarz_pos.api.manager.get_manager_orders',
       queryParameters: {
         if (branch != null) 'branch': branch,
         if (state != null) 'state': state,
@@ -38,7 +38,7 @@ class ManagerApi {
 
   Future<List<String>> getStates() async {
     final resp = await _dio.get(
-      '/api/method/jarz_pos.jarz_pos.api.manager.get_manager_states',
+      '/api/method/jarz_pos.api.manager.get_manager_states',
     );
     final data = resp.data is String ? json.decode(resp.data) : resp.data;
     final list = (data['message'] ?? data)['states'] as List<dynamic>? ?? const [];
@@ -47,7 +47,7 @@ class ManagerApi {
 
   Future<void> updateInvoiceBranch({required String invoiceId, required String newBranch}) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.jarz_pos.api.manager.update_invoice_branch',
+      '/api/method/jarz_pos.api.manager.update_invoice_branch',
       data: {'invoice_id': invoiceId, 'new_branch': newBranch},
     );
     final data = resp.data is String ? json.decode(resp.data) : resp.data;

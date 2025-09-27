@@ -34,7 +34,7 @@ class UserService {
 
   Future<UserRoles> getCurrentUserRoles() async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.jarz_pos.api.user.get_current_user_roles',
+      '/api/method/jarz_pos.api.user.get_current_user_roles',
       data: {},
     );
     final data = resp.data;
