@@ -729,6 +729,9 @@ class _QuickAddCustomerWidgetState
           border: OutlineInputBorder(),
           prefixIcon: Icon(Icons.location_on),
         ),
+        isExpanded: true,
+        menuMaxHeight: 320,
+        alignment: AlignmentDirectional.centerStart,
         items: territories.map<DropdownMenuItem<String>>((territory) {
           final deliveryInfo =
               territory['delivery_income'] != null &&
@@ -737,8 +740,13 @@ class _QuickAddCustomerWidgetState
               : '';
           return DropdownMenuItem<String>(
             value: territory['name'],
-            child: Text(
-              '${territory['territory_name'] ?? 'Unknown Territory'}$deliveryInfo',
+            child: SizedBox(
+              width: 360,
+              child: Text(
+                '${territory['territory_name'] ?? 'Unknown Territory'}$deliveryInfo',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           );
         }).toList(),

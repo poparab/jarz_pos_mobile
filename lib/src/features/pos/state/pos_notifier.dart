@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../../core/ui/loading_overlay.dart';
 import '../data/models/pos_cart_item.dart';
 import '../data/repositories/pos_repository.dart';
 import '../domain/models/delivery_slot.dart';
@@ -385,7 +384,7 @@ class PosNotifier extends StateNotifier<PosState> {
     }
   }
 
-  Future<void> checkout({WidgetRef? ref, String? paymentType, String? overridePosProfileName}) async {
+  Future<void> checkout({String? paymentType, String? overridePosProfileName}) async {
     if (state.cartItems.isEmpty) {
       state = state.copyWith(error: 'Cart is empty', clearError: false);
       return;
@@ -414,8 +413,6 @@ class PosNotifier extends StateNotifier<PosState> {
       }
     }
 
-    ref?.loading.show('Creating invoice...');
-
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       // Always create invoice without printing; printing moved to Kanban / separate action
@@ -436,7 +433,7 @@ class PosNotifier extends StateNotifier<PosState> {
         debugPrint('   Grand Total: ${invoice['grand_total']}');
       }
 
-      ref?.loading.hide();
+  // No modal overlay; rely on inline progress UI
 
       // Reset invoice context (cart, customer, delivery slot, sales partner) for a fresh start.
       state = state.copyWith(
@@ -455,7 +452,7 @@ class PosNotifier extends StateNotifier<PosState> {
       if (kDebugMode) {
         debugPrint('❌ CHECKOUT ERROR: $e');
       }
-      ref?.loading.hide();
+  // No modal overlay; rely on inline progress UI
       state = state.copyWith(
         error: e.toString(),
         isLoading: false,

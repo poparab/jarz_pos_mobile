@@ -124,7 +124,20 @@ class CheckoutButtonWidget extends ConsumerWidget {
 
   Future<void> _performCheckout(WidgetRef ref, BuildContext context) async {
     try {
-  await ref.read(posNotifierProvider.notifier).checkout(ref: ref);
+      // Profile is mandatory before entering POS; if somehow missing, block with a toast
+      final posState = ref.read(posNotifierProvider);
+      final profileName = posState.selectedProfile?['name']?.toString();
+      if (profileName == null || profileName.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Select POS profile first')),
+          );
+        }
+        return;
+      }
+
+      // Proceed with the already selected profile; no popup, no dimming
+      await ref.read(posNotifierProvider.notifier).checkout();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -146,4 +159,6 @@ class CheckoutButtonWidget extends ConsumerWidget {
       }
     }
   }
+
+  // No checkout-time profile dialog: profile is chosen before entering POS
 }

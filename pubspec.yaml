@@ -71,6 +71,9 @@ flutter:
   uses-material-design: true
   assets:
     - .env
+    - .env.local
+    - .env.staging
+    - .env.prod
     - assets/images/logo.png
 
 # Launcher icon configuration

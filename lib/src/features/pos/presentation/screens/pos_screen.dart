@@ -19,8 +19,7 @@ import '../widgets/courier_balances_dialog.dart';
 import '../../../printing/pos_printer_provider.dart';
 import '../../../printing/printer_status.dart';
 import '../../../../core/widgets/app_drawer.dart';
-import '../../../kanban/providers/kanban_provider.dart';
-import '../../../../core/widgets/branch_filter_dialog.dart';
+// Removed branch filter from POS; filter lives in Kanban header
 // Removed unused direct service import (service accessed through provider)
 
 class PosScreen extends ConsumerStatefulWidget {
@@ -51,16 +50,27 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(posNotifierProvider);
-
-    // If multiple profiles available and no profile selected, redirect to profile selection
-    if (state.profiles.length > 1 && state.selectedProfile == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) context.go('/pos-profile-selection');
-      });
+    // Enforce POS profile selection: show inline selection UI on entry
+    if (state.selectedProfile == null) {
+      if (state.isLoading) {
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
+      // Auto-select if only one profile available
+      if (state.profiles.length == 1) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          ref.read(posNotifierProvider.notifier).selectProfile(state.profiles.first);
+        });
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
+      // Show inline profile selection without modal dialog
+      if (state.profiles.isNotEmpty) {
+        return _buildInlineProfileSelection(context, state.profiles);
+      }
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-  return Scaffold(
+    return Scaffold(
       key: _scaffoldKey,
       drawer: const AppDrawer(),
       appBar: PreferredSize(
@@ -209,6 +219,121 @@ class _PosScreenState extends ConsumerState<PosScreen> {
 
 }
 
+extension on _PosScreenState {
+  Widget _buildInlineProfileSelection(BuildContext context, List<Map<String, dynamic>> profiles) {
+    String? selectedProfile = profiles.isNotEmpty ? profiles.first['name']?.toString() : null;
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Select POS Profile'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        automaticallyImplyLeading: false,
+      ),
+      body: StatefulBuilder(
+        builder: (context, setState) => Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Choose a POS profile to continue:',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1.2,
+                  ),
+                  itemCount: profiles.length,
+                  itemBuilder: (context, index) {
+                    final profile = profiles[index];
+                    final name = (profile['name'] ?? '').toString();
+                    final title = (profile['title'] ?? profile['name'] ?? '').toString();
+                    final isSelected = selectedProfile == name;
+                    
+                    return Card(
+                      elevation: isSelected ? 8 : 2,
+                      color: isSelected 
+                          ? Theme.of(context).colorScheme.primaryContainer
+                          : null,
+                      child: InkWell(
+                        onTap: () => setState(() => selectedProfile = name),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.store,
+                                size: 48,
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).colorScheme.onSurface,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                title,
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected
+                                      ? Theme.of(context).colorScheme.primary
+                                      : null,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (profile['warehouse'] != null) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Warehouse: ${profile['warehouse']}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: selectedProfile == null
+                          ? null
+                          : () {
+                              final selProfile = profiles.firstWhere(
+                                (p) => p['name']?.toString() == selectedProfile,
+                                orElse: () => profiles.first,
+                              );
+                              ref.read(posNotifierProvider.notifier).selectProfile(selProfile);
+                            },
+                      child: const Text('Continue'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
   final PosState state;
   final VoidCallback onShowCart;
@@ -248,74 +373,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                   tooltip: 'Menu',
                 ),
                 const SizedBox(width: 4),
-                // Section: Branch filter (same component behavior as Kanban)
-                Builder(builder: (bCtx) {
-                  final posState = r.watch(posNotifierProvider);
-                  final sel = r.watch(kanbanProvider).selectedBranches;
-                  final profiles = posState.profiles;
-                  if (profiles.isEmpty) {
-                    return Text(
-                      state.selectedProfile?['title'] ?? state.selectedProfile?['name'] ?? 'POS',
-                      style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
-                            color: Theme.of(ctx).colorScheme.onPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    );
-                  }
-
-                  final selectedCount = sel.length;
-                  final label = selectedCount == 0
-                      ? 'All Branches'
-                      : (selectedCount == 1 ? '1 Branch' : '$selectedCount Branches');
-                  final onColor = Theme.of(ctx).colorScheme.onPrimary;
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                    child: InkWell(
-                      onTap: () async {
-                        final current = Set<String>.from(sel);
-                        final result = await showDialog<Set<String>>(
-                          context: context,
-                          useRootNavigator: true,
-                          builder: (dCtx) => BranchFilterDialog(
-                            profiles: profiles,
-                            initiallySelected: current,
-                            title: 'Filter by Branches',
-                          ),
-                        );
-                        if (result != null) {
-                          r.read(kanbanProvider.notifier).setSelectedBranches(result);
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: onColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: onColor.withValues(alpha: 0.25)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.filter_alt, size: 16, color: onColor),
-                            const SizedBox(width: 6),
-                            Text(
-                              label,
-                              style: TextStyle(
-                                color: onColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 2),
-                            Icon(Icons.arrow_drop_down, size: 18, color: onColor),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }),
+                // Branch filter removed from POS (lives in Kanban header)
                 const SizedBox(width: 12),
                 _vDivider(theme),
                 const SizedBox(width: 12),
@@ -346,6 +404,76 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                     icon: const Icon(Icons.handshake),
                     label: const Text('Partner'),
                   ),
+                const SizedBox(width: 12),
+                _vDivider(theme),
+                const SizedBox(width: 12),
+                // Section: POS Profile quick selector (dialog-based)
+                Builder(builder: (bCtx) {
+                  final profiles = r.watch(posNotifierProvider).profiles;
+                  final selected = r.watch(posNotifierProvider).selectedProfile;
+                  final onPrimary = theme.colorScheme.onPrimary;
+
+                  if (profiles.isEmpty) {
+                    return Text(
+                      selected?['title'] ?? selected?['name'] ?? 'POS',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: onPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    );
+                  }
+
+                  final label = selected != null
+                      ? (selected['title'] ?? selected['name'] ?? 'POS').toString()
+                      : (profiles.length == 1
+                          ? (profiles.first['title'] ?? profiles.first['name'] ?? 'POS').toString()
+                          : 'Select POS');
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                    child: InkWell(
+                      onTap: () async {
+                        if (profiles.length == 1) {
+                          r.read(posNotifierProvider.notifier).selectProfile(profiles.first);
+                          return;
+                        }
+                        // Cycle through profiles without modal dialog
+                        final currentIndex = selected != null 
+                            ? profiles.indexWhere((p) => p['name'] == selected['name'])
+                            : -1;
+                        final nextIndex = (currentIndex + 1) % profiles.length;
+                        final nextProfile = profiles[nextIndex];
+                        r.read(posNotifierProvider.notifier).selectProfile(nextProfile);
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: onPrimary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: onPrimary.withValues(alpha: 0.25)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.store, size: 16, color: onPrimary),
+                            const SizedBox(width: 6),
+                            Text(
+                              label,
+                              style: TextStyle(
+                                color: onPrimary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            Icon(Icons.arrow_drop_down, size: 18, color: onPrimary),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }),
                 const SizedBox(width: 12),
                 _vDivider(theme),
                 const SizedBox(width: 12),

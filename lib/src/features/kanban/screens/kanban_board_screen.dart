@@ -40,36 +40,18 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final notifier = ref.read(kanbanProvider.notifier);
       notifier.loadInvoices();
+      // Proactively load POS profiles so branch filter is available immediately
+      final posState = ref.read(posNotifierProvider);
+      if (!posState.isLoading && posState.profiles.isEmpty) {
+        ref.read(posNotifierProvider.notifier).loadProfiles();
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final kanbanState = ref.watch(kanbanProvider);
-    final posState = ref.watch(posNotifierProvider);
-
-    // If no POS profile chosen yet show helper screen
-    if (posState.selectedProfile == null) {
-      return Scaffold(
-        appBar: widget.showAppBar ? AppBar(title: const Text('Sales Invoice Kanban')) : null,
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.store_mall_directory, size: 72, color: Colors.orangeAccent),
-              const SizedBox(height: 16),
-              const Text('Select a POS Profile to continue', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                onPressed: () => context.push('/pos-profile-selection'),
-                icon: const Icon(Icons.arrow_forward),
-                label: const Text('Choose Profile'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+    // No POS profile guard here; Kanban should be usable with branch filter defaults
 
     return Scaffold(
       drawer: const AppDrawer(),
@@ -890,7 +872,8 @@ class _BranchFilterButton extends ConsumerWidget {
     final posState = ref.watch(posNotifierProvider);
     final sel = ref.watch(kanbanProvider).selectedBranches;
     final profiles = posState.profiles;
-    if (profiles.isEmpty) return const SizedBox.shrink();
+    // Always render a placeholder chip so the UI is visible immediately
+    final isLoading = posState.isLoading && profiles.isEmpty;
 
     final selectedCount = sel.length;
     final label = selectedCount == 0
@@ -901,6 +884,7 @@ class _BranchFilterButton extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       child: InkWell(
         onTap: () async {
+          if (profiles.isEmpty) return; // ignore taps until loaded
           final current = Set<String>.from(sel);
           final result = await showDialog<Set<String>>(
             context: context,
@@ -929,7 +913,7 @@ class _BranchFilterButton extends ConsumerWidget {
               Icon(Icons.filter_alt, size: 16, color: theme.colorScheme.onSurface),
               const SizedBox(width: 6),
               Text(
-                label,
+                isLoading ? 'Loading branches…' : label,
                 style: TextStyle(
                   color: theme.colorScheme.onSurface,
                   fontSize: 12,

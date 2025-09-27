@@ -71,6 +71,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
   StreamSubscription<Map<String, dynamic>>? _kanbanSub;
   StreamSubscription<Map<String, dynamic>>? _pollingSub;
   final Ref _ref; // store ref for offline queue & connectivity
+  bool _autoBranchesInitialized = false; // ensure we don't override user choice
 
   KanbanNotifier(this._kanbanService, Ref ref) : _ref = ref, super(KanbanState()) {
     _wsService = ref.read(webSocketServiceProvider);
@@ -78,11 +79,46 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     _attachRealtime();
     _attachNotificationPolling();
     _listenConnectivity();
+    _autoSelectAllBranchesIfNeeded();
+    // React to POS profile list becoming available later (after async load)
+    _ref.listen(posNotifierProvider, (prev, next) {
+      // If user already made a branch selection, do nothing
+      if (_autoBranchesInitialized || state.selectedBranches.isNotEmpty) return;
+      // When multiple profiles exist, preselect all to reflect multi-branch view
+      if ((next.profiles.length) > 1) {
+        final all = next.profiles
+            .map((p) => (p['name'] ?? p['title'])?.toString())
+            .whereType<String>()
+            .toSet();
+        if (all.isNotEmpty) {
+          state = state.copyWith(selectedBranches: all);
+          _autoBranchesInitialized = true;
+          // Reload invoices with branch filter applied
+          loadInvoices();
+        }
+      }
+    });
   }
 
   // Lightweight passthrough helpers (some widgets expect these names)
   Future<Map<String, List<InvoiceCard>>> fetchInvoices() async {
     return _kanbanService.getKanbanInvoices(filters: state.filters.toJson());
+  }
+
+  void _autoSelectAllBranchesIfNeeded() {
+    if (_autoBranchesInitialized || state.selectedBranches.isNotEmpty) return;
+    final posState = _ref.read(posNotifierProvider);
+    final profiles = posState.profiles;
+    if (profiles.length > 1) {
+      final all = profiles
+          .map((p) => (p['name'] ?? p['title'])?.toString())
+          .whereType<String>()
+          .toSet();
+      if (all.isNotEmpty) {
+        state = state.copyWith(selectedBranches: all);
+        _autoBranchesInitialized = true;
+      }
+    }
   }
 
   Future<dynamic> rawPost(String path, Map<String, dynamic> data) async {

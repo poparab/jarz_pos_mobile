@@ -578,26 +578,15 @@ class CartWidget extends ConsumerWidget {
       return;
     }
 
-    // If a Sales Partner is selected, ask for payment channel (Cash vs Online) with tap-to-confirm
+    // Since profile is selected before entering POS, skip modal dialogs
+    // Default to cash payment type for sales partners (can be modified later if needed)
     String? paymentType;
     if (state.selectedSalesPartner != null) {
-      paymentType = await _pickPaymentTypeQuick(context);
-      if (paymentType == null) return; // user dismissed dialog
+      paymentType = 'cash'; // Default to cash, no dialog
     }
 
-    // If user has multiple POS profiles, prompt which branch to use for this order (per-order override)
-    String? overridePosProfileName;
-    final profiles = state.profiles;
-    if (profiles.length > 1) {
-      overridePosProfileName = await _pickBranchForOrder(
-        context: context,
-        profiles: profiles,
-        current: state.selectedProfile?['name']?.toString(),
-      );
-      if (overridePosProfileName == null) {
-        return; // user cancelled
-      }
-    }
+    // Use the already selected profile, no branch selection dialog
+    String? overridePosProfileName = state.selectedProfile?['name']?.toString();
 
     await ref
         .read(posNotifierProvider.notifier)
@@ -623,152 +612,7 @@ class CartWidget extends ConsumerWidget {
     }
   }
 
-  Future<String?> _pickBranchForOrder({
-    required BuildContext context,
-    required List<Map<String, dynamic>> profiles,
-    String? current,
-  }) async {
-    String? tempSelection = current ?? (profiles.isNotEmpty ? profiles.first['name']?.toString() : null);
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text('Choose Branch for this Order'),
-          content: ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 320, maxWidth: 420),
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: profiles.length,
-                        itemBuilder: (context, index) {
-                          final p = profiles[index];
-                          final name = p['name']?.toString() ?? '';
-                          return RadioListTile<String>(
-                            value: name,
-                            groupValue: tempSelection,
-                            onChanged: (val) => setState(() => tempSelection = val),
-                            title: Text(name),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(null),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(tempSelection),
-              child: const Text('Use Branch'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
-  Future<String?> _pickPaymentTypeQuick(BuildContext context) async {
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) {
-        return Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.handshake, size: 18, color: Colors.deepPurple),
-                      const SizedBox(width: 8),
-                      Text('Select Payment Type', style: Theme.of(context).textTheme.titleMedium),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _quickPickTile(
-                    context: context,
-                    icon: Icons.payments,
-                    color: Colors.green,
-                    title: 'Cash',
-                    subtitle: 'Cash collected at store or delivery',
-                    value: 'cash',
-                  ),
-                  const SizedBox(height: 10),
-                  _quickPickTile(
-                    context: context,
-                    icon: Icons.wifi_tethering,
-                    color: Colors.blue,
-                    title: 'Online',
-                    subtitle: 'Wallet / InstaPay / Card',
-                    value: 'online',
-                  ),
-                  const SizedBox(height: 4),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _quickPickTile({
-    required BuildContext context,
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-    required String value,
-  }) {
-    return InkWell(
-      onTap: () => Navigator.of(context).pop(value),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: color.withValues(alpha: 0.12),
-              child: Icon(icon, color: color),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildBundleDetails(
     BuildContext context,
