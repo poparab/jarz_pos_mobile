@@ -8,10 +8,11 @@ import 'cookie_manager.dart';
 import '../offline/offline_queue.dart';
 
 class SessionInterceptor extends Interceptor {
-  SessionInterceptor(this._sessionManager, this._offlineQueue);
+  SessionInterceptor(this._sessionManager, this._offlineQueue, this._frappeSite);
 
   final SessionManager _sessionManager;
   final OfflineQueue _offlineQueue;
+  final String _frappeSite;
 
   @override
   void onRequest(
@@ -25,6 +26,13 @@ class SessionInterceptor extends Interceptor {
     final sessionId = await _sessionManager.getSessionId();
     if (sessionId != null) {
       options.headers['Cookie'] = 'sid=$sessionId';
+    }
+    
+    // Ensure Frappe site routing for multi-tenant backend on raw :8000
+    if (_frappeSite.isNotEmpty) {
+      options.headers['X-Frappe-Site-Name'] = _frappeSite;
+      // Setting Host helps when hitting backend directly without nginx
+      options.headers['Host'] = _frappeSite;
     }
     
     if (kDebugMode) {
@@ -97,6 +105,7 @@ final dioProvider = Provider<Dio>((ref) {
   final sessionManager = ref.watch(sessionManagerProvider);
   final offlineQueue = ref.watch(offlineQueueProvider);
   final baseUrl = dotenv.get('ERP_BASE_URL', fallback: 'http://localhost:8000');
+  final frappeSite = dotenv.get('FRAPPE_SITE', fallback: '');
 
   final dio = Dio(
     BaseOptions(
@@ -112,7 +121,7 @@ final dioProvider = Provider<Dio>((ref) {
   );
 
   // Add enhanced session interceptor with offline support
-  dio.interceptors.add(SessionInterceptor(sessionManager, offlineQueue));
+  dio.interceptors.add(SessionInterceptor(sessionManager, offlineQueue, frappeSite));
 
   // Add logging interceptor for debugging
   if (kDebugMode) {

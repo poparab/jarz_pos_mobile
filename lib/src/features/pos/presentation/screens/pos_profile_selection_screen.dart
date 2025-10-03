@@ -94,20 +94,35 @@ class PosProfileSelectionScreen extends ConsumerWidget {
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 1.2,
+    // Centered grid with slightly larger tiles to avoid overflow
+    final media = MediaQuery.of(context);
+    const maxGridWidth = 720.0;
+    const desiredTileWidth = 200.0;
+    const desiredTileHeight = 120.0;
+    final crossAxisCount = (media.size.width.clamp(0.0, maxGridWidth) / desiredTileWidth)
+        .floor()
+        .clamp(2, 4);
+    final childAspectRatio = desiredTileWidth / desiredTileHeight;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: maxGridWidth),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: childAspectRatio,
+            ),
+            itemCount: profiles.length,
+            itemBuilder: (context, index) {
+              final profile = profiles[index];
+              return _buildProfileCard(context, profile, ref);
+            },
+          ),
         ),
-        itemCount: profiles.length,
-        itemBuilder: (context, index) {
-          final profile = profiles[index];
-          return _buildProfileCard(context, profile, ref);
-        },
       ),
     );
   }
@@ -118,7 +133,7 @@ class PosProfileSelectionScreen extends ConsumerWidget {
     WidgetRef ref,
   ) {
     return Card(
-      elevation: 4,
+      elevation: 2,
       child: InkWell(
         onTap: () async {
           if (ref.read(posNotifierProvider).isLoading) return; // prevent double taps
@@ -129,26 +144,26 @@ class PosProfileSelectionScreen extends ConsumerWidget {
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 Icons.store,
-                size: 48,
+                size: 28,
                 color: Theme.of(context).colorScheme.primary,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
                 profile['title'] ?? profile['name'] ?? 'Unknown Profile',
                 style: Theme.of(
                   context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               if (profile['warehouse'] != null)
                 Text(
                   'Warehouse: ${profile['warehouse']}',

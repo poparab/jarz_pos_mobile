@@ -77,6 +77,91 @@ class AppDrawer extends ConsumerWidget {
               );
             },
           ),
+          Consumer(
+            builder: (context, ref, _) {
+              final allowed = ref.watch(managerAccessProvider).maybeWhen(
+                    data: (v) => v,
+                    orElse: () => false,
+                  );
+              if (!allowed) return const SizedBox.shrink();
+              return ListTile(
+                leading: const Icon(Icons.receipt_long),
+                title: const Text('Purchase Invoice'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/purchase');
+                },
+              );
+            },
+          ),
+          Consumer(
+            builder: (context, ref, _) {
+              final allowed = ref.watch(managerAccessProvider).maybeWhen(
+                    data: (v) => v,
+                    orElse: () => false,
+                  );
+              if (!allowed) return const SizedBox.shrink();
+              return ListTile(
+                leading: const Icon(Icons.factory),
+                title: const Text('Manufacturing'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/manufacturing');
+                },
+              );
+            },
+          ),
+          Consumer(
+            builder: (context, ref, _) {
+              final allowed = ref.watch(managerAccessProvider).maybeWhen(
+                    data: (v) => v,
+                    orElse: () => false,
+                  );
+              if (!allowed) return const SizedBox.shrink();
+              return ListTile(
+                leading: const Icon(Icons.swap_horiz),
+                title: const Text('Stock Transfer'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/stock-transfer');
+                },
+              );
+            },
+          ),
+          Consumer(
+            builder: (context, ref, _) {
+              final allowed = ref.watch(managerAccessProvider).maybeWhen(
+                    data: (v) => v,
+                    orElse: () => false,
+                  );
+              if (!allowed) return const SizedBox.shrink();
+              return ListTile(
+                leading: const Icon(Icons.account_balance_wallet),
+                title: const Text('Cash Transfer'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/cash-transfer');
+                },
+              );
+            },
+          ),
+          Consumer(
+            builder: (context, ref, _) {
+              final allowed = ref.watch(managerAccessProvider).maybeWhen(
+                    data: (v) => v,
+                    orElse: () => false,
+                  );
+              if (!allowed) return const SizedBox.shrink();
+              return ListTile(
+                leading: const Icon(Icons.inventory),
+                title: const Text('Inventory Count'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/inventory-count');
+                },
+              );
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.home),
             title: const Text('Home'),

@@ -43,11 +43,12 @@ class InvoiceCard {
   final String? customerPhone; // optional phone (may come from detailed fetch)
   final String? docStatus; // ERPNext document status separate from kanban state
   final String? courier; // new: assigned courier
-  final String? settlementMode; // new: pay_now | settle_later
+  final String? settlementMode; // legacy compatibility (now: pay_now only)
   final String? courierPartyType; // Employee/Supplier
   final String? courierParty; // party id
   final bool hasUnsettledCourierTxn; // new flag from backend
   final String? salesPartner; // optional sales partner on the invoice
+  final bool isPickup; // new: pickup orders
 
   InvoiceCard({
     required this.id,
@@ -77,6 +78,7 @@ class InvoiceCard {
   this.courierParty,
   this.hasUnsettledCourierTxn = false,
   this.salesPartner,
+  this.isPickup = false,
   });
 
   factory InvoiceCard.fromJson(Map<String, dynamic> json) {
@@ -110,6 +112,8 @@ class InvoiceCard {
   hasUnsettledCourierTxn: [1, true, '1', 'true', 'True']
       .contains(json['has_unsettled_courier_txn']),
   salesPartner: (json['sales_partner'] ?? json['salesPartner'] ?? json['partner'])?.toString(),
+      isPickup: [1, true, '1', 'true', 'True'].contains(json['is_pickup']) ||
+          ((json['remarks'] ?? '').toString().toLowerCase().contains('[pickup]')),
     );
   }
 
@@ -141,6 +145,7 @@ class InvoiceCard {
   'party': courierParty,
   'has_unsettled_courier_txn': hasUnsettledCourierTxn,
   'sales_partner': salesPartner,
+  'is_pickup': isPickup,
     };
   }
 
@@ -172,6 +177,7 @@ class InvoiceCard {
   String? courierParty,
   bool? hasUnsettledCourierTxn,
   String? salesPartner,
+  bool? isPickup,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -201,6 +207,7 @@ class InvoiceCard {
   courierParty: courierParty ?? this.courierParty,
   hasUnsettledCourierTxn: hasUnsettledCourierTxn ?? this.hasUnsettledCourierTxn,
   salesPartner: salesPartner ?? this.salesPartner,
+  isPickup: isPickup ?? this.isPickup,
     );
   }
 
@@ -216,6 +223,7 @@ class InvoiceCard {
   String get effectiveStatus => docStatus ?? status; // prefer real doc status
   int get itemsCount => items.length;
   String? get phone => customerPhone; // backward compatible alias if other code expects phone
+  bool get pickup => isPickup;
 
   // Derived delivery helpers
   DateTime? get deliveryStartDateTime {

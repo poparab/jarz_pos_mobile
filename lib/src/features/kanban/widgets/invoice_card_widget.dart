@@ -95,7 +95,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       total: enriched.total,
       paid: paid,
       outstanding: outstanding,
-      shipping: enriched.shippingIncome,
+      shipping: enriched.isPickup ? 0.0 : enriched.shippingIncome,
       items: items,
     );
     // If not connected attempt reconnect to last saved printer silently
@@ -292,6 +292,24 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                             ),
                           ),
                         ),
+                        if (widget.invoice.isPickup)
+                          Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.indigo.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.indigo.withValues(alpha: 0.7)),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.store_mall_directory, size: 12, color: Colors.indigo),
+                                SizedBox(width: 4),
+                                Text('Pickup', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.indigo)),
+                              ],
+                            ),
+                          ),
                         // Always-visible action buttons (Pay / Delivery / Print)
                         Row(
                           mainAxisSize: MainAxisSize.min,
@@ -322,7 +340,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                             // - Always for Sales Partner (regardless of paid) until already Out For Delivery or later
                             // - For non-partner only when paid and not yet Out For Delivery
                             if ((((widget.invoice.salesPartner ?? '').isNotEmpty) && !_isPostOutForDelivery(widget.invoice.status)) ||
-                                (((widget.invoice.salesPartner ?? '').isEmpty) && widget.invoice.effectiveStatus.toLowerCase() == 'paid' && !_isPostOutForDelivery(widget.invoice.status)))
+                                (((widget.invoice.salesPartner ?? '').isEmpty) && !_isPostOutForDelivery(widget.invoice.status)))
                               Tooltip(
                                 message: 'Delivery',
                                 child: IconButton(
@@ -332,9 +350,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                     final isTransitioning = ref.read(kanbanProvider.select((s) => s.transitioningInvoices.contains(widget.invoice.id)));
                                     final hasPartner = ((widget.invoice.salesPartner ?? '').isNotEmpty);
                                     if (!hasPartner) {
-                                      // Non-partner requires invoice to be paid to enable delivery
-                                      if ((widget.invoice.docStatus?.toLowerCase() != 'paid') || !hasProfile || isTransitioning) {
-                                        return; // disabled noop
+                                      // Non-partner now allowed for unpaid; ensure POS profile and not transitioning
+                                      if (!hasProfile || isTransitioning) {
+                                        return; // disable if no POS profile or transitioning
                                       }
                                       _handleOutForDelivery(context);
                                     } else {
@@ -529,7 +547,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (widget.invoice.address.isNotEmpty) ...[
+                    if (!widget.invoice.isPickup && widget.invoice.address.isNotEmpty) ...[
                       const Text(
                         'Delivery Address',
                         style: TextStyle(
@@ -630,7 +648,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       ),
       const SizedBox(height: 4),
     ];
-    if (!hasPartner) {
+    if (!hasPartner && !widget.invoice.isPickup) {
       children.add(
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -938,13 +956,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       }
     }
 
-  final result = await _showCourierSettlementDialog(context, hideSettleLater: hasPartner);
+  final result = await _showCourierSettlementDialog(context, hideSettleLater: true);
     if (result == null) return; // cancelled
     final courier = result['courier'] as String;
     final partyType = result['party_type'] as String?;
     final party = result['party'] as String?;
     final courierDisplay = result['courier_display'] as String?;
-    final mode = result['mode'] as String; // pay_now | settle_later
+  final mode = result['mode'] as String; // pay_now
     final posProfile = posState.selectedProfile?['name'];
     if (posProfile == null) {
       messenger.showSnackBar(
@@ -957,82 +975,28 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   final statusNow = (widget.invoice.status).toString().toLowerCase();
   final effStatusNow = (widget.invoice.effectiveStatus).toString().toLowerCase();
   final isUnpaid = statusNow == 'unpaid' || effStatusNow == 'unpaid' || statusNow == 'overdue' || effStatusNow == 'overdue' || statusNow.contains('part') || effStatusNow.contains('part');
-    if (isUnpaid && mode == 'settle_later') {
-      try {
-        final res = await notifier.markCourierOutstanding(
-          invoiceId: widget.invoice.name,
-          courier: courier,
-          partyType: partyType,
-          party: party,
-          courierDisplay: courierDisplay,
-        );
-        if (res == null || (res['success'] != true && res['status'] != 'success')) {
-          messenger.showSnackBar(
-            const SnackBar(content: Text('Failed to mark courier outstanding')),
-          );
-          return;
-        }
-        // No popup for settle later per requirement; card will move optimistically and reconcile via reload.
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Marked Out For Delivery (settle later)')),
-        );
-      } catch (e) {
-        messenger.showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
-      return;
-    }
+  // Only pay_now supported per new business rule
 
-    // If invoice is unpaid and user chose pay_now -> new two-step flow (server-driven)
+    // If invoice is unpaid and user chose pay_now -> call unified OFD endpoint directly (backend will create PE and prompt collect-cash)
     if (isUnpaid && mode == 'pay_now') {
       try {
-        final courierService = container.read(courierServiceProvider);
-  final preview = await courierService.generateSettlementPreview(
-          invoice: widget.invoice.name,
-          partyType: partyType,
-          party: party,
-          mode: mode,
-          recentPaymentSeconds: 30,
-        );
-  if (!context.mounted) return;
-        final confirmed = await showSettlementConfirmDialog(
-          context,
-          preview,
-          invoice: widget.invoice.name,
-          territory: widget.invoice.territory,
-          orderFallback: widget.invoice.grandTotal,
-          shippingFallback: widget.invoice.shippingExpenseDisplay,
-        );
-        if (confirmed != true) return;
-
-        final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
-        if (token.isEmpty) {
-          messenger.showSnackBar(const SnackBar(content: Text('Preview expired. Please retry.')));
-          return;
-        }
-        messenger.showSnackBar(const SnackBar(content: Text('Confirming settlement...')));
-        final res = await courierService.confirmSettlement(
-          invoice: widget.invoice.name,
-          previewToken: token,
+        messenger.showSnackBar(const SnackBar(content: Text('Dispatching…')));
+        final res = await notifier.outForDeliveryUnified(
+          invoiceId: widget.invoice.name,
+          courier: courier,
           mode: mode,
           posProfile: posProfile,
           partyType: partyType,
           party: party,
-          paymentMode: 'Cash',
-          // Pass the courier party/id, not the display label
-          courier: courier,
+          courierDisplay: courierDisplay,
         );
-        if (res['success'] != true) {
-          messenger.showSnackBar(const SnackBar(content: Text('Settlement failed')));
-          return;
+        if (res == null || res['success'] != true) {
+          messenger.showSnackBar(const SnackBar(content: Text('Dispatch failed')));
         }
-        messenger.showSnackBar(const SnackBar(content: Text('Settlement confirmed')));
-        // Continue to rest (OFD status feedback handled server-side)
       } catch (e) {
-        messenger.showSnackBar(SnackBar(content: Text('Settlement error: $e')));
-        return;
+        messenger.showSnackBar(SnackBar(content: Text('Dispatch error: $e')));
       }
+      return;
     }
     try {
       // For unpaid+pay_now, the server already handled OFD inside confirm_settlement.
@@ -1056,33 +1020,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       }
       if (res != null && res['success'] == true) {
         messenger.showSnackBar(
-          SnackBar(content: Text('Updated: JE ${res['journal_entry'] ?? '-'}')),
+          const SnackBar(content: Text('Updated')),
         );
-        // For pay_now flows, show the unified settlement info dialog driven by preview
-        if (mode == 'pay_now') {
-          try {
-            final courierService = ref.read(courierServiceProvider);
-            final preview = await courierService.getSettlementPreview(
-              invoice: widget.invoice.name,
-              partyType: partyType,
-              party: party,
-            );
-            if (!context.mounted) return;
-            await showSettlementInfoDialog(
-              context,
-              preview,
-              invoice: widget.invoice.name,
-              territory: widget.invoice.territory,
-              orderFallback: widget.invoice.grandTotal,
-              shippingFallback: widget.invoice.shippingExpenseDisplay,
-            );
-          } catch (e) {
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Preview failed: $e')),
-            );
-          }
-        }
       } else {
         messenger.showSnackBar(
           const SnackBar(content: Text('Delivery action failed')),
@@ -1095,7 +1034,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     }
   }
 
-  Future<Map<String, dynamic>?> _showCourierSettlementDialog(BuildContext context, {bool hideSettleLater = false}) async {
+  Future<Map<String, dynamic>?> _showCourierSettlementDialog(BuildContext context, {bool hideSettleLater = true}) async {
     String? courier;
     String? partyType;
     String? party;
@@ -1152,7 +1091,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'Invoice is UNPAID. Choose "Courier Collects Cash Now" to record a cash payment before marking Out For Delivery, or use "Settle Later" to defer collection.',
+                                      'Invoice is UNPAID. Choose "Courier Collects Cash Now" to record a cash payment before marking Out For Delivery.',
                                       style: const TextStyle(fontSize: 12, height: 1.3),
                                     ),
                                   ),
@@ -1352,23 +1291,18 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                             alignment: Alignment.centerLeft,
                             child: Text('Mode', style: Theme.of(context).textTheme.titleSmall),
                           ),
+                          // Only Pay Now option is available per new rule
                           RadioGroup<String>(
                             groupValue: mode,
-                            onChanged: (v) => setState(() => mode = v!),
-                            child: Column(
+                            onChanged: (v) => setState(() => mode = v ?? mode),
+                            child: const Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const RadioListTile<String>(
+                                RadioListTile<String>(
                                   title: Text('Pay Now (Cash)'),
                                   value: 'pay_now',
                                   dense: true,
                                 ),
-                                if (!hideSettleLater)
-                                  const RadioListTile<String>(
-                                    title: Text('Settle Later'),
-                                    value: 'settle_later',
-                                    dense: true,
-                                  ),
                               ],
                             ),
                           ),

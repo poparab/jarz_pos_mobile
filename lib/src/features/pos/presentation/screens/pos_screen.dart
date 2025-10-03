@@ -231,104 +231,105 @@ extension on _PosScreenState {
         automaticallyImplyLeading: false,
       ),
       body: StatefulBuilder(
-        builder: (context, setState) => Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Choose a POS profile to continue:',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+        builder: (context, setState) {
+          final media = MediaQuery.of(context);
+          final maxGridWidth = 720.0; // center content on large screens
+          final grid = Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxGridWidth),
+              child: GridView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: (() {
+                    final w = media.size.width.clamp(0.0, maxGridWidth);
+                    const target = 200.0; // a bit wider tiles
+                    return (w / target).floor().clamp(2, 4);
+                  })(),
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: (() {
+                    const w = 200.0, h = 120.0; // taller to avoid overflow
+                    return w / h; // ~1.67
+                  })(),
                 ),
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1.2,
-                  ),
-                  itemCount: profiles.length,
-                  itemBuilder: (context, index) {
-                    final profile = profiles[index];
-                    final name = (profile['name'] ?? '').toString();
-                    final title = (profile['title'] ?? profile['name'] ?? '').toString();
-                    final isSelected = selectedProfile == name;
-                    
-                    return Card(
-                      elevation: isSelected ? 8 : 2,
-                      color: isSelected 
-                          ? Theme.of(context).colorScheme.primaryContainer
-                          : null,
-                      child: InkWell(
-                        onTap: () => setState(() => selectedProfile = name),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.store,
-                                size: 48,
-                                color: isSelected
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(context).colorScheme.onSurface,
-                              ),
-                              const SizedBox(height: 12),
+                itemCount: profiles.length,
+                itemBuilder: (context, index) {
+                  final profile = profiles[index];
+                  final name = (profile['name'] ?? '').toString();
+                  final title = (profile['title'] ?? profile['name'] ?? '').toString();
+                  final isSelected = selectedProfile == name;
+
+                  return Card(
+                    elevation: isSelected ? 6 : 1,
+                    color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
+                    child: InkWell(
+                      onTap: () {
+                        // immediate selection
+                        final selProfile = profiles[index];
+                        ref.read(posNotifierProvider.notifier).selectProfile(selProfile);
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.store,
+                              size: 28,
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.onSurface,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              title,
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: isSelected
+                                        ? Theme.of(context).colorScheme.primary
+                                        : null,
+                                  ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (profile['warehouse'] != null) ...[
+                              const SizedBox(height: 4),
                               Text(
-                                title,
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: isSelected
-                                      ? Theme.of(context).colorScheme.primary
-                                      : null,
-                                ),
+                                'Warehouse: ${profile['warehouse']}',
+                                style: Theme.of(context).textTheme.bodySmall,
                                 textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                              if (profile['warehouse'] != null) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Warehouse: ${profile['warehouse']}',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
                             ],
-                          ),
+                          ],
                         ),
                       ),
-                    );
-                  },
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Choose a POS profile:',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: selectedProfile == null
-                          ? null
-                          : () {
-                              final selProfile = profiles.firstWhere(
-                                (p) => p['name']?.toString() == selectedProfile,
-                                orElse: () => profiles.first,
-                              );
-                              ref.read(posNotifierProvider.notifier).selectProfile(selProfile);
-                            },
-                      child: const Text('Continue'),
-                    ),
-                  ),
-                ],
-              ),
+              const SizedBox(height: 12),
+              Expanded(child: grid),
+              const SizedBox(height: 12),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }

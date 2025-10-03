@@ -18,6 +18,8 @@ class PosState {
   final List<DeliverySlot> deliverySlots; // Cached delivery slots for current profile
   final bool isLoading;
   final String? error;
+  // When true, this order is for pickup (no delivery fee or slot required)
+  final bool isPickup;
 
   PosState({
     this.profiles = const [],
@@ -31,6 +33,7 @@ class PosState {
   this.deliverySlots = const [],
     this.isLoading = false,
     this.error,
+    this.isPickup = false,
   });
 
   PosState copyWith({
@@ -50,6 +53,7 @@ class PosState {
     bool clearError = false,
     bool clearDeliverySlots = false,
     List<DeliverySlot>? deliverySlots,
+    bool? isPickup,
   }) {
     return PosState(
       profiles: profiles ?? this.profiles,
@@ -71,6 +75,7 @@ class PosState {
           : (deliverySlots ?? this.deliverySlots),
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
+      isPickup: isPickup ?? this.isPickup,
     );
   }
 
@@ -85,6 +90,18 @@ class PosState {
   double get shippingCost {
     // If a Sales Partner is selected, we suppress delivery income entirely
     if (selectedSalesPartner != null) return 0.0;
+    // Pickup mode waives delivery
+    if (isPickup) return 0.0;
+    // If any bundle in cart has free_shipping=true, waive delivery income client-side
+    try {
+      final hasFreeShippingBundle = cartItems.any((ci) {
+        if (ci['type'] != 'bundle') return false;
+        final info = ci['bundle_details']?['bundle_info'] as Map<String, dynamic>?;
+        final fs = info?['free_shipping'];
+        return (fs == true) || (fs is num && fs != 0) || (fs?.toString() == '1');
+      });
+      if (hasFreeShippingBundle) return 0.0;
+    } catch (_) {}
     if (selectedCustomer != null &&
         selectedCustomer!['delivery_income'] != null &&
         selectedCustomer!['delivery_income'] > 0) {
@@ -320,6 +337,14 @@ class PosNotifier extends StateNotifier<PosState> {
     state = state.copyWith(selectedDeliverySlot: slot);
   }
 
+  // Toggle pickup mode; when enabling pickup, clear any selected delivery slot
+  void setPickup(bool value) {
+    state = state.copyWith(
+      isPickup: value,
+      clearSelectedDeliverySlot: value,
+    );
+  }
+
   void setSalesPartner(Map<String, dynamic>? partner) {
     if (partner == null) {
       state = state.copyWith(clearSelectedSalesPartner: true);
@@ -422,7 +447,8 @@ class PosNotifier extends StateNotifier<PosState> {
             : state.selectedProfile!['name'],
         items: state.cartItems,
         customer: state.selectedCustomer,
-        requiredDeliveryDatetime: state.selectedDeliverySlot?.datetime,
+        requiredDeliveryDatetime: state.isPickup ? null : state.selectedDeliverySlot?.datetime,
+        isPickup: state.isPickup,
         salesPartner: state.selectedSalesPartner?['name'],
         paymentType: paymentType,
       );
@@ -441,6 +467,7 @@ class PosNotifier extends StateNotifier<PosState> {
         clearSelectedCustomer: true,
         clearSelectedDeliverySlot: true,
         clearSelectedSalesPartner: true,
+        isPickup: false,
         isLoading: false,
       );
 

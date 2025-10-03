@@ -45,7 +45,15 @@ class PosRepository {
 
       if (response.statusCode == 200 && response.data['message'] != null) {
         final List<dynamic> bundlesData = response.data['message'];
-        return bundlesData.cast<Map<String, dynamic>>();
+        // Normalize free_shipping to bool for Dart side
+        return bundlesData.map<Map<String, dynamic>>((raw) {
+          final m = Map<String, dynamic>.from(raw as Map);
+          final fs = m['free_shipping'];
+          m['free_shipping'] = (fs is bool)
+              ? fs
+              : ((fs is num) ? (fs != 0) : (fs?.toString() == '1' || fs?.toString().toLowerCase() == 'true'));
+          return m;
+        }).toList();
       }
       return [];
     } catch (e) {
@@ -227,6 +235,7 @@ class PosRepository {
     String? requiredDeliveryDatetime,
     String? salesPartner,
   String? paymentType, // 'cash' | 'online' (optional, advisory)
+  bool isPickup = false,
   }) async {
     try {
       // Convert cart items to backend format (preserve discount fields if present)
@@ -289,6 +298,11 @@ class PosRepository {
       if (requiredDeliveryDatetime != null &&
           requiredDeliveryDatetime.isNotEmpty) {
         requestData['required_delivery_datetime'] = requiredDeliveryDatetime;
+      }
+
+      // Pickup flag: informs backend to suppress shipping logic and mark invoice as pickup
+      if (isPickup) {
+        requestData['pickup'] = 1;
       }
 
       if (salesPartner != null && salesPartner.isNotEmpty) {

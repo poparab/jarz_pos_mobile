@@ -325,6 +325,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     Map<String, dynamic>? selectedCustomer,
   ) {
     final canAddToCart = selectedCustomer != null;
+    final hasFreeShipping = (bundle['free_shipping'] == true);
 
     return Card(
       elevation: 1,
@@ -337,42 +338,80 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                 _showCannotAddToCartMessage(selectedCustomer, false);
               },
         borderRadius: BorderRadius.circular(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
           children: [
-            // Bundle icon and label
-            Icon(
-              Icons.local_offer,
-              size: 20,
-              color: !canAddToCart
-                  ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)
-                  : Theme.of(context).colorScheme.tertiary,
+            // Main content
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.local_offer,
+                  size: 20,
+                  color: !canAddToCart
+                      ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)
+                      : Theme.of(context).colorScheme.tertiary,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  bundle['name'] ?? 'Unknown Bundle',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: !canAddToCart
+                        ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)
+                        : null,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '\$${(bundle['price'] ?? 0.0).toStringAsFixed(2)}',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: !canAddToCart
+                        ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)
+                        : Theme.of(context).colorScheme.tertiary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            const SizedBox(height: 2),
-            Text(
-              bundle['name'] ?? 'Unknown Bundle',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: !canAddToCart
-                    ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)
-                    : null,
-                fontWeight: FontWeight.bold,
+            if (hasFreeShipping)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 2,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.local_shipping, size: 12, color: Theme.of(context).colorScheme.onSecondaryContainer),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Free delivery',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSecondaryContainer,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '\$${(bundle['price'] ?? 0.0).toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: !canAddToCart
-                    ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)
-                    : Theme.of(context).colorScheme.tertiary,
-              ),
-              textAlign: TextAlign.center,
-            ),
           ],
         ),
       ),

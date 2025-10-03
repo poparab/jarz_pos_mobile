@@ -11,6 +11,11 @@ import 'session/session_manager.dart';
 import '../features/pos/presentation/screens/courier_balances_screen.dart';
 import '../features/printing/printer_selection_screen.dart';
 import '../features/manager/presentation/manager_dashboard_screen.dart';
+import '../features/purchase/presentation/purchase_screen.dart';
+import '../features/manufacturing/presentation/manufacturing_screen.dart';
+import '../features/stock_transfer/presentation/stock_transfer_screen.dart';
+import '../features/cash_transfer/presentation/cash_transfer_screen.dart';
+import '../features/inventory_count/presentation/inventory_count_screen.dart';
 
 // Global RouteObserver for navigation lifecycle (used by Kanban to refresh on return)
 final RouteObserver<PageRoute<dynamic>> routeObserver = RouteObserver<PageRoute<dynamic>>();
@@ -95,6 +100,31 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/manager',
         name: 'manager',
         builder: (context, state) => const ManagerDashboardScreen(),
+      ),
+      GoRoute(
+        path: '/purchase',
+        name: 'purchase',
+        builder: (context, state) => const PurchaseScreen(),
+      ),
+      GoRoute(
+        path: '/manufacturing',
+        name: 'manufacturing',
+        builder: (context, state) => const ManufacturingScreen(),
+      ),
+      GoRoute(
+        path: '/stock-transfer',
+        name: 'stock-transfer',
+        builder: (context, state) => const StockTransferScreen(),
+      ),
+      GoRoute(
+        path: '/cash-transfer',
+        name: 'cash-transfer',
+        builder: (context, state) => const CashTransferScreen(),
+      ),
+      GoRoute(
+        path: '/inventory-count',
+        name: 'inventory-count',
+        builder: (context, state) => const InventoryCountScreen(),
       ),
   GoRoute(path: '/', redirect: (context, state) => '/kanban'),
     ],

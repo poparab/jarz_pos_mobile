@@ -18,6 +18,33 @@ class KanbanService {
     return resp.data['message'] ?? resp.data;
   }
 
+  /// Settlement preview for an invoice to reconcile paid/unpaid and amounts
+  Future<Map<String, dynamic>> getInvoiceSettlementPreview({
+    required String invoiceName,
+    String? partyType,
+    String? party,
+  }) async {
+    try {
+      _logger.info('Fetching settlement preview for $invoiceName');
+      final resp = await _dio.get(
+        '/api/method/jarz_pos.api.invoices.get_invoice_settlement_preview',
+        queryParameters: {
+          'invoice_name': invoiceName,
+          if (partyType != null) 'party_type': partyType,
+          if (party != null) 'party': party,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception('Failed to fetch settlement preview');
+    } catch (e) {
+      _logger.error('Failed to get settlement preview', e);
+      rethrow;
+    }
+  }
+
   Future<Map<String, List<InvoiceCard>>> fetchInvoices() async {
     return await getKanbanInvoices();
   }
@@ -203,15 +230,42 @@ class KanbanService {
       throw Exception(msg is Map ? msg["error"] ?? "Payment failed" : "Payment failed");
     } catch (e) {
       _logger.error("Failed to pay invoice", e);
-      rethrow;
+      // Surface backend error details if available (Frappe sends message/exc in JSON on non-200)
+      if (e is DioException) {
+        try {
+          final data = e.response?.data;
+          if (data is Map) {
+            // Common Frappe error shapes
+            final m = data['message'] ?? data['exception'] ?? data['exc'] ?? data['error'];
+            if (m is String && m.trim().isNotEmpty) {
+              throw Exception(m);
+            }
+            if (m is Map && (m['message'] != null || m['error'] != null)) {
+              throw Exception((m['message'] ?? m['error']).toString());
+            }
+          }
+          // If response has text body
+          if (data is String && data.trim().isNotEmpty) {
+            throw Exception(data);
+          }
+        } catch (_) {
+          // fallthrough to generic path
+        }
+        // Include HTTP status text if present
+        final status = e.response?.statusCode;
+        final statusText = e.response?.statusMessage;
+  throw Exception(status != null ? "Payment failed ($status ${statusText ?? ''}).".trim() : "Payment failed");
+      }
+      // Non-Dio error
+      throw Exception(e.toString());
     }
   }
 
-  /// Unified Out For Delivery transition (paid invoices only)
+  /// Unified Out For Delivery transition (handles paid and unpaid per backend new rules)
   Future<Map<String, dynamic>> handleOutForDeliveryTransition({
     required String invoiceName,
     required String courier,
-    required String mode, // pay_now | settle_later
+    required String mode, // pay_now only
     required String posProfile,
     required String idempotencyToken,
     String? partyType,
@@ -260,7 +314,8 @@ class KanbanService {
     return handleOutForDeliveryTransition(
       invoiceName: invoiceName,
       courier: courier,
-      mode: settlement == 'cash_now' ? 'pay_now' : 'settle_later',
+      // New rule: only 'pay_now' is supported; legacy 'later' is ignored
+      mode: 'pay_now',
       posProfile: posProfile,
       idempotencyToken: generateIdempotencyToken(),
     );

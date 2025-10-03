@@ -134,32 +134,86 @@ class CartWidget extends ConsumerWidget {
                     ),
 
 
-                  // Delivery Slot Selection (always show when there are items)
-                  if (state.selectedProfile != null)
+                  // Pickup toggle + Delivery Slot Selection
+                  if (state.selectedProfile != null) ...[
+                    // Pickup toggle row
                     Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: () {
-                        if (kDebugMode) {
-                          debugPrint(
-                            '🎯 Rendering DeliverySlotSelection for profile: ${state.selectedProfile!['name']}',
-                          );
-                        }
-                        return DeliverySlotSelection(
-                          posProfile: state.selectedProfile!['name'],
-                          selectedSlot: state.selectedDeliverySlot,
-                          onSlotChanged: (slot) {
-                            if (kDebugMode) {
-                              debugPrint('🔄 Delivery slot changed: ${slot?.label}');
-                            }
-                            ref
-                                .read(posNotifierProvider.notifier)
-                                .setDeliverySlot(slot);
-                          },
-                          isRequired:
-                              true, // Make delivery time selection mandatory
-                        );
-                      }(),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Switch(
+                            value: state.isPickup,
+                            onChanged: (v) => ref.read(posNotifierProvider.notifier).setPickup(v),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Pickup (no delivery fee)',
+                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                Text(
+                                  state.isPickup
+                                      ? 'Customer will collect the order from branch.'
+                                      : 'Deliver to customer at selected time.',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (state.isPickup)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.store_mall_directory, size: 14, color: Theme.of(context).colorScheme.primary),
+                                  const SizedBox(width: 4),
+                                  Text('Pickup', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary)),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
+
+                    if (!state.isPickup)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: () {
+                          if (kDebugMode) {
+                            debugPrint(
+                              '🎯 Rendering DeliverySlotSelection for profile: ${state.selectedProfile!['name']}',
+                            );
+                          }
+                          return DeliverySlotSelection(
+                            posProfile: state.selectedProfile!['name'],
+                            selectedSlot: state.selectedDeliverySlot,
+                            onSlotChanged: (slot) {
+                              if (kDebugMode) {
+                                debugPrint('🔄 Delivery slot changed: ${slot?.label}');
+                              }
+                              ref
+                                  .read(posNotifierProvider.notifier)
+                                  .setDeliverySlot(slot);
+                            },
+                            isRequired: true, // Make delivery time selection mandatory when not pickup
+                          );
+                        }(),
+                      ),
+                  ],
 
                   // Subtotal, Delivery, and Total
                   Column(
@@ -568,7 +622,7 @@ class CartWidget extends ConsumerWidget {
     final state = ref.read(posNotifierProvider);
 
     // Validate delivery slot is selected
-    if (state.selectedDeliverySlot == null) {
+    if (!state.isPickup && state.selectedDeliverySlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Please select a delivery time'),

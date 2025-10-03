@@ -355,6 +355,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       final inv = _findInvoice(invoiceId);
       final isPaid = (inv?.docStatus ?? '').toLowerCase() == 'paid' || (inv?.effectiveStatus.toLowerCase() == 'paid');
       final hasPartner = ((inv?.salesPartner ?? '').isNotEmpty);
+      final isPickup = (inv?.isPickup ?? false);
       if (hasPartner) {
         // Fast-path for ANY Sales Partner invoice (paid or unpaid):
         // Provider logic distinguishes paid vs unpaid and will:
@@ -364,7 +365,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         return;
       }
     // Launch courier/mode dialog
-  final dialogResult = await _showCourierSettlementDialog(hideSettleLater: hasPartner);
+      // Show "Settle Later" for non-partner, non-pickup only (per business rule)
+      final showSettleLater = !hasPartner && !isPickup;
+      final dialogResult = await _showCourierSettlementDialog(hideSettleLater: !showSettleLater);
       if (dialogResult == null) {
         // Revert visual move if user cancelled (pass label)
         final fromCol = ref.read(kanbanProvider).columns.firstWhere(
@@ -375,7 +378,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         return;
       }
   final courier = dialogResult['courier'] as String?; // may be 'UNKNOWN'
-  final mode = dialogResult['mode'] as String; // pay_now | settle_later
+  final mode = dialogResult['mode'] as String; // pay_now
   final partyType = dialogResult['party_type'] as String?;
   final party = dialogResult['party'] as String?;
   final courierDisplay = dialogResult['display_name'] as String? ?? courier;
@@ -392,22 +395,24 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       }
   // inv and isPaid already computed above
 
-    // New: Unpaid + settle_later -> backend handles Payment Entry + Courier Transaction + state change
-    // UX: No collect-now popup for settle_later
-    if (!isPaid && mode == 'settle_later') {
+  // Only pay_now is supported per new business rule
+
+      // New: Support 'later' when enabled (except Sales Partner and Pickup)
+      if (mode == 'later') {
         try {
-          final res = await ref.read(kanbanProvider.notifier).markCourierOutstanding(
-            invoiceId: invoiceId,
-            courier: (courier ?? 'UNKNOWN'),
+          final courierService = ref.read(courierServiceProvider);
+          // Generate preview only to obtain a token; do not show any collect/pay dialogs
+          final preview = await courierService.generateSettlementPreview(
+            invoice: invoiceId,
             partyType: partyType,
             party: party,
-            courierDisplay: courierDisplay,
+            mode: 'later',
+            recentPaymentSeconds: 30,
           );
-          if (res == null || (res['success'] != true && res['status'] != 'success')) {
-            messenger.showSnackBar(
-              const SnackBar(content: Text('Failed to mark courier outstanding')),
-            );
-            // revert visual move
+          final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
+          if (token.isEmpty) {
+            messenger.showSnackBar(const SnackBar(content: Text('Settle Later failed: preview expired.')));
+            // revert
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
               orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
@@ -415,19 +420,40 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
             return;
           }
-      // No popup in settle_later case.
-        } catch (e) {
-          messenger.showSnackBar(
-            SnackBar(content: Text('Error: $e')),
+
+          final res = await courierService.confirmSettlement(
+            invoice: invoiceId,
+            previewToken: token,
+            mode: 'later',
+            posProfile: posProfile,
+            partyType: partyType,
+            party: party,
+            // No immediate collection; include courier label if present
+            courier: courier ?? courierDisplay ?? 'UNKNOWN',
           );
+          if (res['success'] != true) {
+            messenger.showSnackBar(const SnackBar(content: Text('Settle Later failed')));
+            // revert
+            final fromCol = ref.read(kanbanProvider).columns.firstWhere(
+              (c) => c.id == fromColumnId,
+              orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
+            );
+            ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
+            return;
+          }
+          // Success: do not show collection/info popups for settle later
+          messenger.showSnackBar(const SnackBar(content: Text('Marked to Settle Later')));
+          return; // handled fully; backend already moved to OFD
+        } catch (e) {
+          messenger.showSnackBar(SnackBar(content: Text('Settle Later error: $e')));
           // revert
           final fromCol = ref.read(kanbanProvider).columns.firstWhere(
             (c) => c.id == fromColumnId,
             orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
           );
           ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
+          return;
         }
-        return; // handled
       }
 
       // If unpaid and choosing pay_now -> use two-step server-driven flow (preview -> confirm)
@@ -787,9 +813,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                             alignment: Alignment.centerLeft,
                             child: Text('Mode', style: Theme.of(context).textTheme.titleSmall),
                           ),
+                          // Offer Pay Now always; optionally show Settle Later per business rule
                           RadioGroup<String>(
                             groupValue: mode,
-                            onChanged: (v) => setState(() => mode = v!),
+                            onChanged: (v) => setState(() => mode = v ?? mode),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -800,8 +827,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                 ),
                                 if (!hideSettleLater)
                                   const RadioListTile<String>(
-                                    title: Text('Settle Later'),
-                                    value: 'settle_later',
+                                    title: Text('Settle Later (no immediate cash)'),
+                                    subtitle: Text('Record courier outstanding; settle in batch later'),
+                                    value: 'later',
                                     dense: true,
                                   ),
                               ],
