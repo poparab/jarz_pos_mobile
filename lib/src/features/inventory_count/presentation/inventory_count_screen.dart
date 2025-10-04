@@ -333,13 +333,23 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Clear cached counts',
+                  tooltip: 'Clear all entered data',
                   icon: const Icon(Icons.delete_outline),
-                  onPressed: () {
+                  onPressed: () async {
+                    // Clear in-memory user entries
                     _counts.clear();
-                    _ensureDefaultCounts(_items);
-                    _saveCache();
+                    _confirmed.clear();
+                    // Remove cached entries for current warehouse
+                    if (_box != null) {
+                      await _box!.delete(_countsKey());
+                      await _box!.delete(_confirmedKey());
+                    }
                     setState(() {});
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('All entered data cleared')),
+                      );
+                    }
                   },
                 )
               ],
@@ -353,7 +363,10 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                     children: _groupByItemGroup().entries.map((entry) {
                       final groupName = entry.key;
                       final groupItems = entry.value;
-                      final countedInGroup = groupItems.where((it) => _counts.containsKey(it['item_code'] as String)).length;
+            // Only count items the user explicitly confirmed
+            final countedInGroup = groupItems
+              .where((it) => _confirmed.contains(it['item_code'] as String))
+              .length;
                       return ExpansionTile(
                         title: Text(groupName),
                         trailing: Row(
