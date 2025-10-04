@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
@@ -45,12 +46,39 @@ class InventoryCountService {
     String? postingDate,
     bool enforceAll = true,
   }) async {
-    final resp = await _dio.post('/api/method/jarz_pos.api.inventory_count.submit_reconciliation', data: {
+    // Debug logging
+    print('🔍 submit_reconciliation called with:');
+    print('   warehouse: $warehouse');
+    print('   lines count: ${lines.length}');
+    print('   lines: $lines');
+    print('   postingDate: $postingDate');
+    print('   enforceAll: $enforceAll');
+    
+    final requestData = {
       'warehouse': warehouse,
       'lines': lines,
       if (postingDate != null) 'posting_date': postingDate,
       'enforce_all': enforceAll ? 1 : 0,
-    });
+    };
+    
+    print('🚀 Request data: $requestData');
+    
+    // CRITICAL FIX: Explicitly encode JSON and set Content-Type
+    // This ensures proper serialization across different environments
+    final jsonData = jsonEncode(requestData);
+    print('📦 JSON encoded data: $jsonData');
+    
+    final resp = await _dio.post(
+      '/api/method/jarz_pos.api.inventory_count.submit_reconciliation',
+      data: jsonData,
+      options: Options(
+        contentType: 'application/json',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ),
+    );
     final payload = resp.data;
     if (payload is Map && payload['message'] is Map) return Map<String, dynamic>.from(payload['message'] as Map);
     if (payload is Map) return Map<String, dynamic>.from(payload);

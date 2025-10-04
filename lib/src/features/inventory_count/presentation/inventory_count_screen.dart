@@ -98,6 +98,14 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     }
     try {
       setState(() => _loading = true);
+      
+      print('🔍 SUBMIT DEBUG:');
+      print('   Warehouse: $_selectedWarehouse');
+      print('   Lines count: ${lines.length}');
+      print('   Lines: $lines');
+      print('   Posting date: ${DateFormat('yyyy-MM-dd').format(_postingDate)}');
+      print('   Enforce all: $_enforceAll');
+      
       final res = await service.submitReconciliation(
         warehouse: _selectedWarehouse!,
         lines: lines,
@@ -111,6 +119,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
       await _loadItems();
     } catch (e) {
       if (!mounted) return;
+      print('❌ SUBMIT ERROR: $e');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
