@@ -383,6 +383,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                                 final stockUom = it['stock_uom'] as String;
                                 final current = (it['current_qty'] ?? 0).toDouble();
                                 final uoms = (it['uoms'] as List).cast<Map<String, dynamic>>();
+                                final valuationRate = (it['valuation_rate'] as num?)?.toDouble();
                                 final saved = _counts[itemCode];
                                 final qtyCtrl = TextEditingController(text: (saved?['qty'] ?? '').toString());
                                 String? selectedUom = (saved?['uom'] as String?) ?? stockUom;
@@ -460,6 +461,14 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                                           ],
                                         ),
                                         const SizedBox(height: 4),
+                                        if (valuationRate != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(bottom: 2),
+                                            child: Text(
+                                              'Valuation: ${valuationRate.toStringAsFixed(2)} / $stockUom',
+                                              style: const TextStyle(color: Colors.black87),
+                                            ),
+                                          ),
                                         Row(
                                           children: [
                                             const Text('Delta: '),
