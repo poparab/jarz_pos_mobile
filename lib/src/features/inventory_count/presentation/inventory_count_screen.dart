@@ -86,11 +86,19 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     }
     final lines = _counts.entries
         .where((e) => _confirmed.contains(e.key))
-        .map((e) => {
-              'item_code': e.key,
-              'counted_qty': e.value['qty'] ?? 0,
-              if (e.value['uom'] != null) 'uom': e.value['uom'],
-            })
+        .map((e) {
+          final item = _items.firstWhere(
+            (it) => it['item_code'] == e.key,
+            orElse: () => const <String, dynamic>{},
+          );
+          final vr = (item['valuation_rate'] as num?)?.toDouble();
+          return {
+            'item_code': e.key,
+            'counted_qty': e.value['qty'] ?? 0,
+            if (e.value['uom'] != null) 'uom': e.value['uom'],
+            if (vr != null && vr > 0) 'valuation_rate': vr,
+          };
+        })
         .toList();
     if (lines.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Confirm at least one item before submitting')));
