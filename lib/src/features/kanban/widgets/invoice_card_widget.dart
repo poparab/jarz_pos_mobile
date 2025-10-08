@@ -1042,7 +1042,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     bool loading = true;
     List<Map<String, String>> couriers = [];
     bool creating = false;
-    String newPartyType = 'Employee';
+    String newPartyType = 'Supplier'; // Default to Supplier (Employee has validation issues on staging)
 
     final firstNameController = TextEditingController();
     final lastNameController = TextEditingController();
