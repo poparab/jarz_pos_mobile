@@ -27,6 +27,7 @@ class KanbanBoardScreen extends ConsumerStatefulWidget {
 class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with RouteAware {
   bool _showFilters = false;
   bool _allowHScroll = true; // new state
+  bool _posProfileDialogActive = false;
 
   void _setScrollActive(bool active) {
     if (_allowHScroll == active) return;
@@ -36,6 +37,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   @override
   void initState() {
     super.initState();
+    ref.listen<PosState>(posNotifierProvider, (previous, next) {
+      _handlePosStateChange(next);
+    });
     // On entering Kanban, refresh to fetch any new invoices created from POS
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final notifier = ref.read(kanbanProvider.notifier);
@@ -45,6 +49,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       if (!posState.isLoading && posState.profiles.isEmpty) {
         ref.read(posNotifierProvider.notifier).loadProfiles();
       }
+      _handlePosStateChange(ref.read(posNotifierProvider));
     });
   }
 
@@ -585,6 +590,68 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   String? _getPosProfile() {
     final posState = ref.read(posNotifierProvider);
     return posState.selectedProfile?['name'];
+  }
+
+  void _handlePosStateChange(PosState state) {
+    if (!mounted) return;
+    final hasMultipleProfiles = state.profiles.length > 1;
+    final noProfileSelected = state.selectedProfile == null;
+    if (!_posProfileDialogActive && hasMultipleProfiles && noProfileSelected && !state.isLoading) {
+      _posProfileDialogActive = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final selected = await _showPosProfileSelectionDialog(state.profiles);
+        _posProfileDialogActive = false;
+        if (selected != null && mounted) {
+          await ref.read(posNotifierProvider.notifier).selectProfile(selected);
+        }
+      });
+    }
+  }
+
+  Future<Map<String, dynamic>?> _showPosProfileSelectionDialog(List<Map<String, dynamic>> profiles) async {
+    if (!mounted) return null;
+    return showDialog<Map<String, dynamic>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return PopScope(
+          canPop: false,
+          child: AlertDialog(
+            title: const Text('Select POS Profile'),
+            content: SizedBox(
+              width: 420,
+              child: profiles.isEmpty
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text('No POS profiles available. Contact your administrator.'),
+                    )
+                  : ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 360),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: profiles.length,
+                        separatorBuilder: (context, _) => const SizedBox(height: 8),
+                        itemBuilder: (ctx, index) {
+                          final profile = profiles[index];
+                          final title = (profile['title'] ?? profile['name'] ?? '').toString();
+                          final warehouse = (profile['warehouse'] ?? '').toString();
+                          return Card(
+                            elevation: 1,
+                            child: ListTile(
+                              leading: const Icon(Icons.store),
+                              title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
+                              subtitle: warehouse.isNotEmpty ? Text('Warehouse: $warehouse') : null,
+                              onTap: () => Navigator.of(ctx).pop(profile),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<Map<String, dynamic>?> _showCourierSettlementDialog({bool hideSettleLater = false}) async {
