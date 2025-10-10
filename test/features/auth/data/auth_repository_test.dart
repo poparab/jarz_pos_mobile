@@ -5,6 +5,9 @@ import '../../../helpers/mock_services.dart';
 import '../../../helpers/test_helpers.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setupMockPlatformChannels();
+  
   group('AuthRepository', () {
     late MockDio mockDio;
     late MockSessionManager mockSessionManager;
