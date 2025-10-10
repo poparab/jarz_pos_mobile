@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -22,6 +24,16 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
   bool _loading = false;
   List<Map<String, dynamic>> _items = [];
   Box<dynamic>? _box;
+
+  void _debugLog(String message, [Object? data]) {
+    assert(() {
+      developer.log(
+        data == null ? message : '$message: $data',
+        name: 'InventoryCountScreen',
+      );
+      return true;
+    }());
+  }
 
   @override
   void initState() {
@@ -107,12 +119,13 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     try {
       setState(() => _loading = true);
       
-      print('🔍 SUBMIT DEBUG:');
-      print('   Warehouse: $_selectedWarehouse');
-      print('   Lines count: ${lines.length}');
-      print('   Lines: $lines');
-      print('   Posting date: ${DateFormat('yyyy-MM-dd').format(_postingDate)}');
-      print('   Enforce all: $_enforceAll');
+      _debugLog('Submitting reconciliation', {
+        'warehouse': _selectedWarehouse,
+        'linesCount': lines.length,
+        'lines': lines,
+        'postingDate': DateFormat('yyyy-MM-dd').format(_postingDate),
+        'enforceAll': _enforceAll,
+      });
       
       final res = await service.submitReconciliation(
         warehouse: _selectedWarehouse!,
@@ -127,7 +140,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
       await _loadItems();
     } catch (e) {
       if (!mounted) return;
-      print('❌ SUBMIT ERROR: $e');
+  _debugLog('Submit reconciliation error', e);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -352,12 +365,11 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                       await _box!.delete(_countsKey());
                       await _box!.delete(_confirmedKey());
                     }
+                    if (!context.mounted) return;
                     setState(() {});
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('All entered data cleared')),
-                      );
-                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('All entered data cleared')),
+                    );
                   },
                 )
               ],

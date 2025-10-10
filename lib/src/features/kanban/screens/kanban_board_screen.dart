@@ -28,6 +28,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   bool _showFilters = false;
   bool _allowHScroll = true; // new state
   bool _posProfileDialogActive = false;
+  ProviderSubscription<PosState>? _posStateSubscription;
 
   void _setScrollActive(bool active) {
     if (_allowHScroll == active) return;
@@ -37,9 +38,14 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   @override
   void initState() {
     super.initState();
-    ref.listen<PosState>(posNotifierProvider, (previous, next) {
-      _handlePosStateChange(next);
-    });
+    _posStateSubscription = ref.listenManual<PosState>(
+      posNotifierProvider,
+      (previous, next) {
+        if (mounted) {
+          _handlePosStateChange(next);
+        }
+      },
+    );
     // On entering Kanban, refresh to fetch any new invoices created from POS
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final notifier = ref.read(kanbanProvider.notifier);
@@ -49,7 +55,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       if (!posState.isLoading && posState.profiles.isEmpty) {
         ref.read(posNotifierProvider.notifier).loadProfiles();
       }
-      _handlePosStateChange(ref.read(posNotifierProvider));
+      _handlePosStateChange(posState);
     });
   }
 
@@ -231,6 +237,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
 
   @override
   void dispose() {
+    _posStateSubscription?.close();
     // Unsubscribe
     try { routeObserver.unsubscribe(this); } catch (_) {}
     super.dispose();
@@ -414,6 +421,23 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             mode: 'later',
             recentPaymentSeconds: 30,
           );
+          final previewPartyType = (preview['party_type'] ?? '').toString().trim();
+          final previewParty = (preview['party'] ?? '').toString().trim();
+          final resolvedPartyType = (partyType?.trim().isNotEmpty ?? false)
+              ? partyType!.trim()
+              : (previewPartyType.isNotEmpty ? previewPartyType : null);
+          final resolvedParty = (party?.trim().isNotEmpty ?? false)
+              ? party!.trim()
+              : (previewParty.isNotEmpty ? previewParty : null);
+          if (resolvedPartyType == null || resolvedParty == null) {
+            messenger.showSnackBar(const SnackBar(content: Text('Settle Later failed: courier party missing. Assign courier and retry.')));
+            final fromCol = ref.read(kanbanProvider).columns.firstWhere(
+              (c) => c.id == fromColumnId,
+              orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
+            );
+            ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
+            return;
+          }
           final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
           if (token.isEmpty) {
             messenger.showSnackBar(const SnackBar(content: Text('Settle Later failed: preview expired.')));
@@ -431,8 +455,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             previewToken: token,
             mode: 'later',
             posProfile: posProfile,
-            partyType: partyType,
-            party: party,
+            partyType: resolvedPartyType,
+            party: resolvedParty,
             // No immediate collection; include courier label if present
             courier: courier ?? courierDisplay ?? 'UNKNOWN',
           );
@@ -472,6 +496,23 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             mode: mode,
             recentPaymentSeconds: 30,
           );
+          final previewPartyType = (preview['party_type'] ?? '').toString().trim();
+          final previewParty = (preview['party'] ?? '').toString().trim();
+          final resolvedPartyType = (partyType?.trim().isNotEmpty ?? false)
+              ? partyType!.trim()
+              : (previewPartyType.isNotEmpty ? previewPartyType : null);
+          final resolvedParty = (party?.trim().isNotEmpty ?? false)
+              ? party!.trim()
+              : (previewParty.isNotEmpty ? previewParty : null);
+          if (resolvedPartyType == null || resolvedParty == null) {
+            messenger.showSnackBar(const SnackBar(content: Text('Settlement failed: courier party missing. Assign courier and retry.')));
+            final fromCol = ref.read(kanbanProvider).columns.firstWhere(
+              (c) => c.id == fromColumnId,
+              orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
+            );
+            ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
+            return;
+          }
           if (!mounted) return;
 
           final confirmed = await showSettlementConfirmDialog(
@@ -510,8 +551,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             previewToken: token,
             mode: mode,
             posProfile: posProfile,
-            partyType: partyType,
-            party: party,
+            partyType: resolvedPartyType,
+            party: resolvedParty,
             paymentMode: 'Cash',
             courier: courier ?? courierDisplay ?? 'UNKNOWN',
           );

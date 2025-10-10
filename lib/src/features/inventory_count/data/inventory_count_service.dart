@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
@@ -11,6 +12,16 @@ final inventoryCountServiceProvider = Provider<InventoryCountService>((ref) {
 class InventoryCountService {
   final Dio _dio;
   InventoryCountService(this._dio);
+
+  void _debugLog(String message, {Object? data}) {
+    assert(() {
+      developer.log(
+        data == null ? message : '$message: $data',
+        name: 'InventoryCountService',
+      );
+      return true;
+    }());
+  }
 
   Future<List<Map<String, dynamic>>> listWarehouses({String? company}) async {
     final resp = await _dio.post('/api/method/jarz_pos.api.inventory_count.list_warehouses', data: {
@@ -46,13 +57,16 @@ class InventoryCountService {
     String? postingDate,
     bool enforceAll = true,
   }) async {
-    // Debug logging
-    print('🔍 submit_reconciliation called with:');
-    print('   warehouse: $warehouse');
-    print('   lines count: ${lines.length}');
-    print('   lines: $lines');
-    print('   postingDate: $postingDate');
-    print('   enforceAll: $enforceAll');
+    _debugLog(
+      'submit_reconciliation request',
+      data: {
+        'warehouse': warehouse,
+        'linesCount': lines.length,
+        'lines': lines,
+        'postingDate': postingDate,
+        'enforceAll': enforceAll,
+      },
+    );
     
     final requestData = {
       'warehouse': warehouse,
@@ -61,12 +75,10 @@ class InventoryCountService {
       'enforce_all': enforceAll ? 1 : 0,
     };
     
-    print('🚀 Request data: $requestData');
-    
-    // CRITICAL FIX: Explicitly encode JSON and set Content-Type
-    // This ensures proper serialization across different environments
+  _debugLog('submit_reconciliation data map', data: requestData);
+
     final jsonData = jsonEncode(requestData);
-    print('📦 JSON encoded data: $jsonData');
+  _debugLog('submit_reconciliation json payload', data: jsonData);
     
     final resp = await _dio.post(
       '/api/method/jarz_pos.api.inventory_count.submit_reconciliation',

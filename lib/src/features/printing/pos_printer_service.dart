@@ -47,7 +47,11 @@ class PrintableInvoice {
 }
 
 class PosPrinterService extends ChangeNotifier {
-  PosPrinterService() { _init(); }
+  PosPrinterService({bool autoInit = true}) {
+    if (autoInit) {
+      _init();
+    }
+  }
 
   static const _prefsBoxName = 'pos_printer_prefs';
   static const _lastPrinterKey = 'last_printer_id';
