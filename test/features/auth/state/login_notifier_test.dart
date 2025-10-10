@@ -12,11 +12,21 @@ class FakeAuthRepository extends AuthRepository {
   String? lastUsername;
   String? lastPassword;
   bool logoutCalled = false;
+  
+  // Allow dynamic login behavior
+  Future<bool> Function(String username, String password)? _loginCallback;
+  
+  set login(Future<bool> Function(String username, String password) callback) {
+    _loginCallback = callback;
+  }
 
   @override
   Future<bool> login(String username, String password) async {
     lastUsername = username;
     lastPassword = password;
+    if (_loginCallback != null) {
+      return _loginCallback!(username, password);
+    }
     return shouldSucceed;
   }
 
@@ -27,6 +37,9 @@ class FakeAuthRepository extends AuthRepository {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setupMockPlatformChannels();
+  
   group('LoginNotifier', () {
     late ProviderContainer container;
     late FakeAuthRepository fakeAuthRepo;

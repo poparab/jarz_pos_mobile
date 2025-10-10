@@ -4,6 +4,9 @@ import '../../../helpers/mock_services.dart';
 import '../../../helpers/test_helpers.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setupMockPlatformChannels();
+  
   group('PosRepository', () {
     late MockDio mockDio;
     late PosRepository repository;

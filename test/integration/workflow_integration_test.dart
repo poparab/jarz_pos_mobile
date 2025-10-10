@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import 'package:jarz_pos/src/features/auth/data/auth_repository.dart';
 import 'package:jarz_pos/src/features/auth/state/login_notifier.dart';
 import 'package:jarz_pos/src/core/router.dart';
@@ -12,6 +13,9 @@ import '../helpers/test_helpers.dart';
 /// These tests validate complete workflows and interactions between services
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setupMockPlatformChannels();
+  
   group('Authentication Flow Integration Tests', () {
     late ProviderContainer container;
     late MockDio mockDio;

@@ -139,11 +139,21 @@ class MockWebSocketService extends WebSocketService {
 }
 
 /// Mock Dio Client for testing
-class MockDio extends Dio {
+class MockDio implements Dio {
   final Map<String, dynamic> _responses = {};
   final List<Map<String, dynamic>> _requestLog = [];
 
-  MockDio() : super(BaseOptions());
+  @override
+  BaseOptions options = BaseOptions();
+
+  @override
+  late HttpClientAdapter httpClientAdapter;
+
+  @override
+  late Transformer transformer;
+
+  @override
+  Interceptors interceptors = Interceptors();
 
   void setResponse(String path, dynamic data, {int statusCode = 200}) {
     _responses[path] = Response(
@@ -206,5 +216,104 @@ class MockDio extends Dio {
       statusCode: 404,
       requestOptions: RequestOptions(path: path),
     );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<Response<T>> delete<T>(String path, {Object? data, Map<String, dynamic>? queryParameters, Options? options, CancelToken? cancelToken}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response<T>> deleteUri<T>(Uri uri, {Object? data, Options? options, CancelToken? cancelToken}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response> download(
+    String urlPath,
+    dynamic savePath, {
+    ProgressCallback? onReceiveProgress,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    bool deleteOnError = true,
+    String lengthHeader = Headers.contentLengthHeader,
+    Object? data,
+    Options? options,
+    FileAccessMode? fileAccessMode,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response<T>> fetch<T>(RequestOptions requestOptions) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response<T>> getUri<T>(Uri uri, {Object? data, Options? options, CancelToken? cancelToken, ProgressCallback? onReceiveProgress}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response<T>> head<T>(String path, {Object? data, Map<String, dynamic>? queryParameters, Options? options, CancelToken? cancelToken}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response<T>> headUri<T>(Uri uri, {Object? data, Options? options, CancelToken? cancelToken}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response<T>> patch<T>(String path, {Object? data, Map<String, dynamic>? queryParameters, Options? options, CancelToken? cancelToken, ProgressCallback? onSendProgress, ProgressCallback? onReceiveProgress}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response<T>> patchUri<T>(Uri uri, {Object? data, Options? options, CancelToken? cancelToken, ProgressCallback? onSendProgress, ProgressCallback? onReceiveProgress}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response<T>> postUri<T>(Uri uri, {Object? data, Options? options, CancelToken? cancelToken, ProgressCallback? onSendProgress, ProgressCallback? onReceiveProgress}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response<T>> put<T>(String path, {Object? data, Map<String, dynamic>? queryParameters, Options? options, CancelToken? cancelToken, ProgressCallback? onSendProgress, ProgressCallback? onReceiveProgress}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response<T>> putUri<T>(Uri uri, {Object? data, Options? options, CancelToken? cancelToken, ProgressCallback? onSendProgress, ProgressCallback? onReceiveProgress}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response<T>> request<T>(String path, {Object? data, Map<String, dynamic>? queryParameters, CancelToken? cancelToken, Options? options, ProgressCallback? onSendProgress, ProgressCallback? onReceiveProgress}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response<T>> requestUri<T>(Uri uri, {Object? data, CancelToken? cancelToken, Options? options, ProgressCallback? onSendProgress, ProgressCallback? onReceiveProgress}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Dio clone({
+    BaseOptions? options,
+    Interceptors? interceptors,
+    HttpClientAdapter? httpClientAdapter,
+    Transformer? transformer,
+  }) {
+    throw UnimplementedError();
   }
 }
