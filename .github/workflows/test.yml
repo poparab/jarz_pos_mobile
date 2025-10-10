@@ -1,0 +1,105 @@
+name: Flutter Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.8.1'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --set-exit-if-changed .
+
+      - name: Analyze code
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Run tests with coverage
+        run: flutter test --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage/lcov.info
+          fail_ci_if_error: false
+
+      - name: Generate coverage report
+        if: always()
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lcov
+          genhtml coverage/lcov.info -o coverage/html
+
+      - name: Upload coverage HTML report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage/html
+
+  build-android:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.8.1'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --debug --dart-define=ENV=staging
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug
+          path: build/app/outputs/flutter-apk/app-debug.apk
+
+  build-ios:
+    needs: test
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.8.1'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS (no codesign)
+        run: flutter build ios --debug --no-codesign --dart-define=ENV=staging
