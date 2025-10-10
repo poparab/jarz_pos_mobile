@@ -56,15 +56,14 @@ FlutterSecureStorage createMockSecureStorage() {
   );
 }
 
-/// Helper to create test response data
+/// Helper to create test response data in Frappe API format
 Map<String, dynamic> createSuccessResponse({
   required dynamic data,
-  String message = 'Success',
+  String? statusMessage,
 }) {
   return {
-    'success': true,
-    'data': data,
-    'message': message,
+    'message': data,  // Frappe puts data in 'message' field
+    if (statusMessage != null) 'status': statusMessage,
   };
 }
 

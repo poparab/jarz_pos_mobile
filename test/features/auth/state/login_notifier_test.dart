@@ -4,6 +4,7 @@ import 'package:jarz_pos/src/features/auth/data/auth_repository.dart';
 import 'package:jarz_pos/src/features/auth/state/login_notifier.dart';
 import 'package:jarz_pos/src/core/router.dart';
 import '../../../helpers/test_helpers.dart';
+import '../../../helpers/mock_services.dart';
 
 class FakeAuthRepository extends AuthRepository {
   FakeAuthRepository(super.dio, super.sessionManager);
@@ -14,18 +15,14 @@ class FakeAuthRepository extends AuthRepository {
   bool logoutCalled = false;
   
   // Allow dynamic login behavior
-  Future<bool> Function(String username, String password)? _loginCallback;
-  
-  set login(Future<bool> Function(String username, String password) callback) {
-    _loginCallback = callback;
-  }
+  Future<bool> Function(String username, String password)? loginCallback;
 
   @override
   Future<bool> login(String username, String password) async {
     lastUsername = username;
     lastPassword = password;
-    if (_loginCallback != null) {
-      return _loginCallback!(username, password);
+    if (loginCallback != null) {
+      return loginCallback!(username, password);
     }
     return shouldSucceed;
   }
@@ -45,7 +42,7 @@ void main() {
     late FakeAuthRepository fakeAuthRepo;
 
     setUp(() {
-      fakeAuthRepo = FakeAuthRepository(createMockDio(), null as dynamic);
+      fakeAuthRepo = FakeAuthRepository(createMockDio(), MockSessionManager());
       container = ProviderContainer(
         overrides: [
           authRepositoryProvider.overrideWithValue(fakeAuthRepo),
@@ -150,7 +147,7 @@ void main() {
     });
 
     test('handles exceptions during login', () async {
-      final errorRepo = FakeAuthRepository(createMockDio(), null as dynamic);
+      final errorRepo = FakeAuthRepository(createMockDio(), MockSessionManager());
       container = ProviderContainer(
         overrides: [
           authRepositoryProvider.overrideWithValue(errorRepo),
@@ -158,7 +155,7 @@ void main() {
       );
 
       // Override login to throw
-      errorRepo.login = (username, password) => throw Exception('Network error');
+      errorRepo.loginCallback = (username, password) => throw Exception('Network error');
 
       final notifier = container.read(loginNotifierProvider.notifier);
       await notifier.login('testuser', 'testpass');
