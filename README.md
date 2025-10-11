@@ -57,8 +57,16 @@ For detailed testing information, see:
 
 ## Documentation
 
+### Flow Documentation
+- [POS Flow Documentation](POS_FLOW_DOCUMENTATION.md) - Complete POS workflow with diagrams
+- [Kanban Flow Documentation](KANBAN_FLOW_DOCUMENTATION.md) - Complete Kanban workflow with all scenarios
+
+### Feature Documentation
 - [Environment Setup](ENVIRONMENT_SETUP.md) - Configure environments (local/staging/production)
-- [Kanban Board](KANBAN_README.md) - Kanban feature documentation
+- [Kanban Board](KANBAN_README.md) - Kanban feature technical documentation
+- [Business Documentation](BUSINESS_DOCUMENTATION.md) - Business rules and processes
+- [User Manual](USER_MANUAL.md) - End-user guide
+- [Invoice Scenarios](INVOICE_SCENARIOS_README.md) - Test coverage for invoice scenarios
 
 ## Architecture
 
