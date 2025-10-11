@@ -57,11 +57,14 @@ For detailed testing information, see:
 
 ## Documentation
 
-### Flow Documentation
+> 📑 **[Documentation Index](DOCUMENTATION_INDEX.md)** - Complete guide to all documentation
+
+### 📊 Flow Diagrams & Quick Reference
+- **[Flow Diagrams Quick Reference](FLOW_DIAGRAMS_QUICK_REFERENCE.md)** - 🎯 **START HERE** - Visual overview of all flows
 - [POS Flow Documentation](POS_FLOW_DOCUMENTATION.md) - Complete POS workflow with diagrams
 - [Kanban Flow Documentation](KANBAN_FLOW_DOCUMENTATION.md) - Complete Kanban workflow with all scenarios
 
-### Feature Documentation
+### 📚 Feature Documentation
 - [Environment Setup](ENVIRONMENT_SETUP.md) - Configure environments (local/staging/production)
 - [Kanban Board](KANBAN_README.md) - Kanban feature technical documentation
 - [Business Documentation](BUSINESS_DOCUMENTATION.md) - Business rules and processes
