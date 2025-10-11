@@ -5,10 +5,10 @@ This document provides a comprehensive summary of the test suite for the Jarz PO
 
 ## Test Statistics
 
-### Total Test Files: 17
+### Total Test Files: 20
 - **Core Tests:** 4 files
-- **Feature Tests:** 11 files
-- **Integration Tests:** 1 file
+- **Feature Tests:** 13 files
+- **Integration Tests:** 2 files
 - **Helper/Mock Files:** 2 files
 
 ### Test Coverage by Category
@@ -71,20 +71,37 @@ This document provides a comprehensive summary of the test suite for the Jarz PO
    - Sales partner handling
    - 6 test cases
 
-#### Kanban Feature (2 files) *(existing)*
-10. **Kanban Models** (`test/features/kanban/models/kanban_models_test.dart`)
+10. **POS Invoice Scenarios** (`test/features/pos/data/pos_invoice_scenarios_test.dart`) **NEW**
+    - Sales partner invoices (paid/unpaid)
+    - Pickup invoices
+    - Payment types (cash/online)
+    - Invoice payment methods
+    - Complete scenario workflows
+    - 21 test cases
+
+#### Kanban Feature (4 files)
+11. **Kanban Models** (`test/features/kanban/models/kanban_models_test.dart`)
     - Column models
     - Invoice item models
     - Invoice card models
     - State management models
 
-11. **Kanban Notifier** (`test/features/kanban/providers/kanban_notifier_test.dart`)
+12. **Kanban Notifier** (`test/features/kanban/providers/kanban_notifier_test.dart`)
     - Invoice loading and sorting
     - Filter application
     - Branch selection
 
+13. **Kanban Service** (`test/features/kanban/services/kanban_service_test.dart`) **NEW**
+    - All six invoice scenarios
+    - Settlement flows (now/later)
+    - Sales partner handling
+    - Pickup order handling
+    - Courier management
+    - Payment processing
+    - 59 test cases
+
 #### Business Services (5 files)
-12. **Cash Transfer Service** (`test/features/cash_transfer/data/cash_transfer_service_test.dart`)
+14. **Cash Transfer Service** (`test/features/cash_transfer/data/cash_transfer_service_test.dart`)
     - Account listing
     - Transfer submission
     - Parameter handling
@@ -117,7 +134,7 @@ This document provides a comprehensive summary of the test suite for the Jarz PO
     - Reconciliation submission
     - 12 test cases
 
-#### Integration Tests (1 file)
+#### Integration Tests (2 files)
 17. **Workflow Integration** (`test/integration/workflow_integration_test.dart`)
     - Authentication flow
     - Offline queue workflows
@@ -125,10 +142,68 @@ This document provides a comprehensive summary of the test suite for the Jarz PO
     - Error handling
     - 5 test scenarios
 
+18. **Invoice Scenarios Integration** (`test/integration/invoice_scenarios_integration_test.dart`) **NEW**
+    - Complete workflows for all 6 invoice scenarios
+    - Paid + Settle Now/Later
+    - Unpaid + Settle Now/Later
+    - Sales Partner (paid/unpaid)
+    - Pickup orders
+    - Courier management
+    - Settlement preview workflows
+    - 11 test scenarios
+
 #### Widget Tests (1 file) *(existing)*
-18. **Widget Test** (`test/widget_test.dart`)
+19. **Widget Test** (`test/widget_test.dart`)
     - Basic app initialization
     - Router configuration
+
+## Invoice Scenarios Test Coverage
+
+### Six Business Scenarios - Complete Coverage ✅
+
+The test suite now includes comprehensive coverage for all six invoice scenarios as specified in the business requirements:
+
+1. **Paid + Settle Now** (18 tests)
+   - Invoice already paid
+   - Immediate courier settlement
+   - Two settlement types: courier collected vs branch pays
+
+2. **Paid + Settle Later** (8 tests)
+   - Invoice already paid
+   - Deferred courier settlement
+   - Courier transaction created for later processing
+
+3. **Unpaid + Settle Now** (12 tests)
+   - Invoice unpaid (COD)
+   - Immediate payment entry + settlement during OFD
+   - Courier outstanding marked
+
+4. **Unpaid + Settle Later** (6 tests)
+   - Invoice unpaid (COD)
+   - Deferred payment and settlement
+   - Payment entry created but settlement postponed
+
+5. **Sales Partner** (12 tests)
+   - Special handling for sales partner invoices
+   - No courier settlement required
+   - Separate flows for paid/unpaid
+
+6. **Pickup** (5 tests)
+   - Pickup orders
+   - No courier involvement
+   - Direct state transitions
+
+**Total Invoice Scenario Tests: 91 tests**
+
+### Additional Coverage
+- **Settlement Preview**: 3 tests
+- **Settlement Confirmation**: 6 tests
+- **Courier Management**: 5 tests
+- **Payment Processing**: 8 tests
+- **Error Handling**: 10 tests
+- **Idempotency**: 2 tests
+
+See `/test/INVOICE_SCENARIOS_TEST_COVERAGE.md` for detailed documentation.
 
 ## Test Patterns & Best Practices
 
@@ -258,7 +333,7 @@ genhtml coverage/lcov.info -o coverage/html
 
 The test suite provides comprehensive coverage of the Jarz POS mobile application's core functionality. It follows Flutter and Dart best practices, uses appropriate mocking strategies, and is well-documented for maintainability.
 
-**Total Estimated Test Cases: 150+**
+**Total Estimated Test Cases: 240+**
 
 The suite ensures:
 - ✅ Business logic correctness
@@ -266,5 +341,8 @@ The suite ensures:
 - ✅ State management reliability
 - ✅ Service integration validation
 - ✅ Code maintainability
+- ✅ **Complete invoice scenario coverage (all 6 scenarios)**
+- ✅ **Settlement flow validation (now and later)**
+- ✅ **Payment processing verification**
 
 This foundation supports confident development and refactoring while maintaining application quality.
