@@ -64,6 +64,9 @@ For detailed testing information, see:
 - [POS Flow Documentation](POS_FLOW_DOCUMENTATION.md) - Complete POS workflow with diagrams
 - [Kanban Flow Documentation](KANBAN_FLOW_DOCUMENTATION.md) - Complete Kanban workflow with all scenarios
 
+### 🏗️ Architecture
+- [System Architecture](SYSTEM_ARCHITECTURE.md) - System design, components, and data flows
+
 ### 📚 Feature Documentation
 - [Environment Setup](ENVIRONMENT_SETUP.md) - Configure environments (local/staging/production)
 - [Kanban Board](KANBAN_README.md) - Kanban feature technical documentation

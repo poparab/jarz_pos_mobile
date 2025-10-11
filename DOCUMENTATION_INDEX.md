@@ -53,6 +53,7 @@ For developers and architects:
 | Document | Purpose | Best For |
 |----------|---------|----------|
 | [README](README.md) | Main project documentation | Project overview |
+| [System Architecture](SYSTEM_ARCHITECTURE.md) | System architecture diagrams | Understanding system design |
 | [GitHub Copilot Instructions](.github/copilot-instructions.md) | AI coding assistant guidelines | Development with Copilot |
 | [Implementation Summary](IMPLEMENTATION_SUMMARY.md) | Implementation details | Code review |
 | [Testing Implementation Summary](TESTING_IMPLEMENTATION_SUMMARY.md) | Test implementation details | Test architecture |
@@ -66,10 +67,11 @@ For developers and architects:
 
 ### For Developers
 1. [README](README.md) - Project setup and architecture
-2. [POS Flow Documentation](POS_FLOW_DOCUMENTATION.md) - POS implementation
-3. [Kanban Flow Documentation](KANBAN_FLOW_DOCUMENTATION.md) - Kanban implementation
-4. [Kanban Board README](KANBAN_README.md) - Technical details
-5. [Test Documentation](test/TEST_DOCUMENTATION.md) - Testing guide
+2. [System Architecture](SYSTEM_ARCHITECTURE.md) - System design and components
+3. [POS Flow Documentation](POS_FLOW_DOCUMENTATION.md) - POS implementation
+4. [Kanban Flow Documentation](KANBAN_FLOW_DOCUMENTATION.md) - Kanban implementation
+5. [Kanban Board README](KANBAN_README.md) - Technical details
+6. [Test Documentation](test/TEST_DOCUMENTATION.md) - Testing guide
 
 ### For QA/Testers
 1. [Invoice Scenarios](INVOICE_SCENARIOS_README.md) - Test scenarios overview
@@ -134,12 +136,12 @@ For developers and architects:
 ### Understanding the System Flow
 
 ```
-Start Here → Quick Reference → Detailed Flow Docs → Feature Docs → Testing Docs
-     ↓             ↓                   ↓                  ↓              ↓
-  README    Flow Diagrams        POS/Kanban        Feature READMEs   Test Docs
-                   ↓              Documentation                           ↓
-             Visual Overview          ↓                               Coverage
-                                 Step-by-Step                          Metrics
+Start Here → Quick Reference → Detailed Flow Docs → Architecture → Feature Docs → Testing Docs
+     ↓             ↓                   ↓                  ↓              ↓              ↓
+  README    Flow Diagrams        POS/Kanban         System        Feature READMEs   Test Docs
+                   ↓              Documentation    Architecture                         ↓
+             Visual Overview          ↓                  ↓                           Coverage
+                                 Step-by-Step      Component Design                  Metrics
                                    Details
 ```
 
@@ -207,7 +209,7 @@ This index is maintained to reflect the current state of documentation.
 
 **Last Updated**: 2024-01-15  
 **Version**: 1.0  
-**Total Documents**: 20+
+**Total Documents**: 22+
 
 ---
 
