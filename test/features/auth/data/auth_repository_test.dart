@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/features/auth/data/auth_repository.dart';
 import '../../../helpers/mock_services.dart';

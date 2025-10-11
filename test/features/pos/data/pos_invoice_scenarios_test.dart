@@ -338,7 +338,7 @@ void main() {
           }),
         );
 
-        final invoice = await repository.createInvoice(
+        await repository.createInvoice(
           posProfile: 'Main POS',
           items: [
             {'item_code': 'ITEM-008', 'quantity': 2, 'rate': 60.0},

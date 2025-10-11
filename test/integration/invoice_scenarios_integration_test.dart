@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/features/pos/data/repositories/pos_repository.dart';
 import 'package:jarz_pos/src/features/kanban/services/kanban_service.dart';
-import '../../helpers/mock_services.dart';
-import '../../helpers/test_helpers.dart';
+import '../helpers/mock_services.dart';
+import '../helpers/test_helpers.dart';
 
 /// Integration tests for complete invoice workflows covering all six scenarios
 void main() {
@@ -110,7 +110,7 @@ void main() {
           }),
         );
 
-        final invoice = await posRepo.createInvoice(
+        await posRepo.createInvoice(
           posProfile: 'Main POS',
           items: [
             {'item_code': 'ITEM-002', 'quantity': 1, 'rate': 200.0},

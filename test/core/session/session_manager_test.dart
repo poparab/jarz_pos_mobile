@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jarz_pos/src/core/session/session_manager.dart';
 import '../../helpers/mock_services.dart';
 
 void main() {

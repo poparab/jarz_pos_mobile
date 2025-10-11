@@ -1,9 +1,40 @@
+// Test helpers for mocking Dio requests/responses and app services used across the suite.
+
+// Keep all directives at the top.
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:jarz_pos/src/core/connectivity/connectivity_service.dart';
 import 'package:jarz_pos/src/core/offline/offline_queue.dart';
 import 'package:jarz_pos/src/core/session/session_manager.dart';
 import 'package:jarz_pos/src/core/websocket/websocket_service.dart';
+
+export 'package:dio/dio.dart' show DioException, Response, RequestOptions, Options, CancelToken, ProgressCallback, DioExceptionType, Headers, FileAccessMode;
+
+/// Helper to mimic the common Frappe success envelope the app expects.
+/// Many endpoints return `{ "message": <data> }`.
+dynamic createSuccessResponse({required dynamic data}) => {'message': data};
+
+/// Create a simple DioException with optional HTTP details.
+DioException createMockDioException({
+  String message = 'Mock network error',
+  int? statusCode,
+  String path = '/mock',
+  dynamic data,
+  DioExceptionType type = DioExceptionType.connectionError,
+}) {
+  return DioException(
+    requestOptions: RequestOptions(path: path),
+    message: message,
+    response: statusCode == null
+        ? null
+        : Response(
+            requestOptions: RequestOptions(path: path),
+            statusCode: statusCode,
+            data: data,
+          ),
+    type: type,
+  );
+}
 
 /// Mock Session Manager for testing
 class MockSessionManager extends SessionManager {
@@ -138,7 +169,8 @@ class MockWebSocketService extends WebSocketService {
   }
 }
 
-/// Mock Dio Client for testing
+/// Minimal mock of Dio that lets tests predefine responses and errors per path
+/// and records a log of requests. Implements Dio to satisfy Dio v5 interface.
 class MockDio implements Dio {
   final Map<String, dynamic> _responses = {};
   final List<Map<String, dynamic>> _requestLog = [];
@@ -183,11 +215,11 @@ class MockDio implements Dio {
     ProgressCallback? onReceiveProgress,
   }) async {
     _requestLog.add({'method': 'GET', 'path': path, 'data': data, 'queryParameters': queryParameters});
-    
+
     final response = _responses[path];
     if (response is DioException) throw response;
     if (response is Response<T>) return response;
-    
+
     return Response(
       data: null as T,
       statusCode: 404,
@@ -206,11 +238,11 @@ class MockDio implements Dio {
     ProgressCallback? onReceiveProgress,
   }) async {
     _requestLog.add({'method': 'POST', 'path': path, 'data': data, 'queryParameters': queryParameters});
-    
+
     final response = _responses[path];
     if (response is DioException) throw response;
     if (response is Response<T>) return response;
-    
+
     return Response(
       data: null as T,
       statusCode: 404,
@@ -219,9 +251,7 @@ class MockDio implements Dio {
   }
 
   @override
-  dynamic noSuchMethod(Invocation invocation) {
-    return super.noSuchMethod(invocation);
-  }
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   void close({bool force = false}) {}
@@ -317,3 +347,6 @@ class MockDio implements Dio {
     throw UnimplementedError();
   }
 }
+
+/// Convenience factory to match older tests expecting a function
+MockDio createMockDio() => MockDio();

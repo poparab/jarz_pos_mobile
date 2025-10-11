@@ -1,121 +1,41 @@
-import 'package:dio/dio.dart';
+import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Test helper functions and utilities for common test scenarios
-
-/// Sets up mock platform channels for testing
+/// Ensure platform channels used by plugins are available in headless tests.
 void setupMockPlatformChannels() {
-  // Mock flutter_secure_storage channel
-  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-      .setMockMethodCallHandler(
-    const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
-    (MethodCall methodCall) async {
-      switch (methodCall.method) {
-        case 'read':
-          return null;
-        case 'write':
-        case 'delete':
-        case 'deleteAll':
-        case 'readAll':
-          return null;
-        case 'containsKey':
-          return false;
-        default:
-          return null;
-      }
-    },
-  );
+  // Ensure test bindings are initialized
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+  // Mock path_provider channel
+  const pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
+  messenger.setMockMethodCallHandler(pathProviderChannel, (MethodCall call) async {
+    if (call.method == 'getTemporaryDirectory') {
+      return Directory.systemTemp.path;
+    }
+    return null;
+  });
+
+  // Basic flutter_secure_storage mock to avoid channel errors
+  const secureStorageChannel =
+      MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
+  messenger.setMockMethodCallHandler(secureStorageChannel, (MethodCall methodCall) async {
+    switch (methodCall.method) {
+      case 'read':
+      case 'write':
+      case 'delete':
+      case 'deleteAll':
+      case 'readAll':
+      case 'containsKey':
+        return null;
+      default:
+        return null;
+    }
+  });
 }
 
-/// Creates a mock Dio instance with base options
-Dio createMockDio() {
-  return Dio(BaseOptions(
-    baseUrl: 'http://localhost:8000',
-    connectTimeout: const Duration(seconds: 5),
-    receiveTimeout: const Duration(seconds: 5),
-  ));
-}
-
-/// Creates a ProviderContainer with common overrides for testing
-ProviderContainer createTestContainer({
-  List<Override> overrides = const [],
-}) {
-  return ProviderContainer(overrides: overrides);
-}
-
-/// Flushes microtasks to ensure all async operations complete
+/// Flush microtasks to ensure async operations complete in tests.
 Future<void> flushMicrotasks() => Future<void>.delayed(Duration.zero);
-
-/// Creates a mock Flutter Secure Storage for testing
-FlutterSecureStorage createMockSecureStorage() {
-  return const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
-}
-
-/// Helper to create test response data in Frappe API format
-Map<String, dynamic> createSuccessResponse({
-  required dynamic data,
-  String? statusMessage,
-}) {
-  return {
-    'message': data,  // Frappe puts data in 'message' field
-    if (statusMessage != null) 'status': statusMessage,
-  };
-}
-
-/// Helper to create test error response
-Map<String, dynamic> createErrorResponse({
-  required String error,
-  int? statusCode,
-}) {
-  return {
-    'success': false,
-    'error': error,
-    if (statusCode != null) 'statusCode': statusCode,
-  };
-}
-
-/// Creates a mock Response object
-Response<T> createMockResponse<T>({
-  required T data,
-  int statusCode = 200,
-  String? statusMessage,
-  Map<String, dynamic>? headers,
-}) {
-  // Convert Map<String, dynamic> to Map<String, List<String>>
-  final convertedHeaders = headers?.map((key, value) => MapEntry(
-    key,
-    value is List ? value.map((e) => e.toString()).toList() : [value.toString()],
-  )) ?? <String, List<String>>{};
-  
-  return Response(
-    data: data,
-    statusCode: statusCode,
-    statusMessage: statusMessage,
-    requestOptions: RequestOptions(path: '/test'),
-    headers: Headers.fromMap(convertedHeaders),
-  );
-}
-
-/// Creates a mock DioException
-DioException createMockDioException({
-  String message = 'Network error',
-  int? statusCode,
-  DioExceptionType type = DioExceptionType.unknown,
-}) {
-  return DioException(
-    requestOptions: RequestOptions(path: '/test'),
-    type: type,
-    message: message,
-    response: statusCode != null
-        ? Response(
-            statusCode: statusCode,
-            requestOptions: RequestOptions(path: '/test'),
-          )
-        : null,
-  );
-}
