@@ -145,7 +145,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   @override
   Widget build(BuildContext context) {
     final transitioning = ref.watch(kanbanProvider.select((s) => s.transitioningInvoices.contains(widget.invoice.id)));
-    final card = _buildCard();
+    final card = _buildCard(transitioning);
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 140),
       opacity: widget.isDragging ? 0.92 : (transitioning ? 0.55 : 1),
@@ -180,10 +180,124 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     );
   }
 
-  Widget _buildCard() {
+  Widget _buildCard(bool transitioning) {
     final hasProfile = ref.read(posNotifierProvider).selectedProfile != null;
     // Show settlement only when backend indicates there is an unsettled courier transaction
     final hasUnsettled = widget.invoice.hasUnsettledCourierTxn;
+    final hasPartner = (widget.invoice.salesPartner ?? '').isNotEmpty;
+    final trailingWidgets = <Widget>[];
+
+    if (widget.invoice.isPickup) {
+      trailingWidgets.add(
+        Container(
+          margin: const EdgeInsets.only(right: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.indigo.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.indigo.withValues(alpha: 0.7)),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.store_mall_directory, size: 12, color: Colors.indigo),
+              SizedBox(width: 4),
+              Text('Pickup', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.indigo)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (hasPartner) {
+      trailingWidgets.add(
+        Tooltip(
+          message: 'Sales Partner',
+          child: Padding(
+            padding: const EdgeInsets.only(right: 2),
+            child: Icon(
+              Icons.handshake,
+              size: 18,
+              color: Colors.deepPurple,
+            ),
+          ),
+        ),
+      );
+    }
+
+    final canShowPay = !hasPartner && widget.invoice.effectiveStatus.toLowerCase() != 'paid' && !hasUnsettled;
+    if (canShowPay) {
+      trailingWidgets.add(
+        Tooltip(
+          message: 'Pay',
+          child: IconButton(
+            icon: const Icon(Icons.payment, size: 18),
+            padding: const EdgeInsets.all(6),
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            splashRadius: 20,
+            onPressed: transitioning ? null : () => _payInvoice(context),
+          ),
+        ),
+      );
+    }
+
+    final canShowDelivery = !_isPostOutForDelivery(widget.invoice.status);
+    if (canShowDelivery) {
+      trailingWidgets.add(
+        Tooltip(
+          message: 'Delivery',
+          child: IconButton(
+            icon: const Icon(Icons.local_shipping, size: 18),
+            padding: const EdgeInsets.all(6),
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            splashRadius: 20,
+            onPressed: (!hasProfile || transitioning) ? null : () => _handleOutForDelivery(context),
+          ),
+        ),
+      );
+    }
+
+    trailingWidgets.add(
+      Tooltip(
+        message: 'Print',
+        child: IconButton(
+          icon: const Icon(Icons.print, size: 18),
+          padding: const EdgeInsets.all(6),
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          splashRadius: 20,
+          onPressed: transitioning ? null : () => _printInvoice(context),
+        ),
+      ),
+    );
+
+    if (hasUnsettled) {
+      trailingWidgets.add(
+        Tooltip(
+          message: 'Settle Courier',
+          child: IconButton(
+            icon: const Icon(Icons.handshake, size: 18, color: Colors.teal),
+            padding: const EdgeInsets.all(6),
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            splashRadius: 20,
+            onPressed: transitioning ? null : () => _settleCourierTransaction(context),
+          ),
+        ),
+      );
+    }
+
+    trailingWidgets.add(
+      Padding(
+        padding: const EdgeInsets.only(left: 4),
+        child: AnimatedRotation(
+          turns: _isExpanded ? 0.5 : 0,
+          duration: const Duration(milliseconds: 200),
+          child: Icon(
+            Icons.keyboard_arrow_down,
+            color: Colors.grey[600],
+          ),
+        ),
+      ),
+    );
     if (widget.compact) {
       return Card(
         elevation: 10,
@@ -264,12 +378,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (widget.invoice.hasUnsettledCourierTxn)
                           Container(
                             width: 10,
                             height: 10,
-                            margin: const EdgeInsets.only(right: 6),
+                            margin: const EdgeInsets.only(right: 6, top: 4),
                             decoration: BoxDecoration(
                               color: Colors.deepOrange,
                               shape: BoxShape.circle,
@@ -292,107 +407,20 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                             ),
                           ),
                         ),
-                        if (widget.invoice.isPickup)
-                          Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.indigo.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.indigo.withValues(alpha: 0.7)),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.store_mall_directory, size: 12, color: Colors.indigo),
-                                SizedBox(width: 4),
-                                Text('Pickup', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.indigo)),
-                              ],
+                        if (trailingWidgets.isNotEmpty) const SizedBox(width: 8),
+                        if (trailingWidgets.isNotEmpty)
+                          Flexible(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Wrap(
+                                spacing: 4,
+                                runSpacing: 4,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                alignment: WrapAlignment.end,
+                                children: trailingWidgets,
+                              ),
                             ),
                           ),
-                        // Always-visible action buttons (Pay / Delivery / Print)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if ((widget.invoice.salesPartner ?? '').isNotEmpty)
-                              Tooltip(
-                                message: 'Sales Partner',
-                                child: Padding(
-                                  padding: const EdgeInsets.only(right: 2),
-                                  child: Icon(
-                                    Icons.handshake,
-                                    size: 18,
-                                    color: Colors.deepPurple,
-                                  ),
-                                ),
-                              ),
-                            // Hide Pay action when Sales Partner present; otherwise show for unpaid invoices
-                            if ((widget.invoice.salesPartner ?? '').isEmpty && widget.invoice.effectiveStatus.toLowerCase() != 'paid' && !hasUnsettled)
-                              Tooltip(
-                                message: 'Pay',
-                                child: IconButton(
-                                  icon: const Icon(Icons.payment, size: 18),
-                                  splashRadius: 18,
-                                  onPressed: ref.read(kanbanProvider.select((s) => s.transitioningInvoices.contains(widget.invoice.id))) ? null : () => _payInvoice(context),
-                                ),
-                              ),
-                            // Show Delivery action:
-                            // - Always for Sales Partner (regardless of paid) until already Out For Delivery or later
-                            // - For non-partner only when paid and not yet Out For Delivery
-                            if ((((widget.invoice.salesPartner ?? '').isNotEmpty) && !_isPostOutForDelivery(widget.invoice.status)) ||
-                                (((widget.invoice.salesPartner ?? '').isEmpty) && !_isPostOutForDelivery(widget.invoice.status)))
-                              Tooltip(
-                                message: 'Delivery',
-                                child: IconButton(
-                                  icon: const Icon(Icons.local_shipping, size: 18),
-                                  splashRadius: 18,
-                                  onPressed: () {
-                                    final isTransitioning = ref.read(kanbanProvider.select((s) => s.transitioningInvoices.contains(widget.invoice.id)));
-                                    final hasPartner = ((widget.invoice.salesPartner ?? '').isNotEmpty);
-                                    if (!hasPartner) {
-                                      // Non-partner now allowed for unpaid; ensure POS profile and not transitioning
-                                      if (!hasProfile || isTransitioning) {
-                                        return; // disable if no POS profile or transitioning
-                                      }
-                                      _handleOutForDelivery(context);
-                                    } else {
-                                      // Partner flow: allow even when unpaid; _handleOutForDelivery contains fast-path logic
-                                      if (!hasProfile || isTransitioning) {
-                                        return; // disable if no POS profile or transitioning
-                                      }
-                                      _handleOutForDelivery(context);
-                                    }
-                                  },
-                                ),
-                              ),
-                            Tooltip(
-                              message: 'Print',
-                              child: IconButton(
-                                icon: const Icon(Icons.print, size: 18),
-                                splashRadius: 18,
-                                onPressed: ref.read(kanbanProvider.select((s) => s.transitioningInvoices.contains(widget.invoice.id))) ? null : () => _printInvoice(context),
-                              ),
-                            ),
-                            if (hasUnsettled)
-                              Tooltip(
-                                message: 'Settle Courier',
-                                child: IconButton(
-                                  icon: const Icon(Icons.handshake, size: 18, color: Colors.teal),
-                                  splashRadius: 18,
-                                  onPressed: ref.read(kanbanProvider.select((s) => s.transitioningInvoices.contains(widget.invoice.id))) ? null : () => _settleCourierTransaction(context),
-                                ),
-                              ),
-                            const SizedBox(width: 4),
-                            AnimatedRotation(
-                              turns: _isExpanded ? 0.5 : 0,
-                              duration: const Duration(milliseconds: 200),
-                              child: Icon(
-                                Icons.keyboard_arrow_down,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                     const SizedBox(height: 8),

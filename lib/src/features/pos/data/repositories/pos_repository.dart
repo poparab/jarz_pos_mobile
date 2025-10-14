@@ -61,6 +61,22 @@ class PosRepository {
     }
   }
 
+  Future<Map<String, dynamic>> getPosProfileAccountBalance(String posProfile) async {
+    try {
+      final response = await _dio.post(
+        '/api/method/jarz_pos.api.pos.get_pos_profile_account_balance',
+        data: {'profile': posProfile},
+      );
+
+      if (response.statusCode == 200 && response.data['message'] != null) {
+        return Map<String, dynamic>.from(response.data['message'] as Map);
+      }
+      throw Exception('Failed to fetch POS account balance');
+    } catch (e) {
+      throw Exception('Failed to fetch POS account balance: $e');
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getTerritories({String? search}) async {
     try {
       final response = await _dio.post(

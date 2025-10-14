@@ -6,6 +6,7 @@ import '../models/kanban_models.dart';
 import '../widgets/kanban_column_widget.dart';
 import '../widgets/kanban_filters_widget.dart';
 import '../../pos/state/pos_notifier.dart';
+import '../../pos/state/pos_account_balance_provider.dart';
 import '../../../core/router.dart';
 import '../../pos/presentation/widgets/courier_balances_dialog.dart';
 import '../../../core/network/courier_service.dart';
@@ -80,6 +81,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               actions: [
                 // Branch filter control (compact dropdown with checkboxes)
                 const _BranchFilterButton(),
+                const _BranchBalanceChip(),
                 // Unified Printer Status Chip (same behavior/visuals as POS header)
                 Consumer(
                   builder: (context, ref, _) {
@@ -1059,6 +1061,110 @@ class _BranchFilterButton extends ConsumerWidget {
               const SizedBox(width: 2),
               Icon(Icons.arrow_drop_down, size: 18, color: theme.colorScheme.onSurface),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BranchBalanceChip extends ConsumerWidget {
+  const _BranchBalanceChip();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final posState = ref.watch(posNotifierProvider);
+    final profileName = posState.selectedProfile?['name']?.toString();
+    if (profileName == null || profileName.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final balanceAsync = ref.watch(posAccountBalanceProvider(profileName));
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      child: Tooltip(
+        message: 'Tap to refresh cash balance',
+        waitDuration: const Duration(milliseconds: 600),
+        child: InkWell(
+          onTap: () => ref.invalidate(posAccountBalanceProvider(profileName)),
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            constraints: const BoxConstraints(minWidth: 120, maxWidth: 220),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+            ),
+            child: balanceAsync.when(
+              data: (value) {
+                final isNegative = value.balance < 0;
+                final color = isNegative ? Colors.red.shade700 : Colors.green.shade700;
+                final currency = value.currency.trim();
+                final amountText = value.balance.abs().toStringAsFixed(2);
+                final label = currency.isEmpty ? amountText : '$currency $amountText';
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.account_balance_wallet, size: 16, color: color),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        label,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+              loading: () => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Cash…',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              error: (error, _) => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error_outline, size: 16, color: theme.colorScheme.error),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'Cash unavailable',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: theme.colorScheme.error,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

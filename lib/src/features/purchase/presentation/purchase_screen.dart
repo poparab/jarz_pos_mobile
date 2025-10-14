@@ -21,6 +21,27 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
 
   // Cart lines: {item_code, item_name, uom, qty, rate, uoms:[], prices:[]}
   final List<Map<String, dynamic>> cart = [];
+  late final TextEditingController _itemSearchController;
+  late final TextEditingController _shippingController;
+
+  @override
+  void initState() {
+    super.initState();
+    _itemSearchController = TextEditingController(text: itemQuery);
+    _shippingController = TextEditingController(text: shippingAmount.toStringAsFixed(2));
+  }
+
+  @override
+  void dispose() {
+    _itemSearchController.dispose();
+    _shippingController.dispose();
+    for (final line in cart) {
+      try {
+        (line['qtyCtrl'] as TextEditingController?)?.dispose();
+      } catch (_) {}
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +86,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                   Text('Items', style: theme.textTheme.titleMedium),
                   const SizedBox(height: 8),
                   TextField(
+                    controller: _itemSearchController,
                     decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search items'),
                     onChanged: (v) => setState(() => itemQuery = v),
                   ),
@@ -112,12 +134,13 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                       const SizedBox(width: 8),
                       SizedBox(
                         width: 140,
-                        child: TextFormField(
-                          initialValue: shippingAmount.toStringAsFixed(2),
+                        child: TextField(
+                          controller: _shippingController,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           onChanged: (v) {
-                            final d = double.tryParse(v) ?? shippingAmount;
-                            setState(() => shippingAmount = d);
+                            final parsed = double.tryParse(v);
+                            if (parsed == null) return;
+                            setState(() => shippingAmount = parsed);
                           },
                         ),
                       ),
@@ -474,14 +497,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       );
       messenger.showSnackBar(SnackBar(content: Text('Created: ${res['purchase_invoice']}')));
       if (!mounted) return;
-      setState(() {
-        // dispose controllers before clearing
-        for (final l in cart) {
-          try { (l['qtyCtrl'] as TextEditingController?)?.dispose(); } catch (_) {}
-        }
-        cart.clear();
-        shippingAmount = 0.0;
-      });
+      _resetForm();
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Failed: $e')));
     }
@@ -517,6 +533,24 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       sum += qty * rate;
     }
     return sum;
+  }
+
+  void _resetForm() {
+    for (final l in cart) {
+      try {
+        (l['qtyCtrl'] as TextEditingController?)?.dispose();
+      } catch (_) {}
+    }
+    setState(() {
+      cart.clear();
+      supplier = null;
+      supplierQuery = '';
+      itemQuery = '';
+      postingDate = DateTime.now();
+      shippingAmount = 0.0;
+    });
+    _itemSearchController.clear();
+    _shippingController.text = shippingAmount.toStringAsFixed(2);
   }
 
   Future<String?> _choosePaymentOption() async {
