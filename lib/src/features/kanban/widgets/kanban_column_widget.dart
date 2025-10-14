@@ -5,7 +5,8 @@ import 'invoice_card_widget.dart';
 class KanbanColumnWidget extends StatefulWidget { // changed to Stateful for hover/drag animation
   final KanbanColumn column;
   final List<InvoiceCard> invoices;
-  final Function(String invoiceId, String newColumnId) onCardMoved;
+  final Future<void> Function(String invoiceId, String fromColumnId, String newColumnId) onCardMoved;
+  final bool Function(String invoiceId, String fromColumnId, String newColumnId)? canAcceptMove;
   final ValueChanged<bool>? onCardPointerActive; // new
 
   const KanbanColumnWidget({
@@ -13,6 +14,7 @@ class KanbanColumnWidget extends StatefulWidget { // changed to Stateful for hov
     required this.column,
     required this.invoices,
     required this.onCardMoved,
+    this.canAcceptMove,
     this.onCardPointerActive,
   });
 
@@ -125,7 +127,24 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
           Expanded(
             child: DragTarget<Map<String, dynamic>>(
               onWillAcceptWithDetails: (details) {
-                setState(() { _isDragOver = true; });
+                final payload = details.data;
+                final invoiceId = payload['invoiceId']?.toString() ?? '';
+                final fromColumnId = payload['fromColumnId']?.toString() ?? '';
+                final canAccept = widget.canAcceptMove?.call(
+                      invoiceId,
+                      fromColumnId,
+                      widget.column.id,
+                    ) ??
+                    true;
+                if (!canAccept) {
+                  setState(() {
+                    _isDragOver = false;
+                  });
+                  return false;
+                }
+                setState(() {
+                  _isDragOver = true;
+                });
                 return true;
               },
               onLeave: (_) => setState(() { _isDragOver = false; }),
@@ -134,7 +153,7 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
                 final invoiceId = data.data['invoiceId'] as String;
                 final fromColumnId = data.data['fromColumnId'] as String;
                 if (fromColumnId != widget.column.id) {
-                  await widget.onCardMoved(invoiceId, widget.column.id);
+                  await widget.onCardMoved(invoiceId, fromColumnId, widget.column.id);
                 }
               },
               builder: (context, candidateData, rejectedData) {

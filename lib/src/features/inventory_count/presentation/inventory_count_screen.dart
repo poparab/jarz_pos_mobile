@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../core/widgets/app_drawer.dart';
@@ -241,15 +242,22 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
       return const Scaffold(body: Center(child: Text('Manager access required')));
     }
 
-    return Scaffold(
-      drawer: const AppDrawer(),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () {
-            Scaffold.of(context).openDrawer();
-          },
-        ),
+    return WillPopScope(
+      onWillPop: () async {
+        if (!mounted) return true;
+        context.go('/kanban');
+        return false;
+      },
+      child: Scaffold(
+        drawer: const AppDrawer(),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
+            ),
+          ),
         title: const Text('Inventory Count'),
         actions: [
           IconButton(
@@ -533,10 +541,11 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _loading ? null : _submit,
-        icon: const Icon(Icons.save),
-        label: const Text('Submit Count'),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _loading ? null : _submit,
+          icon: const Icon(Icons.save),
+          label: const Text('Submit Count'),
+        ),
       ),
     );
   }

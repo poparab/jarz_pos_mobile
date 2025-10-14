@@ -30,6 +30,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   bool _allowHScroll = true; // new state
   bool _posProfileDialogActive = false;
   ProviderSubscription<PosState>? _posStateSubscription;
+  DateTime? _lastBackPress;
 
   void _setScrollActive(bool active) {
     if (_allowHScroll == active) return;
@@ -65,9 +66,11 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     final kanbanState = ref.watch(kanbanProvider);
     // No POS profile guard here; Kanban should be usable with branch filter defaults
 
-    return Scaffold(
-      drawer: const AppDrawer(),
-      appBar: widget.showAppBar
+    return WillPopScope(
+      onWillPop: _handleBackPress,
+      child: Scaffold(
+        drawer: const AppDrawer(),
+        appBar: widget.showAppBar
           ? AppBar(
               automaticallyImplyLeading: false,
               leading: Builder(
@@ -203,26 +206,27 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               ],
             )
           : null,
-      body: Column(
-        children: [
-          // Removed full-width branch chips to maximize kanban space; filter now in header
-          if (_showFilters)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+        body: Column(
+          children: [
+            // Removed full-width branch chips to maximize kanban space; filter now in header
+            if (_showFilters)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+                ),
+                child: KanbanFiltersWidget(
+                  filters: kanbanState.filters,
+                  customers: kanbanState.customers,
+                  onFiltersChanged: (newFilters) {
+                    ref.read(kanbanProvider.notifier).updateFilters(newFilters);
+                  },
+                ),
               ),
-              child: KanbanFiltersWidget(
-                filters: kanbanState.filters,
-                customers: kanbanState.customers,
-                onFiltersChanged: (newFilters) {
-                  ref.read(kanbanProvider.notifier).updateFilters(newFilters);
-                },
-              ),
-            ),
-          Expanded(child: _buildKanbanContent(kanbanState)),
-        ],
+            Expanded(child: _buildKanbanContent(kanbanState)),
+          ],
+        ),
       ),
     );
   }
@@ -334,7 +338,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               child: KanbanColumnWidget(
                 column: column,
                 invoices: kanbanState.invoices[column.id] ?? const [],
-                onCardMoved: (invoiceId, newColumnId) => _handleCardMove(invoiceId, column.id, newColumnId),
+                canAcceptMove: _canAcceptCardMove,
+                onCardMoved: (invoiceId, fromColumnId, newColumnId) =>
+                    _handleCardMove(invoiceId, fromColumnId, newColumnId),
                 onCardPointerActive: (active) => _setScrollActive(!active),
               ),
             )
@@ -344,7 +350,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     );
   }
 
-  void _handleCardMove(
+  Future<void> _handleCardMove(
     String invoiceId,
     String fromColumnId,
     String toColumnId,
@@ -618,6 +624,63 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
 
     // Other states: normal state update
     ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, targetColumn.name);
+  }
+
+  bool _canAcceptCardMove(String invoiceId, String fromColumnId, String toColumnId) {
+    final columns = ref.read(kanbanProvider).columns;
+    if (columns.isEmpty) return true;
+
+    int resolveIndex(String candidate) {
+      final normalized = candidate.trim().toLowerCase();
+      var idx = columns.indexWhere((c) => c.id.trim().toLowerCase() == normalized);
+      if (idx != -1) return idx;
+      idx = columns.indexWhere((c) => c.name.trim().toLowerCase() == normalized);
+      return idx;
+    }
+
+    final fromIndex = resolveIndex(fromColumnId);
+    final toIndex = resolveIndex(toColumnId);
+    if (fromIndex == -1 || toIndex == -1) {
+      return true; // Unknown columns; do not block the move
+    }
+
+    if (fromIndex == toIndex) {
+      return false;
+    }
+
+    final isBackward = toIndex < fromIndex;
+    final cancelledIndex = columns.indexWhere(_isCancelledColumn);
+    final movingToCancelled = cancelledIndex != -1 && toIndex == cancelledIndex;
+    final allowBackwardToCancelled = isBackward && movingToCancelled && fromIndex > cancelledIndex;
+
+    if (isBackward && !allowBackwardToCancelled) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.removeCurrentSnackBar();
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Cannot move invoice backward. Advance it forward instead.')),
+      );
+      return false;
+    }
+
+    if (!isBackward) {
+      final step = toIndex - fromIndex;
+      if (step > 1) {
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.removeCurrentSnackBar();
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Move invoices one stage at a time.')),
+        );
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool _isCancelledColumn(KanbanColumn column) {
+    final id = column.id.toLowerCase();
+    final name = column.name.toLowerCase();
+    return id.contains('cancelled') || name.contains('cancelled');
   }
 
   InvoiceCard? _findInvoice(String id) {
@@ -997,6 +1060,20 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       orderFallback: inv?.grandTotal,
       shippingFallback: inv?.shippingExpenseDisplay,
     );
+  }
+
+  Future<bool> _handleBackPress() async {
+    final now = DateTime.now();
+    if (_lastBackPress != null && now.difference(_lastBackPress!) < const Duration(seconds: 2)) {
+      return true;
+    }
+    _lastBackPress = now;
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Press back again to exit')),
+      );
+    }
+    return false;
   }
 }
 
