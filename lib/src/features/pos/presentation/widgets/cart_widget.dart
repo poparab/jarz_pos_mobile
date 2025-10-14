@@ -632,11 +632,13 @@ class CartWidget extends ConsumerWidget {
       return;
     }
 
-    // Since profile is selected before entering POS, skip modal dialogs
-    // Default to cash payment type for sales partners (can be modified later if needed)
+    // Sales partner orders require choosing how the partner will pay
     String? paymentType;
     if (state.selectedSalesPartner != null) {
-      paymentType = 'cash'; // Default to cash, no dialog
+      paymentType = await _promptSalesPartnerPayment(context);
+      if (paymentType == null) {
+        return; // user cancelled the dialog
+      }
     }
 
     // Use the already selected profile, no branch selection dialog
@@ -710,6 +712,53 @@ class CartWidget extends ConsumerWidget {
             );
           }),
         ],
+      ),
+    );
+  }
+
+  Future<String?> _promptSalesPartnerPayment(BuildContext context) async {
+    String selected = 'cash';
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: const Text('Sales Partner Payment'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Choose how the sales partner is paying for this order.'),
+              const SizedBox(height: 12),
+              RadioListTile<String>(
+                title: const Text('Cash (collected now)'),
+                value: 'cash',
+                groupValue: selected,
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() => selected = value);
+                },
+              ),
+              RadioListTile<String>(
+                title: const Text('Online (already paid)'),
+                value: 'online',
+                groupValue: selected,
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() => selected = value);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(selected),
+              child: const Text('Continue'),
+            ),
+          ],
+        ),
       ),
     );
   }
