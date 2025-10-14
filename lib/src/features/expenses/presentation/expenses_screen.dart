@@ -24,18 +24,23 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(expensesNotifierProvider.notifier).load();
     });
-    ref.listen<ExpensesState>(expensesNotifierProvider, (previous, next) {
-      if (next.error != null && next.error!.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error!)),
-        );
-        ref.read(expensesNotifierProvider.notifier).clearError();
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<ExpensesState>(expensesNotifierProvider, (previous, next) {
+      final error = next.error;
+      if (error != null && error.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error)),
+          );
+          ref.read(expensesNotifierProvider.notifier).clearError();
+        });
+      }
+    });
+
     final state = ref.watch(expensesNotifierProvider);
     final notifier = ref.read(expensesNotifierProvider.notifier);
 
