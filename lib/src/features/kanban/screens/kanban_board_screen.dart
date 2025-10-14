@@ -485,8 +485,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         }
       }
 
-      // If unpaid and choosing pay_now -> use two-step server-driven flow (preview -> confirm)
-      if (!isPaid && mode == 'pay_now') {
+  // For pay_now flow (regardless of paid/unpaid), use two-step preview -> confirm.
+  if (mode == 'pay_now') {
         try {
           final courierService = ref.read(courierServiceProvider);
           final preview = await courierService.generateSettlementPreview(

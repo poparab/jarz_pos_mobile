@@ -956,81 +956,142 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       }
     }
 
-  final result = await _showCourierSettlementDialog(context, hideSettleLater: true);
+    final result = await _showCourierSettlementDialog(context, hideSettleLater: true);
     if (result == null) return; // cancelled
-    final courier = result['courier'] as String;
-    final partyType = result['party_type'] as String?;
-    final party = result['party'] as String?;
+    final courier = result['courier'] as String?;
     final courierDisplay = result['courier_display'] as String?;
-  final mode = result['mode'] as String; // pay_now
+    String? partyType = result['party_type'] as String?;
+    String? party = result['party'] as String?;
+    final mode = (result['mode'] ?? 'pay_now').toString();
     final posProfile = posState.selectedProfile?['name'];
     if (posProfile == null) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Select POS profile first')),
-      );
+      messenger.showSnackBar(const SnackBar(content: Text('Select POS profile first')));
       return;
     }
 
-  // Treat invoice as unpaid if status is Unpaid/Overdue/Partially Paid, or outstanding > ~0
-  final statusNow = (widget.invoice.status).toString().toLowerCase();
-  final effStatusNow = (widget.invoice.effectiveStatus).toString().toLowerCase();
-  final isUnpaid = statusNow == 'unpaid' || effStatusNow == 'unpaid' || statusNow == 'overdue' || effStatusNow == 'overdue' || statusNow.contains('part') || effStatusNow.contains('part');
-  // Only pay_now supported per new business rule
+    final statusNow = (widget.invoice.status).toString().toLowerCase();
+    final effStatusNow = (widget.invoice.effectiveStatus).toString().toLowerCase();
+    final isUnpaid = statusNow == 'unpaid' || effStatusNow == 'unpaid' || statusNow == 'overdue' || effStatusNow == 'overdue' || statusNow.contains('part') || effStatusNow.contains('part');
+    final courierLabel = courierDisplay?.isNotEmpty == true
+        ? courierDisplay!
+        : ((courier != null && courier.isNotEmpty) ? courier : 'UNKNOWN');
 
-    // If invoice is unpaid and user chose pay_now -> call unified OFD endpoint directly (backend will create PE and prompt collect-cash)
-    if (isUnpaid && mode == 'pay_now') {
+    if (mode == 'later') {
       try {
-        messenger.showSnackBar(const SnackBar(content: Text('Dispatching…')));
-        final res = await notifier.outForDeliveryUnified(
-          invoiceId: widget.invoice.name,
-          courier: courier,
-          mode: mode,
+        final courierService = ref.read(courierServiceProvider);
+        final preview = await courierService.generateSettlementPreview(
+          invoice: widget.invoice.name,
+          partyType: partyType,
+          party: party,
+          mode: 'later',
+          recentPaymentSeconds: 30,
+        );
+        final previewPartyType = (preview['party_type'] ?? '').toString().trim();
+        final previewParty = (preview['party'] ?? '').toString().trim();
+        partyType = (partyType?.trim().isNotEmpty ?? false) ? partyType!.trim() : (previewPartyType.isNotEmpty ? previewPartyType : null);
+        party = (party?.trim().isNotEmpty ?? false) ? party!.trim() : (previewParty.isNotEmpty ? previewParty : null);
+        final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
+        if (partyType == null || party == null || token.isEmpty) {
+          messenger.showSnackBar(const SnackBar(content: Text('Settle Later failed: courier party missing.')));
+          return;
+        }
+        final res = await courierService.confirmSettlement(
+          invoice: widget.invoice.name,
+          previewToken: token,
+          mode: 'later',
           posProfile: posProfile,
           partyType: partyType,
           party: party,
-          courierDisplay: courierDisplay,
+          courier: courierLabel,
         );
-        if (res == null || res['success'] != true) {
-          messenger.showSnackBar(const SnackBar(content: Text('Dispatch failed')));
+        if (res['success'] == true) {
+          messenger.showSnackBar(const SnackBar(content: Text('Marked to Settle Later')));
+        } else {
+          messenger.showSnackBar(const SnackBar(content: Text('Settle Later failed')));
         }
       } catch (e) {
-        messenger.showSnackBar(SnackBar(content: Text('Dispatch error: $e')));
+        messenger.showSnackBar(SnackBar(content: Text('Settle Later error: $e')));
       }
       return;
     }
-    try {
-      // For unpaid+pay_now, the server already handled OFD inside confirm_settlement.
-      // For all other modes (e.g., already paid paths), use existing unified endpoint.
-      Map<String, dynamic>? res;
-      if (!(isUnpaid && mode == 'pay_now')) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Processing Delivery...')),
+
+    // For pay_now flows always use preview -> confirm so backend handles paid/unpaid logic uniformly
+    if (mode == 'pay_now') {
+      try {
+        final courierService = ref.read(courierServiceProvider);
+        final preview = await courierService.generateSettlementPreview(
+          invoice: widget.invoice.name,
+          partyType: partyType,
+          party: party,
+          mode: mode,
+          recentPaymentSeconds: 30,
         );
-        res = await notifier.outForDeliveryUnified(
-          invoiceId: widget.invoice.name,
-          courier: courier,
+        final previewPartyType = (preview['party_type'] ?? '').toString().trim();
+        final previewParty = (preview['party'] ?? '').toString().trim();
+        partyType = (partyType?.trim().isNotEmpty ?? false) ? partyType!.trim() : (previewPartyType.isNotEmpty ? previewPartyType : null);
+        party = (party?.trim().isNotEmpty ?? false) ? party!.trim() : (previewParty.isNotEmpty ? previewParty : null);
+        if (partyType == null || party == null) {
+          messenger.showSnackBar(const SnackBar(content: Text('Settlement failed: courier party missing.')));
+          return;
+        }
+        if (!mounted) return;
+        final confirmed = await showSettlementConfirmDialog(
+          context,
+          preview,
+          invoice: widget.invoice.name,
+          territory: widget.invoice.territory,
+          orderFallback: widget.invoice.grandTotal,
+          shippingFallback: widget.invoice.shippingExpenseDisplay.toDouble(),
+        );
+        if (confirmed != true) return;
+        final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
+        if (token.isEmpty) {
+          messenger.showSnackBar(const SnackBar(content: Text('Preview expired. Please retry.')));
+          return;
+        }
+        messenger.showSnackBar(const SnackBar(content: Text('Confirming settlement...')));
+        final res = await courierService.confirmSettlement(
+          invoice: widget.invoice.name,
+          previewToken: token,
           mode: mode,
           posProfile: posProfile,
           partyType: partyType,
           party: party,
-          courierDisplay: courierDisplay,
+          paymentMode: 'Cash',
+          courier: courierLabel,
         );
-      } else {
-        res = {"success": true};
+        if (res['success'] == true) {
+          messenger.showSnackBar(const SnackBar(content: Text('Settlement confirmed')));
+          try {
+            await notifier.refreshSingle(widget.invoice.name);
+          } catch (_) {}
+        } else {
+          messenger.showSnackBar(const SnackBar(content: Text('Settlement failed')));
+        }
+      } catch (e) {
+        messenger.showSnackBar(SnackBar(content: Text('Settlement error: $e')));
       }
+      return;
+    }
+
+    try {
+      messenger.showSnackBar(const SnackBar(content: Text('Processing Delivery...')));
+      final res = await notifier.outForDeliveryUnified(
+        invoiceId: widget.invoice.name,
+        courier: courier ?? 'UNKNOWN',
+        mode: mode,
+        posProfile: posProfile,
+        partyType: partyType,
+        party: party,
+        courierDisplay: courierDisplay,
+      );
       if (res != null && res['success'] == true) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Updated')),
-        );
+        messenger.showSnackBar(const SnackBar(content: Text('Updated')));
       } else {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Delivery action failed')),
-        );
+        messenger.showSnackBar(const SnackBar(content: Text('Delivery action failed')));
       }
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
