@@ -32,7 +32,7 @@ class ExpenseCard extends StatelessWidget {
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         leading: CircleAvatar(
           radius: 22,
-          backgroundColor: statusColor.withOpacity(0.15),
+          backgroundColor: statusColor.withValues(alpha: 0.15),
           child: Icon(statusIcon, color: statusColor),
         ),
         title: Row(
@@ -121,7 +121,7 @@ class _StatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
       ),
       child: Text(
         status,

@@ -728,23 +728,25 @@ class CartWidget extends ConsumerWidget {
             children: [
               const Text('Choose how the sales partner is paying for this order.'),
               const SizedBox(height: 12),
-              RadioListTile<String>(
-                title: const Text('Cash (collected now)'),
-                value: 'cash',
-                groupValue: selected,
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => selected = value);
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment<String>(
+                    value: 'cash',
+                    label: Text('Cash (collected now)'),
+                    icon: Icon(Icons.attach_money),
+                  ),
+                  ButtonSegment<String>(
+                    value: 'online',
+                    label: Text('Online (already paid)'),
+                    icon: Icon(Icons.online_prediction),
+                  ),
+                ],
+                selected: <String>{selected},
+                onSelectionChanged: (selection) {
+                  if (selection.isEmpty) return;
+                  setState(() => selected = selection.first);
                 },
-              ),
-              RadioListTile<String>(
-                title: const Text('Online (already paid)'),
-                value: 'online',
-                groupValue: selected,
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => selected = value);
-                },
+                showSelectedIcon: false,
               ),
             ],
           ),

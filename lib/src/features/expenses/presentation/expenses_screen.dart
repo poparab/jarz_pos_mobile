@@ -18,46 +18,61 @@ class ExpensesScreen extends ConsumerStatefulWidget {
 }
 
 class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
+  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
+  late final ProviderSubscription<ExpensesState> _errorListener;
+
   @override
   void initState() {
     super.initState();
+    _errorListener = ref.listenManual<ExpensesState>(
+      expensesNotifierProvider,
+      (previous, next) {
+        final error = next.error;
+        if (error != null && error.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            final messenger = _messengerKey.currentState;
+            if (messenger == null) return;
+            messenger.showSnackBar(
+              SnackBar(content: Text(error)),
+            );
+            ref.read(expensesNotifierProvider.notifier).clearError();
+          });
+        }
+      },
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(expensesNotifierProvider.notifier).load();
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    ref.listen<ExpensesState>(expensesNotifierProvider, (previous, next) {
-      final error = next.error;
-      if (error != null && error.isNotEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(error)),
-          );
-          ref.read(expensesNotifierProvider.notifier).clearError();
-        });
-      }
-    });
+  void dispose() {
+    _errorListener.close();
+    super.dispose();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(expensesNotifierProvider);
     final notifier = ref.read(expensesNotifierProvider.notifier);
 
     final isBusy = state.isLoading && !state.initialized;
-    return Scaffold(
-      drawer: const AppDrawer(),
-      appBar: AppBar(
-        title: const Text('Expenses'),
-        actions: [
-          IconButton(
-            tooltip: 'Refresh',
-            onPressed: state.isLoading ? null : () => notifier.refresh(),
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
+    return ScaffoldMessenger(
+      key: _messengerKey,
+      child: Scaffold(
+        drawer: const AppDrawer(),
+        appBar: AppBar(
+          title: const Text('Expenses'),
+          actions: [
+            IconButton(
+              tooltip: 'Refresh',
+              onPressed: state.isLoading ? null : () => notifier.refresh(),
+              icon: const Icon(Icons.refresh),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
         onPressed: state.isSubmitting
             ? null
             : () async {
@@ -72,15 +87,13 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                 );
                 if (record != null && mounted) {
                   final label = record.isApproved ? 'Expense recorded' : 'Expense submitted for approval';
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(label)),
-                  );
+                  _messengerKey.currentState?.showSnackBar(SnackBar(content: Text(label)));
                 }
               },
         icon: const Icon(Icons.add),
         label: const Text('New Expense'),
       ),
-      body: SafeArea(
+        body: SafeArea(
         child: isBusy
             ? const Center(child: CircularProgressIndicator())
             : RefreshIndicator(// allow pull-to-refresh
@@ -119,6 +132,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                   ],
                 ),
               ),
+        ),
       ),
     );
   }
@@ -143,7 +157,7 @@ class _MonthSelector extends StatelessWidget {
               id: selectedMonth,
               label: selectedMonth.isEmpty
                   ? 'Current Month'
-                  : DateFormat('MMMM yyyy').format(DateTime.tryParse('${selectedMonth}-01') ?? DateTime.now()),
+                  : DateFormat('MMMM yyyy').format(DateTime.tryParse('$selectedMonth-01') ?? DateTime.now()),
             )
           ]
         : months;
@@ -157,7 +171,8 @@ class _MonthSelector extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: DropdownButtonFormField<String>(
-            value: effectiveMonths.any((m) => m.id == selectedMonth) ? selectedMonth : effectiveMonths.first.id,
+            key: ValueKey<String>(selectedMonth),
+            initialValue: effectiveMonths.any((m) => m.id == selectedMonth) ? selectedMonth : effectiveMonths.first.id,
             items: effectiveMonths
                 .map((m) => DropdownMenuItem<String>(
                       value: m.id,

@@ -107,7 +107,7 @@ class _SummaryTile extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 22,
-              backgroundColor: info.accent.withOpacity(0.15),
+              backgroundColor: info.accent.withValues(alpha: 0.15),
               child: Icon(info.icon, color: info.accent),
             ),
             const SizedBox(width: 16),

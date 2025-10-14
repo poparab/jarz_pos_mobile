@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+import '../../../core/network/user_service.dart';
 import '../data/manager_api.dart';
 
 final selectedBranchProvider = StateProvider<String?>((ref) => 'all');
@@ -32,6 +33,10 @@ final managerStatesProvider = FutureProvider.autoDispose<List<String>>((ref) asy
 
 // Lightweight access check for Manager Dashboard visibility
 final managerAccessProvider = FutureProvider<bool>((ref) async {
+  final roles = await ref.watch(userRolesFutureProvider.future);
+  if (!roles.isManager) {
+    return false;
+  }
   final api = ref.read(managerApiProvider);
   try {
     await api.getSummary();

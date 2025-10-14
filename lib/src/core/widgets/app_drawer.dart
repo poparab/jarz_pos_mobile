@@ -4,12 +4,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/state/login_notifier.dart';
 import '../../features/pos/presentation/widgets/courier_balances_dialog.dart';
 import '../../features/manager/state/manager_providers.dart';
+import '../network/user_service.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isManager = ref.watch(isJarzManagerProvider);
+    final managerAccess = isManager
+        ? ref.watch(managerAccessProvider)
+        : const AsyncValue<bool>.data(false);
+    final hasManagerAccess = managerAccess.maybeWhen(
+      data: (v) => v,
+      orElse: () => false,
+    );
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -68,125 +78,75 @@ class AppDrawer extends ConsumerWidget {
               showCourierBalancesDialog(context);
             },
           ),
-          Consumer(
-            builder: (context, ref, _) {
-              final allowed = ref.watch(managerAccessProvider).maybeWhen(
-                    data: (v) => v,
-                    orElse: () => false,
-                  );
-              if (!allowed) return const SizedBox.shrink();
-              return ListTile(
-                leading: const Icon(Icons.dashboard),
-                title: const Text('Manager Dashboard'),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.go('/manager');
-                },
-              );
-            },
-          ),
-          Consumer(
-            builder: (context, ref, _) {
-              final allowed = ref.watch(managerAccessProvider).maybeWhen(
-                    data: (v) => v,
-                    orElse: () => false,
-                  );
-              if (!allowed) return const SizedBox.shrink();
-              return ListTile(
-                leading: const Icon(Icons.receipt_long),
-                title: const Text('Purchase Invoice'),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.go('/purchase');
-                },
-              );
-            },
-          ),
-          Consumer(
-            builder: (context, ref, _) {
-              final allowed = ref.watch(managerAccessProvider).maybeWhen(
-                    data: (v) => v,
-                    orElse: () => false,
-                  );
-              if (!allowed) return const SizedBox.shrink();
-              return ListTile(
-                leading: const Icon(Icons.factory),
-                title: const Text('Manufacturing'),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.go('/manufacturing');
-                },
-              );
-            },
-          ),
-          Consumer(
-            builder: (context, ref, _) {
-              final allowed = ref.watch(managerAccessProvider).maybeWhen(
-                    data: (v) => v,
-                    orElse: () => false,
-                  );
-              if (!allowed) return const SizedBox.shrink();
-              return ListTile(
-                leading: const Icon(Icons.swap_horiz),
-                title: const Text('Stock Transfer'),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.go('/stock-transfer');
-                },
-              );
-            },
-          ),
-          Consumer(
-            builder: (context, ref, _) {
-              final allowed = ref.watch(managerAccessProvider).maybeWhen(
-                    data: (v) => v,
-                    orElse: () => false,
-                  );
-              if (!allowed) return const SizedBox.shrink();
-              return ListTile(
-                leading: const Icon(Icons.account_balance_wallet),
-                title: const Text('Cash Transfer'),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.go('/cash-transfer');
-                },
-              );
-            },
-          ),
-          Consumer(
-            builder: (context, ref, _) {
-              final allowed = ref.watch(managerAccessProvider).maybeWhen(
-                    data: (v) => v,
-                    orElse: () => false,
-                  );
-              if (!allowed) return const SizedBox.shrink();
-              return ListTile(
-                leading: const Icon(Icons.inventory),
-                title: const Text('Inventory Count'),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.go('/inventory-count');
-                },
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.home),
-            title: const Text('Home'),
-            onTap: () {
-              Navigator.pop(context);
-              context.go('/home');
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate to settings
-            },
-          ),
+          if (hasManagerAccess) ...[
+            ListTile(
+              leading: const Icon(Icons.dashboard),
+              title: const Text('Manager Dashboard'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/manager');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.receipt_long),
+              title: const Text('Purchase Invoice'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/purchase');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.factory),
+              title: const Text('Manufacturing'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/manufacturing');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.swap_horiz),
+              title: const Text('Stock Transfer'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/stock-transfer');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_balance_wallet),
+              title: const Text('Cash Transfer'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/cash-transfer');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.inventory),
+              title: const Text('Inventory Count'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/inventory-count');
+              },
+            ),
+          ],
+          if (isManager)
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/home');
+              },
+            ),
+          if (isManager || hasManagerAccess) const Divider(),
+          if (isManager)
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Navigate to settings
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Logout'),

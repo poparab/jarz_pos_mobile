@@ -119,7 +119,8 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<ExpenseReason>(
-                value: _selectedReason,
+                key: ValueKey<String?>(_selectedReason?.account),
+                initialValue: _selectedReason,
                 items: widget.reasons
                     .map((reason) => DropdownMenuItem(
                           value: reason,
@@ -135,7 +136,8 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<ExpensePaymentSource>(
-                value: _selectedSource,
+                key: ValueKey<String?>(_selectedSource?.account ?? _selectedSource?.label),
+                initialValue: _selectedSource,
                 items: widget.paymentSources
                     .map((source) => DropdownMenuItem(
                           value: source,

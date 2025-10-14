@@ -11,6 +11,8 @@ class UserRoles {
   const UserRoles({required this.user, this.fullName, required this.roles});
 
   bool get isJarzManager => roles.contains('JARZ Manager');
+  bool get isSystemManager => roles.contains('System Manager');
+  bool get isManager => isJarzManager || isSystemManager;
 
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
@@ -57,7 +59,7 @@ final userRolesFutureProvider = FutureProvider<UserRoles>((ref) async {
 final isJarzManagerProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
-    data: (roles) => roles.isJarzManager,
+    data: (roles) => roles.isManager,
     orElse: () => false,
   );
 });

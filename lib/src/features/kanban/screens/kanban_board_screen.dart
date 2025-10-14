@@ -66,8 +66,15 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     final kanbanState = ref.watch(kanbanProvider);
     // No POS profile guard here; Kanban should be usable with branch filter defaults
 
-    return WillPopScope(
-      onWillPop: _handleBackPress,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final navigator = Navigator.maybeOf(context);
+        if (await _handleBackPress() && mounted) {
+          navigator?.maybePop(result);
+        }
+      },
       child: Scaffold(
         drawer: const AppDrawer(),
         appBar: widget.showAppBar
@@ -355,9 +362,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     String fromColumnId,
     String toColumnId,
   ) async {
-  // Clear any previous error so it doesn't persist on the screen
-  final messenger = ScaffoldMessenger.of(context);
-  ref.read(kanbanProvider.notifier).clearError();
+    // Clear any previous error so it doesn't persist on the screen
+    final messenger = ScaffoldMessenger.of(context);
+    ref.read(kanbanProvider.notifier).clearError();
     final targetColumn = ref.read(kanbanProvider).columns.firstWhere(
       (col) => col.id == toColumnId,
       orElse: () => KanbanColumn(id: toColumnId, name: toColumnId, color: '#F5F5F5'),
@@ -373,7 +380,6 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     );
     if (movingToOut) {
       final inv = _findInvoice(invoiceId);
-      final isPaid = (inv?.docStatus ?? '').toLowerCase() == 'paid' || (inv?.effectiveStatus.toLowerCase() == 'paid');
       final hasPartner = ((inv?.salesPartner ?? '').isNotEmpty);
       final isPickup = (inv?.isPickup ?? false);
       if (hasPartner) {
@@ -384,7 +390,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         await ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, 'Out For Delivery');
         return;
       }
-    // Launch courier/mode dialog
+      // Launch courier/mode dialog
       // Show "Settle Later" for non-partner, non-pickup only (per business rule)
       final showSettleLater = !hasPartner && !isPickup;
       final dialogResult = await _showCourierSettlementDialog(hideSettleLater: !showSettleLater);
@@ -397,11 +403,11 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
         return;
       }
-  final courier = dialogResult['courier'] as String?; // may be 'UNKNOWN'
-  final mode = dialogResult['mode'] as String; // pay_now
-  final partyType = dialogResult['party_type'] as String?;
-  final party = dialogResult['party'] as String?;
-  final courierDisplay = dialogResult['display_name'] as String? ?? courier;
+    final courier = dialogResult['courier'] as String?; // may be 'UNKNOWN'
+    final mode = dialogResult['mode'] as String; // pay_now
+    final partyType = dialogResult['party_type'] as String?;
+    final party = dialogResult['party'] as String?;
+    final courierDisplay = dialogResult['display_name'] as String? ?? courier;
       final posProfile = _getPosProfile();
       if (posProfile == null) {
         messenger.showSnackBar(const SnackBar(content: Text('Select POS profile first')));
@@ -413,9 +419,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
         return;
       }
-  // inv and isPaid already computed above
-
-  // Only pay_now is supported per new business rule
+    // Only pay_now is supported per new business rule
 
       // New: Support 'later' when enabled (except Sales Partner and Pickup)
       if (mode == 'later') {

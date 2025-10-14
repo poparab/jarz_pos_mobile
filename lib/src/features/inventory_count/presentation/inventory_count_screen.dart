@@ -242,11 +242,11 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
       return const Scaffold(body: Center(child: Text('Manager access required')));
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        if (!mounted) return true;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop || !mounted) return;
         context.go('/kanban');
-        return false;
       },
       child: Scaffold(
         drawer: const AppDrawer(),

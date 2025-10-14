@@ -997,9 +997,6 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       return;
     }
 
-    final statusNow = (widget.invoice.status).toString().toLowerCase();
-    final effStatusNow = (widget.invoice.effectiveStatus).toString().toLowerCase();
-    final isUnpaid = statusNow == 'unpaid' || effStatusNow == 'unpaid' || statusNow == 'overdue' || effStatusNow == 'overdue' || statusNow.contains('part') || effStatusNow.contains('part');
     final courierLabel = courierDisplay?.isNotEmpty == true
         ? courierDisplay!
         : ((courier != null && courier.isNotEmpty) ? courier : 'UNKNOWN');
