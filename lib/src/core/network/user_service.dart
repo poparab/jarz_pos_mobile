@@ -11,8 +11,7 @@ class UserRoles {
   const UserRoles({required this.user, this.fullName, required this.roles});
 
   bool get isJarzManager => roles.contains('JARZ Manager');
-  bool get isSystemManager => roles.contains('System Manager');
-  bool get isManager => isJarzManager || isSystemManager;
+  bool get isManager => isJarzManager;
 
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
