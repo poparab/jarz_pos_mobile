@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/auth_repository.dart';
 import '../../../core/router.dart';
+import '../../../core/network/user_service.dart';
+import '../../manager/state/manager_providers.dart';
 
 class LoginNotifier extends AsyncNotifier<bool> {
   @override
@@ -18,6 +20,9 @@ class LoginNotifier extends AsyncNotifier<bool> {
         ref.read(currentAuthStateProvider.notifier).state = true;
         // Invalidate auth state provider to refresh with new session
         ref.invalidate(authStateProvider);
+        ref.invalidate(userRolesFutureProvider);
+        ref.invalidate(isJarzManagerProvider);
+        ref.invalidate(managerAccessProvider);
         state = AsyncData(true);
       } else {
         state = AsyncError('Invalid credentials', StackTrace.current);
@@ -32,6 +37,9 @@ class LoginNotifier extends AsyncNotifier<bool> {
     await repo.logout();
     ref.read(currentAuthStateProvider.notifier).state = false;
     ref.invalidate(authStateProvider);
+    ref.invalidate(userRolesFutureProvider);
+    ref.invalidate(isJarzManagerProvider);
+    ref.invalidate(managerAccessProvider);
     state = AsyncData(false);
   }
 }
