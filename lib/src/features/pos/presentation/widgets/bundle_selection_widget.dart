@@ -564,7 +564,13 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
 
   void _addItemToSelection(Map<String, dynamic> item, String groupName) {
     setState(() {
-      selectedItems[groupName] = [...(selectedItems[groupName] ?? []), item];
+      // Only send essential fields to backend - exclude stock qty fields
+      final cleanItem = {
+        'id': item['id'],
+        'name': item['name'],
+        'price': item['price'],
+      };
+      selectedItems[groupName] = [...(selectedItems[groupName] ?? []), cleanItem];
     });
   }
 
