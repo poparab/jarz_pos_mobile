@@ -8,6 +8,8 @@ import 'dart:async';
 import '../router.dart';
 import 'package:flutter/material.dart';
 
+import '../localization/localization_extensions.dart';
+
 class WebSocketService {
   WebSocketChannel? _channel;
   socketio.Socket? _io;
@@ -354,31 +356,34 @@ class WebSocketService {
               try { amt = double.parse(amtRaw).toStringAsFixed(2); } catch (_) {}
               showDialog(
                 context: ctx,
-                builder: (c) => AlertDialog(
-                  title: const Text('Collect Cash'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        amt,
-                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text('Collect the full order amount now from the Sales Partner courier.'),
-                      if (inv.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text('Invoice: $inv', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                builder: (c) {
+                  final dialogL10n = c.l10n;
+                  return AlertDialog(
+                    title: Text(dialogL10n.websocketCollectCashTitle),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          amt,
+                          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(dialogL10n.websocketCollectCashMessage),
+                        if (inv.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(dialogL10n.websocketInvoiceLabel(inv), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        ],
                       ],
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(c).pop(),
-                      child: const Text('OK'),
                     ),
-                  ],
-                ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(c).pop(),
+                        child: Text(dialogL10n.commonOk),
+                      ),
+                    ],
+                  );
+                },
               );
             }
           } catch (_) {}

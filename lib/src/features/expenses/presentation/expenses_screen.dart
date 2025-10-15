@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/widgets/app_drawer.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../models/expense_models.dart';
 import '../state/expenses_notifier.dart';
 import 'widgets/expense_card.dart';
@@ -56,6 +57,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(expensesNotifierProvider);
     final notifier = ref.read(expensesNotifierProvider.notifier);
+    final l10n = context.l10n;
 
     final isBusy = state.isLoading && !state.initialized;
     return ScaffoldMessenger(
@@ -63,10 +65,10 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
       child: Scaffold(
         drawer: const AppDrawer(),
         appBar: AppBar(
-          title: const Text('Expenses'),
+          title: Text(l10n.expensesTitle),
           actions: [
             IconButton(
-              tooltip: 'Refresh',
+              tooltip: l10n.expensesRefreshTooltip,
               onPressed: state.isLoading ? null : () => notifier.refresh(),
               icon: const Icon(Icons.refresh),
             ),
@@ -86,12 +88,14 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                   ),
                 );
                 if (record != null && mounted) {
-                  final label = record.isApproved ? 'Expense recorded' : 'Expense submitted for approval';
+                  final label = record.isApproved
+                      ? l10n.expensesRecorded
+                      : l10n.expensesSubmitted;
                   _messengerKey.currentState?.showSnackBar(SnackBar(content: Text(label)));
                 }
               },
         icon: const Icon(Icons.add),
-        label: const Text('New Expense'),
+        label: Text(l10n.expensesNewExpense),
       ),
         body: SafeArea(
         child: isBusy
@@ -110,6 +114,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                       months: state.months,
                       selectedMonth: state.selectedMonth,
                       onChanged: (value) => notifier.setMonth(value),
+                      label: l10n.expensesMonthLabel,
                     ),
                     const SizedBox(height: 12),
                     ExpenseFiltersBar(
@@ -117,6 +122,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                       activeFilters: state.paymentFilters,
                       onToggle: notifier.togglePaymentFilter,
                       onClear: state.paymentFilters.isEmpty ? null : notifier.clearFilters,
+                      clearLabel: l10n.expensesFiltersClear,
                     ),
                     const SizedBox(height: 12),
                     ExpensesSummaryHeader(summary: state.summary, isManager: state.isManager),
@@ -142,22 +148,25 @@ class _MonthSelector extends StatelessWidget {
   final List<ExpenseMonthOption> months;
   final String selectedMonth;
   final ValueChanged<String> onChanged;
+  final String label;
 
   const _MonthSelector({
     required this.months,
     required this.selectedMonth,
     required this.onChanged,
+    required this.label,
   });
 
   @override
   Widget build(BuildContext context) {
+    final localeName = context.l10n.localeName;
     final effectiveMonths = months.isEmpty
         ? [
             ExpenseMonthOption(
               id: selectedMonth,
               label: selectedMonth.isEmpty
-                  ? 'Current Month'
-                  : DateFormat('MMMM yyyy').format(DateTime.tryParse('$selectedMonth-01') ?? DateTime.now()),
+                  ? context.l10n.expensesMonthCurrent
+                  : DateFormat.yMMMM(localeName).format(DateTime.tryParse('$selectedMonth-01') ?? DateTime.now()),
             )
           ]
         : months;
@@ -165,7 +174,7 @@ class _MonthSelector extends StatelessWidget {
     return Row(
       children: [
         Text(
-          'Month',
+          label,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(width: 12),
@@ -200,6 +209,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 48),
       alignment: Alignment.center,
@@ -209,11 +219,16 @@ class _EmptyState extends StatelessWidget {
           Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade400),
           const SizedBox(height: 16),
           Text(
-            'No expenses recorded for this month.',
+            l10n.expensesEmptyTitle,
             style: Theme.of(context).textTheme.bodyLarge,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
+          Text(
+            isManager ? l10n.expensesEmptyManagerBody : l10n.expensesEmptyStaffBody,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+            textAlign: TextAlign.center,
+          ),
           Text(
             isManager
                 ? 'Create a new expense to capture operational spending.'

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../connectivity/connectivity_service.dart';
+import '../localization/localization_extensions.dart';
 import '../sync/offline_sync_service.dart';
 import '../websocket/websocket_service.dart';
 import '../../features/pos/state/courier_balances_provider.dart';
@@ -13,10 +15,11 @@ class SystemStatusBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final connectivityAsync = ref.watch(connectivityStatusProvider);
-    final webSocketService = ref.watch(webSocketServiceProvider);
-    final offlineSyncService = ref.watch(offlineSyncServiceProvider);
-    final courierState = ref.watch(courierBalancesProvider);
+  final connectivityAsync = ref.watch(connectivityStatusProvider);
+  final webSocketService = ref.watch(webSocketServiceProvider);
+  final offlineSyncService = ref.watch(offlineSyncServiceProvider);
+  final courierState = ref.watch(courierBalancesProvider);
+  final l10n = context.l10n;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -30,17 +33,17 @@ class SystemStatusBar extends ConsumerWidget {
           connectivityAsync.when(
             data: (isOnline) => _StatusChip(
               icon: isOnline ? Icons.wifi : Icons.wifi_off,
-              label: isOnline ? 'Online' : 'Offline',
+              label: isOnline ? l10n.commonOnline : l10n.commonOffline,
               color: isOnline ? Colors.green : Colors.red,
             ),
-            loading: () => const _StatusChip(
+            loading: () => _StatusChip(
               icon: Icons.wifi,
-              label: 'Checking...',
+              label: l10n.systemStatusChecking,
               color: Colors.orange,
             ),
-            error: (err, stack) => const _StatusChip(
+            error: (err, stack) => _StatusChip(
               icon: Icons.wifi_off,
-              label: 'Error',
+              label: l10n.commonError,
               color: Colors.red,
             ),
           ),
@@ -55,7 +58,7 @@ class SystemStatusBar extends ConsumerWidget {
               final isConnected = snapshot.data ?? false;
               return _StatusChip(
                 icon: isConnected ? Icons.sync : Icons.sync_disabled,
-                label: isConnected ? 'Real-time' : 'No real-time',
+                label: isConnected ? l10n.systemStatusRealtime : l10n.systemStatusNoRealtime,
                 color: isConnected ? Colors.blue : Colors.grey,
               );
             },
@@ -69,15 +72,15 @@ class SystemStatusBar extends ConsumerWidget {
             builder: (context, snapshot) {
               final pendingCount = snapshot.data ?? 0;
               if (pendingCount == 0) {
-                return const _StatusChip(
+                return _StatusChip(
                   icon: Icons.check_circle,
-                  label: 'Synced',
+                  label: l10n.systemStatusSynced,
                   color: Colors.green,
                 );
               } else {
                 return _StatusChip(
                   icon: Icons.sync_problem,
-                  label: '$pendingCount pending',
+                  label: l10n.systemStatusPendingCount(pendingCount),
                   color: Colors.orange,
                 );
               }
@@ -93,15 +96,15 @@ class SystemStatusBar extends ConsumerWidget {
               child: _StatusChip(
                 icon: courierState.hasUnsettled ? Icons.delivery_dining : Icons.local_shipping,
                 label: courierState.hasUnsettled
-                    ? '${courierState.unsettledCount} couriers'
-                    : 'Couriers',
+                    ? l10n.systemStatusCourierCount(courierState.unsettledCount)
+                    : l10n.systemStatusCouriers,
                 color: courierState.hasUnsettled ? Colors.orange : Colors.grey,
               ),
             )
           else
-            const _StatusChip(
+            _StatusChip(
               icon: Icons.local_shipping,
-              label: 'Couriers',
+              label: l10n.systemStatusCouriers,
               color: Colors.grey,
             ),
 
@@ -128,16 +131,16 @@ class SystemStatusBar extends ConsumerWidget {
                   },
                   child: _StatusChip(
                     icon: Icons.handshake,
-                    label: 'Partner',
+                    label: l10n.systemStatusPartnerChip,
                     color: theme.colorScheme.primary,
                   ),
                 );
               }
 
-              final partnerLabel = partner['title'] ??
-                  partner['partner_name'] ??
-                  partner['name'] ??
-                  'Sales Partner';
+        final partnerLabel = partner['title'] ??
+          partner['partner_name'] ??
+          partner['name'] ??
+          l10n.systemStatusSalesPartnerFallback;
 
               return InputChip(
                 avatar: const Icon(Icons.handshake, size: 16),
@@ -184,14 +187,14 @@ class SystemStatusBar extends ConsumerWidget {
               // Then refresh courier balances snapshot
               await ref.read(courierBalancesProvider.notifier).load();
         messenger.showSnackBar(
-                const SnackBar(
-                  content: Text('Sync completed & couriers refreshed'),
-                  duration: Duration(seconds: 2),
+                SnackBar(
+                  content: Text(l10n.systemStatusSyncComplete),
+                  duration: const Duration(seconds: 2),
                 ),
               );
             },
             icon: const Icon(Icons.refresh),
-            tooltip: 'Force sync now',
+            tooltip: l10n.systemStatusForceSyncTooltip,
           ),
         ],
       ),

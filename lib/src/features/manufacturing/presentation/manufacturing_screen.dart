@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../manager/state/manager_providers.dart';
 import '../data/manufacturing_service.dart';
@@ -26,21 +28,22 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final allowed = ref.watch(managerAccessProvider).maybeWhen(data: (v) => v, orElse: () => false);
     if (!allowed) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Manufacturing')),
+        appBar: AppBar(title: Text(l10n.manufacturingTitle)),
         drawer: const AppDrawer(),
-        body: const Center(child: Text('Managers only')),
+        body: Center(child: Text(l10n.manufacturingManagersOnly)),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manufacturing'),
+        title: Text(l10n.manufacturingTitle),
         actions: [
           IconButton(
-            tooltip: 'Recent Work Orders',
+            tooltip: l10n.manufacturingRecentWorkOrdersTooltip,
             icon: const Icon(Icons.history),
             onPressed: _openRecentWorkOrders,
           ),
@@ -58,7 +61,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextField(
-                    decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search items with Default BOM'),
+                    decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: l10n.manufacturingSearchDefaultBom),
                     onChanged: (v) => setState(() => search = v),
                   ),
                   const SizedBox(height: 8),
@@ -80,19 +83,19 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                     children: [
                       const Icon(Icons.factory),
                       const SizedBox(width: 8),
-                      Text('Work Orders (${lines.length})', style: Theme.of(context).textTheme.titleMedium),
+                      Text(l10n.manufacturingWorkOrdersTitle(lines.length), style: Theme.of(context).textTheme.titleMedium),
                       const Spacer(),
                       ElevatedButton.icon(
                         onPressed: lines.isEmpty || !lines.any((l) => l.itemQty > 0) ? null : _submitAll,
                         icon: const Icon(Icons.send),
-                        label: const Text('Submit All'),
+                        label: Text(l10n.manufacturingSubmitAll),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Expanded(
                     child: lines.isEmpty
-                        ? const Center(child: Text('No items selected'))
+                        ? Center(child: Text(l10n.manufacturingNoItemsSelected))
                         : ListView.separated(
                             itemCount: lines.length,
                             separatorBuilder: (a, b) => const SizedBox(height: 10),
@@ -110,6 +113,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
 
   Widget _buildItemResults() {
     final service = ref.read(manufacturingServiceProvider);
+    final l10n = context.l10n;
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: service.listDefaultBomItems(search),
       builder: (context, snap) {
@@ -117,7 +121,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         final items = snap.data ?? [];
-        if (items.isEmpty) return const Center(child: Text('No items found'));
+        if (items.isEmpty) return Center(child: Text(l10n.manufacturingNoItemsFound));
         return ListView.separated(
           itemCount: items.length,
           separatorBuilder: (a, b) => const Divider(height: 1),
@@ -129,11 +133,15 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
             final bomQty = (it['bom_qty'] as num).toDouble();
             return ListTile(
               title: Text(
-                '$name ($code)',
+                l10n.commonNameWithCode(name, code),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               subtitle: Text(
-                'BOM: ${it['default_bom']} • Yields $bomQty $stockUom',
+                l10n.manufacturingBomDescription(
+                  (it['default_bom'] ?? '').toString(),
+                  bomQty.toStringAsFixed(2),
+                  stockUom?.toString() ?? '',
+                ),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               trailing: ElevatedButton(
@@ -144,7 +152,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                     lines.add(_MfgLine.from(details));
                   });
                 },
-                child: const Text('Add'),
+                child: Text(l10n.commonAdd),
               ),
             );
           },
@@ -154,6 +162,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
   }
 
   Widget _buildLineCard(_MfgLine line, int index) {
+    final l10n = context.l10n;
     final dt = line.scheduledAt;
     final dateLabel = '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
     final timeLabel = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
@@ -175,7 +184,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                 TextButton.icon(
                   onPressed: line.itemQty > 0 ? () => _submitSingle(line) : null,
                   icon: const Icon(Icons.playlist_add_check),
-                  label: const Text('Submit'),
+                  label: Text(l10n.commonSubmit),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
@@ -198,7 +207,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('BOM x'),
+                    Text(l10n.manufacturingBomLabel),
                     const SizedBox(width: 6),
                     _StepperButton(
                       icon: Icons.remove,
@@ -228,7 +237,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Qty (${line.stockUom})'),
+                    Text(l10n.commonQtyWithUom(line.stockUom)),
                     const SizedBox(width: 6),
                     _StepperButton(
                       icon: Icons.remove,
@@ -295,7 +304,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
             // Components collapsible
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
-              title: const Text('Required Items'),
+              title: Text(l10n.manufacturingRequiredItems),
               children: [
                 _buildComponents(line),
               ],
@@ -334,6 +343,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
     final service = ref.read(manufacturingServiceProvider);
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context, rootNavigator: true);
+    final l10n = context.l10n;
 
     // Build payload lines (skip zero/negative quantities)
     final payload = [
@@ -347,12 +357,12 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
           }
     ];
     if (payload.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nothing to submit.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.manufacturingNothingToSubmit)));
       return;
     }
 
     // Show progress dialog (do not await)
-    _showProgress('Submitting work orders...');
+    _showProgress(l10n.manufacturingSubmittingWorkOrders);
 
     Map<String, dynamic> result;
     try {
@@ -361,18 +371,18 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
     } catch (e) {
       if (navigator.canPop()) navigator.pop();
       if (!context.mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text('Submit failed: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.manufacturingSubmitFailed('$e'))));
       return;
     }
 
     if (navigator.canPop()) navigator.pop();
 
     // Summarize results if available
-    String message = 'Submitted successfully';
+    String message = l10n.manufacturingSubmitAllSuccess;
     if (result.containsKey('results') && result['results'] is List) {
       final list = (result['results'] as List);
       final okCount = list.where((e) => e is Map && (e['ok'] == true || e['status'] == 'success')).length;
-      message = 'Processed ${list.length} line(s). Success: $okCount';
+      message = l10n.manufacturingSubmitAllResult(list.length, okCount);
 
       // Remove successfully submitted lines from UI (match by item_code+bom_name+qty timestamp)
       final toRemove = <int>{};
@@ -411,16 +421,17 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
 
   Future<void> _submitSingle(_MfgLine l) async {
     if (l.itemQty <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quantity must be greater than zero')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.manufacturingQuantityMustBePositive)));
       return;
     }
 
     final service = ref.read(manufacturingServiceProvider);
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context, rootNavigator: true);
+    final l10n = context.l10n;
 
     // Show progress dialog (do not await)
-    _showProgress('Submitting work order...');
+    _showProgress(l10n.manufacturingSubmittingSingleWorkOrder);
 
     Map<String, dynamic> result;
     try {
@@ -433,15 +444,17 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
     } catch (e) {
       if (navigator.canPop()) navigator.pop();
       if (!context.mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text('Submit failed: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.manufacturingSubmitFailed('$e'))));
       return;
     }
 
     if (navigator.canPop()) navigator.pop();
 
-    String message = 'Submitted';
-    if (result.containsKey('status')) message = 'Status: ${result['status']}';
-    if (result.containsKey('work_order')) message += ' • WO: ${result['work_order']}';
+    String message = l10n.manufacturingSubmitResult;
+    if (result.containsKey('status')) message = l10n.manufacturingSubmitStatus('${result['status']}');
+    if (result.containsKey('work_order')) {
+      message += l10n.manufacturingSubmitWorkOrder('${result['work_order']}');
+    }
 
     if (!context.mounted) return;
     messenger.showSnackBar(SnackBar(content: Text(message)));
@@ -462,7 +475,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
       rows = await service.listRecentWorkOrders(limit: 100);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.manufacturingLoadFailed('$e'))));
       return;
     }
     if (!mounted) return;
@@ -470,12 +483,12 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
       context: context,
       builder: (_) {
         return AlertDialog(
-          title: const Text('Recent Work Orders'),
+      title: Text(context.l10n.manufacturingRecentWorkOrdersTitle),
           content: SizedBox(
             width: 600,
             height: 400,
             child: rows.isEmpty
-                ? const Center(child: Text('No Work Orders found'))
+        ? Center(child: Text(context.l10n.manufacturingNoWorkOrders))
                 : ListView.separated(
                     itemCount: rows.length,
                     separatorBuilder: (_, i2) => const Divider(height: 1),
@@ -489,15 +502,15 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                       final created = (r['creation'] ?? '').toString();
                       return ListTile(
                         dense: true,
-                        title: Text('$name • $status'),
-                        subtitle: Text('$item • $qty • $bom'),
+                        title: Text(context.l10n.manufacturingRecentWorkOrderTitle('$name', '$status')),
+                        subtitle: Text(context.l10n.manufacturingRecentWorkOrderSubtitle('$item', qty.toString(), '$bom')),
                         trailing: Text(created),
                       );
                     },
                   ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context, rootNavigator: true).pop(), child: const Text('Close')),
+            TextButton(onPressed: () => Navigator.of(context, rootNavigator: true).pop(), child: Text(context.l10n.commonClose)),
           ],
         );
       },
@@ -505,6 +518,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
   }
 
   Widget _buildComponents(_MfgLine line) {
+    final l10n = context.l10n;
     final comps = line.componentsForCurrentQty();
     return Column(
       children: [
@@ -512,9 +526,9 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
           ListTile(
             dense: true,
             visualDensity: VisualDensity.compact,
-            title: Text('${c.itemName} (${c.itemCode})'),
+            title: Text(l10n.commonNameWithCode(c.itemName, c.itemCode)),
             subtitle: c.availableQty != null
-                ? Text('Available: ${c.availableQty!.toStringAsFixed(3)} ${c.uom}')
+                ? Text(l10n.manufacturingComponentAvailable(c.availableQty!.toStringAsFixed(3), c.uom))
                 : null,
             trailing: Text('${c.totalQty.toStringAsFixed(3)} ${c.uom}'),
           ),

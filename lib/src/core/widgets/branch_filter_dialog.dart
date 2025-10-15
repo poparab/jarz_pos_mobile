@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../localization/localization_extensions.dart';
+
 /// Shared dialog for filtering by POS branches (profiles).
 /// - profiles: List of maps each containing at least 'name' and optionally 'title'
 /// - initiallySelected: Set of profile names; empty set means "All"
@@ -13,7 +15,7 @@ class BranchFilterDialog extends StatefulWidget {
     super.key,
     required this.profiles,
     required this.initiallySelected,
-    this.title = 'Filter Branches',
+  this.title = '',
   });
 
   @override
@@ -36,9 +38,11 @@ class _BranchFilterDialogState extends State<BranchFilterDialog> {
     final screenSize = MediaQuery.of(context).size;
     final double dialogHeight = (screenSize.height * 0.6).clamp(260.0, 420.0);
     final double dialogWidth = (screenSize.width * 0.9).clamp(260.0, 420.0);
+    final l10n = context.l10n;
+    final dialogTitle = widget.title.isEmpty ? l10n.branchFilterTitle : widget.title;
     return AlertDialog(
       scrollable: true,
-      title: Text(widget.title),
+      title: Text(dialogTitle),
       content: SizedBox(
         width: dialogWidth,
         height: dialogHeight,
@@ -48,7 +52,7 @@ class _BranchFilterDialogState extends State<BranchFilterDialog> {
             Align(
               alignment: Alignment.centerLeft,
               child: FilterChip(
-                label: const Text('All Branches'),
+                label: Text(l10n.branchFilterAllBranches),
                 selected: _all,
                 onSelected: (sel) {
                   setState(() {
@@ -92,10 +96,10 @@ class _BranchFilterDialogState extends State<BranchFilterDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.commonCancel)),
         FilledButton(
           onPressed: () => Navigator.pop(context, (_all || _selected.isEmpty) ? <String>{} : _selected),
-          child: const Text('Apply'),
+          child: Text(l10n.branchFilterApply),
         ),
       ],
     );

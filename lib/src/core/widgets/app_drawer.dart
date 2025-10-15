@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../features/auth/state/login_notifier.dart';
-import '../../features/pos/presentation/widgets/courier_balances_dialog.dart';
 import '../../features/manager/state/manager_providers.dart';
+import '../../features/pos/presentation/widgets/courier_balances_dialog.dart';
+import '../localization/locale_notifier.dart';
+import '../localization/localization_extensions.dart';
 import '../network/user_service.dart';
 
 class AppDrawer extends ConsumerWidget {
@@ -11,6 +14,7 @@ class AppDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final isManager = ref.watch(isJarzManagerProvider);
     final managerAccess = isManager
         ? ref.watch(managerAccessProvider)
@@ -19,6 +23,47 @@ class AppDrawer extends ConsumerWidget {
       data: (v) => v,
       orElse: () => false,
     );
+    final locale = ref.watch(localeNotifierProvider);
+    final englishLocale = const Locale('en');
+    final arabicLocale = const Locale('ar');
+    final currentLocale = locale?.languageCode ?? englishLocale.languageCode;
+    final isArabic = currentLocale == arabicLocale.languageCode;
+    final selectedLanguageLabel = l10n.menuSelectedLanguage(
+      describeLocale(
+        context,
+        isArabic ? arabicLocale : englishLocale,
+      ),
+    );
+
+    Future<void> changeLanguage(Locale targetLocale) async {
+      final notifier = ref.read(localeNotifierProvider.notifier);
+      final languageName = describeLocale(context, targetLocale);
+      final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (dialogCtx) => AlertDialog(
+              title: Text(l10n.menuLanguage),
+              content: Text(l10n.menuConfirmLanguage(languageName)),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogCtx).pop(false),
+                  child: Text(l10n.commonCancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogCtx).pop(true),
+                  child: Text(l10n.commonConfirm),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+      if (!confirmed) return;
+
+      await notifier.setLocale(targetLocale);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.languageChanged(languageName))),
+      );
+    }
 
     return Drawer(
       child: ListView(
@@ -30,25 +75,13 @@ class AppDrawer extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(
-                  'Jarz POS',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Mobile Point of Sale',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
-                ),
+                _DrawerHeaderTitle(),
               ],
             ),
           ),
           ListTile(
             leading: const Icon(Icons.point_of_sale),
-            title: const Text('Point of Sale'),
+            title: Text(l10n.menuPointOfSale),
             onTap: () {
               Navigator.pop(context);
               context.go('/pos');
@@ -56,7 +89,7 @@ class AppDrawer extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.view_kanban),
-            title: const Text('Sales Kanban'),
+            title: Text(l10n.menuSalesKanban),
             onTap: () {
               Navigator.pop(context);
               context.go('/kanban');
@@ -64,7 +97,7 @@ class AppDrawer extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.receipt_long),
-            title: const Text('Expenses'),
+            title: Text(l10n.menuExpenses),
             onTap: () {
               Navigator.pop(context);
               context.go('/expenses');
@@ -72,7 +105,7 @@ class AppDrawer extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.local_shipping),
-            title: const Text('Courier Balances'),
+            title: Text(l10n.menuCourierBalances),
             onTap: () {
               Navigator.pop(context);
               showCourierBalancesDialog(context);
@@ -81,7 +114,7 @@ class AppDrawer extends ConsumerWidget {
           if (hasManagerAccess) ...[
             ListTile(
               leading: const Icon(Icons.dashboard),
-              title: const Text('Manager Dashboard'),
+              title: Text(l10n.menuManagerDashboard),
               onTap: () {
                 Navigator.pop(context);
                 context.go('/manager');
@@ -89,7 +122,7 @@ class AppDrawer extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.receipt_long),
-              title: const Text('Purchase Invoice'),
+              title: Text(l10n.menuPurchaseInvoice),
               onTap: () {
                 Navigator.pop(context);
                 context.go('/purchase');
@@ -97,7 +130,7 @@ class AppDrawer extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.factory),
-              title: const Text('Manufacturing'),
+              title: Text(l10n.menuManufacturing),
               onTap: () {
                 Navigator.pop(context);
                 context.go('/manufacturing');
@@ -105,7 +138,7 @@ class AppDrawer extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.swap_horiz),
-              title: const Text('Stock Transfer'),
+              title: Text(l10n.menuStockTransfer),
               onTap: () {
                 Navigator.pop(context);
                 context.go('/stock-transfer');
@@ -113,7 +146,7 @@ class AppDrawer extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.account_balance_wallet),
-              title: const Text('Cash Transfer'),
+              title: Text(l10n.menuCashTransfer),
               onTap: () {
                 Navigator.pop(context);
                 context.go('/cash-transfer');
@@ -121,35 +154,29 @@ class AppDrawer extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.inventory),
-              title: const Text('Inventory Count'),
+              title: Text(l10n.menuInventoryCount),
               onTap: () {
                 Navigator.pop(context);
                 context.go('/inventory-count');
               },
             ),
           ],
-          if (isManager)
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/home');
-              },
-            ),
-          if (isManager || hasManagerAccess) const Divider(),
-          if (isManager)
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Navigate to settings
-              },
-            ),
+          const Divider(),
+          SwitchListTile.adaptive(
+            secondary: const Icon(Icons.language),
+            title: Text(l10n.menuLanguage),
+            subtitle: Text(selectedLanguageLabel),
+            value: isArabic,
+            onChanged: (value) {
+              final targetLocale = value ? arabicLocale : englishLocale;
+              if (targetLocale.languageCode != currentLocale) {
+                changeLanguage(targetLocale);
+              }
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.logout),
-            title: const Text('Logout'),
+            title: Text(l10n.menuLogout),
             onTap: () async {
               Navigator.pop(context);
               await ref.read(loginNotifierProvider.notifier).logout();
@@ -158,6 +185,34 @@ class AppDrawer extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DrawerHeaderTitle extends StatelessWidget {
+  const _DrawerHeaderTitle();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Text(
+          l10n.drawerHeaderTitle,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.drawerHeaderSubtitle,
+          style: const TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+      ],
     );
   }
 }

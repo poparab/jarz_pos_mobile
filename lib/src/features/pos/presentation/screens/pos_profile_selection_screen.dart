@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../state/pos_notifier.dart';
+import '../../../../core/localization/localization_extensions.dart';
 
 class PosProfileSelectionScreen extends ConsumerWidget {
   const PosProfileSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final state = ref.watch(posNotifierProvider);
     if (!state.isLoading && state.profiles.isEmpty) {
       // Attempt reload after hot reload scenario
@@ -19,7 +21,7 @@ class PosProfileSelectionScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select POS Profile'),
+        title: Text(l10n.posProfileSelectionTitle),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ),
@@ -32,6 +34,7 @@ class PosProfileSelectionScreen extends ConsumerWidget {
   }
 
   Widget _buildError(BuildContext context, String error, WidgetRef ref) {
+    final l10n = context.l10n;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -43,7 +46,7 @@ class PosProfileSelectionScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Error loading POS profiles',
+            l10n.posProfileSelectionErrorTitle,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
@@ -56,7 +59,7 @@ class PosProfileSelectionScreen extends ConsumerWidget {
           ElevatedButton(
             onPressed: () =>
                 ref.read(posNotifierProvider.notifier).loadProfiles(),
-            child: const Text('Retry'),
+            child: Text(l10n.commonRetry),
           ),
         ],
       ),
@@ -68,6 +71,7 @@ class PosProfileSelectionScreen extends ConsumerWidget {
     List<Map<String, dynamic>> profiles,
     WidgetRef ref,
   ) {
+    final l10n = context.l10n;
     if (profiles.isEmpty) {
       return Center(
         child: Column(
@@ -80,12 +84,12 @@ class PosProfileSelectionScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No POS Profiles Available',
+              l10n.posProfileSelectionNoProfilesTitle,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Contact your administrator to assign you to a POS profile',
+              l10n.posProfileSelectionNoProfilesBody,
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
@@ -132,6 +136,9 @@ class PosProfileSelectionScreen extends ConsumerWidget {
     Map<String, dynamic> profile,
     WidgetRef ref,
   ) {
+    final l10n = context.l10n;
+    final displayTitle = (profile['title'] ?? profile['name'])?.toString();
+    final warehouse = profile['warehouse']?.toString();
     return Card(
       elevation: 2,
       child: InkWell(
@@ -155,7 +162,7 @@ class PosProfileSelectionScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                profile['title'] ?? profile['name'] ?? 'Unknown Profile',
+                displayTitle ?? l10n.posProfileSelectionUnknownProfile,
                 style: Theme.of(
                   context,
                 ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
@@ -164,9 +171,9 @@ class PosProfileSelectionScreen extends ConsumerWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
-              if (profile['warehouse'] != null)
+              if (warehouse != null)
                 Text(
-                  'Warehouse: ${profile['warehouse']}',
+                  l10n.posProfileSelectionWarehouseLabel(warehouse),
                   style: Theme.of(context).textTheme.bodySmall,
                   textAlign: TextAlign.center,
                 ),

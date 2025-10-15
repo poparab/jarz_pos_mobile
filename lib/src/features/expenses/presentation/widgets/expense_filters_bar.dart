@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../models/expense_models.dart';
 
 class ExpenseFiltersBar extends StatelessWidget {
@@ -7,6 +8,7 @@ class ExpenseFiltersBar extends StatelessWidget {
   final Set<String> activeFilters;
   final ValueChanged<String> onToggle;
   final VoidCallback? onClear;
+  final String? clearLabel;
 
   const ExpenseFiltersBar({
     super.key,
@@ -14,10 +16,12 @@ class ExpenseFiltersBar extends StatelessWidget {
     required this.activeFilters,
     required this.onToggle,
     this.onClear,
+    this.clearLabel,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     if (paymentSources.isEmpty) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -28,11 +32,11 @@ class ExpenseFiltersBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('No payment sources available'),
+            Text(l10n.expensesFiltersEmpty),
             if (onClear != null)
               TextButton(
                 onPressed: onClear,
-                child: const Text('Clear'),
+                child: Text(clearLabel ?? l10n.expensesFiltersClear),
               ),
           ],
         ),
@@ -46,13 +50,13 @@ class ExpenseFiltersBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Filter by payment method',
+              l10n.expensesFiltersTitle,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             if (onClear != null)
               TextButton(
                 onPressed: onClear,
-                child: const Text('Clear'),
+                child: Text(clearLabel ?? l10n.expensesFiltersClear),
               ),
           ],
         ),

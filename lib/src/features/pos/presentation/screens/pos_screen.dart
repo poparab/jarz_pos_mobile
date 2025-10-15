@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../../../core/connectivity/connectivity_service.dart';
+import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/websocket/websocket_service.dart';
 import '../../../../core/sync/offline_sync_service.dart';
 import '../../state/courier_balances_provider.dart';
-import 'package:go_router/go_router.dart';
 
 // Merged system status: connectivity, realtime, sync, couriers, partner chip
 // Removed unused system status imports (connectivity, sync, websocket) to satisfy analyzer.
@@ -137,6 +139,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   }
 
   Widget _buildError(BuildContext context, String error) {
+    final l10n = context.l10n;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -147,7 +150,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
             color: Theme.of(context).colorScheme.error,
           ),
           const SizedBox(height: 16),
-          Text('Error', style: Theme.of(context).textTheme.headlineSmall),
+          Text(l10n.commonError, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
           Text(
             error,
@@ -158,7 +161,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
           ElevatedButton(
             onPressed: () =>
                 ref.read(posNotifierProvider.notifier).loadProfiles(),
-            child: const Text('Retry'),
+            child: Text(l10n.commonRetry),
           ),
         ],
       ),
@@ -166,6 +169,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   }
 
   void _showCartBottomSheet(BuildContext context) {
+    final l10n = context.l10n;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -187,7 +191,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
               child: Row(
                 children: [
                   Text(
-                    'Shopping Cart',
+                    l10n.posCartTitle,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimary,
                     ),
@@ -221,11 +225,12 @@ class _PosScreenState extends ConsumerState<PosScreen> {
 
 extension on _PosScreenState {
   Widget _buildInlineProfileSelection(BuildContext context, List<Map<String, dynamic>> profiles) {
+    final l10n = context.l10n;
     String? selectedProfile = profiles.isNotEmpty ? profiles.first['name']?.toString() : null;
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select POS Profile'),
+        title: Text(l10n.posProfileSelectionTitle),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
         automaticallyImplyLeading: false,
@@ -256,8 +261,9 @@ extension on _PosScreenState {
                 itemBuilder: (context, index) {
                   final profile = profiles[index];
                   final name = (profile['name'] ?? '').toString();
-                  final title = (profile['title'] ?? profile['name'] ?? '').toString();
+                  final displayTitle = (profile['title'] ?? profile['name'])?.toString();
                   final isSelected = selectedProfile == name;
+                  final warehouse = profile['warehouse']?.toString();
 
                   return Card(
                     elevation: isSelected ? 6 : 1,
@@ -283,7 +289,7 @@ extension on _PosScreenState {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              title,
+                              displayTitle ?? l10n.posProfileSelectionUnknownProfile,
                               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: isSelected
@@ -294,10 +300,10 @@ extension on _PosScreenState {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            if (profile['warehouse'] != null) ...[
+                            if (warehouse != null) ...[
                               const SizedBox(height: 4),
                               Text(
-                                'Warehouse: ${profile['warehouse']}',
+                                l10n.posProfileSelectionWarehouseLabel(warehouse),
                                 style: Theme.of(context).textTheme.bodySmall,
                                 textAlign: TextAlign.center,
                               ),
@@ -319,7 +325,7 @@ extension on _PosScreenState {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
-                  'Choose a POS profile:',
+                  l10n.posProfileSelectionPrompt,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                   textAlign: TextAlign.center,
                 ),
@@ -349,6 +355,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext ctx, WidgetRef r) {
     final theme = Theme.of(ctx);
+    final l10n = ctx.l10n;
     final connectivityAsync = r.watch(connectivityStatusProvider);
     final webSocketService = r.watch(webSocketServiceProvider);
     final offlineSyncService = r.watch(offlineSyncServiceProvider);
@@ -371,7 +378,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                 IconButton(
                   icon: Icon(Icons.menu, color: theme.colorScheme.onPrimary),
                   onPressed: onOpenDrawer,
-                  tooltip: 'Menu',
+                  tooltip: MaterialLocalizations.of(ctx).openAppDrawerTooltip,
                 ),
                 const SizedBox(width: 4),
                 // Branch filter removed from POS (lives in Kanban header)
@@ -384,7 +391,10 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                     backgroundColor: theme.colorScheme.secondaryContainer,
                     avatar: const Icon(Icons.handshake, size: 16),
                     label: Text(
-                      partner['title'] ?? partner['partner_name'] ?? partner['name'] ?? 'Partner',
+                      partner['title'] ??
+                          partner['partner_name'] ??
+                          partner['name'] ??
+                          l10n.systemStatusPartnerChip,
                       overflow: TextOverflow.ellipsis,
                     ),
                     onDeleted: () => r.read(posNotifierProvider.notifier).setSalesPartner(null),
@@ -403,7 +413,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                       }
                     },
                     icon: const Icon(Icons.handshake),
-                    label: const Text('Partner'),
+                    label: Text(l10n.systemStatusPartnerChip),
                   ),
                 const SizedBox(width: 12),
                 _vDivider(theme),
@@ -416,7 +426,9 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
 
                   if (profiles.isEmpty) {
                     return Text(
-                      selected?['title'] ?? selected?['name'] ?? 'POS',
+                      selected?['title'] ??
+                          selected?['name'] ??
+                          l10n.posProfileSelectionShortFallback,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: onPrimary,
                         fontWeight: FontWeight.w600,
@@ -425,10 +437,16 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                   }
 
                   final label = selected != null
-                      ? (selected['title'] ?? selected['name'] ?? 'POS').toString()
+                      ? (selected['title'] ??
+                              selected['name'] ??
+                              l10n.posProfileSelectionShortFallback)
+                          .toString()
                       : (profiles.length == 1
-                          ? (profiles.first['title'] ?? profiles.first['name'] ?? 'POS').toString()
-                          : 'Select POS');
+                          ? (profiles.first['title'] ??
+                                  profiles.first['name'] ??
+                                  l10n.posProfileSelectionShortFallback)
+                              .toString()
+                          : l10n.posProfileSelectionCycleHint);
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
@@ -483,11 +501,13 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                   data: (isOnline) => _statusChip(
                     ctx,
                     icon: isOnline ? Icons.wifi : Icons.wifi_off,
-                    label: isOnline ? 'Online' : 'Offline',
+                    label: isOnline ? l10n.commonOnline : l10n.commonOffline,
                     color: isOnline ? Colors.green : Colors.red,
                   ),
-                  loading: () => _statusChip(ctx, icon: Icons.wifi, label: 'Checking...', color: Colors.orange),
-                  error: (e, st) => _statusChip(ctx, icon: Icons.wifi_off, label: 'Error', color: Colors.red),
+                  loading: () =>
+                      _statusChip(ctx, icon: Icons.wifi, label: l10n.systemStatusChecking, color: Colors.orange),
+                  error: (e, st) =>
+                      _statusChip(ctx, icon: Icons.wifi_off, label: l10n.commonError, color: Colors.red),
                 ),
                 const SizedBox(width: 8),
                 StreamBuilder<bool>(
@@ -498,7 +518,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                     return _statusChip(
                       ctx,
                       icon: connected ? Icons.sync : Icons.sync_disabled,
-                      label: connected ? 'Realtime' : 'No RT',
+                      label: connected ? l10n.systemStatusRealtime : l10n.systemStatusNoRealtime,
                       color: connected ? Colors.blue : Colors.grey,
                     );
                   },
@@ -511,7 +531,9 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                     return _statusChip(
                       ctx,
                       icon: pending == 0 ? Icons.check_circle : Icons.sync_problem,
-                      label: pending == 0 ? 'Synced' : '$pending pending',
+                      label: pending == 0
+                          ? l10n.systemStatusSynced
+                          : l10n.systemStatusPendingCount(pending),
                       color: pending == 0 ? Colors.green : Colors.orange,
                     );
                   },
@@ -522,7 +544,9 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                   child: _statusChip(
                     ctx,
                     icon: courierState.hasUnsettled ? Icons.delivery_dining : Icons.local_shipping,
-                    label: courierState.hasUnsettled ? '${courierState.unsettledCount} couriers' : 'Couriers',
+                    label: courierState.hasUnsettled
+                        ? l10n.systemStatusCourierCount(courierState.unsettledCount)
+                        : l10n.systemStatusCouriers,
                     color: courierState.hasUnsettled ? Colors.orange : Colors.grey,
                   ),
                 ),
@@ -604,15 +628,15 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                           () {
                             switch (printer.unifiedStatus) {
                               case PrinterUnifiedStatus.connectedBle:
-                                return 'Printer: BLE';
+                                return l10n.printerStatusBle;
                               case PrinterUnifiedStatus.connectedClassic:
-                                return 'Printer: Classic';
+                                return l10n.printerStatusClassic;
                               case PrinterUnifiedStatus.connecting:
-                                return 'Printer: Connecting…';
+                                return l10n.printerStatusConnecting;
                               case PrinterUnifiedStatus.error:
-                                return printer.lastErrorMessage ?? 'Printer Error';
+                                return printer.lastErrorMessage ?? l10n.printerStatusError;
                               case PrinterUnifiedStatus.disconnected:
-                                return 'Printer: Not Connected';
+                                return l10n.printerStatusDisconnected;
                             }
                           }(),
                           style: TextStyle(
@@ -641,7 +665,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                 // Section: Actions (Kanban, Cart, Logout)
                 IconButton(
                   icon: Icon(Icons.view_kanban, color: theme.colorScheme.onPrimary),
-                  tooltip: 'Kanban',
+                  tooltip: l10n.menuSalesKanban,
                   onPressed: () => context.push('/kanban'),
                 ),
                 Consumer(builder: (c, ref2, _) {
@@ -651,6 +675,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                       IconButton(
                         icon: Icon(Icons.shopping_cart, color: theme.colorScheme.onPrimary),
                         onPressed: onShowCart,
+                        tooltip: l10n.posCartTitle,
                       ),
                       if (cartCount > 0)
                         Positioned(
@@ -678,14 +703,17 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  tooltip: 'Force sync',
+                  tooltip: l10n.systemStatusForceSyncTooltip,
                   icon: Icon(Icons.refresh, size: 20, color: theme.colorScheme.onPrimary),
                   onPressed: () async {
                     final messenger = ScaffoldMessenger.of(ctx);
                     await offlineSyncService.forceSyncNow();
                     await r.read(courierBalancesProvider.notifier).load();
                     messenger.showSnackBar(
-                      const SnackBar(content: Text('Sync completed'), duration: Duration(seconds: 2)),
+                      SnackBar(
+                        content: Text(l10n.systemStatusSyncComplete),
+                        duration: const Duration(seconds: 2),
+                      ),
                     );
                   },
                 ),

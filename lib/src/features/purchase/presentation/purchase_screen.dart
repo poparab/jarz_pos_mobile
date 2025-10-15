@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../purchase/data/purchase_service.dart';
+
+import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../pos/state/pos_notifier.dart';
+import '../../purchase/data/purchase_service.dart';
 
 class PurchaseScreen extends ConsumerStatefulWidget {
   const PurchaseScreen({super.key});
@@ -45,9 +47,10 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Purchase Invoice')),
+      appBar: AppBar(title: Text(l10n.purchaseTitle)),
       drawer: const AppDrawer(),
       body: Row(
         children: [
@@ -59,7 +62,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Supplier', style: theme.textTheme.titleMedium),
+                  Text(l10n.purchaseSupplierSectionTitle, style: theme.textTheme.titleMedium),
                   const SizedBox(height: 8),
                   Row(children: [
                     Expanded(
@@ -69,7 +72,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                           child: TextField(
                             decoration: InputDecoration(
                               prefixIcon: const Icon(Icons.search),
-                              hintText: supplier ?? 'Tap to pick supplier',
+                              hintText: supplier ?? l10n.purchaseTapToPickSupplier,
                             ),
                             onChanged: (_) {},
                           ),
@@ -79,15 +82,15 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                     const SizedBox(width: 8),
                     ElevatedButton(
                       onPressed: () => _openSupplierPicker(initialRecent: false),
-                      child: const Text('Choose'),
+                      child: Text(l10n.commonChoose),
                     ),
                   ]),
                   const SizedBox(height: 16),
-                  Text('Items', style: theme.textTheme.titleMedium),
+                  Text(l10n.purchaseItemsSectionTitle, style: theme.textTheme.titleMedium),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _itemSearchController,
-                    decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search items'),
+                    decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: l10n.commonSearchItems),
                     onChanged: (v) => setState(() => itemQuery = v),
                   ),
                   const SizedBox(height: 8),
@@ -130,7 +133,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                   // Shipping input and summary
                   Row(
                     children: [
-                      const Text('Shipping (Freight & Forwarding):'),
+                      Text(l10n.purchaseShippingLabel),
                       const SizedBox(width: 8),
                       SizedBox(
                         width: 140,
@@ -147,7 +150,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                       const Spacer(),
                       Builder(builder: (ctx) {
                         final total = _cartSubtotal() + (shippingAmount);
-                        return Text('Total: ${total.toStringAsFixed(2)}');
+                        return Text(l10n.commonTotalValue(total.toStringAsFixed(2)));
                       })
                     ],
                   ),
@@ -158,7 +161,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                         child: ElevatedButton.icon(
                           onPressed: cart.isEmpty || supplier == null ? null : _submit,
                           icon: const Icon(Icons.check),
-                          label: const Text('Create Purchase Invoice'),
+                          label: Text(l10n.purchaseSubmit),
                         ),
                       ),
                     ],
@@ -185,9 +188,10 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     final selected = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (ctx) {
+        final dialogL10n = ctx.l10n;
         return StatefulBuilder(builder: (ctx, setStateDialog) {
           return AlertDialog(
-            title: const Text('Select Supplier'),
+            title: Text(dialogL10n.purchaseSelectSupplier),
             content: SizedBox(
               width: 480,
               height: 520,
@@ -197,7 +201,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                     Expanded(
                       child: TextField(
                         controller: queryController,
-                        decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search suppliers'),
+                        decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: dialogL10n.commonSearchSuppliers),
                         onChanged: (v) async {
                           setStateDialog(() {});
                           try {
@@ -216,20 +220,26 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                         } catch (_) {}
                       },
                       icon: const Icon(Icons.history),
-                      label: const Text('Recent'),
+                      label: Text(dialogL10n.purchaseRecent),
                     ),
                   ]),
                   const SizedBox(height: 8),
                   Expanded(
                     child: results.isEmpty
-                        ? const Center(child: Text('No suppliers'))
+                        ? Center(child: Text(dialogL10n.commonNoSuppliers))
                         : ListView.builder(
                             itemCount: results.length,
                             itemBuilder: (ctx, i) {
                               final s = results[i];
+                              final group = (s['supplier_group'] ?? '') as String;
+                              final buffer = StringBuffer(group);
+                              if (s['disabled'] == 1) {
+                                buffer.write(dialogL10n.purchaseSupplierDisabledSuffix);
+                              }
+                              final subtitle = buffer.toString();
                               return ListTile(
                                 title: Text(s['supplier_name'] ?? s['name'] ?? ''),
-                                subtitle: Text('${(s['supplier_group'] ?? '') as String}${(s['disabled'] == 1) ? ' (Disabled)' : ''}'),
+                                subtitle: subtitle.isEmpty ? null : Text(subtitle),
                                 onTap: () => Navigator.pop(ctx, s),
                               );
                             },
@@ -254,25 +264,27 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: ref.read(purchaseServiceProvider).searchItems(itemQuery),
       builder: (context, snap) {
+        final l10n = context.l10n;
         if (snap.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
         final items = snap.data ?? [];
-        if (items.isEmpty) return const Center(child: Text('No items'));
+        if (items.isEmpty) return Center(child: Text(l10n.commonNoItems));
         return ListView.separated(
           itemCount: items.length,
           separatorBuilder: (_, i) => const Divider(height: 1),
           itemBuilder: (ctx, i) {
+            final itemL10n = ctx.l10n;
             final it = items[i];
             final code = it['item_code'];
             final name = it['item_name'] ?? code;
-            final stockUom = it['stock_uom'];
+            final stockUom = it['stock_uom']?.toString() ?? '';
             return ListTile(
-              title: Text('$name ($code)'),
-              subtitle: Text('UOM: $stockUom'),
+              title: Text(itemL10n.commonNameWithCode(name, code)),
+              subtitle: Text(itemL10n.commonUomValue(stockUom)),
               trailing: ElevatedButton(
                 onPressed: () => _addToCart(it),
-                child: const Text('Add'),
+                child: Text(itemL10n.commonAdd),
               ),
             );
           },
@@ -308,11 +320,13 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   }
 
   Widget _buildCartList() {
-    if (cart.isEmpty) return const Center(child: Text('No items in cart'));
+    final l10n = context.l10n;
+    if (cart.isEmpty) return Center(child: Text(l10n.purchaseNoItemsInCart));
     return ListView.separated(
       itemCount: cart.length,
-  separatorBuilder: (_, i) => const Divider(height: 1),
+      separatorBuilder: (_, i) => const Divider(height: 1),
       itemBuilder: (ctx, i) {
+        final itemL10n = ctx.l10n;
         final line = cart[i];
         final uoms = (line['uoms'] as List?)?.cast<Map<String, dynamic>>() ?? [];
         final uom = (line['uom'] ?? '').toString();
@@ -323,12 +337,12 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
         line['qtyCtrl'] ??= TextEditingController(text: qty.toStringAsFixed(2));
         final TextEditingController qtyCtrl = line['qtyCtrl'] as TextEditingController;
         return ListTile(
-          title: Text('${line['item_name']} (${line['item_code']})'),
+          title: Text(itemL10n.commonNameWithCode(line['item_name'] as String, line['item_code'] as String)),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
-                const Text('UOM:'),
+                Text(itemL10n.commonUomLabel),
                 const SizedBox(width: 6),
                 DropdownButton<String>(
                   value: uom.isEmpty && uoms.isNotEmpty ? uoms.first['uom'] : uom,
@@ -387,7 +401,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                   },
                 ),
                 const SizedBox(width: 12),
-                const Text('Qty:'),
+                Text(itemL10n.commonQtyLabel),
                 const SizedBox(width: 6),
                 // Stepper -
                 SizedBox(
@@ -441,7 +455,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
               ]),
               const SizedBox(height: 6),
               Row(children: [
-                const Text('Rate:'),
+                Text(itemL10n.commonRateLabel),
                 const SizedBox(width: 6),
                 SizedBox(
                   width: 100,
@@ -455,7 +469,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                Text('Amount: ${amount.toStringAsFixed(2)}'),
+                Text(itemL10n.commonAmountValue(amount.toStringAsFixed(2))),
               ]),
             ],
           ),
@@ -476,6 +490,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   Future<void> _submit() async {
     final service = ref.read(purchaseServiceProvider);
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     try {
       final paymentOption = await _choosePaymentOption();
       if (paymentOption == null) return;
@@ -490,16 +505,18 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       final res = await service.createPurchaseInvoice(
         supplier: supplier!,
         postingDate: _fmtDate(postingDate),
-  isPaid: true,
+        isPaid: true,
         items: items,
         paymentOption: paymentOption,
         shippingAmount: shippingAmount > 0 ? shippingAmount : null,
       );
-      messenger.showSnackBar(SnackBar(content: Text('Created: ${res['purchase_invoice']}')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.purchaseCreated((res['purchase_invoice'] ?? '-').toString()))),
+      );
       if (!mounted) return;
       _resetForm();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Failed: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.purchaseSubmitFailed('$e'))));
     }
   }
 
@@ -564,8 +581,9 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setStateDialog) {
+            final dialogL10n = ctx.l10n;
             return AlertDialog(
-              title: const Text('Select Payment Source'),
+              title: Text(dialogL10n.purchaseSelectPayment),
               content: RadioGroup<String>(
                 groupValue: selected,
                 onChanged: (v) => setStateDialog(() => selected = v ?? selected),
@@ -577,28 +595,28 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                       RadioListTile<String>(
                         value: p['name'] as String,
                         title: Text(p['name'] as String),
-                        subtitle: const Text('Use exact-named POS Profile cash account'),
+                        subtitle: Text(dialogL10n.purchasePaymentProfileSubtitle),
                         dense: true,
                       ),
                     const Divider(),
-                    const RadioListTile<String>(
+                    RadioListTile<String>(
                       value: 'instapay',
-                      title: Text('InstaPay (Bank)'),
-                      subtitle: Text('Use bank account mapped to InstaPay'),
+                      title: Text(dialogL10n.purchasePaymentInstapayTitle),
+                      subtitle: Text(dialogL10n.purchasePaymentInstapaySubtitle),
                       dense: true,
                     ),
-                    const RadioListTile<String>(
+                    RadioListTile<String>(
                       value: 'cash',
-                      title: Text('Cash'),
-                      subtitle: Text('Use company default Cash account'),
+                      title: Text(dialogL10n.purchasePaymentCashTitle),
+                      subtitle: Text(dialogL10n.purchasePaymentCashSubtitle),
                       dense: true,
                     ),
                   ],
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-                ElevatedButton(onPressed: () => Navigator.pop(ctx, selected), child: const Text('Continue')),
+                TextButton(onPressed: () => Navigator.pop(ctx), child: Text(dialogL10n.commonCancel)),
+                ElevatedButton(onPressed: () => Navigator.pop(ctx, selected), child: Text(dialogL10n.commonContinue)),
               ],
             );
           },

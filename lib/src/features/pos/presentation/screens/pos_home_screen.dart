@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/widgets/app_drawer.dart';
 
 class PosHomeScreen extends ConsumerWidget {
@@ -7,6 +9,7 @@ class PosHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
@@ -14,15 +17,15 @@ class PosHomeScreen extends ConsumerWidget {
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu),
-            tooltip: 'Menu',
+            tooltip: MaterialLocalizations.of(ctx).openAppDrawerTooltip,
             onPressed: () => Scaffold.maybeOf(ctx)?.openDrawer(),
           ),
         ),
-        title: const Text('Jarz POS'),
+        title: Text(l10n.appTitle),
       ),
       body: Center(
         child: Text(
-          'Jarz POS',
+          l10n.appTitle,
           style: Theme.of(context).textTheme.displayMedium,
         ),
       ),

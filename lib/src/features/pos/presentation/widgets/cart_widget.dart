@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../state/pos_notifier.dart';
 import 'bundle_selection_widget.dart';
 import 'delivery_slot_selection.dart';
@@ -11,8 +12,10 @@ class CartWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final state = ref.watch(posNotifierProvider);
     final cartItems = state.cartItems;
+  final customerTerritory = state.selectedCustomer?['territory']?.toString();
     // Get cart total from state if needed
     // final cartTotal = state.cartTotal;
 
@@ -48,7 +51,7 @@ class CartWidget extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Cart (${cartItems.length})',
+                  l10n.posCartHeader(cartItems.length),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.bold,
@@ -62,7 +65,7 @@ class CartWidget extends ConsumerWidget {
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
                     onPressed: () => _showClearCartDialog(context, ref),
-                    tooltip: 'Clear cart',
+                    tooltip: l10n.posCartClear,
                   ),
               ],
             ),
@@ -119,7 +122,7 @@ class CartWidget extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               state.selectedCustomer!['customer_name'] ??
-                                  'Unknown Customer',
+                                  l10n.posUnknownCustomer,
                               style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(
                                     color: Theme.of(
@@ -156,13 +159,13 @@ class CartWidget extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Pickup (no delivery fee)',
+                                  l10n.posCartPickupTitle,
                                   style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                                 Text(
                                   state.isPickup
-                                      ? 'Customer will collect the order from branch.'
-                                      : 'Deliver to customer at selected time.',
+                                      ? l10n.posCartPickupDescription
+                                      : l10n.posCartDeliveryDescription,
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                       ),
@@ -181,7 +184,13 @@ class CartWidget extends ConsumerWidget {
                                 children: [
                                   Icon(Icons.store_mall_directory, size: 14, color: Theme.of(context).colorScheme.primary),
                                   const SizedBox(width: 4),
-                                  Text('Pickup', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary)),
+                                  Text(
+                                    l10n.posCartPickupChip,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(color: Theme.of(context).colorScheme.primary),
+                                  ),
                                 ],
                               ),
                             ),
@@ -223,7 +232,7 @@ class CartWidget extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Subtotal:',
+                            l10n.posSubtotalLabel,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           Text(
@@ -242,7 +251,7 @@ class CartWidget extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Delivery:',
+                              l10n.posDeliveryLabel,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             Text(
@@ -262,7 +271,7 @@ class CartWidget extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Total:',
+                            l10n.posTotalLabel,
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
@@ -300,9 +309,9 @@ class CartWidget extends ConsumerWidget {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text(
-                              'Checkout',
-                              style: TextStyle(
+                          : Text(
+                              l10n.posCheckoutButton,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -344,7 +353,7 @@ class CartWidget extends ConsumerWidget {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Operational Info',
+                                l10n.posOperationalInfoTitle,
                                 style: Theme.of(context).textTheme.labelMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.bold,
@@ -360,7 +369,7 @@ class CartWidget extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Delivery Expense:',
+                                l10n.posDeliveryExpenseLabel,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color: Theme.of(
@@ -382,7 +391,9 @@ class CartWidget extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Cost to ${state.selectedCustomer!['territory'] ?? 'deliver'}',
+                                customerTerritory != null
+                                    ? l10n.posDeliveryCostTo(customerTerritory)
+                                    : l10n.posDeliveryCostGeneric,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -404,6 +415,7 @@ class CartWidget extends ConsumerWidget {
   }
 
   Widget _buildEmptyCart(BuildContext context) {
+    final l10n = context.l10n;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -414,10 +426,10 @@ class CartWidget extends ConsumerWidget {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(height: 16),
-          Text('Cart is empty', style: Theme.of(context).textTheme.titleMedium),
+          Text(l10n.posCartEmptyTitle, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
-            'Add items to get started',
+            l10n.posCartEmptyBody,
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
@@ -432,17 +444,19 @@ class CartWidget extends ConsumerWidget {
     Map<String, dynamic> cartItem,
     int index,
   ) {
+    final l10n = context.l10n;
     final quantity = (cartItem['quantity'] ?? 1) as int;
     final rate = (cartItem['rate'] ?? 0.0) as double;
     final total = quantity.toDouble() * rate;
     final isBundle = cartItem['type'] == 'bundle';
     final isShipping = cartItem['is_shipping'] == true;
+    final itemName = cartItem['item_name']?.toString();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-    color: isShipping
-      ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
-      : null,
+      color: isShipping
+          ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
+          : null,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -466,7 +480,7 @@ class CartWidget extends ConsumerWidget {
                 if (isBundle || isShipping) const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    cartItem['item_name'] ?? 'Unknown Item',
+                    itemName ?? l10n.posUnknownItem,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: isShipping
@@ -481,7 +495,7 @@ class CartWidget extends ConsumerWidget {
                   IconButton(
                     icon: const Icon(Icons.edit, size: 18),
                     onPressed: () => _editBundle(context, ref, cartItem, index),
-                    tooltip: 'Edit Bundle',
+                    tooltip: l10n.posCartEditBundle,
                   ),
                 if (!isShipping) // Don't allow removing shipping items
                   IconButton(
@@ -559,7 +573,7 @@ class CartWidget extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      'Qty: $quantity',
+                      '${l10n.commonQtyLabel} $quantity',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
@@ -575,7 +589,7 @@ class CartWidget extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Total:', style: Theme.of(context).textTheme.bodyMedium),
+                Text(l10n.posTotalLabel, style: Theme.of(context).textTheme.bodyMedium),
                 Text(
                   '\$${total.toStringAsFixed(2)}',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -594,24 +608,23 @@ class CartWidget extends ConsumerWidget {
   }
 
   void _showClearCartDialog(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear Cart'),
-        content: const Text(
-          'Are you sure you want to remove all items from the cart?',
-        ),
+        title: Text(l10n.posCartClearTitle),
+        content: Text(l10n.posCartClearMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () {
               ref.read(posNotifierProvider.notifier).clearCart();
               Navigator.pop(context);
             },
-            child: const Text('Clear'),
+            child: Text(l10n.posCartClearConfirm),
           ),
         ],
       ),
@@ -620,12 +633,13 @@ class CartWidget extends ConsumerWidget {
 
   Future<void> _handleCheckout(BuildContext context, WidgetRef ref) async {
     final state = ref.read(posNotifierProvider);
+    final l10n = context.l10n;
 
     // Validate delivery slot is selected
     if (!state.isPickup && state.selectedDeliverySlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please select a delivery time'),
+          content: Text(l10n.posDeliverySelectSlot),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -652,15 +666,16 @@ class CartWidget extends ConsumerWidget {
     if (context.mounted) {
       if (updatedState.error == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Order placed successfully!'),
+          SnackBar(
+            content: Text(l10n.posCheckoutSuccess),
             backgroundColor: Colors.green,
           ),
         );
       } else {
+        final failure = updatedState.error ?? l10n.commonError;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to place order: ${updatedState.error}'),
+            content: Text(l10n.posCheckoutFailed(failure)),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -674,6 +689,7 @@ class CartWidget extends ConsumerWidget {
     BuildContext context,
     Map<String, dynamic> bundleDetails,
   ) {
+    final l10n = context.l10n;
     final selectedItems =
         bundleDetails['selected_items']
             as Map<String, List<Map<String, dynamic>>>? ??
@@ -694,7 +710,7 @@ class CartWidget extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Bundle Contents:',
+            l10n.posBundleContentsTitle,
             style: Theme.of(
               context,
             ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -718,27 +734,28 @@ class CartWidget extends ConsumerWidget {
 
   Future<String?> _promptSalesPartnerPayment(BuildContext context) async {
     String selected = 'cash';
+    final l10n = context.l10n;
     return showDialog<String>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          title: const Text('Sales Partner Payment'),
+          title: Text(l10n.posSalesPartnerPaymentTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Choose how the sales partner is paying for this order.'),
+              Text(l10n.posSalesPartnerPaymentDescription),
               const SizedBox(height: 12),
               SegmentedButton<String>(
-                segments: const [
+                segments: [
                   ButtonSegment<String>(
                     value: 'cash',
-                    label: Text('Cash (collected now)'),
-                    icon: Icon(Icons.attach_money),
+                    label: Text(l10n.posSalesPartnerPaymentCash),
+                    icon: const Icon(Icons.attach_money),
                   ),
                   ButtonSegment<String>(
                     value: 'online',
-                    label: Text('Online (already paid)'),
-                    icon: Icon(Icons.online_prediction),
+                    label: Text(l10n.posSalesPartnerPaymentOnline),
+                    icon: const Icon(Icons.online_prediction),
                   ),
                 ],
                 selected: <String>{selected},
@@ -753,11 +770,11 @@ class CartWidget extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
+              child: Text(l10n.commonCancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(ctx).pop(selected),
-              child: const Text('Continue'),
+              child: Text(l10n.commonContinue),
             ),
           ],
         ),
@@ -799,8 +816,8 @@ class CartWidget extends ConsumerWidget {
                   .read(posNotifierProvider.notifier)
                   .updateBundleInCart(index, selectedItems);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Bundle updated successfully!'),
+                SnackBar(
+                  content: Text(context.l10n.posBundleUpdated),
                   backgroundColor: Colors.green,
                 ),
               );

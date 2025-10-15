@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../domain/models/delivery_slot.dart';
 import '../../data/repositories/pos_repository.dart';
 import '../../state/pos_notifier.dart';
@@ -125,7 +126,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Select Delivery Time'),
+        title: Text(context.l10n.posDeliveryDialogTitle),
         content: SizedBox(
           width: double.maxFinite,
           height: 400,
@@ -134,7 +135,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
         ],
       ),
@@ -142,6 +143,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
   }
 
   Widget _buildSlotList() {
+    final l10n = context.l10n;
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -154,7 +156,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
             Icon(Icons.error, size: 48, color: Colors.red[300]),
             const SizedBox(height: 16),
             Text(
-              'Failed to load delivery slots',
+              l10n.posDeliveryLoadFailed,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -170,7 +172,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadDeliverySlots,
-              child: const Text('Retry'),
+              child: Text(l10n.commonRetry),
             ),
           ],
         ),
@@ -185,7 +187,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
             Icon(Icons.schedule, size: 48, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
-              'No delivery slots available',
+              l10n.posDeliveryEmptyTitle,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -194,7 +196,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Please check the POS profile timetable configuration',
+              l10n.posDeliveryEmptyBody,
               style: TextStyle(fontSize: 12, color: Colors.grey[500]),
               textAlign: TextAlign.center,
             ),
@@ -238,6 +240,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
   }
 
   Widget _buildSlotTile(DeliverySlot slot) {
+    final l10n = context.l10n;
     final isSelected = _selectedSlot?.datetime == slot.datetime;
 
     return ListTile(
@@ -258,7 +261,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                'Next',
+                l10n.posDeliveryDefaultChip,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
@@ -279,6 +282,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     if (_isLoading) {
       return Container(
         padding: const EdgeInsets.all(16),
@@ -286,15 +290,15 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
           border: Border.all(color: Colors.grey[300]!),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            SizedBox(
+            const SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
-            SizedBox(width: 12),
-            Text('Loading delivery slots...'),
+            const SizedBox(width: 12),
+            Text(l10n.posDeliveryLoading),
           ],
         ),
       );
@@ -327,7 +331,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Delivery Time',
+                    l10n.posDeliveryFieldLabel,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -338,10 +342,10 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
                   Text(
                     _selectedSlot?.label ??
                         (_error != null
-                            ? 'Error loading slots'
+                            ? l10n.posDeliveryErrorLabel
                             : _slots.isEmpty
-                            ? 'No slots available'
-                            : 'Select delivery time'),
+                            ? l10n.posDeliveryNoSlotsLabel
+                            : l10n.posDeliverySelectPrompt),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -354,7 +358,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        'Please select a delivery time',
+                        l10n.posDeliverySelectSlot,
                         style: TextStyle(fontSize: 12, color: Colors.red[600]),
                       ),
                     ),

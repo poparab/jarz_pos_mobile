@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+
+import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../manager/state/manager_providers.dart';
 import '../data/stock_transfer_service.dart';
@@ -41,12 +43,16 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final allowed = ref.watch(managerAccessProvider).maybeWhen(data: (v) => v, orElse: () => false);
     if (!allowed) {
-      return Scaffold(appBar: AppBar(title: const Text('Stock Transfer')), body: const Center(child: Text('Managers only')));
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.stockTransferTitle)),
+        body: Center(child: Text(l10n.stockTransferManagersOnly)),
+      );
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Stock Transfer')),
+      appBar: AppBar(title: Text(l10n.stockTransferTitle)),
       drawer: const AppDrawer(),
       body: Row(
         children: [
@@ -62,7 +68,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
                 Row(children: [
                   Expanded(
                     child: TextField(
-                      decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search items'),
+                      decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: l10n.commonSearchItems),
                       onChanged: (v) => setState(() => search = v),
                     ),
                   ),
@@ -91,17 +97,17 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
                 Row(children: [
                   const Icon(Icons.inventory_2),
                   const SizedBox(width: 8),
-                  Text('Transfer Lines (${lines.length})', style: Theme.of(context).textTheme.titleMedium),
+                  Text(l10n.stockTransferLinesTitle(lines.length), style: Theme.of(context).textTheme.titleMedium),
                   const Spacer(),
                   if (postingDate != null)
                     Padding(
                       padding: const EdgeInsets.only(right: 8.0),
-                      child: Chip(label: Text('Posting: ${DateFormat('yyyy-MM-dd').format(postingDate!)}')),
+                      child: Chip(label: Text(l10n.stockTransferPostingChip(DateFormat('yyyy-MM-dd').format(postingDate!)))),
                     ),
                   ElevatedButton.icon(
                     onPressed: _canSubmit() ? _submit : null,
                     icon: const Icon(Icons.send),
-                    label: const Text('Submit'),
+                    label: Text(l10n.stockTransferSubmit),
                   )
                 ]),
                 const SizedBox(height: 8),
@@ -121,6 +127,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
   }
 
   Widget _buildBranchSelectors() {
+    final l10n = context.l10n;
     final service = ref.read(stockTransferServiceProvider);
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: service.listPosProfiles(),
@@ -129,7 +136,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
         // compute invalid pair warning
         final sameProfile = sourceProfile != null && targetProfile != null && sourceProfile == targetProfile;
         return Row(children: [
-          Expanded(child: _profileDropdown('Source', profiles, sourceProfile, (v) {
+          Expanded(child: _profileDropdown(l10n.stockTransferProfileLabelSource, profiles, sourceProfile, (v) {
             setState(() {
               sourceProfile = v;
               sourceWarehouse = profiles.firstWhere((p) => p['name'] == v, orElse: () => const {})['warehouse'] as String?;
@@ -141,7 +148,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
             });
           })),
           const SizedBox(width: 8),
-          Expanded(child: _profileDropdown('Target', profiles, targetProfile, (v) {
+          Expanded(child: _profileDropdown(l10n.stockTransferProfileLabelTarget, profiles, targetProfile, (v) {
             setState(() {
               targetProfile = v;
               targetWarehouse = profiles.firstWhere((p) => p['name'] == v, orElse: () => const {})['warehouse'] as String?;
@@ -156,7 +163,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
             const SizedBox(width: 8),
             const Icon(Icons.error_outline, color: Colors.red),
             const SizedBox(width: 4),
-            const Text('Source and Target must differ', style: TextStyle(color: Colors.red)),
+            Text(l10n.stockTransferProfilesMustDiffer, style: const TextStyle(color: Colors.red)),
           ]
         ]);
       },
@@ -164,18 +171,24 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
   }
 
   Widget _profileDropdown(String label, List<Map<String, dynamic>> profiles, String? value, ValueChanged<String?> onChanged) {
+    final l10n = context.l10n;
     return InputDecorator(
       decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           isExpanded: true,
           value: value,
-          hint: const Text('Select POS Profile'),
+          hint: Text(l10n.stockTransferProfilePlaceholder),
           items: [
             for (final p in profiles)
               DropdownMenuItem<String>(
                 value: p['name'] as String,
-                child: Text('${p['name']} • ${p['warehouse'] ?? 'No WH'}'),
+                child: Text(
+                  l10n.stockTransferProfileOption(
+                    p['name'] as String,
+                    (p['warehouse'] as String?) ?? l10n.stockTransferProfileWarehouseFallback,
+                  ),
+                ),
               )
           ],
           onChanged: onChanged,
@@ -185,11 +198,12 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
   }
 
   Widget _buildItemResults() {
+    final l10n = context.l10n;
     if (sourceWarehouse == null || targetWarehouse == null) {
-      return const Center(child: Text('Select source and target branches'));
+      return Center(child: Text(l10n.stockTransferSelectBranches));
     }
     if (sourceProfile != null && targetProfile != null && sourceProfile == targetProfile) {
-      return const Center(child: Text('Source and Target cannot be the same')); 
+      return Center(child: Text(l10n.stockTransferSameProfile)); 
     }
     final service = ref.read(stockTransferServiceProvider);
     return FutureBuilder<List<Map<String, dynamic>>>(
@@ -204,7 +218,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
         final items = snap.data ?? [];
         // Save for bulk actions
         currentItems = items;
-        if (items.isEmpty) return const Center(child: Text('No items'));
+  if (items.isEmpty) return Center(child: Text(l10n.commonNoItems));
         return ListView.separated(
           itemCount: items.length,
           separatorBuilder: (context, index) => const Divider(height: 1),
@@ -217,14 +231,21 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
             final reservedSrc = (it['reserved_source'] as num?)?.toDouble() ?? 0;
             final reservedDst = (it['reserved_target'] as num?)?.toDouble() ?? 0;
             final isPos = (it['pos_item'] == 1);
+            final availability = StringBuffer(
+              l10n.stockTransferAvailability(src.toString(), dst.toString()),
+            );
+            if (reservedSrc > 0) {
+              availability.write(l10n.stockTransferReservedSource(reservedSrc.toString()));
+            }
+            if (reservedDst > 0) {
+              availability.write(l10n.stockTransferReservedTarget(reservedDst.toString()));
+            }
+            if (isPos) {
+              availability.write(l10n.stockTransferPosTag);
+            }
             return ListTile(
-              title: Text('$name ($code)'),
-              subtitle: Text(
-                'Src: $src • Dst: $dst'
-                '${reservedSrc > 0 ? ' • Res Src: $reservedSrc' : ''}'
-                '${reservedDst > 0 ? ' • Res Dst: $reservedDst' : ''}'
-                '${isPos ? ' • POS' : ''}',
-              ),
+              title: Text(l10n.commonNameWithCode(name, code)),
+              subtitle: Text(availability.toString()),
               trailing: ElevatedButton(
                 onPressed: () {
                   setState(() {
@@ -241,7 +262,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
                     });
                   });
                 },
-                child: const Text('Add'),
+                child: Text(l10n.commonAdd),
               ),
             );
           },
@@ -251,9 +272,10 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
   }
 
   Widget _buildDatePickerRow() {
+    final l10n = context.l10n;
     final label = postingDate == null
-        ? 'Posting Date: Today'
-        : 'Posting Date: ${DateFormat('yyyy-MM-dd').format(postingDate!)}';
+        ? l10n.stockTransferPostingToday
+        : l10n.stockTransferPostingDate(DateFormat('yyyy-MM-dd').format(postingDate!));
     return Row(
       children: [
         OutlinedButton.icon(
@@ -276,7 +298,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
         if (postingDate != null) ...[
           const SizedBox(width: 8),
           IconButton(
-            tooltip: 'Use Today',
+            tooltip: l10n.stockTransferUseToday,
             onPressed: () => setState(() => postingDate = null),
             icon: const Icon(Icons.close),
           ),
@@ -286,7 +308,8 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
   }
 
   Widget _buildLinesList() {
-    if (lines.isEmpty) return const Center(child: Text('No lines'));
+    final l10n = context.l10n;
+    if (lines.isEmpty) return Center(child: Text(l10n.stockTransferNoLines));
     return ListView.separated(
       itemCount: lines.length,
       separatorBuilder: (context, index) => const Divider(height: 1),
@@ -301,16 +324,23 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
         final TextEditingController qtyCtrl = l['qtyCtrl'] as TextEditingController;
         final srcAfter = srcB - qty;
         final dstAfter = dstB + qty;
+        final beforeBuffer = StringBuffer(
+          l10n.stockTransferBeforeBase(srcB.toStringAsFixed(2), dstB.toStringAsFixed(2)),
+        );
+        if (reservedSrc > 0) {
+          beforeBuffer.write(l10n.stockTransferReservedSource(reservedSrc.toStringAsFixed(2)));
+        }
+        if (reservedDst > 0) {
+          beforeBuffer.write(l10n.stockTransferReservedTarget(reservedDst.toStringAsFixed(2)));
+        }
         return ListTile(
-          title: Text('${l['item_name']} (${l['item_code']})'),
+          title: Text(l10n.commonNameWithCode(l['item_name'] as String, l['item_code'] as String)),
           subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Before — Src: $srcB • Dst: $dstB'
-        '${reservedSrc > 0 ? ' • Res Src: $reservedSrc' : ''}'
-        '${reservedDst > 0 ? ' • Res Dst: $reservedDst' : ''}'),
-            Text('After  — Src: ${srcAfter.toStringAsFixed(2)} • Dst: ${dstAfter.toStringAsFixed(2)}'),
+            Text(beforeBuffer.toString()),
+            Text(l10n.stockTransferAfterBase(srcAfter.toStringAsFixed(2), dstAfter.toStringAsFixed(2))),
             const SizedBox(height: 6),
             Row(children: [
-              const Text('Qty:'),
+              Text(l10n.commonQtyLabel),
               const SizedBox(width: 6),
               SizedBox(
                 width: 28, height: 28,
@@ -322,7 +352,10 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
                   onPressed: () {
                     double newQty = qty - 1;
                     if (newQty < 0) newQty = 0;
-                    setState(() { l['qty'] = newQty; qtyCtrl.text = newQty.toStringAsFixed(2); });
+                    setState(() {
+                      l['qty'] = newQty;
+                      qtyCtrl.text = newQty.toStringAsFixed(2);
+                    });
                   },
                 ),
               ),
@@ -345,7 +378,13 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
                   iconSize: 18,
                   visualDensity: VisualDensity.compact,
                   icon: const Icon(Icons.add),
-                  onPressed: () { final newQty = qty + 1; setState(() { l['qty'] = newQty; qtyCtrl.text = newQty.toStringAsFixed(2); }); },
+                  onPressed: () {
+                    final newQty = qty + 1;
+                    setState(() {
+                      l['qty'] = newQty;
+                      qtyCtrl.text = newQty.toStringAsFixed(2);
+                    });
+                  },
                 ),
               ),
             ]),
@@ -371,6 +410,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
     if (!_canSubmit()) return;
     final service = ref.read(stockTransferServiceProvider);
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     try {
       final payload = [for (final l in lines) if (((l['qty'] as num?)?.toDouble() ?? 0) > 0) {'item_code': l['item_code'], 'qty': (l['qty'] as num).toDouble()}];
       final String? postingDateStr = postingDate == null ? null : DateFormat('yyyy-MM-dd').format(postingDate!);
@@ -380,7 +420,9 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
         lines: payload,
         postingDate: postingDateStr,
       );
-      messenger.showSnackBar(SnackBar(content: Text('Transfer created: ${res['stock_entry']}')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.stockTransferTransferCreated((res['stock_entry'] ?? '-').toString()))),
+      );
       if (!mounted) return;
       setState(() {
         for (final l in lines) {
@@ -394,7 +436,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
         lines.clear();
       });
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Failed: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.stockTransferSubmitFailed('$e'))));
     }
   }
 
@@ -428,7 +470,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Bulk add failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.stockTransferBulkAddFailed('$e'))));
     }
   }
 
@@ -465,19 +507,20 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
     final res = await showDialog<double>(
       context: context,
       builder: (ctx) {
+        final dialogL10n = ctx.l10n;
         return AlertDialog(
-          title: const Text('Quick quantity'),
+          title: Text(dialogL10n.stockTransferQuickQuantity),
           content: TextField(
             controller: ctrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(labelText: 'Quantity for each item'),
+            decoration: InputDecoration(labelText: dialogL10n.stockTransferQuantityPerItem),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(ctx).pop(null), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.of(ctx).pop(null), child: Text(dialogL10n.commonCancel)),
             ElevatedButton(onPressed: () {
               final v = double.tryParse(ctrl.text.trim());
               Navigator.of(ctx).pop(v);
-            }, child: const Text('Add')),
+            }, child: Text(dialogL10n.commonAdd)),
           ],
         );
       },
@@ -521,11 +564,12 @@ class _GroupPickerState extends ConsumerState<_GroupPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return DropdownButton<String?>(
-      hint: const Text('Item Group'),
+      hint: Text(l10n.stockTransferItemGroup),
       value: selected,
       items: [
-        const DropdownMenuItem<String?>(value: null, child: Text('All Groups')),
+        DropdownMenuItem<String?>(value: null, child: Text(l10n.stockTransferAllGroups)),
         for (final g in groups)
           DropdownMenuItem<String?>(value: g['name'] as String, child: Text(g['name'] as String)),
       ],
@@ -544,19 +588,20 @@ class _BulkActionsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         OutlinedButton.icon(
           onPressed: onAddAll,
           icon: const Icon(Icons.select_all),
-          label: const Text('Add All'),
+          label: Text(l10n.stockTransferAddAll),
         ),
         const SizedBox(width: 6),
         OutlinedButton.icon(
           onPressed: onAddGroup,
           icon: const Icon(Icons.playlist_add),
-          label: const Text('Add Group'),
+          label: Text(l10n.stockTransferAddGroup),
         ),
       ],
     );

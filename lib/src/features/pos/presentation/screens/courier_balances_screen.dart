@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/localization/localization_extensions.dart';
 import '../../state/courier_balances_provider.dart';
 import '../../data/repositories/courier_repository.dart';
 import '../../../kanban/widgets/settlement_preview_dialog.dart';
@@ -9,11 +11,12 @@ class CourierBalancesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(courierBalancesProvider);
+  final state = ref.watch(courierBalancesProvider);
+  final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Courier Balances'),
+        title: Text(l10n.courierBalancesTitle),
       ),
       body: RefreshIndicator(
         onRefresh: () => ref.read(courierBalancesProvider.notifier).load(),
@@ -23,12 +26,12 @@ class CourierBalancesScreen extends ConsumerWidget {
               return const Center(child: CircularProgressIndicator());
             }
             if (state.error != null) {
-              return Center(child: Text('Error: ${state.error}'));
+              return Center(child: Text(l10n.commonErrorWithDetails(state.error!)));
             }
 
             final balances = state.balances;
             if (balances.isEmpty) {
-              return const Center(child: Text('No couriers found.'));
+              return Center(child: Text(l10n.courierBalancesEmpty));
             }
 
             return ListView.separated(
@@ -40,9 +43,9 @@ class CourierBalancesScreen extends ConsumerWidget {
                 final color = amount == 0
                     ? Colors.grey
                     : (isPayCourier ? Colors.red : Colors.green);
-                final label = amount == 0
-                    ? 'Settled'
-                    : (isPayCourier ? 'Pay courier' : 'Courier pays us');
+        final label = amount == 0
+          ? l10n.courierBalancesSettledLabel
+          : (isPayCourier ? l10n.courierBalancesPayCourierLabel : l10n.courierBalancesCourierPaysUsLabel);
 
                 return ListTile(
                   title: Text(b.courierName.isNotEmpty ? b.courierName : b.courier),
@@ -83,7 +86,9 @@ class CourierBalancesScreen extends ConsumerWidget {
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          'Details – ${b.courierName.isNotEmpty ? b.courierName : b.courier}',
+                                          l10n.courierBalancesDetailsTitle(
+                                            b.courierName.isNotEmpty ? b.courierName : b.courier,
+                                          ),
                                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                                 color: Theme.of(context).colorScheme.onPrimary,
                                               ),
@@ -105,7 +110,13 @@ class CourierBalancesScreen extends ConsumerWidget {
                                       return ListTile(
                                         dense: true,
                                         title: Text(d.invoice),
-                                        subtitle: Text('City: ${d.city}\nOrder: ${d.amount.toStringAsFixed(2)} • Shipping: ${d.shipping.toStringAsFixed(2)}'),
+                                        subtitle: Text(
+                                          l10n.courierBalancesCityOrderLine(
+                                            d.city,
+                                            d.amount.toStringAsFixed(2),
+                                            d.shipping.toStringAsFixed(2),
+                                          ),
+                                        ),
                                         trailing: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
@@ -113,7 +124,7 @@ class CourierBalancesScreen extends ConsumerWidget {
                                               mainAxisAlignment: MainAxisAlignment.center,
                                               crossAxisAlignment: CrossAxisAlignment.end,
                                               children: [
-                                                const Text('Net'),
+                                                Text(l10n.courierBalancesNetLabel),
                                                 Text(
                                                   net.toStringAsFixed(2),
                                                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -122,7 +133,7 @@ class CourierBalancesScreen extends ConsumerWidget {
                                             ),
                                             const SizedBox(width: 8),
                                             IconButton(
-                                              tooltip: 'Preview Settlement',
+                                              tooltip: l10n.courierBalancesPreviewTooltip,
                                               icon: const Icon(Icons.account_balance_wallet_outlined),
                                               onPressed: () => _showSettlementPreview(
                                                 context,
@@ -191,7 +202,7 @@ Future<void> _showSettlementPreview(
     Navigator.of(ctx).pop();
     ScaffoldMessenger.of(ctx).showSnackBar(
       SnackBar(
-        content: Text('Failed to load settlement preview: $e'),
+        content: Text(ctx.l10n.courierBalancesPreviewFailed('$e')),
         backgroundColor: Theme.of(context).colorScheme.error,
       ),
     );

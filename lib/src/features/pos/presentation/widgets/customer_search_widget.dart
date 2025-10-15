@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 
-import '../../state/pos_notifier.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/localization/localization_extensions.dart';
 import '../../data/repositories/pos_repository.dart';
+import '../../state/pos_notifier.dart';
 // providers file not present; we use repository providers directly
 
 // Dynamic customer search provider that switches between name and phone search
@@ -72,6 +74,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final selectedCustomer = ref.watch(
       posNotifierProvider.select((state) => state.selectedCustomer),
     );
@@ -103,7 +106,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
                     }
                     ref.read(posNotifierProvider.notifier).unselectCustomer();
                   },
-                  tooltip: 'Unselect Customer',
+                  tooltip: l10n.posCustomerUnselect,
                   color: Theme.of(context).colorScheme.error,
                   style: IconButton.styleFrom(
                     backgroundColor: Theme.of(
@@ -135,7 +138,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
             color: Theme.of(context).colorScheme.primary,
           ),
           onPressed: () => _showQuickAddCustomerDialog(''),
-          tooltip: 'Add New Customer',
+          tooltip: l10n.posCustomerAdd,
           style: IconButton.styleFrom(
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             foregroundColor: Theme.of(context).colorScheme.primary,
@@ -146,12 +149,15 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
   }
 
   Widget _buildSelectedCustomer(Map<String, dynamic> customer) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          customer['customer_name'] ?? customer['name'] ?? 'Unknown',
+          customer['customer_name'] ??
+              customer['name'] ??
+              l10n.posUnknownCustomer,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -191,7 +197,9 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
               Icon(Icons.attach_money, size: 14, color: Colors.green),
               const SizedBox(width: 4),
               Text(
-                'Delivery Income: \$${customer['delivery_income']}',
+                l10n.posCustomerDeliveryIncomeValue(
+                  _formatCurrency(customer['delivery_income']),
+                ),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Colors.green,
                   fontWeight: FontWeight.w500,
@@ -201,6 +209,16 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
           ),
       ],
     );
+  }
+
+  String _formatCurrency(dynamic value) {
+    if (value is num) {
+      return '\$${value.toStringAsFixed(2)}';
+    }
+    if (value == null) {
+      return '\$0.00';
+    }
+    return '\$${value.toString()}';
   }
 
   Widget _buildSearchField() {

@@ -263,6 +263,25 @@ class PosRepository {
           'rate': item['rate'],
           'is_bundle': isBundle,
         };
+        if (isBundle) {
+          final rawSelections = item['bundle_details']?['selected_items']
+              as Map<String, dynamic>?;
+          if (rawSelections != null) {
+            final normalizedSelections = <String, List<Map<String, dynamic>>>{};
+            rawSelections.forEach((groupName, entries) {
+              final entryList = (entries as List)
+                  .map<Map<String, dynamic>>(
+                    (entry) => Map<String, dynamic>.from(
+                      entry as Map,
+                    ),
+                  )
+                  .toList();
+              final key = groupName.toString();
+              normalizedSelections[key] = entryList;
+            });
+            base['selected_items'] = normalizedSelections;
+          }
+        }
         // Optional discount metadata
         if (item.containsKey('price_list_rate')) {
           base['price_list_rate'] = item['price_list_rate'];
