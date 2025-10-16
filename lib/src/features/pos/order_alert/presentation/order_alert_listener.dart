@@ -23,12 +23,6 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    final initialState = ref.read(orderAlertControllerProvider);
-    _handleStateChange(null, initialState);
-    ref.listen<OrderAlertState>(
-      orderAlertControllerProvider,
-      (previous, next) => _handleStateChange(previous, next),
-    );
   }
 
   @override
@@ -89,6 +83,11 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<OrderAlertState>(
+      orderAlertControllerProvider,
+      (previous, next) => _handleStateChange(previous, next),
+    );
+    
     return widget.child;
   }
 }
