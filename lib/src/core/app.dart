@@ -12,6 +12,8 @@ import 'sync/offline_sync_service.dart';
 import '../features/pos/state/courier_ws_bridge.dart';
 import '../features/printing/pos_printer_provider.dart';
 import 'network/user_service.dart';
+import '../features/pos/order_alert/order_alert_bridge.dart';
+import '../features/pos/order_alert/presentation/order_alert_listener.dart';
 
 class JarzPosApp extends ConsumerWidget {
   const JarzPosApp({super.key});
@@ -24,18 +26,19 @@ class JarzPosApp extends ConsumerWidget {
     // Initialize services
     ref.watch(webSocketServiceProvider);
     ref.watch(offlineSyncServiceProvider);
-  // Initialize printer service early so it can auto-reconnect if a device was saved
-  ref.watch(posPrinterServiceProvider);
+    // Initialize printer service early so it can auto-reconnect if a device was saved
+    ref.watch(posPrinterServiceProvider);
     // Prefetch current user roles (safe if unauthenticated; will be retried post-login)
     ref.watch(userRolesFutureProvider);
-    
+
     // Initialize courier websocket bridge
     ref.watch(courierWsBridgeProvider);
-    
-  return MaterialApp.router(
+    ref.watch(orderAlertBridgeProvider);
+
+    return MaterialApp.router(
       onGenerateTitle: (context) => context.l10n.appTitle,
       locale: locale,
-  supportedLocales: AppLocalizations.supportedLocales,
+      supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -61,12 +64,12 @@ class JarzPosApp extends ConsumerWidget {
           centerTitle: true,
           elevation: 1,
         ),
-  cardTheme: const CardThemeData(
-           elevation: 2,
-           shape: RoundedRectangleBorder(
-             borderRadius: BorderRadius.all(Radius.circular(8)),
-           ),
-         ),
+        cardTheme: const CardThemeData(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
+        ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             shape: RoundedRectangleBorder(
@@ -79,17 +82,18 @@ class JarzPosApp extends ConsumerWidget {
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
-        // Could insert initialization gating here; currently pass through.
         final routed = child ?? const SizedBox.shrink();
-        return GestureDetector(
-          onTap: () {
-            final FocusScopeNode currentScope = FocusScope.of(context);
-            if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
-              FocusManager.instance.primaryFocus?.unfocus();
-            }
-          },
-          behavior: HitTestBehavior.opaque,
-          child: LoadingOverlay(child: routed),
+        return OrderAlertListener(
+          child: GestureDetector(
+            onTap: () {
+              final currentScope = FocusScope.of(context);
+              if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
+                FocusManager.instance.primaryFocus?.unfocus();
+              }
+            },
+            behavior: HitTestBehavior.opaque,
+            child: LoadingOverlay(child: routed),
+          ),
         );
       },
     );

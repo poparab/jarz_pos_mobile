@@ -1,0 +1,94 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/router.dart';
+import '../state/order_alert_controller.dart';
+import '../state/order_alert_state.dart';
+import 'order_alert_dialog.dart';
+
+class OrderAlertListener extends ConsumerStatefulWidget {
+  const OrderAlertListener({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  ConsumerState<OrderAlertListener> createState() => _OrderAlertListenerState();
+}
+
+class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
+    with WidgetsBindingObserver {
+  bool _dialogVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    final initialState = ref.read(orderAlertControllerProvider);
+    _handleStateChange(null, initialState);
+    ref.listen<OrderAlertState>(
+      orderAlertControllerProvider,
+      (previous, next) => _handleStateChange(previous, next),
+    );
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && ref.read(currentAuthStateProvider)) {
+      Future.microtask(() => ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts());
+    }
+  }
+
+  void _handleStateChange(OrderAlertState? previous, OrderAlertState next) {
+    if (next.error != null && next.error != previous?.error) {
+      final scaffold = ScaffoldMessenger.maybeOf(context);
+      if (scaffold != null) {
+        scaffold.showSnackBar(
+          SnackBar(content: Text(next.error!)),
+        );
+      }
+    }
+
+    final nextActive = next.active;
+    final previousActive = previous?.active;
+
+    if (nextActive != null &&
+        (!_dialogVisible || previousActive?.invoiceId != nextActive.invoiceId)) {
+      _showDialog();
+    } else if (nextActive == null && _dialogVisible) {
+      _closeDialog();
+    }
+  }
+
+  void _showDialog() {
+    if (!mounted) return;
+    _dialogVisible = true;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      useRootNavigator: true,
+      builder: (_) => const OrderAlertDialog(),
+    ).whenComplete(() {
+      _dialogVisible = false;
+    });
+  }
+
+  void _closeDialog() {
+    if (!mounted || !_dialogVisible) return;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
+    _dialogVisible = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}
