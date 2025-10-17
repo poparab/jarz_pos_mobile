@@ -28,18 +28,26 @@ class OrderAlertNativeChannel {
   }
 
   static Future<void> cancelNotification(String? invoiceId) {
-    return _channel.invokeMethod('cancelNotification', {'invoiceId': invoiceId});
+    return _channel.invokeMethod('cancelNotification', {
+      'invoiceId': invoiceId,
+    });
   }
 
   static Future<void> showNotification(Map<String, String> data) {
     return _channel.invokeMethod('showNotification', {'data': data});
   }
 
+  static Future<void> setVolumeLocked(bool locked) {
+    return _channel.invokeMethod('setVolumeLocked', {'locked': locked});
+  }
+
   static Future<Map<String, String>?> consumeLaunchPayload() async {
     final result = await _channel.invokeMethod<dynamic>('consumeLaunchPayload');
     if (result == null) return null;
     if (result is Map) {
-      return result.map<String, String>((key, value) => MapEntry(key.toString(), value.toString()));
+      return result.map<String, String>(
+        (key, value) => MapEntry(key.toString(), value.toString()),
+      );
     }
     return null;
   }
@@ -55,7 +63,9 @@ class OrderAlertNativeChannel {
 
   static Map<String, String>? _coerceMap(dynamic value) {
     if (value is Map) {
-      return value.map<String, String>((key, val) => MapEntry(key.toString(), val.toString()));
+      return value.map<String, String>(
+        (key, val) => MapEntry(key.toString(), val.toString()),
+      );
     }
     return null;
   }

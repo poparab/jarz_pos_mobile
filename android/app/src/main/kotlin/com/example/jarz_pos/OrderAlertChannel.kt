@@ -44,6 +44,11 @@ class OrderAlertChannel : FlutterPlugin, MethodChannel.MethodCallHandler {
                 OrderAlertNative.showNotification(appContext, data)
                 result.success(null)
             }
+            "setVolumeLocked" -> {
+                val locked = call.argument<Boolean>("locked") ?: false
+                OrderAlertNative.setVolumeLock(locked)
+                result.success(null)
+            }
             "consumeLaunchPayload" -> {
                 result.success(pendingLaunchPayload)
                 pendingLaunchPayload = null

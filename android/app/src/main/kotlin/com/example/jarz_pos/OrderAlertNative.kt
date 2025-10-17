@@ -15,6 +15,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import kotlin.jvm.Volatile
 
 object OrderAlertNative {
     private const val DEFAULT_NOTIFICATION_ID = 4010
@@ -23,6 +24,8 @@ object OrderAlertNative {
     private var mediaPlayer: MediaPlayer? = null
     private var audioManager: AudioManager? = null
     private var focusRequest: AudioFocusRequest? = null
+    @Volatile
+    private var volumeLocked: Boolean = false
 
     fun startAlarm(context: Context) {
         synchronized(this) {
@@ -58,6 +61,7 @@ object OrderAlertNative {
             mp.prepare()
             mp.start()
             mediaPlayer = mp
+            setVolumeLock(true)
         }
     }
 
@@ -84,6 +88,7 @@ object OrderAlertNative {
                 }
             }
             focusRequest = null
+            setVolumeLock(false)
         }
     }
 
@@ -142,6 +147,12 @@ object OrderAlertNative {
         val notificationId = if (!invoiceId.isNullOrBlank()) invoiceId.hashCode() else DEFAULT_NOTIFICATION_ID
         NotificationManagerCompat.from(context).cancel(notificationId)
     }
+
+    fun setVolumeLock(locked: Boolean) {
+        volumeLocked = locked
+    }
+
+    fun isVolumeLocked(): Boolean = volumeLocked
 
     private fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

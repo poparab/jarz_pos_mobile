@@ -9,10 +9,11 @@ import '../domain/invoice_alert.dart';
 import '../order_alert_native_channel.dart';
 import 'order_alert_state.dart';
 
-final orderAlertControllerProvider = StateNotifierProvider<OrderAlertController, OrderAlertState>((ref) {
-  final service = ref.watch(orderAlertServiceProvider);
-  return OrderAlertController(service);
-});
+final orderAlertControllerProvider =
+    StateNotifierProvider<OrderAlertController, OrderAlertState>((ref) {
+      final service = ref.watch(orderAlertServiceProvider);
+      return OrderAlertController(service);
+    });
 
 class OrderAlertController extends StateNotifier<OrderAlertState> {
   OrderAlertController(this._service) : super(const OrderAlertState());
@@ -30,17 +31,26 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     return _prefs ??= await SharedPreferences.getInstance();
   }
 
-  Future<void> enqueueAlert(InvoiceAlert alert, {bool fromNotification = false}) async {
+  Future<void> enqueueAlert(
+    InvoiceAlert alert, {
+    bool fromNotification = false,
+  }) async {
     if (!alert.requiresAcceptance) {
       return;
     }
     await OrderAlertNativeChannel.ensureInitialised();
     final currentQueue = List<InvoiceAlert>.from(state.queue);
-    final existingIndex = currentQueue.indexWhere((item) => item.invoiceId == alert.invoiceId);
+    final existingIndex = currentQueue.indexWhere(
+      (item) => item.invoiceId == alert.invoiceId,
+    );
     if (existingIndex >= 0) {
       currentQueue[existingIndex] = alert;
       final isActive = state.active?.invoiceId == alert.invoiceId;
-      state = state.copyWith(queue: currentQueue, active: isActive ? alert : state.active, clearError: true);
+      state = state.copyWith(
+        queue: currentQueue,
+        active: isActive ? alert : state.active,
+        clearError: true,
+      );
       return;
     }
 
@@ -49,13 +59,19 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     final newActive = hasActive ? state.active : alert;
     final reorderedQueue = _ensureActiveFirst(currentQueue, newActive);
 
-    state = state.copyWith(queue: reorderedQueue, active: newActive, clearError: true);
+    state = state.copyWith(
+      queue: reorderedQueue,
+      active: newActive,
+      clearError: true,
+    );
 
-    if (!hasActive) {
+    if (!hasActive && !state.isMuted) {
       _logger.info('Starting alarm for invoice ${alert.invoiceId}');
       await OrderAlertNativeChannel.startAlarm();
       if (!fromNotification) {
-        await OrderAlertNativeChannel.showNotification(_buildNotificationData(alert));
+        await OrderAlertNativeChannel.showNotification(
+          _buildNotificationData(alert),
+        );
       }
     }
   }
@@ -78,12 +94,23 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       await OrderAlertNativeChannel.cancelNotification(current.invoiceId);
       _removeInvoice(current.invoiceId);
       final next = state.active;
-      if (next != null) {
+      if (next != null && !state.isMuted) {
         _logger.info('Continuing alarm with next invoice ${next.invoiceId}');
         await OrderAlertNativeChannel.startAlarm();
       }
+      if (!state.hasActive) {
+        state = state.copyWith(
+          isMuted: false,
+          isAcknowledging: false,
+          clearError: true,
+        );
+      }
     } catch (error, stackTrace) {
-      _logger.error('Failed to acknowledge invoice ${current.invoiceId}', error, stackTrace);
+      _logger.error(
+        'Failed to acknowledge invoice ${current.invoiceId}',
+        error,
+        stackTrace,
+      );
       state = state.copyWith(isAcknowledging: false, error: error.toString());
     }
   }
@@ -94,13 +121,20 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     }
     _loadingPending = true;
     try {
-    final alerts = await _service.getPendingAlerts();
-    final now = DateTime.now();
+      final alerts = await _service.getPendingAlerts();
+      final now = DateTime.now();
       if (alerts.isEmpty) {
         if (state.hasActive) {
           await OrderAlertNativeChannel.stopAlarm();
         }
-        state = state.copyWith(queue: const [], active: null, lastSynced: now, clearError: true, isAcknowledging: false);
+        state = state.copyWith(
+          queue: const [],
+          active: null,
+          lastSynced: now,
+          clearError: true,
+          isAcknowledging: false,
+          isMuted: false,
+        );
         _loadingPending = false;
         return;
       }
@@ -115,18 +149,31 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       final reordered = _ensureActiveFirst(alerts, candidateActive);
 
       final newActive = reordered.isNotEmpty ? reordered.first : null;
-      state = state.copyWith(queue: reordered, active: newActive, lastSynced: now, clearError: true, isAcknowledging: false);
+      state = state.copyWith(
+        queue: reordered,
+        active: newActive,
+        lastSynced: now,
+        clearError: true,
+        isAcknowledging: false,
+      );
 
-      if (existingActiveId != null && (newActive == null || newActive.invoiceId != existingActiveId)) {
+      if (existingActiveId != null &&
+          (newActive == null || newActive.invoiceId != existingActiveId)) {
         await OrderAlertNativeChannel.stopAlarm();
       }
-      if (newActive != null) {
+      if (newActive != null && !state.isMuted) {
         _logger.info('Sync ensures alarm for invoice ${newActive.invoiceId}');
         await OrderAlertNativeChannel.startAlarm();
       }
+      if (newActive == null) {
+        state = state.copyWith(isMuted: false, clearError: true);
+      }
     } catch (error, stackTrace) {
       _logger.error('Failed to sync pending alerts', error, stackTrace);
-      state = state.copyWith(error: error.toString(), lastSynced: DateTime.now());
+      state = state.copyWith(
+        error: error.toString(),
+        lastSynced: DateTime.now(),
+      );
     } finally {
       _loadingPending = false;
     }
@@ -143,9 +190,12 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       await OrderAlertNativeChannel.stopAlarm();
       await OrderAlertNativeChannel.cancelNotification(invoiceId);
       final next = state.active;
-      if (next != null) {
+      if (next != null && !state.isMuted) {
         _logger.info('Switching alarm to invoice ${next.invoiceId}');
         await OrderAlertNativeChannel.startAlarm();
+      }
+      if (!state.hasActive) {
+        state = state.copyWith(isMuted: false, clearError: true);
       }
     } else {
       await OrderAlertNativeChannel.cancelNotification(invoiceId);
@@ -182,6 +232,26 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     state = const OrderAlertState();
   }
 
+  Future<void> muteActiveAlert() async {
+    if (!state.hasActive || state.isMuted) {
+      return;
+    }
+    _logger.info('Muting alarm for invoice ${state.active?.invoiceId}');
+    await OrderAlertNativeChannel.stopAlarm();
+    state = state.copyWith(isMuted: true, clearError: true);
+  }
+
+  Future<void> unmuteAlerts() async {
+    if (!state.isMuted) {
+      return;
+    }
+    _logger.info('Unmuting alarm');
+    state = state.copyWith(isMuted: false, clearError: true);
+    if (state.hasActive) {
+      await OrderAlertNativeChannel.startAlarm();
+    }
+  }
+
   Map<String, String> _buildNotificationData(InvoiceAlert alert) {
     final data = <String, String>{
       'type': 'new_invoice',
@@ -214,16 +284,27 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     }
 
     final nextActive = currentQueue.isNotEmpty ? currentQueue.first : null;
-    state = state.copyWith(queue: currentQueue, active: nextActive, isAcknowledging: false, clearError: true);
+    state = state.copyWith(
+      queue: currentQueue,
+      active: nextActive,
+      isAcknowledging: false,
+      clearError: true,
+      isMuted: nextActive == null ? false : state.isMuted,
+    );
     return true;
   }
 
-  List<InvoiceAlert> _ensureActiveFirst(List<InvoiceAlert> queue, InvoiceAlert? active) {
+  List<InvoiceAlert> _ensureActiveFirst(
+    List<InvoiceAlert> queue,
+    InvoiceAlert? active,
+  ) {
     if (queue.isEmpty || active == null) {
       return List<InvoiceAlert>.from(queue);
     }
     final reordered = List<InvoiceAlert>.from(queue);
-    final index = reordered.indexWhere((alert) => alert.invoiceId == active.invoiceId);
+    final index = reordered.indexWhere(
+      (alert) => alert.invoiceId == active.invoiceId,
+    );
     if (index > 0) {
       final entry = reordered.removeAt(index);
       reordered.insert(0, entry);

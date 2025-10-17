@@ -48,7 +48,9 @@ class OrderAlertBridge {
 
     // Foreground message handling
     _onMessageSub = FirebaseMessaging.onMessage.listen(_handleRemoteMessage);
-    _onOpenedSub = FirebaseMessaging.onMessageOpenedApp.listen(_handleRemoteMessage);
+    _onOpenedSub = FirebaseMessaging.onMessageOpenedApp.listen(
+      _handleRemoteMessage,
+    );
 
     // Process initial launch intent and background messages
     final launchPayload = await OrderAlertNativeChannel.consumeLaunchPayload();
@@ -61,7 +63,9 @@ class OrderAlertBridge {
       _handleRemoteMessage(initialMessage, openedApp: true);
     }
 
-    _onTokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen((token) {
+    _onTokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen((
+      token,
+    ) {
       unawaited(_registerToken(token));
     });
 
@@ -96,6 +100,9 @@ class OrderAlertBridge {
     switch (type) {
       case 'new_invoice':
         unawaited(_queueAlert(InvoiceAlert.fromFcmData(data)));
+        unawaited(
+          _ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts(),
+        );
         break;
       case 'invoice_accepted':
         final invoiceId = data['invoice_id']?.toString();
@@ -114,6 +121,9 @@ class OrderAlertBridge {
     final type = payload['type'];
     if (type == 'new_invoice') {
       unawaited(_queueAlert(InvoiceAlert.fromFcmData(payload)));
+      unawaited(
+        _ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts(),
+      );
     } else if (type == 'invoice_accepted') {
       final invoiceId = payload['invoice_id'];
       if (invoiceId != null && invoiceId.isNotEmpty) {
@@ -128,7 +138,9 @@ class OrderAlertBridge {
     if (!alert.requiresAcceptance) {
       return;
     }
-    await _ref.read(orderAlertControllerProvider.notifier).enqueueAlert(alert, fromNotification: true);
+    await _ref
+        .read(orderAlertControllerProvider.notifier)
+        .enqueueAlert(alert, fromNotification: true);
   }
 
   Future<void> _registerToken(String? token) async {
@@ -153,7 +165,9 @@ class OrderAlertBridge {
         return;
       }
 
-      await _ref.read(orderAlertServiceProvider).registerDevice(
+      await _ref
+          .read(orderAlertServiceProvider)
+          .registerDevice(
             token: token,
             platform: 'Android',
             deviceName: 'Android POS',

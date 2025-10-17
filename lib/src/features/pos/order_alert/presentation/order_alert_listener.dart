@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/router.dart';
+import '../order_alert_native_channel.dart';
 import '../state/order_alert_controller.dart';
 import '../state/order_alert_state.dart';
+import '../../../../core/network/user_service.dart';
 import 'order_alert_dialog.dart';
 
 class OrderAlertListener extends ConsumerStatefulWidget {
@@ -23,28 +25,34 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    OrderAlertNativeChannel.setVolumeLocked(false);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    OrderAlertNativeChannel.setVolumeLocked(false);
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && ref.read(currentAuthStateProvider)) {
-      Future.microtask(() => ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts());
+    if (state == AppLifecycleState.resumed &&
+        ref.read(currentAuthStateProvider)) {
+      Future.microtask(
+        () =>
+            ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts(),
+      );
     }
   }
 
   void _handleStateChange(OrderAlertState? previous, OrderAlertState next) {
+    final isManager = ref.read(isJarzManagerProvider);
+
     if (next.error != null && next.error != previous?.error) {
       final scaffold = ScaffoldMessenger.maybeOf(context);
       if (scaffold != null) {
-        scaffold.showSnackBar(
-          SnackBar(content: Text(next.error!)),
-        );
+        scaffold.showSnackBar(SnackBar(content: Text(next.error!)));
       }
     }
 
@@ -52,10 +60,20 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
     final previousActive = previous?.active;
 
     if (nextActive != null &&
-        (!_dialogVisible || previousActive?.invoiceId != nextActive.invoiceId)) {
+        (!_dialogVisible ||
+            previousActive?.invoiceId != nextActive.invoiceId)) {
       _showDialog();
     } else if (nextActive == null && _dialogVisible) {
       _closeDialog();
+    }
+
+    final shouldLockVolume = next.hasActive && !next.isMuted && !isManager;
+    final previousLock =
+        previous?.hasActive == true &&
+        !(previous?.isMuted ?? false) &&
+        !isManager;
+    if (shouldLockVolume != previousLock) {
+      OrderAlertNativeChannel.setVolumeLocked(shouldLockVolume);
     }
   }
 
@@ -87,7 +105,7 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
       orderAlertControllerProvider,
       (previous, next) => _handleStateChange(previous, next),
     );
-    
+
     return widget.child;
   }
 }
