@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -155,18 +157,24 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
     debugPrint('🔔 📱 barrierDismissible: false');
     debugPrint('🔔 📱 ============================================');
     
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      useRootNavigator: true,
-      builder: (dialogContext) {
-        debugPrint('🔔 📱 Dialog builder called for $invoiceId');
-        return const OrderAlertDialog();
-      },
-    ).then((value) {
-      debugPrint('🔔 Dialog .then() completed for $_currentDialogInvoiceId with value: $value');
-    }).whenComplete(() {
-      debugPrint('🔔 Dialog .whenComplete() for $_currentDialogInvoiceId');
+    unawaited(
+      _showDialogAsync(invoiceId),
+    );
+  }
+  
+  Future<void> _showDialogAsync(String invoiceId) async {
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        useRootNavigator: true,
+        builder: (dialogContext) {
+          debugPrint('🔔 📱 Dialog builder called for $invoiceId');
+          return const OrderAlertDialog();
+        },
+      );
+      
+      debugPrint('🔔 Dialog completed for $_currentDialogInvoiceId');
       _dialogVisible = false;
       _currentDialogInvoiceId = null;
       
@@ -174,11 +182,11 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkAndShowDialog();
       });
-    }).catchError((error) {
+    } catch (error) {
       debugPrint('🔔 ❌ Dialog ERROR for $_currentDialogInvoiceId: $error');
       _dialogVisible = false;
       _currentDialogInvoiceId = null;
-    });
+    }
   }
 
   void _closeDialog() {
