@@ -66,11 +66,20 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
       'queueLen=${state.queue.length}'
     );
     
-    if (nextActive != null && 
-        nextActive.invoiceId != _currentDialogInvoiceId) {
-      debugPrint('🔔 SHOWING NEW dialog for ${nextActive.invoiceId}');
-      _showDialog(nextActive.invoiceId);
-    } else if (nextActive == null && _dialogVisible) {
+    // If there's an active alert but no dialog is showing, force show it
+    if (nextActive != null) {
+      if (_currentDialogInvoiceId == null || !_dialogVisible) {
+        debugPrint('🔔 FORCE SHOWING dialog for ${nextActive.invoiceId} (was not showing)');
+        _dialogVisible = false; // Reset state
+        _currentDialogInvoiceId = null;
+        _showDialog(nextActive.invoiceId);
+      } else if (nextActive.invoiceId != _currentDialogInvoiceId) {
+        debugPrint('🔔 SHOWING NEW dialog for ${nextActive.invoiceId} (different from current)');
+        _showDialog(nextActive.invoiceId);
+      } else {
+        debugPrint('🔔 Dialog already showing for correct invoice ${nextActive.invoiceId}');
+      }
+    } else if (_dialogVisible) {
       debugPrint('🔔 CLOSING dialog - no active alerts');
       _closeDialog();
     }
@@ -114,7 +123,10 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
   }
 
   void _showDialog(String invoiceId) {
-    if (!mounted) return;
+    if (!mounted) {
+      debugPrint('🔔 ❌ Cannot show dialog - widget not mounted');
+      return;
+    }
     
     // If we're already showing a dialog for this invoice, don't show again
     if (_dialogVisible && _currentDialogInvoiceId == invoiceId) {
@@ -136,15 +148,25 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
     _dialogVisible = true;
     _currentDialogInvoiceId = invoiceId;
     
-    debugPrint('🔔 📱 ACTUALLY SHOWING DIALOG for $invoiceId');
+    debugPrint('🔔 📱 ============================================');
+    debugPrint('🔔 📱 ACTUALLY CALLING showDialog() for $invoiceId');
+    debugPrint('🔔 📱 context.mounted: ${context.mounted}');
+    debugPrint('🔔 📱 useRootNavigator: true');
+    debugPrint('🔔 📱 barrierDismissible: false');
+    debugPrint('🔔 📱 ============================================');
     
     showDialog<void>(
       context: context,
       barrierDismissible: false,
       useRootNavigator: true,
-      builder: (_) => const OrderAlertDialog(),
-    ).whenComplete(() {
-      debugPrint('🔔 Dialog completed for $_currentDialogInvoiceId');
+      builder: (dialogContext) {
+        debugPrint('🔔 📱 Dialog builder called for $invoiceId');
+        return const OrderAlertDialog();
+      },
+    ).then((value) {
+      debugPrint('🔔 Dialog .then() completed for $_currentDialogInvoiceId with value: $value');
+    }).whenComplete(() {
+      debugPrint('🔔 Dialog .whenComplete() for $_currentDialogInvoiceId');
       _dialogVisible = false;
       _currentDialogInvoiceId = null;
       
@@ -152,6 +174,10 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkAndShowDialog();
       });
+    }).catchError((error) {
+      debugPrint('🔔 ❌ Dialog ERROR for $_currentDialogInvoiceId: $error');
+      _dialogVisible = false;
+      _currentDialogInvoiceId = null;
     });
   }
 

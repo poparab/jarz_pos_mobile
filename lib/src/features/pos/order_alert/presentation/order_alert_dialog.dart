@@ -10,26 +10,46 @@ class OrderAlertDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    debugPrint('🔔 📱 OrderAlertDialog.build() called');
+    
     final state = ref.watch(orderAlertControllerProvider);
     final alert = state.active;
+    
+    debugPrint('🔔 📱 OrderAlertDialog: alert=${alert?.invoiceId}');
+    
     if (alert == null) {
+      debugPrint('🔔 📱 OrderAlertDialog: alert is NULL - returning SizedBox.shrink()');
       return const SizedBox.shrink();
     }
 
+    debugPrint('🔔 📱 OrderAlertDialog: Rendering AlertDialog for ${alert.invoiceId}');
+    
     final canMute = ref.watch(isJarzManagerProvider);
 
     final theme = Theme.of(context);
     final items = alert.items.take(8).toList();
 
     return AlertDialog(
+      backgroundColor: Colors.white, // Explicitly set background
+      elevation: 24, // High elevation to ensure visibility
       title: Row(
         children: [
           const Icon(
             Icons.notification_important_outlined,
             color: Colors.redAccent,
+            size: 32, // Make icon bigger
           ),
           const SizedBox(width: 8),
-          Expanded(child: Text('New Order: ${alert.invoiceId}')),
+          Expanded(
+            child: Text(
+              'New Order: ${alert.invoiceId}',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ),
         ],
       ),
       content: ConstrainedBox(
