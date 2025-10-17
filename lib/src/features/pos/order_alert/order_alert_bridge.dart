@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/router.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/network/user_service.dart';
+import '../../../core/websocket/websocket_service.dart';
 import 'data/order_alert_service.dart';
 import 'domain/invoice_alert.dart';
 import 'order_alert_native_channel.dart';
@@ -28,6 +29,7 @@ class OrderAlertBridge {
   StreamSubscription<RemoteMessage>? _onMessageSub;
   StreamSubscription<RemoteMessage>? _onOpenedSub;
   StreamSubscription<String>? _onTokenRefreshSub;
+  StreamSubscription<Map<String, dynamic>>? _invoiceStreamSub;
   bool _hasInit = false;
 
   Future<void> _initialise() async {
@@ -36,6 +38,12 @@ class OrderAlertBridge {
 
     await OrderAlertNativeChannel.ensureInitialised();
     OrderAlertNativeChannel.setLaunchHandler(_handleLaunchPayload);
+
+    // Realtime fallback via websocket to guarantee in-app popups even if FCM is delayed.
+    final ws = _ref.read(webSocketServiceProvider);
+    _invoiceStreamSub = ws.invoiceStream.listen(_handleRealtimeInvoice, onError: (error) {
+      _logger.error('Failed processing websocket invoice alert', error, StackTrace.current);
+    });
 
     // Listen for authentication transitions
     _ref.listen<bool>(currentAuthStateProvider, (previous, next) {
@@ -77,6 +85,7 @@ class OrderAlertBridge {
     _onMessageSub?.cancel();
     _onOpenedSub?.cancel();
     _onTokenRefreshSub?.cancel();
+    _invoiceStreamSub?.cancel();
     OrderAlertNativeChannel.setLaunchHandler(null);
   }
 
@@ -141,6 +150,20 @@ class OrderAlertBridge {
     await _ref
         .read(orderAlertControllerProvider.notifier)
         .enqueueAlert(alert, fromNotification: true);
+  }
+
+  void _handleRealtimeInvoice(Map<String, dynamic> payload) {
+    try {
+      final alert = InvoiceAlert.fromDynamic(payload);
+      if (!alert.requiresAcceptance) {
+        return;
+      }
+      final controller = _ref.read(orderAlertControllerProvider.notifier);
+      unawaited(controller.enqueueAlert(alert, fromNotification: false));
+      unawaited(controller.syncPendingAlerts());
+    } catch (error, stackTrace) {
+      _logger.error('Failed to enqueue realtime invoice alert', error, stackTrace);
+    }
   }
 
   Future<void> _registerToken(String? token) async {
