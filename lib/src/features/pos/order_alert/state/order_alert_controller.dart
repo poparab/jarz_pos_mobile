@@ -38,6 +38,9 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     if (!alert.requiresAcceptance) {
       return;
     }
+    _logger.info(
+      "enqueueAlert source=${fromNotification ? 'push' : 'realtime'} invoice=${alert.invoiceId} queueLen=${state.queue.length}",
+    );
     await OrderAlertNativeChannel.ensureInitialised();
     final currentQueue = List<InvoiceAlert>.from(state.queue);
     final existingIndex = currentQueue.indexWhere(
@@ -118,13 +121,15 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
   }
 
   Future<void> syncPendingAlerts() async {
+    _logger.debug("syncPendingAlerts invoked loading=$_loadingPending");
     if (_loadingPending) {
       return;
     }
     _loadingPending = true;
     try {
-      final alerts = await _service.getPendingAlerts();
-      final now = DateTime.now();
+    final alerts = await _service.getPendingAlerts();
+    final now = DateTime.now();
+    _logger.info("syncPendingAlerts fetched ${alerts.length} alerts");
       if (alerts.isEmpty) {
         if (state.hasActive) {
           await OrderAlertNativeChannel.stopAlarm();
@@ -184,6 +189,7 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
   Future<void> handleInvoiceAccepted(String invoiceId) async {
     final wasActive = state.active?.invoiceId == invoiceId;
     final removed = _removeInvoice(invoiceId);
+    _logger.info("handleInvoiceAccepted invoice=$invoiceId removed=$removed wasActive=$wasActive");
     if (!removed) {
       return;
     }

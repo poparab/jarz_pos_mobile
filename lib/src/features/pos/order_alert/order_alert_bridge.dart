@@ -106,6 +106,7 @@ class OrderAlertBridge {
       return;
     }
     final type = data['type'];
+    _logger.info('FCM message received type=$type openedApp=$openedApp');
     switch (type) {
       case 'new_invoice':
         unawaited(_queueAlert(InvoiceAlert.fromFcmData(data)));
@@ -155,6 +156,8 @@ class OrderAlertBridge {
   void _handleRealtimeInvoice(Map<String, dynamic> payload) {
     try {
       final alert = InvoiceAlert.fromDynamic(payload);
+      final id = payload['name'] ?? payload['invoice_id'];
+      _logger.info("Websocket invoice payload name=$id requires=${alert.requiresAcceptance}");
       if (!alert.requiresAcceptance) {
         return;
       }
