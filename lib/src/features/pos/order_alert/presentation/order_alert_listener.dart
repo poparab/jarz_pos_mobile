@@ -20,12 +20,18 @@ class OrderAlertListener extends ConsumerStatefulWidget {
 class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
     with WidgetsBindingObserver {
   bool _dialogVisible = false;
+  String? _currentDialogInvoiceId;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     OrderAlertNativeChannel.setVolumeLocked(false);
+    
+    // Post-frame callback to check for alerts after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowDialog();
+    });
   }
 
   @override
@@ -46,6 +52,30 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
     }
   }
 
+  void _checkAndShowDialog() {
+    if (!mounted) return;
+    
+    final state = ref.read(orderAlertControllerProvider);
+    final nextActive = state.active;
+    
+    debugPrint(
+      '🔔 _checkAndShowDialog: '
+      'nextActive=${nextActive?.invoiceId} '
+      'currentDialog=$_currentDialogInvoiceId '
+      'dialogVisible=$_dialogVisible '
+      'queueLen=${state.queue.length}'
+    );
+    
+    if (nextActive != null && 
+        nextActive.invoiceId != _currentDialogInvoiceId) {
+      debugPrint('🔔 SHOWING NEW dialog for ${nextActive.invoiceId}');
+      _showDialog(nextActive.invoiceId);
+    } else if (nextActive == null && _dialogVisible) {
+      debugPrint('🔔 CLOSING dialog - no active alerts');
+      _closeDialog();
+    }
+  }
+
   void _handleStateChange(OrderAlertState? previous, OrderAlertState next) {
     final isManager = ref.read(isJarzManagerProvider);
 
@@ -63,21 +93,15 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
       '🔔 OrderAlertListener: State changed - '
       'nextActive=${nextActive?.invoiceId} '
       'previousActive=${previousActive?.invoiceId} '
+      'currentDialog=$_currentDialogInvoiceId '
       'dialogVisible=$_dialogVisible '
       'queueLen=${next.queue.length}'
     );
 
-    if (nextActive != null &&
-        (!_dialogVisible ||
-            previousActive?.invoiceId != nextActive.invoiceId)) {
-      debugPrint('🔔 SHOWING dialog for ${nextActive.invoiceId}');
-      _showDialog();
-    } else if (nextActive == null && _dialogVisible) {
-      debugPrint('🔔 CLOSING dialog - no active alerts');
-      _closeDialog();
-    } else if (nextActive != null && _dialogVisible) {
-      debugPrint('🔔 Dialog already visible for ${nextActive.invoiceId}');
-    }
+    // Always check if we need to show dialog when state changes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowDialog();
+    });
 
     final shouldLockVolume = next.hasActive && !next.isMuted && !isManager;
     final previousLock =
@@ -89,34 +113,81 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
     }
   }
 
-  void _showDialog() {
+  void _showDialog(String invoiceId) {
     if (!mounted) return;
+    
+    // If we're already showing a dialog for this invoice, don't show again
+    if (_dialogVisible && _currentDialogInvoiceId == invoiceId) {
+      debugPrint('🔔 Dialog already showing for $invoiceId, skipping');
+      return;
+    }
+    
+    // Close existing dialog if showing different invoice
+    if (_dialogVisible && _currentDialogInvoiceId != invoiceId) {
+      debugPrint('🔔 Closing old dialog for $_currentDialogInvoiceId to show new dialog for $invoiceId');
+      _closeDialog();
+      // Wait a frame before showing new dialog
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showDialog(invoiceId);
+      });
+      return;
+    }
+    
     _dialogVisible = true;
+    _currentDialogInvoiceId = invoiceId;
+    
+    debugPrint('🔔 📱 ACTUALLY SHOWING DIALOG for $invoiceId');
+    
     showDialog<void>(
       context: context,
       barrierDismissible: false,
       useRootNavigator: true,
       builder: (_) => const OrderAlertDialog(),
     ).whenComplete(() {
+      debugPrint('🔔 Dialog completed for $_currentDialogInvoiceId');
       _dialogVisible = false;
+      _currentDialogInvoiceId = null;
+      
+      // Check if there's another alert waiting
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkAndShowDialog();
+      });
     });
   }
 
   void _closeDialog() {
     if (!mounted || !_dialogVisible) return;
+    debugPrint('🔔 Attempting to close dialog for $_currentDialogInvoiceId');
     final navigator = Navigator.of(context, rootNavigator: true);
     if (navigator.canPop()) {
       navigator.pop();
     }
     _dialogVisible = false;
+    _currentDialogInvoiceId = null;
   }
 
   @override
   Widget build(BuildContext context) {
+    // Listen to state changes
     ref.listen<OrderAlertState>(
       orderAlertControllerProvider,
       (previous, next) => _handleStateChange(previous, next),
     );
+    
+    // ALSO check current state on every build to catch missed updates
+    final currentState = ref.watch(orderAlertControllerProvider);
+    
+    // Use post-frame callback to show dialog if needed
+    // This ensures we don't modify state during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final nextActive = currentState.active;
+        if (nextActive != null && nextActive.invoiceId != _currentDialogInvoiceId && !_dialogVisible) {
+          debugPrint('🔔 Build detected unshown alert: ${nextActive.invoiceId}');
+          _checkAndShowDialog();
+        }
+      }
+    });
 
     return widget.child;
   }
