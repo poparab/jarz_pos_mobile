@@ -5,7 +5,11 @@ class InvoiceAlertItem {
   final String? itemName;
   final double quantity;
 
-  const InvoiceAlertItem({this.itemCode, this.itemName, required this.quantity});
+  const InvoiceAlertItem({
+    this.itemCode,
+    this.itemName,
+    required this.quantity,
+  });
 
   factory InvoiceAlertItem.fromMap(Map<String, dynamic> map) {
     return InvoiceAlertItem(
@@ -55,24 +59,36 @@ class InvoiceAlert {
 
   static InvoiceAlert fromDynamic(Map<String, dynamic> payload) {
     final raw = Map<String, dynamic>.from(payload);
-    final invoiceId = raw['invoice_id']?.toString() ?? raw['name']?.toString() ?? '';
+    final invoiceId =
+        raw['invoice_id']?.toString() ?? raw['name']?.toString() ?? '';
     final posProfile = raw['pos_profile']?.toString() ?? '';
-    final acceptance = raw['acceptance_status']?.toString() ?? raw['custom_acceptance_status']?.toString() ?? 'Pending';
-    final requires = _parseBool(raw['requires_acceptance']);
+    final acceptance =
+        raw['acceptance_status']?.toString() ??
+        raw['custom_acceptance_status']?.toString() ??
+        'Pending';
+    bool requires = _parseBool(raw['requires_acceptance']);
+    if (raw['requires_acceptance'] == null) {
+      requires = acceptance.toLowerCase() != 'accepted';
+    }
     final timestamp = _parseDate(raw['timestamp']);
     final items = _parseItems(raw['items']);
 
     return InvoiceAlert(
       invoiceId: invoiceId,
-      customerName: _optionalString(raw['customer_name']) ?? _optionalString(raw['customer']),
+      customerName:
+          _optionalString(raw['customer_name']) ??
+          _optionalString(raw['customer']),
       posProfile: posProfile,
       grandTotal: _parseDouble(raw['grand_total']) ?? 0,
       netTotal: _parseDouble(raw['net_total']) ?? 0,
-      salesInvoiceState: raw['sales_invoice_state']?.toString() ?? raw['status']?.toString(),
+      salesInvoiceState:
+          raw['sales_invoice_state']?.toString() ?? raw['status']?.toString(),
       acceptanceStatus: acceptance,
       requiresAcceptance: requires,
       deliveryDate: _optionalString(raw['delivery_date']),
-      deliveryTime: _optionalString(raw['delivery_time'] ?? raw['delivery_time_from']),
+      deliveryTime: _optionalString(
+        raw['delivery_time'] ?? raw['delivery_time_from'],
+      ),
       itemSummary: _optionalString(raw['item_summary']),
       items: items,
       timestamp: timestamp,
@@ -93,7 +109,15 @@ class InvoiceAlert {
       } catch (_) {}
     }
 
-    map['requires_acceptance'] = map['requires_acceptance'] ?? map['acceptance_status'] == 'Pending' ? '1' : '0';
+    final acceptance =
+        map['acceptance_status'] ??
+        map['custom_acceptance_status'] ??
+        'Pending';
+    final requiresRaw = map['requires_acceptance'];
+    final requires = requiresRaw == null
+        ? acceptance.toString().toLowerCase() != 'accepted'
+        : _parseBool(requiresRaw);
+    map['requires_acceptance'] = requires;
     return InvoiceAlert.fromDynamic(map);
   }
 
