@@ -35,18 +35,29 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     InvoiceAlert alert, {
     bool fromNotification = false,
   }) async {
+    _logger.info(
+      "enqueueAlert CALLED: invoice=${alert.invoiceId} "
+      "requiresAcceptance=${alert.requiresAcceptance} "
+      "acceptanceStatus=${alert.acceptanceStatus} "
+      "source=${fromNotification ? 'push' : 'realtime'} "
+      "currentQueueLen=${state.queue.length}"
+    );
+    
     if (!alert.requiresAcceptance) {
+      _logger.warning(
+        "Alert for ${alert.invoiceId} does NOT require acceptance. "
+        "Status: ${alert.acceptanceStatus}. Skipping enqueue."
+      );
       return;
     }
-    _logger.info(
-      "enqueueAlert source=${fromNotification ? 'push' : 'realtime'} invoice=${alert.invoiceId} queueLen=${state.queue.length}",
-    );
+    
     await OrderAlertNativeChannel.ensureInitialised();
     final currentQueue = List<InvoiceAlert>.from(state.queue);
     final existingIndex = currentQueue.indexWhere(
       (item) => item.invoiceId == alert.invoiceId,
     );
     if (existingIndex >= 0) {
+      _logger.info("Updating existing alert for ${alert.invoiceId} at index $existingIndex");
       currentQueue[existingIndex] = alert;
       final isActive = state.active?.invoiceId == alert.invoiceId;
       state = state.copyWith(
@@ -57,10 +68,18 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       return;
     }
 
+    _logger.info("Adding NEW alert for ${alert.invoiceId} to queue");
     currentQueue.add(alert);
     final hasActive = state.hasActive;
     final newActive = hasActive ? state.active : alert;
     final reorderedQueue = _ensureActiveFirst(currentQueue, newActive);
+
+    _logger.info(
+      "Setting state: queueLen=${reorderedQueue.length} "
+      "activeInvoice=${newActive?.invoiceId} "
+      "hasActive=$hasActive "
+      "isMuted=${state.isMuted}"
+    );
 
     state = state.copyWith(
       queue: reorderedQueue,
@@ -71,10 +90,14 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     if (!hasActive && !state.isMuted) {
       _logger.info('Starting alarm for invoice ${alert.invoiceId}');
       await OrderAlertNativeChannel.startAlarm();
+    } else {
+      _logger.info(
+        'NOT starting alarm: hasActive=$hasActive, isMuted=${state.isMuted}'
+      );
     }
 
     if (fromNotification || (!hasActive && !state.isMuted)) {
-      // Ensure a heads-up notification in both FCM and local-triggered paths.
+      _logger.info('Showing notification for ${alert.invoiceId}');
       await OrderAlertNativeChannel.showNotification(
         _buildNotificationData(alert),
       );

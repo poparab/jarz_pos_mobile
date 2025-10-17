@@ -155,14 +155,29 @@ class OrderAlertBridge {
 
   void _handleRealtimeInvoice(Map<String, dynamic> payload) {
     try {
+      _logger.info("Websocket invoice received: ${payload.toString()}");
+      
       final alert = InvoiceAlert.fromDynamic(payload);
       final id = payload['name'] ?? payload['invoice_id'];
-      _logger.info("Websocket invoice payload name=$id requires=${alert.requiresAcceptance}");
+      final acceptanceStatus = payload['acceptance_status'] ?? payload['custom_acceptance_status'] ?? 'Unknown';
+      
+      _logger.info(
+        "Websocket invoice payload name=$id "
+        "requires=${alert.requiresAcceptance} "
+        "acceptance=$acceptanceStatus "
+        "posProfile=${alert.posProfile}"
+      );
+      
       if (!alert.requiresAcceptance) {
+        _logger.info("Skipping invoice $id - does not require acceptance (status=$acceptanceStatus)");
         return;
       }
+      
       final controller = _ref.read(orderAlertControllerProvider.notifier);
+      _logger.info("Enqueuing alert for invoice $id");
       unawaited(controller.enqueueAlert(alert, fromNotification: false));
+      
+      // Sync pending alerts to ensure we have the latest from server
       unawaited(controller.syncPendingAlerts());
     } catch (error, stackTrace) {
       _logger.error('Failed to enqueue realtime invoice alert', error, stackTrace);

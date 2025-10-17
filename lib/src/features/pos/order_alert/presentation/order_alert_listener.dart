@@ -59,12 +59,24 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
     final nextActive = next.active;
     final previousActive = previous?.active;
 
+    debugPrint(
+      '🔔 OrderAlertListener: State changed - '
+      'nextActive=${nextActive?.invoiceId} '
+      'previousActive=${previousActive?.invoiceId} '
+      'dialogVisible=$_dialogVisible '
+      'queueLen=${next.queue.length}'
+    );
+
     if (nextActive != null &&
         (!_dialogVisible ||
             previousActive?.invoiceId != nextActive.invoiceId)) {
+      debugPrint('🔔 SHOWING dialog for ${nextActive.invoiceId}');
       _showDialog();
     } else if (nextActive == null && _dialogVisible) {
+      debugPrint('🔔 CLOSING dialog - no active alerts');
       _closeDialog();
+    } else if (nextActive != null && _dialogVisible) {
+      debugPrint('🔔 Dialog already visible for ${nextActive.invoiceId}');
     }
 
     final shouldLockVolume = next.hasActive && !next.isMuted && !isManager;
