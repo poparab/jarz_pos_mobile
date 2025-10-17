@@ -68,11 +68,13 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     if (!hasActive && !state.isMuted) {
       _logger.info('Starting alarm for invoice ${alert.invoiceId}');
       await OrderAlertNativeChannel.startAlarm();
-      if (!fromNotification) {
-        await OrderAlertNativeChannel.showNotification(
-          _buildNotificationData(alert),
-        );
-      }
+    }
+
+    if (fromNotification || (!hasActive && !state.isMuted)) {
+      // Ensure a heads-up notification in both FCM and local-triggered paths.
+      await OrderAlertNativeChannel.showNotification(
+        _buildNotificationData(alert),
+      );
     }
   }
 
