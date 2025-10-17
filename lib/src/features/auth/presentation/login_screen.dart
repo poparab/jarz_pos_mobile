@@ -14,6 +14,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   late final TextEditingController _usernameController;
   late final TextEditingController _passwordController;
+  bool _isPasswordObscured = true;
 
   @override
   void initState() {
@@ -47,8 +48,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const SizedBox(height: 12),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
-              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordObscured
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordObscured = !_isPasswordObscured;
+                    });
+                  },
+                  tooltip: _isPasswordObscured
+                      ? 'Show password'
+                      : 'Hide password',
+                ),
+              ),
+              obscureText: _isPasswordObscured,
             ),
             const SizedBox(height: 24),
             state.isLoading
@@ -62,7 +80,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         _usernameController.text.trim(),
                         _passwordController.text,
                       );
-                      final success = ref.read(loginNotifierProvider).value ?? false;
+                      final success =
+                          ref.read(loginNotifierProvider).value ?? false;
                       if (!mounted) return;
                       if (success) {
                         router.go('/pos');
