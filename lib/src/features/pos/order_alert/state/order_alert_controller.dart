@@ -150,10 +150,24 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     }
     _loadingPending = true;
     try {
-    final alerts = await _service.getPendingAlerts();
-    final now = DateTime.now();
-    _logger.info("syncPendingAlerts fetched ${alerts.length} alerts");
+      final alerts = await _service.getPendingAlerts();
+      final now = DateTime.now();
+      _logger.info("syncPendingAlerts fetched ${alerts.length} alerts from server");
+      
+      // If we have local alerts but server returns empty, DON'T clear them immediately
+      // This handles the race condition where notification arrives before server API updates
+      if (alerts.isEmpty && state.queue.isNotEmpty) {
+        _logger.warning(
+          "Server returned 0 alerts but we have ${state.queue.length} local alerts. "
+          "Keeping local alerts to avoid race condition."
+        );
+        state = state.copyWith(lastSynced: now);
+        _loadingPending = false;
+        return;
+      }
+      
       if (alerts.isEmpty) {
+        _logger.info("No pending alerts from server, clearing local queue");
         if (state.hasActive) {
           await OrderAlertNativeChannel.stopAlarm();
         }
