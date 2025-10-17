@@ -79,7 +79,31 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
         debugPrint('🔔 SHOWING NEW dialog for ${nextActive.invoiceId} (different from current)');
         _showDialog(nextActive.invoiceId);
       } else {
-        debugPrint('🔔 Dialog already showing for correct invoice ${nextActive.invoiceId}');
+        // CRITICAL FIX: Even if we think dialog is showing, verify and force re-show
+        // This handles the case where dialog state is out of sync with actual UI
+        debugPrint('🔔 ⚠️ Dialog claims to be showing for ${nextActive.invoiceId}');
+        debugPrint('🔔 ⚠️ Verifying by attempting to close and re-show...');
+        
+        // Try to close any existing dialog
+        final navigator = Navigator.of(context, rootNavigator: true);
+        if (navigator.canPop()) {
+          debugPrint('🔔 Found existing dialog route, closing it');
+          navigator.pop();
+        } else {
+          debugPrint('🔔 ❌ No dialog route found - state was incorrect!');
+        }
+        
+        // Reset state and force show
+        _dialogVisible = false;
+        _currentDialogInvoiceId = null;
+        
+        // Show dialog after a brief delay to ensure clean state
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            debugPrint('🔔 Re-showing dialog after state reset');
+            _showDialog(nextActive.invoiceId);
+          }
+        });
       }
     } else if (_dialogVisible) {
       debugPrint('🔔 CLOSING dialog - no active alerts');
@@ -127,6 +151,12 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
   void _showDialog(String invoiceId) {
     if (!mounted) {
       debugPrint('🔔 ❌ Cannot show dialog - widget not mounted');
+      return;
+    }
+    
+    // Check if context is valid
+    if (!context.mounted) {
+      debugPrint('🔔 ❌ Cannot show dialog - context not mounted');
       return;
     }
     
