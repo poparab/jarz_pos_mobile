@@ -224,26 +224,32 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
   }
 
   Future<void> handleInvoiceAccepted(String invoiceId) async {
+    _logger.info("handleInvoiceAccepted invoice=$invoiceId - stopping alarm and removing from queue");
+    
+    // ALWAYS stop the alarm when we receive an acceptance notification
+    // This ensures that if another device accepted, this device stops ringing
+    await OrderAlertNativeChannel.stopAlarm();
+    await OrderAlertNativeChannel.cancelNotification(invoiceId);
+    
     final wasActive = state.active?.invoiceId == invoiceId;
     final removed = _removeInvoice(invoiceId);
     _logger.info("handleInvoiceAccepted invoice=$invoiceId removed=$removed wasActive=$wasActive");
+    
     if (!removed) {
+      // Even if we don't have this invoice locally, ensure alarm is stopped
+      _logger.info("Invoice $invoiceId not in local queue but stopping alarm anyway");
       return;
     }
 
     if (wasActive) {
-      await OrderAlertNativeChannel.stopAlarm();
-      await OrderAlertNativeChannel.cancelNotification(invoiceId);
       final next = state.active;
       if (next != null && !state.isMuted) {
-        _logger.info('Switching alarm to invoice ${next.invoiceId}');
+        _logger.info('Switching alarm to next invoice ${next.invoiceId}');
         await OrderAlertNativeChannel.startAlarm();
       }
       if (!state.hasActive) {
         state = state.copyWith(isMuted: false, clearError: true);
       }
-    } else {
-      await OrderAlertNativeChannel.cancelNotification(invoiceId);
     }
   }
 

@@ -8,6 +8,7 @@ import '../../../core/network/courier_service.dart';
 import 'settlement_preview_dialog.dart';
 import '../../printing/pos_printer_provider.dart';
 import '../../printing/pos_printer_service.dart';
+import '../../pos/order_alert/data/order_alert_service.dart';
 // Invoice card widget displaying a Sales Invoice within the Kanban board.
 
 class InvoiceCardWidget extends ConsumerStatefulWidget {
@@ -30,6 +31,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   bool _isExpanded = false;
   late AnimationController _animationController;
   late Animation<double> _animation;
+  bool _isAccepting = false; // Track acceptance state for optimistic UI
 
   @override
   void initState() {
@@ -134,6 +136,100 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     }
   }
 
+  Future<void> _acceptOrder(BuildContext context) async {
+    // Set optimistic state immediately
+    setState(() {
+      _isAccepting = true;
+    });
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 8),
+            Text('Accept Order'),
+          ],
+        ),
+        content: Text(
+          'Accept order ${_shortInvoiceName(widget.invoice.name)} for ${widget.invoice.customerName}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            icon: const Icon(Icons.check),
+            label: const Text('Accept'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[600],
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      // Reset if user cancels
+      setState(() {
+        _isAccepting = false;
+      });
+      return;
+    }
+
+    // Call the acknowledgment API
+    try {
+      final orderAlertService = ref.read(orderAlertServiceProvider);
+      await orderAlertService.acknowledgeInvoice(widget.invoice.id);
+      
+      if (!context.mounted) return;
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 8),
+              Text('Order ${_shortInvoiceName(widget.invoice.name)} accepted!'),
+            ],
+          ),
+          backgroundColor: Colors.green[600],
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Refresh the kanban board to update the UI
+      ref.read(kanbanProvider.notifier).loadInvoices();
+    } catch (e) {
+      // Reset state on error
+      setState(() {
+        _isAccepting = false;
+      });
+      
+      if (!context.mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(child: Text('Failed to accept order: $e')),
+            ],
+          ),
+          backgroundColor: Colors.red[600],
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
   String _shortInvoiceName(String full) {
     const prefix = 'ACC-SINV-';
     if (full.startsWith(prefix)) {
@@ -185,7 +281,34 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     // Show settlement only when backend indicates there is an unsettled courier transaction
     final hasUnsettled = widget.invoice.hasUnsettledCourierTxn;
     final hasPartner = (widget.invoice.salesPartner ?? '').isNotEmpty;
+    final requiresAcceptance = widget.invoice.requiresAcceptance;
     final trailingWidgets = <Widget>[];
+
+    // Add prominent acceptance button if pending (not already accepted or accepting)
+    if (requiresAcceptance && !widget.invoice.isAccepted && !_isAccepting) {
+      trailingWidgets.add(
+        Tooltip(
+          message: 'Accept Order',
+          child: Container(
+            margin: const EdgeInsets.only(right: 4),
+            child: ElevatedButton.icon(
+              onPressed: transitioning ? null : () => _acceptOrder(context),
+              icon: const Icon(Icons.check_circle, size: 16),
+              label: const Text('Accept', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green[600],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     if (widget.invoice.isPickup) {
       trailingWidgets.add(
@@ -357,8 +480,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: widget.isDragging ? Colors.blue : Colors.grey[300]!,
-            width: widget.isDragging ? 2 : 1,
+            color: (widget.invoice.isAccepted || _isAccepting)
+                ? Colors.green[600]!
+                : (widget.isDragging ? Colors.blue : Colors.grey[300]!),
+            width: (widget.invoice.isAccepted || _isAccepting) ? 2 : (widget.isDragging ? 2 : 1),
           ),
         ),
         child: Column(

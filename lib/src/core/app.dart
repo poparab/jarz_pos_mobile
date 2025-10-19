@@ -13,7 +13,7 @@ import '../features/pos/state/courier_ws_bridge.dart';
 import '../features/printing/pos_printer_provider.dart';
 import 'network/user_service.dart';
 import '../features/pos/order_alert/order_alert_bridge.dart';
-import '../features/pos/order_alert/presentation/order_alert_listener.dart';
+import '../features/pos/order_alert/presentation/order_alert_overlay.dart';
 
 class JarzPosApp extends ConsumerWidget {
   const JarzPosApp({super.key});
@@ -83,7 +83,7 @@ class JarzPosApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
         final routed = child ?? const SizedBox.shrink();
-        return OrderAlertListener(
+        return OrderAlertOverlay(
           child: GestureDetector(
             onTap: () {
               final currentScope = FocusScope.of(context);

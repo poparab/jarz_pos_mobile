@@ -3,10 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/invoice_alert.dart';
 import '../state/order_alert_controller.dart';
-import '../../../../core/network/user_service.dart';
 
 class OrderAlertDialog extends ConsumerWidget {
-  const OrderAlertDialog({super.key});
+  const OrderAlertDialog({
+    this.onAccept,
+    this.onMute,
+    this.isMuted = false,
+    this.isAcknowledging = false,
+    this.error,
+    super.key,
+  });
+
+  final VoidCallback? onAccept;
+  final VoidCallback? onMute;
+  final bool isMuted;
+  final bool isAcknowledging;
+  final String? error;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,8 +36,6 @@ class OrderAlertDialog extends ConsumerWidget {
 
     debugPrint('🔔 📱 OrderAlertDialog: Rendering AlertDialog for ${alert.invoiceId}');
     
-    final canMute = ref.watch(isJarzManagerProvider);
-
     final theme = Theme.of(context);
     final items = alert.items.take(8).toList();
 
@@ -115,36 +125,43 @@ class OrderAlertDialog extends ConsumerWidget {
                 ),
               ),
             ],
-          ],
-        ),
-      ),
-      actions: [
-        if (canMute)
-          TextButton.icon(
-            onPressed: state.isAcknowledging
-                ? null
-                : () => _toggleMute(ref, state.isMuted),
-            icon: Icon(
-              state.isMuted
-                  ? Icons.volume_up_outlined
-                  : Icons.volume_off_outlined,
+          if (error != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              error!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
             ),
-            label: Text(state.isMuted ? 'Unmute Alarm' : 'Mute Alarm'),
+          ],
+        ],
+      ),
+    ),
+    actions: [
+      if (onMute != null)
+        TextButton.icon(
+          onPressed: isAcknowledging ? null : onMute,
+          icon: Icon(
+            isMuted
+                ? Icons.volume_up_outlined
+                : Icons.volume_off_outlined,
           ),
-        FilledButton.icon(
-          onPressed: state.isAcknowledging ? null : () => _acknowledge(ref),
-          icon: state.isAcknowledging
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.check_circle_outline),
-          label: Text(state.isAcknowledging ? 'Accepting…' : 'Accept Order'),
+          label: Text(isMuted ? 'Unmute Alarm' : 'Mute Alarm'),
         ),
-      ],
-    );
-  }
+      FilledButton.icon(
+        onPressed: isAcknowledging ? null : (onAccept ?? () {}),
+        icon: isAcknowledging
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.check_circle_outline),
+        label: Text(isAcknowledging ? 'Accepting…' : 'Accept Order'),
+      ),
+    ],
+  );
+}
 
   Widget _buildField(ThemeData theme, String label, String value) {
     return Column(
@@ -170,18 +187,5 @@ class OrderAlertDialog extends ConsumerWidget {
     if (date.isEmpty) return time;
     if (time.isEmpty) return date;
     return '$date • $time';
-  }
-
-  Future<void> _acknowledge(WidgetRef ref) async {
-    await ref.read(orderAlertControllerProvider.notifier).acknowledgeActive();
-  }
-
-  Future<void> _toggleMute(WidgetRef ref, bool isMuted) async {
-    final controller = ref.read(orderAlertControllerProvider.notifier);
-    if (isMuted) {
-      await controller.unmuteAlerts();
-    } else {
-      await controller.muteActiveAlert();
-    }
   }
 }

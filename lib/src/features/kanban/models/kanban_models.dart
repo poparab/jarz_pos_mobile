@@ -49,6 +49,8 @@ class InvoiceCard {
   final bool hasUnsettledCourierTxn; // new flag from backend
   final String? salesPartner; // optional sales partner on the invoice
   final bool isPickup; // new: pickup orders
+  final String? acceptanceStatus; // new: Pending/Accepted status for order acceptance
+  final bool? requiresAcceptanceFlag; // optional flag directly from backend
 
   InvoiceCard({
     required this.id,
@@ -79,9 +81,24 @@ class InvoiceCard {
   this.hasUnsettledCourierTxn = false,
   this.salesPartner,
   this.isPickup = false,
+  this.acceptanceStatus,
+  this.requiresAcceptanceFlag,
   });
 
   factory InvoiceCard.fromJson(Map<String, dynamic> json) {
+    bool? requiresAcceptanceFlag;
+    final rawRequiresAcceptance = json['requires_acceptance'];
+    if (rawRequiresAcceptance is bool) {
+      requiresAcceptanceFlag = rawRequiresAcceptance;
+    } else if (rawRequiresAcceptance is num) {
+      requiresAcceptanceFlag = rawRequiresAcceptance != 0;
+    } else if (rawRequiresAcceptance is String) {
+      final normalized = rawRequiresAcceptance.trim().toLowerCase();
+      if (normalized.isNotEmpty) {
+        requiresAcceptanceFlag = ['1', 'true', 'yes', 'y'].contains(normalized);
+      }
+    }
+
     return InvoiceCard(
       id: json['name'] ?? '',
       invoiceIdShort: json['invoice_id_short'] ?? '',
@@ -114,6 +131,8 @@ class InvoiceCard {
   salesPartner: (json['sales_partner'] ?? json['salesPartner'] ?? json['partner'])?.toString(),
       isPickup: [1, true, '1', 'true', 'True'].contains(json['is_pickup']) ||
           ((json['remarks'] ?? '').toString().toLowerCase().contains('[pickup]')),
+      acceptanceStatus: (json['acceptance_status'] ?? json['custom_acceptance_status'])?.toString(),
+      requiresAcceptanceFlag: requiresAcceptanceFlag,
     );
   }
 
@@ -146,6 +165,8 @@ class InvoiceCard {
   'has_unsettled_courier_txn': hasUnsettledCourierTxn,
   'sales_partner': salesPartner,
   'is_pickup': isPickup,
+  'acceptance_status': acceptanceStatus,
+  'requires_acceptance': requiresAcceptanceFlag,
     };
   }
 
@@ -178,6 +199,8 @@ class InvoiceCard {
   bool? hasUnsettledCourierTxn,
   String? salesPartner,
   bool? isPickup,
+  String? acceptanceStatus,
+  bool? requiresAcceptanceFlag,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -208,8 +231,21 @@ class InvoiceCard {
   hasUnsettledCourierTxn: hasUnsettledCourierTxn ?? this.hasUnsettledCourierTxn,
   salesPartner: salesPartner ?? this.salesPartner,
   isPickup: isPickup ?? this.isPickup,
+  acceptanceStatus: acceptanceStatus ?? this.acceptanceStatus,
+  requiresAcceptanceFlag: requiresAcceptanceFlag ?? this.requiresAcceptanceFlag,
     );
   }
+
+  // New getter for checking if invoice requires acceptance
+  bool get requiresAcceptance {
+    if (requiresAcceptanceFlag != null) {
+      return requiresAcceptanceFlag!;
+    }
+    final status = (acceptanceStatus ?? '').toLowerCase();
+    return status == 'pending' || status == '';
+  }
+  
+  bool get isAccepted => (acceptanceStatus ?? '').toLowerCase() == 'accepted';
 
   // UI compatibility getters
   String get name => id;

@@ -137,10 +137,14 @@ class OrderAlertBridge {
       case 'invoice_accepted':
         final invoiceId = data['invoice_id']?.toString();
         if (invoiceId != null && invoiceId.isNotEmpty) {
-          _logger.info('FCM invoice_accepted: $invoiceId');
+          _logger.info('FCM invoice_accepted: $invoiceId - stopping alarm on this device');
           final controller = _ref.read(orderAlertControllerProvider.notifier);
-          unawaited(controller.handleInvoiceAccepted(invoiceId));
-          unawaited(controller.syncPendingAlerts());
+          
+          // Handle acceptance immediately - this stops the alarm
+          unawaited(Future(() async {
+            await controller.handleInvoiceAccepted(invoiceId);
+            await controller.syncPendingAlerts();
+          }));
         }
         break;
       default:
@@ -158,9 +162,13 @@ class OrderAlertBridge {
     } else if (type == 'invoice_accepted') {
       final invoiceId = payload['invoice_id'];
       if (invoiceId != null && invoiceId.isNotEmpty) {
+        _logger.info('Launch payload invoice_accepted: $invoiceId - stopping alarm');
         final controller = _ref.read(orderAlertControllerProvider.notifier);
-        unawaited(controller.handleInvoiceAccepted(invoiceId));
-        unawaited(controller.syncPendingAlerts());
+        // Use await to ensure alarm stops before continuing
+        Future(() async {
+          await controller.handleInvoiceAccepted(invoiceId);
+          await controller.syncPendingAlerts();
+        });
       }
     }
   }
