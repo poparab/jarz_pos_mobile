@@ -1,3 +1,5 @@
+import 'dart:ui' show PointerDeviceKind;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -29,6 +31,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   bool _showFilters = false;
   bool _allowHScroll = true; // new state
   bool _posProfileDialogActive = false;
+  late final ScrollController _horizontalScrollController;
   ProviderSubscription<PosState>? _posStateSubscription;
   DateTime? _lastBackPress;
 
@@ -40,6 +43,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   @override
   void initState() {
     super.initState();
+    _horizontalScrollController = ScrollController();
     _posStateSubscription = ref.listenManual<PosState>(
       posNotifierProvider,
       (previous, next) {
@@ -251,6 +255,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   @override
   void dispose() {
     _posStateSubscription?.close();
+    _horizontalScrollController.dispose();
     // Unsubscribe
     try { routeObserver.unsubscribe(this); } catch (_) {}
     super.dispose();
@@ -331,28 +336,38 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       );
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: _allowHScroll ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final column in kanbanState.columns) ...[
-            Container(
-              width: 300,
-              margin: const EdgeInsets.only(right: 16),
-              child: KanbanColumnWidget(
-                column: column,
-                invoices: kanbanState.invoices[column.id] ?? const [],
-                canAcceptMove: _canAcceptCardMove,
-                onCardMoved: (invoiceId, fromColumnId, newColumnId) =>
-                    _handleCardMove(invoiceId, fromColumnId, newColumnId),
-                onCardPointerActive: (active) => _setScrollActive(!active),
-              ),
-            )
-          ]
-        ],
+    return ScrollConfiguration(
+      behavior: const _KanbanScrollBehavior(),
+      child: Scrollbar(
+        controller: _horizontalScrollController,
+        thumbVisibility: true,
+        thickness: 8,
+        radius: const Radius.circular(12),
+        child: SingleChildScrollView(
+          controller: _horizontalScrollController,
+          scrollDirection: Axis.horizontal,
+          physics: _allowHScroll ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final column in kanbanState.columns) ...[
+                Container(
+                  width: 300,
+                  margin: const EdgeInsets.only(right: 16),
+                  child: KanbanColumnWidget(
+                    column: column,
+                    invoices: kanbanState.invoices[column.id] ?? const [],
+                    canAcceptMove: _canAcceptCardMove,
+                    onCardMoved: (invoiceId, fromColumnId, newColumnId) =>
+                        _handleCardMove(invoiceId, fromColumnId, newColumnId),
+                    onCardPointerActive: (active) => _setScrollActive(!active),
+                  ),
+                )
+              ]
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1079,6 +1094,19 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     }
     return false;
   }
+}
+
+class _KanbanScrollBehavior extends MaterialScrollBehavior {
+  const _KanbanScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => const {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.stylus,
+        PointerDeviceKind.invertedStylus,
+        PointerDeviceKind.unknown,
+      };
 }
 
 

@@ -25,6 +25,19 @@ class KanbanColumnWidget extends StatefulWidget { // changed to Stateful for hov
 class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
   bool _isDragOver = false;
   String? _draggingId;
+  late final ScrollController _columnScrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _columnScrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _columnScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -187,10 +200,17 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
 
   Widget _buildList() {
     if (widget.invoices.isEmpty) return _buildEmptyState();
-    return ListView.builder(
-      padding: const EdgeInsets.only(right: 4, left: 4, top: 4, bottom: 2),
-      itemCount: widget.invoices.length,
-      itemBuilder: (context, index) {
+    return Scrollbar(
+      controller: _columnScrollController,
+      thumbVisibility: true,
+      radius: const Radius.circular(10),
+      thickness: 6,
+      child: ListView.builder(
+        controller: _columnScrollController,
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        padding: const EdgeInsets.only(right: 4, left: 4, top: 4, bottom: 2),
+        itemCount: widget.invoices.length,
+        itemBuilder: (context, index) {
         final invoice = widget.invoices[index];
         final isDraggingThis = _draggingId == invoice.id;
         return Listener(
@@ -252,7 +272,8 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
             ),
           ),
         );
-      },
+        },
+      ),
     );
   }
 
