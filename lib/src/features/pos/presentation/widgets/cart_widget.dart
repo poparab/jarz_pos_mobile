@@ -660,6 +660,7 @@ class CartWidget extends ConsumerWidget {
     // Sales partner orders require choosing how the partner will pay
     String? paymentType;
     if (state.selectedSalesPartner != null) {
+      if (!context.mounted) return;
       paymentType = await _promptSalesPartnerPayment(context);
       if (paymentType == null) {
         return; // user cancelled the dialog
