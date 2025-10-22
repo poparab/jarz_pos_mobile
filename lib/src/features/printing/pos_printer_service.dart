@@ -211,7 +211,7 @@ class PosPrinterService extends ChangeNotifier {
     if (_connecting) return false; _connecting = true;
     try {
       _device = device;
-      await device.connect(autoConnect: false).timeout(const Duration(seconds: 10), onTimeout: () => device.disconnect());
+      await device.connect(autoConnect: false, license: License.free).timeout(const Duration(seconds: 10), onTimeout: () => device.disconnect());
       await _discoverWriteCharacteristic(device);
       if (_writeChar != null) {
         try { await _prefsBox?.put(_lastPrinterKey, device.remoteId.str); await _prefsBox?.put(_lastPrinterTypeKey, 'ble'); } catch (_) {}
