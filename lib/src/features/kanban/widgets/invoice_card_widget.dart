@@ -588,6 +588,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                   ],
                                 ),
                               ],
+                              // Payment method badge
+                              if (widget.invoice.paymentMethod != null && widget.invoice.paymentMethod!.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                _buildPaymentMethodBadge(widget.invoice.paymentMethod!),
+                              ],
                             ],
                           ),
                         ),
@@ -1648,6 +1653,59 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       messenger.showSnackBar(SnackBar(content: Text('Settlement error: $e')));
     }
   }
+
+  /// Build payment method badge with color coding
+  Widget _buildPaymentMethodBadge(String paymentMethod) {
+    Color bgColor;
+    Color textColor;
+    IconData icon;
+
+    switch (paymentMethod) {
+      case 'Cash':
+        bgColor = Colors.green[50]!;
+        textColor = Colors.green[700]!;
+        icon = Icons.attach_money;
+        break;
+      case 'Instapay':
+        bgColor = Colors.blue[50]!;
+        textColor = Colors.blue[700]!;
+        icon = Icons.account_balance;
+        break;
+      case 'Mobile Wallet':
+        bgColor = Colors.purple[50]!;
+        textColor = Colors.purple[700]!;
+        icon = Icons.phone_android;
+        break;
+      default:
+        bgColor = Colors.grey[100]!;
+        textColor = Colors.grey[700]!;
+        icon = Icons.payment;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: textColor),
+          const SizedBox(width: 4),
+          Text(
+            paymentMethod,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // End of InvoiceCardWidget state class
+

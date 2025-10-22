@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../state/pos_notifier.dart';
+import '../dialogs/payment_method_dialog.dart';
 import 'bundle_selection_widget.dart';
 import 'delivery_slot_selection.dart';
 
@@ -646,6 +647,16 @@ class CartWidget extends ConsumerWidget {
       return;
     }
 
+    // Payment method selection for non-sales partner orders
+    String? paymentMethod;
+    if (state.selectedSalesPartner == null) {
+      // Show payment method dialog
+      paymentMethod = await PaymentMethodDialog.show(context);
+      if (paymentMethod == null) {
+        return; // user cancelled the dialog
+      }
+    }
+
     // Sales partner orders require choosing how the partner will pay
     String? paymentType;
     if (state.selectedSalesPartner != null) {
@@ -660,7 +671,11 @@ class CartWidget extends ConsumerWidget {
 
     await ref
         .read(posNotifierProvider.notifier)
-        .checkout(paymentType: paymentType, overridePosProfileName: overridePosProfileName);
+        .checkout(
+          paymentType: paymentType, 
+          overridePosProfileName: overridePosProfileName,
+          paymentMethod: paymentMethod,
+        );
     final updatedState = ref.read(posNotifierProvider);
 
     if (context.mounted) {

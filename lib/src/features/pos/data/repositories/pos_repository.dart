@@ -250,8 +250,9 @@ class PosRepository {
     Map<String, dynamic>? customer,
     String? requiredDeliveryDatetime,
     String? salesPartner,
-  String? paymentType, // 'cash' | 'online' (optional, advisory)
-  bool isPickup = false,
+    String? paymentType, // 'cash' | 'online' (optional, advisory)
+    bool isPickup = false,
+    String? paymentMethod, // 'Cash' | 'Instapay' | 'Mobile Wallet'
   }) async {
     try {
       // Convert cart items to backend format (preserve discount fields if present)
@@ -347,6 +348,11 @@ class PosRepository {
       // Optional advisory flag for backend – lets server record intended payment channel
       if (paymentType != null && paymentType.isNotEmpty) {
         requestData['payment_type'] = paymentType; // values: 'cash' | 'online'
+      }
+
+      // Payment method field (Cash, Instapay, Mobile Wallet)
+      if (paymentMethod != null && paymentMethod.isNotEmpty) {
+        requestData['payment_method'] = paymentMethod;
       }
 
       if (kDebugMode) {

@@ -409,7 +409,11 @@ class PosNotifier extends StateNotifier<PosState> {
     }
   }
 
-  Future<void> checkout({String? paymentType, String? overridePosProfileName}) async {
+  Future<void> checkout({
+    String? paymentType, 
+    String? overridePosProfileName, 
+    String? paymentMethod,
+  }) async {
     if (state.cartItems.isEmpty) {
       state = state.copyWith(error: 'Cart is empty', clearError: false);
       return;
@@ -451,6 +455,7 @@ class PosNotifier extends StateNotifier<PosState> {
         isPickup: state.isPickup,
         salesPartner: state.selectedSalesPartner?['name'],
         paymentType: paymentType,
+        paymentMethod: paymentMethod,
       );
 
       if (kDebugMode) {

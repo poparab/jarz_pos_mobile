@@ -51,6 +51,7 @@ class InvoiceCard {
   final bool isPickup; // new: pickup orders
   final String? acceptanceStatus; // new: Pending/Accepted status for order acceptance
   final bool? requiresAcceptanceFlag; // optional flag directly from backend
+  final String? paymentMethod; // new: Cash, Instapay, or Mobile Wallet
 
   InvoiceCard({
     required this.id,
@@ -83,6 +84,7 @@ class InvoiceCard {
   this.isPickup = false,
   this.acceptanceStatus,
   this.requiresAcceptanceFlag,
+  this.paymentMethod,
   });
 
   factory InvoiceCard.fromJson(Map<String, dynamic> json) {
@@ -133,6 +135,7 @@ class InvoiceCard {
           ((json['remarks'] ?? '').toString().toLowerCase().contains('[pickup]')),
       acceptanceStatus: (json['acceptance_status'] ?? json['custom_acceptance_status'])?.toString(),
       requiresAcceptanceFlag: requiresAcceptanceFlag,
+      paymentMethod: (json['payment_method'] ?? json['custom_payment_method'])?.toString(),
     );
   }
 
@@ -167,6 +170,7 @@ class InvoiceCard {
   'is_pickup': isPickup,
   'acceptance_status': acceptanceStatus,
   'requires_acceptance': requiresAcceptanceFlag,
+  'payment_method': paymentMethod,
     };
   }
 
@@ -201,6 +205,7 @@ class InvoiceCard {
   bool? isPickup,
   String? acceptanceStatus,
   bool? requiresAcceptanceFlag,
+  String? paymentMethod,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -233,6 +238,7 @@ class InvoiceCard {
   isPickup: isPickup ?? this.isPickup,
   acceptanceStatus: acceptanceStatus ?? this.acceptanceStatus,
   requiresAcceptanceFlag: requiresAcceptanceFlag ?? this.requiresAcceptanceFlag,
+  paymentMethod: paymentMethod ?? this.paymentMethod,
     );
   }
 
