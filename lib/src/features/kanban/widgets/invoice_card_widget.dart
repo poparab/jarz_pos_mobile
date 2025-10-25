@@ -5,6 +5,8 @@ import '../models/kanban_models.dart';
 import '../providers/kanban_provider.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../../core/network/courier_service.dart';
+import '../../../core/network/user_service.dart';
+import '../../manager/data/manager_api.dart';
 import 'settlement_preview_dialog.dart';
 import '../../printing/pos_printer_provider.dart';
 import '../../printing/pos_printer_service.dart';
@@ -389,6 +391,52 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           splashRadius: 20,
           onPressed: transitioning ? null : () => _printInvoice(context),
+        ),
+      ),
+    );
+
+    // Add three-dot menu for additional actions
+    final isLineManager = ref.watch(isLineManagerProvider);
+    
+    trailingWidgets.add(
+      Tooltip(
+        message: 'More Options',
+        child: PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert, size: 18),
+          padding: const EdgeInsets.all(6),
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          splashRadius: 20,
+          enabled: !transitioning,
+          onSelected: (value) async {
+            if (value == 'edit_address') {
+              await _editCustomerAddress(context);
+            } else if (value == 'transfer_order') {
+              await _transferOrder(context);
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'edit_address',
+              child: Row(
+                children: [
+                  Icon(Icons.edit_location, size: 18),
+                  SizedBox(width: 8),
+                  Text('Edit Customer Address'),
+                ],
+              ),
+            ),
+            if (isLineManager)
+              const PopupMenuItem(
+                value: 'transfer_order',
+                child: Row(
+                  children: [
+                    Icon(Icons.swap_horiz, size: 18),
+                    SizedBox(width: 8),
+                    Text('Transfer Order'),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -1704,6 +1752,469 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ],
       ),
     );
+  }
+
+  /// Edit customer address dialog
+  Future<void> _editCustomerAddress(BuildContext context) async {
+    final addressController = TextEditingController(text: widget.invoice.address);
+    final phoneController = TextEditingController(text: widget.invoice.customerPhone ?? '');
+    
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.edit_location, color: Colors.blue),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Edit Customer Address',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 500,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Customer name (read-only)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.person, size: 20, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Customer',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            Text(
+                              widget.invoice.customerName,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Phone number
+                TextField(
+                  controller: phoneController,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone Number',
+                    prefixIcon: Icon(Icons.phone),
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 16),
+                
+                // Address
+                TextField(
+                  controller: addressController,
+                  decoration: const InputDecoration(
+                    labelText: 'Delivery Address',
+                    prefixIcon: Icon(Icons.location_on),
+                    border: OutlineInputBorder(),
+                    helperText: 'Enter the full delivery address',
+                  ),
+                  maxLines: 3,
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 12),
+                
+                // Info message
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue[200]!),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.info_outline, size: 18, color: Colors.blue[700]),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'This will update the customer\'s default address and phone number.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue[900],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              final newAddress = addressController.text.trim();
+              final newPhone = phoneController.text.trim();
+              
+              if (newAddress.isEmpty) {
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  const SnackBar(content: Text('Address cannot be empty')),
+                );
+                return;
+              }
+              
+              Navigator.pop(ctx, {
+                'address': newAddress,
+                'phone': newPhone,
+              });
+            },
+            icon: const Icon(Icons.save),
+            label: const Text('Save'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[600],
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result == null || !context.mounted) return;
+
+    // Show loading indicator
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            ),
+            SizedBox(width: 12),
+            Text('Updating customer address...'),
+          ],
+        ),
+        duration: Duration(seconds: 30),
+      ),
+    );
+
+    try {
+      final notifier = ref.read(kanbanProvider.notifier);
+      final success = await notifier.updateCustomerAddress(
+        customer: widget.invoice.customer,
+        address: result['address']!,
+        phone: result['phone']!,
+      );
+
+      messenger.clearSnackBars();
+      
+      if (success) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                const Text('Customer address updated successfully'),
+              ],
+            ),
+            backgroundColor: Colors.green[600],
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        
+        // Refresh the invoice to show updated address
+        await notifier.refreshSingle(widget.invoice.name);
+      } else {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 12),
+                const Text('Failed to update address'),
+              ],
+            ),
+            backgroundColor: Colors.red[600],
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(child: Text('Error: $e')),
+            ],
+          ),
+          backgroundColor: Colors.red[600],
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  // Transfer order to another POS profile
+  Future<void> _transferOrder(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final notifier = ref.read(kanbanProvider.notifier);
+
+    try {
+      // Get current POS profile
+      final currentProfile = ref.read(posNotifierProvider).selectedProfile?['name'] as String?;
+      if (currentProfile == null) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('No POS profile selected'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
+      // Fetch available POS profiles
+      final managerApi = ref.read(managerApiProvider);
+      final summary = await managerApi.getSummary();
+      final branches = summary.branches;
+
+      if (!context.mounted) return;
+
+      // Filter out current profile
+      final availableBranches = branches
+          .where((b) => b.name != currentProfile)
+          .toList();
+
+      if (availableBranches.isEmpty) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('No other POS profiles available for transfer'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
+      // Show dialog to select target POS profile
+      String? selectedBranch = availableBranches.first.name;
+      
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) {
+          return StatefulBuilder(
+            builder: (ctx, setState) => AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.swap_horiz, size: 24),
+                  SizedBox(width: 12),
+                  Text('Transfer Order'),
+                ],
+              ),
+              content: SizedBox(
+                width: 400,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Customer: ${widget.invoice.customerName}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Invoice: ${widget.invoice.name}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Select Target POS Profile:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedBranch,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      items: availableBranches.map((branch) {
+                        return DropdownMenuItem<String>(
+                          value: branch.name,
+                          child: Text(branch.title),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedBranch = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue[200]!),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.info_outline, size: 18, color: Colors.blue),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'The order will be moved to the selected POS profile and reset to "Received" state for acceptance.',
+                              style: TextStyle(fontSize: 12, color: Colors.blue),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Transfer'),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      if (!context.mounted || confirmed != true || selectedBranch == null) return;
+
+      // Show loading indicator
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              SizedBox(width: 12),
+              Text('Transferring order...'),
+            ],
+          ),
+          duration: Duration(hours: 1),
+        ),
+      );
+
+      // Call backend to transfer (selectedBranch is guaranteed non-null here)
+      final success = await notifier.transferInvoice(
+        invoiceId: widget.invoice.name,
+        newBranch: selectedBranch!,
+      );
+
+      messenger.clearSnackBars();
+
+      if (!context.mounted) return;
+
+      if (success) {
+        // Refresh the kanban board
+        ref.invalidate(kanbanProvider);
+        
+        messenger.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Order transferred successfully to ${availableBranches.firstWhere((b) => b.name == selectedBranch).title}',
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green[600],
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      } else {
+        messenger.showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 12),
+                Expanded(child: Text('Failed to transfer order')),
+              ],
+            ),
+            backgroundColor: Colors.red[600],
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(child: Text('Error: $e')),
+            ],
+          ),
+          backgroundColor: Colors.red[600],
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 }
 

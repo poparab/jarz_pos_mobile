@@ -549,4 +549,55 @@ class KanbanService {
       rethrow;
     }
   }
+
+  /// Update customer's default address and phone number
+  Future<Map<String, dynamic>> updateCustomerAddress({
+    required String customer,
+    required String address,
+    required String phone,
+  }) async {
+    try {
+      _logger.info('Updating customer address for $customer');
+      final resp = await _dio.post(
+        '/api/method/jarz_pos.api.customer.update_default_address',
+        data: {
+          'customer': customer,
+          'address': address,
+          'phone': phone,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && (msg['success'] == true)) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? (msg['error'] ?? 'Failed to update customer address') : 'Failed to update customer address');
+    } catch (e) {
+      _logger.error('Failed to update customer address', e);
+      rethrow;
+    }
+  }
+
+  /// Transfer invoice to a different POS profile
+  Future<void> transferInvoice({
+    required String invoiceId,
+    required String newBranch,
+  }) async {
+    try {
+      _logger.info('Transferring invoice $invoiceId to $newBranch');
+      final resp = await _dio.post(
+        '/api/method/jarz_pos.api.manager.update_invoice_branch',
+        data: {
+          'invoice_id': invoiceId,
+          'new_branch': newBranch,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && !(msg['success'] == true)) {
+        throw Exception(msg['error'] ?? 'Transfer failed');
+      }
+    } catch (e) {
+      _logger.error('Failed to transfer invoice', e);
+      rethrow;
+    }
+  }
 }

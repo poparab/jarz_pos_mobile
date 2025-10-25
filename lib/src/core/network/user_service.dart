@@ -12,6 +12,7 @@ class UserRoles {
 
   bool get isJarzManager => roles.contains('JARZ Manager');
   bool get isManager => isJarzManager;
+  bool get isLineManager => roles.contains('JARZ line manager');
 
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
@@ -59,6 +60,14 @@ final isJarzManagerProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.isManager,
+    orElse: () => false,
+  );
+});
+
+final isLineManagerProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.isLineManager,
     orElse: () => false,
   );
 });

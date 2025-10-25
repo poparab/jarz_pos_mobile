@@ -966,6 +966,43 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       }
     }
   }
+
+  /// Update customer address and make it the default
+  Future<bool> updateCustomerAddress({
+    required String customer,
+    required String address,
+    required String phone,
+  }) async {
+    try {
+      final response = await _kanbanService.updateCustomerAddress(
+        customer: customer,
+        address: address,
+        phone: phone,
+      );
+      
+      return response['success'] == true || response['message'] == 'success';
+    } catch (e) {
+      debugPrint('Error updating customer address: $e');
+      rethrow;
+    }
+  }
+
+  /// Transfer invoice to a different POS profile
+  Future<bool> transferInvoice({
+    required String invoiceId,
+    required String newBranch,
+  }) async {
+    try {
+      await _kanbanService.transferInvoice(
+        invoiceId: invoiceId,
+        newBranch: newBranch,
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Transfer invoice error: $e');
+      return false;
+    }
+  }
 }
 
 // Provider for Kanban state
