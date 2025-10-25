@@ -28,11 +28,11 @@ class SessionInterceptor extends Interceptor {
       options.headers['Cookie'] = 'sid=$sessionId';
     }
     
-    // Ensure Frappe site routing for multi-tenant backend on raw :8000
+    // Ensure Frappe site routing for multi-tenant backend
     if (_frappeSite.isNotEmpty) {
       options.headers['X-Frappe-Site-Name'] = _frappeSite;
-      // Setting Host helps when hitting backend directly without nginx
-      options.headers['Host'] = _frappeSite;
+      // Note: Don't set Host header - let it be the actual domain name
+      // Setting Host to site name breaks HTTPS/domain-based routing
     }
     
     if (kDebugMode) {

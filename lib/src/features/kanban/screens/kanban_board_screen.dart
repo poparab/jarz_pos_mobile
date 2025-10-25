@@ -205,6 +205,11 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                   onPressed: () => showCourierBalancesDialog(context),
                 ),
                 IconButton(
+                  tooltip: 'User Profile',
+                  icon: const Icon(Icons.account_circle),
+                  onPressed: () => context.push('/profile'),
+                ),
+                IconButton(
                   tooltip: 'Open POS',
                   icon: const Icon(Icons.point_of_sale),
                   onPressed: () => context.push('/pos'),

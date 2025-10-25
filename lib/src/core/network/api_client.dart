@@ -7,14 +7,25 @@ class ApiClient {
   final Logger _logger = Logger("ApiClient");
   late final Dio _dio;
 
-  ApiClient(String baseUrl) {
+  ApiClient(String baseUrl, {String? siteName}) {
     _logger.info("Initializing API client with base URL: $baseUrl");
+    
+    final headers = <String, String>{
+      "Content-Type": "application/json",
+    };
+    
+    // Add X-Frappe-Site-Name header if siteName is provided
+    if (siteName != null && siteName.isNotEmpty) {
+      headers["X-Frappe-Site-Name"] = siteName;
+      _logger.info("Setting X-Frappe-Site-Name header to: $siteName");
+    }
+    
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
-        headers: {"Content-Type": "application/json"},
+        headers: headers,
       ),
     );
     // Add interceptors for logging
@@ -68,7 +79,11 @@ class ApiClient {
 final apiClientProvider = Provider<ApiClient>((ref) {
   // Get base URL from environment configuration
   final baseUrl = dotenv.env["ERP_BASE_URL"] ?? "http://192.168.1.7:8000";
+  final siteName = dotenv.env["FRAPPE_SITE"] ?? dotenv.env["SITE_NAME"];
   final logger = Logger("ApiClientProvider");
   logger.info("Creating API client with base URL: $baseUrl");
-  return ApiClient(baseUrl);
+  if (siteName != null) {
+    logger.info("Using Frappe site name: $siteName");
+  }
+  return ApiClient(baseUrl, siteName: siteName);
 });

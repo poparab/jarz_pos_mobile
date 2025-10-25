@@ -246,6 +246,10 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       if (next != null && !state.isMuted) {
         _logger.info('Switching alarm to next invoice ${next.invoiceId}');
         await OrderAlertNativeChannel.startAlarm();
+      } else {
+        // No more pending invoices - ensure alarm is completely stopped
+        _logger.info('No more pending invoices - stopping alarm completely');
+        await OrderAlertNativeChannel.stopAlarm();
       }
       if (!state.hasActive) {
         state = state.copyWith(isMuted: false, clearError: true);
