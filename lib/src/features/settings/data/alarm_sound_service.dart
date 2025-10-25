@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../pos/order_alert/order_alert_native_channel.dart';
 
 class AlarmSoundService {
@@ -30,6 +31,33 @@ class AlarmSoundService {
   /// Load available alarm sounds from the device
   Future<List<AlarmSoundOption>> getAvailableAlarmSounds() async {
     return await OrderAlertNativeChannel.getAvailableAlarmSounds();
+  }
+
+  /// Pick a custom alarm sound file from device storage
+  Future<AlarmSoundOption?> pickCustomAlarmSound() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.audio,
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final file = result.files.single;
+        final filePath = file.path!;
+        final fileName = file.name;
+        
+        // Convert file path to content URI for Android
+        final uri = 'file://$filePath';
+        
+        return AlarmSoundOption(
+          title: fileName,
+          uri: uri,
+        );
+      }
+    } catch (e) {
+      print('Error picking alarm sound: $e');
+    }
+    return null;
   }
 
   /// Preview an alarm sound

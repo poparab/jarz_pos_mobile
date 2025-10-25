@@ -286,6 +286,108 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                           ),
                         ),
                       ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      // Browse files button
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.folder_open),
+                          label: const Text('Browse Custom Sound File'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                          ),
+                          onPressed: () async {
+                            final service = ref.read(alarmSoundServiceProvider);
+                            final customSound = await service.pickCustomAlarmSound();
+                            
+                            if (customSound != null) {
+                              await service.setSelectedSound(customSound.uri, customSound.title);
+                              
+                              // Refresh the provider
+                              ref.invalidate(selectedAlarmSoundProvider);
+                              
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Custom alarm sound set: ${customSound.title}'),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                      
+                      // Show custom sound if selected
+                      if (selectedSound != null && 
+                          selectedSound.uri.startsWith('file://')) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.audio_file,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Custom Sound:',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                      ),
+                                    ),
+                                    Text(
+                                      selectedSound.title,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.play_arrow),
+                                tooltip: 'Preview',
+                                onPressed: () async {
+                                  final service = ref.read(alarmSoundServiceProvider);
+                                  await service.previewSound(selectedSound.uri);
+                                  
+                                  // Auto-stop preview after 3 seconds
+                                  Future.delayed(const Duration(seconds: 3), () {
+                                    service.stopPreview();
+                                  });
+                                },
+                              ),
+                              Icon(
+                                Icons.check_circle,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
