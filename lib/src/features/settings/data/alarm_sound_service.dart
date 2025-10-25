@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../pos/order_alert/order_alert_native_channel.dart';
 
 class AlarmSoundService {
@@ -36,26 +37,69 @@ class AlarmSoundService {
   /// Pick a custom alarm sound file from device storage
   Future<AlarmSoundOption?> pickCustomAlarmSound() async {
     try {
+      // Request storage permission first
+      print('Requesting storage permission...');
+      PermissionStatus status;
+      
+      // For Android 13+ (API 33+), request READ_MEDIA_AUDIO
+      // For Android 12 and below, request READ_EXTERNAL_STORAGE
+      if (await Permission.audio.isGranted) {
+        status = PermissionStatus.granted;
+        print('Audio permission already granted');
+      } else {
+        status = await Permission.audio.request();
+        print('Audio permission status: $status');
+        
+        if (status.isDenied || status.isPermanentlyDenied) {
+          // Try READ_EXTERNAL_STORAGE for older Android versions
+          print('Trying READ_EXTERNAL_STORAGE permission...');
+          status = await Permission.storage.request();
+          print('Storage permission status: $status');
+        }
+      }
+      
+      if (!status.isGranted) {
+        print('Storage permission not granted: $status');
+        throw Exception('Storage permission is required to browse audio files');
+      }
+      
+      print('Opening file picker...');
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.audio,
+        type: FileType.custom,
+        allowedExtensions: ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'],
         allowMultiple: false,
       );
 
-      if (result != null && result.files.single.path != null) {
+      print('File picker result: ${result?.files.length ?? 0} files');
+      
+      if (result != null && result.files.isNotEmpty) {
         final file = result.files.single;
-        final filePath = file.path!;
         final fileName = file.name;
         
-        // Convert file path to content URI for Android
-        final uri = 'file://$filePath';
+        print('Selected file: $fileName');
+        print('File path: ${file.path}');
+        
+        // For Android, we need to use the URI if available, otherwise use file path
+        String uri;
+        if (file.path != null) {
+          uri = 'file://${file.path}';
+          print('Using file URI: $uri');
+        } else {
+          print('No file path available');
+          return null;
+        }
         
         return AlarmSoundOption(
           title: fileName,
           uri: uri,
         );
+      } else {
+        print('No file selected');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Error picking alarm sound: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
     }
     return null;
   }

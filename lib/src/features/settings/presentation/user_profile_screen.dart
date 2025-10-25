@@ -303,20 +303,46 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                             ),
                           ),
                           onPressed: () async {
-                            final service = ref.read(alarmSoundServiceProvider);
-                            final customSound = await service.pickCustomAlarmSound();
+                            try {
+                              print('Button pressed - opening file picker');
+                              final service = ref.read(alarmSoundServiceProvider);
+                              final customSound = await service.pickCustomAlarmSound();
                             
-                            if (customSound != null) {
-                              await service.setSelectedSound(customSound.uri, customSound.title);
+                              print('Custom sound result: ${customSound?.title}');
+                            
+                              if (customSound != null) {
+                                await service.setSelectedSound(customSound.uri, customSound.title);
                               
-                              // Refresh the provider
-                              ref.invalidate(selectedAlarmSoundProvider);
+                                // Refresh the provider
+                                ref.invalidate(selectedAlarmSoundProvider);
                               
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Custom alarm sound set: ${customSound.title}'),
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              } else {
+                                print('No custom sound selected');
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('No file selected'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              }
+                            } catch (e) {
+                              print('Error in button handler: $e');
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Custom alarm sound set: ${customSound.title}'),
-                                    duration: const Duration(seconds: 2),
+                                    content: Text('Error: $e'),
+                                    duration: const Duration(seconds: 3),
+                                    backgroundColor: Colors.red,
                                   ),
                                 );
                               }
