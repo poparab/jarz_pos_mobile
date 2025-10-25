@@ -8,20 +8,23 @@ import '../data/order_alert_service.dart';
 import '../domain/invoice_alert.dart';
 import '../order_alert_native_channel.dart';
 import 'order_alert_state.dart';
+import '../../data/repositories/pos_repository.dart';
 
 final orderAlertControllerProvider =
     StateNotifierProvider<OrderAlertController, OrderAlertState>((ref) {
       final service = ref.watch(orderAlertServiceProvider);
-      return OrderAlertController(service);
+      final posRepo = ref.watch(posRepositoryProvider);
+      return OrderAlertController(service, posRepo);
     });
 
 class OrderAlertController extends StateNotifier<OrderAlertState> {
-  OrderAlertController(this._service) : super(const OrderAlertState());
+  OrderAlertController(this._service, this._posRepository) : super(const OrderAlertState());
 
   static const _prefKeyToken = 'order_alert_last_token';
   static const _prefKeyUser = 'order_alert_last_user';
 
   final OrderAlertService _service;
+  final PosRepository _posRepository;
   final Logger _logger = Logger('OrderAlertController');
 
   SharedPreferences? _prefs;
@@ -88,8 +91,14 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     );
 
     if (!hasActive && !state.isMuted) {
-      _logger.info('Starting alarm for invoice ${alert.invoiceId}');
-      await OrderAlertNativeChannel.startAlarm();
+      // Check if POS Profile is open before triggering alarm
+      final shouldTrigger = await _shouldTriggerAlarm(alert.posProfile);
+      if (shouldTrigger) {
+        _logger.info('POS Profile is open. Starting alarm for invoice ${alert.invoiceId}');
+        await OrderAlertNativeChannel.startAlarm();
+      } else {
+        _logger.info('POS Profile is closed. Skipping alarm for invoice ${alert.invoiceId}');
+      }
     } else {
       _logger.info(
         'NOT starting alarm: hasActive=$hasActive, isMuted=${state.isMuted}'
@@ -123,8 +132,14 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       _removeInvoice(current.invoiceId);
       final next = state.active;
       if (next != null && !state.isMuted) {
-        _logger.info('Continuing alarm with next invoice ${next.invoiceId}');
-        await OrderAlertNativeChannel.startAlarm();
+        // Check if POS Profile is open before continuing alarm
+        final shouldTrigger = await _shouldTriggerAlarm(next.posProfile);
+        if (shouldTrigger) {
+          _logger.info('POS Profile is open. Continuing alarm with next invoice ${next.invoiceId}');
+          await OrderAlertNativeChannel.startAlarm();
+        } else {
+          _logger.info('POS Profile is closed. Skipping alarm for next invoice ${next.invoiceId}');
+        }
       }
       if (!state.hasActive) {
         state = state.copyWith(
@@ -206,8 +221,14 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
         await OrderAlertNativeChannel.stopAlarm();
       }
       if (newActive != null && !state.isMuted) {
-        _logger.info('Sync ensures alarm for invoice ${newActive.invoiceId}');
-        await OrderAlertNativeChannel.startAlarm();
+        // Check if POS Profile is open before starting alarm
+        final shouldTrigger = await _shouldTriggerAlarm(newActive.posProfile);
+        if (shouldTrigger) {
+          _logger.info('POS Profile is open. Sync ensures alarm for invoice ${newActive.invoiceId}');
+          await OrderAlertNativeChannel.startAlarm();
+        } else {
+          _logger.info('POS Profile is closed. Skipping alarm during sync for invoice ${newActive.invoiceId}');
+        }
       }
       if (newActive == null) {
         state = state.copyWith(isMuted: false, clearError: true);
@@ -244,8 +265,14 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     if (wasActive) {
       final next = state.active;
       if (next != null && !state.isMuted) {
-        _logger.info('Switching alarm to next invoice ${next.invoiceId}');
-        await OrderAlertNativeChannel.startAlarm();
+        // Check if POS Profile is open before starting alarm for next invoice
+        final shouldTrigger = await _shouldTriggerAlarm(next.posProfile);
+        if (shouldTrigger) {
+          _logger.info('POS Profile is open. Switching alarm to next invoice ${next.invoiceId}');
+          await OrderAlertNativeChannel.startAlarm();
+        } else {
+          _logger.info('POS Profile is closed. Skipping alarm for next invoice ${next.invoiceId}');
+        }
       } else {
         // No more pending invoices - ensure alarm is completely stopped
         _logger.info('No more pending invoices - stopping alarm completely');
@@ -303,7 +330,14 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     _logger.info('Unmuting alarm');
     state = state.copyWith(isMuted: false, clearError: true);
     if (state.hasActive) {
-      await OrderAlertNativeChannel.startAlarm();
+      // Check if POS Profile is open before starting alarm when unmuting
+      final shouldTrigger = await _shouldTriggerAlarm(state.active!.posProfile);
+      if (shouldTrigger) {
+        _logger.info('POS Profile is open. Starting alarm after unmute');
+        await OrderAlertNativeChannel.startAlarm();
+      } else {
+        _logger.info('POS Profile is closed. Skipping alarm after unmute');
+      }
     }
   }
 
@@ -367,5 +401,27 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       reordered.insert(0, active);
     }
     return reordered;
+  }
+
+  /// Check if the POS Profile is currently open based on its timetable
+  Future<bool> _shouldTriggerAlarm(String posProfile) async {
+    try {
+      final result = await _posRepository.isPosProfileOpen(posProfile);
+      final isOpen = result['is_open'] as bool? ?? true;
+      
+      if (!isOpen) {
+        _logger.info(
+          'POS Profile $posProfile is closed: ${result['message']}. '
+          'Alarm will not be triggered.'
+        );
+      }
+      
+      return isOpen;
+    } catch (e) {
+      _logger.error('Error checking POS profile timetable: $e. Defaulting to trigger alarm.');
+      // If there's an error checking the timetable, default to triggering the alarm
+      // to avoid missing important alerts
+      return true;
+    }
   }
 }

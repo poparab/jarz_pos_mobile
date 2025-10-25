@@ -493,6 +493,23 @@ class PosRepository {
     return false;
   }
 
+  /// Check if a POS Profile is currently open based on its timetable
+  Future<Map<String, dynamic>> isPosProfileOpen(String posProfile) async {
+    try {
+      final response = await _dio.post(
+        '/api/method/jarz_pos.api.pos.is_pos_profile_open',
+        data: {'pos_profile': posProfile},
+      );
+
+      if (response.statusCode == 200 && response.data['message'] != null) {
+        return Map<String, dynamic>.from(response.data['message']);
+      }
+      throw Exception('Failed to check POS profile timetable');
+    } catch (e) {
+      throw Exception('Failed to check POS profile timetable: $e');
+    }
+  }
+
 }
 
 class ApiException implements Exception {
