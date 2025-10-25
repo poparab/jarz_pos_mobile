@@ -9,6 +9,7 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
@@ -24,8 +25,11 @@ object OrderAlertNative {
     private var mediaPlayer: MediaPlayer? = null
     private var audioManager: AudioManager? = null
     private var focusRequest: AudioFocusRequest? = null
+    private var previewRingtone: Ringtone? = null
     @Volatile
     private var volumeLocked: Boolean = false
+    @Volatile
+    private var selectedAlarmUri: String? = null
 
     fun startAlarm(context: Context) {
         synchronized(this) {
@@ -154,6 +158,66 @@ object OrderAlertNative {
 
     fun isVolumeLocked(): Boolean = volumeLocked
 
+    fun setAlarmSound(uriString: String?) {
+        selectedAlarmUri = uriString
+    }
+
+    fun getAvailableAlarmSounds(context: Context): List<Map<String, String>> {
+        val ringtoneManager = RingtoneManager(context)
+        ringtoneManager.setType(RingtoneManager.TYPE_ALARM)
+        val cursor = ringtoneManager.cursor
+        val sounds = mutableListOf<Map<String, String>>()
+
+        // Add default system alarm
+        val defaultUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+        if (defaultUri != null) {
+            sounds.add(
+                mapOf(
+                    "title" to "Default Alarm",
+                    "uri" to defaultUri.toString()
+                )
+            )
+        }
+
+        // Add all available alarms
+        while (cursor.moveToNext()) {
+            val title = cursor.getString(RingtoneManager.TITLE_COLUMN_INDEX)
+            val id = cursor.getString(RingtoneManager.ID_COLUMN_INDEX)
+            val uri = ringtoneManager.getRingtoneUri(cursor.position)
+            if (uri != null) {
+                sounds.add(
+                    mapOf(
+                        "title" to (title ?: "Alarm $id"),
+                        "uri" to uri.toString()
+                    )
+                )
+            }
+        }
+
+        return sounds
+    }
+
+    fun previewAlarmSound(context: Context, uriString: String) {
+        stopPreview()
+        try {
+            val uri = Uri.parse(uriString)
+            val ringtone = RingtoneManager.getRingtone(context, uri)
+            ringtone.play()
+            previewRingtone = ringtone
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun stopPreview() {
+        try {
+            previewRingtone?.stop()
+            previewRingtone = null
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     private fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -175,6 +239,16 @@ object OrderAlertNative {
     }
 
     private fun resolveAlarmUri(context: Context): Uri {
+        // Use selected alarm if available
+        if (!selectedAlarmUri.isNullOrBlank()) {
+            try {
+                return Uri.parse(selectedAlarmUri)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // Fallback to defaults
         val alarm = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
         if (alarm != null) return alarm
 

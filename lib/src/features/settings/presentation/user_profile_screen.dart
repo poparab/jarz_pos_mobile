@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/user_service.dart';
-import '../../settings/data/alarm_sound_service.dart';
+import '../data/alarm_sound_service.dart';
+import '../../pos/order_alert/order_alert_native_channel.dart';
 
-class UserProfileScreen extends ConsumerWidget {
+class UserProfileScreen extends ConsumerStatefulWidget {
   const UserProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<UserProfileScreen> createState() => _UserProfileScreenState();
+}
+
+class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
+  @override
+  void dispose() {
+    // Stop any playing preview when leaving the screen
+    OrderAlertNativeChannel.stopPreview();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userRolesAsync = ref.watch(userRolesFutureProvider);
     final selectedSound = ref.watch(selectedAlarmSoundProvider);
+    final availableSoundsAsync = ref.watch(availableAlarmSoundsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -169,68 +183,109 @@ class UserProfileScreen extends ConsumerWidget {
                             ),
                       ),
                       const SizedBox(height: 16),
-                      ...AlarmSound.values.map((sound) {
-                        final isSelected = selectedSound == sound;
-                        return InkWell(
-                          onTap: () async {
-                            ref.read(selectedAlarmSoundProvider.notifier).state = sound;
-                            final service = ref.read(alarmSoundServiceProvider);
-                            await service.setSelectedSound(sound);
-                            
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Alarm sound changed to ${sound.displayName}'),
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                            margin: const EdgeInsets.only(bottom: 8),
-                            decoration: BoxDecoration(
-                              color: isSelected 
-                                  ? Theme.of(context).colorScheme.primaryContainer
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: isSelected
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Colors.grey.withValues(alpha: 0.3),
-                                width: isSelected ? 2 : 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                                  color: isSelected 
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.grey,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    sound.displayName,
-                                    style: TextStyle(
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                      color: isSelected 
-                                          ? Theme.of(context).colorScheme.onPrimaryContainer
-                                          : null,
+                      
+                      // Show loading or available sounds
+                      availableSoundsAsync.when(
+                        data: (availableSounds) {
+                          if (availableSounds.isEmpty) {
+                            return const Text('No alarm sounds available');
+                          }
+                          
+                          return Column(
+                            children: availableSounds.map((sound) {
+                              final isSelected = selectedSound?.uri == sound.uri;
+                              return InkWell(
+                                onTap: () async {
+                                  final service = ref.read(alarmSoundServiceProvider);
+                                  await service.setSelectedSound(sound.uri, sound.title);
+                                  
+                                  // Refresh the provider
+                                  ref.invalidate(selectedAlarmSoundProvider);
+                                  
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Alarm sound changed to ${sound.title}'),
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  decoration: BoxDecoration(
+                                    color: isSelected 
+                                        ? Theme.of(context).colorScheme.primaryContainer
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? Theme.of(context).colorScheme.primary
+                                          : Colors.grey.withValues(alpha: 0.3),
+                                      width: isSelected ? 2 : 1,
                                     ),
                                   ),
-                                ),
-                                if (isSelected)
-                                  Icon(
-                                    Icons.check_circle,
-                                    color: Theme.of(context).colorScheme.primary,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                                        color: isSelected 
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Colors.grey,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          sound.title,
+                                          style: TextStyle(
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                            color: isSelected 
+                                                ? Theme.of(context).colorScheme.onPrimaryContainer
+                                                : null,
+                                          ),
+                                        ),
+                                      ),
+                                      // Preview button
+                                      IconButton(
+                                        icon: const Icon(Icons.play_arrow),
+                                        tooltip: 'Preview',
+                                        onPressed: () async {
+                                          final service = ref.read(alarmSoundServiceProvider);
+                                          await service.previewSound(sound.uri);
+                                          
+                                          // Auto-stop preview after 3 seconds
+                                          Future.delayed(const Duration(seconds: 3), () {
+                                            service.stopPreview();
+                                          });
+                                        },
+                                      ),
+                                      if (isSelected)
+                                        Icon(
+                                          Icons.check_circle,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                    ],
                                   ),
-                              ],
-                            ),
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                        loading: () => const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(),
                           ),
-                        );
-                      }),
+                        ),
+                        error: (error, stack) => Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            'Failed to load alarm sounds: $error',
+                            style: TextStyle(color: Colors.red[700]),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

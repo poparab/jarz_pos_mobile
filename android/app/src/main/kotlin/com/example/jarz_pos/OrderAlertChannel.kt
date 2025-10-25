@@ -53,6 +53,28 @@ class OrderAlertChannel : FlutterPlugin, MethodChannel.MethodCallHandler {
                 result.success(pendingLaunchPayload)
                 pendingLaunchPayload = null
             }
+            "getAvailableAlarmSounds" -> {
+                val sounds = OrderAlertNative.getAvailableAlarmSounds(appContext)
+                result.success(sounds)
+            }
+            "setAlarmSound" -> {
+                val uriString = call.argument<String>("uri")
+                OrderAlertNative.setAlarmSound(uriString)
+                result.success(null)
+            }
+            "previewAlarmSound" -> {
+                val uriString = call.argument<String>("uri")
+                if (uriString != null) {
+                    OrderAlertNative.previewAlarmSound(appContext, uriString)
+                    result.success(null)
+                } else {
+                    result.error("INVALID_URI", "URI string is required", null)
+                }
+            }
+            "stopPreview" -> {
+                OrderAlertNative.stopPreview()
+                result.success(null)
+            }
             else -> result.notImplemented()
         }
     }
