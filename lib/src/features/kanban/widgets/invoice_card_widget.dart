@@ -1,6 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/kanban_models.dart';
 import '../providers/kanban_provider.dart';
 import '../../pos/state/pos_notifier.dart';
@@ -622,18 +624,31 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                               ),
                               if ((widget.invoice.phone ?? widget.invoice.customerPhone ?? '').isNotEmpty) ...[
                                 const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    Icon(Icons.phone, size: 11, color: Colors.grey[600]),
-                                    const SizedBox(width: 4),
-                                    Flexible(
-                                      child: Text(
-                                        (widget.invoice.phone ?? widget.invoice.customerPhone)!,
-                                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                                        overflow: TextOverflow.ellipsis,
+                                GestureDetector(
+                                  onTap: () {
+                                    final phone = widget.invoice.phone ?? widget.invoice.customerPhone;
+                                    if (phone != null && phone.isNotEmpty) {
+                                      _showPhoneOptions(context, phone);
+                                    }
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.phone, size: 11, color: Colors.blue[700]),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Text(
+                                          (widget.invoice.phone ?? widget.invoice.customerPhone)!,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.blue[700],
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                          overflow: TextOverflow.visible,
+                                          softWrap: false,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                               // Payment method badge
@@ -1986,6 +2001,114 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ),
       );
     }
+  }
+
+  // Show dialog with options to call or copy phone number
+  Future<void> _showPhoneOptions(BuildContext context, String phoneNumber) async {
+    // Remove any whitespace or formatting to get clean number
+    final cleanNumber = phoneNumber.replaceAll(RegExp(r'\s+'), '');
+    
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.phone, color: Colors.blue),
+            const SizedBox(width: 8),
+            const Text('Phone Number'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Display the phone number (non-selectable, non-trimmed)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      phoneNumber, // Display original format with spaces
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton.icon(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              // Copy to clipboard
+              await Clipboard.setData(ClipboardData(text: cleanNumber));
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.white),
+                        const SizedBox(width: 12),
+                        Text('Copied: $cleanNumber'),
+                      ],
+                    ),
+                    backgroundColor: Colors.green[600],
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.copy),
+            label: const Text('Copy'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.blue[700],
+            ),
+          ),
+          TextButton.icon(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              // Launch phone dialer
+              final uri = Uri(scheme: 'tel', path: cleanNumber);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri);
+              } else {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.error, color: Colors.white),
+                          SizedBox(width: 12),
+                          Text('Unable to make phone call'),
+                        ],
+                      ),
+                      backgroundColor: Colors.red,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.call),
+            label: const Text('Call'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.green[700],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // Transfer order to another POS profile
