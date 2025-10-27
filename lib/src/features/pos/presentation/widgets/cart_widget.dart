@@ -92,34 +92,43 @@ class CartWidget extends ConsumerWidget {
             ),
           ),
 
-          // Cart items
-          Expanded(
-            child: cartItems.isEmpty
-                ? _buildEmptyCart(context)
-                : ListView.builder(
-                    padding: contentPadding,
-                    itemCount: cartItems.length,
-                    itemBuilder: (context, index) {
-                      final cartItem = cartItems[index];
-                      return _buildCartItem(context, ref, cartItem, index);
-                    },
-                  ),
+          // Cart items - with minimum height constraint
+          Flexible(
+            flex: 3,
+            child: Container(
+              constraints: const BoxConstraints(
+                minHeight: 150, // Minimum height to ensure items are visible
+              ),
+              child: cartItems.isEmpty
+                  ? _buildEmptyCart(context)
+                  : ListView.builder(
+                      padding: contentPadding,
+                      itemCount: cartItems.length,
+                      itemBuilder: (context, index) {
+                        final cartItem = cartItems[index];
+                        return _buildCartItem(context, ref, cartItem, index);
+                      },
+                    ),
+            ),
           ),
 
-          // Cart summary and checkout
+          // Cart summary and checkout - scrollable if content is too large
           if (cartItems.isNotEmpty)
-            Container(
-              padding: headerPadding,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                border: Border(
-                  top: BorderSide(
-                    color: Theme.of(context).colorScheme.outline,
-                    width: 1,
+            Flexible(
+              flex: 2,
+              child: SingleChildScrollView(
+                child: Container(
+                  padding: headerPadding,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    border: Border(
+                      top: BorderSide(
+                        color: Theme.of(context).colorScheme.outline,
+                        width: 1,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              child: Column(
+                  child: Column(
                 children: [
                   // Customer info
                   if (state.selectedCustomer != null)
@@ -428,6 +437,8 @@ class CartWidget extends ConsumerWidget {
                     ),
                   ],
                 ],
+              ),
+                ),
               ),
             ),
         ],
