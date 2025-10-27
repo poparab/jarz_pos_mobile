@@ -228,7 +228,7 @@ class OrderAlertBridge {
         unawaited(
           WebNotificationService.showInvoiceAlert(
             invoiceId: alert.invoiceId,
-            customerName: alert.customerName,
+            customerName: alert.customerName ?? 'Unknown Customer',
             total: alert.grandTotal,
             posProfile: alert.posProfile,
           ),
