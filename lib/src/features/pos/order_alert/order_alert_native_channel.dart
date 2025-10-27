@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 
 typedef OrderAlertPayloadHandler = void Function(Map<String, String> payload);
@@ -27,28 +28,34 @@ class OrderAlertNativeChannel {
   }
 
   static Future<void> startAlarm() {
+    if (kIsWeb) return Future.value(); // No-op on web
     return _channel.invokeMethod('startAlarm');
   }
 
   static Future<void> stopAlarm() {
+    if (kIsWeb) return Future.value(); // No-op on web
     return _channel.invokeMethod('stopAlarm');
   }
 
   static Future<void> cancelNotification(String? invoiceId) {
+    if (kIsWeb) return Future.value(); // No-op on web
     return _channel.invokeMethod('cancelNotification', {
       'invoiceId': invoiceId,
     });
   }
 
   static Future<void> showNotification(Map<String, String> data) {
+    if (kIsWeb) return Future.value(); // No-op on web
     return _channel.invokeMethod('showNotification', {'data': data});
   }
 
   static Future<void> setVolumeLocked(bool locked) {
+    if (kIsWeb) return Future.value(); // No-op on web
     return _channel.invokeMethod('setVolumeLocked', {'locked': locked});
   }
 
   static Future<List<AlarmSoundOption>> getAvailableAlarmSounds() async {
+    if (kIsWeb) return []; // No alarm sounds on web
     final result = await _channel.invokeMethod<List<dynamic>>('getAvailableAlarmSounds');
     if (result == null) return [];
     
@@ -62,18 +69,22 @@ class OrderAlertNativeChannel {
   }
 
   static Future<void> setAlarmSound(String? uri) {
+    if (kIsWeb) return Future.value(); // No-op on web
     return _channel.invokeMethod('setAlarmSound', {'uri': uri});
   }
 
   static Future<void> previewAlarmSound(String uri) {
+    if (kIsWeb) return Future.value(); // No-op on web
     return _channel.invokeMethod('previewAlarmSound', {'uri': uri});
   }
 
   static Future<void> stopPreview() {
+    if (kIsWeb) return Future.value(); // No-op on web
     return _channel.invokeMethod('stopPreview');
   }
 
   static Future<Map<String, String>?> consumeLaunchPayload() async {
+    if (kIsWeb) return null; // No launch payload on web
     final result = await _channel.invokeMethod<dynamic>('consumeLaunchPayload');
     if (result == null) return null;
     if (result is Map) {

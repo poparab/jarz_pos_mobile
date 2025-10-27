@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/router.dart';
@@ -58,35 +59,39 @@ class OrderAlertBridge {
       }
     }, fireImmediately: true);
 
-    // Foreground message handling
-    _logger.info("📱 Setting up FCM listeners...");
-    _onMessageSub = FirebaseMessaging.onMessage.listen(_handleRemoteMessage);
-    _onOpenedSub = FirebaseMessaging.onMessageOpenedApp.listen(
-      _handleRemoteMessage,
-    );
+    // Foreground message handling (skip on web - no Firebase configured)
+    if (!kIsWeb) {
+      _logger.info("📱 Setting up FCM listeners...");
+      _onMessageSub = FirebaseMessaging.onMessage.listen(_handleRemoteMessage);
+      _onOpenedSub = FirebaseMessaging.onMessageOpenedApp.listen(
+        _handleRemoteMessage,
+      );
 
-    // Process initial launch intent and background messages
-    final launchPayload = await OrderAlertNativeChannel.consumeLaunchPayload();
-    if (launchPayload != null) {
-      _logger.info("🚀 Processing launch payload: ${launchPayload['invoice_id']}");
-      _handleLaunchPayload(launchPayload);
+      // Process initial launch intent and background messages
+      final launchPayload = await OrderAlertNativeChannel.consumeLaunchPayload();
+      if (launchPayload != null) {
+        _logger.info("🚀 Processing launch payload: ${launchPayload['invoice_id']}");
+        _handleLaunchPayload(launchPayload);
+      }
+
+      final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+      if (initialMessage != null) {
+        _logger.info("🚀 Processing initial FCM message");
+        _handleRemoteMessage(initialMessage, openedApp: true);
+      }
+
+      _onTokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen((
+        token,
+      ) {
+        _logger.info("🔄 FCM token refreshed");
+        unawaited(_registerToken(token));
+      });
+
+      // Request runtime permission (Android 13+)
+      await FirebaseMessaging.instance.requestPermission();
+    } else {
+      _logger.info("🌐 Running on web - FCM disabled, using websocket only");
     }
-
-    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-    if (initialMessage != null) {
-      _logger.info("🚀 Processing initial FCM message");
-      _handleRemoteMessage(initialMessage, openedApp: true);
-    }
-
-    _onTokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen((
-      token,
-    ) {
-      _logger.info("🔄 FCM token refreshed");
-      unawaited(_registerToken(token));
-    });
-
-    // Request runtime permission (Android 13+)
-    await FirebaseMessaging.instance.requestPermission();
     
     _logger.info("✅ OrderAlertBridge initialization complete");
   }
@@ -101,7 +106,9 @@ class OrderAlertBridge {
 
   Future<void> _onAuthenticated() async {
     _logger.info("🔐 User authenticated - registering device and syncing alerts");
-    await _registerToken(await FirebaseMessaging.instance.getToken());
+    if (!kIsWeb) {
+      await _registerToken(await FirebaseMessaging.instance.getToken());
+    }
     await _ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts();
     _logger.info("✅ Authentication setup complete");
   }
