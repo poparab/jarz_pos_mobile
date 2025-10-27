@@ -12,6 +12,7 @@ import 'data/order_alert_service.dart';
 import 'domain/invoice_alert.dart';
 import 'order_alert_native_channel.dart';
 import 'state/order_alert_controller.dart';
+import 'web_notification_service.dart';
 
 final orderAlertBridgeProvider = Provider<OrderAlertBridge>((ref) {
   final bridge = OrderAlertBridge(ref);
@@ -91,6 +92,14 @@ class OrderAlertBridge {
       await FirebaseMessaging.instance.requestPermission();
     } else {
       _logger.info("🌐 Running on web - FCM disabled, using websocket only");
+      // Request browser notification permission on web
+      _logger.info("🔔 Requesting browser notification permission...");
+      final granted = await WebNotificationService.requestPermission();
+      if (granted) {
+        _logger.info("✅ Browser notification permission granted");
+      } else {
+        _logger.warning("⚠️ Browser notification permission denied");
+      }
     }
     
     _logger.info("✅ OrderAlertBridge initialization complete");
@@ -212,6 +221,19 @@ class OrderAlertBridge {
       final controller = _ref.read(orderAlertControllerProvider.notifier);
       _logger.info("Enqueuing alert for invoice $id from websocket");
       unawaited(controller.enqueueAlert(alert, fromNotification: false));
+      
+      // Show browser notification on web platform
+      if (kIsWeb) {
+        _logger.info("🌐 Showing browser notification for invoice $id");
+        unawaited(
+          WebNotificationService.showInvoiceAlert(
+            invoiceId: alert.invoiceId,
+            customerName: alert.customerName,
+            total: alert.grandTotal,
+            posProfile: alert.posProfile,
+          ),
+        );
+      }
       
       // Delay sync to avoid race condition with server API
       Future.delayed(const Duration(seconds: 2), () {
