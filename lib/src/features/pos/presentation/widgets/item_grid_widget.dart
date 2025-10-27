@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/responsive_utils.dart';
 import '../../state/pos_notifier.dart';
 import 'bundle_selection_widget.dart';
 
@@ -140,14 +141,18 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     }
 
     // Otherwise show filtered grid
+    final columns = ResponsiveUtils.getItemGridColumns(context);
+    final spacing = ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8);
+    final aspectRatio = ResponsiveUtils.getGridAspectRatio(context, compact: 1.3, normal: 1.5);
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 5, // Increased from 3 to 5 for smaller cards
-          crossAxisSpacing: 8, // Reduced spacing
-          mainAxisSpacing: 8,
-          childAspectRatio: 1.5, // Made cards half height
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns, // Responsive: 2-5 columns based on screen size
+          crossAxisSpacing: spacing,
+          mainAxisSpacing: spacing,
+          childAspectRatio: aspectRatio,
         ),
         itemCount: items.length,
         itemBuilder: (context, index) {
@@ -236,11 +241,11 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5, // Smaller cards
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 1.5, // Made cards half height
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: ResponsiveUtils.getItemGridColumns(context), // Responsive columns
+                crossAxisSpacing: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8),
+                mainAxisSpacing: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8),
+                childAspectRatio: ResponsiveUtils.getGridAspectRatio(context, compact: 1.3, normal: 1.5),
               ),
               itemCount: categoryItems.length,
               itemBuilder: (context, itemIndex) {

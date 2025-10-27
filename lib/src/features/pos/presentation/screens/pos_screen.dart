@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/connectivity/connectivity_service.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/websocket/websocket_service.dart';
 import '../../../../core/sync/offline_sync_service.dart';
 import '../../state/courier_balances_provider.dart';
@@ -98,43 +99,57 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                   ? const Center(child: CircularProgressIndicator())
                   : state.error != null
                   ? _buildError(context, state.error!)
-                  : Row(
-                children: [
-                  // Left side - Items and customer search (70% width)
-                  Expanded(
-                    flex: 7,
-                    child: Column(
-                      children: [
-                        // Customer search bar
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const CustomerSearchWidget(),
-                        ),
-                        // Items grid
-                        const Expanded(child: ItemGridWidget()),
-                      ],
-                    ),
-                  ),
-                  // Right side - Cart (30% width)
-                  const Expanded(flex: 3, child: CartWidget()),
-                ],
-              ),
+                  : _buildResponsiveLayout(context),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// Build responsive layout that adapts to screen size
+  Widget _buildResponsiveLayout(BuildContext context) {
+    final flexRatio = ResponsiveUtils.getCartFlexRatio(context);
+    final padding = ResponsiveUtils.getResponsivePadding(
+      context,
+      small: 12,
+      medium: 14,
+      large: 16,
+    );
+
+    return Row(
+      children: [
+        // Left side - Items and customer search
+        Expanded(
+          flex: flexRatio[0], // Responsive flex ratio (60-70%)
+          child: Column(
+            children: [
+              // Customer search bar
+              Container(
+                padding: padding,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const CustomerSearchWidget(),
+              ),
+              // Items grid
+              const Expanded(child: ItemGridWidget()),
+            ],
+          ),
+        ),
+        // Right side - Cart
+        Expanded(
+          flex: flexRatio[1], // Responsive flex ratio (30-40%)
+          child: const CartWidget(),
+        ),
+      ],
     );
   }
 

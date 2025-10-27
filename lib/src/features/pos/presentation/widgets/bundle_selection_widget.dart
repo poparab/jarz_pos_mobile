@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/responsive_utils.dart';
 import '../../state/pos_notifier.dart';
 
 class BundleSelectionWidget extends ConsumerStatefulWidget {
@@ -228,10 +229,10 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4, // Reduce columns for bigger cards
+                  crossAxisCount: ResponsiveUtils.getBundleGridColumns(context), // Responsive: 2-4 columns
                   childAspectRatio: 1.2, // Make cards slightly taller
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
+                  crossAxisSpacing: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8),
+                  mainAxisSpacing: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8),
                 ),
                 itemCount: availableItems.length,
                 itemBuilder: (context, itemIndex) {

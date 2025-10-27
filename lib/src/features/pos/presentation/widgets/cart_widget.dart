@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import '../../state/pos_notifier.dart';
 import '../dialogs/payment_method_dialog.dart';
 import 'bundle_selection_widget.dart';
@@ -16,10 +17,22 @@ class CartWidget extends ConsumerWidget {
     final l10n = context.l10n;
     final state = ref.watch(posNotifierProvider);
     final cartItems = state.cartItems;
-  final customerTerritory = state.selectedCustomer?['territory']?.toString();
-    // Get cart total from state if needed
-    // final cartTotal = state.cartTotal;
-
+    final customerTerritory = state.selectedCustomer?['territory']?.toString();
+    
+    // Responsive padding
+    final headerPadding = ResponsiveUtils.getResponsivePadding(
+      context,
+      small: 10,
+      medium: 12,
+      large: 16,
+    );
+    final contentPadding = ResponsiveUtils.getResponsivePadding(
+      context,
+      small: 6,
+      medium: 8,
+      large: 8,
+    );
+    
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -34,7 +47,7 @@ class CartWidget extends ConsumerWidget {
         children: [
           // Cart header
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: headerPadding,
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primaryContainer,
               border: Border(
@@ -49,24 +62,31 @@ class CartWidget extends ConsumerWidget {
                 Icon(
                   Icons.shopping_cart,
                   color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  size: ResponsiveUtils.isCompactLayout(context) ? 20 : 24,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  l10n.posCartHeader(cartItems.length),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+                SizedBox(width: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8)),
+                Expanded(
+                  child: Text(
+                    l10n.posCartHeader(cartItems.length),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                      fontSize: ResponsiveUtils.isCompactLayout(context) ? 14 : 16,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
                 if (cartItems.isNotEmpty)
                   IconButton(
                     icon: Icon(
                       Icons.clear_all,
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      size: ResponsiveUtils.isCompactLayout(context) ? 20 : 24,
                     ),
                     onPressed: () => _showClearCartDialog(context, ref),
                     tooltip: l10n.posCartClear,
+                    padding: EdgeInsets.all(ResponsiveUtils.isCompactLayout(context) ? 6 : 8),
+                    constraints: const BoxConstraints(),
                   ),
               ],
             ),
@@ -77,7 +97,7 @@ class CartWidget extends ConsumerWidget {
             child: cartItems.isEmpty
                 ? _buildEmptyCart(context)
                 : ListView.builder(
-                    padding: const EdgeInsets.all(8),
+                    padding: contentPadding,
                     itemCount: cartItems.length,
                     itemBuilder: (context, index) {
                       final cartItem = cartItems[index];
@@ -89,7 +109,7 @@ class CartWidget extends ConsumerWidget {
           // Cart summary and checkout
           if (cartItems.isNotEmpty)
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: headerPadding,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 border: Border(
