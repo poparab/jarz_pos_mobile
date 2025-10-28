@@ -13,6 +13,7 @@ import 'settlement_preview_dialog.dart';
 import '../../printing/pos_printer_provider.dart';
 import '../../printing/pos_printer_service.dart';
 import '../../pos/order_alert/data/order_alert_service.dart';
+import '../../../core/utils/responsive_utils.dart';
 // Invoice card widget displaying a Sales Invoice within the Kanban board.
 
 class InvoiceCardWidget extends ConsumerStatefulWidget {
@@ -287,6 +288,16 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final hasPartner = (widget.invoice.salesPartner ?? '').isNotEmpty;
     final requiresAcceptance = widget.invoice.requiresAcceptance;
     final trailingWidgets = <Widget>[];
+    
+    // Responsive sizes
+    final iconSize = ResponsiveUtils.getIconSize(context, small: 14, medium: 16, large: 18);
+    final buttonIconSize = ResponsiveUtils.getIconSize(context, small: 12, medium: 14, large: 16);
+    final buttonPadding = ResponsiveUtils.getButtonPadding(context,
+      small: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      medium: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      large: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    );
+    final buttonFontSize = ResponsiveUtils.getResponsiveFontSize(context, 12);
 
     // Add prominent acceptance button if pending (not already accepted or accepting)
     if (requiresAcceptance && !widget.invoice.isAccepted && !_isAccepting) {
@@ -297,12 +308,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             margin: const EdgeInsets.only(right: 4),
             child: ElevatedButton.icon(
               onPressed: transitioning ? null : () => _acceptOrder(context),
-              icon: const Icon(Icons.check_circle, size: 16),
-              label: const Text('Accept', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              icon: Icon(Icons.check_circle, size: buttonIconSize),
+              label: Text('Accept', style: TextStyle(fontSize: buttonFontSize, fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green[600],
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: buttonPadding,
                 elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -344,7 +355,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             padding: const EdgeInsets.only(right: 2),
             child: Icon(
               Icons.handshake,
-              size: 18,
+              size: iconSize,
               color: Colors.deepPurple,
             ),
           ),
@@ -358,10 +369,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         Tooltip(
           message: 'Pay',
           child: IconButton(
-            icon: const Icon(Icons.payment, size: 18),
-            padding: const EdgeInsets.all(6),
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            splashRadius: 20,
+            icon: Icon(Icons.payment, size: iconSize),
+            padding: EdgeInsets.all(ResponsiveUtils.getSpacing(context, small: 4, medium: 5, large: 6)),
+            constraints: BoxConstraints(
+              minWidth: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
+              minHeight: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
+            ),
+            splashRadius: ResponsiveUtils.getIconSize(context, small: 16, medium: 18, large: 20),
             onPressed: transitioning ? null : () => _payInvoice(context),
           ),
         ),
@@ -374,10 +388,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         Tooltip(
           message: 'Delivery',
           child: IconButton(
-            icon: const Icon(Icons.local_shipping, size: 18),
-            padding: const EdgeInsets.all(6),
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            splashRadius: 20,
+            icon: Icon(Icons.local_shipping, size: iconSize),
+            padding: EdgeInsets.all(ResponsiveUtils.getSpacing(context, small: 4, medium: 5, large: 6)),
+            constraints: BoxConstraints(
+              minWidth: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
+              minHeight: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
+            ),
+            splashRadius: ResponsiveUtils.getIconSize(context, small: 16, medium: 18, large: 20),
             onPressed: (!hasProfile || transitioning) ? null : () => _handleOutForDelivery(context),
           ),
         ),
@@ -388,10 +405,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       Tooltip(
         message: 'Print',
         child: IconButton(
-          icon: const Icon(Icons.print, size: 18),
-          padding: const EdgeInsets.all(6),
-          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-          splashRadius: 20,
+          icon: Icon(Icons.print, size: iconSize),
+          padding: EdgeInsets.all(ResponsiveUtils.getSpacing(context, small: 4, medium: 5, large: 6)),
+          constraints: BoxConstraints(
+            minWidth: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
+            minHeight: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
+          ),
+          splashRadius: ResponsiveUtils.getIconSize(context, small: 16, medium: 18, large: 20),
           onPressed: transitioning ? null : () => _printInvoice(context),
         ),
       ),
@@ -404,10 +424,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       Tooltip(
         message: 'More Options',
         child: PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert, size: 18),
-          padding: const EdgeInsets.all(6),
-          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-          splashRadius: 20,
+          icon: Icon(Icons.more_vert, size: iconSize),
+          padding: EdgeInsets.all(ResponsiveUtils.getSpacing(context, small: 4, medium: 5, large: 6)),
+          constraints: BoxConstraints(
+            minWidth: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
+            minHeight: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
+          ),
+          splashRadius: ResponsiveUtils.getIconSize(context, small: 16, medium: 18, large: 20),
           enabled: !transitioning,
           onSelected: (value) async {
             if (value == 'edit_address') {
@@ -472,6 +495,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       ),
     );
     if (widget.compact) {
+      final fontSize = ResponsiveUtils.getResponsiveFontSize(context, 15);
+      final titleFontSize = ResponsiveUtils.getResponsiveFontSize(context, 14);
+      final padding = ResponsiveUtils.getCardPadding(context, 
+        small: const EdgeInsets.all(8),
+        medium: const EdgeInsets.all(10),
+        large: const EdgeInsets.all(12),
+      );
+      
       return Card(
         elevation: 10,
         shape: RoundedRectangleBorder(
@@ -482,15 +513,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: padding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 _shortInvoiceName(widget.invoice.name),
-                style: const TextStyle(
-                  fontSize: 15,
+                style: TextStyle(
+                  fontSize: fontSize,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -502,14 +533,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                     child: Text(
                       widget.invoice.customerName,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12),
+                      style: TextStyle(fontSize: titleFontSize * 0.85),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     '\$${widget.invoice.total.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 13,
+                    style: TextStyle(
+                      fontSize: titleFontSize,
                       fontWeight: FontWeight.w600,
                       color: Colors.green,
                     ),
@@ -548,7 +579,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               ),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: ResponsiveUtils.getCardPadding(context,
+                  small: const EdgeInsets.all(12),
+                  medium: const EdgeInsets.all(14),
+                  large: const EdgeInsets.all(16),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -557,9 +592,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                       children: [
                         if (widget.invoice.hasUnsettledCourierTxn)
                           Container(
-                            width: 10,
-                            height: 10,
-                            margin: const EdgeInsets.only(right: 6, top: 4),
+                            width: ResponsiveUtils.getIconSize(context, small: 8, medium: 9, large: 10),
+                            height: ResponsiveUtils.getIconSize(context, small: 8, medium: 9, large: 10),
+                            margin: EdgeInsets.only(right: 6, top: ResponsiveUtils.getSpacing(context, small: 3, medium: 3.5, large: 4)),
                             decoration: BoxDecoration(
                               color: Colors.deepOrange,
                               shape: BoxShape.circle,
@@ -575,21 +610,21 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                         Expanded(
                           child: Text(
                             _shortInvoiceName(widget.invoice.name),
-                            style: const TextStyle(
-                              fontSize: 16,
+                            style: TextStyle(
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16),
                               fontWeight: FontWeight.bold,
                               color: Colors.black87,
                             ),
                           ),
                         ),
-                        if (trailingWidgets.isNotEmpty) const SizedBox(width: 8),
+                        if (trailingWidgets.isNotEmpty) SizedBox(width: ResponsiveUtils.getSpacing(context, small: 6, medium: 7, large: 8)),
                         if (trailingWidgets.isNotEmpty)
                           Flexible(
                             child: Align(
                               alignment: Alignment.centerRight,
                               child: Wrap(
-                                spacing: 4,
-                                runSpacing: 4,
+                                spacing: ResponsiveUtils.getSpacing(context, small: 2, medium: 3, large: 4),
+                                runSpacing: ResponsiveUtils.getSpacing(context, small: 2, medium: 3, large: 4),
                                 crossAxisAlignment: WrapCrossAlignment.center,
                                 alignment: WrapAlignment.end,
                                 children: trailingWidgets,
@@ -598,7 +633,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                           ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: ResponsiveUtils.getSpacing(context, small: 6, medium: 7, large: 8)),
 
                     // Customer and amount
                     Row(
@@ -611,19 +646,19 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                               Text(
                                 'Customer',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, 12),
                                   color: Colors.grey[600],
                                 ),
                               ),
                               Text(
                                 widget.invoice.customerName,
-                                style: const TextStyle(
-                                  fontSize: 14,
+                                style: TextStyle(
+                                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                               if ((widget.invoice.phone ?? widget.invoice.customerPhone ?? '').isNotEmpty) ...[
-                                const SizedBox(height: 2),
+                                SizedBox(height: ResponsiveUtils.getSpacing(context, small: 1, medium: 1.5, large: 2)),
                                 GestureDetector(
                                   onTap: () {
                                     final phone = widget.invoice.phone ?? widget.invoice.customerPhone;
@@ -1346,7 +1381,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           return AlertDialog(
             title: const Text('Delivery'),
             content: SizedBox(
-              width: 640,
+              width: ResponsiveUtils.getDialogWidth(context, small: 350, medium: 480, large: 640),
               child: loading
                   ? const SizedBox(height: 120, child: Center(child: CircularProgressIndicator()))
                   : SingleChildScrollView(
@@ -1790,7 +1825,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           ],
         ),
         content: SizedBox(
-          width: 500,
+          width: ResponsiveUtils.getDialogWidth(context, small: 320, medium: 420, large: 500),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,

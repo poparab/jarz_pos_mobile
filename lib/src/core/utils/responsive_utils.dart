@@ -75,11 +75,86 @@ class ResponsiveUtils {
     final width = screenWidth(context);
     
     if (width < smallTablet) {
-      return 0.9; // Slightly smaller fonts on small screens
+      return 0.85; // Smaller fonts on small screens
     } else if (width < mediumTablet) {
-      return 0.95; // Almost normal
+      return 0.92; // Almost normal
     } else {
       return 1.0; // Normal font size
+    }
+  }
+
+  /// Get responsive font size with base size
+  static double getResponsiveFontSize(BuildContext context, double baseSize) {
+    final scale = getFontScale(context);
+    return baseSize * scale;
+  }
+
+  /// Get responsive icon size
+  static double getIconSize(BuildContext context, {
+    double small = 16,
+    double medium = 18,
+    double large = 20,
+  }) {
+    final width = screenWidth(context);
+    
+    if (width < smallTablet) {
+      return small;
+    } else if (width < mediumTablet) {
+      return medium;
+    } else {
+      return large;
+    }
+  }
+
+  /// Get responsive button padding
+  static EdgeInsets getButtonPadding(BuildContext context, {
+    EdgeInsets small = const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    EdgeInsets medium = const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    EdgeInsets large = const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  }) {
+    final width = screenWidth(context);
+    
+    if (width < smallTablet) {
+      return small;
+    } else if (width < mediumTablet) {
+      return medium;
+    } else {
+      return large;
+    }
+  }
+
+  /// Get responsive dialog width
+  static double getDialogWidth(BuildContext context, {
+    double small = 400,
+    double medium = 500,
+    double large = 640,
+  }) {
+    final width = screenWidth(context);
+    final maxWidth = width * 0.9; // Never exceed 90% of screen width
+    
+    if (width < smallTablet) {
+      return small.clamp(0, maxWidth);
+    } else if (width < mediumTablet) {
+      return medium.clamp(0, maxWidth);
+    } else {
+      return large.clamp(0, maxWidth);
+    }
+  }
+
+  /// Get responsive card padding
+  static EdgeInsets getCardPadding(BuildContext context, {
+    EdgeInsets small = const EdgeInsets.all(10),
+    EdgeInsets medium = const EdgeInsets.all(14),
+    EdgeInsets large = const EdgeInsets.all(16),
+  }) {
+    final width = screenWidth(context);
+    
+    if (width < smallTablet) {
+      return small;
+    } else if (width < mediumTablet) {
+      return medium;
+    } else {
+      return large;
     }
   }
 
