@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 /// Payment method selection dialog
 /// Shows Cash, Instapay, and Mobile Wallet options
@@ -7,64 +8,77 @@ class PaymentMethodDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final titleFontSize = ResponsiveUtils.getResponsiveFontSize(context, 24);
+    final buttonSpacing = ResponsiveUtils.getSpacing(context, small: 12, medium: 14, large: 16);
+    final padding = ResponsiveUtils.getCardPadding(context,
+      small: const EdgeInsets.all(18),
+      medium: const EdgeInsets.all(20),
+      large: const EdgeInsets.all(24),
+    );
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Title
-            const Text(
-              'Select Payment Method',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            // Cash option
-            _PaymentMethodButton(
-              icon: Icons.attach_money,
-              label: 'Cash',
-              color: Colors.green,
-              onTap: () => Navigator.of(context).pop('Cash'),
-            ),
-            const SizedBox(height: 16),
-            
-            // Instapay option
-            _PaymentMethodButton(
-              icon: Icons.account_balance,
-              label: 'Instapay',
-              color: Colors.blue,
-              onTap: () => Navigator.of(context).pop('Instapay'),
-            ),
-            const SizedBox(height: 16),
-            
-            // Mobile Wallet option
-            _PaymentMethodButton(
-              icon: Icons.phone_android,
-              label: 'Mobile Wallet',
-              color: Colors.purple,
-              onTap: () => Navigator.of(context).pop('Mobile Wallet'),
-            ),
-            const SizedBox(height: 16),
-            
-            // Cancel button
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Cancel',
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: ResponsiveUtils.getDialogWidth(context, small: 320, medium: 380, large: 450),
+        ),
+        child: Padding(
+          padding: padding,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Title
+              Text(
+                'Select Payment Method',
                 style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
+                  fontSize: titleFontSize,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-          ],
+              SizedBox(height: buttonSpacing * 1.5),
+              
+              // Cash option
+              _PaymentMethodButton(
+                icon: Icons.attach_money,
+                label: 'Cash',
+                color: Colors.green,
+                onTap: () => Navigator.of(context).pop('Cash'),
+              ),
+              SizedBox(height: buttonSpacing),
+              
+              // Instapay option
+              _PaymentMethodButton(
+                icon: Icons.account_balance,
+                label: 'Instapay',
+                color: Colors.blue,
+                onTap: () => Navigator.of(context).pop('Instapay'),
+              ),
+              SizedBox(height: buttonSpacing),
+              
+              // Mobile Wallet option
+              _PaymentMethodButton(
+                icon: Icons.phone_android,
+                label: 'Mobile Wallet',
+                color: Colors.purple,
+                onTap: () => Navigator.of(context).pop('Mobile Wallet'),
+              ),
+              SizedBox(height: buttonSpacing),
+              
+              // Cancel button
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16),
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -96,6 +110,15 @@ class _PaymentMethodButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final iconSize = ResponsiveUtils.getIconSize(context, small: 26, medium: 29, large: 32);
+    final fontSize = ResponsiveUtils.getResponsiveFontSize(context, 18);
+    final padding = ResponsiveUtils.getCardPadding(context,
+      small: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      medium: const EdgeInsets.symmetric(vertical: 17, horizontal: 20),
+      large: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+    );
+    final spacing = ResponsiveUtils.getSpacing(context, small: 12, medium: 14, large: 16);
+    
     return Material(
       color: color.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(12),
@@ -104,19 +127,19 @@ class _PaymentMethodButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+          padding: padding,
           child: Row(
             children: [
               Icon(
                 icon,
-                size: 32,
+                size: iconSize,
                 color: color,
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: spacing),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: fontSize,
                   fontWeight: FontWeight.w600,
                   color: color,
                 ),
