@@ -93,6 +93,22 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               ),
               title: const Text('Sales Invoice Kanban'),
               actions: [
+                // Manual refresh button
+                IconButton(
+                  tooltip: 'Refresh Orders',
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () async {
+                    final notifier = ref.read(kanbanProvider.notifier);
+                    final messenger = ScaffoldMessenger.of(context);
+                    await notifier.loadInvoices();
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Orders refreshed'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
                 // Branch filter control (compact dropdown with checkboxes)
                 const _BranchFilterButton(),
                 const _BranchBalanceChip(),
@@ -240,7 +256,15 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                   },
                 ),
               ),
-            Expanded(child: _buildKanbanContent(kanbanState)),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  final notifier = ref.read(kanbanProvider.notifier);
+                  await notifier.loadInvoices();
+                },
+                child: _buildKanbanContent(kanbanState),
+              ),
+            ),
           ],
         ),
       ),
@@ -343,36 +367,46 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
 
     return ScrollConfiguration(
       behavior: const _KanbanScrollBehavior(),
-      child: Scrollbar(
-        controller: _horizontalScrollController,
-        thumbVisibility: true,
-        thickness: 8,
-        radius: const Radius.circular(12),
-        child: SingleChildScrollView(
-          controller: _horizontalScrollController,
-          scrollDirection: Axis.horizontal,
-          physics: _allowHScroll ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final column in kanbanState.columns) ...[
-                Container(
-                  width: 300,
-                  margin: const EdgeInsets.only(right: 16),
-                  child: KanbanColumnWidget(
-                    column: column,
-                    invoices: kanbanState.invoices[column.id] ?? const [],
-                    canAcceptMove: _canAcceptCardMove,
-                    onCardMoved: (invoiceId, fromColumnId, newColumnId) =>
-                        _handleCardMove(invoiceId, fromColumnId, newColumnId),
-                    onCardPointerActive: (active) => _setScrollActive(!active),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(), // Allow pull-to-refresh
+            child: SizedBox(
+              height: constraints.maxHeight,
+              child: Scrollbar(
+                controller: _horizontalScrollController,
+                thumbVisibility: true,
+                thickness: 8,
+                radius: const Radius.circular(12),
+                child: SingleChildScrollView(
+                  controller: _horizontalScrollController,
+                  scrollDirection: Axis.horizontal,
+                  physics: _allowHScroll ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final column in kanbanState.columns) ...[
+                        Container(
+                          width: 300,
+                          margin: const EdgeInsets.only(right: 16),
+                          child: KanbanColumnWidget(
+                            column: column,
+                            invoices: kanbanState.invoices[column.id] ?? const [],
+                            canAcceptMove: _canAcceptCardMove,
+                            onCardMoved: (invoiceId, fromColumnId, newColumnId) =>
+                                _handleCardMove(invoiceId, fromColumnId, newColumnId),
+                            onCardPointerActive: (active) => _setScrollActive(!active),
+                          ),
+                        )
+                      ]
+                    ],
                   ),
-                )
-              ]
-            ],
-          ),
-        ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

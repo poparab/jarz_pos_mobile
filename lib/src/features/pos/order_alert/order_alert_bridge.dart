@@ -32,6 +32,7 @@ class OrderAlertBridge {
   StreamSubscription<RemoteMessage>? _onOpenedSub;
   StreamSubscription<String>? _onTokenRefreshSub;
   StreamSubscription<Map<String, dynamic>>? _invoiceStreamSub;
+  Timer? _backgroundPollTimer;
   bool _hasInit = false;
 
   Future<void> _initialise() async {
@@ -110,6 +111,7 @@ class OrderAlertBridge {
     _onOpenedSub?.cancel();
     _onTokenRefreshSub?.cancel();
     _invoiceStreamSub?.cancel();
+    _backgroundPollTimer?.cancel();
     OrderAlertNativeChannel.setLaunchHandler(null);
   }
 
@@ -119,10 +121,16 @@ class OrderAlertBridge {
       await _registerToken(await FirebaseMessaging.instance.getToken());
     }
     await _ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts();
+    
+    // Start background polling to ensure alerts stay in sync
+    _startBackgroundPolling();
+    
     _logger.info("✅ Authentication setup complete");
   }
 
   Future<void> _onLoggedOut() async {
+    _backgroundPollTimer?.cancel();
+    _backgroundPollTimer = null;
     final controller = _ref.read(orderAlertControllerProvider.notifier);
     await controller.clearAll();
     await controller.resetTokenCache();
@@ -279,5 +287,27 @@ class OrderAlertBridge {
       _logger.error('Failed to register FCM token', error, stackTrace);
       await _ref.read(orderAlertControllerProvider.notifier).resetTokenCache();
     }
+  }
+
+  void _startBackgroundPolling() {
+    // Cancel any existing timer
+    _backgroundPollTimer?.cancel();
+    
+    // Poll every 10 seconds to check for alert updates
+    // This ensures alerts are refreshed even when app is idle
+    _backgroundPollTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      final isAuthenticated = _ref.read(currentAuthStateProvider);
+      if (!isAuthenticated) {
+        timer.cancel();
+        return;
+      }
+      
+      _logger.debug("⏰ Background polling - syncing alerts");
+      unawaited(
+        _ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts(),
+      );
+    });
+    
+    _logger.info("⏰ Started background polling for alerts (every 10s)");
   }
 }
