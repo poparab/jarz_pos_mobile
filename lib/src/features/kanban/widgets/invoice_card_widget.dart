@@ -382,24 +382,19 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       );
     }
 
-    final canShowDelivery = !_isPostOutForDelivery(widget.invoice.status);
-    if (canShowDelivery) {
-      trailingWidgets.add(
-        Tooltip(
-          message: 'Delivery',
-          child: IconButton(
-            icon: Icon(Icons.local_shipping, size: iconSize),
-            padding: EdgeInsets.all(ResponsiveUtils.getSpacing(context, small: 4, medium: 5, large: 6)),
-            constraints: BoxConstraints(
-              minWidth: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
-              minHeight: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
-            ),
-            splashRadius: ResponsiveUtils.getIconSize(context, small: 16, medium: 18, large: 20),
-            onPressed: (!hasProfile || transitioning) ? null : () => _handleOutForDelivery(context),
-          ),
-        ),
-      );
-    }
+    // Removed "Out for Delivery" icon - functionality available elsewhere
+    // final canShowDelivery = !_isPostOutForDelivery(widget.invoice.status);
+    // if (canShowDelivery) {
+    //   trailingWidgets.add(
+    //     Tooltip(
+    //       message: 'Delivery',
+    //       child: IconButton(
+    //         icon: Icon(Icons.local_shipping, size: iconSize),
+    //         ...
+    //       ),
+    //     ),
+    //   );
+    // }
 
     trailingWidgets.add(
       Tooltip(
@@ -466,20 +461,18 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       ),
     );
 
-    if (hasUnsettled) {
-      trailingWidgets.add(
-        Tooltip(
-          message: 'Settle Courier',
-          child: IconButton(
-            icon: const Icon(Icons.handshake, size: 18, color: Colors.teal),
-            padding: const EdgeInsets.all(6),
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            splashRadius: 20,
-            onPressed: transitioning ? null : () => _settleCourierTransaction(context),
-          ),
-        ),
-      );
-    }
+    // Removed "Settle Courier" icon - functionality available elsewhere
+    // if (hasUnsettled) {
+    //   trailingWidgets.add(
+    //     Tooltip(
+    //       message: 'Settle Courier',
+    //       child: IconButton(
+    //         icon: const Icon(Icons.handshake, size: 18, color: Colors.teal),
+    //         ...
+    //       ),
+    //     ),
+    //   );
+    // }
 
     trailingWidgets.add(
       Padding(
