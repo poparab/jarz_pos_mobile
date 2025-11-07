@@ -591,9 +591,22 @@ class KanbanService {
           'new_branch': newBranch,
         },
       );
+      
+      // Frappe wraps the response in a 'message' key
       final msg = resp.data['message'];
-      if (msg is Map && !(msg['success'] == true)) {
-        throw Exception(msg['error'] ?? 'Transfer failed');
+      _logger.info('Transfer response: $msg');
+      
+      if (msg is Map) {
+        final success = msg['success'] == true;
+        if (!success) {
+          final error = msg['error'] ?? 'Transfer failed';
+          _logger.error('Transfer failed: $error');
+          throw Exception(error);
+        }
+        _logger.info('Invoice $invoiceId transferred successfully to $newBranch');
+      } else {
+        _logger.error('Unexpected response format: $msg');
+        throw Exception('Unexpected response format');
       }
     } catch (e) {
       _logger.error('Failed to transfer invoice', e);
