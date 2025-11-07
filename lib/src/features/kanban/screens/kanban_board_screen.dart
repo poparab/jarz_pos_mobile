@@ -436,15 +436,18 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       final inv = _findInvoice(invoiceId);
       final hasPartner = ((inv?.salesPartner ?? '').isNotEmpty);
       final isPickup = (inv?.isPickup ?? false);
-      if (hasPartner) {
-        // Fast-path for ANY Sales Partner invoice (paid or unpaid):
-        // Provider logic distinguishes paid vs unpaid and will:
+      
+      // Fast-path for Sales Partner OR Pickup orders - no courier dialog needed
+      if (hasPartner || isPickup) {
+        // For Sales Partner: Provider logic distinguishes paid vs unpaid and will:
         //  - Paid: simple state update
         //  - Unpaid: create cash Payment Entry + auto OFD via backend endpoint
+        // For Pickup: Just update state (no courier/delivery needed)
         await ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, 'Out For Delivery');
         return;
       }
-      // Launch courier/mode dialog
+      
+      // Launch courier/mode dialog for regular delivery orders
       // Show "Settle Later" for non-partner, non-pickup only (per business rule)
       final showSettleLater = !hasPartner && !isPickup;
       final dialogResult = await _showCourierSettlementDialog(hideSettleLater: !showSettleLater);
