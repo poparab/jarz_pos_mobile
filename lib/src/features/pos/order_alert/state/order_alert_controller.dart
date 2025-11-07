@@ -130,6 +130,24 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       await OrderAlertNativeChannel.stopAlarm();
       await OrderAlertNativeChannel.cancelNotification(current.invoiceId);
       _removeInvoice(current.invoiceId);
+      
+      // Force sync to check if there are any remaining alerts on server
+      // This ensures we don't keep ringing if all alerts were accepted
+      _logger.info('Forcing sync after acknowledging ${current.invoiceId}');
+      await syncPendingAlerts();
+      
+      // Check if we still have alerts after sync
+      if (!state.hasActive) {
+        _logger.info('No more active alerts after sync - ensuring alarm is stopped');
+        await OrderAlertNativeChannel.stopAlarm();
+        state = state.copyWith(
+          isMuted: false,
+          isAcknowledging: false,
+          clearError: true,
+        );
+        return;
+      }
+      
       final next = state.active;
       if (next != null && !state.isMuted) {
         // Check if POS Profile is open before continuing alarm
@@ -140,13 +158,6 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
         } else {
           _logger.info('POS Profile is closed. Skipping alarm for next invoice ${next.invoiceId}');
         }
-      }
-      if (!state.hasActive) {
-        state = state.copyWith(
-          isMuted: false,
-          isAcknowledging: false,
-          clearError: true,
-        );
       }
     } catch (error, stackTrace) {
       _logger.error(
@@ -169,22 +180,11 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       final now = DateTime.now();
       _logger.info("syncPendingAlerts fetched ${alerts.length} alerts from server");
       
-      // If we have local alerts but server returns empty, DON'T clear them immediately
-      // This handles the race condition where notification arrives before server API updates
-      if (alerts.isEmpty && state.queue.isNotEmpty) {
-        _logger.warning(
-          "Server returned 0 alerts but we have ${state.queue.length} local alerts. "
-          "Keeping local alerts to avoid race condition."
-        );
-        state = state.copyWith(lastSynced: now);
-        _loadingPending = false;
-        return;
-      }
-      
       if (alerts.isEmpty) {
-        _logger.info("No pending alerts from server, clearing local queue");
-        if (state.hasActive) {
+        _logger.info("No pending alerts from server, clearing local queue and stopping alarm");
+        if (state.hasActive || state.queue.isNotEmpty) {
           await OrderAlertNativeChannel.stopAlarm();
+          _logger.info("Stopped alarm - no pending alerts on server");
         }
         state = state.copyWith(
           queue: const [],
@@ -254,11 +254,19 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     
     final wasActive = state.active?.invoiceId == invoiceId;
     final removed = _removeInvoice(invoiceId);
-    _logger.info("handleInvoiceAccepted invoice=$invoiceId removed=$removed wasActive=$wasActive");
+    _logger.info("handleInvoiceAccepted invoice=$invoiceId removed=$removed wasActive=$wasActive hasActive=${state.hasActive}");
     
     if (!removed) {
       // Even if we don't have this invoice locally, ensure alarm is stopped
       _logger.info("Invoice $invoiceId not in local queue but stopping alarm anyway");
+      return;
+    }
+
+    // If there are no more active alerts, ensure alarm is completely stopped
+    if (!state.hasActive) {
+      _logger.info('No more pending invoices after accepting $invoiceId - stopping alarm completely');
+      await OrderAlertNativeChannel.stopAlarm();
+      state = state.copyWith(isMuted: false, clearError: true);
       return;
     }
 
@@ -273,10 +281,6 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
         } else {
           _logger.info('POS Profile is closed. Skipping alarm for next invoice ${next.invoiceId}');
         }
-      } else {
-        // No more pending invoices - ensure alarm is completely stopped
-        _logger.info('No more pending invoices - stopping alarm completely');
-        await OrderAlertNativeChannel.stopAlarm();
       }
       if (!state.hasActive) {
         state = state.copyWith(isMuted: false, clearError: true);
