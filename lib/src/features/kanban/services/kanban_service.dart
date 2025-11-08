@@ -626,4 +626,47 @@ class KanbanService {
       rethrow;
     }
   }
+
+  /// Update delivery slot for an invoice
+  Future<void> updateDeliverySlot({
+    required String invoiceId,
+    required String deliveryDate,
+    required String deliveryTimeFrom,
+    required int deliveryDuration,
+  }) async {
+    try {
+      _logger.info('Updating delivery slot for invoice $invoiceId');
+      _logger.info('New slot: $deliveryDate $deliveryTimeFrom, duration: ${deliveryDuration}s');
+      
+      final resp = await _dio.post(
+        '/api/method/jarz_pos.api.invoices.update_invoice_delivery_slot',
+        data: {
+          'invoice_id': invoiceId,
+          'delivery_date': deliveryDate,
+          'delivery_time_from': deliveryTimeFrom,
+          'delivery_duration': deliveryDuration,
+        },
+      );
+      
+      _logger.info('Update delivery slot response: ${resp.data}');
+      
+      final msg = resp.data['message'];
+      if (msg is Map) {
+        final success = msg['success'] == true;
+        if (!success) {
+          final error = msg['message'] ?? 'Failed to update delivery slot';
+          _logger.error('Update delivery slot failed: $error');
+          throw Exception(error);
+        }
+        _logger.info('Delivery slot updated successfully for $invoiceId');
+      } else {
+        _logger.error('Unexpected response format: $msg');
+        throw Exception('Unexpected response format');
+      }
+    } catch (e) {
+      _logger.error('Failed to update delivery slot', e);
+      rethrow;
+    }
+  }
 }
+

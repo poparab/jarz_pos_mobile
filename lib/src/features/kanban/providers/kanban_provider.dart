@@ -1044,6 +1044,27 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       return false;
     }
   }
+
+  Future<bool> updateDeliverySlot({
+    required String invoiceId,
+    required String deliveryDate,
+    required String deliveryTimeFrom,
+    required int deliveryDuration,
+  }) async {
+    try {
+      await _kanbanService.updateDeliverySlot(
+        invoiceId: invoiceId,
+        deliveryDate: deliveryDate,
+        deliveryTimeFrom: deliveryTimeFrom,
+        deliveryDuration: deliveryDuration,
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Update delivery slot error: $e');
+      state = state.copyWith(error: e.toString().replaceAll('Exception: ', ''));
+      return false;
+    }
+  }
 }
 
 // Provider for Kanban state

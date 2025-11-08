@@ -6,6 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/kanban_models.dart';
 import '../providers/kanban_provider.dart';
 import '../../pos/state/pos_notifier.dart';
+import '../../pos/domain/models/delivery_slot.dart';
+import '../../pos/data/repositories/pos_repository.dart';
 import '../../../core/network/courier_service.dart';
 import '../../../core/network/user_service.dart';
 import '../../manager/data/manager_api.dart';
@@ -432,6 +434,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               await _editCustomerAddress(context);
             } else if (value == 'transfer_order') {
               await _transferOrder(context);
+            } else if (value == 'change_delivery_slot') {
+              await _changeDeliverySlot(context);
             }
           },
           itemBuilder: (context) => [
@@ -445,6 +449,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 ],
               ),
             ),
+            if (!widget.invoice.isPickup)
+              const PopupMenuItem(
+                value: 'change_delivery_slot',
+                child: Row(
+                  children: [
+                    Icon(Icons.schedule, size: 18),
+                    SizedBox(width: 8),
+                    Text('Change Delivery Slot'),
+                  ],
+                ),
+              ),
             if (isLineManager)
               const PopupMenuItem(
                 value: 'transfer_order',
@@ -2381,7 +2396,365 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       );
     }
   }
+
+  // Change delivery slot for the order
+  Future<void> _changeDeliverySlot(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final notifier = ref.read(kanbanProvider.notifier);
+
+    try {
+      // Get the kanban profile from the invoice
+      final kanbanProfile = widget.invoice.id.split('-')[0]; // Extract profile from invoice ID
+      
+      if (kanbanProfile.isEmpty) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Unable to determine POS profile for this invoice'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
+      // Fetch delivery slots for the kanban profile
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              SizedBox(width: 12),
+              Text('Loading delivery slots...'),
+            ],
+          ),
+          duration: Duration(hours: 1),
+        ),
+      );
+
+      final posRepository = ref.read(posRepositoryProvider);
+      final slots = await posRepository.getDeliverySlots(kanbanProfile);
+
+      messenger.clearSnackBars();
+
+      if (!context.mounted) return;
+
+      if (slots.isEmpty) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('No delivery slots available for this branch'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
+      // Find current slot based on invoice data
+      DeliverySlot? currentSlot;
+      if (widget.invoice.deliveryDate != null && widget.invoice.deliveryTimeFrom != null) {
+        try {
+          final currentDateTime = '${widget.invoice.deliveryDate}T${widget.invoice.deliveryTimeFrom}';
+          currentSlot = slots.firstWhere(
+            (slot) => slot.datetime == currentDateTime,
+            orElse: () => slots.first,
+          );
+        } catch (e) {
+          currentSlot = slots.first;
+        }
+      }
+
+      // Show dialog to select new delivery slot (same pattern as manager dashboard)
+      DeliverySlot? selectedSlot = currentSlot ?? slots.first;
+      
+      final picked = await showDialog<DeliverySlot>(
+        context: context,
+        builder: (ctx) {
+          return StatefulBuilder(
+            builder: (ctx, setState) => AlertDialog(
+              title: const Text('Change Delivery Slot'),
+              content: SizedBox(
+                width: 400,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Show current invoice info
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Customer: ${widget.invoice.customerName}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Invoice: ${widget.invoice.name}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          if (currentSlot != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Current: ${currentSlot!.label}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.blue[700],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    // Slot selection with ListTiles grouped by day
+                    Expanded(
+                      child: _buildSlotList(slots, selectedSlot, (slot) {
+                        setState(() {
+                          selectedSlot = slot;
+                        });
+                      }),
+                    ),
+                    const SizedBox(height: 8),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    // Info message
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue[200]!),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.info_outline, size: 18, color: Colors.blue),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'The delivery slot will be updated for this order.',
+                              style: TextStyle(fontSize: 12, color: Colors.blue),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx, selectedSlot),
+                  child: const Text('Save'),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      if (!context.mounted || picked == null) return;
+
+      // Check if slot changed
+      if (currentSlot != null && picked.datetime == currentSlot.datetime) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('No changes made'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      // Show loading indicator
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              SizedBox(width: 12),
+              Text('Updating delivery slot...'),
+            ],
+          ),
+          duration: Duration(hours: 1),
+        ),
+      );
+
+      // Parse delivery duration
+      int durationSeconds = 7200; // default 2 hours
+      if (widget.invoice.deliveryDuration != null) {
+        if (widget.invoice.deliveryDuration is int) {
+          durationSeconds = widget.invoice.deliveryDuration as int;
+        } else if (widget.invoice.deliveryDuration is String) {
+          // Parse HH:MM:SS format
+          final parts = (widget.invoice.deliveryDuration as String).split(':');
+          if (parts.length == 3) {
+            durationSeconds = int.parse(parts[0]) * 3600 + 
+                             int.parse(parts[1]) * 60 + 
+                             int.parse(parts[2]);
+          }
+        }
+      }
+
+      // Call backend to update delivery slot
+      final success = await notifier.updateDeliverySlot(
+        invoiceId: widget.invoice.name,
+        deliveryDate: picked.date,
+        deliveryTimeFrom: picked.time,
+        deliveryDuration: durationSeconds,
+      );
+
+      messenger.clearSnackBars();
+
+      if (!context.mounted) return;
+
+      if (success) {
+        // Refresh the kanban board
+        ref.invalidate(kanbanProvider);
+        
+        messenger.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Delivery slot updated to ${picked.label}',
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green[600],
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      } else {
+        // Get error from provider state
+        final errorMessage = ref.read(kanbanProvider).error ?? 'Failed to update delivery slot';
+        
+        messenger.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(errorMessage),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red[600],
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(child: Text('Error: $e')),
+            ],
+          ),
+          backgroundColor: Colors.red[600],
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  Widget _buildSlotList(List<DeliverySlot> slots, DeliverySlot? selectedSlot, Function(DeliverySlot) onTap) {
+    // Group slots by day
+    Map<String, List<DeliverySlot>> slotsByDay = {};
+    for (final slot in slots) {
+      slotsByDay.putIfAbsent(slot.dayLabel, () => []).add(slot);
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: slotsByDay.keys.length,
+      itemBuilder: (context, index) {
+        final dayLabel = slotsByDay.keys.elementAt(index);
+        final daySlots = slotsByDay[dayLabel]!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                dayLabel,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            ...daySlots.map((slot) => ListTile(
+              title: Text(
+                slot.timeLabel,
+                style: TextStyle(
+                  fontWeight: selectedSlot?.datetime == slot.datetime ? FontWeight.w600 : FontWeight.normal,
+                  color: selectedSlot?.datetime == slot.datetime ? Theme.of(context).primaryColor : null,
+                ),
+              ),
+              trailing: selectedSlot?.datetime == slot.datetime
+                  ? Icon(Icons.check_circle, color: Theme.of(context).primaryColor)
+                  : slot.isDefault
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Default',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.green[700],
+                        ),
+                      ),
+                    )
+                  : null,
+              onTap: () => onTap(slot),
+            )),
+            const SizedBox(height: 8),
+          ],
+        );
+      },
+    );
+  }
 }
 
 // End of InvoiceCardWidget state class
+
 
