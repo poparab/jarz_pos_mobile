@@ -52,6 +52,7 @@ class InvoiceCard {
   final String? acceptanceStatus; // new: Pending/Accepted status for order acceptance
   final bool? requiresAcceptanceFlag; // optional flag directly from backend
   final String? paymentMethod; // new: Cash, Instapay, or Mobile Wallet
+  final String? posProfile; // POS Profile for payment receipt tracking
 
   InvoiceCard({
     required this.id,
@@ -85,6 +86,7 @@ class InvoiceCard {
   this.acceptanceStatus,
   this.requiresAcceptanceFlag,
   this.paymentMethod,
+  this.posProfile,
   });
 
   factory InvoiceCard.fromJson(Map<String, dynamic> json) {
@@ -136,6 +138,7 @@ class InvoiceCard {
       acceptanceStatus: (json['acceptance_status'] ?? json['custom_acceptance_status'])?.toString(),
       requiresAcceptanceFlag: requiresAcceptanceFlag,
       paymentMethod: (json['payment_method'] ?? json['custom_payment_method'])?.toString(),
+      posProfile: (json['pos_profile'] ?? json['custom_kanban_profile'])?.toString(),
     );
   }
 
@@ -171,6 +174,7 @@ class InvoiceCard {
   'acceptance_status': acceptanceStatus,
   'requires_acceptance': requiresAcceptanceFlag,
   'payment_method': paymentMethod,
+  'pos_profile': posProfile,
     };
   }
 
@@ -206,6 +210,7 @@ class InvoiceCard {
   String? acceptanceStatus,
   bool? requiresAcceptanceFlag,
   String? paymentMethod,
+  String? posProfile,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -239,6 +244,7 @@ class InvoiceCard {
   acceptanceStatus: acceptanceStatus ?? this.acceptanceStatus,
   requiresAcceptanceFlag: requiresAcceptanceFlag ?? this.requiresAcceptanceFlag,
   paymentMethod: paymentMethod ?? this.paymentMethod,
+  posProfile: posProfile ?? this.posProfile,
     );
   }
 

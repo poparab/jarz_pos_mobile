@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -167,7 +166,7 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
             // POS Profile Filter
             if (posProfiles.isNotEmpty)
               DropdownButtonFormField<String>(
-                value: selectedPosProfile,
+                initialValue: selectedPosProfile,
                 decoration: const InputDecoration(
                   labelText: 'Filter by POS Profile',
                   border: OutlineInputBorder(),
