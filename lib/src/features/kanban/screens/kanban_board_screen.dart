@@ -709,6 +709,26 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       return false;
     }
 
+    // PICKUP ORDER VALIDATION: Prevent pickup orders from going to Courier Settlement
+    final targetColumn = columns[toIndex];
+    final targetName = targetColumn.name.trim().toLowerCase();
+    final targetId = targetColumn.id.trim().toLowerCase();
+    final isMovingToSettlement = targetName.contains('courier') && targetName.contains('settlement') ||
+                                  targetId.contains('courier') && targetId.contains('settlement');
+    
+    if (isMovingToSettlement) {
+      final inv = _findInvoice(invoiceId);
+      final isPickup = (inv?.isPickup ?? false);
+      if (isPickup) {
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.removeCurrentSnackBar();
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Pickup orders do not require courier settlement')),
+        );
+        return false;
+      }
+    }
+
     final isBackward = toIndex < fromIndex;
     final cancelledIndex = columns.indexWhere(_isCancelledColumn);
     final movingToCancelled = cancelledIndex != -1 && toIndex == cancelledIndex;
