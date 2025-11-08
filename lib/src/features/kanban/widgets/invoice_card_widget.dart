@@ -2387,20 +2387,6 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           ),
         );
       }
-        messenger.showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.error, color: Colors.white),
-                SizedBox(width: 12),
-                Expanded(child: Text('Failed to transfer order')),
-              ],
-            ),
-            backgroundColor: Colors.red[600],
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
     } catch (e) {
       messenger.clearSnackBars();
       messenger.showSnackBar(
