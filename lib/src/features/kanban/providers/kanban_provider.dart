@@ -524,7 +524,26 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       final all = state.invoices.values.expand((e) => e).toList();
       final card = all.firstWhere((c) => c.id == invoiceId, orElse: () => InvoiceCard.fromJson({'name': invoiceId}));
       final isPaid = (card.docStatus ?? '').toLowerCase() == 'paid' || (card.effectiveStatus.toLowerCase() == 'paid');
-  final hasPartner = (card.salesPartner ?? '').isNotEmpty;
+      final hasPartner = (card.salesPartner ?? '').isNotEmpty;
+      final isPickup = card.isPickup;
+      
+      // PICKUP ORDERS: Simple state update (no courier or payment logic needed)
+      if (isPickup) {
+        try {
+          _optimisticMove(invoiceId, canonical);
+          final success = await _kanbanService.updateInvoiceState(invoiceId, canonical);
+          if (!success) {
+            state = state.copyWith(error: 'Failed to update pickup order state');
+          } else {
+            await loadInvoices();
+          }
+          return;
+        } catch (e) {
+          state = state.copyWith(error: 'Pickup order dispatch error: $e');
+          return;
+        }
+      }
+      
       if (hasPartner) {
         // Branch: Sales Partner invoice
         if (!isPaid) {
