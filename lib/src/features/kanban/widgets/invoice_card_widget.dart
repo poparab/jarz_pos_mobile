@@ -2368,6 +2368,25 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           ),
         );
       } else {
+        // Get error from provider state
+        final errorMessage = ref.read(kanbanProvider).error ?? 'Transfer failed. Please try again.';
+        
+        messenger.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(errorMessage),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red[600],
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
         messenger.showSnackBar(
           SnackBar(
             content: const Row(

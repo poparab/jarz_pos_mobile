@@ -1039,6 +1039,8 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       return true;
     } catch (e) {
       debugPrint('Transfer invoice error: $e');
+      // Set error state so UI can show it
+      state = state.copyWith(error: e.toString().replaceAll('Exception: ', ''));
       return false;
     }
   }
