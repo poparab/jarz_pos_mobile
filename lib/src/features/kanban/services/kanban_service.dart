@@ -590,11 +590,24 @@ class KanbanService {
           'invoice_id': invoiceId,
           'new_branch': newBranch,
         },
+        options: Options(
+          validateStatus: (status) => status! < 500, // Accept all status codes < 500
+        ),
       );
+      
+      _logger.info('Transfer response status: ${resp.statusCode}');
+      _logger.info('Transfer response data: ${resp.data}');
+      
+      // Handle non-200 status codes
+      if (resp.statusCode != 200) {
+        final errorMsg = resp.data.toString();
+        _logger.error('Transfer failed with status ${resp.statusCode}: $errorMsg');
+        throw Exception('Transfer failed: $errorMsg');
+      }
       
       // Frappe wraps the response in a 'message' key
       final msg = resp.data['message'];
-      _logger.info('Transfer response: $msg');
+      _logger.info('Transfer response message: $msg');
       
       if (msg is Map) {
         final success = msg['success'] == true;
