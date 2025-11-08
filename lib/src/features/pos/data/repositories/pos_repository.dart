@@ -496,6 +496,12 @@ class PosRepository {
   /// Check if a POS Profile is currently open based on its timetable
   Future<Map<String, dynamic>> isPosProfileOpen(String posProfile) async {
     try {
+      // Validate input
+      if (posProfile.isEmpty) {
+        print('⚠️ isPosProfileOpen: POS profile is empty, defaulting to open');
+        return {'is_open': true, 'message': 'No POS profile specified'};
+      }
+
       final response = await _dio.post(
         '/api/method/jarz_pos.api.pos.is_pos_profile_open',
         data: {'pos_profile': posProfile},
@@ -505,8 +511,18 @@ class PosRepository {
         return Map<String, dynamic>.from(response.data['message']);
       }
       throw Exception('Failed to check POS profile timetable');
+    } on DioException catch (e) {
+      print('⚠️ DioException in isPosProfileOpen: ${e.message}');
+      // If there's a server error or network issue, default to "open" 
+      // to avoid blocking critical operations like order transfers
+      return {
+        'is_open': true, 
+        'message': 'Error checking timetable: ${e.message}. Defaulting to open.'
+      };
     } catch (e) {
-      throw Exception('Failed to check POS profile timetable: $e');
+      print('⚠️ Error in isPosProfileOpen: $e');
+      // Default to open to avoid blocking operations
+      return {'is_open': true, 'message': 'Error checking timetable. Defaulting to open.'};
     }
   }
 
