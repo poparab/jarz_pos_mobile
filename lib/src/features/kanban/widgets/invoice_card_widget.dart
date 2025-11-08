@@ -2189,94 +2189,71 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         return;
       }
 
-      // Fetch available POS profiles
+      // Fetch available POS profiles (same logic as manager dashboard)
       final managerApi = ref.read(managerApiProvider);
       final summary = await managerApi.getSummary();
       final branches = summary.branches;
 
       if (!context.mounted) return;
 
-      // Filter out current profile
-      final availableBranches = branches
-          .where((b) => b.name != currentProfile)
-          .toList();
-
-      if (availableBranches.isEmpty) {
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('No other POS profiles available for transfer'),
-            duration: Duration(seconds: 3),
-          ),
-        );
-        return;
-      }
-
-      // Show dialog to select target POS profile
-      String? selectedBranch = availableBranches.first.name;
+      // Show dialog to select target POS profile (same pattern as manager dashboard)
+      String? selected = currentProfile;
       
-      final confirmed = await showDialog<bool>(
+      final picked = await showDialog<String>(
         context: context,
         builder: (ctx) {
           return StatefulBuilder(
             builder: (ctx, setState) => AlertDialog(
-              title: const Row(
-                children: [
-                  Icon(Icons.swap_horiz, size: 24),
-                  SizedBox(width: 12),
-                  Text('Transfer Order'),
-                ],
-              ),
+              title: const Text('Assign to Branch'),
               content: SizedBox(
                 width: 400,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Customer: ${widget.invoice.customerName}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
+                    // Show current invoice info
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Invoice: ${widget.invoice.name}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[700],
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Customer: ${widget.invoice.customerName}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Invoice: ${widget.invoice.name}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),
                     const Divider(),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Select Target POS Profile:',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                    const SizedBox(height: 8),
+                    // Branch selection with ListTiles (same as manager dashboard)
+                    for (final b in branches)
+                      ListTile(
+                        title: Text(b.title),
+                        trailing: selected == b.name ? const Icon(Icons.check) : null,
+                        onTap: () => setState(() {
+                          selected = b.name;
+                        }),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      initialValue: selectedBranch,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      items: availableBranches.map((branch) {
-                        return DropdownMenuItem<String>(
-                          value: branch.name,
-                          child: Text(branch.title),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedBranch = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    // Info message
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -2290,7 +2267,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'The order will be moved to the selected POS profile and reset to "Received" state for acceptance.',
+                              'The order will be moved to the selected branch and reset to "Received" state.',
                               style: TextStyle(fontSize: 12, color: Colors.blue),
                             ),
                           ),
@@ -2302,12 +2279,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(ctx, false),
+                  onPressed: () => Navigator.pop(ctx),
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
-                  onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text('Transfer'),
+                  onPressed: () => Navigator.pop(ctx, selected),
+                  child: const Text('Save'),
                 ),
               ],
             ),
@@ -2315,7 +2292,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         },
       );
 
-      if (!context.mounted || confirmed != true || selectedBranch == null) return;
+      if (!context.mounted || picked == null || picked == currentProfile) return;
 
       // Show loading indicator
       messenger.clearSnackBars();
@@ -2336,10 +2313,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ),
       );
 
-      // Call backend to transfer (selectedBranch is guaranteed non-null here)
+      // Call backend to transfer
       final success = await notifier.transferInvoice(
         invoiceId: widget.invoice.name,
-        newBranch: selectedBranch!,
+        newBranch: picked,
       );
 
       messenger.clearSnackBars();
@@ -2358,7 +2335,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Order transferred successfully to ${availableBranches.firstWhere((b) => b.name == selectedBranch).title}',
+                    'Order transferred successfully to ${branches.firstWhere((b) => b.name == picked).title}',
                   ),
                 ),
               ],
