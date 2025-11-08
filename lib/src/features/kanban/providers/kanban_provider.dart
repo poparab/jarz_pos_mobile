@@ -1065,6 +1065,85 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       return false;
     }
   }
+
+  /// Create payment receipt
+  Future<Map<String, dynamic>?> createPaymentReceipt({
+    required String salesInvoice,
+    required String paymentMethod,
+    required double amount,
+    required String posProfile,
+  }) async {
+    try {
+      final result = await _kanbanService.createPaymentReceipt(
+        salesInvoice: salesInvoice,
+        paymentMethod: paymentMethod,
+        amount: amount,
+        posProfile: posProfile,
+      );
+      return result;
+    } catch (e) {
+      debugPrint('Create payment receipt error: $e');
+      return null;
+    }
+  }
+
+  /// List payment receipts
+  Future<List<Map<String, dynamic>>> listPaymentReceipts({
+    String? posProfile,
+    String? status,
+  }) async {
+    try {
+      return await _kanbanService.listPaymentReceipts(
+        posProfile: posProfile,
+        status: status,
+      );
+    } catch (e) {
+      debugPrint('List payment receipts error: $e');
+      return [];
+    }
+  }
+
+  /// Upload receipt image
+  Future<Map<String, dynamic>?> uploadReceiptImage({
+    required String receiptName,
+    required String imageData,
+    required String filename,
+  }) async {
+    try {
+      return await _kanbanService.uploadReceiptImage(
+        receiptName: receiptName,
+        imageData: imageData,
+        filename: filename,
+      );
+    } catch (e) {
+      debugPrint('Upload receipt image error: $e');
+      return null;
+    }
+  }
+
+  /// Confirm receipt
+  Future<Map<String, dynamic>?> confirmReceipt({
+    required String receiptName,
+  }) async {
+    try {
+      return await _kanbanService.confirmReceipt(
+        receiptName: receiptName,
+      );
+    } catch (e) {
+      debugPrint('Confirm receipt error: $e');
+      return null;
+    }
+  }
+
+  /// Get accessible POS profiles
+  Future<List<String>> getAccessiblePOSProfiles() async {
+    try {
+      return await _kanbanService.getAccessiblePOSProfiles();
+    } catch (e) {
+      debugPrint('Get accessible POS profiles error: $e');
+      return [];
+    }
+  }
 }
 
 // Provider for Kanban state

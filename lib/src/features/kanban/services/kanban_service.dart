@@ -668,5 +668,130 @@ class KanbanService {
       rethrow;
     }
   }
+
+  /// List payment receipts with optional filters
+  Future<List<Map<String, dynamic>>> listPaymentReceipts({
+    String? posProfile,
+    String? status,
+  }) async {
+    try {
+      _logger.info('Fetching payment receipts (profile: $posProfile, status: $status)');
+      final resp = await _dio.get(
+        '/api/method/jarz_pos.api.payment_receipts.list_payment_receipts',
+        queryParameters: {
+          if (posProfile != null) 'pos_profile': posProfile,
+          if (status != null) 'status': status,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is List) {
+        return List<Map<String, dynamic>>.from(msg.map((e) => Map<String, dynamic>.from(e)));
+      }
+      throw Exception('Failed to fetch payment receipts');
+    } catch (e) {
+      _logger.error('Failed to list payment receipts', e);
+      rethrow;
+    }
+  }
+
+  /// Create a payment receipt record
+  Future<Map<String, dynamic>> createPaymentReceipt({
+    required String salesInvoice,
+    required String paymentMethod,
+    required double amount,
+    required String posProfile,
+  }) async {
+    try {
+      _logger.info('Creating payment receipt for $salesInvoice ($paymentMethod)');
+      final resp = await _dio.post(
+        '/api/method/jarz_pos.api.payment_receipts.create_payment_receipt',
+        data: {
+          'sales_invoice': salesInvoice,
+          'payment_method': paymentMethod,
+          'amount': amount,
+          'pos_profile': posProfile,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        _logger.info('Payment receipt created: ${msg['receipt_name']}');
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? msg['error'] ?? 'Failed to create receipt' : 'Failed to create receipt');
+    } catch (e) {
+      _logger.error('Failed to create payment receipt', e);
+      rethrow;
+    }
+  }
+
+  /// Upload receipt image (base64 encoded)
+  Future<Map<String, dynamic>> uploadReceiptImage({
+    required String receiptName,
+    required String imageData,
+    required String filename,
+  }) async {
+    try {
+      _logger.info('Uploading receipt image for $receiptName');
+      final resp = await _dio.post(
+        '/api/method/jarz_pos.api.payment_receipts.upload_receipt_image',
+        data: {
+          'receipt_name': receiptName,
+          'image_data': imageData,
+          'filename': filename,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        _logger.info('Receipt image uploaded successfully');
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? msg['error'] ?? 'Failed to upload image' : 'Failed to upload image');
+    } catch (e) {
+      _logger.error('Failed to upload receipt image', e);
+      rethrow;
+    }
+  }
+
+  /// Confirm a payment receipt
+  Future<Map<String, dynamic>> confirmReceipt({
+    required String receiptName,
+  }) async {
+    try {
+      _logger.info('Confirming receipt $receiptName');
+      final resp = await _dio.post(
+        '/api/method/jarz_pos.api.payment_receipts.confirm_receipt',
+        data: {
+          'receipt_name': receiptName,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        _logger.info('Receipt confirmed successfully');
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? msg['error'] ?? 'Failed to confirm receipt' : 'Failed to confirm receipt');
+    } catch (e) {
+      _logger.error('Failed to confirm receipt', e);
+      rethrow;
+    }
+  }
+
+  /// Get user's accessible POS profiles
+  Future<List<String>> getAccessiblePOSProfiles() async {
+    try {
+      _logger.info('Fetching accessible POS profiles');
+      final resp = await _dio.get(
+        '/api/method/jarz_pos.api.payment_receipts.get_accessible_pos_profiles',
+      );
+      final msg = resp.data['message'];
+      if (msg is List) {
+        return List<String>.from(msg);
+      }
+      throw Exception('Failed to fetch accessible POS profiles');
+    } catch (e) {
+      _logger.error('Failed to get accessible POS profiles', e);
+      rethrow;
+    }
+  }
 }
 

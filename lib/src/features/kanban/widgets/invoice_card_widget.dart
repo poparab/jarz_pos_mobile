@@ -1162,6 +1162,37 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             _showCollectCashDialog(context, amount.toString(), widget.invoice.name);
           }
         }
+        
+        // Create payment receipt for Instapay/Wallet payments
+        if (method == 'InstaPay' || method == 'Wallet') {
+          final amount = result['amount'] ?? result['allocated_amount'];
+          final invoicePosProfile = widget.invoice.posProfile;
+          if (amount != null && invoicePosProfile != null && invoicePosProfile.isNotEmpty) {
+            try {
+              await notifier.createPaymentReceipt(
+                salesInvoice: widget.invoice.name,
+                paymentMethod: method,
+                amount: double.tryParse(amount.toString()) ?? 0.0,
+                posProfile: invoicePosProfile,
+              );
+              if (context.mounted) {
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Payment receipt created - please upload receipt image'),
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+              }
+            } catch (e) {
+              // Don't block payment success, just log
+              if (context.mounted) {
+                messenger.showSnackBar(
+                  SnackBar(content: Text('Warning: Receipt creation failed: $e')),
+                );
+              }
+            }
+          }
+        }
       } else {
         messenger.showSnackBar(
           const SnackBar(content: Text('Payment failed')),

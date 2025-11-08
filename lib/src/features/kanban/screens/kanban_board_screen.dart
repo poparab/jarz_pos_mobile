@@ -7,6 +7,7 @@ import '../providers/kanban_provider.dart';
 import '../models/kanban_models.dart';
 import '../widgets/kanban_column_widget.dart';
 import '../widgets/kanban_filters_widget.dart';
+import '../widgets/payment_receipt_list_dialog.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../pos/state/pos_account_balance_provider.dart';
 import '../../../core/router.dart';
@@ -117,6 +118,17 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               ),
               title: const Text('Sales Invoice Kanban'),
               actions: [
+                // Payment receipts button
+                IconButton(
+                  tooltip: 'Payment Receipts',
+                  icon: const Icon(Icons.receipt_long),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => const PaymentReceiptListDialog(),
+                    );
+                  },
+                ),
                 // Manual refresh button
                 IconButton(
                   tooltip: 'Refresh Orders',
