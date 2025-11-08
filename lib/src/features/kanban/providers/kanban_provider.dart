@@ -529,6 +529,14 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       
       // PICKUP ORDERS: Simple state update (no courier or payment logic needed)
       if (isPickup) {
+        // ENFORCE PAYMENT: Pickup orders must be paid before moving to Out For Delivery
+        if (!isPaid) {
+          state = state.copyWith(
+            error: 'Pickup order must be paid before moving to Out For Delivery. Please mark as paid first.'
+          );
+          return;
+        }
+        
         try {
           _optimisticMove(invoiceId, canonical);
           final success = await _kanbanService.updateInvoiceState(invoiceId, canonical);
@@ -695,6 +703,18 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         paymentMode: paymentMode,
         posProfile: posProfile,
       );
+      
+      // Show collect cash dialog if payment was successful and method is Cash
+      if (result != null && result['success'] == true && paymentMode.toLowerCase() == 'cash') {
+        final amount = result['amount'] ?? result['paid_amount'];
+        if (amount != null) {
+          _showCollectCashDialog(
+            amount: amount.toString(),
+            invoiceId: invoiceId,
+          );
+        }
+      }
+      
       // Refresh invoice details & list after payment
       await loadInvoices();
       return result;
