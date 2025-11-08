@@ -1139,6 +1139,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         messenger.showSnackBar(
           SnackBar(content: Text('Payment successful (${result['payment_entry']})')),
         );
+        
+        // Show collect cash dialog for cash payments
+        if (method.toLowerCase() == 'cash') {
+          final amount = result['amount'] ?? result['allocated_amount'];
+          if (amount != null && context.mounted) {
+            _showCollectCashDialog(context, amount.toString(), widget.invoice.name);
+          }
+        }
       } else {
         messenger.showSnackBar(
           const SnackBar(content: Text('Payment failed')),
@@ -1149,6 +1157,30 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         SnackBar(content: Text('Payment error: $e')),
       );
     }
+  }
+
+  void _showCollectCashDialog(BuildContext context, String amount, String invoiceId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('💰 Collect Cash'),
+        content: Text(
+          'Please collect from the customer:\n\n'
+          'Total Amount: $amount EGP\n\n'
+          'This includes:\n'
+          '• Order items\n'
+          '• Shipping fee\n\n'
+          'Invoice: $invoiceId',
+          style: const TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _handleOutForDelivery(BuildContext context) async {

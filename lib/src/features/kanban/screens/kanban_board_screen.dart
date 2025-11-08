@@ -68,6 +68,30 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   @override
   Widget build(BuildContext context) {
     final kanbanState = ref.watch(kanbanProvider);
+    
+    // Listen for errors and show them as SnackBars
+    ref.listen<KanbanState>(kanbanProvider, (previous, next) {
+      if (next.error != null && next.error != previous?.error) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(next.error!),
+                backgroundColor: Colors.red[700],
+                duration: const Duration(seconds: 4),
+                action: SnackBarAction(
+                  label: 'Dismiss',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    ref.read(kanbanProvider.notifier).clearError();
+                  },
+                ),
+              ),
+            );
+          }
+        });
+      }
+    });
     // No POS profile guard here; Kanban should be usable with branch filter defaults
 
     return PopScope(
