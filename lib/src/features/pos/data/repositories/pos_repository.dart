@@ -498,7 +498,9 @@ class PosRepository {
     try {
       // Validate input
       if (posProfile.isEmpty) {
-        print('⚠️ isPosProfileOpen: POS profile is empty, defaulting to open');
+        if (kDebugMode) {
+          debugPrint('⚠️ isPosProfileOpen: POS profile is empty, defaulting to open');
+        }
         return {'is_open': true, 'message': 'No POS profile specified'};
       }
 
@@ -512,7 +514,9 @@ class PosRepository {
       }
       throw Exception('Failed to check POS profile timetable');
     } on DioException catch (e) {
-      print('⚠️ DioException in isPosProfileOpen: ${e.message}');
+      if (kDebugMode) {
+        debugPrint('⚠️ DioException in isPosProfileOpen: ${e.message}');
+      }
       // If there's a server error or network issue, default to "open" 
       // to avoid blocking critical operations like order transfers
       return {
@@ -520,7 +524,9 @@ class PosRepository {
         'message': 'Error checking timetable: ${e.message}. Defaulting to open.'
       };
     } catch (e) {
-      print('⚠️ Error in isPosProfileOpen: $e');
+      if (kDebugMode) {
+        debugPrint('⚠️ Error in isPosProfileOpen: $e');
+      }
       // Default to open to avoid blocking operations
       return {'is_open': true, 'message': 'Error checking timetable. Defaulting to open.'};
     }

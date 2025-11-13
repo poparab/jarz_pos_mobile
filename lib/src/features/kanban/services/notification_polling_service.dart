@@ -23,7 +23,7 @@ class NotificationPollingService {
     
     _isPolling = true;
     if (kDebugMode) {
-      print('📊 POLLING: Starting notification polling every ${intervalSeconds}s');
+      debugPrint('📊 POLLING: Starting notification polling every ${intervalSeconds}s');
     }
     
     // Initial check
@@ -44,7 +44,7 @@ class NotificationPollingService {
     _pollingTimer?.cancel();
     _pollingTimer = null;
     if (kDebugMode) {
-      print('📊 POLLING: Stopped notification polling');
+      debugPrint('📊 POLLING: Stopped notification polling');
     }
   }
   
@@ -71,7 +71,7 @@ class NotificationPollingService {
           
           if (messageData['success'] == true && messageData['has_updates'] == true) {
             if (kDebugMode) {
-              print('📊 POLLING: Found ${messageData['total_updates']} updates');
+              debugPrint('📊 POLLING: Found ${messageData['total_updates']} updates');
             }
             
             // Emit notification about updates
@@ -87,7 +87,7 @@ class NotificationPollingService {
             await _fetchRecentInvoices();
           } else {
             if (kDebugMode) {
-              print('📊 POLLING: No updates found');
+              debugPrint('📊 POLLING: No updates found');
             }
           }
           
@@ -97,7 +97,7 @@ class NotificationPollingService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ POLLING: Error checking for updates: $e');
+        debugPrint('❌ POLLING: Error checking for updates: $e');
       }
       // Don't stop polling on errors, just log and continue
     }
@@ -129,7 +129,7 @@ class NotificationPollingService {
                 'timestamp': DateTime.now().toIso8601String(),
               });
               if (kDebugMode) {
-                print('📊 POLLING: New invoice notification: ${invoice['name']}');
+                debugPrint('📊 POLLING: New invoice notification: ${invoice['name']}');
               }
             }
             
@@ -141,7 +141,7 @@ class NotificationPollingService {
                 'timestamp': DateTime.now().toIso8601String(),
               });
               if (kDebugMode) {
-                print('📊 POLLING: Modified invoice notification: ${invoice['name']}');
+                debugPrint('📊 POLLING: Modified invoice notification: ${invoice['name']}');
               }
             }
           }
@@ -149,7 +149,7 @@ class NotificationPollingService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ POLLING: Error fetching recent invoices: $e');
+        debugPrint('❌ POLLING: Error fetching recent invoices: $e');
       }
     }
   }
@@ -157,7 +157,7 @@ class NotificationPollingService {
   /// Manually trigger a check (for pull-to-refresh, etc.)
   Future<Map<String, dynamic>?> manualCheck() async {
     if (kDebugMode) {
-      print('📊 POLLING: Manual check triggered');
+      debugPrint('📊 POLLING: Manual check triggered');
     }
     
     try {
@@ -184,7 +184,7 @@ class NotificationPollingService {
       
       if (response.statusCode == 200) {
         if (kDebugMode) {
-          print('📊 POLLING: Test websocket emission successful');
+          debugPrint('📊 POLLING: Test websocket emission successful');
         }
         return response.data['message'] as Map<String, dynamic>? ?? {'success': true};
       }
@@ -192,7 +192,7 @@ class NotificationPollingService {
       return {'success': false, 'error': 'Invalid response'};
     } catch (e) {
       if (kDebugMode) {
-        print('❌ POLLING: Test notifications error: $e');
+        debugPrint('❌ POLLING: Test notifications error: $e');
       }
       return {'success': false, 'error': e.toString()};
     }

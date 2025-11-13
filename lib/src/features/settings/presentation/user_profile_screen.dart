@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/user_service.dart';
@@ -304,11 +305,15 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                           ),
                           onPressed: () async {
                             try {
-                              print('Button pressed - opening file picker');
+                              if (kDebugMode) {
+                                debugPrint('Button pressed - opening file picker');
+                              }
                               final service = ref.read(alarmSoundServiceProvider);
                               final customSound = await service.pickCustomAlarmSound();
                             
-                              print('Custom sound result: ${customSound?.title}');
+                              if (kDebugMode) {
+                                debugPrint('Custom sound result: ${customSound?.title}');
+                              }
                             
                               if (customSound != null) {
                                 await service.setSelectedSound(customSound.uri, customSound.title);
@@ -324,8 +329,10 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                     ),
                                   );
                                 }
-                              } else {
-                                print('No custom sound selected');
+                                } else {
+                                  if (kDebugMode) {
+                                    debugPrint('No custom sound selected');
+                                  }
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
@@ -336,7 +343,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                 }
                               }
                             } catch (e) {
-                              print('Error in button handler: $e');
+                              if (kDebugMode) {
+                                debugPrint('Error in button handler: $e');
+                              }
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(

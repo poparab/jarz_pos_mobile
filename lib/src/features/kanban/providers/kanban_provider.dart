@@ -705,7 +705,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       );
       
       // Show collect cash dialog if payment was successful and method is Cash
-      if (result != null && result['success'] == true && paymentMode.toLowerCase() == 'cash') {
+  if (result['success'] == true && paymentMode.toLowerCase() == 'cash') {
         final amount = result['amount'] ?? result['paid_amount'];
         if (amount != null) {
           _showCollectCashDialog(

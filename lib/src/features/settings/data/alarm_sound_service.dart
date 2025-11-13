@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
@@ -38,54 +39,76 @@ class AlarmSoundService {
   Future<AlarmSoundOption?> pickCustomAlarmSound() async {
     try {
       // Request storage permission first
-      print('Requesting storage permission...');
+      if (kDebugMode) {
+        debugPrint('Requesting storage permission...');
+      }
       PermissionStatus status;
       
       // For Android 13+ (API 33+), request READ_MEDIA_AUDIO
       // For Android 12 and below, request READ_EXTERNAL_STORAGE
       if (await Permission.audio.isGranted) {
         status = PermissionStatus.granted;
-        print('Audio permission already granted');
+        if (kDebugMode) {
+          debugPrint('Audio permission already granted');
+        }
       } else {
         status = await Permission.audio.request();
-        print('Audio permission status: $status');
+        if (kDebugMode) {
+          debugPrint('Audio permission status: $status');
+        }
         
         if (status.isDenied || status.isPermanentlyDenied) {
           // Try READ_EXTERNAL_STORAGE for older Android versions
-          print('Trying READ_EXTERNAL_STORAGE permission...');
+          if (kDebugMode) {
+            debugPrint('Trying READ_EXTERNAL_STORAGE permission...');
+          }
           status = await Permission.storage.request();
-          print('Storage permission status: $status');
+          if (kDebugMode) {
+            debugPrint('Storage permission status: $status');
+          }
         }
       }
       
       if (!status.isGranted) {
-        print('Storage permission not granted: $status');
+        if (kDebugMode) {
+          debugPrint('Storage permission not granted: $status');
+        }
         throw Exception('Storage permission is required to browse audio files');
       }
       
-      print('Opening file picker...');
+      if (kDebugMode) {
+        debugPrint('Opening file picker...');
+      }
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'],
         allowMultiple: false,
       );
 
-      print('File picker result: ${result?.files.length ?? 0} files');
+      if (kDebugMode) {
+        debugPrint('File picker result: ${result?.files.length ?? 0} files');
+      }
       
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.single;
         final fileName = file.name;
         
-        print('Selected file: $fileName');
-        print('File path: ${file.path}');
+        if (kDebugMode) {
+          debugPrint('Selected file: $fileName');
+          debugPrint('File path: ${file.path}');
+        }
         
         // For Android, we need to use the URI if available, otherwise use file path
         String uri;
         if (file.path != null) {
           uri = 'file://${file.path}';
-          print('Using file URI: $uri');
+          if (kDebugMode) {
+            debugPrint('Using file URI: $uri');
+          }
         } else {
-          print('No file path available');
+          if (kDebugMode) {
+            debugPrint('No file path available');
+          }
           return null;
         }
         
@@ -94,11 +117,15 @@ class AlarmSoundService {
           uri: uri,
         );
       } else {
-        print('No file selected');
+        if (kDebugMode) {
+          debugPrint('No file selected');
+        }
       }
     } catch (e, stackTrace) {
-      print('Error picking alarm sound: $e');
-      print('Stack trace: $stackTrace');
+      if (kDebugMode) {
+        debugPrint('Error picking alarm sound: $e');
+        debugPrint('Stack trace: $stackTrace');
+      }
       rethrow;
     }
     return null;

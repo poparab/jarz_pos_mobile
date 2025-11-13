@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class CookieManager {
@@ -22,7 +23,9 @@ class CookieManager {
         }
       }
     } catch (e) {
-      print('⚠️ CookieManager.saveCookies error: $e');
+      if (kDebugMode) {
+        debugPrint('⚠️ CookieManager.saveCookies error: $e');
+      }
       // Continue without saving - session will work via response headers
     }
   }
@@ -31,7 +34,9 @@ class CookieManager {
     try {
       return await _storage.read(key: _cookieKey);
     } catch (e) {
-      print('⚠️ CookieManager.loadCookies error: $e');
+      if (kDebugMode) {
+        debugPrint('⚠️ CookieManager.loadCookies error: $e');
+      }
       return null;
     }
   }
@@ -40,7 +45,9 @@ class CookieManager {
     try {
       return await _storage.read(key: _sessionIdKey);
     } catch (e) {
-      print('⚠️ CookieManager.getSessionId error: $e');
+      if (kDebugMode) {
+        debugPrint('⚠️ CookieManager.getSessionId error: $e');
+      }
       return null;
     }
   }
@@ -49,7 +56,9 @@ class CookieManager {
     try {
       await _storage.deleteAll();
     } catch (e) {
-      print('⚠️ CookieManager.clearCookies error: $e');
+      if (kDebugMode) {
+        debugPrint('⚠️ CookieManager.clearCookies error: $e');
+      }
     }
   }
 
@@ -60,7 +69,9 @@ class CookieManager {
         options.headers['Cookie'] = cookies;
       }
     } catch (e) {
-      print('⚠️ CookieManager.attachCookiesToRequest error: $e');
+      if (kDebugMode) {
+        debugPrint('⚠️ CookieManager.attachCookiesToRequest error: $e');
+      }
       // Continue without cookies rather than blocking the request
     }
   }
@@ -70,7 +81,9 @@ class CookieManager {
       final sessionId = await getSessionId();
       return sessionId != null && sessionId.isNotEmpty;
     } catch (e) {
-      print('⚠️ CookieManager.hasValidSession error: $e');
+      if (kDebugMode) {
+        debugPrint('⚠️ CookieManager.hasValidSession error: $e');
+      }
       return false;
     }
   }

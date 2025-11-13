@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/dio_provider.dart';
@@ -13,33 +14,45 @@ class AuthRepository {
 
   Future<bool> login(String username, String password) async {
     try {
-      print('🔐 AUTH: Attempting login for user: $username');
+      if (kDebugMode) {
+        debugPrint('🔐 AUTH: Attempting login for user: $username');
+      }
       final response = await _dio.post(
         '/api/method/login',
         data: {'usr': username, 'pwd': password},
       );
-      print('🔐 AUTH: Login response status: ${response.statusCode}');
-      print('🔐 AUTH: Login response data: ${response.data}');
+      if (kDebugMode) {
+        debugPrint('🔐 AUTH: Login response status: ${response.statusCode}');
+        debugPrint('🔐 AUTH: Login response data: ${response.data}');
+      }
       
       if (response.statusCode == 200) {
         // ERPNext returns {"message": "Logged In"} on success
         // Session cookie is automatically stored by SessionInterceptor
-        print('🔐 AUTH: Login successful');
+        if (kDebugMode) {
+          debugPrint('🔐 AUTH: Login successful');
+        }
         return true;
       }
-      print('🔐 AUTH: Login failed - unexpected status code');
+      if (kDebugMode) {
+        debugPrint('🔐 AUTH: Login failed - unexpected status code');
+      }
       return false;
     } on DioException catch (e) {
-      print('🔐 AUTH: Login DioException - type: ${e.type}, statusCode: ${e.response?.statusCode}');
-      print('🔐 AUTH: Login error message: ${e.message}');
-      print('🔐 AUTH: Login error response: ${e.response?.data}');
+      if (kDebugMode) {
+        debugPrint('🔐 AUTH: Login DioException - type: ${e.type}, statusCode: ${e.response?.statusCode}');
+        debugPrint('🔐 AUTH: Login error message: ${e.message}');
+        debugPrint('🔐 AUTH: Login error response: ${e.response?.data}');
+      }
       if (e.response?.statusCode == 401) {
         return false;
       }
       rethrow;
     } catch (e, stackTrace) {
-      print('🔐 AUTH: Login unexpected error: $e');
-      print('🔐 AUTH: Stack trace: $stackTrace');
+      if (kDebugMode) {
+        debugPrint('🔐 AUTH: Login unexpected error: $e');
+        debugPrint('🔐 AUTH: Stack trace: $stackTrace');
+      }
       rethrow;
     }
   }

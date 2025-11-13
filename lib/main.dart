@@ -13,6 +13,7 @@ import 'src/core/app.dart';
 import 'src/core/localization/locale_notifier.dart';
 import 'src/features/settings/data/alarm_sound_service.dart';
 
+@pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (!kIsWeb) {
     await Firebase.initializeApp();

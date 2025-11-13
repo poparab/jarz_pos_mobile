@@ -284,7 +284,6 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   }
 
   Widget _buildCard(bool transitioning) {
-    final hasProfile = ref.read(posNotifierProvider).selectedProfile != null;
     // Show settlement only when backend indicates there is an unsettled courier transaction
     final hasUnsettled = widget.invoice.hasUnsettledCourierTxn;
     final hasPartner = (widget.invoice.salesPartner ?? '').isNotEmpty;
@@ -971,6 +970,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     }
   }
 
+  // ignore: unused_element
   bool _isPostOutForDelivery(String status) {
     final s = status.toLowerCase();
     // Recognize states at or beyond the delivery dispatch stage
@@ -1260,6 +1260,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     );
   }
 
+  // ignore: unused_element
   Future<void> _handleOutForDelivery(BuildContext context) async {
     final container = ProviderScope.containerOf(context, listen: false);
     final notifier = container.read(kanbanProvider.notifier);
@@ -1756,6 +1757,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     );
   }
 
+  // ignore: unused_element
   Future<void> _settleCourierTransaction(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final posProfile = ref.read(posNotifierProvider).selectedProfile?['name'];
@@ -2569,7 +2571,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                           if (currentSlot != null) ...[
                             const SizedBox(height: 4),
                             Text(
-                              'Current: ${currentSlot!.label}',
+                              'Current: ${currentSlot.label}',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.blue[700],
