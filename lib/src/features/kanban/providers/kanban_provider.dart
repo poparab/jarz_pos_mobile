@@ -762,25 +762,6 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       }
     }
 
-  Future<Map<String, dynamic>?> outForDeliveryPaid({
-    required String invoiceId,
-    required String courier,
-    required String settlement,
-    required String posProfile,
-    String? partyType,
-    String? party,
-  }) async {
-    // Legacy shim -> unified function
-    return outForDeliveryUnified(
-      invoiceId: invoiceId,
-      courier: courier,
-      mode: settlement == 'cash_now' ? 'pay_now' : 'settle_later',
-      posProfile: posProfile,
-      partyType: partyType,
-      party: party,
-    );
-  }
-
   /// For UNPAID invoices when staff selects "settle now":
   /// - Creates Payment Entry moving receivable to Courier Outstanding
   /// - Creates Courier Transaction with amount = invoice outstanding, shipping_amount = city expense

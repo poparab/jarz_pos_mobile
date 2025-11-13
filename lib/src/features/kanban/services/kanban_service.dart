@@ -302,25 +302,6 @@ class KanbanService {
     return 'ofd-${DateTime.now().millisecondsSinceEpoch}-${r.nextInt(1<<32).toRadixString(16)}';
   }
 
-  /// (Deprecated) Handle Out For Delivery Paid transition – kept for backward compatibility
-  @Deprecated('Use handleOutForDeliveryTransition')
-  Future<Map<String, dynamic>> handleOutForDeliveryPaid({
-    required String invoiceName,
-    required String courier,
-    required String settlement, // 'cash_now' | 'later'
-    required String posProfile,
-  }) async {
-    _logger.warning("handleOutForDeliveryPaid is deprecated, use handleOutForDeliveryTransition instead");
-    return handleOutForDeliveryTransition(
-      invoiceName: invoiceName,
-      courier: courier,
-      // New rule: only 'pay_now' is supported; legacy 'later' is ignored
-      mode: 'pay_now',
-      posProfile: posProfile,
-      idempotencyToken: generateIdempotencyToken(),
-    );
-  }
-
   /// Fetch list of active couriers (name & courier_name)
   Future<List<Map<String, String>>> fetchCouriers() async {
     try {

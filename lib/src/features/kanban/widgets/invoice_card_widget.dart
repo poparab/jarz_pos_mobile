@@ -1166,28 +1166,59 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         // Create payment receipt for Instapay/Wallet payments
         if (method == 'InstaPay' || method == 'Wallet') {
           final amount = result['amount'] ?? result['allocated_amount'];
-          final invoicePosProfile = widget.invoice.posProfile;
-          if (amount != null && invoicePosProfile != null && invoicePosProfile.isNotEmpty) {
+          // Try to get POS profile from invoice, fallback to selected profile for cash
+          final invoicePosProfile = widget.invoice.posProfile ?? posState.selectedProfile?['name'];
+          
+          if (amount == null) {
+            if (context.mounted) {
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Warning: Could not get payment amount for receipt')),
+              );
+            }
+          } else if (invoicePosProfile == null || invoicePosProfile.isEmpty) {
+            if (context.mounted) {
+              messenger.showSnackBar(
+                const SnackBar(
+                  content: Text('Warning: No POS profile found - receipt not created. Please select a POS profile.'),
+                  duration: Duration(seconds: 4),
+                ),
+              );
+            }
+          } else {
             try {
-              await notifier.createPaymentReceipt(
+              final receiptResult = await notifier.createPaymentReceipt(
                 salesInvoice: widget.invoice.name,
                 paymentMethod: method,
                 amount: double.tryParse(amount.toString()) ?? 0.0,
                 posProfile: invoicePosProfile,
               );
+              
               if (context.mounted) {
-                messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Payment receipt created - please upload receipt image'),
-                    duration: Duration(seconds: 3),
-                  ),
-                );
+                if (receiptResult != null && receiptResult['success'] == true) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text('✓ Payment receipt created (${receiptResult['receipt_name']}) - please upload receipt image from header'),
+                      duration: const Duration(seconds: 4),
+                      backgroundColor: Colors.green[700],
+                    ),
+                  );
+                } else {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Warning: Receipt creation returned: ${receiptResult?['message'] ?? 'unknown error'}'),
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
               }
             } catch (e) {
               // Don't block payment success, just log
               if (context.mounted) {
                 messenger.showSnackBar(
-                  SnackBar(content: Text('Warning: Receipt creation failed: $e')),
+                  SnackBar(
+                    content: Text('Warning: Receipt creation failed: $e'),
+                    duration: const Duration(seconds: 3),
+                  ),
                 );
               }
             }
@@ -2434,10 +2465,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final notifier = ref.read(kanbanProvider.notifier);
 
     try {
-      // Get the kanban profile from the invoice
-      final kanbanProfile = widget.invoice.id.split('-')[0]; // Extract profile from invoice ID
+      // Get the POS profile from the invoice (not from ID parsing)
+      final kanbanProfile = widget.invoice.posProfile;
       
-      if (kanbanProfile.isEmpty) {
+      if (kanbanProfile == null || kanbanProfile.isEmpty) {
         messenger.showSnackBar(
           const SnackBar(
             content: Text('Unable to determine POS profile for this invoice'),
