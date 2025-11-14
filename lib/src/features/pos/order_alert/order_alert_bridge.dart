@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/router.dart';
@@ -33,8 +33,12 @@ class OrderAlertBridge {
   StreamSubscription<RemoteMessage>? _onOpenedSub;
   StreamSubscription<String>? _onTokenRefreshSub;
   StreamSubscription<Map<String, dynamic>>? _invoiceStreamSub;
+  ProviderSubscription<PosState>? _posStateSub;
   Timer? _backgroundPollTimer;
   bool _hasInit = false;
+  String? _currentToken;
+  String? _pendingToken;
+  bool _profilesPrefetchRequested = false;
 
   Future<void> _initialise() async {
     if (_hasInit) return;
@@ -59,6 +63,20 @@ class OrderAlertBridge {
         unawaited(_onAuthenticated());
       } else {
         unawaited(_onLoggedOut());
+      }
+    }, fireImmediately: true);
+
+    _posStateSub = _ref.listen<PosState>(posNotifierProvider, (previous, next) {
+      final prevProfile = previous?.selectedProfile?['name']?.toString();
+      final nextProfile = next.selectedProfile?['name']?.toString();
+      final profileChanged = nextProfile != null && nextProfile.isNotEmpty && nextProfile != prevProfile;
+
+      if (_pendingToken != null && nextProfile != null && nextProfile.isNotEmpty) {
+        _logger.info('POS profile selected while token pending - attempting registration');
+        unawaited(_registerToken(_pendingToken, force: true));
+      } else if (profileChanged && _currentToken != null) {
+        _logger.info('POS profile changed to $nextProfile - re-registering device token');
+        unawaited(_registerToken(_currentToken, force: true));
       }
     }, fireImmediately: true);
 
@@ -112,6 +130,7 @@ class OrderAlertBridge {
     _onOpenedSub?.cancel();
     _onTokenRefreshSub?.cancel();
     _invoiceStreamSub?.cancel();
+    _posStateSub?.close();
     _backgroundPollTimer?.cancel();
     OrderAlertNativeChannel.setLaunchHandler(null);
   }
@@ -253,7 +272,9 @@ class OrderAlertBridge {
     }
   }
 
-  Future<void> _registerToken(String? token) async {
+  Future<void> _registerToken(String? token, {bool force = false}) async {
+    _currentToken = token;
+
     if (token == null || token.isEmpty) {
       _logger.warning('FCM token unavailable; registration skipped');
       return;
@@ -266,39 +287,55 @@ class OrderAlertBridge {
     }
 
     try {
-      final userRoles = await _ref.read(userRolesFutureProvider.future);
-      final user = userRoles.user;
-      final controller = _ref.read(orderAlertControllerProvider.notifier);
-      final shouldRegister = await controller.shouldRegisterToken(token, user);
-      if (!shouldRegister) {
-        _logger.debug('Token already registered for $user');
+      final profiles = await _waitForPosProfiles();
+      if (profiles == null || profiles.isEmpty) {
+        _logger.warning('POS profile unavailable; deferring device registration');
+        _pendingToken = token;
         return;
       }
 
-      // Get current POS profile to associate device with it
-      final posState = _ref.read(posNotifierProvider);
-      final selectedProfileName = posState.selectedProfile?['name']?.toString();
-      final posProfiles = selectedProfileName != null ? [selectedProfileName] : <String>[];
-      
-      if (posProfiles.isEmpty) {
-        _logger.warning('No POS profile selected - device registered without profile filter');
-      } else {
-        _logger.info('Registering device with POS profile: ${posProfiles.first}');
+      _pendingToken = null;
+
+      final normalizedProfiles = [...profiles]..sort();
+      _logger.info('Registering device for POS profiles: $normalizedProfiles');
+
+      final userRoles = await _ref.read(userRolesFutureProvider.future);
+      final user = userRoles.user;
+      final controller = _ref.read(orderAlertControllerProvider.notifier);
+
+      var shouldRegister = true;
+      if (!force) {
+        shouldRegister = await controller.shouldRegisterToken(token, user, normalizedProfiles);
       }
+
+      if (!shouldRegister) {
+        _logger.debug('Token already registered for $user with profiles $normalizedProfiles');
+        return;
+      }
+
+      final platform = kIsWeb
+          ? 'Web'
+          : (defaultTargetPlatform == TargetPlatform.iOS ? 'iOS' : 'Android');
+      final deviceName = switch (platform) {
+        'iOS' => 'iOS POS',
+        'Android' => 'Android POS',
+        _ => 'Jarz POS',
+      };
 
       await _ref
           .read(orderAlertServiceProvider)
           .registerDevice(
             token: token,
-            platform: 'Android',
-            deviceName: 'Android POS',
-            posProfiles: posProfiles.isNotEmpty ? posProfiles : null,
+            platform: platform,
+            deviceName: deviceName,
+            posProfiles: normalizedProfiles,
           );
-      await controller.markTokenRegistered(token, user);
-      _logger.info('Registered FCM token for $user with ${posProfiles.length} POS profile(s)');
+      await controller.markTokenRegistered(token, user, normalizedProfiles);
+      _logger.info('Registered FCM token for $user with ${normalizedProfiles.length} POS profile(s)');
     } catch (error, stackTrace) {
       _logger.error('Failed to register FCM token', error, stackTrace);
       await _ref.read(orderAlertControllerProvider.notifier).resetTokenCache();
+      _pendingToken = token;
     }
   }
 
@@ -322,5 +359,74 @@ class OrderAlertBridge {
     });
     
     _logger.info("⏰ Started background polling for alerts (every 10s)");
+  }
+
+  Future<List<String>?> _waitForPosProfiles({Duration timeout = const Duration(seconds: 8)}) async {
+    List<String>? extract(PosState state) {
+      final selected = state.selectedProfile?['name']?.toString();
+      if (selected != null && selected.isNotEmpty) {
+        return [selected];
+      }
+
+      if (state.profiles.length == 1) {
+        final only = state.profiles.first['name']?.toString();
+        if (only != null && only.isNotEmpty) {
+          return [only];
+        }
+      }
+
+      return null;
+    }
+
+    Future<void> ensureProfilesLoaded(PosState state) async {
+      if (_profilesPrefetchRequested) return;
+      if (state.isLoading) return;
+      if (state.profiles.isNotEmpty) return;
+      _profilesPrefetchRequested = true;
+      try {
+        await _ref.read(posNotifierProvider.notifier).loadProfiles();
+      } catch (error, stackTrace) {
+        _logger.error('Failed to prefetch POS profiles', error, stackTrace);
+      } finally {
+        _profilesPrefetchRequested = false;
+      }
+    }
+
+    final initialState = _ref.read(posNotifierProvider);
+    await ensureProfilesLoaded(initialState);
+
+    final initialResult = extract(initialState);
+    if (initialResult != null) {
+      return initialResult;
+    }
+
+    final completer = Completer<List<String>?>();
+    late ProviderSubscription<PosState> subscription;
+    Timer? timer;
+
+    void complete(List<String>? value) {
+      if (completer.isCompleted) {
+        return;
+      }
+      completer.complete(value);
+      timer?.cancel();
+      subscription.close();
+    }
+
+    subscription = _ref.listen<PosState>(posNotifierProvider, (previous, next) {
+      final result = extract(next);
+      if (result != null) {
+        complete(result);
+      } else {
+        unawaited(ensureProfilesLoaded(next));
+      }
+    });
+
+    timer = Timer(timeout, () {
+      _logger.warning('Timed out waiting for POS profile selection');
+      complete(null);
+    });
+
+    return completer.future;
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,6 +23,7 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
 
   static const _prefKeyToken = 'order_alert_last_token';
   static const _prefKeyUser = 'order_alert_last_user';
+  static const _prefKeyProfiles = 'order_alert_last_profiles';
 
   final OrderAlertService _service;
   final PosRepository _posRepository;
@@ -294,23 +296,34 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     }
   }
 
-  Future<bool> shouldRegisterToken(String token, String user) async {
+  Future<bool> shouldRegisterToken(String token, String user, List<String> posProfiles) async {
     final prefs = await _preferences();
     final lastToken = prefs.getString(_prefKeyToken);
     final lastUser = prefs.getString(_prefKeyUser);
-    return lastToken != token || lastUser != user;
+    final lastProfiles = prefs.getStringList(_prefKeyProfiles) ?? const <String>[];
+
+    final normalizedProfiles = [...posProfiles]..sort();
+    final normalizedLast = [...lastProfiles]..sort();
+
+    final listEquals = const ListEquality<String>().equals;
+
+    return lastToken != token ||
+        lastUser != user ||
+        !listEquals(normalizedProfiles, normalizedLast);
   }
 
-  Future<void> markTokenRegistered(String token, String user) async {
+  Future<void> markTokenRegistered(String token, String user, List<String> posProfiles) async {
     final prefs = await _preferences();
     await prefs.setString(_prefKeyToken, token);
     await prefs.setString(_prefKeyUser, user);
+    await prefs.setStringList(_prefKeyProfiles, List.unmodifiable(posProfiles));
   }
 
   Future<void> resetTokenCache() async {
     final prefs = await _preferences();
     await prefs.remove(_prefKeyToken);
     await prefs.remove(_prefKeyUser);
+    await prefs.remove(_prefKeyProfiles);
   }
 
   Future<void> clearAll() async {

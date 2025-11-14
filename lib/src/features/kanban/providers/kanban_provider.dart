@@ -655,6 +655,44 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     state = state.copyWith(invoices: current);
   }
 
+  Future<Map<String, dynamic>?> cancelInvoice({
+    required String invoiceId,
+    required String reason,
+    String? notes,
+  }) async {
+    final transitioning = Set<String>.from(state.transitioningInvoices)..add(invoiceId);
+    state = state.copyWith(transitioningInvoices: transitioning, error: null);
+
+    try {
+      final result = await _kanbanService.cancelInvoice(
+        invoiceName: invoiceId,
+        reason: reason,
+        notes: notes,
+      );
+
+      final current = Map<String, List<InvoiceCard>>.from(state.invoices);
+      for (final entry in current.entries.toList()) {
+        final list = List<InvoiceCard>.from(entry.value);
+        final before = list.length;
+        list.removeWhere((c) => c.id == invoiceId || c.name == invoiceId);
+        if (list.length != before) {
+          current[entry.key] = list;
+        }
+      }
+      state = state.copyWith(invoices: current);
+
+      await loadInvoices();
+      return result;
+    } catch (e) {
+      state = state.copyWith(error: 'Cancellation failed: $e');
+      return null;
+    } finally {
+      final updatedTransitioning = Set<String>.from(state.transitioningInvoices);
+      updatedTransitioning.remove(invoiceId);
+      state = state.copyWith(transitioningInvoices: updatedTransitioning);
+    }
+  }
+
   void updateFilters(KanbanFilters newFilters) {
     state = state.copyWith(filters: newFilters);
     loadInvoices(); // Reload with new filters

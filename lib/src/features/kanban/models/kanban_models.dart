@@ -53,6 +53,9 @@ class InvoiceCard {
   final bool? requiresAcceptanceFlag; // optional flag directly from backend
   final String? paymentMethod; // new: Cash, Instapay, or Mobile Wallet
   final String? posProfile; // POS Profile for payment receipt tracking
+  final double outstandingAmount;
+  final int? docstatusValue;
+  final bool isReturn;
 
   InvoiceCard({
     required this.id,
@@ -87,6 +90,9 @@ class InvoiceCard {
   this.requiresAcceptanceFlag,
   this.paymentMethod,
   this.posProfile,
+    this.outstandingAmount = 0.0,
+    this.docstatusValue,
+    this.isReturn = false,
   });
 
   factory InvoiceCard.fromJson(Map<String, dynamic> json) {
@@ -139,6 +145,11 @@ class InvoiceCard {
       requiresAcceptanceFlag: requiresAcceptanceFlag,
       paymentMethod: (json['payment_method'] ?? json['custom_payment_method'])?.toString(),
       posProfile: (json['pos_profile'] ?? json['custom_kanban_profile'])?.toString(),
+      outstandingAmount: (double.tryParse((json['outstanding_amount'] ?? json['outstandingAmount'] ?? 0).toString()) ?? 0.0),
+      docstatusValue: json['docstatus_value'] is int
+          ? json['docstatus_value'] as int
+          : int.tryParse((json['docstatus_value'] ?? json['docstatusValue'] ?? '').toString()),
+      isReturn: [1, true, '1', 'true', 'True'].contains(json['is_return']),
     );
   }
 
@@ -175,6 +186,9 @@ class InvoiceCard {
   'requires_acceptance': requiresAcceptanceFlag,
   'payment_method': paymentMethod,
   'pos_profile': posProfile,
+      'outstanding_amount': outstandingAmount,
+      'docstatus_value': docstatusValue,
+      'is_return': isReturn,
     };
   }
 
@@ -211,6 +225,9 @@ class InvoiceCard {
   bool? requiresAcceptanceFlag,
   String? paymentMethod,
   String? posProfile,
+  double? outstandingAmount,
+  int? docstatusValue,
+  bool? isReturn,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -245,6 +262,9 @@ class InvoiceCard {
   requiresAcceptanceFlag: requiresAcceptanceFlag ?? this.requiresAcceptanceFlag,
   paymentMethod: paymentMethod ?? this.paymentMethod,
   posProfile: posProfile ?? this.posProfile,
+      outstandingAmount: outstandingAmount ?? this.outstandingAmount,
+      docstatusValue: docstatusValue ?? this.docstatusValue,
+      isReturn: isReturn ?? this.isReturn,
     );
   }
 
@@ -272,6 +292,35 @@ class InvoiceCard {
   int get itemsCount => items.length;
   String? get phone => customerPhone; // backward compatible alias if other code expects phone
   bool get pickup => isPickup;
+
+  double get _cancellationTolerance {
+    final base = grandTotal.abs() * 0.001;
+    return base < 0.01 ? 0.01 : base;
+  }
+
+  bool get isFullyPaid => outstandingAmount.abs() <= _cancellationTolerance;
+
+  bool get isFullyUnpaid {
+    if (grandTotal.abs() <= _cancellationTolerance) {
+      return true;
+    }
+    return outstandingAmount >= grandTotal - _cancellationTolerance;
+  }
+
+  bool get hasPartialPayment => !(isFullyPaid || isFullyUnpaid);
+
+  bool get canCancel {
+    if (hasUnsettledCourierTxn) {
+      return false;
+    }
+    final normalized = status.trim().toLowerCase();
+    for (final blocked in const ['out for delivery', 'out_for_delivery', 'delivered', 'completed', 'cancelled']) {
+      if (normalized.contains(blocked)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   // Derived delivery helpers
   DateTime? get deliveryStartDateTime {

@@ -12,6 +12,7 @@ import '../../../core/network/courier_service.dart';
 import '../../../core/network/user_service.dart';
 import '../../manager/data/manager_api.dart';
 import 'settlement_preview_dialog.dart';
+import 'cancel_order_dialog.dart';
 import '../../printing/pos_printer_provider.dart';
 import '../../printing/pos_printer_service.dart';
 import '../../pos/order_alert/data/order_alert_service.dart';
@@ -435,6 +436,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               await _transferOrder(context);
             } else if (value == 'change_delivery_slot') {
               await _changeDeliverySlot(context);
+            } else if (value == 'cancel_order') {
+              await _cancelOrder(context);
             }
           },
           itemBuilder: (context) => [
@@ -470,6 +473,18 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                   ],
                 ),
               ),
+              if (isLineManager && widget.invoice.canCancel)
+                PopupMenuItem(
+                  value: 'cancel_order',
+                  enabled: !widget.invoice.hasPartialPayment,
+                  child: Row(
+                    children: [
+                      Icon(Icons.cancel_presentation, size: 18, color: widget.invoice.hasPartialPayment ? Colors.grey : Colors.redAccent),
+                      const SizedBox(width: 8),
+                      Text(widget.invoice.hasPartialPayment ? 'Cancel Order (settle payments first)' : 'Cancel Order'),
+                    ],
+                  ),
+                ),
           ],
         ),
       ),
@@ -2246,6 +2261,60 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Transfer order to another POS profile
+  Future<void> _cancelOrder(BuildContext context) async {
+    if (widget.invoice.hasPartialPayment) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Settle or refund partial payments before cancelling this order.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    final result = await showDialog<CancelOrderResult>(
+      context: context,
+      builder: (ctx) => CancelOrderDialog(invoice: widget.invoice),
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    final notifier = ref.read(kanbanProvider.notifier);
+    final response = await notifier.cancelInvoice(
+      invoiceId: widget.invoice.id,
+      reason: result.reason,
+      notes: result.notes,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (response == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to cancel order. Please try again.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    final creditNote = (response['credit_note'] ?? response['creditNote'])?.toString();
+    final message = (creditNote != null && creditNote.isNotEmpty)
+        ? 'Order cancelled. Credit note $creditNote created.'
+        : 'Order cancelled successfully.';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 3),
       ),
     );
   }

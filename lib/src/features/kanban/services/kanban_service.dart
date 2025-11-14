@@ -139,6 +139,61 @@ class KanbanService {
     }
   }
 
+  /// Cancel an invoice before dispatch
+  Future<Map<String, dynamic>> cancelInvoice({
+    required String invoiceName,
+    required String reason,
+    String? notes,
+  }) async {
+    try {
+      _logger.info("Cancelling invoice $invoiceName");
+      final payload = {
+        "invoice_id": invoiceName,
+        "reason": reason,
+      };
+      if (notes != null && notes.trim().isNotEmpty) {
+        payload["notes"] = notes.trim();
+      }
+
+      final response = await _dio.post(
+        "/api/method/jarz_pos.api.kanban.cancel_invoice",
+        data: payload,
+      );
+
+      final message = response.data["message"];
+      if (message is Map && message["success"] == true) {
+        return Map<String, dynamic>.from(message);
+      }
+      if (message is Map && message["error"] != null) {
+        throw Exception(message["error"]);
+      }
+      throw Exception("Failed to cancel invoice");
+    } catch (e) {
+      _logger.error("Failed to cancel invoice", e);
+      if (e is DioException) {
+        final data = e.response?.data;
+        if (data is Map) {
+          final msg = data['message'] ?? data['exception'] ?? data['error'];
+          if (msg is String && msg.trim().isNotEmpty) {
+            throw Exception(msg);
+          }
+          if (msg is Map && msg['error'] != null) {
+            throw Exception(msg['error']);
+          }
+        }
+        if (data is String && data.trim().isNotEmpty) {
+          throw Exception(data);
+        }
+        final status = e.response?.statusCode;
+        final statusText = e.response?.statusMessage;
+        throw Exception(
+          status != null ? "Cancellation failed ($status ${statusText ?? ''}).".trim() : "Cancellation failed",
+        );
+      }
+      throw Exception(e.toString());
+    }
+  }
+
   /// Get detailed information about a specific invoice
   Future<InvoiceCard> getInvoiceDetails(String invoiceId) async {
     try {
