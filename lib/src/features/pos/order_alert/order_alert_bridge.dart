@@ -8,6 +8,7 @@ import '../../../core/router.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/websocket/websocket_service.dart';
+import '../state/pos_notifier.dart';
 import 'data/order_alert_service.dart';
 import 'domain/invoice_alert.dart';
 import 'order_alert_native_channel.dart';
@@ -274,15 +275,27 @@ class OrderAlertBridge {
         return;
       }
 
+      // Get current POS profile to associate device with it
+      final posState = _ref.read(posNotifierProvider);
+      final selectedProfileName = posState.selectedProfile?['name']?.toString();
+      final posProfiles = selectedProfileName != null ? [selectedProfileName] : <String>[];
+      
+      if (posProfiles.isEmpty) {
+        _logger.warning('No POS profile selected - device registered without profile filter');
+      } else {
+        _logger.info('Registering device with POS profile: ${posProfiles.first}');
+      }
+
       await _ref
           .read(orderAlertServiceProvider)
           .registerDevice(
             token: token,
             platform: 'Android',
             deviceName: 'Android POS',
+            posProfiles: posProfiles.isNotEmpty ? posProfiles : null,
           );
       await controller.markTokenRegistered(token, user);
-      _logger.info('Registered FCM token for $user');
+      _logger.info('Registered FCM token for $user with ${posProfiles.length} POS profile(s)');
     } catch (error, stackTrace) {
       _logger.error('Failed to register FCM token', error, stackTrace);
       await _ref.read(orderAlertControllerProvider.notifier).resetTokenCache();
