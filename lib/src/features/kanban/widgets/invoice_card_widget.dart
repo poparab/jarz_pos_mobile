@@ -55,6 +55,20 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   }
 
   @override
+  void didUpdateWidget(InvoiceCardWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset accepting state if the invoice changes or acceptance status changes
+    if (oldWidget.invoice.id != widget.invoice.id ||
+        oldWidget.invoice.acceptanceStatus != widget.invoice.acceptanceStatus) {
+      if (_isAccepting) {
+        setState(() {
+          _isAccepting = false;
+        });
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
