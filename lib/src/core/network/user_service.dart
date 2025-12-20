@@ -13,6 +13,8 @@ class UserRoles {
   bool get isJarzManager => roles.contains('JARZ Manager');
   bool get isManager => isJarzManager;
   bool get isLineManager => roles.contains('JARZ line manager');
+  bool get isModerator => roles.contains('Moderator');
+  bool get canMuteNotifications => isJarzManager || isLineManager || isModerator;
 
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
@@ -68,6 +70,22 @@ final isLineManagerProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.isLineManager,
+    orElse: () => false,
+  );
+});
+
+final isModeratorProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.isModerator,
+    orElse: () => false,
+  );
+});
+
+final canMuteNotificationsProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canMuteNotifications,
     orElse: () => false,
   );
 });

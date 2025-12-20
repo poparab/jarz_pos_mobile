@@ -112,7 +112,7 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
   }
 
   void _handleStateChange(OrderAlertState? previous, OrderAlertState next) {
-    final isManager = ref.read(isJarzManagerProvider);
+    final canMute = ref.read(canMuteNotificationsProvider);
 
     if (next.error != null && next.error != previous?.error) {
       final scaffold = ScaffoldMessenger.maybeOf(context);
@@ -138,11 +138,11 @@ class _OrderAlertListenerState extends ConsumerState<OrderAlertListener>
       _checkAndShowDialog();
     });
 
-    final shouldLockVolume = next.hasActive && !next.isMuted && !isManager;
+    final shouldLockVolume = next.hasActive && !next.isMuted && !canMute;
     final previousLock =
         previous?.hasActive == true &&
         !(previous?.isMuted ?? false) &&
-        !isManager;
+        !canMute;
     if (shouldLockVolume != previousLock) {
       OrderAlertNativeChannel.setVolumeLocked(shouldLockVolume);
     }

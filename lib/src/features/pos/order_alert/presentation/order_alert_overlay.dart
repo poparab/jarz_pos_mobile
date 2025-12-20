@@ -182,7 +182,7 @@ class _OverlayContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(orderAlertControllerProvider);
     final alert = state.active;
-    final isManager = ref.watch(isJarzManagerProvider);
+    final canMute = ref.watch(canMuteNotificationsProvider);
 
     if (alert == null) {
       return const SizedBox.shrink();
@@ -198,7 +198,7 @@ class _OverlayContent extends ConsumerWidget {
             onAccept: () async {
               await ref.read(orderAlertControllerProvider.notifier).acknowledgeActive();
             },
-            onMute: isManager
+            onMute: canMute
                 ? () async {
                     if (state.isMuted) {
                       await ref.read(orderAlertControllerProvider.notifier).unmuteAlerts();

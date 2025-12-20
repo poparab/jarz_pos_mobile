@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/user_service.dart';
 import '../data/alarm_sound_service.dart';
 import '../../pos/order_alert/order_alert_native_channel.dart';
+import '../../pos/order_alert/state/order_alert_controller.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   const UserProfileScreen({super.key});
@@ -156,6 +157,72 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                     ),
               ),
               const SizedBox(height: 12),
+              
+              // Global Mute Toggle (only for authorized roles)
+              if (userRoles.canMuteNotifications) ...[
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: FutureBuilder<bool>(
+                      future: ref.read(orderAlertControllerProvider.notifier).getGlobalMuteState(),
+                      builder: (context, snapshot) {
+                        final isMuted = snapshot.data ?? false;
+                        return SwitchListTile(
+                          title: Row(
+                            children: [
+                              Icon(
+                                isMuted ? Icons.notifications_off : Icons.notifications_active,
+                                color: isMuted ? Colors.orange : Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Notification Alerts',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ],
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 8.0, left: 36.0),
+                            child: Text(
+                              isMuted 
+                                ? 'All order notification alarms are currently muted'
+                                : 'Order notification alarms are active',
+                              style: TextStyle(
+                                color: isMuted ? Colors.orange[700] : Colors.grey[600],
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          value: !isMuted,
+                          onChanged: (bool value) async {
+                            await ref.read(orderAlertControllerProvider.notifier).setGlobalMuteState(!value);
+                            // Trigger rebuild
+                            setState(() {});
+                            
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    value 
+                                      ? 'Notification alarms enabled' 
+                                      : 'Notification alarms muted',
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                  backgroundColor: value ? Colors.green : Colors.orange,
+                                ),
+                              );
+                            }
+                          },
+                          contentPadding: EdgeInsets.zero,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              
               Card(
                 elevation: 2,
                 child: Padding(

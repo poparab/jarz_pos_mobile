@@ -24,6 +24,7 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
   static const _prefKeyToken = 'order_alert_last_token';
   static const _prefKeyUser = 'order_alert_last_user';
   static const _prefKeyProfiles = 'order_alert_last_profiles';
+  static const _prefKeyGlobalMute = 'order_alert_global_mute';
 
   final OrderAlertService _service;
   final PosRepository _posRepository;
@@ -92,7 +93,10 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       clearError: true,
     );
 
-    if (!hasActive && !state.isMuted) {
+    // Check global mute state
+    final globalMute = await getGlobalMuteState();
+    
+    if (!hasActive && !state.isMuted && !globalMute) {
       // Check if POS Profile is open before triggering alarm
       final shouldTrigger = await _shouldTriggerAlarm(alert.posProfile);
       if (shouldTrigger) {
@@ -103,7 +107,7 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       }
     } else {
       _logger.info(
-        'NOT starting alarm: hasActive=$hasActive, isMuted=${state.isMuted}'
+        'NOT starting alarm: hasActive=$hasActive, isMuted=${state.isMuted}, globalMute=$globalMute'
       );
     }
 
@@ -222,7 +226,11 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
           (newActive == null || newActive.invoiceId != existingActiveId)) {
         await OrderAlertNativeChannel.stopAlarm();
       }
-      if (newActive != null && !state.isMuted) {
+      
+      // Check global mute state
+      final globalMute = await getGlobalMuteState();
+      
+      if (newActive != null && !state.isMuted && !globalMute) {
         // Check if POS Profile is open before starting alarm
         final shouldTrigger = await _shouldTriggerAlarm(newActive.posProfile);
         if (shouldTrigger) {
@@ -231,6 +239,8 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
         } else {
           _logger.info('POS Profile is closed. Skipping alarm during sync for invoice ${newActive.invoiceId}');
         }
+      } else if (globalMute) {
+        _logger.info('Global mute is active. Skipping alarm during sync.');
       }
       if (newActive == null) {
         state = state.copyWith(isMuted: false, clearError: true);
@@ -324,6 +334,33 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     await prefs.remove(_prefKeyToken);
     await prefs.remove(_prefKeyUser);
     await prefs.remove(_prefKeyProfiles);
+  }
+
+  Future<bool> getGlobalMuteState() async {
+    final prefs = await _preferences();
+    return prefs.getBool(_prefKeyGlobalMute) ?? false;
+  }
+
+  Future<void> setGlobalMuteState(bool muted) async {
+    final prefs = await _preferences();
+    await prefs.setBool(_prefKeyGlobalMute, muted);
+    _logger.info('Global notification mute state set to: $muted');
+    
+    // Update the current muted state and stop/start alarm accordingly
+    if (muted) {
+      await OrderAlertNativeChannel.stopAlarm();
+      state = state.copyWith(isMuted: true, clearError: true);
+    } else {
+      state = state.copyWith(isMuted: false, clearError: true);
+      // If there's an active alert and we're unmuting globally, start the alarm
+      if (state.hasActive) {
+        final shouldTrigger = await _shouldTriggerAlarm(state.active!.posProfile);
+        if (shouldTrigger) {
+          _logger.info('Starting alarm after global unmute');
+          await OrderAlertNativeChannel.startAlarm();
+        }
+      }
+    }
   }
 
   Future<void> clearAll() async {
