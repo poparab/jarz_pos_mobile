@@ -203,13 +203,22 @@ class PosRepository {
       // Fallback to Dio error message
       message ??= e.message;
 
-      // Specific friendly mapping: duplicate customer
+      // Specific friendly mapping: duplicate customer/mobile
       if ((exceptionType == 'ValidationError' || exceptionType == 'frappe.exceptions.ValidationError') &&
           message != null && message.toLowerCase().contains('already exists')) {
-        // Try to extract the conflicted name if present within quotes without using RegExp
+        final lowerMsg = message.toLowerCase();
+
+        // Mobile/phone uniqueness violation
+        if (lowerMsg.contains('mobile') || lowerMsg.contains('phone')) {
+          throw ApiException(
+            'A customer with this phone number already exists. Please search and select it.',
+            code: 'DUPLICATE_CUSTOMER_MOBILE',
+          );
+        }
+
+        // Name-based duplication (still possible if backend changes back)
         String? conflictedName;
         try {
-          final lowerMsg = message.toLowerCase();
           final namePos = lowerMsg.indexOf('name');
           if (namePos >= 0) {
             final tail = message.substring(namePos);
