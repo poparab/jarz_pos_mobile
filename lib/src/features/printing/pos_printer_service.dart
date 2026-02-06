@@ -446,11 +446,75 @@ class PosPrinterService extends ChangeNotifier {
     await hr();
 
     // BODY -----------------------------------------------------------
-  // Smaller items header (non-bold). Force ASCII path by ensuring no non-ascii chars.
-  await text(_col4('Item','Qty','Rate','Amt'), bold:false);
+    // Column widths in characters (Font B monospace-ish). Names are wrapped, never truncated.
+    const nameW = 18;
+    const qtyW = 8;
+    const rateW = 10;
+    const amtW = 12;
+
+    List<String> _wrapFixed(String s, int width) {
+      if (s.isEmpty) return [''];
+      final words = s.split(RegExp(r'\s+'));
+      final lines = <String>[];
+      var cur = StringBuffer();
+      for (final w in words) {
+        if (cur.isEmpty) {
+          cur.write(w);
+          continue;
+        }
+        if (cur.length + 1 + w.length > width) {
+          lines.add(cur.toString());
+          cur = StringBuffer(w);
+        } else {
+          cur.write(' ');
+          cur.write(w);
+        }
+      }
+      if (cur.isNotEmpty) lines.add(cur.toString());
+      // If any word is longer than width (no spaces), hard-wrap it
+      final fixed = <String>[];
+      for (final line in lines) {
+        if (line.length <= width) {
+          fixed.add(line);
+        } else {
+          for (int i = 0; i < line.length; i += width) {
+            fixed.add(line.substring(i, (i + width).clamp(0, line.length)));
+          }
+        }
+      }
+      return fixed.isEmpty ? [''] : fixed;
+    }
+
+    String _pad(String s, int w, {bool right = false}) {
+      if (s.length > w) return s.substring(0, w);
+      return right ? s.padLeft(w) : s.padRight(w);
+    }
+
+    List<String> _col4Rows(String name, String qty, String rate, String amt) {
+      final nameLines = _wrapFixed(name, nameW);
+      final rows = <String>[];
+      final totalRows = nameLines.length;
+      for (int i = 0; i < totalRows; i++) {
+        final n = _pad(nameLines[i], nameW);
+        final q = i == 0 ? _pad(qty, qtyW, right: true) : ' '.padLeft(qtyW);
+        final r = i == 0 ? _pad(rate, rateW, right: true) : ' '.padLeft(rateW);
+        final a = i == 0 ? _pad(amt, amtW, right: true) : ' '.padLeft(amtW);
+        rows.add('$n$q$r$a');
+      }
+      return rows;
+    }
+
+    // Header
+    for (final line in _col4Rows('Item', 'Qty', 'Rate', 'Amt')) {
+      await text(line, bold: false);
+    }
     await hr();
+    // Items
     for (final it in inv.items) {
-      await text(_col4(_truncate(it.name,16), it.qty.toStringAsFixed(0), _money(it.rate), _money(it.amount)));
+      final rows = _col4Rows(it.name, it.qty.toStringAsFixed(0), _money(it.rate), _money(it.amount));
+      for (final line in rows) {
+        await text(line);
+      }
     }
     await hr();
     // Totals section: inv.total is authoritative grand total (already includes shipping income).
@@ -483,10 +547,6 @@ class PosPrinterService extends ChangeNotifier {
 
   String _money(double v) => v.toStringAsFixed(2);
   String _truncate(String s, int max) => s.length <= max ? s : '${s.substring(0, max-1)}…';
-  String _col4(String a,String b,String c,String d) {
-    String pad(String s,int w,{bool right=false}) { if (s.length>w) return s.substring(0,w); return right? s.padLeft(w):s.padRight(w);} 
-    return '${pad(a,18)}${pad(b,8,right:true)}${pad(c,10,right:true)}${pad(d,12,right:true)}';
-  }
   String _labelVal(String l,String v) { final ml=20; final x=l.length>ml?l.substring(0,ml):l; return '${x.padRight(30)}${v.padLeft(18)}'; }
 
   // Removed legacy _kv and _wrap helpers (now unused after two-column redesign).
