@@ -10,9 +10,12 @@ class ResponsiveUtils {
   static const double mediumTablet = 1280;   // ~8-9" landscape
   static const double largeTablet = 1600;    // ~10-11" landscape
 
-  /// True when the device is phone-sized (< 600px width).
-  static bool isPhone(BuildContext context) =>
-      screenWidth(context) < phoneLandscape;
+  /// True when the device is phone-sized. Uses shortestSide so tall/wide
+  /// phones (e.g., S22/S25 Ultra) still count as phones even with large width.
+  static bool isPhone(BuildContext context) {
+    final shortest = MediaQuery.of(context).size.shortestSide;
+    return shortest < phoneLandscape;
+  }
 
   /// True when the device is in portrait orientation.
   static bool isPortrait(BuildContext context) =>
