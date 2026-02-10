@@ -595,18 +595,36 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
   }
 
   void _showBundleSelection(Map<String, dynamic> bundle) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => Dialog(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+    final isPhone = ResponsiveUtils.isPhone(context);
+
+    if (isPhone) {
+      // Full-screen on phones so bundles aren't cramped
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        useSafeArea: false,
+        builder: (context) => Dialog.fullscreen(
           child: BundleSelectionWidget(
             bundle: bundle,
             onCancel: () => Navigator.of(context).pop(),
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      // Constrained dialog on tablets
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => Dialog(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+            child: BundleSelectionWidget(
+              bundle: bundle,
+              onCancel: () => Navigator.of(context).pop(),
+            ),
+          ),
+        ),
+      );
+    }
   }
 }

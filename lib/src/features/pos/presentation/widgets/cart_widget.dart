@@ -846,32 +846,45 @@ class CartWidget extends ConsumerWidget {
 
     if (bundleInfo == null) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => Dialog(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
-          child: BundleSelectionWidget(
-            bundle: bundleInfo,
-            initialSelections: currentSelections,
-            isEditing: true,
-            onCancel: () => Navigator.of(context).pop(),
-            onBundleSelected: (selectedItems) {
-              Navigator.of(context).pop();
-              ref
-                  .read(posNotifierProvider.notifier)
-                  .updateBundleInCart(index, selectedItems);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(context.l10n.posBundleUpdated),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
+    final isPhone = ResponsiveUtils.isPhone(context);
+
+    final bundleWidget = BundleSelectionWidget(
+      bundle: bundleInfo,
+      initialSelections: currentSelections,
+      isEditing: true,
+      onCancel: () => Navigator.of(context).pop(),
+      onBundleSelected: (selectedItems) {
+        Navigator.of(context).pop();
+        ref
+            .read(posNotifierProvider.notifier)
+            .updateBundleInCart(index, selectedItems);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.posBundleUpdated),
+            backgroundColor: Colors.green,
+          ),
+        );
+      },
+    );
+
+    if (isPhone) {
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        useSafeArea: false,
+        builder: (context) => Dialog.fullscreen(child: bundleWidget),
+      );
+    } else {
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => Dialog(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+            child: bundleWidget,
           ),
         ),
-      ),
-    );
+      );
+    }
   }
 }

@@ -59,10 +59,15 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
   @override
   Widget build(BuildContext context) {
     final itemGroups = widget.bundle['item_groups'] as List<dynamic>? ?? [];
+    final isPhone = ResponsiveUtils.isPhone(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.bundle['name'] ?? 'Bundle Selection'),
+        title: Text(
+          widget.bundle['name'] ?? 'Bundle Selection',
+          style: isPhone ? const TextStyle(fontSize: 16) : null,
+        ),
+        toolbarHeight: isPhone ? 48 : null,
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
         leading: IconButton(
@@ -79,6 +84,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                     ? Theme.of(context).colorScheme.onPrimary
                     : Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.5),
                 fontWeight: FontWeight.bold,
+                fontSize: isPhone ? 13 : null,
               ),
             ),
           ),
@@ -86,53 +92,83 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
       ),
       body: Column(
         children: [
-          // Bundle info header
+          // Bundle info header — compact on phones
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isPhone ? 10 : 16),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primaryContainer,
               border: Border(
                 bottom: BorderSide(color: Theme.of(context).dividerColor),
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.bundle['name'] ?? 'Bundle',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.local_offer,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '\$${(widget.bundle['price'] ?? 0.0).toStringAsFixed(2)}',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.bold,
+            child: isPhone
+                ? Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.bundle['name'] ?? 'Bundle',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Select items from each group below:',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.local_offer,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '\$${(widget.bundle['price'] ?? 0.0).toStringAsFixed(2)}',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.bundle['name'] ?? 'Bundle',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.local_offer,
+                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '\$${(widget.bundle['price'] ?? 0.0).toStringAsFixed(2)}',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Select items from each group below:',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
 
           // Item groups list
@@ -140,7 +176,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
             child: itemGroups.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isPhone ? 8 : 16),
                     itemCount: itemGroups.length,
                     itemBuilder: (context, index) {
                       final group = itemGroups[index] as Map<String, dynamic>;
@@ -161,21 +197,25 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     final requiredQuantity = group['quantity'] as int;
     final availableItems = group['items'] as List<dynamic>? ?? [];
     final selectedForGroup = selectedItems[groupName] ?? [];
+    final isPhone = ResponsiveUtils.isPhone(context);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(bottom: isPhone ? 10 : 16),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isPhone ? 10 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Group header
-            Row(
+            // Group header — wraps on small screens
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isPhone ? 8 : 12,
+                    vertical: isPhone ? 4 : 6,
                   ),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primary,
@@ -186,21 +226,21 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
+                      fontSize: isPhone ? 12 : null,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
                 Text(
                   'Select $requiredQuantity items',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: isPhone ? 12 : null,
+                  ),
                 ),
-                const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isPhone ? 6 : 8,
+                    vertical: isPhone ? 2 : 4,
                   ),
                   decoration: BoxDecoration(
                     color: selectedForGroup.length == requiredQuantity
@@ -215,13 +255,14 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                           ? Theme.of(context).colorScheme.onPrimaryContainer
                           : Theme.of(context).colorScheme.onErrorContainer,
                       fontWeight: FontWeight.bold,
+                      fontSize: isPhone ? 11 : null,
                     ),
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: isPhone ? 10 : 16),
 
             // Items grid
             if (availableItems.isNotEmpty)
@@ -229,10 +270,10 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: ResponsiveUtils.getBundleGridColumns(context), // Responsive: 2-4 columns
-                  childAspectRatio: 1.2, // Make cards slightly taller
-                  crossAxisSpacing: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8),
-                  mainAxisSpacing: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8),
+                  crossAxisCount: ResponsiveUtils.getBundleGridColumns(context),
+                  childAspectRatio: isPhone ? 1.0 : 1.2,
+                  crossAxisSpacing: ResponsiveUtils.getSpacing(context, small: 4, medium: 8, large: 8),
+                  mainAxisSpacing: ResponsiveUtils.getSpacing(context, small: 4, medium: 8, large: 8),
                 ),
                 itemCount: availableItems.length,
                 itemBuilder: (context, itemIndex) {
@@ -262,6 +303,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     final selectedCount = _getSelectedCount(item, groupName);
     final canAddMore = _canAddMoreItems(groupName, item);
     final canRemove = selectedCount > 0;
+    final isPhone = ResponsiveUtils.isPhone(context);
 
     // Extract stock information (should now be consistent with main grid)
     final stockQty = (item['qty'] ?? item['actual_qty'] ?? 0).toDouble();
@@ -291,7 +333,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
             : null,
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(isPhone ? 6 : 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: selectedCount > 0
@@ -314,8 +356,8 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                     child: Center(
                       child: Text(
                         item['name'] ?? 'Unknown Item',
-                        style: const TextStyle(
-                          fontSize: 13,
+                        style: TextStyle(
+                          fontSize: isPhone ? 11 : 13,
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
@@ -487,6 +529,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
   }
 
   Widget _buildProgressIndicator(List<dynamic> itemGroups) {
+    final isPhone = ResponsiveUtils.isPhone(context);
     final totalGroups = itemGroups.length;
     final completedGroups = itemGroups.where((group) {
       final groupName = group['group_name'] as String;
@@ -496,7 +539,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     }).length;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isPhone ? 10 : 16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),

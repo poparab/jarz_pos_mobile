@@ -42,8 +42,11 @@ class _PosScreenState extends ConsumerState<PosScreen>
   late final Animation<double> _hideAnim;
   bool _headerVisible = true;
   double _lastScrollOffset = 0;
-  // Minimum scroll delta to trigger hide/show (px)
-  static const _scrollThreshold = 10.0;
+  /// Accumulated scroll delta – works on 120 Hz+ displays where per-frame
+  /// delta can be tiny.  Resets when scroll direction reverses.
+  double _accumulatedDelta = 0;
+  // Accumulated px in one direction before triggering hide/show
+  static const _scrollThreshold = 30.0;
 
   @override
   void initState() {
@@ -75,6 +78,8 @@ class _PosScreenState extends ConsumerState<PosScreen>
   }
 
   /// Handle scroll notifications from nested scrollables (phones only).
+  /// Uses accumulated delta so small per-frame deltas on 120 Hz+ screens
+  /// still trigger hide/show after the user has scrolled enough.
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification &&
         notification.metrics.axis == Axis.vertical) {
@@ -82,16 +87,30 @@ class _PosScreenState extends ConsumerState<PosScreen>
       final delta = offset - _lastScrollOffset;
       _lastScrollOffset = offset;
 
-      // Ignore overscroll / elastic at edges
+      // At the very top – always show header
       if (offset <= 0) {
+        _accumulatedDelta = 0;
         _showHeader();
         return false;
       }
 
-      if (delta > _scrollThreshold && _headerVisible) {
+      // Accumulate; reset when direction reverses
+      if (delta > 0) {
+        _accumulatedDelta = _accumulatedDelta > 0
+            ? _accumulatedDelta + delta
+            : delta;
+      } else if (delta < 0) {
+        _accumulatedDelta = _accumulatedDelta < 0
+            ? _accumulatedDelta + delta
+            : delta;
+      }
+
+      if (_accumulatedDelta > _scrollThreshold && _headerVisible) {
         _hideHeader();
-      } else if (delta < -_scrollThreshold && !_headerVisible) {
+        _accumulatedDelta = 0;
+      } else if (_accumulatedDelta < -_scrollThreshold && !_headerVisible) {
         _showHeader();
+        _accumulatedDelta = 0;
       }
     }
     return false;
