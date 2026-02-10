@@ -7,7 +7,11 @@ import '../../state/pos_notifier.dart';
 import 'bundle_selection_widget.dart';
 
 class ItemGridWidget extends ConsumerStatefulWidget {
-  const ItemGridWidget({super.key});
+  /// Optional animation (1.0=visible, 0.0=hidden) to collapse filter chips
+  /// on phones when scrolling.
+  final Animation<double>? hideAnimation;
+
+  const ItemGridWidget({super.key, this.hideAnimation});
 
   @override
   ConsumerState<ItemGridWidget> createState() => _ItemGridWidgetState();
@@ -43,43 +47,56 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     // Filter items based on search and category
     final filteredData = _getFilteredData(items, bundles);
 
-    return Column(
-      children: [
-        // Category filter chips
-        if (itemsByCategory.isNotEmpty)
-          Container(
-            height: 50,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                FilterChip(
-                  label: const Text('All'),
-                  selected: selectedCategory == null,
+    final isPhone = ResponsiveUtils.isPhone(context);
+    final hideAnim = widget.hideAnimation;
+
+    // Filter chips — collapsible on phones when scrolling
+    Widget filterChips = const SizedBox.shrink();
+    if (itemsByCategory.isNotEmpty) {
+      final chipContent = Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: [
+            FilterChip(
+              label: const Text('All'),
+              selected: selectedCategory == null,
+              onSelected: (selected) {
+                setState(() { selectedCategory = null; });
+              },
+            ),
+            const SizedBox(width: 8),
+            ...itemsByCategory.keys.map(
+              (category) => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilterChip(
+                  label: Text(category),
+                  selected: selectedCategory == category,
                   onSelected: (selected) {
-                    setState(() {
-                      selectedCategory = null;
-                    });
+                    setState(() { selectedCategory = selected ? category : null; });
                   },
                 ),
-                const SizedBox(width: 8),
-                ...itemsByCategory.keys.map(
-                  (category) => Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      label: Text(category),
-                      selected: selectedCategory == category,
-                      onSelected: (selected) {
-                        setState(() {
-                          selectedCategory = selected ? category : null;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+          ],
+        ),
+      );
+
+      filterChips = (isPhone && hideAnim != null)
+          ? ClipRect(
+              child: SizeTransition(
+                sizeFactor: hideAnim,
+                axisAlignment: -1.0,
+                child: chipContent,
+              ),
+            )
+          : chipContent;
+    }
+
+    return Column(
+      children: [
+        filterChips,
 
         const SizedBox(height: 16),
 

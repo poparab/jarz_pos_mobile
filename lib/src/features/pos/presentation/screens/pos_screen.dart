@@ -32,22 +32,81 @@ class PosScreen extends ConsumerStatefulWidget {
   ConsumerState<PosScreen> createState() => _PosScreenState();
 }
 
-class _PosScreenState extends ConsumerState<PosScreen> {
-  // Remove embedded Kanban toggle; navigate via router instead
+class _PosScreenState extends ConsumerState<PosScreen>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  // ── Scroll-to-hide state (phones only) ──────────────────────────
+  late final AnimationController _hideController;
+  /// 1.0 → visible, 0.0 → hidden.  Used for SizeTransition + FAB.
+  late final Animation<double> _hideAnim;
+  bool _headerVisible = true;
+  double _lastScrollOffset = 0;
+  // Minimum scroll delta to trigger hide/show (px)
+  static const _scrollThreshold = 10.0;
 
   @override
   void initState() {
     super.initState();
+
+    _hideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    // When controller goes 0→1 (forward), this animation goes 1→0 (hide)
+    _hideAnim = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _hideController, curve: Curves.easeInOut),
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Check if user is authenticated before loading profiles
-  // Authentication assumed handled by route guard; proceed to load profiles.
+      // Authentication assumed handled by route guard; proceed to load profiles.
 
       final state = ref.read(posNotifierProvider);
       if (state.selectedProfile == null) {
         ref.read(posNotifierProvider.notifier).loadProfiles();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _hideController.dispose();
+    super.dispose();
+  }
+
+  /// Handle scroll notifications from nested scrollables (phones only).
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification &&
+        notification.metrics.axis == Axis.vertical) {
+      final offset = notification.metrics.pixels;
+      final delta = offset - _lastScrollOffset;
+      _lastScrollOffset = offset;
+
+      // Ignore overscroll / elastic at edges
+      if (offset <= 0) {
+        _showHeader();
+        return false;
+      }
+
+      if (delta > _scrollThreshold && _headerVisible) {
+        _hideHeader();
+      } else if (delta < -_scrollThreshold && !_headerVisible) {
+        _showHeader();
+      }
+    }
+    return false;
+  }
+
+  void _hideHeader() {
+    if (!_headerVisible) return;
+    _headerVisible = false;
+    _hideController.forward();
+  }
+
+  void _showHeader() {
+    if (_headerVisible) return;
+    _headerVisible = true;
+    _hideController.reverse();
   }
 
   @override
@@ -76,48 +135,90 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     final isPhone = ResponsiveUtils.isPhone(context);
     final headerHeight = ResponsiveUtils.getHeaderHeight(context);
 
+    final header = _MergedHeader(
+      state: state,
+      onShowCart: () => _showCartBottomSheet(context),
+      onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
+      ref: ref,
+      context: context,
+    );
+
+    // ── Phone: scroll-to-hide header + FAB ──────────────────────────
+    if (isPhone) {
+      return Scaffold(
+        key: _scaffoldKey,
+        drawer: const AppDrawer(),
+        // FAB slides out when header hides
+        floatingActionButton: SlideTransition(
+          position: Tween<Offset>(
+            begin: Offset.zero,
+            end: const Offset(0, 2), // slide down off screen
+          ).animate(CurvedAnimation(
+            parent: _hideController,
+            curve: Curves.easeInOut,
+          )),
+          child: Consumer(builder: (c, ref2, _) {
+            final cartCount = ref2.watch(
+              posNotifierProvider.select((s) => s.cartItemCount),
+            );
+            return FloatingActionButton(
+              heroTag: 'pos_cart_fab',
+              onPressed: () => _showCartBottomSheet(context),
+              child: Badge(
+                isLabelVisible: cartCount > 0,
+                label: Text('$cartCount'),
+                child: const Icon(Icons.shopping_cart),
+              ),
+            );
+          }),
+        ),
+        body: GestureDetector(
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: _onScrollNotification,
+            child: Column(
+              children: [
+                // Header collapses smoothly when scrolling down
+                ClipRect(
+                  child: SizeTransition(
+                    sizeFactor: _hideAnim,
+                    axisAlignment: -1.0, // collapse from top edge
+                    child: header, // _MergedHeader has its own SafeArea
+                  ),
+                ),
+                // Main content
+                Expanded(
+                  child: state.isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : state.error != null
+                          ? _buildError(context, state.error!)
+                          : _buildResponsiveLayout(context),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // ── Tablet: standard layout ─────────────────────────────────────
     return Scaffold(
       key: _scaffoldKey,
       drawer: const AppDrawer(),
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(headerHeight),
-        child: _MergedHeader(
-          state: state,
-          onShowCart: () => _showCartBottomSheet(context),
-          onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
-          ref: ref,
-          context: context,
-        ),
+        child: header,
       ),
-      // On phones show a floating cart button
-      floatingActionButton: isPhone
-          ? Consumer(builder: (c, ref2, _) {
-              final cartCount = ref2.watch(posNotifierProvider.select((s) => s.cartItemCount));
-              return FloatingActionButton(
-                heroTag: 'pos_cart_fab',
-                onPressed: () => _showCartBottomSheet(context),
-                child: Badge(
-                  isLabelVisible: cartCount > 0,
-                  label: Text('$cartCount'),
-                  child: const Icon(Icons.shopping_cart),
-                ),
-              );
-            })
-          : null,
       body: GestureDetector(
-        onTap: () {
-          // Dismiss keyboard when tapping outside text fields
-          FocusManager.instance.primaryFocus?.unfocus();
-        },
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: Column(
           children: [
-            // Main Content
             Expanded(
               child: state.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : state.error != null
-                  ? _buildError(context, state.error!)
-                  : _buildResponsiveLayout(context),
+                      ? _buildError(context, state.error!)
+                      : _buildResponsiveLayout(context),
             ),
           ],
         ),
@@ -127,6 +228,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
 
   /// Build responsive layout that adapts to screen size.
   /// On phones (< 600px) show items full-width; cart accessible via FAB / bottom sheet.
+  /// The customer search bar is animated on phones (collapses with the header).
   /// On tablets keep the side-by-side Row layout.
   Widget _buildResponsiveLayout(BuildContext context) {
     final padding = ResponsiveUtils.getResponsivePadding(
@@ -135,33 +237,44 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       medium: 14,
       large: 16,
     );
+    final isPhone = ResponsiveUtils.isPhone(context);
 
-    final itemsPanel = Column(
-      children: [
-        Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+    final customerSearch = Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
-          child: const CustomerSearchWidget(),
-        ),
-        const Expanded(child: ItemGridWidget()),
-      ],
+        ],
+      ),
+      child: const CustomerSearchWidget(),
     );
 
-    // Phone: items only; cart in bottom sheet
-    if (ResponsiveUtils.shouldStackVertically(context)) {
-      return itemsPanel;
+    // Phone: customer search collapses with header
+    if (isPhone) {
+      return Column(
+        children: [
+          // Customer search slides away with the header
+          ClipRect(
+            child: SizeTransition(
+              sizeFactor: _hideAnim, // 1→0 collapses customer search
+              axisAlignment: -1.0, // collapse from top
+              child: customerSearch,
+            ),
+          ),
+          Expanded(child: ItemGridWidget(hideAnimation: _hideAnim)),
+        ],
+      );
     }
 
     // Tablet: side-by-side
+    final itemsPanel = Column(
+      children: [customerSearch, const Expanded(child: ItemGridWidget())],
+    );
     final flexRatio = ResponsiveUtils.getCartFlexRatio(context);
     return Row(
       children: [
