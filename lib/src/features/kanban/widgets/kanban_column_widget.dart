@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../models/kanban_models.dart';
 import 'invoice_card_widget.dart';
 
@@ -240,7 +241,7 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
                 child: Opacity(
                   opacity: 0.95,
                   child: SizedBox(
-                    width: 300,
+                    width: ResponsiveUtils.getKanbanColumnWidth(context),
                     child: InvoiceCardWidget(
                       invoice: invoice,
                       isDragging: true,

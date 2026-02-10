@@ -371,6 +371,8 @@ class PosPrinterService extends ChangeNotifier {
       if (cur.isNotEmpty) lines.add(cur.toString());
       return lines;
     }
+    // Reset printer to a known state to avoid stray characters or misalignment
+    esc([0x1B, 0x40]);
     // Use Font B globally (smaller)
     esc([0x1B, 0x4D, 0x01]);
     // HEADER ---------------------------------------------------------
@@ -557,31 +559,35 @@ class PosPrinterService extends ChangeNotifier {
       final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
       final frame = await codec.getNextFrame();
       final img = frame.image;
-  // Target width reduced 25% (from 384 to 288) for a more compact centered logo.
-  const targetW = 288;
-      final scale = targetW / img.width;
+      // Render into a canvas as wide as a 58mm printer (384px) and center the scaled logo.
+      const canvasW = 384;
+      const logoTargetW = 288; // scale down to keep proportions and leave margins
+      final scale = logoTargetW / img.width;
       final targetH = (img.height * scale).round();
       final recorder = ui.PictureRecorder();
       final canvas = ui.Canvas(recorder);
       final paint = ui.Paint();
       // White background to avoid black where logo has transparency
       final bg = ui.Paint()..color = const ui.Color(0xFFFFFFFF);
-      canvas.drawRect(ui.Rect.fromLTWH(0, 0, targetW.toDouble(), targetH.toDouble()), bg);
+      canvas.drawRect(ui.Rect.fromLTWH(0, 0, canvasW.toDouble(), targetH.toDouble()), bg);
+      // Center horizontally on the wider canvas
+      final padLeft = ((canvasW - logoTargetW) / 2).clamp(0, canvasW.toDouble()).toDouble();
+      canvas.translate(padLeft, 0.0);
       canvas.scale(scale);
       canvas.drawImage(img, const ui.Offset(0,0), paint);
       final picture = recorder.endRecording();
-      final resized = await picture.toImage(targetW, targetH);
+      final resized = await picture.toImage(canvasW, targetH);
       final byteData = await resized.toByteData(format: ui.ImageByteFormat.rawRgba);
       if (byteData == null) return null;
       final rgba = byteData.buffer.asUint8List();
       // Convert to 1bpp monochrome (threshold)
-      final bytesPerRow = (targetW + 7) >> 3;
+      final bytesPerRow = (canvasW + 7) >> 3;
       final out = Uint8List(bytesPerRow * targetH);
       int o = 0;
       for (int y=0; y<targetH; y++) {
         int bit = 0; int cur = 0;
-        for (int x=0; x<targetW; x++) {
-          final idx = (y*targetW + x) * 4;
+        for (int x=0; x<canvasW; x++) {
+          final idx = (y*canvasW + x) * 4;
           final r = rgba[idx];
           final g = rgba[idx+1];
           final b = rgba[idx+2];

@@ -10,7 +10,9 @@ Future<void> loadEnv() async {
   // Map ENV -> file name
   final file = switch (env.toLowerCase()) {
     'local' => '.env.local',
-    'staging' => '.env.staging',
+    // Treat testing as an alias of staging so CI builds and manual `--dart-define=ENV=testing`
+    // load the staging endpoints instead of falling back to .env (local).
+    'staging' || 'testing' || 'test' => '.env.staging',
     'prod' || 'production' => '.env.prod',
     _ => '.env', // final fallback to legacy single-file setup
   };

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/responsive_utils.dart';
 import '../../data/repositories/pos_repository.dart';
 import '../../state/pos_notifier.dart';
 
@@ -38,10 +39,12 @@ class _SalesPartnerSelectorDialogState extends ConsumerState<SalesPartnerSelecto
   @override
   Widget build(BuildContext context) {
     final selected = ref.watch(posNotifierProvider.select((s) => s.selectedSalesPartner));
+    final dialogWidth = ResponsiveUtils.getDialogWidth(context);
+    final isPhone = ResponsiveUtils.isPhone(context);
     return AlertDialog(
       title: const Text('Sales Partner'),
       content: SizedBox(
-        width: 480,
+        width: dialogWidth,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -61,11 +64,11 @@ class _SalesPartnerSelectorDialogState extends ConsumerState<SalesPartnerSelecto
               SizedBox(
                 height: 280,
                 child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: isPhone ? 1 : 2,
                     mainAxisSpacing: 8,
                     crossAxisSpacing: 8,
-                    childAspectRatio: 3.5,
+                    childAspectRatio: isPhone ? 5.0 : 3.5,
                   ),
                   itemCount: _partners.length,
                   itemBuilder: (_, i) {

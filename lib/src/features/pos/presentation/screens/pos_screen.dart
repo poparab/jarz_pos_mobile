@@ -73,11 +73,14 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final isPhone = ResponsiveUtils.isPhone(context);
+    final headerHeight = ResponsiveUtils.getHeaderHeight(context);
+
     return Scaffold(
       key: _scaffoldKey,
       drawer: const AppDrawer(),
       appBar: PreferredSize(
-    preferredSize: const Size.fromHeight(88),
+        preferredSize: Size.fromHeight(headerHeight),
         child: _MergedHeader(
           state: state,
           onShowCart: () => _showCartBottomSheet(context),
@@ -86,6 +89,21 @@ class _PosScreenState extends ConsumerState<PosScreen> {
           context: context,
         ),
       ),
+      // On phones show a floating cart button
+      floatingActionButton: isPhone
+          ? Consumer(builder: (c, ref2, _) {
+              final cartCount = ref2.watch(posNotifierProvider.select((s) => s.cartItemCount));
+              return FloatingActionButton(
+                heroTag: 'pos_cart_fab',
+                onPressed: () => _showCartBottomSheet(context),
+                child: Badge(
+                  isLabelVisible: cartCount > 0,
+                  label: Text('$cartCount'),
+                  child: const Icon(Icons.shopping_cart),
+                ),
+              );
+            })
+          : null,
       body: GestureDetector(
         onTap: () {
           // Dismiss keyboard when tapping outside text fields
@@ -107,9 +125,10 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     );
   }
 
-  /// Build responsive layout that adapts to screen size
+  /// Build responsive layout that adapts to screen size.
+  /// On phones (< 600px) show items full-width; cart accessible via FAB / bottom sheet.
+  /// On tablets keep the side-by-side Row layout.
   Widget _buildResponsiveLayout(BuildContext context) {
-    final flexRatio = ResponsiveUtils.getCartFlexRatio(context);
     final padding = ResponsiveUtils.getResponsivePadding(
       context,
       small: 12,
@@ -117,38 +136,37 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       large: 16,
     );
 
-    return Row(
+    final itemsPanel = Column(
       children: [
-        // Left side - Items and customer search
-        Expanded(
-          flex: flexRatio[0], // Responsive flex ratio (60-70%)
-          child: Column(
-            children: [
-              // Customer search bar
-              Container(
-                padding: padding,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const CustomerSearchWidget(),
+        Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
               ),
-              // Items grid
-              const Expanded(child: ItemGridWidget()),
             ],
           ),
+          child: const CustomerSearchWidget(),
         ),
-        // Right side - Cart
-        Expanded(
-          flex: flexRatio[1], // Responsive flex ratio (30-40%)
-          child: const CartWidget(),
-        ),
+        const Expanded(child: ItemGridWidget()),
+      ],
+    );
+
+    // Phone: items only; cart in bottom sheet
+    if (ResponsiveUtils.shouldStackVertically(context)) {
+      return itemsPanel;
+    }
+
+    // Tablet: side-by-side
+    final flexRatio = ResponsiveUtils.getCartFlexRatio(context);
+    return Row(
+      children: [
+        Expanded(flex: flexRatio[0], child: itemsPanel),
+        Expanded(flex: flexRatio[1], child: const CartWidget()),
       ],
     );
   }
@@ -362,10 +380,11 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
   final VoidCallback onOpenDrawer;
   final WidgetRef ref;
   final BuildContext context;
-  const _MergedHeader({required this.state, required this.onShowCart, required this.onOpenDrawer, required this.ref, required this.context});
+  const _MergedHeader({required this.state, required this.onShowCart, required this.onOpenDrawer, required this.ref, required this.context, double? headerHeight}) : _headerHeight = headerHeight;
 
   @override
-  Size get preferredSize => const Size.fromHeight(88);
+  Size get preferredSize => Size.fromHeight(_headerHeight ?? 88);
+  final double? _headerHeight;
 
   @override
   Widget build(BuildContext ctx, WidgetRef r) {
@@ -376,7 +395,371 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
     final offlineSyncService = r.watch(offlineSyncServiceProvider);
     final courierState = r.watch(courierBalancesProvider);
     final partner = r.watch(posNotifierProvider.select((s) => s.selectedSalesPartner));
-  final printer = r.watch(posPrinterServiceProvider);
+    final printer = r.watch(posPrinterServiceProvider);
+    final isPhone = ResponsiveUtils.isPhone(ctx);
+
+    // On phones condense to essential controls; move status to overflow menu
+    final essentialChildren = <Widget>[
+      // Hamburger menu
+      IconButton(
+        icon: Icon(Icons.menu, color: theme.colorScheme.onPrimary, size: isPhone ? 20 : 24),
+        onPressed: onOpenDrawer,
+        tooltip: MaterialLocalizations.of(ctx).openAppDrawerTooltip,
+        visualDensity: isPhone ? VisualDensity.compact : VisualDensity.standard,
+      ),
+      if (!isPhone) ...[
+        const SizedBox(width: 4),
+        const SizedBox(width: 12),
+        _vDivider(theme),
+        const SizedBox(width: 12),
+      ],
+      // Section: Partner
+      if (partner != null)
+        InputChip(
+          backgroundColor: theme.colorScheme.secondaryContainer,
+          avatar: const Icon(Icons.handshake, size: 16),
+          label: Text(
+            partner['title'] ??
+                partner['partner_name'] ??
+                partner['name'] ??
+                l10n.systemStatusPartnerChip,
+            overflow: TextOverflow.ellipsis,
+          ),
+          onDeleted: () => r.read(posNotifierProvider.notifier).setSalesPartner(null),
+          deleteIcon: const Icon(Icons.close, size: 16),
+        )
+      else
+        TextButton.icon(
+          style: TextButton.styleFrom(foregroundColor: theme.colorScheme.onPrimary),
+          onPressed: () async {
+            final sel = await showDialog<Map<String, dynamic>?>(
+              context: ctx,
+              builder: (_) => const SalesPartnerSelectorDialog(),
+            );
+            if (sel != null) {
+              r.read(posNotifierProvider.notifier).setSalesPartner(sel);
+            }
+          },
+          icon: const Icon(Icons.handshake),
+          label: isPhone ? const SizedBox.shrink() : Text(l10n.systemStatusPartnerChip),
+        ),
+      if (!isPhone) ...[
+        const SizedBox(width: 12),
+        _vDivider(theme),
+        const SizedBox(width: 12),
+      ] else
+        const SizedBox(width: 4),
+      // Section: POS Profile quick selector (dialog-based)
+      Builder(builder: (bCtx) {
+        final profiles = r.watch(posNotifierProvider).profiles;
+        final selected = r.watch(posNotifierProvider).selectedProfile;
+        final onPrimary = theme.colorScheme.onPrimary;
+
+        if (profiles.isEmpty) {
+          return Text(
+            selected?['title'] ??
+                selected?['name'] ??
+                l10n.posProfileSelectionShortFallback,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: onPrimary,
+              fontWeight: FontWeight.w600,
+              fontSize: isPhone ? 11 : null,
+            ),
+          );
+        }
+
+        final label = selected != null
+            ? (selected['title'] ??
+                    selected['name'] ??
+                    l10n.posProfileSelectionShortFallback)
+                .toString()
+            : (profiles.length == 1
+                ? (profiles.first['title'] ??
+                        profiles.first['name'] ??
+                        l10n.posProfileSelectionShortFallback)
+                    .toString()
+                : l10n.posProfileSelectionCycleHint);
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+          child: InkWell(
+            onTap: () async {
+              if (profiles.length == 1) {
+                r.read(posNotifierProvider.notifier).selectProfile(profiles.first);
+                return;
+              }
+              // Cycle through profiles without modal dialog
+              final currentIndex = selected != null 
+                  ? profiles.indexWhere((p) => p['name'] == selected['name'])
+                  : -1;
+              final nextIndex = (currentIndex + 1) % profiles.length;
+              final nextProfile = profiles[nextIndex];
+              r.read(posNotifierProvider.notifier).selectProfile(nextProfile);
+            },
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: isPhone ? 6 : 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: onPrimary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: onPrimary.withValues(alpha: 0.25)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.store, size: isPhone ? 14 : 16, color: onPrimary),
+                  const SizedBox(width: 6),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: isPhone ? 80 : 200),
+                    child: Text(
+                      label,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: onPrimary,
+                        fontSize: isPhone ? 10 : 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Icon(Icons.arrow_drop_down, size: 18, color: onPrimary),
+                ],
+              ),
+            ),
+          ),
+        );
+      }),
+    ];
+
+    // Status chips – shown inline on tablets, in trailing overflow on phones
+    final statusChips = <Widget>[
+      connectivityAsync.when(
+        data: (isOnline) => _statusChip(
+          ctx,
+          icon: isOnline ? Icons.wifi : Icons.wifi_off,
+          label: isOnline ? l10n.commonOnline : l10n.commonOffline,
+          color: isOnline ? Colors.green : Colors.red,
+        ),
+        loading: () =>
+            _statusChip(ctx, icon: Icons.wifi, label: l10n.systemStatusChecking, color: Colors.orange),
+        error: (e, st) =>
+            _statusChip(ctx, icon: Icons.wifi_off, label: l10n.commonError, color: Colors.red),
+      ),
+      const SizedBox(width: 8),
+      StreamBuilder<bool>(
+        stream: webSocketService.connectionStatus,
+        initialData: false,
+        builder: (c, snap) {
+          final connected = snap.data ?? false;
+          return _statusChip(
+            ctx,
+            icon: connected ? Icons.sync : Icons.sync_disabled,
+            label: connected ? l10n.systemStatusRealtime : l10n.systemStatusNoRealtime,
+            color: connected ? Colors.blue : Colors.grey,
+          );
+        },
+      ),
+      const SizedBox(width: 8),
+      FutureBuilder<int>(
+        future: offlineSyncService.getPendingCount(),
+        builder: (c, snap) {
+          final pending = snap.data ?? 0;
+          return _statusChip(
+            ctx,
+            icon: pending == 0 ? Icons.check_circle : Icons.sync_problem,
+            label: pending == 0
+                ? l10n.systemStatusSynced
+                : l10n.systemStatusPendingCount(pending),
+            color: pending == 0 ? Colors.green : Colors.orange,
+          );
+        },
+      ),
+      const SizedBox(width: 8),
+      InkWell(
+        onTap: () => showCourierBalancesDialog(ctx),
+        child: _statusChip(
+          ctx,
+          icon: courierState.hasUnsettled ? Icons.delivery_dining : Icons.local_shipping,
+          label: courierState.hasUnsettled
+              ? l10n.systemStatusCourierCount(courierState.unsettledCount)
+              : l10n.systemStatusCouriers,
+          color: courierState.hasUnsettled ? Colors.orange : Colors.grey,
+        ),
+      ),
+      const SizedBox(width: 8),
+      StreamBuilder(
+        stream: Stream.periodic(const Duration(seconds: 1)),
+        builder: (c, snap) {
+          final now = DateTime.now();
+          return _statusChip(
+            ctx,
+            icon: Icons.schedule,
+            label: '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
+            color: Colors.teal,
+          );
+        },
+      ),
+    ];
+
+    // Printer chip
+    final printerChip = InkWell(
+      onTap: () => context.push('/printers'),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: isPhone ? 6 : 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: () {
+            switch (printer.unifiedStatus) {
+              case PrinterUnifiedStatus.connectedBle:
+              case PrinterUnifiedStatus.connectedClassic:
+                return Colors.green.withValues(alpha: 0.15);
+              case PrinterUnifiedStatus.connecting:
+                return Colors.orange.withValues(alpha: 0.15);
+              case PrinterUnifiedStatus.error:
+                return Colors.red.withValues(alpha: 0.18);
+              case PrinterUnifiedStatus.disconnected:
+                return Colors.red.withValues(alpha: 0.15);
+            }
+          }(),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: () {
+              switch (printer.unifiedStatus) {
+                case PrinterUnifiedStatus.connectedBle:
+                case PrinterUnifiedStatus.connectedClassic:
+                  return Colors.green;
+                case PrinterUnifiedStatus.connecting:
+                  return Colors.orange;
+                case PrinterUnifiedStatus.error:
+                  return Colors.red;
+                case PrinterUnifiedStatus.disconnected:
+                  return Colors.red;
+              }
+            }().withValues(alpha: 0.7),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.print,
+              size: isPhone ? 14 : 16,
+              color: () {
+                switch (printer.unifiedStatus) {
+                  case PrinterUnifiedStatus.connectedBle:
+                  case PrinterUnifiedStatus.connectedClassic:
+                    return Colors.greenAccent;
+                  case PrinterUnifiedStatus.connecting:
+                    return Colors.orangeAccent;
+                  case PrinterUnifiedStatus.error:
+                    return Colors.redAccent;
+                  case PrinterUnifiedStatus.disconnected:
+                    return Colors.redAccent;
+                }
+              }(),
+            ),
+            if (!isPhone) ...[
+              const SizedBox(width: 6),
+              Text(
+                () {
+                  switch (printer.unifiedStatus) {
+                    case PrinterUnifiedStatus.connectedBle:
+                      return l10n.printerStatusBle;
+                    case PrinterUnifiedStatus.connectedClassic:
+                      return l10n.printerStatusClassic;
+                    case PrinterUnifiedStatus.connecting:
+                      return l10n.printerStatusConnecting;
+                    case PrinterUnifiedStatus.error:
+                      return printer.lastErrorMessage ?? l10n.printerStatusError;
+                    case PrinterUnifiedStatus.disconnected:
+                      return l10n.printerStatusDisconnected;
+                  }
+                }(),
+                style: TextStyle(
+                  color: () {
+                    switch (printer.unifiedStatus) {
+                      case PrinterUnifiedStatus.connectedBle:
+                      case PrinterUnifiedStatus.connectedClassic:
+                        return Colors.green;
+                      case PrinterUnifiedStatus.connecting:
+                        return Colors.orange;
+                      case PrinterUnifiedStatus.error:
+                        return Colors.red;
+                      case PrinterUnifiedStatus.disconnected:
+                        return Colors.red;
+                    }
+                  }(),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+
+    // Action buttons
+    final actionButtons = <Widget>[
+      printerChip,
+      SizedBox(width: isPhone ? 4 : 12),
+      IconButton(
+        icon: Icon(Icons.view_kanban, color: theme.colorScheme.onPrimary, size: isPhone ? 20 : 24),
+        tooltip: l10n.menuSalesKanban,
+        onPressed: () => context.push('/kanban'),
+        visualDensity: isPhone ? VisualDensity.compact : VisualDensity.standard,
+      ),
+      // Cart icon only shown on tablets (phones use FAB)
+      if (!isPhone)
+        Consumer(builder: (c, ref2, _) {
+          final cartCount = ref2.watch(posNotifierProvider.select((s) => s.cartItemCount));
+          return Stack(
+            children: [
+              IconButton(
+                icon: Icon(Icons.shopping_cart, color: theme.colorScheme.onPrimary),
+                onPressed: onShowCart,
+                tooltip: l10n.posCartTitle,
+              ),
+              if (cartCount > 0)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.error,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    child: Text('$cartCount',
+                        style: TextStyle(color: theme.colorScheme.onError, fontSize: 11),
+                        textAlign: TextAlign.center),
+                  ),
+                ),
+            ],
+          );
+        }),
+      SizedBox(width: isPhone ? 2 : 12),
+      // Force sync
+      IconButton(
+        visualDensity: VisualDensity.compact,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
+        tooltip: l10n.systemStatusForceSyncTooltip,
+        icon: Icon(Icons.refresh, size: isPhone ? 18 : 20, color: theme.colorScheme.onPrimary),
+        onPressed: () async {
+          final messenger = ScaffoldMessenger.of(ctx);
+          await offlineSyncService.forceSyncNow();
+          await r.read(courierBalancesProvider.notifier).load();
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(l10n.systemStatusSyncComplete),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        },
+      ),
+    ];
 
     return Material(
       elevation: 4,
@@ -384,354 +767,22 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: isPhone ? 4 : 12, vertical: isPhone ? 2 : 6),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                // Hamburger menu
-                IconButton(
-                  icon: Icon(Icons.menu, color: theme.colorScheme.onPrimary),
-                  onPressed: onOpenDrawer,
-                  tooltip: MaterialLocalizations.of(ctx).openAppDrawerTooltip,
-                ),
-                const SizedBox(width: 4),
-                // Branch filter removed from POS (lives in Kanban header)
-                const SizedBox(width: 12),
-                _vDivider(theme),
-                const SizedBox(width: 12),
-                // Section: Partner
-                if (partner != null)
-                  InputChip(
-                    backgroundColor: theme.colorScheme.secondaryContainer,
-                    avatar: const Icon(Icons.handshake, size: 16),
-                    label: Text(
-                      partner['title'] ??
-                          partner['partner_name'] ??
-                          partner['name'] ??
-                          l10n.systemStatusPartnerChip,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    onDeleted: () => r.read(posNotifierProvider.notifier).setSalesPartner(null),
-                    deleteIcon: const Icon(Icons.close, size: 16),
-                  )
-                else
-                  TextButton.icon(
-                    style: TextButton.styleFrom(foregroundColor: theme.colorScheme.onPrimary),
-                    onPressed: () async {
-                      final sel = await showDialog<Map<String, dynamic>?>(
-                        context: ctx,
-                        builder: (_) => const SalesPartnerSelectorDialog(),
-                      );
-                      if (sel != null) {
-                        r.read(posNotifierProvider.notifier).setSalesPartner(sel);
-                      }
-                    },
-                    icon: const Icon(Icons.handshake),
-                    label: Text(l10n.systemStatusPartnerChip),
-                  ),
-                const SizedBox(width: 12),
-                _vDivider(theme),
-                const SizedBox(width: 12),
-                // Section: POS Profile quick selector (dialog-based)
-                Builder(builder: (bCtx) {
-                  final profiles = r.watch(posNotifierProvider).profiles;
-                  final selected = r.watch(posNotifierProvider).selectedProfile;
-                  final onPrimary = theme.colorScheme.onPrimary;
-
-                  if (profiles.isEmpty) {
-                    return Text(
-                      selected?['title'] ??
-                          selected?['name'] ??
-                          l10n.posProfileSelectionShortFallback,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: onPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    );
-                  }
-
-                  final label = selected != null
-                      ? (selected['title'] ??
-                              selected['name'] ??
-                              l10n.posProfileSelectionShortFallback)
-                          .toString()
-                      : (profiles.length == 1
-                          ? (profiles.first['title'] ??
-                                  profiles.first['name'] ??
-                                  l10n.posProfileSelectionShortFallback)
-                              .toString()
-                          : l10n.posProfileSelectionCycleHint);
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                    child: InkWell(
-                      onTap: () async {
-                        if (profiles.length == 1) {
-                          r.read(posNotifierProvider.notifier).selectProfile(profiles.first);
-                          return;
-                        }
-                        // Cycle through profiles without modal dialog
-                        final currentIndex = selected != null 
-                            ? profiles.indexWhere((p) => p['name'] == selected['name'])
-                            : -1;
-                        final nextIndex = (currentIndex + 1) % profiles.length;
-                        final nextProfile = profiles[nextIndex];
-                        r.read(posNotifierProvider.notifier).selectProfile(nextProfile);
-                      },
-                      borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: onPrimary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: onPrimary.withValues(alpha: 0.25)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.store, size: 16, color: onPrimary),
-                            const SizedBox(width: 6),
-                            Text(
-                              label,
-                              style: TextStyle(
-                                color: onPrimary,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 2),
-                            Icon(Icons.arrow_drop_down, size: 18, color: onPrimary),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-                const SizedBox(width: 12),
-                _vDivider(theme),
-                const SizedBox(width: 12),
-                // Section: Status chips
-                connectivityAsync.when(
-                  data: (isOnline) => _statusChip(
-                    ctx,
-                    icon: isOnline ? Icons.wifi : Icons.wifi_off,
-                    label: isOnline ? l10n.commonOnline : l10n.commonOffline,
-                    color: isOnline ? Colors.green : Colors.red,
-                  ),
-                  loading: () =>
-                      _statusChip(ctx, icon: Icons.wifi, label: l10n.systemStatusChecking, color: Colors.orange),
-                  error: (e, st) =>
-                      _statusChip(ctx, icon: Icons.wifi_off, label: l10n.commonError, color: Colors.red),
-                ),
-                const SizedBox(width: 8),
-                StreamBuilder<bool>(
-                  stream: webSocketService.connectionStatus,
-                  initialData: false,
-                  builder: (c, snap) {
-                    final connected = snap.data ?? false;
-                    return _statusChip(
-                      ctx,
-                      icon: connected ? Icons.sync : Icons.sync_disabled,
-                      label: connected ? l10n.systemStatusRealtime : l10n.systemStatusNoRealtime,
-                      color: connected ? Colors.blue : Colors.grey,
-                    );
-                  },
-                ),
-                const SizedBox(width: 8),
-                FutureBuilder<int>(
-                  future: offlineSyncService.getPendingCount(),
-                  builder: (c, snap) {
-                    final pending = snap.data ?? 0;
-                    return _statusChip(
-                      ctx,
-                      icon: pending == 0 ? Icons.check_circle : Icons.sync_problem,
-                      label: pending == 0
-                          ? l10n.systemStatusSynced
-                          : l10n.systemStatusPendingCount(pending),
-                      color: pending == 0 ? Colors.green : Colors.orange,
-                    );
-                  },
-                ),
-                const SizedBox(width: 8),
-                InkWell(
-                  onTap: () => showCourierBalancesDialog(ctx),
-                  child: _statusChip(
-                    ctx,
-                    icon: courierState.hasUnsettled ? Icons.delivery_dining : Icons.local_shipping,
-                    label: courierState.hasUnsettled
-                        ? l10n.systemStatusCourierCount(courierState.unsettledCount)
-                        : l10n.systemStatusCouriers,
-                    color: courierState.hasUnsettled ? Colors.orange : Colors.grey,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                StreamBuilder(
-                  stream: Stream.periodic(const Duration(seconds: 1)),
-                  builder: (c, snap) {
-                    final now = DateTime.now();
-                    return _statusChip(
-                      ctx,
-                      icon: Icons.schedule,
-                      label: '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-                      color: Colors.teal,
-                    );
-                  },
-                ),
-                const SizedBox(width: 12),
-                _vDivider(theme),
-                const SizedBox(width: 12),
-                // Section: Printer status & actions (moved from footer)
-                InkWell(
-                  onTap: () => context.push('/printers'),
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: () {
-                        switch (printer.unifiedStatus) {
-                          case PrinterUnifiedStatus.connectedBle:
-                          case PrinterUnifiedStatus.connectedClassic:
-                            return Colors.green.withValues(alpha: 0.15);
-                          case PrinterUnifiedStatus.connecting:
-                            return Colors.orange.withValues(alpha: 0.15);
-                          case PrinterUnifiedStatus.error:
-                            return Colors.red.withValues(alpha: 0.18);
-                          case PrinterUnifiedStatus.disconnected:
-                            return Colors.red.withValues(alpha: 0.15);
-                        }
-                      }(),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: () {
-                          switch (printer.unifiedStatus) {
-                            case PrinterUnifiedStatus.connectedBle:
-                            case PrinterUnifiedStatus.connectedClassic:
-                              return Colors.green;
-                            case PrinterUnifiedStatus.connecting:
-                              return Colors.orange;
-                            case PrinterUnifiedStatus.error:
-                              return Colors.red;
-                            case PrinterUnifiedStatus.disconnected:
-                              return Colors.red;
-                          }
-                        }().withValues(alpha: 0.7),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.print,
-                          size: 16,
-                          color: () {
-                            switch (printer.unifiedStatus) {
-                              case PrinterUnifiedStatus.connectedBle:
-                              case PrinterUnifiedStatus.connectedClassic:
-                                return Colors.greenAccent;
-                              case PrinterUnifiedStatus.connecting:
-                                return Colors.orangeAccent;
-                              case PrinterUnifiedStatus.error:
-                                return Colors.redAccent;
-                              case PrinterUnifiedStatus.disconnected:
-                                return Colors.redAccent;
-                            }
-                          }(),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          () {
-                            switch (printer.unifiedStatus) {
-                              case PrinterUnifiedStatus.connectedBle:
-                                return l10n.printerStatusBle;
-                              case PrinterUnifiedStatus.connectedClassic:
-                                return l10n.printerStatusClassic;
-                              case PrinterUnifiedStatus.connecting:
-                                return l10n.printerStatusConnecting;
-                              case PrinterUnifiedStatus.error:
-                                return printer.lastErrorMessage ?? l10n.printerStatusError;
-                              case PrinterUnifiedStatus.disconnected:
-                                return l10n.printerStatusDisconnected;
-                            }
-                          }(),
-                          style: TextStyle(
-                            color: () {
-                              switch (printer.unifiedStatus) {
-                                case PrinterUnifiedStatus.connectedBle:
-                                case PrinterUnifiedStatus.connectedClassic:
-                                  return Colors.green;
-                                case PrinterUnifiedStatus.connecting:
-                                  return Colors.orange;
-                                case PrinterUnifiedStatus.error:
-                                  return Colors.red;
-                                case PrinterUnifiedStatus.disconnected:
-                                  return Colors.red;
-                              }
-                            }(),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Section: Actions (Kanban, Cart, Logout)
-                IconButton(
-                  icon: Icon(Icons.view_kanban, color: theme.colorScheme.onPrimary),
-                  tooltip: l10n.menuSalesKanban,
-                  onPressed: () => context.push('/kanban'),
-                ),
-                Consumer(builder: (c, ref2, _) {
-                  final cartCount = ref2.watch(posNotifierProvider.select((s) => s.cartItemCount));
-                  return Stack(
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.shopping_cart, color: theme.colorScheme.onPrimary),
-                        onPressed: onShowCart,
-                        tooltip: l10n.posCartTitle,
-                      ),
-                      if (cartCount > 0)
-                        Positioned(
-                          right: 6,
-                          top: 6,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.error,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                            child: Text('$cartCount',
-                                style: TextStyle(color: theme.colorScheme.onError, fontSize: 11),
-                                textAlign: TextAlign.center),
-                          ),
-                        ),
-                    ],
-                  );
-                }),
-                // Removed Logout from header; available in Drawer
-                const SizedBox(width: 12),
-                // Force sync
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  tooltip: l10n.systemStatusForceSyncTooltip,
-                  icon: Icon(Icons.refresh, size: 20, color: theme.colorScheme.onPrimary),
-                  onPressed: () async {
-                    final messenger = ScaffoldMessenger.of(ctx);
-                    await offlineSyncService.forceSyncNow();
-                    await r.read(courierBalancesProvider.notifier).load();
-                    messenger.showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.systemStatusSyncComplete),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                ),
+                ...essentialChildren,
+                if (!isPhone) ...[
+                  const SizedBox(width: 12),
+                  _vDivider(theme),
+                  const SizedBox(width: 12),
+                  ...statusChips,
+                  const SizedBox(width: 12),
+                  _vDivider(theme),
+                  const SizedBox(width: 12),
+                ],
+                ...actionButtons,
               ],
             ),
           ),
