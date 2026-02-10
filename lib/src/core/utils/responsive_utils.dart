@@ -43,9 +43,17 @@ class ResponsiveUtils {
 
   /// Item grid columns (optimised for product display)
   static int getItemGridColumns(BuildContext context) {
-    final width = screenWidth(context);
-    if (width < phonePortrait)  return 2;
-    if (width < phoneLandscape) return 2;
+    final media = MediaQuery.of(context);
+    final width = media.size.width;
+    final shortest = media.size.shortestSide;
+
+    // Phones: pack more columns on wide phones (e.g., S25 Ultra)
+    if (shortest < phoneLandscape) {
+      if (width < 420) return 2;
+      if (width < 540) return 3;
+      return 4; // wide phones / landscape
+    }
+
     if (width < 900)  return 2;
     if (width < 1100) return 3;
     if (width < 1300) return 4;
@@ -54,8 +62,16 @@ class ResponsiveUtils {
 
   /// Bundle grid columns
   static int getBundleGridColumns(BuildContext context) {
-    final width = screenWidth(context);
-    if (width < phoneLandscape) return 2;
+    final media = MediaQuery.of(context);
+    final width = media.size.width;
+    final shortest = media.size.shortestSide;
+
+    if (shortest < phoneLandscape) {
+      if (width < 420) return 2;
+      if (width < 540) return 3;
+      return 3; // keep bundles readable on phones
+    }
+
     if (width < 900)  return 2;
     if (width < 1100) return 2;
     if (width < 1400) return 3;
@@ -169,7 +185,7 @@ class ResponsiveUtils {
 
   /// Aspect ratio for product grid cards.
   static double getGridAspectRatio(BuildContext context, {
-    double compact = 1.2,
+    double compact = 1.0,
     double normal = 1.5,
   }) {
     final width = screenWidth(context);

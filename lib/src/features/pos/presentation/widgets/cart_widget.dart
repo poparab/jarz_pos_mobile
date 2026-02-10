@@ -10,7 +10,8 @@ import 'bundle_selection_widget.dart';
 import 'delivery_slot_selection.dart';
 
 class CartWidget extends ConsumerWidget {
-  const CartWidget({super.key});
+  final ScrollController? scrollController;
+  const CartWidget({super.key, this.scrollController});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,90 +34,91 @@ class CartWidget extends ConsumerWidget {
       large: 8,
     );
     
+    final controller = scrollController ?? ScrollController();
+
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          left: BorderSide(
-            color: Theme.of(context).colorScheme.outline,
-            width: 1,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border(
+            left: BorderSide(
+              color: Theme.of(context).colorScheme.outline,
+              width: 1,
+            ),
           ),
         ),
-      ),
-      child: Column(
-        children: [
-          // Cart header
-          Container(
-            padding: headerPadding,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).colorScheme.outline,
-                  width: 1,
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.shopping_cart,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  size: ResponsiveUtils.isCompactLayout(context) ? 20 : 24,
-                ),
-                SizedBox(width: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8)),
-                Expanded(
-                  child: Text(
-                    l10n.posCartHeader(cartItems.length),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                      fontSize: ResponsiveUtils.isCompactLayout(context) ? 14 : 16,
+        child: CustomScrollView(
+          controller: controller,
+          slivers: [
+            // Header
+            SliverToBoxAdapter(
+              child: Container(
+                padding: headerPadding,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Theme.of(context).colorScheme.outline,
+                      width: 1,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (cartItems.isNotEmpty)
-                  IconButton(
-                    icon: Icon(
-                      Icons.clear_all,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.shopping_cart,
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                       size: ResponsiveUtils.isCompactLayout(context) ? 20 : 24,
                     ),
-                    onPressed: () => _showClearCartDialog(context, ref),
-                    tooltip: l10n.posCartClear,
-                    padding: EdgeInsets.all(ResponsiveUtils.isCompactLayout(context) ? 6 : 8),
-                    constraints: const BoxConstraints(),
-                  ),
-              ],
-            ),
-          ),
-
-          // Cart items - with minimum height constraint
-          Flexible(
-            flex: 3,
-            child: Container(
-              constraints: const BoxConstraints(
-                minHeight: 150, // Minimum height to ensure items are visible
-              ),
-              child: cartItems.isEmpty
-                  ? _buildEmptyCart(context)
-                  : ListView.builder(
-                      padding: contentPadding,
-                      itemCount: cartItems.length,
-                      itemBuilder: (context, index) {
-                        final cartItem = cartItems[index];
-                        return _buildCartItem(context, ref, cartItem, index);
-                      },
+                    SizedBox(width: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8)),
+                    Expanded(
+                      child: Text(
+                        l10n.posCartHeader(cartItems.length),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                          fontSize: ResponsiveUtils.isCompactLayout(context) ? 14 : 16,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
+                    if (cartItems.isNotEmpty)
+                      IconButton(
+                        icon: Icon(
+                          Icons.clear_all,
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          size: ResponsiveUtils.isCompactLayout(context) ? 20 : 24,
+                        ),
+                        onPressed: () => _showClearCartDialog(context, ref),
+                        tooltip: l10n.posCartClear,
+                        padding: EdgeInsets.all(ResponsiveUtils.isCompactLayout(context) ? 6 : 8),
+                        constraints: const BoxConstraints(),
+                      ),
+                  ],
+                ),
+              ),
             ),
-          ),
 
-          // Cart summary and checkout - scrollable if content is too large
-          if (cartItems.isNotEmpty)
-            Flexible(
-              flex: 2,
-              child: SingleChildScrollView(
+            // Items or empty state
+            if (cartItems.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: _buildEmptyCart(context),
+              )
+            else
+              SliverList.builder(
+                itemCount: cartItems.length,
+                itemBuilder: (context, index) {
+                  final cartItem = cartItems[index];
+                  return Padding(
+                    padding: contentPadding,
+                    child: _buildCartItem(context, ref, cartItem, index),
+                  );
+                },
+              ),
+
+            // Summary
+            if (cartItems.isNotEmpty)
+              SliverToBoxAdapter(
                 child: Container(
                   padding: headerPadding,
                   decoration: BoxDecoration(
@@ -129,165 +131,130 @@ class CartWidget extends ConsumerWidget {
                     ),
                   ),
                   child: Column(
-                children: [
-                  // Customer info
-                  if (state.selectedCustomer != null)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.person,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                            size: 20,
+                    children: [
+                      // Customer info
+                      if (state.selectedCustomer != null)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              state.selectedCustomer!['customer_name'] ??
-                                  l10n.posUnknownCustomer,
-                              style: Theme.of(context).textTheme.titleSmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-
-                  // Pickup toggle + Delivery Slot Selection
-                  if (state.selectedProfile != null) ...[
-                    // Pickup toggle row
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Switch(
-                            value: state.isPickup,
-                            onChanged: (v) => ref.read(posNotifierProvider.notifier).setPickup(v),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l10n.posCartPickupTitle,
-                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                                Text(
-                                  state.isPickup
-                                      ? l10n.posCartPickupDescription
-                                      : l10n.posCartDeliveryDescription,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.person,
+                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  state.selectedCustomer!['customer_name'] ??
+                                      l10n.posUnknownCustomer,
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(
+                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                          if (state.isPickup)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.store_mall_directory, size: 14, color: Theme.of(context).colorScheme.primary),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    l10n.posCartPickupChip,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(color: Theme.of(context).colorScheme.primary),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
+                        ),
 
-                    if (!state.isPickup)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: () {
-                          if (kDebugMode) {
-                            debugPrint(
-                              '🎯 Rendering DeliverySlotSelection for profile: ${state.selectedProfile!['name']}',
-                            );
-                          }
-                          return DeliverySlotSelection(
+                      // Pickup toggle + Delivery Slot Selection
+                      if (state.selectedProfile != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Switch(
+                                value: state.isPickup,
+                                onChanged: (v) => ref.read(posNotifierProvider.notifier).setPickup(v),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.posCartPickupTitle,
+                                      style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                                    ),
+                                    Text(
+                                      state.isPickup
+                                          ? l10n.posCartPickupDescription
+                                          : l10n.posCartDeliveryDescription,
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (state.isPickup)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.store_mall_directory, size: 14, color: Theme.of(context).colorScheme.primary),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        l10n.posCartPickupChip,
+                                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      if (!state.isPickup)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          child: DeliverySlotSelection(
                             posProfile: state.selectedProfile!['name'],
                             selectedSlot: state.selectedDeliverySlot,
                             onSlotChanged: (slot) {
-                              if (kDebugMode) {
-                                debugPrint('🔄 Delivery slot changed: ${slot?.label}');
-                              }
-                              ref
-                                  .read(posNotifierProvider.notifier)
-                                  .setDeliverySlot(slot);
+                              ref.read(posNotifierProvider.notifier).setDeliverySlot(slot);
                             },
-                            isRequired: true, // Make delivery time selection mandatory when not pickup
-                          );
-                        }(),
-                      ),
-                  ],
+                            isRequired: true,
+                          ),
+                        ),
 
-                  // Subtotal, Delivery, and Total
-                  Column(
-                    children: [
-                      // Subtotal
+                      // Subtotal and delivery
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            l10n.posSubtotalLabel,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          Text(
-                            '\$${state.cartTotal.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
+                          Text(l10n.posSubtotalLabel, style: Theme.of(context).textTheme.titleMedium),
+                          Text('\$${state.cartTotal.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium),
                         ],
                       ),
 
-            // Delivery income (hidden when a Sales Partner is selected)
-            if (state.selectedSalesPartner == null &&
-              state.selectedCustomer != null &&
-              state.shippingCost > 0) ...[
+                      if (state.selectedSalesPartner == null &&
+                          state.selectedCustomer != null &&
+                          state.shippingCost > 0) ...[
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              l10n.posDeliveryLabel,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            Text(
-                              '\$${state.shippingCost.toStringAsFixed(2)}',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
+                            Text(l10n.posDeliveryLabel, style: Theme.of(context).textTheme.titleMedium),
+                            Text('\$${state.shippingCost.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium),
                           ],
                         ),
                       ],
@@ -296,177 +263,146 @@ class CartWidget extends ConsumerWidget {
                       const Divider(),
                       const SizedBox(height: 8),
 
-                      // Final Total
+                      // Total
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             l10n.posTotalLabel,
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
                             '\$${state.totalWithShipping.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
 
-                  // Checkout button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: state.isLoading
-                          ? null
-                          : () => _handleCheckout(context, ref),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onPrimary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: state.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(
-                              l10n.posCheckoutButton,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  ),
+                      const SizedBox(height: 16),
 
-          // Shipping expense (operational info) - hide when Sales Partner is selected
-          if (state.selectedSalesPartner == null &&
-            state.selectedCustomer != null &&
-            state.selectedCustomer!['delivery_expense'] != null &&
-            state.selectedCustomer!['delivery_expense'] > 0) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.errorContainer.withValues(alpha: 0.1),
-                        border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withValues(alpha: 0.3),
+                      // Checkout button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: state.isLoading ? null : () => _handleCheckout(context, ref),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          child: state.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text(
+                                  l10n.posCheckoutButton,
+                                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                ),
                         ),
-                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                size: 16,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.7),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                l10n.posOperationalInfoTitle,
-                                style: Theme.of(context).textTheme.labelMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withValues(alpha: 0.7),
-                                    ),
-                              ),
-                            ],
+
+                      // Shipping expense (operational info)
+                      if (state.selectedSalesPartner == null &&
+                          state.selectedCustomer != null &&
+                          state.selectedCustomer!['delivery_expense'] != null &&
+                          state.selectedCustomer!['delivery_expense'] > 0) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.1),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                            ),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                l10n.posDeliveryExpenseLabel,
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withValues(alpha: 0.8),
-                                    ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    size: 16,
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    l10n.posOperationalInfoTitle,
+                                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                '\$${state.selectedCustomer!['delivery_expense'].toStringAsFixed(2)}',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.error,
-                                    ),
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    l10n.posDeliveryLabel,
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                                        ),
+                                  ),
+                                  Text(
+                                    '\$${state.selectedCustomer!['delivery_expense'].toStringAsFixed(2)}',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.error,
+                                        ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
+                              const SizedBox(height: 4),
+                              Text(
                                 customerTerritory != null
                                     ? l10n.posDeliveryCostTo(customerTerritory)
                                     : l10n.posDeliveryCostGeneric,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface.withValues(alpha: 0.6),
-                                  fontStyle: FontStyle.italic,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
   }
 
   Widget _buildEmptyCart(BuildContext context) {
     final l10n = context.l10n;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.shopping_cart_outlined,
-            size: 64,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 16),
-          Text(l10n.posCartEmptyTitle, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(
-            l10n.posCartEmptyBody,
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.shopping_cart_outlined,
+          size: 64,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(height: 16),
+        Text(l10n.posCartEmptyTitle, style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Text(
+          l10n.posCartEmptyBody,
+          style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 

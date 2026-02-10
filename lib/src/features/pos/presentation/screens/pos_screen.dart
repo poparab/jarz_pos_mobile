@@ -165,6 +165,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
     // ── Phone: scroll-to-hide header + FAB ──────────────────────────
     if (isPhone) {
       return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
         key: _scaffoldKey,
         drawer: const AppDrawer(),
         // FAB slides out when header hides
@@ -377,7 +378,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                 ),
-                child: const CartWidget(),
+                child: CartWidget(scrollController: scrollController),
               ),
             ),
           ],

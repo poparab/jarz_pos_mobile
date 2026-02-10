@@ -152,6 +152,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     Map<String, List<Map<String, dynamic>>> itemsByCategory,
     Map<String, dynamic>? selectedCustomer,
   ) {
+    final isPhone = ResponsiveUtils.isPhone(context);
     // If "All" is selected and no search, show categorized view
     if (selectedCategory == null && itemsByCategory.isNotEmpty) {
       return _buildCategorizedView(itemsByCategory, selectedCustomer);
@@ -163,12 +164,12 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     final aspectRatio = ResponsiveUtils.getGridAspectRatio(context, compact: 1.3, normal: 1.5);
     
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: isPhone ? 10 : 16),
       child: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columns, // Responsive: 2-5 columns based on screen size
-          crossAxisSpacing: spacing,
-          mainAxisSpacing: spacing,
+          crossAxisSpacing: isPhone ? 6 : spacing,
+          mainAxisSpacing: isPhone ? 6 : spacing,
           childAspectRatio: aspectRatio,
         ),
         itemCount: items.length,
@@ -187,8 +188,9 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     Map<String, List<Map<String, dynamic>>> itemsByCategory,
     Map<String, dynamic>? selectedCustomer,
   ) {
+    final isPhone = ResponsiveUtils.isPhone(context);
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: isPhone ? 10 : 16),
       itemCount: itemsByCategory.keys.length,
       itemBuilder: (context, index) {
         final category = itemsByCategory.keys.elementAt(index);
@@ -262,7 +264,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                 crossAxisCount: ResponsiveUtils.getItemGridColumns(context), // Responsive columns
                 crossAxisSpacing: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8),
                 mainAxisSpacing: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8),
-                childAspectRatio: ResponsiveUtils.getGridAspectRatio(context, compact: 1.3, normal: 1.5),
+                childAspectRatio: ResponsiveUtils.getGridAspectRatio(context, compact: 1.0, normal: 1.4),
               ),
               itemCount: categoryItems.length,
               itemBuilder: (context, itemIndex) {
@@ -346,6 +348,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     Map<String, dynamic> bundle,
     Map<String, dynamic>? selectedCustomer,
   ) {
+    final isPhone = ResponsiveUtils.isPhone(context);
     final canAddToCart = selectedCustomer != null;
     final hasFreeShipping = (bundle['free_shipping'] == true);
 
@@ -369,7 +372,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
               children: [
                 Icon(
                   Icons.local_offer,
-                  size: 20,
+                  size: isPhone ? 16 : 20,
                   color: !canAddToCart
                       ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)
                       : Theme.of(context).colorScheme.tertiary,
@@ -377,11 +380,12 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                 const SizedBox(height: 2),
                 Text(
                   bundle['name'] ?? 'Unknown Bundle',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: !canAddToCart
                         ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)
                         : null,
                     fontWeight: FontWeight.bold,
+                    fontSize: isPhone ? 12 : null,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -390,11 +394,12 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                 const SizedBox(height: 2),
                 Text(
                   '\$${(bundle['price'] ?? 0.0).toStringAsFixed(2)}',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: !canAddToCart
                         ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)
                         : Theme.of(context).colorScheme.tertiary,
+                    fontSize: isPhone ? 12 : null,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -444,6 +449,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     Map<String, dynamic> item,
     Map<String, dynamic>? selectedCustomer,
   ) {
+    final isPhone = ResponsiveUtils.isPhone(context);
     // Extract stock information
     final stockQty = (item['actual_qty'] ?? 0).toDouble();
     final isOutOfStock = stockQty <= 0;
@@ -481,20 +487,21 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
           children: [
             // Main card content
             Padding(
-              padding: const EdgeInsets.all(6),
+              padding: EdgeInsets.all(isPhone ? 4 : 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     item['item_name'] ?? item['name'] ?? 'Unknown Item',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: !canAddToCart
                           ? Theme.of(
                               context,
                             ).colorScheme.onSurface.withValues(alpha: 0.5)
                           : null,
                       fontWeight: FontWeight.bold,
+                      fontSize: isPhone ? 12 : null,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -503,13 +510,14 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                   const SizedBox(height: 2),
                   Text(
                     '\$${item['rate']?.toStringAsFixed(2) ?? '0.00'}',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: !canAddToCart
                           ? Theme.of(
                               context,
                             ).colorScheme.onSurface.withValues(alpha: 0.5)
                           : Theme.of(context).colorScheme.primary,
+                      fontSize: isPhone ? 12 : null,
                     ),
                     textAlign: TextAlign.center,
                   ),

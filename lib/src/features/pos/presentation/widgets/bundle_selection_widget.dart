@@ -333,7 +333,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
             : null,
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: EdgeInsets.all(isPhone ? 6 : 8),
+          padding: EdgeInsets.all(isPhone ? 4 : 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: selectedCount > 0
@@ -357,7 +357,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                       child: Text(
                         item['name'] ?? 'Unknown Item',
                         style: TextStyle(
-                          fontSize: isPhone ? 11 : 13,
+                          fontSize: isPhone ? 10 : 13,
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
@@ -366,17 +366,17 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: isPhone ? 2 : 4),
                   // Price
                   Text(
                     '\$${(item['price'] ?? 0).toStringAsFixed(2)}',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: isPhone ? 10 : 11,
                       color: Theme.of(context).colorScheme.secondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 20), // Space for bottom controls
+                  SizedBox(height: isPhone ? 12 : 20), // Space for bottom controls
                 ],
               ),
 
