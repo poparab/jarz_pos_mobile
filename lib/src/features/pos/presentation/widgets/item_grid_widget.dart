@@ -94,17 +94,19 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
           : chipContent;
     }
 
+    final spacingAfterFilters = isPhone ? 8.0 : 16.0;
+
     return Column(
       children: [
         filterChips,
 
-        const SizedBox(height: 16),
+        SizedBox(height: spacingAfterFilters),
 
         // Customer selection warning
         if (selectedCustomer == null)
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            padding: const EdgeInsets.all(12),
+            margin: EdgeInsets.symmetric(horizontal: isPhone ? 10 : 16, vertical: isPhone ? 6 : 8),
+            padding: EdgeInsets.all(isPhone ? 10 : 12),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.errorContainer,
               borderRadius: BorderRadius.circular(8),
@@ -160,16 +162,16 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
 
     // Otherwise show filtered grid
     final columns = ResponsiveUtils.getItemGridColumns(context);
-    final spacing = ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8);
-    final aspectRatio = ResponsiveUtils.getGridAspectRatio(context, compact: 1.3, normal: 1.5);
+    final spacing = ResponsiveUtils.getSpacing(context, small: 5, medium: 8, large: 8);
+    final aspectRatio = ResponsiveUtils.getGridAspectRatio(context, compact: 1.6, normal: 1.5);
     
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: isPhone ? 10 : 16),
+      padding: EdgeInsets.symmetric(horizontal: isPhone ? 8 : 16),
       child: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columns, // Responsive: 2-5 columns based on screen size
-          crossAxisSpacing: isPhone ? 6 : spacing,
-          mainAxisSpacing: isPhone ? 6 : spacing,
+          crossAxisSpacing: isPhone ? 5 : spacing,
+          mainAxisSpacing: isPhone ? 5 : spacing,
           childAspectRatio: aspectRatio,
         ),
         itemCount: items.length,
@@ -264,7 +266,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                 crossAxisCount: ResponsiveUtils.getItemGridColumns(context), // Responsive columns
                 crossAxisSpacing: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8),
                 mainAxisSpacing: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8),
-                childAspectRatio: ResponsiveUtils.getGridAspectRatio(context, compact: 1.0, normal: 1.4),
+                childAspectRatio: ResponsiveUtils.getGridAspectRatio(context, compact: 1.35, normal: 1.4),
               ),
               itemCount: categoryItems.length,
               itemBuilder: (context, itemIndex) {
@@ -487,7 +489,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
           children: [
             // Main card content
             Padding(
-              padding: EdgeInsets.all(isPhone ? 4 : 6),
+              padding: EdgeInsets.all(isPhone ? 3 : 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -501,7 +503,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                             ).colorScheme.onSurface.withValues(alpha: 0.5)
                           : null,
                       fontWeight: FontWeight.bold,
-                      fontSize: isPhone ? 12 : null,
+                      fontSize: isPhone ? 11 : null,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -517,7 +519,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                               context,
                             ).colorScheme.onSurface.withValues(alpha: 0.5)
                           : Theme.of(context).colorScheme.primary,
-                      fontSize: isPhone ? 12 : null,
+                      fontSize: isPhone ? 11 : null,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -530,7 +532,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
               top: 4,
               right: 4,
               child: Container(
-                padding: const EdgeInsets.all(3),
+                padding: const EdgeInsets.all(2.5),
                 decoration: BoxDecoration(
                   color: stockColor,
                   borderRadius: BorderRadius.circular(8),
@@ -547,7 +549,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                   children: [
                     Icon(
                       stockQty <= 0 ? Icons.warning : Icons.inventory,
-                      size: 10,
+                      size: 9,
                       color: Colors.white,
                     ),
                     const SizedBox(width: 2),
@@ -555,7 +557,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                       '${stockQty.toInt()}',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 9,
+                        fontSize: 8.5,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

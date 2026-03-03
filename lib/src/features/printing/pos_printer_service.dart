@@ -454,7 +454,7 @@ class PosPrinterService extends ChangeNotifier {
     const rateW = 10;
     const amtW = 12;
 
-    List<String> _wrapFixed(String s, int width) {
+    List<String> wrapFixed(String s, int width) {
       if (s.isEmpty) return [''];
       final words = s.split(RegExp(r'\s+'));
       final lines = <String>[];
@@ -487,33 +487,33 @@ class PosPrinterService extends ChangeNotifier {
       return fixed.isEmpty ? [''] : fixed;
     }
 
-    String _pad(String s, int w, {bool right = false}) {
+    String pad(String s, int w, {bool right = false}) {
       if (s.length > w) return s.substring(0, w);
       return right ? s.padLeft(w) : s.padRight(w);
     }
 
-    List<String> _col4Rows(String name, String qty, String rate, String amt) {
-      final nameLines = _wrapFixed(name, nameW);
+    List<String> col4Rows(String name, String qty, String rate, String amt) {
+      final nameLines = wrapFixed(name, nameW);
       final rows = <String>[];
       final totalRows = nameLines.length;
       for (int i = 0; i < totalRows; i++) {
-        final n = _pad(nameLines[i], nameW);
-        final q = i == 0 ? _pad(qty, qtyW, right: true) : ' '.padLeft(qtyW);
-        final r = i == 0 ? _pad(rate, rateW, right: true) : ' '.padLeft(rateW);
-        final a = i == 0 ? _pad(amt, amtW, right: true) : ' '.padLeft(amtW);
+        final n = pad(nameLines[i], nameW);
+        final q = i == 0 ? pad(qty, qtyW, right: true) : ' '.padLeft(qtyW);
+        final r = i == 0 ? pad(rate, rateW, right: true) : ' '.padLeft(rateW);
+        final a = i == 0 ? pad(amt, amtW, right: true) : ' '.padLeft(amtW);
         rows.add('$n$q$r$a');
       }
       return rows;
     }
 
     // Header
-    for (final line in _col4Rows('Item', 'Qty', 'Rate', 'Amt')) {
+    for (final line in col4Rows('Item', 'Qty', 'Rate', 'Amt')) {
       await text(line, bold: false);
     }
     await hr();
     // Items
     for (final it in inv.items) {
-      final rows = _col4Rows(it.name, it.qty.toStringAsFixed(0), _money(it.rate), _money(it.amount));
+      final rows = col4Rows(it.name, it.qty.toStringAsFixed(0), _money(it.rate), _money(it.amount));
       for (final line in rows) {
         await text(line);
       }
@@ -548,7 +548,6 @@ class PosPrinterService extends ChangeNotifier {
   }
 
   String _money(double v) => v.toStringAsFixed(2);
-  String _truncate(String s, int max) => s.length <= max ? s : '${s.substring(0, max-1)}…';
   String _labelVal(String l,String v) { final ml=20; final x=l.length>ml?l.substring(0,ml):l; return '${x.padRight(30)}${v.padLeft(18)}'; }
 
   // Removed legacy _kv and _wrap helpers (now unused after two-column redesign).

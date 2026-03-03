@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,17 +18,18 @@ class CartWidget extends ConsumerWidget {
     final state = ref.watch(posNotifierProvider);
     final cartItems = state.cartItems;
     final customerTerritory = state.selectedCustomer?['territory']?.toString();
+    final isPhone = ResponsiveUtils.isPhone(context);
     
     // Responsive padding
     final headerPadding = ResponsiveUtils.getResponsivePadding(
       context,
-      small: 10,
+      small: 8,
       medium: 12,
       large: 16,
     );
     final contentPadding = ResponsiveUtils.getResponsivePadding(
       context,
-      small: 6,
+      small: 5,
       medium: 8,
       large: 8,
     );
@@ -67,16 +67,16 @@ class CartWidget extends ConsumerWidget {
                     Icon(
                       Icons.shopping_cart,
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      size: ResponsiveUtils.isCompactLayout(context) ? 20 : 24,
+                      size: isPhone ? 18 : (ResponsiveUtils.isCompactLayout(context) ? 20 : 24),
                     ),
-                    SizedBox(width: ResponsiveUtils.getSpacing(context, small: 6, medium: 8, large: 8)),
+                    SizedBox(width: ResponsiveUtils.getSpacing(context, small: isPhone ? 4 : 6, medium: 8, large: 8)),
                     Expanded(
                       child: Text(
                         l10n.posCartHeader(cartItems.length),
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.bold,
-                          fontSize: ResponsiveUtils.isCompactLayout(context) ? 14 : 16,
+                          fontSize: isPhone ? 14 : (ResponsiveUtils.isCompactLayout(context) ? 14 : 16),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -86,11 +86,11 @@ class CartWidget extends ConsumerWidget {
                         icon: Icon(
                           Icons.clear_all,
                           color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          size: ResponsiveUtils.isCompactLayout(context) ? 20 : 24,
+                          size: isPhone ? 18 : (ResponsiveUtils.isCompactLayout(context) ? 20 : 24),
                         ),
                         onPressed: () => _showClearCartDialog(context, ref),
                         tooltip: l10n.posCartClear,
-                        padding: EdgeInsets.all(ResponsiveUtils.isCompactLayout(context) ? 6 : 8),
+                        padding: EdgeInsets.all(isPhone ? 4 : (ResponsiveUtils.isCompactLayout(context) ? 6 : 8)),
                         constraints: const BoxConstraints(),
                       ),
                   ],
@@ -135,7 +135,7 @@ class CartWidget extends ConsumerWidget {
                       // Customer info
                       if (state.selectedCustomer != null)
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: EdgeInsets.all(isPhone ? 10 : 12),
                           margin: const EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.primaryContainer,
@@ -167,8 +167,8 @@ class CartWidget extends ConsumerWidget {
                       // Pickup toggle + Delivery Slot Selection
                       if (state.selectedProfile != null) ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: EdgeInsets.symmetric(horizontal: isPhone ? 10 : 12, vertical: isPhone ? 6 : 8),
+                          margin: EdgeInsets.only(bottom: isPhone ? 6 : 8),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(8),
@@ -241,8 +241,14 @@ class CartWidget extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(l10n.posSubtotalLabel, style: Theme.of(context).textTheme.titleMedium),
-                          Text('\$${state.cartTotal.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium),
+                          Text(
+                            l10n.posSubtotalLabel,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: isPhone ? 14 : null),
+                          ),
+                          Text(
+                            '\$${state.cartTotal.toStringAsFixed(2)}',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: isPhone ? 14 : null),
+                          ),
                         ],
                       ),
 
@@ -253,8 +259,14 @@ class CartWidget extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(l10n.posDeliveryLabel, style: Theme.of(context).textTheme.titleMedium),
-                            Text('\$${state.shippingCost.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium),
+                            Text(
+                              l10n.posDeliveryLabel,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: isPhone ? 14 : null),
+                            ),
+                            Text(
+                              '\$${state.shippingCost.toStringAsFixed(2)}',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: isPhone ? 14 : null),
+                            ),
                           ],
                         ),
                       ],
@@ -269,12 +281,16 @@ class CartWidget extends ConsumerWidget {
                         children: [
                           Text(
                             l10n.posTotalLabel,
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: isPhone ? 18 : null,
+                                ),
                           ),
                           Text(
                             '\$${state.totalWithShipping.toStringAsFixed(2)}',
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
+                                  fontSize: isPhone ? 18 : null,
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
                           ),
@@ -291,7 +307,7 @@ class CartWidget extends ConsumerWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).colorScheme.primary,
                             foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            padding: EdgeInsets.symmetric(vertical: isPhone ? 12 : 14),
                           ),
                           child: state.isLoading
                               ? const SizedBox(
@@ -301,7 +317,7 @@ class CartWidget extends ConsumerWidget {
                                 )
                               : Text(
                                   l10n.posCheckoutButton,
-                                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                  style: TextStyle(fontSize: isPhone ? 14 : 15, fontWeight: FontWeight.bold),
                                 ),
                         ),
                       ),
@@ -413,6 +429,7 @@ class CartWidget extends ConsumerWidget {
     int index,
   ) {
     final l10n = context.l10n;
+    final isPhone = ResponsiveUtils.isPhone(context);
     final quantity = (cartItem['quantity'] ?? 1) as int;
     final rate = (cartItem['rate'] ?? 0.0) as double;
     final total = quantity.toDouble() * rate;
@@ -421,12 +438,12 @@ class CartWidget extends ConsumerWidget {
     final itemName = cartItem['item_name']?.toString();
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: isPhone ? 6 : 8),
       color: isShipping
           ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
           : null,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(isPhone ? 10 : 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -436,13 +453,13 @@ class CartWidget extends ConsumerWidget {
                 if (isBundle)
                   Icon(
                     Icons.local_offer,
-                    size: 16,
+                    size: isPhone ? 14 : 16,
                     color: Theme.of(context).colorScheme.tertiary,
                   ),
                 if (isShipping)
                   Icon(
                     Icons.local_shipping,
-                    size: 16,
+                    size: isPhone ? 14 : 16,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 if (isBundle || isShipping) const SizedBox(width: 4),
@@ -451,6 +468,7 @@ class CartWidget extends ConsumerWidget {
                     itemName ?? l10n.posUnknownItem,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
+                      fontSize: isPhone ? 13 : null,
                       color: isShipping
                           ? Theme.of(context).colorScheme.primary
                           : null,
@@ -461,17 +479,19 @@ class CartWidget extends ConsumerWidget {
                 ),
                 if (isBundle)
                   IconButton(
-                    icon: const Icon(Icons.edit, size: 18),
+                    icon: Icon(Icons.edit, size: isPhone ? 16 : 18),
                     onPressed: () => _editBundle(context, ref, cartItem, index),
                     tooltip: l10n.posCartEditBundle,
+                    visualDensity: VisualDensity.compact,
                   ),
                 if (!isShipping) // Don't allow removing shipping items
                   IconButton(
-                    icon: const Icon(Icons.delete, size: 20),
+                    icon: Icon(Icons.delete, size: isPhone ? 18 : 20),
                     onPressed: () => ref
                         .read(posNotifierProvider.notifier)
                         .removeFromCart(index),
                     color: Theme.of(context).colorScheme.error,
+                    visualDensity: VisualDensity.compact,
                   ),
               ],
             ),
@@ -480,7 +500,7 @@ class CartWidget extends ConsumerWidget {
             if (isBundle && cartItem['bundle_details'] != null)
               _buildBundleDetails(context, cartItem['bundle_details']),
 
-            const SizedBox(height: 8),
+            SizedBox(height: isPhone ? 6 : 8),
 
             // Price and quantity controls
             Row(
@@ -492,6 +512,7 @@ class CartWidget extends ConsumerWidget {
                     color: isShipping
                         ? Theme.of(context).colorScheme.primary
                         : null,
+                    fontSize: isPhone ? 13 : null,
                   ),
                 ),
                 const Spacer(),
@@ -501,29 +522,31 @@ class CartWidget extends ConsumerWidget {
                   Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.remove),
+                        icon: Icon(Icons.remove, size: isPhone ? 18 : 20),
                         onPressed: quantity > 1
                             ? () => ref
                                   .read(posNotifierProvider.notifier)
                                   .updateCartItemQuantity(index, quantity - 1)
                             : null,
-                        iconSize: 20,
+                        iconSize: isPhone ? 18 : 20,
+                        visualDensity: VisualDensity.compact,
                       ),
                       Container(
-                        constraints: const BoxConstraints(minWidth: 40),
+                        constraints: BoxConstraints(minWidth: isPhone ? 34 : 40),
                         child: Text(
                           quantity.toString(),
                           style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                              ?.copyWith(fontWeight: FontWeight.bold, fontSize: isPhone ? 14 : null),
                           textAlign: TextAlign.center,
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.add),
+                        icon: Icon(Icons.add, size: isPhone ? 18 : 20),
                         onPressed: () => ref
                             .read(posNotifierProvider.notifier)
                             .updateCartItemQuantity(index, quantity + 1),
-                        iconSize: 20,
+                        iconSize: isPhone ? 18 : 20,
+                        visualDensity: VisualDensity.compact,
                       ),
                     ],
                   )
@@ -557,11 +580,15 @@ class CartWidget extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(l10n.posTotalLabel, style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  l10n.posTotalLabel,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: isPhone ? 13 : null),
+                ),
                 Text(
                   '\$${total.toStringAsFixed(2)}',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    fontSize: isPhone ? 14 : null,
                     color: isShipping
                         ? Theme.of(context).colorScheme.primary
                         : Theme.of(context).colorScheme.primary,

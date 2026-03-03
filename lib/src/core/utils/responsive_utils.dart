@@ -49,9 +49,10 @@ class ResponsiveUtils {
 
     // Phones: pack more columns on wide phones (e.g., S25 Ultra)
     if (shortest < phoneLandscape) {
-      if (width < 420) return 2;
-      if (width < 540) return 3;
-      return 4; // wide phones / landscape
+      if (width < 380) return 2;
+      if (width < 460) return 3;
+      if (width < 560) return 4;
+      return 5; // ultra-wide phones / landscape
     }
 
     if (width < 900)  return 2;

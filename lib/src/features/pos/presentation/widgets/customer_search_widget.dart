@@ -226,7 +226,11 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
       r'^[0-9+\-\s()]+$',
     ).hasMatch(_currentQuery.trim());
 
+    final isPhone = MediaQuery.of(context).size.shortestSide < 600;
     return Autocomplete<Map<String, dynamic>>(
+      optionsViewOpenDirection: isPhone
+          ? OptionsViewOpenDirection.up
+          : OptionsViewOpenDirection.down,
       optionsBuilder: (textEditingValue) async {
         if (textEditingValue.text.isEmpty) {
           return const Iterable<Map<String, dynamic>>.empty();
