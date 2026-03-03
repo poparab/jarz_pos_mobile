@@ -176,6 +176,12 @@ abstract class AppLocalizations {
   /// **'Inventory Count'**
   String get menuInventoryCount;
 
+  /// No description provided for @menuEndShift.
+  ///
+  /// In en, this message translates to:
+  /// **'End Shift'**
+  String get menuEndShift;
+
   /// No description provided for @menuHome.
   ///
   /// In en, this message translates to:
@@ -775,6 +781,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'POS'**
   String get posProfileSelectionShortFallback;
+
+  /// No description provided for @shiftStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Shift'**
+  String get shiftStartTitle;
+
+  /// No description provided for @shiftEndTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End Shift'**
+  String get shiftEndTitle;
+
+  /// No description provided for @shiftNoActive.
+  ///
+  /// In en, this message translates to:
+  /// **'No active shift found.'**
+  String get shiftNoActive;
+
+  /// No description provided for @shiftBackToPos.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to POS'**
+  String get shiftBackToPos;
+
+  /// No description provided for @shiftOpeningPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter opening balances per payment method:'**
+  String get shiftOpeningPrompt;
+
+  /// No description provided for @shiftClosingPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter closing balances:'**
+  String get shiftClosingPrompt;
+
+  /// No description provided for @shiftClosingAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing Amount'**
+  String get shiftClosingAmountLabel;
+
+  /// No description provided for @shiftExpectedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected: {amount}'**
+  String shiftExpectedAmount(Object amount);
+
+  /// No description provided for @shiftInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices: {count}'**
+  String shiftInvoices(Object count);
+
+  /// No description provided for @shiftGrandTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Grand Total: {amount}'**
+  String shiftGrandTotal(Object amount);
+
+  /// No description provided for @shiftStartButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Shift'**
+  String get shiftStartButton;
+
+  /// No description provided for @shiftEndButton.
+  ///
+  /// In en, this message translates to:
+  /// **'End Shift'**
+  String get shiftEndButton;
+
+  /// No description provided for @shiftEndedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift ended successfully.'**
+  String get shiftEndedSuccess;
+
+  /// No description provided for @shiftStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Active'**
+  String get shiftStatusActive;
+
+  /// No description provided for @shiftStartedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Started at {time}'**
+  String shiftStartedAt(Object time);
+
+  /// No description provided for @shiftProfileMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Active shift is on {activeProfile}. Selected profile is {selectedProfile}.'**
+  String shiftProfileMismatch(Object activeProfile, Object selectedProfile);
+
+  /// No description provided for @shiftSwitchToActiveProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to active shift profile'**
+  String get shiftSwitchToActiveProfile;
+
+  /// No description provided for @shiftGoToEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to End Shift'**
+  String get shiftGoToEnd;
 
   /// No description provided for @posCartTitle.
   ///

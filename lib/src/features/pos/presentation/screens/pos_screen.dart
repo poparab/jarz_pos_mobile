@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,6 +23,9 @@ import '../widgets/courier_balances_dialog.dart';
 import '../../../printing/pos_printer_provider.dart';
 import '../../../printing/printer_status.dart';
 import '../../../../core/widgets/app_drawer.dart';
+import '../../../../core/network/user_service.dart';
+import '../../../shift/state/shift_notifier.dart';
+import '../../../shift/presentation/widgets/shift_status_banner.dart';
 // Removed branch filter from POS; filter lives in Kanban header
 // Removed unused direct service import (service accessed through provider)
 
@@ -108,7 +112,11 @@ class _PosScreenState extends ConsumerState<PosScreen>
       if (_accumulatedDelta > _scrollThreshold && _headerVisible) {
         _hideHeader();
         _accumulatedDelta = 0;
-      } else if (_accumulatedDelta < -_scrollThreshold && !_headerVisible) {
+      }
+
+      // Only auto-show when the user returns to the very top; avoid
+      // popping the header back on small upward scrolls mid-list.
+      if (!_headerVisible && offset < 12) {
         _showHeader();
         _accumulatedDelta = 0;
       }
@@ -118,19 +126,26 @@ class _PosScreenState extends ConsumerState<PosScreen>
 
   void _hideHeader() {
     if (!_headerVisible) return;
-    _headerVisible = false;
+    setState(() {
+      _headerVisible = false;
+    });
     _hideController.forward();
   }
 
   void _showHeader() {
     if (_headerVisible) return;
-    _headerVisible = true;
+    setState(() {
+      _headerVisible = true;
+    });
     _hideController.reverse();
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(posNotifierProvider);
+    final requirePosShift = ref.watch(requirePosShiftProvider);
+    final activeShiftAsync = ref.watch(activeShiftProvider);
+    final selectedProfileName = (state.selectedProfile?['name'] ?? '').toString();
     // Enforce POS profile selection: show inline selection UI on entry
     if (state.selectedProfile == null) {
       if (state.isLoading) {
@@ -151,6 +166,23 @@ class _PosScreenState extends ConsumerState<PosScreen>
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    if (requirePosShift) {
+      final activeShift = activeShiftAsync.valueOrNull;
+      if (activeShiftAsync.isLoading) {
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
+      if (activeShift == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          context.go('/shift/start');
+        });
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
+      if (activeShift.posProfile != selectedProfileName) {
+        return _buildShiftProfileMismatch(context, activeShift, selectedProfileName);
+      }
+    }
+
     final isPhone = ResponsiveUtils.isPhone(context);
     final headerHeight = ResponsiveUtils.getHeaderHeight(context);
 
@@ -161,58 +193,115 @@ class _PosScreenState extends ConsumerState<PosScreen>
       ref: ref,
       context: context,
     );
+    final matchedActiveShift = requirePosShift ? activeShiftAsync.valueOrNull : null;
 
     // ── Phone: scroll-to-hide header + FAB ──────────────────────────
     if (isPhone) {
-      return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        key: _scaffoldKey,
-        drawer: const AppDrawer(),
-        // FAB slides out when header hides
-        floatingActionButton: SlideTransition(
-          position: Tween<Offset>(
-            begin: Offset.zero,
-            end: const Offset(0, 2), // slide down off screen
-          ).animate(CurvedAnimation(
-            parent: _hideController,
-            curve: Curves.easeInOut,
-          )),
-          child: Consumer(builder: (c, ref2, _) {
-            final cartCount = ref2.watch(
-              posNotifierProvider.select((s) => s.cartItemCount),
-            );
-            return FloatingActionButton(
-              heroTag: 'pos_cart_fab',
-              onPressed: () => _showCartBottomSheet(context),
-              child: Badge(
-                isLabelVisible: cartCount > 0,
-                label: Text('$cartCount'),
-                child: const Icon(Icons.shopping_cart),
-              ),
-            );
-          }),
+      final primary = Theme.of(context).colorScheme.primary;
+      final onPrimary = Theme.of(context).colorScheme.onPrimary;
+      final statusBarHeight = MediaQuery.of(context).viewPadding.top;
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
         ),
-        body: GestureDetector(
-          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-          child: NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
-            child: Column(
+        child: Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          key: _scaffoldKey,
+          drawer: const AppDrawer(),
+          // FAB slides out when header hides
+          floatingActionButton: SlideTransition(
+            position: Tween<Offset>(
+              begin: Offset.zero,
+              end: const Offset(0, 2), // slide down off screen
+            ).animate(CurvedAnimation(
+              parent: _hideController,
+              curve: Curves.easeInOut,
+            )),
+            child: Consumer(builder: (c, ref2, _) {
+              final cartCount = ref2.watch(
+                posNotifierProvider.select((s) => s.cartItemCount),
+              );
+              return FloatingActionButton(
+                heroTag: 'pos_cart_fab',
+                onPressed: () => _showCartBottomSheet(context),
+                child: Badge(
+                  isLabelVisible: cartCount > 0,
+                  label: Text('$cartCount'),
+                  child: const Icon(Icons.shopping_cart),
+                ),
+              );
+            }),
+          ),
+          body: GestureDetector(
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: Stack(
               children: [
-                // Header collapses smoothly when scrolling down
-                ClipRect(
-                  child: SizeTransition(
-                    sizeFactor: _hideAnim,
-                    axisAlignment: -1.0, // collapse from top edge
-                    child: header, // _MergedHeader has its own SafeArea
+                Positioned.fill(
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: _onScrollNotification,
+                    child: Column(
+                      children: [
+                        // Persistent primary-coloured status bar area
+                        Container(
+                          width: double.infinity,
+                          height: statusBarHeight,
+                          color: primary,
+                        ),
+                        // Header collapses smoothly when scrolling down
+                        ClipRect(
+                          child: SizeTransition(
+                            sizeFactor: _hideAnim,
+                            axisAlignment: -1.0, // collapse from top edge
+                            child: header,
+                          ),
+                        ),
+                        // Main content
+                        if (matchedActiveShift != null)
+                          ShiftStatusBanner(shift: matchedActiveShift),
+                        Expanded(
+                          child: state.isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : state.error != null
+                                  ? _buildError(context, state.error!)
+                                  : _buildResponsiveLayout(context),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                // Main content
-                Expanded(
-                  child: state.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : state.error != null
-                          ? _buildError(context, state.error!)
-                          : _buildResponsiveLayout(context),
+
+                // Quick reveal button when header is hidden (phones only)
+                SafeArea(
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 6, right: 8),
+                      child: AnimatedSlide(
+                        duration: const Duration(milliseconds: 200),
+                        offset: _headerVisible ? const Offset(0, -0.4) : Offset.zero,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: _headerVisible ? 0.0 : 0.9,
+                          child: IgnorePointer(
+                            ignoring: _headerVisible,
+                            child: FloatingActionButton.small(
+                              heroTag: 'pos_header_reveal',
+                              tooltip: 'Show header',
+                              onPressed: () {
+                                _accumulatedDelta = 0;
+                                _showHeader();
+                              },
+                              backgroundColor: primary,
+                              foregroundColor: onPrimary,
+                              child: const Icon(Icons.keyboard_arrow_down),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -233,6 +322,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: Column(
           children: [
+            if (matchedActiveShift != null) ShiftStatusBanner(shift: matchedActiveShift),
             Expanded(
               child: state.isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -244,6 +334,74 @@ class _PosScreenState extends ConsumerState<PosScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildShiftProfileMismatch(
+    BuildContext context,
+    dynamic activeShift,
+    String selectedProfileName,
+  ) {
+    final l10n = context.l10n;
+    final activeProfile = (activeShift.posProfile).toString();
+    final fallbackName = stateSafeSelectedName(selectedProfileName, l10n);
+
+    return Scaffold(
+      key: _scaffoldKey,
+      drawer: const AppDrawer(),
+      appBar: AppBar(
+        title: Text(l10n.menuPointOfSale),
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  size: 56,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.shiftProfileMismatch(activeProfile, fallbackName),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: () => context.go('/shift/end'),
+                  icon: const Icon(Icons.timer_off),
+                  label: Text(l10n.shiftGoToEnd),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    final profiles = ref.read(posNotifierProvider).profiles;
+                    final target = profiles.firstWhere(
+                      (p) => (p['name'] ?? '').toString() == activeProfile,
+                      orElse: () => <String, dynamic>{},
+                    );
+                    if (target.isNotEmpty) {
+                      ref.read(posNotifierProvider.notifier).selectProfile(target);
+                    }
+                  },
+                  icon: const Icon(Icons.swap_horiz),
+                  label: Text(l10n.shiftSwitchToActiveProfile),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String stateSafeSelectedName(String selectedProfileName, dynamic l10n) {
+    if (selectedProfileName.isNotEmpty) return selectedProfileName;
+    return l10n.posProfileSelectionShortFallback;
   }
 
   /// Build responsive layout that adapts to screen size.
@@ -336,6 +494,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
 
   void _showCartBottomSheet(BuildContext context) {
     final l10n = context.l10n;
+    final isPhone = ResponsiveUtils.isPhone(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -347,7 +506,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
         builder: (context, scrollController) => Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(isPhone ? 12 : 16),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary,
                 borderRadius: const BorderRadius.vertical(
@@ -360,6 +519,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
                     l10n.posCartTitle,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimary,
+                      fontSize: isPhone ? 18 : null,
                     ),
                   ),
                   const Spacer(),
@@ -367,6 +527,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
                     icon: Icon(
                       Icons.close,
                       color: Theme.of(context).colorScheme.onPrimary,
+                      size: isPhone ? 22 : null,
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
@@ -898,6 +1059,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
       elevation: 4,
       color: theme.colorScheme.primary,
       child: SafeArea(
+        top: !isPhone, // phones handle status bar padding externally
         bottom: false,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: isPhone ? 4 : 12, vertical: isPhone ? 2 : 6),

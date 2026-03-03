@@ -48,6 +48,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get menuInventoryCount => 'جرد المخزون';
 
   @override
+  String get menuEndShift => 'إنهاء الشيفت';
+
+  @override
   String get menuHome => 'الرئيسية';
 
   @override
@@ -382,6 +385,70 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get posProfileSelectionShortFallback => 'نقطة بيع';
+
+  @override
+  String get shiftStartTitle => 'بدء الشيفت';
+
+  @override
+  String get shiftEndTitle => 'إنهاء الشيفت';
+
+  @override
+  String get shiftNoActive => 'لا يوجد شيفت مفتوح.';
+
+  @override
+  String get shiftBackToPos => 'العودة لنقطة البيع';
+
+  @override
+  String get shiftOpeningPrompt => 'أدخل رصيد البداية لكل طريقة دفع:';
+
+  @override
+  String get shiftClosingPrompt => 'أدخل رصيد الإغلاق:';
+
+  @override
+  String get shiftClosingAmountLabel => 'رصيد الإغلاق';
+
+  @override
+  String shiftExpectedAmount(Object amount) {
+    return 'المتوقع: $amount';
+  }
+
+  @override
+  String shiftInvoices(Object count) {
+    return 'الفواتير: $count';
+  }
+
+  @override
+  String shiftGrandTotal(Object amount) {
+    return 'إجمالي المبيعات: $amount';
+  }
+
+  @override
+  String get shiftStartButton => 'بدء الشيفت';
+
+  @override
+  String get shiftEndButton => 'إنهاء الشيفت';
+
+  @override
+  String get shiftEndedSuccess => 'تم إنهاء الشيفت بنجاح.';
+
+  @override
+  String get shiftStatusActive => 'شيفت مفتوح';
+
+  @override
+  String shiftStartedAt(Object time) {
+    return 'بدأ في $time';
+  }
+
+  @override
+  String shiftProfileMismatch(Object activeProfile, Object selectedProfile) {
+    return 'الشيفت المفتوح على $activeProfile بينما الملف المختار هو $selectedProfile.';
+  }
+
+  @override
+  String get shiftSwitchToActiveProfile => 'التبديل لملف الشيفت المفتوح';
+
+  @override
+  String get shiftGoToEnd => 'اذهب إلى إنهاء الشيفت';
 
   @override
   String get posCartTitle => 'سلة المشتريات';

@@ -7,8 +7,20 @@ class UserRoles {
   final String user;
   final String? fullName;
   final List<String> roles;
+  final String? employee;
+  final String? employeeName;
+  final String? branch;
+  final bool requirePosShift;
 
-  const UserRoles({required this.user, this.fullName, required this.roles});
+  const UserRoles({
+    required this.user,
+    this.fullName,
+    required this.roles,
+    this.employee,
+    this.employeeName,
+    this.branch,
+    this.requirePosShift = false,
+  });
 
   bool get isJarzManager => roles.contains('JARZ Manager');
   bool get isManager => isJarzManager;
@@ -23,6 +35,10 @@ class UserRoles {
       user: (json['user'] ?? '').toString(),
       fullName: json['full_name']?.toString(),
       roles: rolesList,
+      employee: json['employee']?.toString(),
+      employeeName: json['employee_name']?.toString(),
+      branch: json['branch']?.toString(),
+      requirePosShift: json['require_pos_shift'] == true || json['require_pos_shift'] == 1,
     );
   }
 }
@@ -86,6 +102,14 @@ final canMuteNotificationsProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canMuteNotifications,
+    orElse: () => false,
+  );
+});
+
+final requirePosShiftProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.requirePosShift,
     orElse: () => false,
   );
 });

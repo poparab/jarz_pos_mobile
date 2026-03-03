@@ -18,6 +18,8 @@ import '../features/cash_transfer/presentation/cash_transfer_screen.dart';
 import '../features/inventory_count/presentation/inventory_count_screen.dart';
 import '../features/expenses/presentation/expenses_screen.dart';
 import '../features/settings/presentation/user_profile_screen.dart';
+import '../features/shift/presentation/shift_start_screen.dart';
+import '../features/shift/presentation/shift_end_screen.dart';
 
 // Global RouteObserver for navigation lifecycle (used by Kanban to refresh on return)
 final RouteObserver<PageRoute<dynamic>> routeObserver = RouteObserver<PageRoute<dynamic>>();
@@ -137,6 +139,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/profile',
         name: 'profile',
         builder: (context, state) => const UserProfileScreen(),
+      ),
+      GoRoute(
+        path: '/shift/start',
+        name: 'shift-start',
+        builder: (context, state) => const ShiftStartScreen(),
+      ),
+      GoRoute(
+        path: '/shift/end',
+        name: 'shift-end',
+        builder: (context, state) => const ShiftEndScreen(),
       ),
   GoRoute(path: '/', redirect: (context, state) => '/kanban'),
     ],

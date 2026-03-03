@@ -48,6 +48,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuInventoryCount => 'Inventory Count';
 
   @override
+  String get menuEndShift => 'End Shift';
+
+  @override
   String get menuHome => 'Home';
 
   @override
@@ -380,6 +383,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get posProfileSelectionShortFallback => 'POS';
+
+  @override
+  String get shiftStartTitle => 'Start Shift';
+
+  @override
+  String get shiftEndTitle => 'End Shift';
+
+  @override
+  String get shiftNoActive => 'No active shift found.';
+
+  @override
+  String get shiftBackToPos => 'Back to POS';
+
+  @override
+  String get shiftOpeningPrompt => 'Enter opening balances per payment method:';
+
+  @override
+  String get shiftClosingPrompt => 'Enter closing balances:';
+
+  @override
+  String get shiftClosingAmountLabel => 'Closing Amount';
+
+  @override
+  String shiftExpectedAmount(Object amount) {
+    return 'Expected: $amount';
+  }
+
+  @override
+  String shiftInvoices(Object count) {
+    return 'Invoices: $count';
+  }
+
+  @override
+  String shiftGrandTotal(Object amount) {
+    return 'Grand Total: $amount';
+  }
+
+  @override
+  String get shiftStartButton => 'Start Shift';
+
+  @override
+  String get shiftEndButton => 'End Shift';
+
+  @override
+  String get shiftEndedSuccess => 'Shift ended successfully.';
+
+  @override
+  String get shiftStatusActive => 'Shift Active';
+
+  @override
+  String shiftStartedAt(Object time) {
+    return 'Started at $time';
+  }
+
+  @override
+  String shiftProfileMismatch(Object activeProfile, Object selectedProfile) {
+    return 'Active shift is on $activeProfile. Selected profile is $selectedProfile.';
+  }
+
+  @override
+  String get shiftSwitchToActiveProfile => 'Switch to active shift profile';
+
+  @override
+  String get shiftGoToEnd => 'Go to End Shift';
 
   @override
   String get posCartTitle => 'Shopping Cart';

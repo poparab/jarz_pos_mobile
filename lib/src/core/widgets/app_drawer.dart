@@ -8,6 +8,7 @@ import '../../features/pos/presentation/widgets/courier_balances_dialog.dart';
 import '../localization/locale_notifier.dart';
 import '../localization/localization_extensions.dart';
 import '../network/user_service.dart';
+import '../../features/shift/state/shift_notifier.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -19,6 +20,9 @@ class AppDrawer extends ConsumerWidget {
     final managerAccess = isManager
         ? ref.watch(managerAccessProvider)
         : const AsyncValue<bool>.data(false);
+    final requirePosShift = ref.watch(requirePosShiftProvider);
+    final activeShiftAsync = ref.watch(activeShiftProvider);
+    final hasActiveShift = activeShiftAsync.valueOrNull != null;
     final hasManagerAccess = managerAccess.maybeWhen(
       data: (v) => v,
       orElse: () => false,
@@ -87,6 +91,15 @@ class AppDrawer extends ConsumerWidget {
               context.go('/pos');
             },
           ),
+          if (requirePosShift && hasActiveShift)
+            ListTile(
+              leading: const Icon(Icons.timer_off),
+              title: Text(l10n.menuEndShift),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/shift/end');
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.view_kanban),
             title: Text(l10n.menuSalesKanban),
