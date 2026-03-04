@@ -93,7 +93,9 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
           Text('Shift: ${summary.openingEntry}', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           _infoRow(l10n.shiftInvoices(summary.invoiceCount), Icons.receipt_long),
-          _infoRow(l10n.shiftGrandTotal(summary.grandTotal.toStringAsFixed(2)), Icons.attach_money),
+          _infoRow(l10n.shiftGrandTotal(summary.totalSales.toStringAsFixed(2)), Icons.attach_money),
+          _infoRow('Outflows: ${summary.totalOutflows.toStringAsFixed(2)}', Icons.trending_down),
+          _infoRow('Net Movement: ${summary.netMovement.toStringAsFixed(2)}', Icons.swap_vert),
           if (summary.account != null)
             _infoRow(
               '${l10n.shiftAccountBalance}: ${summary.accountBalance.toStringAsFixed(2)}',
@@ -147,12 +149,12 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
             );
           }),
 
-          // ── Sales Invoices list ──
-          if (summary.salesInvoices.isNotEmpty) ...[
+          // ── Account movements list ──
+          if (summary.accountMovements.isNotEmpty) ...[
             const Divider(height: 24),
-            Text(l10n.shiftSalesInvoices, style: theme.textTheme.titleSmall),
+            Text('Account Movements', style: theme.textTheme.titleSmall),
             const SizedBox(height: 6),
-            Expanded(child: _buildInvoicesTable(context, summary.salesInvoices)),
+            Expanded(child: _buildMovementsTable(context, summary.accountMovements)),
           ] else
             const Expanded(child: SizedBox.shrink()),
 
@@ -197,7 +199,9 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
             if (result.closingEntry != null)
               _infoRow('${l10n.shiftClosingEntry}: ${result.closingEntry}', Icons.check_circle),
             _infoRow(l10n.shiftInvoices(result.invoiceCount), Icons.receipt_long),
-            _infoRow(l10n.shiftGrandTotal(result.grandTotal.toStringAsFixed(2)), Icons.attach_money),
+            _infoRow(l10n.shiftGrandTotal(result.totalSales.toStringAsFixed(2)), Icons.attach_money),
+            _infoRow('Outflows: ${result.totalOutflows.toStringAsFixed(2)}', Icons.trending_down),
+            _infoRow('Net Movement: ${result.netMovement.toStringAsFixed(2)}', Icons.swap_vert),
             if (result.account != null)
               _infoRow(
                 '${l10n.shiftAccountBalance}: ${result.accountBalance.toStringAsFixed(2)}',
@@ -256,12 +260,12 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
               );
             }),
 
-            // ── Sales Invoices ──
-            if (result.salesInvoices.isNotEmpty) ...[
+            // ── Account Movements ──
+            if (result.accountMovements.isNotEmpty) ...[
               const Divider(height: 24),
-              Text(l10n.shiftSalesInvoices, style: theme.textTheme.titleSmall),
+              Text('Account Movements', style: theme.textTheme.titleSmall),
               const SizedBox(height: 6),
-              Expanded(child: _buildInvoicesTable(context, result.salesInvoices)),
+              Expanded(child: _buildMovementsTable(context, result.accountMovements)),
             ] else
               const Expanded(child: SizedBox.shrink()),
 
@@ -296,25 +300,33 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
     );
   }
 
-  Widget _buildInvoicesTable(BuildContext context, List<ShiftInvoice> invoices) {
+  Widget _buildMovementsTable(BuildContext context, List<ShiftAccountMovement> movements) {
     final l10n = context.l10n;
     return ListView.separated(
       shrinkWrap: true,
-      itemCount: invoices.length,
+      itemCount: movements.length,
       separatorBuilder: (context2, index) => const Divider(height: 1),
       itemBuilder: (context, index) {
-        final inv = invoices[index];
+        final movement = movements[index];
         return ListTile(
           dense: true,
           contentPadding: EdgeInsets.zero,
-          title: Text(inv.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+          title: Text(
+            '${movement.voucherType} • ${movement.voucherNo}',
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+          ),
           subtitle: Text(
-            '${inv.customerName}  •  ${inv.deliveryStatus ?? l10n.shiftNoDeliveryStatus}',
+            movement.remarks?.isNotEmpty == true
+                ? movement.remarks!
+                : (movement.against?.isNotEmpty == true ? movement.against! : (movement.postingDate ?? l10n.shiftNoDeliveryStatus)),
             style: const TextStyle(fontSize: 12),
           ),
           trailing: Text(
-            inv.grandTotal.toStringAsFixed(2),
-            style: const TextStyle(fontWeight: FontWeight.w700),
+            movement.amount.toStringAsFixed(2),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: movement.amount >= 0 ? Colors.green : Theme.of(context).colorScheme.error,
+            ),
           ),
         );
       },

@@ -82,6 +82,52 @@ class ShiftInvoice {
   }
 }
 
+class ShiftAccountMovement {
+  final String name;
+  final String voucherType;
+  final String voucherNo;
+  final double debit;
+  final double credit;
+  final double amount;
+  final String? postingDate;
+  final String? creation;
+  final String? against;
+  final String? remarks;
+
+  const ShiftAccountMovement({
+    required this.name,
+    required this.voucherType,
+    required this.voucherNo,
+    this.debit = 0,
+    this.credit = 0,
+    this.amount = 0,
+    this.postingDate,
+    this.creation,
+    this.against,
+    this.remarks,
+  });
+
+  factory ShiftAccountMovement.fromJson(Map<String, dynamic> json) {
+    double toDouble(dynamic value) {
+      if (value is num) return value.toDouble();
+      return double.tryParse(value?.toString() ?? '') ?? 0;
+    }
+
+    return ShiftAccountMovement(
+      name: (json['name'] ?? '').toString(),
+      voucherType: (json['voucher_type'] ?? '').toString(),
+      voucherNo: (json['voucher_no'] ?? '').toString(),
+      debit: toDouble(json['debit']),
+      credit: toDouble(json['credit']),
+      amount: toDouble(json['amount']),
+      postingDate: json['posting_date']?.toString(),
+      creation: json['creation']?.toString(),
+      against: json['against']?.toString(),
+      remarks: json['remarks']?.toString(),
+    );
+  }
+}
+
 class ShiftEntry {
   final String name;
   final String posProfile;
@@ -130,9 +176,12 @@ class ShiftSummary {
   final double netTotal;
   final List<ShiftBalanceDetail> paymentReconciliation;
   final List<ShiftInvoice> salesInvoices;
+  final List<ShiftAccountMovement> accountMovements;
   final String? account;
   final double accountBalance;
   final double totalSales;
+  final double totalOutflows;
+  final double netMovement;
   final String? journalEntry;
   final String? closingEntry;
 
@@ -145,9 +194,12 @@ class ShiftSummary {
     this.netTotal = 0,
     this.paymentReconciliation = const [],
     this.salesInvoices = const [],
+    this.accountMovements = const [],
     this.account,
     this.accountBalance = 0,
     this.totalSales = 0,
+    this.totalOutflows = 0,
+    this.netMovement = 0,
     this.journalEntry,
     this.closingEntry,
   });
@@ -174,6 +226,14 @@ class ShiftSummary {
             .toList()
         : <ShiftInvoice>[];
 
+    final movementsRaw = json['account_movements'];
+    final movements = movementsRaw is List
+      ? movementsRaw
+        .whereType<Map>()
+        .map((e) => ShiftAccountMovement.fromJson(Map<String, dynamic>.from(e)))
+        .toList()
+      : <ShiftAccountMovement>[];
+
     return ShiftSummary(
       openingEntry: (json['opening_entry'] ?? '').toString(),
       status: (json['status'] ?? '').toString(),
@@ -183,9 +243,12 @@ class ShiftSummary {
       netTotal: toDouble(json['net_total']),
       paymentReconciliation: reconciliation,
       salesInvoices: invoices,
+      accountMovements: movements,
       account: json['account']?.toString(),
       accountBalance: toDouble(json['account_balance']),
       totalSales: toDouble(json['total_sales']),
+      totalOutflows: toDouble(json['total_outflows']),
+      netMovement: toDouble(json['net_movement']),
       journalEntry: json['journal_entry']?.toString(),
       closingEntry: json['closing_entry']?.toString(),
     );
