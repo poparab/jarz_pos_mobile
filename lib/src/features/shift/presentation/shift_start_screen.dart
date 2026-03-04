@@ -103,54 +103,60 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
                   if (posProfile == null)
                     const Text('Select a POS Profile to load branch account balances.'),
                   Expanded(
-                    child: ListView.builder(
-                      itemCount: posProfile == null ? 0 : shiftState.paymentMethods.length,
-                      itemBuilder: (context, index) {
-                        final row = shiftState.paymentMethods[index];
+                    child: Builder(
+                      builder: (context) {
+                        if (posProfile == null || shiftState.paymentMethods.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+
+                        final row = shiftState.paymentMethods.first;
                         final mode = (row['mode_of_payment'] ?? '').toString();
                         final account = (row['account'] ?? '').toString();
                         final currentBalance = ((row['current_balance'] as num?)?.toDouble() ??
                                 (row['default_amount'] as num?)?.toDouble() ??
                                 0)
                             .toDouble();
+
                         final controller = _controllers.putIfAbsent(
-                          mode,
+                          'single_account_opening',
                           () => TextEditingController(
                             text: currentBalance.toStringAsFixed(2),
                           ),
                         );
+
+                        if (controller.text.isEmpty) {
+                          controller.text = currentBalance.toStringAsFixed(2);
+                        }
+
                         final confirmed = double.tryParse(controller.text) ?? 0;
                         final difference = confirmed - currentBalance;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(mode, style: Theme.of(context).textTheme.titleSmall),
-                              if (account.isNotEmpty)
-                                Text('Branch Account: $account'),
-                              Text('System Balance: ${currentBalance.toStringAsFixed(2)}'),
-                              const SizedBox(height: 6),
-                              TextField(
-                                controller: controller,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                onChanged: (_) => setState(() {}),
-                                decoration: const InputDecoration(
-                                  labelText: 'Confirmed Opening Amount',
-                                  border: OutlineInputBorder(),
-                                ),
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(mode, style: Theme.of(context).textTheme.titleSmall),
+                            if (account.isNotEmpty) Text('Account: $account'),
+                            Text('System Balance: ${currentBalance.toStringAsFixed(2)}'),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: controller,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              onChanged: (_) => setState(() {}),
+                              decoration: const InputDecoration(
+                                labelText: 'Confirmed Opening Amount',
+                                border: OutlineInputBorder(),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Difference: ${difference.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  color: difference == 0
-                                      ? Theme.of(context).colorScheme.onSurface
-                                      : Theme.of(context).colorScheme.error,
-                                ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Difference: ${difference.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                color: difference == 0
+                                    ? Theme.of(context).colorScheme.onSurface
+                                    : Theme.of(context).colorScheme.error,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         );
                       },
                     ),
@@ -170,23 +176,25 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
                           ? null
                           : () async {
                               final router = GoRouter.of(context);
-                              final balances = shiftState.paymentMethods.map((row) {
-                                final mode = (row['mode_of_payment'] ?? '').toString();
-                                final account = (row['account'] ?? '').toString();
-                                final systemBalance = ((row['current_balance'] as num?)?.toDouble() ??
-                                        (row['default_amount'] as num?)?.toDouble() ??
-                                        0)
-                                    .toDouble();
-                                final text = _controllers[mode]?.text ?? '0';
-                                final confirmedAmount = double.tryParse(text) ?? 0;
-                                return {
+                              if (shiftState.paymentMethods.isEmpty) return;
+                              final row = shiftState.paymentMethods.first;
+                              final mode = (row['mode_of_payment'] ?? '').toString();
+                              final account = (row['account'] ?? '').toString();
+                              final systemBalance = ((row['current_balance'] as num?)?.toDouble() ??
+                                      (row['default_amount'] as num?)?.toDouble() ??
+                                      0)
+                                  .toDouble();
+                              final confirmedText = _controllers['single_account_opening']?.text ?? '0';
+                              final confirmedAmount = double.tryParse(confirmedText) ?? 0;
+                              final balances = [
+                                {
                                   'mode_of_payment': mode,
                                   'account': account,
                                   'system_balance': systemBalance,
                                   'opening_amount': confirmedAmount,
                                   'difference': confirmedAmount - systemBalance,
-                                };
-                              }).toList();
+                                }
+                              ];
 
                               final openingEntry = await ref
                                   .read(shiftNotifierProvider.notifier)
