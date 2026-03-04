@@ -6,12 +6,14 @@ import '../models/shift_models.dart';
 class ShiftState {
   final ShiftEntry? activeShift;
   final List<Map<String, dynamic>> paymentMethods;
+  final String? paymentMethodsProfile;
   final bool isLoading;
   final String? error;
 
   const ShiftState({
     this.activeShift,
     this.paymentMethods = const [],
+    this.paymentMethodsProfile,
     this.isLoading = false,
     this.error,
   });
@@ -19,14 +21,19 @@ class ShiftState {
   ShiftState copyWith({
     ShiftEntry? activeShift,
     List<Map<String, dynamic>>? paymentMethods,
+    String? paymentMethodsProfile,
     bool? isLoading,
     String? error,
     bool clearActiveShift = false,
     bool clearError = false,
+    bool clearPaymentMethodsProfile = false,
   }) {
     return ShiftState(
       activeShift: clearActiveShift ? null : (activeShift ?? this.activeShift),
       paymentMethods: paymentMethods ?? this.paymentMethods,
+      paymentMethodsProfile: clearPaymentMethodsProfile
+          ? null
+          : (paymentMethodsProfile ?? this.paymentMethodsProfile),
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
     );
@@ -54,7 +61,11 @@ class ShiftNotifier extends StateNotifier<ShiftState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final methods = await _repository.getShiftPaymentMethods(posProfile);
-      state = state.copyWith(paymentMethods: methods, isLoading: false);
+      state = state.copyWith(
+        paymentMethods: methods,
+        paymentMethodsProfile: posProfile,
+        isLoading: false,
+      );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }

@@ -20,6 +20,8 @@ import '../features/expenses/presentation/expenses_screen.dart';
 import '../features/settings/presentation/user_profile_screen.dart';
 import '../features/shift/presentation/shift_start_screen.dart';
 import '../features/shift/presentation/shift_end_screen.dart';
+import 'network/user_service.dart';
+import '../features/shift/state/shift_notifier.dart';
 
 // Global RouteObserver for navigation lifecycle (used by Kanban to refresh on return)
 final RouteObserver<PageRoute<dynamic>> routeObserver = RouteObserver<PageRoute<dynamic>>();
@@ -55,6 +57,8 @@ final navigatorKeyProvider = Provider<GlobalKey<NavigatorState>>((ref) => rootNa
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(currentAuthStateProvider);
   final isAuthenticated = authState;
+  final requirePosShift = ref.watch(requirePosShiftProvider);
+  final activeShiftAsync = ref.watch(activeShiftProvider);
 
   // Expose a RouteObserver so screens can respond to navigation lifecycle (e.g., refresh on return)
   // Keep a single observer instance; safe to reuse across router rebuilds
@@ -65,11 +69,28 @@ final routerProvider = Provider<GoRouter>((ref) {
     // On startup: if authenticated, land on Kanban without forcing POS profile selection
     initialLocation: isAuthenticated ? '/kanban' : '/login',
     redirect: (context, state) {
-      final isOnLogin = state.matchedLocation == '/login';
+      final location = state.matchedLocation;
+      final isOnLogin = location == '/login';
+      final isOnShiftStart = location == '/shift/start';
       // Not authenticated -> force login
       if (!isAuthenticated && !isOnLogin) return '/login';
       // Authenticated on login -> go to Kanban
       if (isAuthenticated && isOnLogin) return '/kanban';
+
+      // Global shift gating: if user requires shift, block all app routes until shift is opened.
+      if (isAuthenticated && requirePosShift) {
+        final hasActiveShift = activeShiftAsync.valueOrNull != null;
+        final isActiveShiftKnown = !activeShiftAsync.isLoading;
+
+        if (isActiveShiftKnown && !hasActiveShift && !isOnShiftStart) {
+          return '/shift/start';
+        }
+
+        if (hasActiveShift && isOnShiftStart) {
+          return '/kanban';
+        }
+      }
+
       return null; // no change
     },
   observers: [routeObserver],

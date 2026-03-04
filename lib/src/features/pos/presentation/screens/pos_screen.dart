@@ -168,17 +168,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
 
     if (requirePosShift) {
       final activeShift = activeShiftAsync.valueOrNull;
-      if (activeShiftAsync.isLoading) {
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
-      }
-      if (activeShift == null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          context.go('/shift/start');
-        });
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
-      }
-      if (activeShift.posProfile != selectedProfileName) {
+      if (activeShift != null && activeShift.posProfile != selectedProfileName) {
         return _buildShiftProfileMismatch(context, activeShift, selectedProfileName);
       }
     }
