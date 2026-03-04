@@ -22,6 +22,7 @@ import '../features/shift/presentation/shift_start_screen.dart';
 import '../features/shift/presentation/shift_end_screen.dart';
 import 'network/user_service.dart';
 import '../features/shift/state/shift_notifier.dart';
+import '../features/pos/state/pos_notifier.dart';
 
 // Global RouteObserver for navigation lifecycle (used by Kanban to refresh on return)
 final RouteObserver<PageRoute<dynamic>> routeObserver = RouteObserver<PageRoute<dynamic>>();
@@ -59,6 +60,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final isAuthenticated = authState;
   final requirePosShift = ref.watch(requirePosShiftProvider);
   final activeShiftAsync = ref.watch(activeShiftProvider);
+  final posState = ref.watch(posNotifierProvider);
 
   // Expose a RouteObserver so screens can respond to navigation lifecycle (e.g., refresh on return)
   // Keep a single observer instance; safe to reuse across router rebuilds
@@ -72,10 +74,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       final location = state.matchedLocation;
       final isOnLogin = location == '/login';
       final isOnShiftStart = location == '/shift/start';
+      final isOnProfileSelection = location == '/pos/select-profile';
       // Not authenticated -> force login
       if (!isAuthenticated && !isOnLogin) return '/login';
       // Authenticated on login -> go to Kanban
       if (isAuthenticated && isOnLogin) return '/kanban';
+
+      // Ensure POS profile is selected before shift flow.
+      final hasSelectedProfile = posState.selectedProfile != null;
+      if (isAuthenticated && !hasSelectedProfile && !isOnProfileSelection) {
+        return '/pos/select-profile';
+      }
+
+      // If profile is selected, no need to keep user on profile selection screen.
+      if (isAuthenticated && hasSelectedProfile && isOnProfileSelection) {
+        return '/kanban';
+      }
 
       // Global shift gating: if user requires shift, block all app routes until shift is opened.
       if (isAuthenticated && requirePosShift) {

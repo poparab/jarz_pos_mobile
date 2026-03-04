@@ -15,7 +15,6 @@ class ShiftStartScreen extends ConsumerStatefulWidget {
 
 class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
   final Map<String, TextEditingController> _controllers = {};
-  String? _selectedProfileName;
 
   @override
   void dispose() {
@@ -31,23 +30,16 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
     final posState = ref.watch(posNotifierProvider);
     final shiftState = ref.watch(shiftNotifierProvider);
 
-    if (posState.profiles.isEmpty && !posState.isLoading) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(posNotifierProvider.notifier).loadProfiles();
-      });
-    }
-
     final selectedFromState = (posState.selectedProfile?['name'] ?? '').toString();
-    final posProfile = (_selectedProfileName?.isNotEmpty == true)
-        ? _selectedProfileName!
-        : (selectedFromState.isNotEmpty ? selectedFromState : null);
-    final profileOptions = posState.profiles
-      .map((profile) => (profile['name'] ?? '').toString())
-      .where((name) => name.isNotEmpty)
-      .toList();
-    final dropdownValue = (posProfile != null && profileOptions.contains(posProfile))
-      ? posProfile
-      : null;
+    final posProfile = selectedFromState.isNotEmpty ? selectedFromState : null;
+
+    if (posProfile == null && !posState.isLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        context.go('/pos/select-profile');
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     if (posProfile != null &&
         !shiftState.isLoading &&
@@ -66,46 +58,14 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  DropdownButtonFormField<String>(
-                    initialValue: dropdownValue,
-                    decoration: const InputDecoration(
-                      labelText: 'POS Profile',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: posState.profiles
-                        .map(
-                          (profile) => DropdownMenuItem<String>(
-                            value: (profile['name'] ?? '').toString(),
-                            child: Text((profile['name'] ?? '').toString()),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) async {
-                      if (value == null || value.isEmpty) return;
-                      final selected = posState.profiles.firstWhere(
-                        (profile) => (profile['name'] ?? '').toString() == value,
-                      );
-                      setState(() {
-                        _selectedProfileName = value;
-                      });
-                      for (final c in _controllers.values) {
-                        c.dispose();
-                      }
-                      _controllers.clear();
-                      await ref.read(posNotifierProvider.notifier).selectProfile(selected);
-                      if (!mounted) return;
-                      await ref.read(shiftNotifierProvider.notifier).loadPaymentMethods(value);
-                    },
-                  ),
+                  Text('POS Profile: $posProfile', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 12),
                   Text(l10n.shiftOpeningPrompt),
                   const SizedBox(height: 12),
-                  if (posProfile == null)
-                    const Text('Select a POS Profile to load branch account balances.'),
                   Expanded(
                     child: Builder(
                       builder: (context) {
-                        if (posProfile == null || shiftState.paymentMethods.isEmpty) {
+                        if (shiftState.paymentMethods.isEmpty) {
                           return const SizedBox.shrink();
                         }
 
@@ -172,7 +132,7 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: shiftState.isLoading || posProfile == null
+                      onPressed: shiftState.isLoading
                           ? null
                           : () async {
                               final router = GoRouter.of(context);
@@ -198,7 +158,7 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
 
                               final openingEntry = await ref
                                   .read(shiftNotifierProvider.notifier)
-                                  .startShift(posProfile: posProfile, openingBalances: balances);
+                                  .startShift(posProfile: posProfile!, openingBalances: balances);
 
                               if (!mounted) return;
                               if (openingEntry != null) {
