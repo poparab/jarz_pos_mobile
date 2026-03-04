@@ -36,7 +36,7 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
     if (posProfile == null && !posState.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        context.go('/pos/select-profile');
+        context.go('/pos');
       });
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }

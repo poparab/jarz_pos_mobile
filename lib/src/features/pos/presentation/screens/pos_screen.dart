@@ -39,6 +39,7 @@ class PosScreen extends ConsumerStatefulWidget {
 class _PosScreenState extends ConsumerState<PosScreen>
     with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _isProfileDialogOpen = false;
 
   // ── Scroll-to-hide state (phones only) ──────────────────────────
   late final AnimationController _hideController;
@@ -146,7 +147,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
     final requirePosShift = ref.watch(requirePosShiftProvider);
     final activeShiftAsync = ref.watch(activeShiftProvider);
     final selectedProfileName = (state.selectedProfile?['name'] ?? '').toString();
-    // Enforce POS profile selection: show inline selection UI on entry
+    // Enforce POS profile selection: show startup popup chooser on entry
     if (state.selectedProfile == null) {
       if (state.isLoading) {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -159,9 +160,51 @@ class _PosScreenState extends ConsumerState<PosScreen>
         });
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       }
-      // Show inline profile selection without modal dialog
+
+      // Show popup chooser for multiple profiles
       if (state.profiles.isNotEmpty) {
-        return _buildInlineProfileSelection(context, state.profiles);
+        if (!_isProfileDialogOpen) {
+          _isProfileDialogOpen = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (!mounted) return;
+            final selected = await showDialog<Map<String, dynamic>>(
+              context: context,
+              barrierDismissible: false,
+              builder: (dialogContext) {
+                return AlertDialog(
+                  title: Text(context.l10n.posProfileSelectionTitle),
+                  content: SizedBox(
+                    width: 380,
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: state.profiles.length,
+                      separatorBuilder: (_, x) => const Divider(height: 1),
+                      itemBuilder: (ctx, index) {
+                        final profile = state.profiles[index];
+                        final name = (profile['name'] ?? '').toString();
+                        final title = (profile['title'] ?? profile['name'] ?? '').toString();
+                        return ListTile(
+                          leading: const Icon(Icons.store),
+                          title: Text(title.isNotEmpty ? title : name),
+                          subtitle: name.isNotEmpty ? Text(name) : null,
+                          onTap: () => Navigator.of(dialogContext).pop(profile),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            );
+
+            _isProfileDialogOpen = false;
+            if (!mounted) return;
+            if (selected != null) {
+              await ref.read(posNotifierProvider.notifier).selectProfile(selected);
+            }
+          });
+        }
+
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
       }
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -538,124 +581,6 @@ class _PosScreenState extends ConsumerState<PosScreen>
     );
   }
 
-}
-
-extension on _PosScreenState {
-  Widget _buildInlineProfileSelection(BuildContext context, List<Map<String, dynamic>> profiles) {
-    final l10n = context.l10n;
-    String? selectedProfile = profiles.isNotEmpty ? profiles.first['name']?.toString() : null;
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.posProfileSelectionTitle),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        automaticallyImplyLeading: false,
-      ),
-      body: StatefulBuilder(
-        builder: (context, setState) {
-          final media = MediaQuery.of(context);
-          final maxGridWidth = 720.0; // center content on large screens
-          final grid = Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxGridWidth),
-              child: GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: (() {
-                    final w = media.size.width.clamp(0.0, maxGridWidth);
-                    const target = 200.0; // a bit wider tiles
-                    return (w / target).floor().clamp(2, 4);
-                  })(),
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: (() {
-                    const w = 200.0, h = 120.0; // taller to avoid overflow
-                    return w / h; // ~1.67
-                  })(),
-                ),
-                itemCount: profiles.length,
-                itemBuilder: (context, index) {
-                  final profile = profiles[index];
-                  final name = (profile['name'] ?? '').toString();
-                  final displayTitle = (profile['title'] ?? profile['name'])?.toString();
-                  final isSelected = selectedProfile == name;
-                  final warehouse = profile['warehouse']?.toString();
-
-                  return Card(
-                    elevation: isSelected ? 6 : 1,
-                    color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
-                    child: InkWell(
-                      onTap: () {
-                        // immediate selection
-                        final selProfile = profiles[index];
-                        ref.read(posNotifierProvider.notifier).selectProfile(selProfile);
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.store,
-                              size: 28,
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.onSurface,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              displayTitle ?? l10n.posProfileSelectionUnknownProfile,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: isSelected
-                                        ? Theme.of(context).colorScheme.primary
-                                        : null,
-                                  ),
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (warehouse != null) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                l10n.posProfileSelectionWarehouseLabel(warehouse),
-                                style: Theme.of(context).textTheme.bodySmall,
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          );
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  l10n.posProfileSelectionPrompt,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(child: grid),
-              const SizedBox(height: 12),
-            ],
-          );
-        },
-      ),
-    );
-  }
 }
 
 class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {

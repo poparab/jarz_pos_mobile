@@ -82,8 +82,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Ensure POS profile is selected before shift flow.
       final hasSelectedProfile = posState.selectedProfile != null;
-      if (isAuthenticated && !hasSelectedProfile && !isOnProfileSelection) {
-        return '/pos/select-profile';
+      if (isAuthenticated && !hasSelectedProfile && location != '/pos') {
+        return '/pos';
       }
 
       // If profile is selected, no need to keep user on profile selection screen.
