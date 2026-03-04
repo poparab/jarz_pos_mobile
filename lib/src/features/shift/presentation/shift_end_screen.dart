@@ -17,6 +17,12 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
   final Map<String, TextEditingController> _controllers = {};
   ShiftSummary? _endResult;
 
+  static const List<String> _preferredVoucherOrder = [
+    'Sales Invoice',
+    'Journal Entry',
+    'Payment Entry',
+  ];
+
   @override
   void dispose() {
     for (final c in _controllers.values) {
@@ -302,31 +308,85 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
 
   Widget _buildMovementsTable(BuildContext context, List<ShiftAccountMovement> movements) {
     final l10n = context.l10n;
-    return ListView.separated(
+    final theme = Theme.of(context);
+    final grouped = <String, List<ShiftAccountMovement>>{};
+    for (final movement in movements) {
+      final key = movement.voucherType.isNotEmpty ? movement.voucherType : 'Other';
+      grouped.putIfAbsent(key, () => <ShiftAccountMovement>[]).add(movement);
+    }
+
+    final orderedTypes = <String>[
+      ..._preferredVoucherOrder.where(grouped.containsKey),
+      ...grouped.keys
+          .where((type) => !_preferredVoucherOrder.contains(type))
+          .toList()
+        ..sort(),
+    ];
+
+    return ListView.builder(
       shrinkWrap: true,
-      itemCount: movements.length,
-      separatorBuilder: (context2, index) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final movement = movements[index];
-        return ListTile(
-          dense: true,
-          contentPadding: EdgeInsets.zero,
-          title: Text(
-            '${movement.voucherType} • ${movement.voucherNo}',
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-          ),
-          subtitle: Text(
-            movement.remarks?.isNotEmpty == true
-                ? movement.remarks!
-                : (movement.against?.isNotEmpty == true ? movement.against! : (movement.postingDate ?? l10n.shiftNoDeliveryStatus)),
-            style: const TextStyle(fontSize: 12),
-          ),
-          trailing: Text(
-            movement.amount.toStringAsFixed(2),
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: movement.amount >= 0 ? Colors.green : Theme.of(context).colorScheme.error,
-            ),
+      itemCount: orderedTypes.length,
+      itemBuilder: (context, groupIndex) {
+        final voucherType = orderedTypes[groupIndex];
+        final rows = grouped[voucherType] ?? const <ShiftAccountMovement>[];
+        final subtotal = rows.fold<double>(0, (sum, row) => sum + row.amount);
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        voucherType,
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    Text(
+                      'Subtotal: ${subtotal.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: subtotal >= 0 ? Colors.green : theme.colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 6),
+              ...rows.map(
+                (movement) => ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    movement.voucherNo.isNotEmpty ? movement.voucherNo : movement.name,
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                  ),
+                  subtitle: Text(
+                    movement.remarks?.isNotEmpty == true
+                        ? movement.remarks!
+                        : (movement.against?.isNotEmpty == true ? movement.against! : (movement.postingDate ?? l10n.shiftNoDeliveryStatus)),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  trailing: Text(
+                    movement.amount.toStringAsFixed(2),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: movement.amount >= 0 ? Colors.green : theme.colorScheme.error,
+                    ),
+                  ),
+                ),
+              ),
+              if (groupIndex != orderedTypes.length - 1) const Divider(height: 16),
+            ],
           ),
         );
       },
