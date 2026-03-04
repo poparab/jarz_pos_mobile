@@ -15,6 +15,8 @@ class ShiftStartScreen extends ConsumerStatefulWidget {
 
 class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
   final Map<String, TextEditingController> _controllers = {};
+  String? _requestedProfile;
+  double? _lastSystemBalance;
 
   @override
   void dispose() {
@@ -43,8 +45,9 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
 
     if (posProfile != null &&
         !shiftState.isLoading &&
-        (shiftState.paymentMethods.isEmpty || shiftState.paymentMethodsProfile != posProfile)) {
+        (_requestedProfile != posProfile || shiftState.paymentMethodsProfile != posProfile)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        _requestedProfile = posProfile;
         ref.read(shiftNotifierProvider.notifier).loadPaymentMethods(posProfile);
       });
     }
@@ -84,7 +87,8 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
                           ),
                         );
 
-                        if (controller.text.isEmpty) {
+                        if (_lastSystemBalance == null || _lastSystemBalance != currentBalance) {
+                          _lastSystemBalance = currentBalance;
                           controller.text = currentBalance.toStringAsFixed(2);
                         }
 
