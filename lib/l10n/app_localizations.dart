@@ -890,6 +890,48 @@ abstract class AppLocalizations {
   /// **'Go to End Shift'**
   String get shiftGoToEnd;
 
+  /// No description provided for @shiftAccountBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Balance'**
+  String get shiftAccountBalance;
+
+  /// No description provided for @shiftDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference'**
+  String get shiftDifference;
+
+  /// No description provided for @shiftSalesInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales Invoices'**
+  String get shiftSalesInvoices;
+
+  /// No description provided for @shiftNoDeliveryStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'No status'**
+  String get shiftNoDeliveryStatus;
+
+  /// No description provided for @shiftClosedSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Summary'**
+  String get shiftClosedSummaryTitle;
+
+  /// No description provided for @shiftClosingEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing Entry'**
+  String get shiftClosingEntry;
+
+  /// No description provided for @shiftJournalCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash discrepancy recorded'**
+  String get shiftJournalCreated;
+
   /// No description provided for @posCartTitle.
   ///
   /// In en, this message translates to:

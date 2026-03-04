@@ -449,6 +449,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shiftGoToEnd => 'Go to End Shift';
 
   @override
+  String get shiftAccountBalance => 'Account Balance';
+
+  @override
+  String get shiftDifference => 'Difference';
+
+  @override
+  String get shiftSalesInvoices => 'Sales Invoices';
+
+  @override
+  String get shiftNoDeliveryStatus => 'No status';
+
+  @override
+  String get shiftClosedSummaryTitle => 'Shift Summary';
+
+  @override
+  String get shiftClosingEntry => 'Closing Entry';
+
+  @override
+  String get shiftJournalCreated => 'Cash discrepancy recorded';
+
+  @override
   String get posCartTitle => 'Shopping Cart';
 
   @override

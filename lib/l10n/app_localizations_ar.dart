@@ -451,6 +451,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shiftGoToEnd => 'اذهب إلى إنهاء الشيفت';
 
   @override
+  String get shiftAccountBalance => 'رصيد الحساب';
+
+  @override
+  String get shiftDifference => 'الفرق';
+
+  @override
+  String get shiftSalesInvoices => 'فواتير المبيعات';
+
+  @override
+  String get shiftNoDeliveryStatus => 'بدون حالة';
+
+  @override
+  String get shiftClosedSummaryTitle => 'ملخص الشيفت';
+
+  @override
+  String get shiftClosingEntry => 'قيد الإغلاق';
+
+  @override
+  String get shiftJournalCreated => 'تم تسجيل الفرق النقدي';
+
+  @override
   String get posCartTitle => 'سلة المشتريات';
 
   @override
