@@ -9,6 +9,27 @@ class ShiftRepository {
 
   final Dio _dio;
 
+  Exception _mapApiException(Object error) {
+    if (error is DioException) {
+      final data = error.response?.data;
+      if (data is Map) {
+        final message = data['message']?.toString();
+        final exception = data['exception']?.toString();
+        final serverMessages = data['_server_messages']?.toString();
+        if (message != null && message.isNotEmpty) {
+          return Exception(message);
+        }
+        if (exception != null && exception.isNotEmpty) {
+          return Exception(exception);
+        }
+        if (serverMessages != null && serverMessages.isNotEmpty) {
+          return Exception(serverMessages);
+        }
+      }
+    }
+    return Exception(error.toString());
+  }
+
   Future<ShiftEntry?> getActiveShift() async {
     final response = await _dio.post('/api/method/jarz_pos.api.shift.get_active_shift', data: {});
     final message = response.data is Map ? response.data['message'] : null;
@@ -19,35 +40,43 @@ class ShiftRepository {
   }
 
   Future<List<Map<String, dynamic>>> getShiftPaymentMethods(String posProfile) async {
-    final response = await _dio.post(
-      '/api/method/jarz_pos.api.shift.get_shift_payment_methods',
-      data: {'pos_profile': posProfile},
-    );
+    try {
+      final response = await _dio.post(
+        '/api/method/jarz_pos.api.shift.get_shift_payment_methods',
+        data: {'pos_profile': posProfile},
+      );
 
-    final message = response.data is Map ? response.data['message'] : null;
-    if (message is List) {
-      return message.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+      final message = response.data is Map ? response.data['message'] : null;
+      if (message is List) {
+        return message.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+      return [];
+    } catch (e) {
+      throw _mapApiException(e);
     }
-    return [];
   }
 
   Future<String> startShift({
     required String posProfile,
     required List<Map<String, dynamic>> openingBalances,
   }) async {
-    final response = await _dio.post(
-      '/api/method/jarz_pos.api.shift.start_shift',
-      data: {
-        'pos_profile': posProfile,
-        'opening_balances': openingBalances,
-      },
-    );
+    try {
+      final response = await _dio.post(
+        '/api/method/jarz_pos.api.shift.start_shift',
+        data: {
+          'pos_profile': posProfile,
+          'opening_balances': openingBalances,
+        },
+      );
 
-    final message = response.data is Map ? response.data['message'] : null;
-    if (message is Map && message['opening_entry'] != null) {
-      return message['opening_entry'].toString();
+      final message = response.data is Map ? response.data['message'] : null;
+      if (message is Map && message['opening_entry'] != null) {
+        return message['opening_entry'].toString();
+      }
+      throw Exception('Unexpected start shift response');
+    } catch (e) {
+      throw _mapApiException(e);
     }
-    throw Exception('Unexpected start shift response');
   }
 
   Future<ShiftSummary> getShiftSummary(String openingEntry) async {

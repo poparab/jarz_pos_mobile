@@ -91,8 +91,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/kanban';
       }
 
-      // Global shift gating: if user requires shift, block all app routes until shift is opened.
-      if (isAuthenticated && requirePosShift) {
+      // Global shift gating: only after POS profile is selected.
+      if (isAuthenticated && hasSelectedProfile && requirePosShift) {
         final hasActiveShift = activeShiftAsync.valueOrNull != null;
         final isActiveShiftKnown = !activeShiftAsync.isLoading;
 
