@@ -68,8 +68,8 @@ final routerProvider = Provider<GoRouter>((ref) {
   // (Declared outside function in actual file scope)
   
   return GoRouter(
-    // On startup: if authenticated, land on Kanban without forcing POS profile selection
-    initialLocation: isAuthenticated ? '/kanban' : '/login',
+    // On startup: if authenticated, land on POS main screen
+    initialLocation: isAuthenticated ? '/pos' : '/login',
     redirect: (context, state) {
       final location = state.matchedLocation;
       final isOnLogin = location == '/login';
@@ -77,8 +77,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isOnProfileSelection = location == '/pos/select-profile';
       // Not authenticated -> force login
       if (!isAuthenticated && !isOnLogin) return '/login';
-      // Authenticated on login -> go to Kanban
-      if (isAuthenticated && isOnLogin) return '/kanban';
+      // Authenticated on login -> go to POS
+      if (isAuthenticated && isOnLogin) return '/pos';
 
       // Ensure POS profile is selected before shift flow.
       final hasSelectedProfile = posState.selectedProfile != null;
@@ -88,20 +88,24 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // If profile is selected, no need to keep user on profile selection screen.
       if (isAuthenticated && hasSelectedProfile && isOnProfileSelection) {
-        return '/kanban';
+        return '/pos';
       }
 
       // Global shift gating: only after POS profile is selected.
       if (isAuthenticated && hasSelectedProfile && requirePosShift) {
-        final hasActiveShift = activeShiftAsync.valueOrNull != null;
+        final activeShift = activeShiftAsync.valueOrNull;
+        final selectedProfileName = (posState.selectedProfile?['name'] ?? '').toString();
+        final hasActiveShiftForSelectedProfile =
+            activeShift != null && activeShift.posProfile == selectedProfileName;
         final isActiveShiftKnown = !activeShiftAsync.isLoading;
 
-        if (isActiveShiftKnown && !hasActiveShift && !isOnShiftStart) {
+        if (isActiveShiftKnown && !hasActiveShiftForSelectedProfile && !isOnShiftStart) {
           return '/shift/start';
         }
 
-        if (hasActiveShift && isOnShiftStart) {
-          return '/kanban';
+        // If there's already an open shift for this user+selected profile, skip Start Shift.
+        if (hasActiveShiftForSelectedProfile && isOnShiftStart) {
+          return '/pos';
         }
       }
 
@@ -185,7 +189,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'shift-end',
         builder: (context, state) => const ShiftEndScreen(),
       ),
-  GoRoute(path: '/', redirect: (context, state) => '/kanban'),
+  GoRoute(path: '/', redirect: (context, state) => '/pos'),
     ],
   navigatorKey: rootNavigatorKey,
   );

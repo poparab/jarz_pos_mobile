@@ -167,7 +167,7 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
                               if (!mounted) return;
                               if (openingEntry != null) {
                                 ref.invalidate(activeShiftProvider);
-                                router.go('/kanban');
+                                router.go('/pos');
                               }
                             },
                       child: Text(l10n.shiftStartButton),
