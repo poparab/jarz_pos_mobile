@@ -101,7 +101,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
                   const Spacer(),
                   if (postingDate != null)
                     Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
+                      padding: const EdgeInsetsDirectional.only(end: 8.0),
                       child: Chip(label: Text(l10n.stockTransferPostingChip(DateFormat('yyyy-MM-dd').format(postingDate!)))),
                     ),
                   ElevatedButton.icon(

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 import '../../core/constants/timing_config.dart';
+import '../../core/localization/localization_extensions.dart';
 import 'pos_printer_provider.dart';
 import 'pos_printer_service.dart';
 import 'printer_status.dart';
@@ -41,11 +43,16 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
     if (mounted) setState(() => _scanning = false);
   }
 
+  String _connectResultText(AppLocalizations l10n, bool ok) {
+    return ok ? l10n.printerConnected : l10n.printerConnectionFailed;
+  }
+
   Future<void> _showDiagnostics() async {
     final svc = ref.read(posPrinterServiceProvider);
     final statuses = await svc.permissionStatuses();
     final adapterState = await FlutterBluePlus.adapterState.first;
     if (!mounted) return;
+    final l10n = context.l10n;
     showModalBottomSheet(
       context: context,
       builder: (ctx) {
@@ -56,16 +63,19 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Diagnostics', style: Theme.of(ctx).textTheme.titleMedium),
+              Text(l10n.printerDiagnosticsTitle, style: Theme.of(ctx).textTheme.titleMedium),
               const SizedBox(height: 12),
-              Text('Adapter: $adapterState'),
-              Text('Perm scan: ${statuses['scan']}'),
-              Text('Perm connect: ${statuses['connect']}'),
-              Text('Perm location: ${statuses['location']}'),
+              Text(l10n.printerDiagnosticsAdapter(adapterState.name)),
+              Text(l10n.printerDiagnosticsScan(statuses['scan'].toString())),
+              Text(l10n.printerDiagnosticsConnect(statuses['connect'].toString())),
+              Text(l10n.printerDiagnosticsLocation(statuses['location'].toString())),
               const Divider(height: 24),
               TextField(
                 controller: idController,
-                decoration: const InputDecoration(labelText: 'Device ID (MAC / Identifier)', border: OutlineInputBorder()),
+                decoration: InputDecoration(
+                  labelText: l10n.printerDeviceIdLabel,
+                  border: const OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 8),
               Row(
@@ -75,13 +85,15 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                       final id = idController.text.trim();
                       if (id.isEmpty) return;
                       Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connecting by ID...')));
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(l10n.printerConnectingById)));
                       final ok = await svc.connectById(id);
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok ? 'Connected' : 'Failed')));
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(_connectResultText(l10n, ok))));
                       if (ok) Navigator.of(context).pop(true);
                     },
-                    child: const Text('Connect by ID'),
+                    child: Text(l10n.printerConnectById),
                   ),
                   const SizedBox(width: 12),
                   OutlinedButton(
@@ -89,7 +101,7 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                       Clipboard.setData(const ClipboardData(text: '')); // no-op placeholder
                       Navigator.pop(ctx);
                     },
-                    child: const Text('Close'),
+                    child: Text(l10n.commonClose),
                   )
                 ],
               )
@@ -102,44 +114,50 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
 
   Future<void> _connect(ScanResult r) async {
     final svc = ref.read(posPrinterServiceProvider);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connecting...')));
+    final l10n = context.l10n;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.printerConnecting)));
     final ok = await svc.connect(r.device);
     if (!mounted) return;
     if (ok) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Printer connected')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.printerConnected)));
       Navigator.of(context).pop(true);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to connect')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.printerConnectionFailed)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final printer = ref.watch(posPrinterServiceProvider);
     final lastId = printer.lastPrinterId;
   final classicDevices = printer.classicBonded; // ClassicBondedDevice list
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Printer'),
+        title: Text(l10n.printerSelectTitle),
         actions: [
           IconButton(
-            tooltip: 'Diagnostics',
+            tooltip: l10n.printerDiagnosticsTitle,
             icon: const Icon(Icons.info_outline),
             onPressed: _showDiagnostics,
           ),
           if (printer.selectedDevice != null)
             IconButton(
-              tooltip: 'Forget saved printer',
+              tooltip: l10n.printerForgetSavedTooltip,
               icon: const Icon(Icons.link_off),
               onPressed: () async {
                 await printer.forgetPrinter();
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Forgot saved printer')));
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(l10n.printerForgotSaved)));
                 }
               },
             ),
           IconButton(
-            tooltip: 'Rescan',
+            tooltip: l10n.printerRescanTooltip,
             icon: _scanning ? const SizedBox(width:24,height:24,child:CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.refresh),
             onPressed: _scanning ? null : _startScan,
           ),
@@ -164,7 +182,7 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                   Expanded(child: Text(printer.lastErrorMessage!, style: const TextStyle(color: Colors.red))),
                   TextButton(
                     onPressed: () => _startScan(),
-                    child: const Text('Retry'),
+                    child: Text(l10n.commonRetry),
                   )
                 ],
               ),
@@ -179,16 +197,21 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                   children: [
                     const Icon(Icons.history, color: Colors.orange),
                     const SizedBox(width: 12),
-                    Expanded(child: Text('Last saved printer: $lastId\nIt is not currently advertising. You can still attempt to reconnect.')),
+                    Expanded(
+                      child: Text(l10n.printerLastSavedNotAdvertising(lastId)),
+                    ),
                     ElevatedButton(
                       onPressed: () async {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reconnecting...')));
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(content: Text(l10n.printerReconnecting)));
                         final ok = await ref.read(posPrinterServiceProvider).connectLastSaved();
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok ? 'Reconnected' : 'Reconnect failed')));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(ok ? l10n.printerReconnected : l10n.printerReconnectFailed)),
+                        );
                         if (ok) Navigator.of(context).pop(true);
                       },
-                      child: const Text('Reconnect'),
+                      child: Text(l10n.printerReconnect),
                     )
                   ],
                 ),
@@ -203,18 +226,32 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                 children: [
                   const Icon(Icons.print, color: Colors.green),
                   const SizedBox(width: 8),
-                  Expanded(child: Text('Connected: ${printer.selectedDevice!.platformName.isNotEmpty ? printer.selectedDevice!.platformName : printer.selectedDevice!.remoteId.str}')),
+                  Expanded(
+                    child: Text(
+                      l10n.printerConnectedTo(
+                        printer.selectedDevice!.platformName.isNotEmpty
+                            ? printer.selectedDevice!.platformName
+                            : printer.selectedDevice!.remoteId.str,
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
                     onPressed: () async {
                       final res = await printer.testPrint();
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(res == PrintResult.success ? 'Test print sent' : 'Test failed: $res')),
+                        SnackBar(
+                          content: Text(
+                            res == PrintResult.success
+                                ? l10n.printerTestSent
+                                : l10n.printerTestFailed(res.toString()),
+                          ),
+                        ),
                       );
                     },
                     icon: const Icon(Icons.print_outlined, size: 16),
-                    label: const Text('Test Print'),
+                    label: Text(l10n.printerTestPrint),
                     style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10)),
                   )
                 ],
@@ -230,13 +267,13 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                     children: [
                       const Icon(Icons.bluetooth, size: 16),
                       const SizedBox(width: 6),
-                      const Text('BLE Devices', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(l10n.printerBleDevices, style: const TextStyle(fontWeight: FontWeight.bold)),
                       const Spacer(),
                       if (_scanning)
                         const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
                       if (!_scanning)
                         IconButton(
-                          tooltip: 'Rescan BLE',
+                          tooltip: l10n.printerRescanBleTooltip,
                           icon: const Icon(Icons.refresh, size: 18),
                           onPressed: _startScan,
                         ),
@@ -244,9 +281,9 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                   ),
                 ),
                 if (_results.isEmpty && !_scanning)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    child: Text('No BLE devices discovered.'),
+                    child: Text(l10n.printerNoBleDevices),
                   )
                 else
                   ..._results.map((r) {
@@ -258,13 +295,13 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                     final connected = printer.selectedDevice?.remoteId == r.device.remoteId;
                     return ListTile(
                       leading: Icon(connected ? Icons.print : Icons.bluetooth),
-                      title: Text(name.isEmpty ? 'Unknown Printer' : name),
+                      title: Text(name.isEmpty ? l10n.printerUnknownName : name),
                       subtitle: Text(r.device.remoteId.str),
                       trailing: connected
                           ? const Icon(Icons.check, color: Colors.green)
                           : ElevatedButton(
                               onPressed: () => _connect(r),
-                              child: const Text('Connect'),
+                              child: Text(l10n.printerConnect),
                             ),
                     );
                   }),
@@ -276,10 +313,10 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                     children: [
                       const Icon(Icons.print, size: 16),
                       const SizedBox(width: 6),
-                      const Text('Paired Classic Devices', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(l10n.printerClassicDevices, style: const TextStyle(fontWeight: FontWeight.bold)),
                       const Spacer(),
                       IconButton(
-                        tooltip: 'Refresh Classic List',
+                        tooltip: l10n.printerRefreshClassicTooltip,
                         icon: const Icon(Icons.refresh, size: 18),
                         onPressed: () async {
                           // Just re-run scan (which triggers classic reload) but much faster
@@ -293,7 +330,7 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: Text(
-                      'No paired classic printers found. Ensure the printer is paired in System Bluetooth settings and that Location (Android 8) is enabled.',
+                      l10n.printerNoClassicDevices,
                       style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 13),
                     ),
                   )
@@ -302,26 +339,34 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                     final connectedClassic = printer.classicDevice?.mac == d.mac && printer.isClassicConnected;
                     return ListTile(
                       leading: Icon(connectedClassic ? Icons.print : Icons.print_outlined),
-                      title: Text(d.name.isEmpty ? 'Unknown Printer' : d.name),
-                      subtitle: Text('${d.mac}${connectedClassic ? '  (Classic)' : ''}'),
+                      title: Text(d.name.isEmpty ? l10n.printerUnknownName : d.name),
+                      subtitle: Text(
+                        connectedClassic ? l10n.printerClassicMacConnected(d.mac) : d.mac,
+                      ),
                       trailing: connectedClassic
                           ? Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.print_outlined),
-                                  tooltip: 'Test Print',
+                                  tooltip: l10n.printerTestPrint,
                                   onPressed: () async {
                                     final res = await printer.testPrint();
                                     if (!mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(res == PrintResult.success ? 'Test print sent' : 'Failed: $res')),
+                                      SnackBar(
+                                        content: Text(
+                                          res == PrintResult.success
+                                              ? l10n.printerTestSent
+                                              : l10n.printerTestFailed(res.toString()),
+                                        ),
+                                      ),
                                     );
                                   },
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.link_off),
-                                  tooltip: 'Disconnect',
+                                  tooltip: l10n.printerDisconnect,
                                   onPressed: () async {
                                     await printer.disconnectClassic();
                                     if (!mounted) return;
@@ -332,13 +377,16 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                             )
                           : ElevatedButton(
                               onPressed: () async {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connecting (Classic)...')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(l10n.printerConnectingClassic)),
+                                );
                                 final ok = await printer.connectClassic(d);
                                 if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok ? 'Connected' : 'Failed')));
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(content: Text(_connectResultText(l10n, ok))));
                                 if (ok) Navigator.of(context).pop(true);
                               },
-                              child: const Text('Connect'),
+                              child: Text(l10n.printerConnect),
                             ),
                     );
                   }),

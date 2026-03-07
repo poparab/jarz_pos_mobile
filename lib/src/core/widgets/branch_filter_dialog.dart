@@ -50,7 +50,7 @@ class _BranchFilterDialogState extends State<BranchFilterDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: FilterChip(
                 label: Text(l10n.branchFilterAllBranches),
                 selected: _all,

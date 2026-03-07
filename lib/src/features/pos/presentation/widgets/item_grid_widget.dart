@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../state/pos_notifier.dart';
 import 'bundle_selection_widget.dart';
@@ -35,12 +36,12 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
 
     // Add bundles first if they exist
     if (bundles.isNotEmpty) {
-      itemsByCategory['Bundles'] = bundles;
+      itemsByCategory[context.l10n.itemGridBundles] = bundles;
     }
 
     // Then add item categories
     for (final item in items) {
-      final category = item['item_group'] ?? 'Uncategorized';
+      final category = item['item_group'] ?? context.l10n.itemGridUncategorized;
       itemsByCategory.putIfAbsent(category, () => []).add(item);
     }
 
@@ -60,7 +61,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
           scrollDirection: Axis.horizontal,
           children: [
             FilterChip(
-              label: const Text('All'),
+              label: Text(context.l10n.itemGridAll),
               selected: selectedCategory == null,
               onSelected: (selected) {
                 setState(() { selectedCategory = null; });
@@ -69,7 +70,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
             const SizedBox(width: 8),
             ...itemsByCategory.keys.map(
               (category) => Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsetsDirectional.only(end: 8),
                 child: FilterChip(
                   label: Text(category),
                   selected: selectedCategory == category,
@@ -124,7 +125,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Please select a customer before adding items or bundles to cart',
+                    context.l10n.itemGridSelectCustomerWarning,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onErrorContainer,
                       fontWeight: FontWeight.w500,
@@ -197,7 +198,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
       itemBuilder: (context, index) {
         final category = itemsByCategory.keys.elementAt(index);
         final categoryItems = itemsByCategory[category]!;
-        final isBundleCategory = category == 'Bundles';
+        final isBundleCategory = category == context.l10n.itemGridBundles;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,7 +250,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '(${categoryItems.length} ${isBundleCategory ? 'bundles' : 'items'})',
+                    '(${categoryItems.length} ${isBundleCategory ? context.l10n.itemGridBundlesCount : context.l10n.itemGridItemsCount})',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -300,7 +301,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
 
     // Filter by category
     if (selectedCategory != null) {
-      if (selectedCategory == 'Bundles') {
+      if (selectedCategory == 'Bundles' || selectedCategory == context.l10n.itemGridBundles) {
         filtered = filtered.where((item) => item['type'] == 'bundle').toList();
       } else {
         filtered = filtered
@@ -329,15 +330,15 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
           const SizedBox(height: 16),
           Text(
             selectedCategory != null
-                ? 'No items or bundles found'
-                : 'No items or bundles available',
+                ? context.l10n.itemGridNoItemsFound
+                : context.l10n.itemGridNoItemsAvailable,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
             selectedCategory != null
-                ? 'Try selecting a different category'
-                : 'Items and bundles will appear here when available',
+                ? context.l10n.itemGridTryDifferentCategory
+                : context.l10n.itemGridItemsWillAppear,
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
@@ -430,7 +431,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                       Icon(Icons.local_shipping, size: 12, color: Theme.of(context).colorScheme.onSecondaryContainer),
                       const SizedBox(width: 4),
                       Text(
-                        'Free delivery',
+                        context.l10n.itemGridFreeDelivery,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSecondaryContainer,
                           fontSize: 10,
@@ -574,7 +575,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
   void _showAddedToCartSnackbar(Map<String, dynamic> item) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${item['item_name']} added to cart'),
+        content: Text(context.l10n.itemGridAddedToCart),
         duration: const Duration(seconds: 1),
         behavior: SnackBarBehavior.floating,
       ),
@@ -587,11 +588,11 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
   ) {
     String message;
     if (selectedCustomer == null) {
-      message = 'Please select a customer first';
+      message = context.l10n.itemGridSelectCustomerFirst;
     } else if (isOutOfStock) {
-      message = 'Item is out of stock';
+      message = context.l10n.itemGridOutOfStock;
     } else {
-      message = 'Cannot add item to cart';
+      message = context.l10n.itemGridCannotAdd;
     }
 
     ScaffoldMessenger.of(context).showSnackBar(

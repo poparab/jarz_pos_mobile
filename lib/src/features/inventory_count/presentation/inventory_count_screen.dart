@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/storage_keys.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../manager/state/manager_providers.dart';
 import '../data/inventory_count_service.dart';
@@ -74,7 +75,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
       _saveCache();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Offline using cached data')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.inventoryCountOfflineUsingCache)));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -96,7 +97,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     if (_enforceAll && _confirmed.length < _items.length) {
       final remaining = _items.length - _confirmed.length;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please confirm all items before submitting ($remaining remaining)')),
+        SnackBar(content: Text(context.l10n.inventoryCountConfirmAllBeforeSubmit(remaining))),
       );
       return;
     }
@@ -117,7 +118,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
         })
         .toList();
     if (lines.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Confirm at least one item before submitting')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.inventoryCountConfirmAtLeastOne)));
       return;
     }
     try {
@@ -138,14 +139,22 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
         enforceAll: _enforceAll,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Submitted: ${res['stock_reconciliation'] ?? 'No differences'}')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.inventoryCountSubmitted(
+              '${res['stock_reconciliation'] ?? context.l10n.inventoryCountNoDifferences}',
+            ),
+          ),
+        ),
+      );
   _counts.clear();
   _confirmed.clear();
       await _loadItems();
     } catch (e) {
       if (!mounted) return;
   _debugLog('Submit reconciliation error', e);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -208,7 +217,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
   Map<String, List<Map<String, dynamic>>> _groupByItemGroup() {
     final map = <String, List<Map<String, dynamic>>>{};
     for (final it in _items) {
-      final grp = (it['item_group'] as String?) ?? 'Uncategorized';
+      final grp = (it['item_group'] as String?) ?? context.l10n.inventoryCountUncategorized;
       (map[grp] ??= []).add(it);
     }
     return map;
@@ -239,9 +248,10 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final allowed = ref.watch(managerAccessProvider).maybeWhen(data: (v) => v, orElse: () => false);
     if (!allowed) {
-      return const Scaffold(body: Center(child: Text('Manager access required')));
+      return Scaffold(body: Center(child: Text(l10n.inventoryCountManagerAccessRequired)));
     }
 
     return PopScope(
@@ -260,7 +270,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
               onPressed: () => Scaffold.of(ctx).openDrawer(),
             ),
           ),
-        title: const Text('Inventory Count'),
+        title: Text(l10n.menuInventoryCount),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -282,7 +292,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                       return DropdownButtonFormField<String>(
                         isExpanded: true,
                         initialValue: _selectedWarehouse,
-                        hint: const Text('Select Warehouse'),
+                        hint: Text(l10n.inventoryCountSelectWarehouse),
                         items: list
                             .map((w) => DropdownMenuItem<String>(
                                   value: w['name'] as String,
@@ -329,7 +339,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                     controller: _searchCtrl,
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.search),
-                      hintText: 'Search items',
+                      hintText: l10n.commonSearchItems,
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.clear),
                         onPressed: () {
@@ -345,7 +355,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Enforce all'),
+                    Text(l10n.inventoryCountEnforceAll),
                     Switch(value: _enforceAll, onChanged: (v) => setState(() => _enforceAll = v)),
                   ],
                 ),
@@ -367,12 +377,12 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                             : _confirmed.length / _items.length,
                       ),
                       const SizedBox(height: 4),
-                      Text('Confirmed ${_confirmed.length} / ${_items.length}')
+                      Text(l10n.inventoryCountConfirmedProgress(_confirmed.length, _items.length))
                     ],
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Clear all entered data',
+                  tooltip: l10n.inventoryCountClearAllEnteredData,
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () async {
                     // Clear in-memory user entries
@@ -386,7 +396,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                     if (!context.mounted) return;
                     setState(() {});
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('All entered data cleared')),
+                      SnackBar(content: Text(l10n.inventoryCountAllEnteredDataCleared)),
                     );
                   },
                 )
@@ -458,10 +468,10 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                                         const SizedBox(height: 6),
                                         Row(
                                           children: [
-                                            Expanded(child: Text('Current: $current $stockUom')),
+                                            Expanded(child: Text(l10n.inventoryCountCurrentAmount(current.toStringAsFixed(3), stockUom))),
                                             // Minus button
                                             IconButton(
-                                              tooltip: 'Decrease',
+                                              tooltip: l10n.inventoryCountDecrease,
                                               icon: const Icon(Icons.remove_circle_outline),
                                               onPressed: () {
                                                 final cur = double.tryParse(qtyCtrl.text) ?? 0.0;
@@ -476,7 +486,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                                               child: TextField(
                                                 controller: qtyCtrl,
                                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                                decoration: const InputDecoration(labelText: 'Count'),
+                                                decoration: InputDecoration(labelText: l10n.inventoryCountCount),
                                                 onChanged: (val) {
                                                   enteredQty = double.tryParse(val) ?? 0;
                                                   if (enteredQty < 0) enteredQty = 0;
@@ -486,7 +496,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                                             ),
                                             // Plus button
                                             IconButton(
-                                              tooltip: 'Increase',
+                                              tooltip: l10n.inventoryCountIncrease,
                                               icon: const Icon(Icons.add_circle_outline),
                                               onPressed: () {
                                                 final cur = double.tryParse(qtyCtrl.text) ?? 0;
@@ -516,13 +526,13 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                                           Padding(
                                             padding: const EdgeInsets.only(bottom: 2),
                                             child: Text(
-                                              'Valuation: ${valuationRate.toStringAsFixed(2)} / $stockUom',
+                                              l10n.inventoryCountValuation(valuationRate.toStringAsFixed(2), stockUom),
                                               style: const TextStyle(color: Colors.black87),
                                             ),
                                           ),
                                         Row(
                                           children: [
-                                            const Text('Delta: '),
+                                            Text(l10n.inventoryCountDeltaLabel),
                                             Text(
                                               '${delta.toStringAsFixed(3)} $stockUom',
                                               style: TextStyle(color: deltaColor, fontWeight: FontWeight.w600),
@@ -546,7 +556,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
         floatingActionButton: FloatingActionButton.extended(
           onPressed: _loading ? null : _submit,
           icon: const Icon(Icons.save),
-          label: const Text('Submit Count'),
+          label: Text(l10n.inventoryCountSubmitCount),
         ),
       ),
     );

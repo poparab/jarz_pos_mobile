@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../manager/state/manager_providers.dart';
 import '../data/cash_transfer_service.dart';
@@ -95,9 +96,10 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final allowed = ref.watch(managerAccessProvider).maybeWhen(data: (v) => v, orElse: () => false);
     if (!allowed) {
-      return Scaffold(appBar: AppBar(title: const Text('Cash Transfer')), body: const Center(child: Text('Managers only')));
+      return Scaffold(appBar: AppBar(title: Text(l10n.menuCashTransfer)), body: Center(child: Text(l10n.stockTransferManagersOnly)));
     }
     final amt = double.tryParse(amountCtrl.text.trim()) ?? 0;
     final fromBal = _balance(fromAccount);
@@ -105,7 +107,7 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
     final fromAfter = fromBal - amt;
     final toAfter = toBal + amt;
     return Scaffold(
-      appBar: AppBar(title: const Text('Cash Transfer')),
+      appBar: AppBar(title: Text(l10n.menuCashTransfer)),
       drawer: const AppDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(12),
@@ -113,7 +115,7 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              Expanded(child: _accountDropdown('From Account', fromAccount, (v) {
+              Expanded(child: _accountDropdown(l10n.cashTransferFromAccount, fromAccount, (v) {
                 setState(() {
                   fromAccount = v;
                   if (fromAccount == toAccount) {
@@ -122,7 +124,7 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
                 });
               })),
               const SizedBox(width: 8),
-              Expanded(child: _accountDropdown('To Account', toAccount, (v) {
+              Expanded(child: _accountDropdown(l10n.cashTransferToAccount, toAccount, (v) {
                 setState(() {
                   toAccount = v;
                   if (toAccount == fromAccount) {
@@ -136,7 +138,7 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
               Expanded(
                 child: TextFormField(
                   controller: amountCtrl,
-                  decoration: const InputDecoration(labelText: 'Amount', border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: l10n.expensesAmountLabel, border: const OutlineInputBorder()),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (_) => setState(() {}),
                 ),
@@ -158,12 +160,16 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
                   }
                 },
                 icon: const Icon(Icons.calendar_today_outlined),
-                label: Text(postingDate == null ? 'Posting: Today' : 'Posting: ${DateFormat('yyyy-MM-dd').format(postingDate!)}'),
+                label: Text(
+                  postingDate == null
+                      ? l10n.cashTransferPostingToday
+                      : l10n.cashTransferPostingDate(DateFormat('yyyy-MM-dd').format(postingDate!)),
+                ),
               ),
               if (postingDate != null) ...[
                 const SizedBox(width: 8),
                 IconButton(
-                  tooltip: 'Use Today',
+                  tooltip: l10n.stockTransferUseToday,
                   onPressed: () async {
                     setState(() => postingDate = null);
                     await _loadAccounts();
@@ -175,7 +181,7 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: remarkCtrl,
-              decoration: const InputDecoration(labelText: 'Remark (optional)', border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: l10n.cashTransferRemarkOptional, border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             if (fromAccount != null || toAccount != null)
@@ -186,9 +192,9 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
                   padding: const EdgeInsets.all(12.0),
                   child: Row(
                     children: [
-                      Expanded(child: _balanceTile('From', fromAccount, fromBal, fromAfter)),
+                      Expanded(child: _balanceTile(l10n.cashTransferFrom, fromAccount, fromBal, fromAfter)),
                       const SizedBox(width: 8),
-                      Expanded(child: _balanceTile('To', toAccount, toBal, toAfter)),
+                      Expanded(child: _balanceTile(l10n.cashTransferTo, toAccount, toBal, toAfter)),
                     ],
                   ),
                 ),
@@ -198,11 +204,11 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
               ElevatedButton.icon(
                 onPressed: _canSubmit() ? _submit : null,
                 icon: const Icon(Icons.send),
-                label: const Text('Submit'),
+                label: Text(l10n.stockTransferSubmit),
               ),
               if (fromAccount == toAccount && fromAccount != null) ...[
                 const SizedBox(width: 12),
-                const Text('Accounts must differ', style: TextStyle(color: Colors.red)),
+                Text(l10n.cashTransferAccountsMustDiffer, style: const TextStyle(color: Colors.red)),
               ],
             ]),
             const SizedBox(height: 12),
@@ -220,7 +226,7 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
         child: DropdownButton<String>(
           isExpanded: true,
           value: value,
-          hint: const Text('Select account'),
+          hint: Text(context.l10n.cashTransferSelectAccount),
           items: [
             for (final a in accounts)
               DropdownMenuItem<String>(
@@ -257,17 +263,17 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
             Expanded(child: Text(acc)),
           ])
         else
-          const Text('—'),
+          const Text('-'),
         const SizedBox(height: 8),
-        Text('Before: ${before.toStringAsFixed(2)}'),
-        Text('After:  ${after.toStringAsFixed(2)}'),
+        Text(context.l10n.cashTransferBefore(before.toStringAsFixed(2))),
+        Text(context.l10n.cashTransferAfter(after.toStringAsFixed(2))),
       ]),
     );
   }
 
   Widget _accountsOverview() {
     if (loading) return const Center(child: CircularProgressIndicator());
-    if (accounts.isEmpty) return const Center(child: Text('No accounts found'));
+    if (accounts.isEmpty) return Center(child: Text(context.l10n.cashTransferNoAccountsFound));
     // Group accounts by category for clarity
     final byCat = <String, List<Map<String, dynamic>>>{};
     for (final a in accounts) {
@@ -322,6 +328,7 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
   Future<void> _submit() async {
     final service = ref.read(cashTransferServiceProvider);
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     try {
       final amt = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
       final dateStr = postingDate == null ? null : DateFormat('yyyy-MM-dd').format(postingDate!);
@@ -332,14 +339,17 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
         postingDate: dateStr,
         remark: remarkCtrl.text.trim().isEmpty ? null : remarkCtrl.text.trim(),
       );
-      messenger.showSnackBar(SnackBar(content: Text('Journal Entry: ${res['journal_entry']}')));
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(l10n.cashTransferJournalEntry('${res['journal_entry']}'))));
       // Refresh balances
       await _loadAccounts();
+      if (!mounted) return;
       setState(() {
         amountCtrl.text = '0.00';
       });
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Failed: $e')));
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(l10n.cashTransferFailed(e.toString()))));
     }
   }
 }

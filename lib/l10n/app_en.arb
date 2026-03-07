@@ -8,11 +8,122 @@
   "menuExpenses": "Expenses",
   "menuCourierBalances": "Courier Balances",
   "menuManagerDashboard": "Manager Dashboard",
+  "managerMenuTooltip": "Menu",
+  "managerDashboardTitle": "Manager Dashboard",
+  "managerRecentOrders": "Recent Orders",
+  "managerNoRecentOrders": "No recent orders",
+  "managerBranchBalances": "Branch Balances",
+  "managerSwitchProfileTip": "Tip: Switch POS profiles from the POS/Kanban headers.",
+  "managerSwitchProfile": "Switch Profile",
+  "managerTotalCash": "Total Cash",
+  "managerAll": "All",
+  "managerFilterByState": "Filter by state:",
+  "managerChangeBranch": "Change Branch",
+  "managerAssignToBranch": "Assign to Branch",
+  "managerBranchUpdated": "Branch updated",
+  "managerBranchUpdateFailed": "Failed: {error}",
+  "@managerBranchUpdateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "menuPurchaseInvoice": "Purchase Invoice",
   "menuManufacturing": "Manufacturing",
   "menuStockTransfer": "Stock Transfer",
   "menuCashTransfer": "Cash Transfer",
+  "cashTransferFromAccount": "From Account",
+  "cashTransferToAccount": "To Account",
+  "cashTransferPostingToday": "Posting: Today",
+  "cashTransferPostingDate": "Posting: {date}",
+  "@cashTransferPostingDate": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "cashTransferRemarkOptional": "Remark (optional)",
+  "cashTransferFrom": "From",
+  "cashTransferTo": "To",
+  "cashTransferAccountsMustDiffer": "Accounts must differ",
+  "cashTransferSelectAccount": "Select account",
+  "cashTransferBefore": "Before: {amount}",
+  "@cashTransferBefore": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "cashTransferAfter": "After: {amount}",
+  "@cashTransferAfter": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "cashTransferNoAccountsFound": "No accounts found",
+  "cashTransferJournalEntry": "Journal Entry: {entry}",
+  "@cashTransferJournalEntry": {
+    "placeholders": {
+      "entry": {}
+    }
+  },
+  "cashTransferFailed": "Failed: {error}",
+  "@cashTransferFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "menuInventoryCount": "Inventory Count",
+  "inventoryCountOfflineUsingCache": "Offline using cached data",
+  "inventoryCountConfirmAllBeforeSubmit": "Please confirm all items before submitting ({remaining} remaining)",
+  "@inventoryCountConfirmAllBeforeSubmit": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "inventoryCountConfirmAtLeastOne": "Confirm at least one item before submitting",
+  "inventoryCountSubmitted": "Submitted: {result}",
+  "@inventoryCountSubmitted": {
+    "placeholders": {
+      "result": {}
+    }
+  },
+  "inventoryCountNoDifferences": "No differences",
+  "inventoryCountUncategorized": "Uncategorized",
+  "inventoryCountManagerAccessRequired": "Manager access required",
+  "inventoryCountSelectWarehouse": "Select Warehouse",
+  "inventoryCountEnforceAll": "Enforce all",
+  "inventoryCountConfirmedProgress": "Confirmed {confirmed} / {total}",
+  "@inventoryCountConfirmedProgress": {
+    "placeholders": {
+      "confirmed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "inventoryCountClearAllEnteredData": "Clear all entered data",
+  "inventoryCountAllEnteredDataCleared": "All entered data cleared",
+  "inventoryCountCurrentAmount": "Current: {amount} {uom}",
+  "@inventoryCountCurrentAmount": {
+    "placeholders": {
+      "amount": {},
+      "uom": {}
+    }
+  },
+  "inventoryCountDecrease": "Decrease",
+  "inventoryCountCount": "Count",
+  "inventoryCountIncrease": "Increase",
+  "inventoryCountValuation": "Valuation: {amount} / {uom}",
+  "@inventoryCountValuation": {
+    "placeholders": {
+      "amount": {},
+      "uom": {}
+    }
+  },
+  "inventoryCountDeltaLabel": "Delta: ",
+  "inventoryCountSubmitCount": "Submit Count",
   "menuEndShift": "End Shift",
   "menuHome": "Home",
   "menuSettings": "Settings",
@@ -119,9 +230,67 @@
   "shiftNoActive": "No active shift found.",
   "shiftBackToPos": "Back to POS",
   "shiftOpeningPrompt": "Enter opening balances per payment method:",
+  "shiftPosProfile": "POS Profile: {profile}",
+  "@shiftPosProfile": {
+    "placeholders": {
+      "profile": {}
+    }
+  },
+  "shiftAccount": "Account: {account}",
+  "@shiftAccount": {
+    "placeholders": {
+      "account": {}
+    }
+  },
+  "shiftSystemBalance": "System Balance: {amount}",
+  "@shiftSystemBalance": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "shiftConfirmedOpeningAmount": "Confirmed Opening Amount",
+  "shiftDifferenceAmount": "Difference: {amount}",
+  "@shiftDifferenceAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
   "shiftClosingPrompt": "Enter closing balances:",
   "shiftClosingAmountLabel": "Closing Amount",
   "shiftExpectedAmount": "Expected: {amount}",
+  "shiftLoadActiveFailed": "Failed to load active shift: {error}",
+  "@shiftLoadActiveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "shiftSummaryLoadFailed": "Unable to load shift summary.",
+  "shiftLabel": "Shift: {shift}",
+  "@shiftLabel": {
+    "placeholders": {
+      "shift": {}
+    }
+  },
+  "shiftOutflows": "Outflows: {amount}",
+  "@shiftOutflows": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "shiftNetMovement": "Net Movement: {amount}",
+  "@shiftNetMovement": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "shiftAccountMovements": "Account Movements",
+  "shiftOther": "Other",
+  "shiftSubtotal": "Subtotal: {amount}",
+  "@shiftSubtotal": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
   "shiftInvoices": "Invoices: {count}",
   "shiftGrandTotal": "Grand Total: {amount}",
   "shiftStartButton": "Start Shift",
@@ -189,6 +358,81 @@
   "printerStatusConnecting": "Printer: Connecting…",
   "printerStatusError": "Printer Error",
   "printerStatusDisconnected": "Printer: Not Connected",
+  "printerSelectTitle": "Select Printer",
+  "printerDiagnosticsTitle": "Diagnostics",
+  "printerDiagnosticsAdapter": "Adapter: {state}",
+  "@printerDiagnosticsAdapter": {
+    "placeholders": {
+      "state": {}
+    }
+  },
+  "printerDiagnosticsScan": "Perm scan: {status}",
+  "@printerDiagnosticsScan": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "printerDiagnosticsConnect": "Perm connect: {status}",
+  "@printerDiagnosticsConnect": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "printerDiagnosticsLocation": "Perm location: {status}",
+  "@printerDiagnosticsLocation": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "printerDeviceIdLabel": "Device ID (MAC / Identifier)",
+  "printerConnectById": "Connect by ID",
+  "printerConnectingById": "Connecting by ID...",
+  "printerConnecting": "Connecting...",
+  "printerConnected": "Printer connected",
+  "printerConnectionFailed": "Failed to connect",
+  "printerForgetSavedTooltip": "Forget saved printer",
+  "printerForgotSaved": "Forgot saved printer",
+  "printerRescanTooltip": "Rescan",
+  "printerReconnecting": "Reconnecting...",
+  "printerReconnected": "Reconnected",
+  "printerReconnectFailed": "Reconnect failed",
+  "printerReconnect": "Reconnect",
+  "printerConnectedTo": "Connected: {name}",
+  "@printerConnectedTo": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "printerTestPrint": "Test Print",
+  "printerTestSent": "Test print sent",
+  "printerTestFailed": "Test failed: {error}",
+  "@printerTestFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "printerBleDevices": "BLE Devices",
+  "printerRescanBleTooltip": "Rescan BLE",
+  "printerNoBleDevices": "No BLE devices discovered.",
+  "printerUnknownName": "Unknown Printer",
+  "printerConnect": "Connect",
+  "printerClassicDevices": "Paired Classic Devices",
+  "printerRefreshClassicTooltip": "Refresh Classic List",
+  "printerNoClassicDevices": "No paired classic printers found. Ensure the printer is paired in System Bluetooth settings and that Location (Android 8) is enabled.",
+  "printerClassicMacConnected": "{mac}  (Classic)",
+  "@printerClassicMacConnected": {
+    "placeholders": {
+      "mac": {}
+    }
+  },
+  "printerDisconnect": "Disconnect",
+  "printerConnectingClassic": "Connecting (Classic)...",
+  "printerLastSavedNotAdvertising": "Last saved printer: {id}\nIt is not currently advertising. You can still attempt to reconnect.",
+  "@printerLastSavedNotAdvertising": {
+    "placeholders": {
+      "id": {}
+    }
+  },
   "branchFilterTitle": "Filter Branches",
   "branchFilterAllBranches": "All Branches",
   "branchFilterApply": "Apply",
@@ -214,8 +458,174 @@
   "courierBalancesDetailsTitle": "Details – {courier}",
   "courierBalancesCityOrderLine": "City: {city}\nOrder: {order} • Shipping: {shipping}",
   "courierBalancesNetLabel": "Net",
+  "courierSettlementComplete": "Settlement complete",
+  "courierSettlementFailed": "Settlement failed",
+  "courierSettleButton": "Settle",
+  "courierPayCourierAmount": "Pay Courier {amount}",
+  "@courierPayCourierAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "courierCollectAmount": "Collect {amount}",
+  "@courierCollectAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "courierSettleAllInvoicesQuestion": "Settle all {count} invoices for this courier?",
+  "@courierSettleAllInvoicesQuestion": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courierSettled": "Settled",
+  "courierSettleAllButton": "Settle All",
+  "courierSettleAllDialogTitle": "{action} - Total {total}",
+  "@courierSettleAllDialogTitle": {
+    "placeholders": {
+      "action": {},
+      "total": {}
+    }
+  },
+  "courierSettleAllWillSettle": "This will settle {count} invoice(s).",
+  "@courierSettleAllWillSettle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courierInvoicesLabel": "Invoices:",
+  "courierSettleAllCollectInfo": "You will collect the net amount from the courier.",
+  "courierSettleAllPayInfo": "You will pay the courier the net amount now.",
+  "courierSettleAllComplete": "Settle All complete: {success} ok, {failed} failed",
+  "@courierSettleAllComplete": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
   "courierBalancesPreviewTooltip": "Preview settlement",
   "courierBalancesPreviewFailed": "Failed to load settlement preview: {error}",
+  "settlementTitleCollectFromCourier": "Collect From Courier",
+  "settlementTitlePayCourier": "Pay Courier",
+  "settlementTitleCourierSettlement": "Courier Settlement",
+  "settlementStatusUnpaid": "Unpaid",
+  "settlementStatusPaid": "Paid",
+  "settlementPaidNoteRecent": " (just paid, treating as Unpaid)",
+  "settlementPaidNoteAfterOfd": " (after OFD)",
+  "settlementPaidNoteAfterOfdUnpaid": " (paid after OFD, treated as Unpaid)",
+  "settlementInvoiceStatus": "Invoice is: {status}{note}",
+  "@settlementInvoiceStatus": {
+    "placeholders": {
+      "status": {},
+      "note": {}
+    }
+  },
+  "settlementCollectFormula": "Collect (Order - Shipping):",
+  "settlementPayFormula": "Pay the courier (Order - Shipping):",
+  "settlementNetToCollect": "Net to Collect",
+  "settlementPayAmount": "Pay Amount",
+  "settlementNothingToSettle": "Nothing to pay or collect.",
+  "settlementOrderLabel": "Order: {amount}",
+  "@settlementOrderLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "settlementShippingLabel": "Shipping: {amount}",
+  "@settlementShippingLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "settlementTerritoryLabel": "Territory: {territory}",
+  "@settlementTerritoryLabel": {
+    "placeholders": {
+      "territory": {}
+    }
+  },
+  "cancelOrderTitle": "Cancel Order",
+  "cancelOrderInvoiceLabel": "Invoice: {invoice}",
+  "@cancelOrderInvoiceLabel": {
+    "placeholders": {
+      "invoice": {}
+    }
+  },
+  "cancelOrderTotalLabel": "Total: {amount}",
+  "@cancelOrderTotalLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "cancelOrderOutstandingLabel": "Outstanding: {amount}",
+  "@cancelOrderOutstandingLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "cancelOrderPartialPaymentWarning": "This invoice has a partial payment. Please settle or refund the payment before cancelling.",
+  "cancelOrderReasonLabel": "Cancellation reason",
+  "cancelOrderSelectReasonValidation": "Select a reason to continue",
+  "cancelOrderProvideReasonValidation": "Provide a reason",
+  "cancelOrderCustomReasonLabel": "Custom reason",
+  "cancelOrderDescribeReasonValidation": "Please describe the cancellation reason",
+  "cancelOrderAdditionalNotesOptional": "Additional notes (optional)",
+  "cancelOrderCreditNoteInfo": "A credit note will be issued automatically so the accounts stay balanced.",
+  "cancelOrderConfirmButton": "Confirm cancellation",
+  "invoicePreparingReceipt": "Preparing receipt...",
+  "invoiceItemsCount": "Items ({count})",
+  "@invoiceItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "invoicePrinterNotConnectedHint": "Printer not connected. Open Printer Selection from menu.",
+  "invoicePrintedSuccessfully": "Printed successfully",
+  "invoicePrinterDisconnected": "Printer disconnected",
+  "invoicePrintFailed": "Print failed: {result}",
+  "@invoicePrintFailed": {
+    "placeholders": {
+      "result": {}
+    }
+  },
+  "invoiceAcceptOrderTitle": "Accept Order",
+  "invoiceAcceptOrderQuestion": "Accept order {invoice} for {customer}?",
+  "@invoiceAcceptOrderQuestion": {
+    "placeholders": {
+      "invoice": {},
+      "customer": {}
+    }
+  },
+  "invoiceAcceptAction": "Accept",
+  "invoiceOrderAccepted": "Order {invoice} accepted!",
+  "@invoiceOrderAccepted": {
+    "placeholders": {
+      "invoice": {}
+    }
+  },
+  "invoiceAcceptFailed": "Failed to accept order: {error}",
+  "@invoiceAcceptFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "invoiceMoreOptions": "More Options",
+  "invoiceEditCustomerAddress": "Edit Customer Address",
+  "invoiceChangeDeliverySlot": "Change Delivery Slot",
+  "invoiceTransferOrder": "Transfer Order",
+  "invoiceCancelOrderSettleFirst": "Cancel Order (settle payments first)",
+  "invoiceCustomerLabel": "Customer",
+  "invoiceShippingExpenseShort": "Shipping Exp:",
   "manufacturingTitle": "Manufacturing",
   "manufacturingManagersOnly": "Managers only",
   "manufacturingRecentWorkOrdersTooltip": "Recent Work Orders",
@@ -274,5 +684,253 @@
   "stockTransferItemGroup": "Item Group",
   "stockTransferAllGroups": "All Groups",
   "stockTransferAddAll": "Add All",
-  "stockTransferAddGroup": "Add Group"
+  "stockTransferAddGroup": "Add Group",
+
+  "commonCancel": "Cancel",
+  "commonClear": "Clear",
+  "commonClose": "Close",
+  "commonConfirm": "Confirm",
+  "commonDismiss": "Dismiss",
+  "commonError": "Error",
+  "commonOk": "OK",
+  "commonRetry": "Retry",
+  "commonSave": "Save",
+
+  "paymentMethodSelectTitle": "Select Payment Method",
+  "paymentMethodCash": "Cash",
+  "paymentMethodInstapay": "Instapay",
+  "paymentMethodMobileWallet": "Mobile Wallet",
+
+  "checkoutTotal": "Total:",
+  "checkoutPay": "Pay",
+  "checkoutSelectProfileFirst": "Select POS profile first",
+  "checkoutOrderSuccess": "Order completed successfully!",
+  "checkoutFailed": "Checkout failed: {error}",
+  "@checkoutFailed": { "placeholders": { "error": {} } },
+
+  "salesPartnerTitle": "Sales Partner",
+  "salesPartnerSearchHint": "Search partner",
+  "salesPartnerNotFound": "No partners found",
+
+  "itemGridBundles": "Bundles",
+  "itemGridAll": "All",
+  "itemGridUncategorized": "Uncategorized",
+  "itemGridSelectCustomerWarning": "Please select a customer first",
+  "itemGridNoItemsFound": "No items found",
+  "itemGridNoItemsAvailable": "No items available",
+  "itemGridTryDifferentCategory": "Try a different category",
+  "itemGridItemsWillAppear": "Items will appear here",
+  "itemGridFreeDelivery": "Free delivery",
+  "itemGridBundlesCount": "{count} bundles",
+  "@itemGridBundlesCount": { "placeholders": { "count": {} } },
+  "itemGridItemsCount": "{count} items",
+  "@itemGridItemsCount": { "placeholders": { "count": {} } },
+  "itemGridAddedToCart": "Added to cart",
+  "itemGridSelectCustomerFirst": "Select customer first",
+  "itemGridOutOfStock": "Out of stock",
+  "itemGridCannotAdd": "Cannot add item",
+
+  "kanbanFilterTitle": "Filters",
+  "kanbanFilterActiveCount": "{count} active",
+  "@kanbanFilterActiveCount": { "placeholders": { "count": {} } },
+  "kanbanFilterClearAll": "Clear All",
+  "kanbanFilterSearch": "Search",
+  "kanbanFilterSearchHint": "Search orders...",
+  "kanbanFilterAllCustomers": "All Customers",
+  "kanbanFilterAllStatuses": "All Statuses",
+  "kanbanFilterDateRange": "Date Range",
+  "kanbanFilterFromDate": "From Date",
+  "kanbanFilterToDate": "To Date",
+  "kanbanFilterAllDates": "All Dates",
+  "kanbanFilterAmountRange": "Amount Range",
+  "kanbanFilterMinAmount": "Min Amount",
+  "kanbanFilterMaxAmount": "Max Amount",
+  "kanbanFilterAllAmounts": "All Amounts",
+  "kanbanFilterActiveLabel": "Active Filters:",
+  "kanbanFilterByBranches": "Filter by Branches",
+  "kanbanFilterCustomerTitle": "Customer",
+  "kanbanFilterCustomerName": "Customer name",
+  "kanbanFilterCustomerHint": "Enter customer name",
+  "kanbanFilterStatusTitle": "Status",
+  "kanbanFilterFromAmount": "From Amount",
+  "kanbanFilterToAmount": "To Amount",
+  "kanbanFilterApply": "Apply",
+
+  "kanbanRefreshOrders": "Refresh Orders",
+  "kanbanOrdersRefreshed": "Orders refreshed",
+  "kanbanHideFilters": "Hide Filters",
+  "kanbanShowFilters": "Show Filters",
+  "kanbanMoreActions": "More Actions",
+  "kanbanMenu": "Menu",
+  "kanbanMenuReceipts": "Payment Receipts",
+  "kanbanMenuPrinters": "Printers",
+  "kanbanMenuCouriers": "Courier Balances",
+  "kanbanMenuProfile": "Profile",
+  "kanbanMenuPos": "Point of Sale",
+  "kanbanPaymentReceipts": "Payment Receipts",
+  "kanbanCourierBalances": "Courier Balances",
+  "kanbanUserProfile": "User Profile",
+  "kanbanOpenPos": "Open POS",
+  "kanbanTitleShort": "Kanban",
+  "kanbanTitleFull": "Sales Kanban",
+  "kanbanPrinterBle": "BLE",
+  "kanbanPrinterClassic": "Classic",
+  "kanbanPrinterConnecting": "Connecting...",
+  "kanbanPrinterNotConnected": "Not Connected",
+  "kanbanErrorLoadingData": "Error loading data",
+  "kanbanNoColumnsConfigured": "No columns configured",
+  "kanbanEnsureStateField": "Ensure the state field is configured properly.",
+  "kanbanSelectPosProfileFirst": "Select POS profile first",
+  "kanbanSelectPosProfile": "Select POS Profile",
+  "kanbanNoPosProfiles": "No POS profiles available",
+  "kanbanWarehouse": "Warehouse: {warehouse}",
+  "@kanbanWarehouse": { "placeholders": { "warehouse": {} } },
+  "kanbanCourierAndMode": "Courier & Mode",
+  "kanbanNoCouriersAvailable": "No couriers available",
+  "kanbanCreateCourierHint": "Create a courier to proceed.",
+  "kanbanNewCourier": "New Courier",
+  "kanbanFirstName": "First Name",
+  "kanbanLastName": "Last Name",
+  "kanbanPhone": "Phone",
+  "kanbanType": "Type",
+  "kanbanEmployee": "Employee",
+  "kanbanSupplier": "Supplier",
+  "kanbanBack": "Back",
+  "kanbanCreateFailed": "Create failed: {error}",
+  "@kanbanCreateFailed": { "placeholders": { "error": {} } },
+  "kanbanMode": "Mode",
+  "kanbanPayNowCash": "Pay Now (Cash)",
+  "kanbanSettleLater": "Settle Later",
+  "kanbanSettleLaterSubtitle": "Courier settles with branch later",
+  "kanbanContinue": "Continue",
+  "kanbanSettleLaterMissingParty": "Settle Later failed: courier party missing.",
+  "kanbanSettleLaterPreviewExpired": "Settle Later: preview expired. Please retry.",
+  "kanbanSettleLaterFailed": "Settle Later failed",
+  "kanbanMarkedSettleLater": "Marked to Settle Later",
+  "kanbanSettleLaterError": "Settle Later error: {error}",
+  "@kanbanSettleLaterError": { "placeholders": { "error": {} } },
+  "kanbanSettlementMissingParty": "Settlement failed: courier party missing.",
+  "kanbanPreviewExpired": "Preview expired. Please retry.",
+  "kanbanConfirmingSettlement": "Confirming settlement...",
+  "kanbanSettlementFailed": "Settlement failed",
+  "kanbanSettlementConfirmed": "Settlement confirmed",
+  "kanbanSettlementError": "Settlement error: {error}",
+  "@kanbanSettlementError": { "placeholders": { "error": {} } },
+  "kanbanPreviewFailed": "Preview failed: {error}",
+  "@kanbanPreviewFailed": { "placeholders": { "error": {} } },
+  "kanbanPickupNoSettlement": "Pickup orders don''t require settlement",
+  "kanbanCannotMoveBackward": "Cannot move backward",
+  "kanbanMoveOneStage": "Can only move one stage at a time",
+  "kanbanAllBranches": "All Branches",
+  "kanbanBranchCount": "{count} branches",
+  "@kanbanBranchCount": { "placeholders": { "count": {} } },
+  "kanbanLoadingBranches": "Loading branches...",
+  "kanbanTapToRefreshBalance": "Tap to refresh balance",
+  "kanbanPressBackAgain": "Press back again to exit",
+
+  "invoiceDeliveryAddress": "Delivery Address",
+  "invoiceItems": "Items",
+  "invoiceNetTotal": "Net Total",
+  "invoiceShippingIncome": "Shipping Income",
+  "invoiceShippingExpense": "Shipping Expense",
+  "invoiceGrandTotal": "Grand Total",
+  "invoiceAlreadyStatus": "Invoice already {status}",
+  "@invoiceAlreadyStatus": { "placeholders": { "status": {} } },
+  "invoiceSelectPaymentMethod": "Select Payment Method",
+  "invoiceWallet": "Wallet",
+  "invoiceSubmit": "Submit",
+  "invoiceNoPosProfileCash": "No POS profile selected for Cash payment",
+  "invoiceProcessingPayment": "Processing {method} payment...",
+  "@invoiceProcessingPayment": { "placeholders": { "method": {} } },
+  "invoicePaymentSuccess": "Payment successful ({entry})",
+  "@invoicePaymentSuccess": { "placeholders": { "entry": {} } },
+  "invoiceReceiptAmountWarning": "Warning: Could not get payment amount for receipt",
+  "invoiceReceiptNoPosProfile": "Warning: No POS profile found - receipt not created. Please select a POS profile.",
+  "invoiceReceiptCreated": "Payment receipt created ({receipt}) - please upload receipt image from header",
+  "@invoiceReceiptCreated": { "placeholders": { "receipt": {} } },
+  "invoiceReceiptReturnedWarning": "Warning: Receipt creation returned: {message}",
+  "@invoiceReceiptReturnedWarning": { "placeholders": { "message": {} } },
+  "invoiceReceiptCreationFailed": "Warning: Receipt creation failed: {error}",
+  "@invoiceReceiptCreationFailed": { "placeholders": { "error": {} } },
+  "invoicePaymentFailed": "Payment failed",
+  "invoicePaymentError": "Payment error: {error}",
+  "@invoicePaymentError": { "placeholders": { "error": {} } },
+  "invoiceCollectCashTitle": "Collect Cash",
+  "invoiceCollectCashBody": "Please collect from the customer:\n\nTotal Amount: {amount} EGP\n\nThis includes:\n• Order items\n• Shipping fee\n\nInvoice: {invoiceId}",
+  "@invoiceCollectCashBody": { "placeholders": { "amount": {}, "invoiceId": {} } },
+  "invoiceSelectPosFirst": "Select POS profile first",
+  "invoiceCollectingCashPartner": "Collecting cash & dispatching (Sales Partner)...",
+  "invoiceCashCollectedOfd": "Cash collected & sent Out For Delivery",
+  "invoiceOfdFailed": "Failed: {error}",
+  "@invoiceOfdFailed": { "placeholders": { "error": {} } },
+  "invoiceOfdError": "Error: {error}",
+  "@invoiceOfdError": { "placeholders": { "error": {} } },
+  "invoiceSentOfd": "Sent Out For Delivery (DN will be created)",
+  "invoiceActionFailed": "Action failed: {error}",
+  "@invoiceActionFailed": { "placeholders": { "error": {} } },
+  "invoiceSettleLaterMissingParty": "Settle Later failed: courier party missing.",
+  "invoiceMarkedSettleLater": "Marked to Settle Later",
+  "invoiceSettleLaterFailed": "Settle Later failed",
+  "invoiceSettleLaterError": "Settle Later error: {error}",
+  "@invoiceSettleLaterError": { "placeholders": { "error": {} } },
+  "invoiceSettlementMissingParty": "Settlement failed: courier party missing.",
+  "invoicePreviewExpired": "Preview expired. Please retry.",
+  "invoiceConfirmingSettlement": "Confirming settlement...",
+  "invoiceSettlementConfirmed": "Settlement confirmed",
+  "invoiceSettlementFailed": "Settlement failed",
+  "invoiceSettlementError": "Settlement error: {error}",
+  "@invoiceSettlementError": { "placeholders": { "error": {} } },
+  "invoiceProcessingDelivery": "Processing Delivery...",
+  "invoiceUpdated": "Updated",
+  "invoiceDeliveryFailed": "Delivery action failed",
+  "invoiceDeliveryError": "Error: {error}",
+  "@invoiceDeliveryError": { "placeholders": { "error": {} } },
+  "invoiceDeliveryTitle": "Delivery",
+  "invoiceUnpaidWarning": "Invoice is UNPAID. Choose Courier Collects Cash Now to record a cash payment before marking Out For Delivery.",
+  "invoiceCannotSettleParty": "Cannot settle: courier party not resolved. Assign courier or retry.",
+  "invoiceNothingToSettle": "Nothing to settle",
+  "invoiceSettlementComplete": "Settlement complete",
+  "invoiceEditAddress": "Edit Customer Address",
+  "invoiceCustomerLabel": "Customer",
+  "invoicePhoneNumber": "Phone Number",
+  "invoiceDeliveryAddressLabel": "Delivery Address",
+  "invoiceAddressHelper": "Enter the full delivery address",
+  "invoiceAddressUpdateInfo": "This will update the customer''s default address and phone number.",
+  "invoiceAddressEmpty": "Address cannot be empty",
+  "invoiceUpdatingAddress": "Updating customer address...",
+  "invoiceAddressUpdated": "Customer address updated successfully",
+  "invoiceAddressUpdateFailed": "Failed to update address",
+  "invoiceCopiedNumber": "Copied: {number}",
+  "@invoiceCopiedNumber": { "placeholders": { "number": {} } },
+  "invoiceCopy": "Copy",
+  "invoiceCannotCall": "Unable to make phone call",
+  "invoiceCall": "Call",
+  "invoiceSettleBeforeCancel": "Settle or refund partial payments before cancelling this order.",
+  "invoiceCancelFailed": "Failed to cancel order. Please try again.",
+  "invoiceCancelledWithCn": "Order cancelled. Credit note {creditNote} created.",
+  "@invoiceCancelledWithCn": { "placeholders": { "creditNote": {} } },
+  "invoiceCancelledSuccess": "Order cancelled successfully.",
+  "invoiceNoPosProfile": "No POS profile selected",
+  "invoiceAssignBranch": "Assign to Branch",
+  "invoiceCustomerName": "Customer: {name}",
+  "@invoiceCustomerName": { "placeholders": { "name": {} } },
+  "invoiceInvoiceLabel": "Invoice: {name}",
+  "@invoiceInvoiceLabel": { "placeholders": { "name": {} } },
+  "invoiceTransferInfo": "The order will be moved to the selected branch and reset to Received state.",
+  "invoiceTransferring": "Transferring order...",
+  "invoiceTransferSuccess": "Order transferred successfully to {branch}",
+  "@invoiceTransferSuccess": { "placeholders": { "branch": {} } },
+  "invoiceTransferFailed": "Transfer failed. Please try again.",
+  "invoiceCannotDetermineProfile": "Unable to determine POS profile for this invoice",
+  "invoiceLoadingSlots": "Loading delivery slots...",
+  "invoiceNoSlots": "No delivery slots available for this branch",
+  "invoiceChangeSlot": "Change Delivery Slot",
+  "invoiceCurrentSlot": "Current: {slot}",
+  "@invoiceCurrentSlot": { "placeholders": { "slot": {} } },
+  "invoiceSlotUpdateInfo": "The delivery slot will be updated for this order.",
+  "invoiceNoChanges": "No changes made",
+  "invoiceUpdatingSlot": "Updating delivery slot...",
+  "invoiceSlotUpdated": "Delivery slot updated to {slot}",
+  "@invoiceSlotUpdated": { "placeholders": { "slot": {} } },
+  "invoiceSlotUpdateFailed": "Failed to update delivery slot"
 }

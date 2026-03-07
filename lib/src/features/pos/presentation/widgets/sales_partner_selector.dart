@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../data/repositories/pos_repository.dart';
 import '../../state/pos_notifier.dart';
@@ -42,14 +43,14 @@ class _SalesPartnerSelectorDialogState extends ConsumerState<SalesPartnerSelecto
     final dialogWidth = ResponsiveUtils.getDialogWidth(context);
     final isPhone = ResponsiveUtils.isPhone(context);
     return AlertDialog(
-      title: const Text('Sales Partner'),
+      title: Text(context.l10n.salesPartnerTitle),
       content: SizedBox(
         width: dialogWidth,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search partner'),
+              decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: context.l10n.salesPartnerSearchHint),
               onChanged: (v) {
                 _search = v.trim();
                 _loadPartners();
@@ -59,7 +60,7 @@ class _SalesPartnerSelectorDialogState extends ConsumerState<SalesPartnerSelecto
             if (_loading)
               const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()))
             else if (_partners.isEmpty)
-              const SizedBox(height: 200, child: Center(child: Text('No partners found')))
+              SizedBox(height: 200, child: Center(child: Text(context.l10n.salesPartnerNotFound)))
             else
               SizedBox(
                 height: 280,
@@ -82,7 +83,7 @@ class _SalesPartnerSelectorDialogState extends ConsumerState<SalesPartnerSelecto
                       ),
                       onPressed: () => Navigator.pop(context, p),
                       child: Align(
-                        alignment: Alignment.centerLeft,
+                        alignment: AlignmentDirectional.centerStart,
                         child: Text(p['title'] ?? p['partner_name'] ?? p['name'] ?? ''),
                       ),
                     );
@@ -95,12 +96,12 @@ class _SalesPartnerSelectorDialogState extends ConsumerState<SalesPartnerSelecto
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
+          child: Text(context.l10n.commonClose),
         ),
         if (selected != null)
           TextButton(
             onPressed: () => Navigator.pop(context, null),
-            child: const Text('Clear'),
+            child: Text(context.l10n.commonClear),
           ),
       ],
     );

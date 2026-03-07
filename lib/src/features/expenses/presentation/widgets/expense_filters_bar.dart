@@ -67,7 +67,7 @@ class ExpenseFiltersBar extends StatelessWidget {
             children: [
               for (final source in paymentSources)
                 Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsetsDirectional.only(end: 8),
                   child: FilterChip(
                     label: Text(source.label),
                     avatar: Icon(_iconForCategory(source.category), size: 18),

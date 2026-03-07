@@ -52,8 +52,8 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [baseColor.withValues(alpha: 0.55), baseColor.withValues(alpha: 0.2)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
         ),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
@@ -209,7 +209,7 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
       child: ListView.builder(
         controller: _columnScrollController,
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        padding: const EdgeInsets.only(right: 4, left: 4, top: 4, bottom: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4).copyWith(bottom: 2),
         itemCount: widget.invoices.length,
         itemBuilder: (context, index) {
         final invoice = widget.invoices[index];

@@ -19,6 +19,7 @@ import '../../printing/pos_printer_provider.dart';
 import '../../printing/pos_printer_service.dart';
 import '../../pos/order_alert/data/order_alert_service.dart';
 import '../../../core/utils/responsive_utils.dart';
+import '../../../core/localization/localization_extensions.dart';
 // Invoice card widget displaying a Sales Invoice within the Kanban board.
 
 class InvoiceCardWidget extends ConsumerStatefulWidget {
@@ -88,8 +89,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   }
 
   Future<void> _printInvoice(BuildContext context) async {
+    final l10n = context.l10n;
     final printer = ref.read(posPrinterServiceProvider);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preparing receipt...'), duration: Duration(seconds: 1)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.invoicePreparingReceipt), duration: const Duration(seconds: 1)));
     // Attempt to fetch enriched invoice details for phone/address/shipping if not already present
     InvoiceCard enriched = widget.invoice;
     try {
@@ -104,7 +106,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ? enriched.items
             .map((e) => PrintableInvoiceItem(name: e.itemName, qty: e.qty, rate: e.rate))
             .toList()
-        : [PrintableInvoiceItem(name: 'Items (${enriched.itemsCount})', qty: 1, rate: enriched.netTotal)];
+        : [PrintableInvoiceItem(name: l10n.invoiceItemsCount(enriched.itemsCount), qty: 1, rate: enriched.netTotal)];
     // Paid/outstanding heuristic from card
     final isPaid = (enriched.docStatus?.toLowerCase() == InvoiceStatus.paidLower) || (enriched.effectiveStatus.toLowerCase() == InvoiceStatus.paidLower);
     final paid = isPaid ? enriched.total : 0.0;
@@ -128,7 +130,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     if (!printer.isConnected && !printer.isClassicConnected) {
       final ok = await printer.connectLastSaved();
       if (!ok) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Printer not connected. Open Printer Selection from menu.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.invoicePrinterNotConnectedHint)));
         return;
       }
     }
@@ -137,16 +139,16 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     switch (res) {
       case PrintResult.success:
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Printed successfully')),
+          SnackBar(content: Text(l10n.invoicePrintedSuccessfully)),
         );
         break;
       case PrintResult.disconnected:
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Printer disconnected')),);
+          SnackBar(content: Text(l10n.invoicePrinterDisconnected)),);
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Print failed: $res')),);
+          SnackBar(content: Text(l10n.invoicePrintFailed('$res'))),);
     }
   }
 
@@ -161,6 +163,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   }
 
   Future<void> _acceptOrder(BuildContext context) async {
+    final l10n = context.l10n;
     // Set optimistic state immediately
     setState(() {
       _isAccepting = true;
@@ -170,25 +173,28 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 8),
-            Text('Accept Order'),
+            const Icon(Icons.check_circle, color: Colors.green),
+            const SizedBox(width: 8),
+            Text(l10n.invoiceAcceptOrderTitle),
           ],
         ),
         content: Text(
-          'Accept order ${_shortInvoiceName(widget.invoice.name)} for ${widget.invoice.customerName}?',
+          l10n.invoiceAcceptOrderQuestion(
+            _shortInvoiceName(widget.invoice.name),
+            widget.invoice.customerName,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.of(ctx).pop(true),
             icon: const Icon(Icons.check),
-            label: const Text('Accept'),
+            label: Text(l10n.invoiceAcceptAction),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green[600],
               foregroundColor: Colors.white,
@@ -220,7 +226,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             children: [
               const Icon(Icons.check_circle, color: Colors.white),
               const SizedBox(width: 8),
-              Text('Order ${_shortInvoiceName(widget.invoice.name)} accepted!'),
+              Text(l10n.invoiceOrderAccepted(_shortInvoiceName(widget.invoice.name))),
             ],
           ),
           backgroundColor: Colors.green[600],
@@ -244,7 +250,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             children: [
               const Icon(Icons.error, color: Colors.white),
               const SizedBox(width: 8),
-              Expanded(child: Text('Failed to accept order: $e')),
+              Expanded(child: Text(l10n.invoiceAcceptFailed(e.toString()))),
             ],
           ),
           backgroundColor: Colors.red[600],
@@ -301,6 +307,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   }
 
   Widget _buildCard(bool transitioning) {
+    final l10n = context.l10n;
     // Show settlement only when backend indicates there is an unsettled courier transaction
     final hasUnsettled = widget.invoice.hasUnsettledCourierTxn;
     final hasPartner = (widget.invoice.salesPartner ?? '').isNotEmpty;
@@ -321,13 +328,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     if (requiresAcceptance && !widget.invoice.isAccepted && !_isAccepting) {
       trailingWidgets.add(
         Tooltip(
-          message: 'Accept Order',
+          message: l10n.invoiceAcceptOrderTitle,
           child: Container(
-            margin: const EdgeInsets.only(right: 4),
+            margin: const EdgeInsetsDirectional.only(end: 4),
             child: ElevatedButton.icon(
               onPressed: transitioning ? null : () => _acceptOrder(context),
               icon: Icon(Icons.check_circle, size: buttonIconSize),
-              label: Text('Accept', style: TextStyle(fontSize: buttonFontSize, fontWeight: FontWeight.w600)),
+              label: Text(l10n.invoiceAcceptAction, style: TextStyle(fontSize: buttonFontSize, fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green[600],
                 foregroundColor: Colors.white,
@@ -346,19 +353,19 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     if (widget.invoice.isPickup) {
       trailingWidgets.add(
         Container(
-          margin: const EdgeInsets.only(right: 4),
+          margin: const EdgeInsetsDirectional.only(end: 4),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: Colors.indigo.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.indigo.withValues(alpha: 0.7)),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.store_mall_directory, size: 12, color: Colors.indigo),
-              SizedBox(width: 4),
-              Text('Pickup', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.indigo)),
+              const Icon(Icons.store_mall_directory, size: 12, color: Colors.indigo),
+              const SizedBox(width: 4),
+              Text(l10n.posCartPickupChip, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.indigo)),
             ],
           ),
         ),
@@ -368,9 +375,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     if (hasPartner) {
       trailingWidgets.add(
         Tooltip(
-          message: 'Sales Partner',
+          message: l10n.systemStatusSalesPartnerFallback,
           child: Padding(
-            padding: const EdgeInsets.only(right: 2),
+            padding: const EdgeInsetsDirectional.only(end: 2),
             child: Icon(
               Icons.handshake,
               size: iconSize,
@@ -385,7 +392,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     if (canShowPay) {
       trailingWidgets.add(
         Tooltip(
-          message: 'Pay',
+          message: l10n.settlementPayAmount,
           child: IconButton(
             icon: Icon(Icons.payment, size: iconSize),
             padding: EdgeInsets.all(ResponsiveUtils.getSpacing(context, small: 4, medium: 5, large: 6)),
@@ -416,7 +423,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
     trailingWidgets.add(
       Tooltip(
-        message: 'Print',
+        message: l10n.printerTestPrint,
         child: IconButton(
           icon: Icon(Icons.print, size: iconSize),
           padding: EdgeInsets.all(ResponsiveUtils.getSpacing(context, small: 4, medium: 5, large: 6)),
@@ -435,7 +442,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     
     trailingWidgets.add(
       Tooltip(
-        message: 'More Options',
+        message: l10n.invoiceMoreOptions,
         child: PopupMenuButton<String>(
           icon: Icon(Icons.more_vert, size: iconSize),
           padding: EdgeInsets.all(ResponsiveUtils.getSpacing(context, small: 4, medium: 5, large: 6)),
@@ -457,35 +464,35 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'edit_address',
               child: Row(
                 children: [
-                  Icon(Icons.edit_location, size: 18),
-                  SizedBox(width: 8),
-                  Text('Edit Customer Address'),
+                  const Icon(Icons.edit_location, size: 18),
+                  const SizedBox(width: 8),
+                  Text(l10n.invoiceEditCustomerAddress),
                 ],
               ),
             ),
             if (!widget.invoice.isPickup)
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'change_delivery_slot',
                 child: Row(
                   children: [
-                    Icon(Icons.schedule, size: 18),
-                    SizedBox(width: 8),
-                    Text('Change Delivery Slot'),
+                    const Icon(Icons.schedule, size: 18),
+                    const SizedBox(width: 8),
+                    Text(l10n.invoiceChangeDeliverySlot),
                   ],
                 ),
               ),
             if (isLineManager)
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'transfer_order',
                 child: Row(
                   children: [
-                    Icon(Icons.swap_horiz, size: 18),
-                    SizedBox(width: 8),
-                    Text('Transfer Order'),
+                    const Icon(Icons.swap_horiz, size: 18),
+                    const SizedBox(width: 8),
+                    Text(l10n.invoiceTransferOrder),
                   ],
                 ),
               ),
@@ -497,7 +504,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                     children: [
                       Icon(Icons.cancel_presentation, size: 18, color: widget.invoice.hasPartialPayment ? Colors.grey : Colors.redAccent),
                       const SizedBox(width: 8),
-                      Text(widget.invoice.hasPartialPayment ? 'Cancel Order (settle payments first)' : 'Cancel Order'),
+                      Text(widget.invoice.hasPartialPayment ? l10n.invoiceCancelOrderSettleFirst : l10n.cancelOrderTitle),
                     ],
                   ),
                 ),
@@ -521,7 +528,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
     trailingWidgets.add(
       Padding(
-        padding: const EdgeInsets.only(left: 4),
+        padding: const EdgeInsetsDirectional.only(start: 4),
         child: AnimatedRotation(
           turns: _isExpanded ? 0.5 : 0,
           duration: const Duration(milliseconds: 200),
@@ -632,7 +639,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                           Container(
                             width: ResponsiveUtils.getIconSize(context, small: 8, medium: 9, large: 10),
                             height: ResponsiveUtils.getIconSize(context, small: 8, medium: 9, large: 10),
-                            margin: EdgeInsets.only(right: 6, top: ResponsiveUtils.getSpacing(context, small: 3, medium: 3.5, large: 4)),
+                            margin: EdgeInsetsDirectional.only(end: 6, top: ResponsiveUtils.getSpacing(context, small: 3, medium: 3.5, large: 4)),
                             decoration: BoxDecoration(
                               color: Colors.deepOrange,
                               shape: BoxShape.circle,
@@ -659,7 +666,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                         if (trailingWidgets.isNotEmpty)
                           Flexible(
                             child: Align(
-                              alignment: Alignment.centerRight,
+                              alignment: AlignmentDirectional.centerEnd,
                               child: Wrap(
                                 spacing: ResponsiveUtils.getSpacing(context, small: 2, medium: 3, large: 4),
                                 runSpacing: ResponsiveUtils.getSpacing(context, small: 2, medium: 3, large: 4),
@@ -682,7 +689,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Customer',
+                                l10n.invoiceCustomerLabel,
                                 style: TextStyle(
                                   fontSize: ResponsiveUtils.getResponsiveFontSize(context, 12),
                                   color: Colors.grey[600],
@@ -736,7 +743,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              'Total',
+                              l10n.posTotalLabel,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[600],
@@ -757,7 +764,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    'Shipping Exp:',
+                                    l10n.invoiceShippingExpenseShort,
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: Colors.grey[600],
@@ -842,9 +849,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (!widget.invoice.isPickup && widget.invoice.address.isNotEmpty) ...[
-                      const Text(
-                        'Delivery Address',
-                        style: TextStyle(
+                      Text(
+                        context.l10n.invoiceDeliveryAddress,
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.black87,
@@ -859,9 +866,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                     ],
 
                     if (widget.invoice.items.isNotEmpty) ...[
-                      const Text(
-                        'Items',
-                        style: TextStyle(
+                      Text(
+                        context.l10n.invoiceItems,
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.black87,
@@ -921,7 +928,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             flex: 2,
             child: Text(
               '\$${item.amount.toStringAsFixed(2)}',
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.end,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             ),
           ),
@@ -936,7 +943,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('Net Total', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+          Text(context.l10n.invoiceNetTotal, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
           Text('\$${widget.invoice.netTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
         ],
       ),
@@ -947,7 +954,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Shipping Income', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+            Text(context.l10n.invoiceShippingIncome, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
             Text('\$${widget.invoice.shippingIncomeDisplay.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
           ],
         ),
@@ -957,7 +964,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Shipping Expense', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+            Text(context.l10n.invoiceShippingExpense, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
             Text('\$${widget.invoice.shippingExpenseDisplay.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
           ],
         ),
@@ -968,7 +975,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Grand Total', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          Text(context.l10n.invoiceGrandTotal, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
           Text('\$${widget.invoice.total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green)),
         ],
       ),
@@ -1020,7 +1027,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     if (statusLower == InvoiceStatus.paidLower || statusLower == InvoiceStatus.cancelledLower) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Invoice already ${widget.invoice.status}'),
+          content: Text(context.l10n.invoiceAlreadyStatus(widget.invoice.status)),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -1051,27 +1058,27 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                   children: [
                     const Icon(Icons.payment, size: 20),
                     const SizedBox(width: 8),
-                    Text('Select Payment Method',
+                    Text(context.l10n.invoiceSelectPaymentMethod,
                         style: Theme.of(context).textTheme.titleMedium),
                   ],
                 ),
                 const SizedBox(height: 12),
                 _paymentOptionTile(
-                  title: 'InstaPay',
+                  title: context.l10n.paymentMethodInstapay,
                   value: 'InstaPay',
                   groupValue: selected,
                   onChanged: (v) => setModalState(() => selected = v),
                   icon: Icons.account_balance,
                 ),
                 _paymentOptionTile(
-                  title: 'Wallet',
+                  title: context.l10n.invoiceWallet,
                   value: 'Wallet',
                   groupValue: selected,
                   onChanged: (v) => setModalState(() => selected = v),
                   icon: Icons.account_balance_wallet,
                 ),
                 _paymentOptionTile(
-                  title: 'Cash',
+                  title: context.l10n.paymentMethodCash,
                   value: PaymentModes.cash,
                   groupValue: selected,
                   onChanged: (v) => setModalState(() => selected = v),
@@ -1083,13 +1090,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                   children: [
                     TextButton(
                       onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text('Cancel'),
+                      child: Text(context.l10n.commonCancel),
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: () => Navigator.of(ctx).pop(selected),
                       icon: const Icon(Icons.check, size: 16),
-                      label: const Text('Submit'),
+                      label: Text(context.l10n.invoiceSubmit),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green[600],
                         foregroundColor: Colors.white,
@@ -1167,14 +1174,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       posProfile = posState.selectedProfile?['name'];
       if (posProfile == null) {
         messenger.showSnackBar(
-          const SnackBar(content: Text('No POS profile selected for Cash payment')),
+          SnackBar(content: Text(context.l10n.invoiceNoPosProfileCash)),
         );
         return;
       }
     }
     try {
       messenger.showSnackBar(
-        SnackBar(content: Text('Processing $method payment...')),
+        SnackBar(content: Text(context.l10n.invoiceProcessingPayment(method))),
       );
       final result = await notifier.payInvoice(
         invoiceId: widget.invoice.name,
@@ -1183,7 +1190,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       );
       if (result != null && result['success'] == true) {
         messenger.showSnackBar(
-          SnackBar(content: Text('Payment successful (${result['payment_entry']})')),
+          SnackBar(content: Text(context.l10n.invoicePaymentSuccess('${result['payment_entry']}'))),
         );
         
         // Show collect cash dialog for cash payments
@@ -1203,15 +1210,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           if (amount == null) {
             if (context.mounted) {
               messenger.showSnackBar(
-                const SnackBar(content: Text('Warning: Could not get payment amount for receipt')),
+                SnackBar(content: Text(context.l10n.invoiceReceiptAmountWarning)),
               );
             }
           } else if (invoicePosProfile == null || invoicePosProfile.isEmpty) {
             if (context.mounted) {
               messenger.showSnackBar(
-                const SnackBar(
-                  content: Text('Warning: No POS profile found - receipt not created. Please select a POS profile.'),
-                  duration: Duration(seconds: 4),
+                SnackBar(
+                  content: Text(context.l10n.invoiceReceiptNoPosProfile),
+                  duration: const Duration(seconds: 4),
                 ),
               );
             }
@@ -1228,7 +1235,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 if (receiptResult != null && receiptResult['success'] == true) {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text('✓ Payment receipt created (${receiptResult['receipt_name']}) - please upload receipt image from header'),
+                      content: Text(context.l10n.invoiceReceiptCreated('${receiptResult['receipt_name']}')),
                       duration: const Duration(seconds: 4),
                       backgroundColor: Colors.green[700],
                     ),
@@ -1236,7 +1243,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 } else {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text('Warning: Receipt creation returned: ${receiptResult?['message'] ?? 'unknown error'}'),
+                      content: Text(context.l10n.invoiceReceiptReturnedWarning(receiptResult?['message']?.toString() ?? 'unknown error')),
                       duration: const Duration(seconds: 3),
                     ),
                   );
@@ -1247,7 +1254,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               if (context.mounted) {
                 messenger.showSnackBar(
                   SnackBar(
-                    content: Text('Warning: Receipt creation failed: $e'),
+                    content: Text(context.l10n.invoiceReceiptCreationFailed('$e')),
                     duration: const Duration(seconds: 3),
                   ),
                 );
@@ -1257,12 +1264,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         }
       } else {
         messenger.showSnackBar(
-          const SnackBar(content: Text('Payment failed')),
+          SnackBar(content: Text(context.l10n.invoicePaymentFailed)),
         );
       }
     } catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Payment error: $e')),
+        SnackBar(content: Text(context.l10n.invoicePaymentError('$e'))),
       );
     }
   }
@@ -1271,20 +1278,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('💰 Collect Cash'),
+        title: Text(context.l10n.invoiceCollectCashTitle),
         content: Text(
-          'Please collect from the customer:\n\n'
-          'Total Amount: $amount EGP\n\n'
-          'This includes:\n'
-          '• Order items\n'
-          '• Shipping fee\n\n'
-          'Invoice: $invoiceId',
+          context.l10n.invoiceCollectCashBody(amount, invoiceId),
           style: const TextStyle(fontSize: 16),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('OK'),
+            child: Text(context.l10n.commonOk),
           ),
         ],
       ),
@@ -1311,10 +1313,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       final isUnpaid = statusLower == 'unpaid' || effLower == 'unpaid' || statusLower == 'overdue' || effLower == 'overdue' || statusLower.contains('part') || effLower.contains('part');
       if (isUnpaid) {
         if (posProfileName == null) {
-          messenger.showSnackBar(const SnackBar(content: Text('Select POS Profile first')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSelectPosFirst)));
           return;
         }
-        messenger.showSnackBar(const SnackBar(content: Text('Collecting cash & dispatching (Sales Partner)...')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceCollectingCashPartner)));
         try {
           // We don't have a direct method: call raw endpoint via notifier/apiService if available
           final raw = await container.read(kanbanProvider.notifier).callBackend(
@@ -1326,21 +1328,21 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             },
           );
           if ((raw['success'] == true) || (raw['message']?['success'] == true)) {
-            messenger.showSnackBar(const SnackBar(content: Text('Cash collected & sent Out For Delivery')));
+            messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceCashCollectedOfd)));
             await notifier.refreshSingle(widget.invoice.name);
           } else {
-            messenger.showSnackBar(SnackBar(content: Text('Failed: ${(raw['message'] ?? raw).toString()}')));
+            messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceOfdFailed((raw['message'] ?? raw).toString()))));
           }
         } catch (e) {
-          messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceOfdError('$e'))));
         }
         return;
       } else if (isPaid) {
         try {
           await notifier.updateInvoiceState(widget.invoice.name, 'Out For Delivery');
-          messenger.showSnackBar(const SnackBar(content: Text('Sent Out For Delivery (DN will be created)')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSentOfd)));
         } catch (e) {
-          messenger.showSnackBar(SnackBar(content: Text('Action failed: $e')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceActionFailed('$e'))));
         }
         return;
       }
@@ -1355,7 +1357,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final mode = (result['mode'] ?? 'pay_now').toString();
     final posProfile = posState.selectedProfile?['name'];
     if (posProfile == null) {
-      messenger.showSnackBar(const SnackBar(content: Text('Select POS profile first')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSelectPosFirst)));
       return;
     }
 
@@ -1379,7 +1381,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         party = (party?.trim().isNotEmpty ?? false) ? party!.trim() : (previewParty.isNotEmpty ? previewParty : null);
         final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
         if (partyType == null || party == null || token.isEmpty) {
-          messenger.showSnackBar(const SnackBar(content: Text('Settle Later failed: courier party missing.')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettleLaterMissingParty)));
           return;
         }
         final res = await courierService.confirmSettlement(
@@ -1392,12 +1394,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           courier: courierLabel,
         );
         if (res['success'] == true) {
-          messenger.showSnackBar(const SnackBar(content: Text('Marked to Settle Later')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceMarkedSettleLater)));
         } else {
-          messenger.showSnackBar(const SnackBar(content: Text('Settle Later failed')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettleLaterFailed)));
         }
       } catch (e) {
-        messenger.showSnackBar(SnackBar(content: Text('Settle Later error: $e')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettleLaterError('$e'))));
       }
       return;
     }
@@ -1418,7 +1420,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         partyType = (partyType?.trim().isNotEmpty ?? false) ? partyType!.trim() : (previewPartyType.isNotEmpty ? previewPartyType : null);
         party = (party?.trim().isNotEmpty ?? false) ? party!.trim() : (previewParty.isNotEmpty ? previewParty : null);
         if (partyType == null || party == null) {
-          messenger.showSnackBar(const SnackBar(content: Text('Settlement failed: courier party missing.')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementMissingParty)));
           return;
         }
         if (!mounted) return;
@@ -1433,10 +1435,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         if (confirmed != true) return;
         final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
         if (token.isEmpty) {
-          messenger.showSnackBar(const SnackBar(content: Text('Preview expired. Please retry.')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoicePreviewExpired)));
           return;
         }
-        messenger.showSnackBar(const SnackBar(content: Text('Confirming settlement...')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceConfirmingSettlement)));
         final res = await courierService.confirmSettlement(
           invoice: widget.invoice.name,
           previewToken: token,
@@ -1448,21 +1450,21 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           courier: courierLabel,
         );
         if (res['success'] == true) {
-          messenger.showSnackBar(const SnackBar(content: Text('Settlement confirmed')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementConfirmed)));
           try {
             await notifier.refreshSingle(widget.invoice.name);
           } catch (_) {}
         } else {
-          messenger.showSnackBar(const SnackBar(content: Text('Settlement failed')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementFailed)));
         }
       } catch (e) {
-        messenger.showSnackBar(SnackBar(content: Text('Settlement error: $e')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementError('$e'))));
       }
       return;
     }
 
     try {
-      messenger.showSnackBar(const SnackBar(content: Text('Processing Delivery...')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceProcessingDelivery)));
       final res = await notifier.outForDeliveryUnified(
         invoiceId: widget.invoice.name,
         courier: courier ?? 'UNKNOWN',
@@ -1473,12 +1475,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         courierDisplay: courierDisplay,
       );
       if (res != null && res['success'] == true) {
-        messenger.showSnackBar(const SnackBar(content: Text('Updated')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceUpdated)));
       } else {
-        messenger.showSnackBar(const SnackBar(content: Text('Delivery action failed')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceDeliveryFailed)));
       }
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceDeliveryError('$e'))));
     }
   }
 
@@ -1513,7 +1515,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) {
           return AlertDialog(
-            title: const Text('Delivery'),
+            title: Text(context.l10n.invoiceDeliveryTitle),
             content: SizedBox(
               width: ResponsiveUtils.getDialogWidth(context, small: 350, medium: 480, large: 640),
               child: loading
@@ -1539,7 +1541,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'Invoice is UNPAID. Choose "Courier Collects Cash Now" to record a cash payment before marking Out For Delivery.',
+                                      context.l10n.invoiceUnpaidWarning,
                                       style: const TextStyle(fontSize: 12, height: 1.3),
                                     ),
                                   ),
@@ -1550,9 +1552,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                             if (couriers.isEmpty) ...[
                               const Icon(Icons.local_shipping_outlined, size: 48, color: Colors.orange),
                               const SizedBox(height: 12),
-                              Text('No couriers available', style: Theme.of(context).textTheme.titleMedium),
+                              Text(context.l10n.kanbanNoCouriersAvailable, style: Theme.of(context).textTheme.titleMedium),
                               const SizedBox(height: 8),
-                              Text('Create a courier then proceed.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                              Text(context.l10n.kanbanCreateCourierHint, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
                               const SizedBox(height: 16),
                             ] else ...[
                               LayoutBuilder(
@@ -1640,10 +1642,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                               const SizedBox(height: 12),
                             ],
                             Align(
-                              alignment: Alignment.centerLeft,
+                              alignment: AlignmentDirectional.centerStart,
                               child: TextButton.icon(
                                 icon: const Icon(Icons.add),
-                                label: const Text('New Courier'),
+                                label: Text(context.l10n.kanbanNewCourier),
                                 onPressed: () => setState(() => creating = true),
                               ),
                             ),
@@ -1654,7 +1656,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                 Expanded(
                                   child: TextFormField(
                                     controller: firstNameController,
-                                    decoration: const InputDecoration(labelText: 'First Name'),
+                                    decoration: InputDecoration(labelText: context.l10n.kanbanFirstName),
                                     textInputAction: TextInputAction.next,
                                   ),
                                 ),
@@ -1662,7 +1664,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                 Expanded(
                                   child: TextFormField(
                                     controller: lastNameController,
-                                    decoration: const InputDecoration(labelText: 'Last Name'),
+                                    decoration: InputDecoration(labelText: context.l10n.kanbanLastName),
                                     textInputAction: TextInputAction.next,
                                   ),
                                 ),
@@ -1671,16 +1673,16 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                             const SizedBox(height: 8),
                             TextFormField(
                               controller: phoneController,
-                              decoration: const InputDecoration(labelText: 'Phone'),
+                              decoration: InputDecoration(labelText: context.l10n.kanbanPhone),
                               keyboardType: TextInputType.phone,
                             ),
                             const SizedBox(height: 8),
                             DropdownButtonFormField<String>(
                               initialValue: newPartyType,
-                              decoration: const InputDecoration(labelText: 'Type'),
-                              items: const [
-                                DropdownMenuItem(value: 'Employee', child: Text('Employee')),
-                                DropdownMenuItem(value: 'Supplier', child: Text('Supplier')),
+                              decoration: InputDecoration(labelText: context.l10n.kanbanType),
+                              items: [
+                                DropdownMenuItem(value: 'Employee', child: Text(context.l10n.kanbanEmployee)),
+                                DropdownMenuItem(value: 'Supplier', child: Text(context.l10n.kanbanSupplier)),
                               ],
                               onChanged: (v) => setState(() => newPartyType = v ?? 'Employee'),
                             ),
@@ -1689,7 +1691,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                               children: [
                                 OutlinedButton(
                                   onPressed: loading ? null : () => setState(() => creating = false),
-                                  child: const Text('Back'),
+                                  child: Text(context.l10n.kanbanBack),
                                 ),
                                 const SizedBox(width: 12),
                                 ElevatedButton.icon(
@@ -1720,7 +1722,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                           } catch (e) {
                                             if (context.mounted) {
                                               ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text('Create failed: $e')),
+                                                SnackBar(content: Text(context.l10n.kanbanCreateFailed('$e'))),
                                               );
                                             }
                                           } finally {
@@ -1728,7 +1730,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                           }
                                         },
                                   icon: const Icon(Icons.check),
-                                  label: const Text('Save'),
+                                  label: Text(context.l10n.commonSave),
                                 ),
                               ],
                             ),
@@ -1736,18 +1738,18 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                           ],
                           const SizedBox(height: 8),
                           Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text('Mode', style: Theme.of(context).textTheme.titleSmall),
+                            alignment: AlignmentDirectional.centerStart,
+                            child: Text(context.l10n.kanbanMode, style: Theme.of(context).textTheme.titleSmall),
                           ),
                           // Only Pay Now option is available per new rule
                           RadioGroup<String>(
                             groupValue: mode,
                             onChanged: (v) => setState(() => mode = v ?? mode),
-                            child: const Column(
+                            child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 RadioListTile<String>(
-                                  title: Text('Pay Now (Cash)'),
+                                  title: Text(context.l10n.kanbanPayNowCash),
                                   value: 'pay_now',
                                   dense: true,
                                 ),
@@ -1761,7 +1763,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.commonCancel),
               ),
               if (!creating)
                 ElevatedButton(
@@ -1777,7 +1779,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                               orElse: () => const {},
                             )['display_name'],
                           }),
-                  child: const Text('Confirm'),
+                  child: Text(context.l10n.commonConfirm),
                 )
               else
                 const SizedBox.shrink(),
@@ -1800,7 +1802,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ? null
         : widget.invoice.courierParty;
     if (posProfile == null) {
-      messenger.showSnackBar(const SnackBar(content: Text('Select POS profile first')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSelectPosFirst)));
       return;
     }
 
@@ -1829,7 +1831,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       }
       // Validate we now have party identifiers (backend endpoints require them)
       if (partyType == null || partyType.isEmpty || party == null || party.isEmpty) {
-        messenger.showSnackBar(const SnackBar(content: Text('Cannot settle: courier party not resolved. Assign courier or retry.')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceCannotSettleParty)));
         return;
       }
       if (!context.mounted) return;
@@ -1869,21 +1871,21 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           party: party,
         );
       } else {
-        messenger.showSnackBar(const SnackBar(content: Text('Nothing to settle')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceNothingToSettle)));
         return;
       }
 
   if (!context.mounted) return;
       if (res != null && (res['success'] == true || res['journal_entry'] != null)) {
-        messenger.showSnackBar(const SnackBar(content: Text('Settlement complete')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementComplete)));
         try {
           await ref.read(kanbanProvider.notifier).loadInvoices();
         } catch (_) {}
       } else {
-        messenger.showSnackBar(const SnackBar(content: Text('Settlement failed')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementFailed)));
       }
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Settlement error: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementError('$e'))));
     }
   }
 
@@ -1953,7 +1955,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Edit Customer Address',
+                context.l10n.invoiceEditAddress,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
@@ -1983,7 +1985,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Customer',
+                              context.l10n.invoiceCustomerLabel,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[600],
@@ -2007,10 +2009,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 // Phone number
                 TextField(
                   controller: phoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone Number',
-                    prefixIcon: Icon(Icons.phone),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.invoicePhoneNumber,
+                    prefixIcon: const Icon(Icons.phone),
+                    border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.phone,
                 ),
@@ -2019,11 +2021,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 // Address
                 TextField(
                   controller: addressController,
-                  decoration: const InputDecoration(
-                    labelText: 'Delivery Address',
-                    prefixIcon: Icon(Icons.location_on),
-                    border: OutlineInputBorder(),
-                    helperText: 'Enter the full delivery address',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.invoiceDeliveryAddressLabel,
+                    prefixIcon: const Icon(Icons.location_on),
+                    border: const OutlineInputBorder(),
+                    helperText: context.l10n.invoiceAddressHelper,
                   ),
                   maxLines: 3,
                   textCapitalization: TextCapitalization.words,
@@ -2045,7 +2047,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'This will update the customer\'s default address and phone number.',
+                          context.l10n.invoiceAddressUpdateInfo,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.blue[900],
@@ -2062,7 +2064,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           ElevatedButton.icon(
             onPressed: () {
@@ -2071,7 +2073,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               
               if (newAddress.isEmpty) {
                 ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('Address cannot be empty')),
+                  SnackBar(content: Text(context.l10n.invoiceAddressEmpty)),
                 );
                 return;
               }
@@ -2082,7 +2084,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               });
             },
             icon: const Icon(Icons.save),
-            label: const Text('Save'),
+            label: Text(context.l10n.commonSave),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue[600],
               foregroundColor: Colors.white,
@@ -2097,19 +2099,19 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     // Show loading indicator
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Row(
           children: [
-            SizedBox(
+            const SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
             ),
-            SizedBox(width: 12),
-            Text('Updating customer address...'),
+            const SizedBox(width: 12),
+            Text(context.l10n.invoiceUpdatingAddress),
           ],
         ),
-        duration: Duration(seconds: 30),
+        duration: const Duration(seconds: 30),
       ),
     );
 
@@ -2130,7 +2132,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               children: [
                 const Icon(Icons.check_circle, color: Colors.white),
                 const SizedBox(width: 12),
-                const Text('Customer address updated successfully'),
+                Text(context.l10n.invoiceAddressUpdated),
               ],
             ),
             backgroundColor: Colors.green[600],
@@ -2147,7 +2149,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               children: [
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 12),
-                const Text('Failed to update address'),
+                Text(context.l10n.invoiceAddressUpdateFailed),
               ],
             ),
             backgroundColor: Colors.red[600],
@@ -2185,7 +2187,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           children: [
             const Icon(Icons.phone, color: Colors.blue),
             const SizedBox(width: 8),
-            const Text('Phone Number'),
+            Text(context.l10n.invoicePhoneNumber),
           ],
         ),
         content: Column(
@@ -2230,7 +2232,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                       children: [
                         const Icon(Icons.check_circle, color: Colors.white),
                         const SizedBox(width: 12),
-                        Text('Copied: $cleanNumber'),
+                        Text(context.l10n.invoiceCopiedNumber(cleanNumber)),
                       ],
                     ),
                     backgroundColor: Colors.green[600],
@@ -2240,7 +2242,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               }
             },
             icon: const Icon(Icons.copy),
-            label: const Text('Copy'),
+            label: Text(context.l10n.invoiceCopy),
             style: TextButton.styleFrom(
               foregroundColor: Colors.blue[700],
             ),
@@ -2255,23 +2257,23 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               } else {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Row(
                         children: [
-                          Icon(Icons.error, color: Colors.white),
-                          SizedBox(width: 12),
-                          Text('Unable to make phone call'),
+                          const Icon(Icons.error, color: Colors.white),
+                          const SizedBox(width: 12),
+                          Text(context.l10n.invoiceCannotCall),
                         ],
                       ),
                       backgroundColor: Colors.red,
-                      duration: Duration(seconds: 2),
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                 }
               }
             },
             icon: const Icon(Icons.call),
-            label: const Text('Call'),
+            label: Text(context.l10n.invoiceCall),
             style: TextButton.styleFrom(
               foregroundColor: Colors.green[700],
             ),
@@ -2285,9 +2287,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   Future<void> _cancelOrder(BuildContext context) async {
     if (widget.invoice.hasPartialPayment) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Settle or refund partial payments before cancelling this order.'),
-          duration: Duration(seconds: 3),
+        SnackBar(
+          content: Text(context.l10n.invoiceSettleBeforeCancel),
+          duration: const Duration(seconds: 3),
         ),
       );
       return;
@@ -2315,9 +2317,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
     if (response == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to cancel order. Please try again.'),
-          duration: Duration(seconds: 3),
+        SnackBar(
+          content: Text(context.l10n.invoiceCancelFailed),
+          duration: const Duration(seconds: 3),
         ),
       );
       return;
@@ -2325,8 +2327,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
     final creditNote = (response['credit_note'] ?? response['creditNote'])?.toString();
     final message = (creditNote != null && creditNote.isNotEmpty)
-        ? 'Order cancelled. Credit note $creditNote created.'
-        : 'Order cancelled successfully.';
+        ? context.l10n.invoiceCancelledWithCn(creditNote)
+        : context.l10n.invoiceCancelledSuccess;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -2345,9 +2347,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       final currentProfile = ref.read(posNotifierProvider).selectedProfile?['name'] as String?;
       if (currentProfile == null) {
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('No POS profile selected'),
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: Text(context.l10n.invoiceNoPosProfile),
+            duration: const Duration(seconds: 3),
           ),
         );
         return;
@@ -2368,7 +2370,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         builder: (ctx) {
           return StatefulBuilder(
             builder: (ctx, setState) => AlertDialog(
-              title: const Text('Assign to Branch'),
+              title: Text(context.l10n.invoiceAssignBranch),
               content: SizedBox(
                 width: 400,
                 child: Column(
@@ -2393,7 +2395,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Invoice: ${widget.invoice.name}',
+                            context.l10n.invoiceInvoiceLabel(widget.invoice.name),
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[700],
@@ -2425,14 +2427,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Colors.blue[200]!),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.info_outline, size: 18, color: Colors.blue),
-                          SizedBox(width: 8),
+                          const Icon(Icons.info_outline, size: 18, color: Colors.blue),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'The order will be moved to the selected branch and reset to "Received" state.',
-                              style: TextStyle(fontSize: 12, color: Colors.blue),
+                              context.l10n.invoiceTransferInfo,
+                              style: const TextStyle(fontSize: 12, color: Colors.blue),
                             ),
                           ),
                         ],
@@ -2444,11 +2446,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.commonCancel),
                 ),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(ctx, selected),
-                  child: const Text('Save'),
+                  child: Text(context.l10n.commonSave),
                 ),
               ],
             ),
@@ -2461,19 +2463,19 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       // Show loading indicator
       messenger.clearSnackBars();
       messenger.showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
               ),
-              SizedBox(width: 12),
-              Text('Transferring order...'),
+              const SizedBox(width: 12),
+              Text(context.l10n.invoiceTransferring),
             ],
           ),
-          duration: Duration(hours: 1),
+          duration: const Duration(hours: 1),
         ),
       );
 
@@ -2499,7 +2501,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Order transferred successfully to ${branches.firstWhere((b) => b.name == picked).title}',
+                    context.l10n.invoiceTransferSuccess(branches.firstWhere((b) => b.name == picked).title),
                   ),
                 ),
               ],
@@ -2510,7 +2512,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         );
       } else {
         // Get error from provider state
-        final errorMessage = ref.read(kanbanProvider).error ?? 'Transfer failed. Please try again.';
+        final errorMessage = ref.read(kanbanProvider).error ?? context.l10n.invoiceTransferFailed;
         
         messenger.showSnackBar(
           SnackBar(
@@ -2557,9 +2559,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       
       if (kanbanProfile == null || kanbanProfile.isEmpty) {
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Unable to determine POS profile for this invoice'),
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: Text(context.l10n.invoiceCannotDetermineProfile),
+            duration: const Duration(seconds: 3),
           ),
         );
         return;
@@ -2567,19 +2569,19 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
       // Fetch delivery slots for the kanban profile
       messenger.showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
               ),
-              SizedBox(width: 12),
-              Text('Loading delivery slots...'),
+              const SizedBox(width: 12),
+              Text(context.l10n.invoiceLoadingSlots),
             ],
           ),
-          duration: Duration(hours: 1),
+          duration: const Duration(hours: 1),
         ),
       );
 
@@ -2592,9 +2594,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
       if (slots.isEmpty) {
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('No delivery slots available for this branch'),
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: Text(context.l10n.invoiceNoSlots),
+            duration: const Duration(seconds: 3),
           ),
         );
         return;
@@ -2622,7 +2624,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         builder: (ctx) {
           return StatefulBuilder(
             builder: (ctx, setState) => AlertDialog(
-              title: const Text('Change Delivery Slot'),
+              title: Text(context.l10n.invoiceChangeSlot),
               content: SizedBox(
                 width: 400,
                 child: Column(
@@ -2639,7 +2641,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Customer: ${widget.invoice.customerName}',
+                            context.l10n.invoiceCustomerName(widget.invoice.customerName),
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
@@ -2647,7 +2649,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Invoice: ${widget.invoice.name}',
+                            context.l10n.invoiceInvoiceLabel(widget.invoice.name),
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[700],
@@ -2656,7 +2658,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                           if (currentSlot != null) ...[
                             const SizedBox(height: 4),
                             Text(
-                              'Current: ${currentSlot.label}',
+                              context.l10n.invoiceCurrentSlot(currentSlot.label),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.blue[700],
@@ -2689,14 +2691,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Colors.blue[200]!),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.info_outline, size: 18, color: Colors.blue),
-                          SizedBox(width: 8),
+                          const Icon(Icons.info_outline, size: 18, color: Colors.blue),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'The delivery slot will be updated for this order.',
-                              style: TextStyle(fontSize: 12, color: Colors.blue),
+                              context.l10n.invoiceSlotUpdateInfo,
+                              style: const TextStyle(fontSize: 12, color: Colors.blue),
                             ),
                           ),
                         ],
@@ -2708,11 +2710,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.commonCancel),
                 ),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(ctx, selectedSlot),
-                  child: const Text('Save'),
+                  child: Text(context.l10n.commonSave),
                 ),
               ],
             ),
@@ -2725,9 +2727,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       // Check if slot changed
       if (currentSlot != null && picked.datetime == currentSlot.datetime) {
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('No changes made'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(context.l10n.invoiceNoChanges),
+            duration: const Duration(seconds: 2),
           ),
         );
         return;
@@ -2736,19 +2738,19 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       // Show loading indicator
       messenger.clearSnackBars();
       messenger.showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
               ),
-              SizedBox(width: 12),
-              Text('Updating delivery slot...'),
+              const SizedBox(width: 12),
+              Text(context.l10n.invoiceUpdatingSlot),
             ],
           ),
-          duration: Duration(hours: 1),
+          duration: const Duration(hours: 1),
         ),
       );
 
@@ -2792,7 +2794,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Delivery slot updated to ${picked.label}',
+                    context.l10n.invoiceSlotUpdated(picked.label),
                   ),
                 ),
               ],
@@ -2803,7 +2805,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         );
       } else {
         // Get error from provider state
-        final errorMessage = ref.read(kanbanProvider).error ?? 'Failed to update delivery slot';
+        final errorMessage = ref.read(kanbanProvider).error ?? context.l10n.invoiceSlotUpdateFailed;
         
         messenger.showSnackBar(
           SnackBar(

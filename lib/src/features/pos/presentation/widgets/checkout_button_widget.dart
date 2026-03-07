@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../state/pos_notifier.dart';
 
 class CheckoutButtonWidget extends ConsumerWidget {
@@ -27,7 +28,7 @@ class CheckoutButtonWidget extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total:',
+                  context.l10n.checkoutTotal,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -55,7 +56,7 @@ class CheckoutButtonWidget extends ConsumerWidget {
                       ? null
                       : () => _performCheckout(ref, context),
                   icon: const Icon(Icons.payment),
-                  label: const Text('Pay'),
+                  label: Text(context.l10n.checkoutPay),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -130,7 +131,7 @@ class CheckoutButtonWidget extends ConsumerWidget {
       if (profileName == null || profileName.isEmpty) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Select POS profile first')),
+            SnackBar(content: Text(context.l10n.checkoutSelectProfileFirst)),
           );
         }
         return;
@@ -140,8 +141,8 @@ class CheckoutButtonWidget extends ConsumerWidget {
       await ref.read(posNotifierProvider.notifier).checkout();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Order completed successfully!'),
+          SnackBar(
+            content: Text(context.l10n.checkoutOrderSuccess),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 3),
           ),
@@ -151,7 +152,7 @@ class CheckoutButtonWidget extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Checkout failed: $e'),
+            content: Text(context.l10n.checkoutFailed('$e')),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),

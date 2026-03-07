@@ -48,7 +48,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
       appBar: AppBar(title: Text(l10n.shiftEndTitle)),
       body: activeShiftAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Failed to load active shift: $e')),
+        error: (e, _) => Center(child: Text(l10n.shiftLoadActiveFailed(e.toString()))),
         data: (activeShift) {
           if (activeShift == null) {
             return Center(
@@ -75,7 +75,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
 
               final summary = snapshot.data;
               if (summary == null) {
-                return const Center(child: Text('Unable to load shift summary.'));
+                return Center(child: Text(l10n.shiftSummaryLoadFailed));
               }
 
               return _buildPreCloseView(context, summary, shiftState);
@@ -98,12 +98,12 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header info ──
-          Text('Shift: ${summary.openingEntry}', style: theme.textTheme.titleMedium),
+          Text(l10n.shiftLabel(summary.openingEntry), style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           _infoRow(l10n.shiftInvoices(summary.invoiceCount), Icons.receipt_long),
           _infoRow(l10n.shiftGrandTotal(summary.totalSales.toStringAsFixed(2)), Icons.attach_money),
-          _infoRow('Outflows: ${summary.totalOutflows.toStringAsFixed(2)}', Icons.trending_down),
-          _infoRow('Net Movement: ${summary.netMovement.toStringAsFixed(2)}', Icons.swap_vert),
+          _infoRow(l10n.shiftOutflows(summary.totalOutflows.toStringAsFixed(2)), Icons.trending_down),
+          _infoRow(l10n.shiftNetMovement(summary.netMovement.toStringAsFixed(2)), Icons.swap_vert),
           if (summary.account != null)
             _infoRow(
               '${l10n.shiftAccountBalance}: ${summary.accountBalance.toStringAsFixed(2)}',
@@ -160,7 +160,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
           // ── Account movements list ──
           if (summary.accountMovements.isNotEmpty) ...[
             const Divider(height: 24),
-            Text('Account Movements', style: theme.textTheme.titleSmall),
+            Text(l10n.shiftAccountMovements, style: theme.textTheme.titleSmall),
             const SizedBox(height: 6),
             Expanded(child: _buildMovementsTable(context, summary.accountMovements)),
           ] else
@@ -208,8 +208,8 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
               _infoRow('${l10n.shiftClosingEntry}: ${result.closingEntry}', Icons.check_circle),
             _infoRow(l10n.shiftInvoices(result.invoiceCount), Icons.receipt_long),
             _infoRow(l10n.shiftGrandTotal(result.totalSales.toStringAsFixed(2)), Icons.attach_money),
-            _infoRow('Outflows: ${result.totalOutflows.toStringAsFixed(2)}', Icons.trending_down),
-            _infoRow('Net Movement: ${result.netMovement.toStringAsFixed(2)}', Icons.swap_vert),
+            _infoRow(l10n.shiftOutflows(result.totalOutflows.toStringAsFixed(2)), Icons.trending_down),
+            _infoRow(l10n.shiftNetMovement(result.netMovement.toStringAsFixed(2)), Icons.swap_vert),
             if (result.account != null)
               _infoRow(
                 '${l10n.shiftAccountBalance}: ${result.accountBalance.toStringAsFixed(2)}',
@@ -271,7 +271,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
             // ── Account Movements ──
             if (result.accountMovements.isNotEmpty) ...[
               const Divider(height: 24),
-              Text('Account Movements', style: theme.textTheme.titleSmall),
+              Text(l10n.shiftAccountMovements, style: theme.textTheme.titleSmall),
               const SizedBox(height: 6),
               Expanded(child: _buildMovementsTable(context, result.accountMovements)),
             ] else
@@ -313,7 +313,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
     final theme = Theme.of(context);
     final grouped = <String, List<ShiftAccountMovement>>{};
     for (final movement in movements) {
-      final key = movement.voucherType.isNotEmpty ? movement.voucherType : 'Other';
+      final key = movement.voucherType.isNotEmpty ? movement.voucherType : l10n.shiftOther;
       grouped.putIfAbsent(key, () => <ShiftAccountMovement>[]).add(movement);
     }
 
@@ -354,7 +354,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
                       ),
                     ),
                     Text(
-                      'Subtotal: ${subtotal.toStringAsFixed(2)}',
+                      l10n.shiftSubtotal(subtotal.toStringAsFixed(2)),
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         color: subtotal >= 0 ? Colors.green : theme.colorScheme.error,

@@ -631,7 +631,7 @@ class PosPrinterService extends ChangeNotifier {
         ),
       ),
   textDirection: hasArabic ? ui.TextDirection.rtl : ui.TextDirection.ltr,
-      textAlign: center ? TextAlign.center : TextAlign.left,
+      textAlign: center ? TextAlign.center : TextAlign.start,
       maxLines: 4,
     );
     tp.layout(maxWidth: targetW.toDouble());

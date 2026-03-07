@@ -21,6 +21,7 @@ import '../../printing/pos_printer_provider.dart';
 import '../../printing/printer_status.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/branch_filter_dialog.dart';
+import '../../../core/localization/localization_extensions.dart';
 
 class KanbanBoardScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
@@ -84,7 +85,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                 backgroundColor: Colors.red[700],
                 duration: const Duration(seconds: 4),
                 action: SnackBarAction(
-                  label: 'Dismiss',
+                  label: context.l10n.commonDismiss,
                   textColor: Colors.white,
                   onPressed: () {
                     ref.read(kanbanProvider.notifier).clearError();
@@ -181,7 +182,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     // Primary actions always visible
     final primaryActions = <Widget>[
       IconButton(
-        tooltip: 'Refresh Orders',
+        tooltip: context.l10n.kanbanRefreshOrders,
         icon: const Icon(Icons.refresh),
         visualDensity: isPhone ? VisualDensity.compact : VisualDensity.standard,
         onPressed: () async {
@@ -189,9 +190,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           final messenger = ScaffoldMessenger.of(context);
           await notifier.loadInvoices();
           messenger.showSnackBar(
-            const SnackBar(
-              content: Text('Orders refreshed'),
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: Text(context.l10n.kanbanOrdersRefreshed),
+              duration: const Duration(seconds: 2),
             ),
           );
         },
@@ -200,7 +201,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       if (!isPhone) const _BranchBalanceChip(),
       if (!isPhone) _buildPrinterChip(context),
       IconButton(
-        tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
+        tooltip: _showFilters ? context.l10n.kanbanHideFilters : context.l10n.kanbanShowFilters,
         icon: Icon(_showFilters ? Icons.filter_alt_off : Icons.filter_alt),
         visualDensity: isPhone ? VisualDensity.compact : VisualDensity.standard,
         onPressed: () => setState(() => _showFilters = !_showFilters),
@@ -212,7 +213,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       primaryActions.add(
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
-          tooltip: 'More actions',
+          tooltip: context.l10n.kanbanMoreActions,
           onSelected: (value) {
             switch (value) {
               case 'receipts':
@@ -227,12 +228,12 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                 context.push(AppRoutes.pos);
             }
           },
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: 'receipts', child: ListTile(leading: Icon(Icons.receipt_long), title: Text('Receipts'), dense: true)),
-            PopupMenuItem(value: 'printers', child: ListTile(leading: Icon(Icons.print), title: Text('Printers'), dense: true)),
-            PopupMenuItem(value: 'couriers', child: ListTile(leading: Icon(Icons.local_shipping), title: Text('Couriers'), dense: true)),
-            PopupMenuItem(value: 'profile', child: ListTile(leading: Icon(Icons.account_circle), title: Text('Profile'), dense: true)),
-            PopupMenuItem(value: 'pos', child: ListTile(leading: Icon(Icons.point_of_sale), title: Text('POS'), dense: true)),
+          itemBuilder: (_) => [
+            PopupMenuItem(value: 'receipts', child: ListTile(leading: const Icon(Icons.receipt_long), title: Text(context.l10n.kanbanMenuReceipts), dense: true)),
+            PopupMenuItem(value: 'printers', child: ListTile(leading: const Icon(Icons.print), title: Text(context.l10n.kanbanMenuPrinters), dense: true)),
+            PopupMenuItem(value: 'couriers', child: ListTile(leading: const Icon(Icons.local_shipping), title: Text(context.l10n.kanbanMenuCouriers), dense: true)),
+            PopupMenuItem(value: 'profile', child: ListTile(leading: const Icon(Icons.account_circle), title: Text(context.l10n.kanbanMenuProfile), dense: true)),
+            PopupMenuItem(value: 'pos', child: ListTile(leading: const Icon(Icons.point_of_sale), title: Text(context.l10n.kanbanMenuPos), dense: true)),
           ],
         ),
       );
@@ -240,7 +241,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       // Tablet: show all actions inline
       primaryActions.insertAll(0, [
         IconButton(
-          tooltip: 'Payment Receipts',
+          tooltip: context.l10n.kanbanPaymentReceipts,
           icon: const Icon(Icons.receipt_long),
           onPressed: () {
             showDialog(context: context, builder: (ctx) => const PaymentReceiptListDialog());
@@ -248,9 +249,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         ),
       ]);
       primaryActions.addAll([
-        IconButton(tooltip: 'Courier Balances', icon: const Icon(Icons.local_shipping), onPressed: () => showCourierBalancesDialog(context)),
-        IconButton(tooltip: 'User Profile', icon: const Icon(Icons.account_circle), onPressed: () => context.push(AppRoutes.profile)),
-        IconButton(tooltip: 'Open POS', icon: const Icon(Icons.point_of_sale), onPressed: () => context.push(AppRoutes.pos)),
+        IconButton(tooltip: context.l10n.kanbanCourierBalances, icon: const Icon(Icons.local_shipping), onPressed: () => showCourierBalancesDialog(context)),
+        IconButton(tooltip: context.l10n.kanbanUserProfile, icon: const Icon(Icons.account_circle), onPressed: () => context.push(AppRoutes.profile)),
+        IconButton(tooltip: context.l10n.kanbanOpenPos, icon: const Icon(Icons.point_of_sale), onPressed: () => context.push(AppRoutes.pos)),
       ]);
     }
 
@@ -260,10 +261,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         builder: (ctx) => IconButton(
           icon: const Icon(Icons.menu),
           onPressed: () => Scaffold.of(ctx).openDrawer(),
-          tooltip: 'Menu',
+          tooltip: context.l10n.kanbanMenu,
         ),
       ),
-      title: Text(isPhone ? 'Kanban' : 'Sales Invoice Kanban'),
+      title: Text(isPhone ? context.l10n.kanbanTitleShort : context.l10n.kanbanTitleFull),
       actions: primaryActions,
     );
   }
@@ -331,15 +332,15 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                     () {
                       switch (printer.unifiedStatus) {
                         case PrinterUnifiedStatus.connectedBle:
-                          return 'Printer: BLE';
+                          return context.l10n.kanbanPrinterBle;
                         case PrinterUnifiedStatus.connectedClassic:
-                          return 'Printer: Classic';
+                          return context.l10n.kanbanPrinterClassic;
                         case PrinterUnifiedStatus.connecting:
-                          return 'Connecting…';
+                          return context.l10n.kanbanPrinterConnecting;
                         case PrinterUnifiedStatus.error:
-                          return printer.lastErrorMessage ?? 'Error';
+                          return printer.lastErrorMessage ?? context.l10n.commonError;
                         case PrinterUnifiedStatus.disconnected:
-                          return 'Not Connected';
+                          return context.l10n.kanbanPrinterNotConnected;
                       }
                     }(),
                     style: TextStyle(
@@ -381,7 +382,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
             const SizedBox(height: 16),
             Text(
-              'Error loading Kanban data',
+              context.l10n.kanbanErrorLoadingData,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
@@ -398,7 +399,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                 ref.read(kanbanProvider.notifier).clearError();
                 ref.read(kanbanProvider.notifier).loadInvoices();
               },
-              child: const Text('Retry'),
+              child: Text(context.l10n.commonRetry),
             ),
           ],
         ),
@@ -412,13 +413,13 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           children: [
             const Icon(Icons.warning_amber_rounded, size: 64, color: Colors.orange),
             const SizedBox(height: 16),
-            const Text(
-              'No Kanban columns configured',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              context.l10n.kanbanNoColumnsConfigured,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Please ensure the Sales Invoice State field is configured in ERPNext',
+            Text(
+              context.l10n.kanbanEnsureStateField,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -426,7 +427,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               onPressed: () {
                 ref.read(kanbanProvider.notifier).loadKanbanData();
               },
-              child: const Text('Retry'),
+              child: Text(context.l10n.commonRetry),
             ),
           ],
         ),
@@ -457,7 +458,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                       for (final column in kanbanState.columns) ...[
                         Container(
                           width: 300,
-                          margin: const EdgeInsets.only(right: 16),
+                          margin: const EdgeInsetsDirectional.only(end: 16),
                           child: KanbanColumnWidget(
                             column: column,
                             invoices: kanbanState.invoices[column.id] ?? const [],
@@ -535,7 +536,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     final courierDisplay = dialogResult['display_name'] as String? ?? courier;
       final posProfile = _getPosProfile();
       if (posProfile == null) {
-        messenger.showSnackBar(const SnackBar(content: Text('Select POS profile first')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSelectPosProfileFirst)));
         // revert
         final fromCol = ref.read(kanbanProvider).columns.firstWhere(
           (c) => c.id == fromColumnId,
@@ -567,7 +568,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               ? party!.trim()
               : (previewParty.isNotEmpty ? previewParty : null);
           if (resolvedPartyType == null || resolvedParty == null) {
-            messenger.showSnackBar(const SnackBar(content: Text('Settle Later failed: courier party missing. Assign courier and retry.')));
+            messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettleLaterMissingParty)));
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
               orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
@@ -577,7 +578,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           }
           final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
           if (token.isEmpty) {
-            messenger.showSnackBar(const SnackBar(content: Text('Settle Later failed: preview expired.')));
+            messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettleLaterPreviewExpired)));
             // revert
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
@@ -598,7 +599,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             courier: courier ?? courierDisplay ?? 'UNKNOWN',
           );
           if (res['success'] != true) {
-            messenger.showSnackBar(const SnackBar(content: Text('Settle Later failed')));
+            messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettleLaterFailed)));
             // revert
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
@@ -608,10 +609,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             return;
           }
           // Success: do not show collection/info popups for settle later
-          messenger.showSnackBar(const SnackBar(content: Text('Marked to Settle Later')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanMarkedSettleLater)));
           return; // handled fully; backend already moved to OFD
         } catch (e) {
-          messenger.showSnackBar(SnackBar(content: Text('Settle Later error: $e')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettleLaterError('$e'))));
           // revert
           final fromCol = ref.read(kanbanProvider).columns.firstWhere(
             (c) => c.id == fromColumnId,
@@ -642,7 +643,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               ? party!.trim()
               : (previewParty.isNotEmpty ? previewParty : null);
           if (resolvedPartyType == null || resolvedParty == null) {
-            messenger.showSnackBar(const SnackBar(content: Text('Settlement failed: courier party missing. Assign courier and retry.')));
+            messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettlementMissingParty)));
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
               orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
@@ -672,7 +673,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
 
           final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
           if (token.isEmpty) {
-            messenger.showSnackBar(const SnackBar(content: Text('Preview expired. Please retry.')));
+            messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanPreviewExpired)));
             // revert
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
@@ -682,7 +683,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             return;
           }
 
-          messenger.showSnackBar(const SnackBar(content: Text('Confirming settlement...')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanConfirmingSettlement)));
           final res = await courierService.confirmSettlement(
             invoice: invoiceId,
             previewToken: token,
@@ -694,7 +695,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             courier: courier ?? courierDisplay ?? 'UNKNOWN',
           );
           if (res['success'] != true) {
-            messenger.showSnackBar(const SnackBar(content: Text('Settlement failed')));
+            messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettlementFailed)));
             // revert
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
@@ -703,10 +704,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
             return;
           }
-          messenger.showSnackBar(const SnackBar(content: Text('Settlement confirmed')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettlementConfirmed)));
           return; // handled: server already performed OFD
         } catch (e) {
-          messenger.showSnackBar(SnackBar(content: Text('Settlement error: $e')));
+          messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettlementError('$e'))));
           // revert
           final fromCol = ref.read(kanbanProvider).columns.firstWhere(
             (c) => c.id == fromColumnId,
@@ -743,7 +744,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           } catch (e) {
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Preview failed: $e')),
+              SnackBar(content: Text(context.l10n.kanbanPreviewFailed('$e'))),
             );
           }
         }
@@ -791,7 +792,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         final messenger = ScaffoldMessenger.of(context);
         messenger.removeCurrentSnackBar();
         messenger.showSnackBar(
-          const SnackBar(content: Text('Pickup orders do not require courier settlement')),
+          SnackBar(content: Text(context.l10n.kanbanPickupNoSettlement)),
         );
         return false;
       }
@@ -806,7 +807,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       final messenger = ScaffoldMessenger.of(context);
       messenger.removeCurrentSnackBar();
       messenger.showSnackBar(
-        const SnackBar(content: Text('Cannot move invoice backward. Advance it forward instead.')),
+        SnackBar(content: Text(context.l10n.kanbanCannotMoveBackward)),
       );
       return false;
     }
@@ -817,7 +818,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         final messenger = ScaffoldMessenger.of(context);
         messenger.removeCurrentSnackBar();
         messenger.showSnackBar(
-          const SnackBar(content: Text('Move invoices one stage at a time.')),
+          SnackBar(content: Text(context.l10n.kanbanMoveOneStage)),
         );
         return false;
       }
@@ -873,13 +874,13 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         return PopScope(
           canPop: false,
           child: AlertDialog(
-            title: const Text('Select POS Profile'),
+            title: Text(context.l10n.kanbanSelectPosProfile),
             content: SizedBox(
               width: dialogWidth,
               child: profiles.isEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Text('No POS profiles available. Contact your administrator.'),
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(context.l10n.kanbanNoPosProfiles),
                     )
                   : ConstrainedBox(
                       constraints: const BoxConstraints(maxHeight: 360),
@@ -896,7 +897,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                             child: ListTile(
                               leading: const Icon(Icons.store),
                               title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
-                              subtitle: warehouse.isNotEmpty ? Text('Warehouse: $warehouse') : null,
+                              subtitle: warehouse.isNotEmpty ? Text(context.l10n.kanbanWarehouse(warehouse)) : null,
                               onTap: () => Navigator.of(ctx).pop(profile),
                             ),
                           );
@@ -936,7 +937,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       builder: (ctx) {
         return StatefulBuilder(builder: (ctx, setState) {
           return AlertDialog(
-            title: const Text('Courier & Mode'),
+            title: Text(context.l10n.kanbanCourierAndMode),
             content: SizedBox(
               width: ResponsiveUtils.getDialogWidth(ctx),
               child: loading
@@ -949,10 +950,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                             if (couriers.isEmpty) ...[
                               const Icon(Icons.local_shipping_outlined, size: 48, color: Colors.orange),
                               const SizedBox(height: 12),
-                              Text('No couriers available', style: Theme.of(context).textTheme.titleMedium),
+                              Text(context.l10n.kanbanNoCouriersAvailable, style: Theme.of(context).textTheme.titleMedium),
                               const SizedBox(height: 8),
                               Text(
-                                'Create a courier for tracking or continue without one.',
+                                context.l10n.kanbanCreateCourierHint,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(color: Colors.grey[700], fontSize: 13),
                               ),
@@ -1040,10 +1041,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                               const SizedBox(height: 12),
                             ],
                             Align(
-                              alignment: Alignment.centerLeft,
+                              alignment: AlignmentDirectional.centerStart,
                               child: TextButton.icon(
                                 icon: const Icon(Icons.add),
-                                label: const Text('New Courier'),
+                                label: Text(context.l10n.kanbanNewCourier),
                                 onPressed: () => setState(() => creating = true),
                               ),
                             ),
@@ -1053,7 +1054,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                 Expanded(
                                   child: TextFormField(
                                     controller: firstNameController,
-                                    decoration: const InputDecoration(labelText: 'First Name'),
+                                    decoration: InputDecoration(labelText: context.l10n.kanbanFirstName),
                                     textInputAction: TextInputAction.next,
                                   ),
                                 ),
@@ -1061,7 +1062,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                 Expanded(
                                   child: TextFormField(
                                     controller: lastNameController,
-                                    decoration: const InputDecoration(labelText: 'Last Name'),
+                                    decoration: InputDecoration(labelText: context.l10n.kanbanLastName),
                                     textInputAction: TextInputAction.next,
                                   ),
                                 ),
@@ -1070,16 +1071,16 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                             const SizedBox(height: 8),
                             TextFormField(
                               controller: phoneController,
-                              decoration: const InputDecoration(labelText: 'Phone'),
+                              decoration: InputDecoration(labelText: context.l10n.kanbanPhone),
                               keyboardType: TextInputType.phone,
                             ),
                             const SizedBox(height: 8),
                             DropdownButtonFormField<String>(
                               initialValue: newPartyType,
-                              decoration: const InputDecoration(labelText: 'Type'),
-                              items: const [
-                                DropdownMenuItem(value: 'Employee', child: Text('Employee')),
-                                DropdownMenuItem(value: 'Supplier', child: Text('Supplier')),
+                              decoration: InputDecoration(labelText: context.l10n.kanbanType),
+                              items: [
+                                DropdownMenuItem(value: 'Employee', child: Text(context.l10n.kanbanEmployee)),
+                                DropdownMenuItem(value: 'Supplier', child: Text(context.l10n.kanbanSupplier)),
                               ],
                               onChanged: (v) => setState(() => newPartyType = v ?? 'Employee'),
                             ),
@@ -1088,7 +1089,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                               children: [
                                 OutlinedButton(
                                   onPressed: loading ? null : () => setState(() => creating = false),
-                                  child: const Text('Back'),
+                                  child: Text(context.l10n.kanbanBack),
                                 ),
                                 const SizedBox(width: 12),
                                 ElevatedButton.icon(
@@ -1117,7 +1118,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                           } catch (e) {
                                             if (mounted) {
                                               ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text('Create failed: $e')),
+                                                SnackBar(content: Text(context.l10n.kanbanCreateFailed('$e'))),
                                               );
                                             }
                                           } finally {
@@ -1125,7 +1126,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                           }
                                         },
                                   icon: const Icon(Icons.check),
-                                  label: const Text('Save'),
+                                  label: Text(context.l10n.commonSave),
                                 ),
                               ],
                             ),
@@ -1133,8 +1134,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                           ],
                           const SizedBox(height: 14),
                           Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text('Mode', style: Theme.of(context).textTheme.titleSmall),
+                            alignment: AlignmentDirectional.centerStart,
+                            child: Text(context.l10n.kanbanMode, style: Theme.of(context).textTheme.titleSmall),
                           ),
                           // Offer Pay Now always; optionally show Settle Later per business rule
                           RadioGroup<String>(
@@ -1143,15 +1144,15 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const RadioListTile<String>(
-                                  title: Text('Pay Now (Cash)'),
+                                RadioListTile<String>(
+                                  title: Text(context.l10n.kanbanPayNowCash),
                                   value: 'pay_now',
                                   dense: true,
                                 ),
                                 if (!hideSettleLater)
-                                  const RadioListTile<String>(
-                                    title: Text('Settle Later (no immediate cash)'),
-                                    subtitle: Text('Record courier outstanding; settle in batch later'),
+                                  RadioListTile<String>(
+                                    title: Text(context.l10n.kanbanSettleLater),
+                                    subtitle: Text(context.l10n.kanbanSettleLaterSubtitle),
                                     value: 'later',
                                     dense: true,
                                   ),
@@ -1163,7 +1164,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                     ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.l10n.commonCancel)),
               if (!creating)
                 if (couriers.isEmpty)
                   ElevatedButton(
@@ -1174,7 +1175,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                               'mode': mode,
                               'no_courier': true,
                             }),
-                    child: const Text('Continue'),
+                    child: Text(context.l10n.kanbanContinue),
                   )
                 else
                   ElevatedButton(
@@ -1190,7 +1191,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                 'display_name': selected['display_name'],
                               });
                             },
-                    child: const Text('Confirm'),
+                    child: Text(context.l10n.commonConfirm),
                   )
               else
                 const SizedBox.shrink(),
@@ -1220,7 +1221,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     _lastBackPress = now;
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Press back again to exit')),
+        SnackBar(content: Text(context.l10n.kanbanPressBackAgain)),
       );
     }
     return false;
@@ -1255,8 +1256,8 @@ class _BranchFilterButton extends ConsumerWidget {
 
     final selectedCount = sel.length;
     final label = selectedCount == 0
-        ? 'All Branches'
-        : (selectedCount == 1 ? '1 Branch' : '$selectedCount Branches');
+        ? context.l10n.kanbanAllBranches
+        : context.l10n.kanbanBranchCount(selectedCount);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
@@ -1270,7 +1271,7 @@ class _BranchFilterButton extends ConsumerWidget {
             builder: (ctx) => BranchFilterDialog(
               profiles: profiles,
               initiallySelected: current,
-              title: 'Filter by Branches',
+              title: context.l10n.kanbanFilterByBranches,
             ),
           );
           if (result != null) {
@@ -1291,7 +1292,7 @@ class _BranchFilterButton extends ConsumerWidget {
               Icon(Icons.filter_alt, size: 16, color: theme.colorScheme.onSurface),
               const SizedBox(width: 6),
               Text(
-                isLoading ? 'Loading branches…' : label,
+                isLoading ? context.l10n.kanbanLoadingBranches : label,
                 style: TextStyle(
                   color: theme.colorScheme.onSurface,
                   fontSize: 12,
@@ -1325,7 +1326,7 @@ class _BranchBalanceChip extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       child: Tooltip(
-        message: 'Tap to refresh cash balance',
+        message: context.l10n.kanbanTapToRefreshBalance,
         waitDuration: const Duration(milliseconds: 600),
         child: InkWell(
           onTap: () => ref.invalidate(posAccountBalanceProvider(profileName)),

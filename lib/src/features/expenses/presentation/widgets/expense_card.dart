@@ -81,7 +81,7 @@ class ExpenseCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: Align(
-                alignment: Alignment.centerRight,
+                alignment: AlignmentDirectional.centerEnd,
                 child: FilledButton.icon(
                   icon: const Icon(Icons.check_circle_outline),
                   label: const Text('Approve'),

@@ -5,6 +5,7 @@ import '../../state/courier_balances_provider.dart';
 import '../../state/courier_ws_bridge.dart';
 import '../../data/models/courier_balance.dart';
 import '../../../pos/state/pos_notifier.dart';
+import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/network/courier_service.dart';
 import '../../../kanban/providers/kanban_provider.dart';
 import '../../data/repositories/courier_repository.dart';
@@ -64,6 +65,7 @@ class _DialogHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       color: Theme.of(context).colorScheme.primary,
@@ -72,7 +74,7 @@ class _DialogHeader extends StatelessWidget {
           Icon(Icons.local_shipping, color: Theme.of(context).colorScheme.onPrimary),
           const SizedBox(width: 8),
           Text(
-            'Courier Balances',
+            l10n.courierBalancesTitle,
             style: Theme.of(context)
                 .textTheme
                 .titleLarge
@@ -80,12 +82,12 @@ class _DialogHeader extends StatelessWidget {
           ),
           const Spacer(),
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: l10n.expensesRefreshTooltip,
             icon: Icon(Icons.refresh, color: Theme.of(context).colorScheme.onPrimary),
             onPressed: onRefresh,
           ),
           IconButton(
-            tooltip: 'Close',
+            tooltip: l10n.commonClose,
             icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onPrimary),
             onPressed: onClose,
           ),
@@ -101,15 +103,16 @@ class _DialogBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     if (state.loading) {
       return const Center(child: CircularProgressIndicator());
     }
     if (state.error != null) {
-      return Center(child: Text('Error: ${state.error}'));
+      return Center(child: Text(l10n.commonErrorWithDetails('${state.error}')));
     }
     final balances = state.balances;
     if (balances.isEmpty) {
-      return const Center(child: Text('No couriers found.'));
+      return Center(child: Text(l10n.courierBalancesEmpty));
     }
     return ListView.separated(
       padding: const EdgeInsets.all(8),
@@ -126,6 +129,7 @@ class _CourierTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+  final l10n = context.l10n;
   final amount = b.balance;
   // Domain correction: positive balance -> collect from courier (they owe us); negative -> pay courier
   final collectFromCourier = amount > 0;
@@ -133,8 +137,8 @@ class _CourierTile extends StatelessWidget {
     ? Colors.grey
     : (collectFromCourier ? Colors.green : Colors.red);
   final label = amount == 0
-    ? 'Settled'
-    : (collectFromCourier ? 'Collect from courier' : 'Pay courier');
+    ? l10n.courierBalancesSettledLabel
+    : (collectFromCourier ? l10n.settlementTitleCollectFromCourier : l10n.settlementTitlePayCourier);
     return ListTile(
       title: Text(b.courierName.isNotEmpty ? b.courierName : b.courier),
       subtitle: Text(label),
@@ -191,7 +195,7 @@ class _CourierTile extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Details – ${b.courierName.isNotEmpty ? b.courierName : b.courier}',
+                          context.l10n.courierBalancesDetailsTitle(b.courierName.isNotEmpty ? b.courierName : b.courier),
                           style: Theme.of(sheetCtx).textTheme.titleMedium?.copyWith(
                             color: Theme.of(sheetCtx).colorScheme.onPrimary,
                           ),
@@ -216,7 +220,11 @@ class _CourierTile extends StatelessWidget {
                         dense: true,
                         title: Text(d.invoice),
                         subtitle: Text(
-                          'City: ${d.city}\nOrder: ${d.amount.toStringAsFixed(2)} • Shipping: ${d.shipping.toStringAsFixed(2)}',
+                          context.l10n.courierBalancesCityOrderLine(
+                            d.city,
+                            d.amount.toStringAsFixed(2),
+                            d.shipping.toStringAsFixed(2),
+                          ),
                         ),
                         trailing: SizedBox(
                           width: 150,
@@ -227,7 +235,7 @@ class _CourierTile extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text('Net', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                                  Text(context.l10n.courierBalancesNetLabel, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
                                   Text(net.toStringAsFixed(2), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                                 ],
                               ),
@@ -243,7 +251,7 @@ class _CourierTile extends StatelessWidget {
                                         try {
                                           final posProfile = ref.read(posNotifierProvider).selectedProfile?['name'];
                                           if (posProfile == null || posProfile.isEmpty) {
-                                            messenger.showSnackBar(const SnackBar(content: Text('Select POS profile first')));
+                                            messenger.showSnackBar(SnackBar(content: Text(context.l10n.posProfileSelectionPrompt)));
                                             return;
                                           }
                                           String partyType = b.partyType.isNotEmpty ? b.partyType : 'Supplier';
@@ -288,20 +296,20 @@ class _CourierTile extends StatelessWidget {
                                               party: party,
                                             );
                                           } else {
-                                            messenger.showSnackBar(const SnackBar(content: Text('Nothing to settle')));
+                                            messenger.showSnackBar(SnackBar(content: Text(context.l10n.settlementNothingToSettle)));
                                             return;
                                           }
 
                                           if (!ctx.mounted) return;
                                           if (res != null && (res['success'] == true || res['journal_entry'] != null)) {
-                                            messenger.showSnackBar(const SnackBar(content: Text('Settlement complete')));
+                                            messenger.showSnackBar(SnackBar(content: Text(context.l10n.courierSettlementComplete)));
                                             try { await ref.read(courierBalancesProvider.notifier).load(); } catch (_) {}
                                           } else {
-                                            messenger.showSnackBar(const SnackBar(content: Text('Settlement failed')));
+                                            messenger.showSnackBar(SnackBar(content: Text(context.l10n.courierSettlementFailed)));
                                           }
                                         } catch (e) {
                                           if (ctx.mounted) {
-                                            messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+                                            messenger.showSnackBar(SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))));
                                           }
                                         }
                                       },
@@ -310,7 +318,7 @@ class _CourierTile extends StatelessWidget {
                                         minimumSize: const Size(0, 28),
                                         textStyle: const TextStyle(fontSize: 10),
                                       ),
-                                      child: const Text('Settle'),
+                                      child: Text(context.l10n.courierSettleButton),
                                     );
                                   },
                                 ),
@@ -356,7 +364,7 @@ class _InlineSettleAllButtonState extends ConsumerState<_InlineSettleAllButton> 
     return ElevatedButton(
       onPressed: disabled ? null : () => _run(context),
       style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), minimumSize: const Size(0,30)),
-      child: _loading ? const SizedBox(width:14,height:14,child:CircularProgressIndicator(strokeWidth:2,color: Colors.white)) : const Text('Settle', style: TextStyle(fontSize: 11)),
+      child: _loading ? const SizedBox(width:14,height:14,child:CircularProgressIndicator(strokeWidth:2,color: Colors.white)) : Text(context.l10n.courierSettleButton, style: const TextStyle(fontSize: 11)),
     );
   }
 
@@ -364,7 +372,7 @@ class _InlineSettleAllButtonState extends ConsumerState<_InlineSettleAllButton> 
   final b = widget.balance;
   final posProfile = ref.read(posNotifierProvider).selectedProfile?['name'];
     if (posProfile == null || posProfile.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select POS profile first')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.posProfileSelectionPrompt)));
       return;
     }
     final amount = b.balance.abs().toStringAsFixed(2);
@@ -372,11 +380,11 @@ class _InlineSettleAllButtonState extends ConsumerState<_InlineSettleAllButton> 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(payCourier ? 'Pay Courier $amount' : 'Collect $amount'),
-        content: Text('Settle all ${b.details.length} invoices for this courier?'),
+        title: Text(payCourier ? context.l10n.courierPayCourierAmount(amount) : context.l10n.courierCollectAmount(amount)),
+        content: Text(context.l10n.courierSettleAllInvoicesQuestion(b.details.length)),
         actions: [
-          TextButton(onPressed: ()=>Navigator.of(ctx).pop(false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: ()=>Navigator.of(ctx).pop(true), child: const Text('Confirm')),
+          TextButton(onPressed: ()=>Navigator.of(ctx).pop(false), child: Text(context.l10n.commonCancel)),
+          ElevatedButton(onPressed: ()=>Navigator.of(ctx).pop(true), child: Text(context.l10n.commonConfirm)),
         ],
       ),
     );
@@ -391,17 +399,17 @@ class _InlineSettleAllButtonState extends ConsumerState<_InlineSettleAllButton> 
       );
       if (!mounted) return;
       if (res['journal_entry']!=null || res['net_balance']!=null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settled')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.courierSettled)));
         try {
           await ref.read(courierBalancesProvider.notifier).load();
         } catch (e) {
           debugPrint('Failed to refresh courier balances after settle-all inline: $e');
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settlement failed')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.courierSettlementFailed)));
       }
     } catch(e){
-      if(mounted){ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));}    
+      if(mounted){ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))));}
     } finally { if(mounted) setState(()=>_loading=false); }
   }
 }
@@ -418,7 +426,7 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
       child: ElevatedButton.icon(
         onPressed: disabled ? null : () => _confirmAndSettleAll(context),
         icon: _loading ? const SizedBox(width:16,height:16,child: CircularProgressIndicator(strokeWidth:2,color: Colors.white)) : const Icon(Icons.done_all,size:16),
-        label: const Text('Settle All', style: TextStyle(fontSize: 11)),
+        label: Text(context.l10n.courierSettleAllButton, style: const TextStyle(fontSize: 11)),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           backgroundColor: Theme.of(context).colorScheme.secondary,
@@ -432,11 +440,11 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
     final b = widget.balance;
   final posProfile = ref.read(posNotifierProvider).selectedProfile?['name'];
     if (posProfile == null || posProfile.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select POS profile first')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.posProfileSelectionPrompt)));
       return;
     }
   final collectFromCourier = b.balance > 0; // positive -> collect (courier owes store)
-  final actionLabel = collectFromCourier ? 'Collect From Courier' : 'Pay Courier';
+  final actionLabel = collectFromCourier ? context.l10n.settlementTitleCollectFromCourier : context.l10n.settlementTitlePayCourier;
     final netLabel = b.balance.abs().toStringAsFixed(2);
     final invoices = b.details.map((d) => d.invoice).toList();
 
@@ -444,16 +452,16 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: Text('$actionLabel – Total $netLabel'),
+        title: Text(context.l10n.courierSettleAllDialogTitle(actionLabel, netLabel)),
         content: SizedBox(
           width: 400,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('This will settle ${invoices.length} invoice(s).'),
+              Text(context.l10n.courierSettleAllWillSettle(invoices.length)),
               const SizedBox(height: 8),
-              Text('Invoices:'),
+              Text(context.l10n.courierInvoicesLabel),
               const SizedBox(height: 6),
               SizedBox(
                 height: 150,
@@ -467,14 +475,14 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
               ),
               const SizedBox(height: 12),
         Text(collectFromCourier
-          ? 'You will collect the net amount from the courier.'
-          : 'You will pay the courier the net amount now.'),
+          ? context.l10n.courierSettleAllCollectInfo
+          : context.l10n.courierSettleAllPayInfo),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Confirm')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text(context.l10n.commonCancel)),
+          ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: Text(context.l10n.commonConfirm)),
         ],
       ),
     );
@@ -528,11 +536,11 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
         }
       }
       if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text('Settle All complete: $success ok, $failed failed')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.courierSettleAllComplete(success, failed))));
       try { await ref.read(courierBalancesProvider.notifier).load(); } catch (_) {}
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))));
       }
     } finally {
       if (mounted) setState(() => _loading = false);

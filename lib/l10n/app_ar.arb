@@ -8,11 +8,122 @@
   "menuExpenses": "المصروفات",
   "menuCourierBalances": "أرصدة المندوبين",
   "menuManagerDashboard": "لوحة تحكم المدير",
+  "managerMenuTooltip": "القائمة",
+  "managerDashboardTitle": "لوحة تحكم المدير",
+  "managerRecentOrders": "أحدث الطلبات",
+  "managerNoRecentOrders": "لا توجد طلبات حديثة",
+  "managerBranchBalances": "أرصدة الفروع",
+  "managerSwitchProfileTip": "معلومة: يمكنك تغيير ملف نقطة البيع من ترويسة شاشة نقطة البيع أو لوحة المبيعات.",
+  "managerSwitchProfile": "تبديل الملف",
+  "managerTotalCash": "إجمالي النقدية",
+  "managerAll": "الكل",
+  "managerFilterByState": "تصفية حسب الحالة:",
+  "managerChangeBranch": "تغيير الفرع",
+  "managerAssignToBranch": "إسناد إلى فرع",
+  "managerBranchUpdated": "تم تحديث الفرع",
+  "managerBranchUpdateFailed": "فشل: {error}",
+  "@managerBranchUpdateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "menuPurchaseInvoice": "فواتير الشراء",
   "menuManufacturing": "التصنيع",
   "menuStockTransfer": "تحويل المخزون",
   "menuCashTransfer": "تحويل النقدية",
+  "cashTransferFromAccount": "من حساب",
+  "cashTransferToAccount": "إلى حساب",
+  "cashTransferPostingToday": "الترحيل: اليوم",
+  "cashTransferPostingDate": "الترحيل: {date}",
+  "@cashTransferPostingDate": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "cashTransferRemarkOptional": "ملاحظة (اختياري)",
+  "cashTransferFrom": "من",
+  "cashTransferTo": "إلى",
+  "cashTransferAccountsMustDiffer": "يجب أن يكون الحسابان مختلفين",
+  "cashTransferSelectAccount": "اختر الحساب",
+  "cashTransferBefore": "قبل: {amount}",
+  "@cashTransferBefore": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "cashTransferAfter": "بعد: {amount}",
+  "@cashTransferAfter": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "cashTransferNoAccountsFound": "لا توجد حسابات",
+  "cashTransferJournalEntry": "قيد اليومية: {entry}",
+  "@cashTransferJournalEntry": {
+    "placeholders": {
+      "entry": {}
+    }
+  },
+  "cashTransferFailed": "فشل: {error}",
+  "@cashTransferFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "menuInventoryCount": "جرد المخزون",
+  "inventoryCountOfflineUsingCache": "غير متصل: سيتم استخدام البيانات المخزنة",
+  "inventoryCountConfirmAllBeforeSubmit": "يرجى تأكيد جميع الأصناف قبل الإرسال ({remaining} متبقي)",
+  "@inventoryCountConfirmAllBeforeSubmit": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "inventoryCountConfirmAtLeastOne": "أكد صنفًا واحدًا على الأقل قبل الإرسال",
+  "inventoryCountSubmitted": "تم الإرسال: {result}",
+  "@inventoryCountSubmitted": {
+    "placeholders": {
+      "result": {}
+    }
+  },
+  "inventoryCountNoDifferences": "لا توجد فروقات",
+  "inventoryCountUncategorized": "غير مصنف",
+  "inventoryCountManagerAccessRequired": "هذه الشاشة متاحة للمدير فقط",
+  "inventoryCountSelectWarehouse": "اختر المخزن",
+  "inventoryCountEnforceAll": "إلزام تأكيد الكل",
+  "inventoryCountConfirmedProgress": "تم تأكيد {confirmed} / {total}",
+  "@inventoryCountConfirmedProgress": {
+    "placeholders": {
+      "confirmed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "inventoryCountClearAllEnteredData": "مسح كل البيانات المدخلة",
+  "inventoryCountAllEnteredDataCleared": "تم مسح كل البيانات المدخلة",
+  "inventoryCountCurrentAmount": "الحالي: {amount} {uom}",
+  "@inventoryCountCurrentAmount": {
+    "placeholders": {
+      "amount": {},
+      "uom": {}
+    }
+  },
+  "inventoryCountDecrease": "تقليل",
+  "inventoryCountCount": "العدد",
+  "inventoryCountIncrease": "زيادة",
+  "inventoryCountValuation": "التقييم: {amount} / {uom}",
+  "@inventoryCountValuation": {
+    "placeholders": {
+      "amount": {},
+      "uom": {}
+    }
+  },
+  "inventoryCountDeltaLabel": "الفرق: ",
+  "inventoryCountSubmitCount": "إرسال الجرد",
   "menuEndShift": "إنهاء الشيفت",
   "menuHome": "الرئيسية",
   "menuSettings": "الإعدادات",
@@ -119,9 +230,67 @@
   "shiftNoActive": "لا يوجد شيفت مفتوح.",
   "shiftBackToPos": "العودة لنقطة البيع",
   "shiftOpeningPrompt": "أدخل رصيد البداية لكل طريقة دفع:",
+  "shiftPosProfile": "ملف نقطة البيع: {profile}",
+  "@shiftPosProfile": {
+    "placeholders": {
+      "profile": {}
+    }
+  },
+  "shiftAccount": "الحساب: {account}",
+  "@shiftAccount": {
+    "placeholders": {
+      "account": {}
+    }
+  },
+  "shiftSystemBalance": "الرصيد بالنظام: {amount}",
+  "@shiftSystemBalance": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "shiftConfirmedOpeningAmount": "رصيد البداية المؤكد",
+  "shiftDifferenceAmount": "الفرق: {amount}",
+  "@shiftDifferenceAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
   "shiftClosingPrompt": "أدخل رصيد الإغلاق:",
   "shiftClosingAmountLabel": "رصيد الإغلاق",
   "shiftExpectedAmount": "المتوقع: {amount}",
+  "shiftLoadActiveFailed": "تعذر تحميل الشيفت النشط: {error}",
+  "@shiftLoadActiveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "shiftSummaryLoadFailed": "تعذر تحميل ملخص الشيفت.",
+  "shiftLabel": "الشيفت: {shift}",
+  "@shiftLabel": {
+    "placeholders": {
+      "shift": {}
+    }
+  },
+  "shiftOutflows": "المصروفات الخارجة: {amount}",
+  "@shiftOutflows": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "shiftNetMovement": "صافي الحركة: {amount}",
+  "@shiftNetMovement": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "shiftAccountMovements": "حركات الحساب",
+  "shiftOther": "أخرى",
+  "shiftSubtotal": "الإجمالي الفرعي: {amount}",
+  "@shiftSubtotal": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
   "shiftInvoices": "الفواتير: {count}",
   "shiftGrandTotal": "إجمالي المبيعات: {amount}",
   "shiftStartButton": "بدء الشيفت",
@@ -189,6 +358,81 @@
   "printerStatusConnecting": "الطابعة: جاري الاتصال…",
   "printerStatusError": "خطأ في الطابعة",
   "printerStatusDisconnected": "الطابعة: غير متصلة",
+  "printerSelectTitle": "اختيار الطابعة",
+  "printerDiagnosticsTitle": "التشخيص",
+  "printerDiagnosticsAdapter": "المحول: {state}",
+  "@printerDiagnosticsAdapter": {
+    "placeholders": {
+      "state": {}
+    }
+  },
+  "printerDiagnosticsScan": "صلاحية الفحص: {status}",
+  "@printerDiagnosticsScan": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "printerDiagnosticsConnect": "صلاحية الاتصال: {status}",
+  "@printerDiagnosticsConnect": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "printerDiagnosticsLocation": "صلاحية الموقع: {status}",
+  "@printerDiagnosticsLocation": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "printerDeviceIdLabel": "معرّف الجهاز (MAC / Identifier)",
+  "printerConnectById": "اتصال بالمعرّف",
+  "printerConnectingById": "جارٍ الاتصال بالمعرّف...",
+  "printerConnecting": "جارٍ الاتصال...",
+  "printerConnected": "تم توصيل الطابعة",
+  "printerConnectionFailed": "فشل الاتصال",
+  "printerForgetSavedTooltip": "نسيان الطابعة المحفوظة",
+  "printerForgotSaved": "تم نسيان الطابعة المحفوظة",
+  "printerRescanTooltip": "إعادة الفحص",
+  "printerReconnecting": "جارٍ إعادة الاتصال...",
+  "printerReconnected": "تمت إعادة الاتصال",
+  "printerReconnectFailed": "فشلت إعادة الاتصال",
+  "printerReconnect": "إعادة الاتصال",
+  "printerConnectedTo": "متصل: {name}",
+  "@printerConnectedTo": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "printerTestPrint": "طباعة تجريبية",
+  "printerTestSent": "تم إرسال الطباعة التجريبية",
+  "printerTestFailed": "فشل الاختبار: {error}",
+  "@printerTestFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "printerBleDevices": "أجهزة BLE",
+  "printerRescanBleTooltip": "إعادة فحص BLE",
+  "printerNoBleDevices": "لم يتم العثور على أجهزة BLE.",
+  "printerUnknownName": "طابعة غير معروفة",
+  "printerConnect": "اتصال",
+  "printerClassicDevices": "أجهزة Classic المقترنة",
+  "printerRefreshClassicTooltip": "تحديث قائمة Classic",
+  "printerNoClassicDevices": "لا توجد طابعات Classic مقترنة. تأكد من إقران الطابعة من إعدادات البلوتوث بالنظام وتفعيل الموقع (Android 8).",
+  "printerClassicMacConnected": "{mac}  (Classic)",
+  "@printerClassicMacConnected": {
+    "placeholders": {
+      "mac": {}
+    }
+  },
+  "printerDisconnect": "قطع الاتصال",
+  "printerConnectingClassic": "جارٍ الاتصال (Classic)...",
+  "printerLastSavedNotAdvertising": "آخر طابعة محفوظة: {id}\nهي غير مرئية الآن عبر البث، ويمكنك محاولة إعادة الاتصال.",
+  "@printerLastSavedNotAdvertising": {
+    "placeholders": {
+      "id": {}
+    }
+  },
   "branchFilterTitle": "تصفية الفروع",
   "branchFilterAllBranches": "جميع الفروع",
   "branchFilterApply": "تطبيق",
@@ -214,8 +458,174 @@
   "courierBalancesDetailsTitle": "التفاصيل – {courier}",
   "courierBalancesCityOrderLine": "المدينة: {city}\nالطلب: {order} • الشحن: {shipping}",
   "courierBalancesNetLabel": "الصافي",
+  "courierSettlementComplete": "اكتملت التسوية",
+  "courierSettlementFailed": "فشلت التسوية",
+  "courierSettleButton": "تسوية",
+  "courierPayCourierAmount": "سداد للمندوب {amount}",
+  "@courierPayCourierAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "courierCollectAmount": "تحصيل {amount}",
+  "@courierCollectAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "courierSettleAllInvoicesQuestion": "تسوية كل الفواتير ({count}) لهذا المندوب؟",
+  "@courierSettleAllInvoicesQuestion": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courierSettled": "تمت التسوية",
+  "courierSettleAllButton": "تسوية الكل",
+  "courierSettleAllDialogTitle": "{action} - الإجمالي {total}",
+  "@courierSettleAllDialogTitle": {
+    "placeholders": {
+      "action": {},
+      "total": {}
+    }
+  },
+  "courierSettleAllWillSettle": "سيتم تسوية عدد {count} فاتورة.",
+  "@courierSettleAllWillSettle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courierInvoicesLabel": "الفواتير:",
+  "courierSettleAllCollectInfo": "سيتم تحصيل صافي المبلغ من المندوب.",
+  "courierSettleAllPayInfo": "سيتم سداد صافي المبلغ للمندوب الآن.",
+  "courierSettleAllComplete": "اكتملت تسوية الكل: {success} ناجح، {failed} فشل",
+  "@courierSettleAllComplete": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
   "courierBalancesPreviewTooltip": "معاينة التسوية",
   "courierBalancesPreviewFailed": "فشل تحميل معاينة التسوية: {error}",
+  "settlementTitleCollectFromCourier": "تحصيل من المندوب",
+  "settlementTitlePayCourier": "سداد للمندوب",
+  "settlementTitleCourierSettlement": "تسوية المندوب",
+  "settlementStatusUnpaid": "غير مدفوع",
+  "settlementStatusPaid": "مدفوع",
+  "settlementPaidNoteRecent": " (دُفع للتو، ويتم التعامل معه كغير مدفوع)",
+  "settlementPaidNoteAfterOfd": " (بعد الخروج للتسليم)",
+  "settlementPaidNoteAfterOfdUnpaid": " (دُفع بعد الخروج للتسليم ويُعامل كغير مدفوع)",
+  "settlementInvoiceStatus": "حالة الفاتورة: {status}{note}",
+  "@settlementInvoiceStatus": {
+    "placeholders": {
+      "status": {},
+      "note": {}
+    }
+  },
+  "settlementCollectFormula": "تحصيل (الطلب - الشحن):",
+  "settlementPayFormula": "سداد للمندوب (الطلب - الشحن):",
+  "settlementNetToCollect": "الصافي للتحصيل",
+  "settlementPayAmount": "قيمة السداد",
+  "settlementNothingToSettle": "لا يوجد مبلغ للتحصيل أو السداد.",
+  "settlementOrderLabel": "الطلب: {amount}",
+  "@settlementOrderLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "settlementShippingLabel": "الشحن: {amount}",
+  "@settlementShippingLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "settlementTerritoryLabel": "المنطقة: {territory}",
+  "@settlementTerritoryLabel": {
+    "placeholders": {
+      "territory": {}
+    }
+  },
+  "cancelOrderTitle": "إلغاء الطلب",
+  "cancelOrderInvoiceLabel": "الفاتورة: {invoice}",
+  "@cancelOrderInvoiceLabel": {
+    "placeholders": {
+      "invoice": {}
+    }
+  },
+  "cancelOrderTotalLabel": "الإجمالي: {amount}",
+  "@cancelOrderTotalLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "cancelOrderOutstandingLabel": "المتبقي: {amount}",
+  "@cancelOrderOutstandingLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "cancelOrderPartialPaymentWarning": "هذه الفاتورة تحتوي على دفعة جزئية. يرجى تسوية الدفعة أو ردها قبل الإلغاء.",
+  "cancelOrderReasonLabel": "سبب الإلغاء",
+  "cancelOrderSelectReasonValidation": "اختر سببًا للمتابعة",
+  "cancelOrderProvideReasonValidation": "يرجى إدخال السبب",
+  "cancelOrderCustomReasonLabel": "سبب مخصص",
+  "cancelOrderDescribeReasonValidation": "يرجى وصف سبب الإلغاء",
+  "cancelOrderAdditionalNotesOptional": "ملاحظات إضافية (اختياري)",
+  "cancelOrderCreditNoteInfo": "سيتم إصدار إشعار دائن تلقائيًا للحفاظ على توازن الحسابات.",
+  "cancelOrderConfirmButton": "تأكيد الإلغاء",
+  "invoicePreparingReceipt": "جاري تجهيز الإيصال...",
+  "invoiceItemsCount": "الأصناف ({count})",
+  "@invoiceItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "invoicePrinterNotConnectedHint": "الطابعة غير متصلة. افتح شاشة اختيار الطابعة من القائمة.",
+  "invoicePrintedSuccessfully": "تمت الطباعة بنجاح",
+  "invoicePrinterDisconnected": "تم فصل الطابعة",
+  "invoicePrintFailed": "فشلت الطباعة: {result}",
+  "@invoicePrintFailed": {
+    "placeholders": {
+      "result": {}
+    }
+  },
+  "invoiceAcceptOrderTitle": "قبول الطلب",
+  "invoiceAcceptOrderQuestion": "قبول الطلب {invoice} للعميل {customer}؟",
+  "@invoiceAcceptOrderQuestion": {
+    "placeholders": {
+      "invoice": {},
+      "customer": {}
+    }
+  },
+  "invoiceAcceptAction": "قبول",
+  "invoiceOrderAccepted": "تم قبول الطلب {invoice}!",
+  "@invoiceOrderAccepted": {
+    "placeholders": {
+      "invoice": {}
+    }
+  },
+  "invoiceAcceptFailed": "فشل قبول الطلب: {error}",
+  "@invoiceAcceptFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "invoiceMoreOptions": "خيارات إضافية",
+  "invoiceEditCustomerAddress": "تعديل عنوان العميل",
+  "invoiceChangeDeliverySlot": "تغيير موعد التوصيل",
+  "invoiceTransferOrder": "تحويل الطلب",
+  "invoiceCancelOrderSettleFirst": "إلغاء الطلب (يجب تسوية المدفوعات أولًا)",
+  "invoiceCustomerLabel": "العميل",
+  "invoiceShippingExpenseShort": "مصروف الشحن:",
   "manufacturingTitle": "التصنيع",
   "manufacturingManagersOnly": "للمدراء فقط",
   "manufacturingRecentWorkOrdersTooltip": "أوامر العمل الأخيرة",
@@ -274,5 +684,222 @@
   "stockTransferItemGroup": "مجموعة الأصناف",
   "stockTransferAllGroups": "كل المجموعات",
   "stockTransferAddAll": "إضافة الكل",
-  "stockTransferAddGroup": "إضافة المجموعة"
+  "stockTransferAddGroup": "إضافة المجموعة",
+
+  "commonCancel": "إلغاء",
+  "commonClear": "مسح",
+  "commonClose": "إغلاق",
+  "commonConfirm": "تأكيد",
+  "commonDismiss": "تجاهل",
+  "commonError": "خطأ",
+  "commonOk": "حسناً",
+  "commonRetry": "إعادة المحاولة",
+  "commonSave": "حفظ",
+
+  "paymentMethodSelectTitle": "اختر طريقة الدفع",
+  "paymentMethodCash": "نقدي",
+  "paymentMethodInstapay": "إنستاباي",
+  "paymentMethodMobileWallet": "محفظة إلكترونية",
+
+  "checkoutTotal": "الإجمالي:",
+  "checkoutPay": "ادفع",
+  "checkoutSelectProfileFirst": "اختر ملف نقطة البيع أولاً",
+  "checkoutOrderSuccess": "تم إتمام الطلب بنجاح!",
+  "checkoutFailed": "فشل الدفع: {error}",
+
+  "salesPartnerTitle": "شريك المبيعات",
+  "salesPartnerSearchHint": "بحث عن شريك",
+  "salesPartnerNotFound": "لا يوجد شركاء",
+
+  "itemGridBundles": "حزم",
+  "itemGridAll": "الكل",
+  "itemGridUncategorized": "بدون تصنيف",
+  "itemGridSelectCustomerWarning": "يرجى اختيار عميل أولاً",
+  "itemGridNoItemsFound": "لم يتم العثور على أصناف",
+  "itemGridNoItemsAvailable": "لا توجد أصناف متاحة",
+  "itemGridTryDifferentCategory": "جرّب تصنيفاً مختلفاً",
+  "itemGridItemsWillAppear": "ستظهر الأصناف هنا",
+  "itemGridFreeDelivery": "توصيل مجاني",
+  "itemGridBundlesCount": "{count} حزم",
+  "itemGridItemsCount": "{count} أصناف",
+  "itemGridAddedToCart": "تمت الإضافة إلى السلة",
+  "itemGridSelectCustomerFirst": "اختر عميلاً أولاً",
+  "itemGridOutOfStock": "نفدت الكمية",
+  "itemGridCannotAdd": "لا يمكن إضافة الصنف",
+
+  "kanbanFilterTitle": "الفلاتر",
+  "kanbanFilterActiveCount": "{count} نشط",
+  "kanbanFilterClearAll": "مسح الكل",
+  "kanbanFilterSearch": "بحث",
+  "kanbanFilterSearchHint": "بحث في الطلبات...",
+  "kanbanFilterAllCustomers": "كل العملاء",
+  "kanbanFilterAllStatuses": "كل الحالات",
+  "kanbanFilterDateRange": "نطاق التاريخ",
+  "kanbanFilterFromDate": "من تاريخ",
+  "kanbanFilterToDate": "إلى تاريخ",
+  "kanbanFilterAllDates": "كل التواريخ",
+  "kanbanFilterAmountRange": "نطاق المبلغ",
+  "kanbanFilterMinAmount": "الحد الأدنى",
+  "kanbanFilterMaxAmount": "الحد الأقصى",
+  "kanbanFilterAllAmounts": "كل المبالغ",
+  "kanbanFilterActiveLabel": "الفلاتر النشطة:",
+  "kanbanFilterByBranches": "تصفية حسب الفروع",
+  "kanbanFilterCustomerTitle": "العميل",
+  "kanbanFilterCustomerName": "اسم العميل",
+  "kanbanFilterCustomerHint": "أدخل اسم العميل",
+  "kanbanFilterStatusTitle": "الحالة",
+  "kanbanFilterFromAmount": "من مبلغ",
+  "kanbanFilterToAmount": "إلى مبلغ",
+  "kanbanFilterApply": "تطبيق",
+
+  "kanbanRefreshOrders": "تحديث الطلبات",
+  "kanbanOrdersRefreshed": "تم تحديث الطلبات",
+  "kanbanHideFilters": "إخفاء الفلاتر",
+  "kanbanShowFilters": "إظهار الفلاتر",
+  "kanbanMoreActions": "المزيد",
+  "kanbanMenu": "القائمة",
+  "kanbanMenuReceipts": "إيصالات الدفع",
+  "kanbanMenuPrinters": "الطابعات",
+  "kanbanMenuCouriers": "أرصدة المناديب",
+  "kanbanMenuProfile": "الملف الشخصي",
+  "kanbanMenuPos": "نقطة البيع",
+  "kanbanPaymentReceipts": "إيصالات الدفع",
+  "kanbanCourierBalances": "أرصدة المناديب",
+  "kanbanUserProfile": "الملف الشخصي",
+  "kanbanOpenPos": "فتح نقطة البيع",
+  "kanbanTitleShort": "كانبان",
+  "kanbanTitleFull": "كانبان المبيعات",
+  "kanbanPrinterBle": "BLE",
+  "kanbanPrinterClassic": "كلاسيك",
+  "kanbanPrinterConnecting": "جارٍ الاتصال...",
+  "kanbanPrinterNotConnected": "غير متصل",
+  "kanbanErrorLoadingData": "خطأ في تحميل البيانات",
+  "kanbanNoColumnsConfigured": "لم يتم تكوين أعمدة",
+  "kanbanEnsureStateField": "تأكد من تكوين حقل الحالة بشكل صحيح.",
+  "kanbanSelectPosProfileFirst": "اختر ملف نقطة البيع أولاً",
+  "kanbanSelectPosProfile": "اختر ملف نقطة البيع",
+  "kanbanNoPosProfiles": "لا توجد ملفات نقطة بيع متاحة",
+  "kanbanWarehouse": "المستودع: {warehouse}",
+  "kanbanCourierAndMode": "المندوب والطريقة",
+  "kanbanNoCouriersAvailable": "لا يوجد مناديب",
+  "kanbanCreateCourierHint": "أنشئ مندوباً للمتابعة.",
+  "kanbanNewCourier": "مندوب جديد",
+  "kanbanFirstName": "الاسم الأول",
+  "kanbanLastName": "اسم العائلة",
+  "kanbanPhone": "الهاتف",
+  "kanbanType": "النوع",
+  "kanbanEmployee": "موظف",
+  "kanbanSupplier": "مورّد",
+  "kanbanBack": "رجوع",
+  "kanbanCreateFailed": "فشل الإنشاء: {error}",
+  "kanbanMode": "الطريقة",
+  "kanbanPayNowCash": "ادفع الآن (نقدي)",
+  "kanbanSettleLater": "تسوية لاحقاً",
+  "kanbanSettleLaterSubtitle": "المندوب يسوي مع الفرع لاحقاً",
+  "kanbanContinue": "متابعة",
+  "kanbanSettleLaterMissingParty": "فشلت التسوية اللاحقة: طرف المندوب مفقود.",
+  "kanbanSettleLaterPreviewExpired": "التسوية اللاحقة: انتهت صلاحية المعاينة. أعد المحاولة.",
+  "kanbanSettleLaterFailed": "فشلت التسوية اللاحقة",
+  "kanbanMarkedSettleLater": "تم التحديد للتسوية لاحقاً",
+  "kanbanSettleLaterError": "خطأ في التسوية اللاحقة: {error}",
+  "kanbanSettlementMissingParty": "فشلت التسوية: طرف المندوب مفقود.",
+  "kanbanPreviewExpired": "انتهت صلاحية المعاينة. أعد المحاولة.",
+  "kanbanConfirmingSettlement": "جارٍ تأكيد التسوية...",
+  "kanbanSettlementFailed": "فشلت التسوية",
+  "kanbanSettlementConfirmed": "تم تأكيد التسوية",
+  "kanbanSettlementError": "خطأ في التسوية: {error}",
+  "kanbanPreviewFailed": "فشلت المعاينة: {error}",
+  "kanbanPickupNoSettlement": "طلبات الاستلام لا تحتاج تسوية",
+  "kanbanCannotMoveBackward": "لا يمكن التراجع للخلف",
+  "kanbanMoveOneStage": "يمكن التقدم مرحلة واحدة فقط",
+  "kanbanAllBranches": "كل الفروع",
+  "kanbanBranchCount": "{count} فروع",
+  "kanbanLoadingBranches": "جارٍ تحميل الفروع...",
+  "kanbanTapToRefreshBalance": "اضغط لتحديث الرصيد",
+  "kanbanPressBackAgain": "اضغط رجوع مرة أخرى للخروج",
+
+  "invoiceDeliveryAddress": "عنوان التوصيل",
+  "invoiceItems": "الأصناف",
+  "invoiceNetTotal": "الإجمالي الصافي",
+  "invoiceShippingIncome": "إيراد الشحن",
+  "invoiceShippingExpense": "مصاريف الشحن",
+  "invoiceGrandTotal": "الإجمالي الكلي",
+  "invoiceAlreadyStatus": "الفاتورة بالفعل {status}",
+  "invoiceSelectPaymentMethod": "اختر طريقة الدفع",
+  "invoiceWallet": "محفظة",
+  "invoiceSubmit": "إرسال",
+  "invoiceNoPosProfileCash": "لم يتم اختيار ملف نقطة بيع للدفع النقدي",
+  "invoiceProcessingPayment": "جارٍ معالجة دفع {method}...",
+  "invoicePaymentSuccess": "تم الدفع بنجاح ({entry})",
+  "invoiceReceiptAmountWarning": "تحذير: تعذر الحصول على مبلغ الدفع للإيصال",
+  "invoiceReceiptNoPosProfile": "تحذير: لم يتم العثور على ملف نقطة بيع - لم يتم إنشاء الإيصال. يرجى اختيار ملف نقطة بيع.",
+  "invoiceReceiptCreated": "تم إنشاء إيصال الدفع ({receipt}) - يرجى رفع صورة الإيصال من الرأس",
+  "invoiceReceiptReturnedWarning": "تحذير: إنشاء الإيصال أرجع: {message}",
+  "invoiceReceiptCreationFailed": "تحذير: فشل إنشاء الإيصال: {error}",
+  "invoicePaymentFailed": "فشل الدفع",
+  "invoicePaymentError": "خطأ في الدفع: {error}",
+  "invoiceCollectCashTitle": "تحصيل النقد",
+  "invoiceCollectCashBody": "يرجى التحصيل من العميل:\n\nالمبلغ الإجمالي: {amount} جنيه\n\nيشمل:\n• أصناف الطلب\n• رسوم الشحن\n\nفاتورة: {invoiceId}",
+  "invoiceSelectPosFirst": "اختر ملف نقطة البيع أولاً",
+  "invoiceCollectingCashPartner": "جارٍ تحصيل النقد والإرسال (شريك مبيعات)...",
+  "invoiceCashCollectedOfd": "تم تحصيل النقد وإرسال الطلب للتوصيل",
+  "invoiceOfdFailed": "فشل: {error}",
+  "invoiceOfdError": "خطأ: {error}",
+  "invoiceSentOfd": "تم الإرسال للتوصيل (سيتم إنشاء إذن التسليم)",
+  "invoiceActionFailed": "فشل الإجراء: {error}",
+  "invoiceSettleLaterMissingParty": "فشلت التسوية اللاحقة: طرف المندوب مفقود.",
+  "invoiceMarkedSettleLater": "تم التحديد للتسوية لاحقاً",
+  "invoiceSettleLaterFailed": "فشلت التسوية اللاحقة",
+  "invoiceSettleLaterError": "خطأ في التسوية اللاحقة: {error}",
+  "invoiceSettlementMissingParty": "فشلت التسوية: طرف المندوب مفقود.",
+  "invoicePreviewExpired": "انتهت صلاحية المعاينة. أعد المحاولة.",
+  "invoiceConfirmingSettlement": "جارٍ تأكيد التسوية...",
+  "invoiceSettlementConfirmed": "تم تأكيد التسوية",
+  "invoiceSettlementFailed": "فشلت التسوية",
+  "invoiceSettlementError": "خطأ في التسوية: {error}",
+  "invoiceProcessingDelivery": "جارٍ معالجة التوصيل...",
+  "invoiceUpdated": "تم التحديث",
+  "invoiceDeliveryFailed": "فشل إجراء التوصيل",
+  "invoiceDeliveryError": "خطأ: {error}",
+  "invoiceDeliveryTitle": "التوصيل",
+  "invoiceUnpaidWarning": "الفاتورة غير مدفوعة. اختر تحصيل المندوب للنقد الآن لتسجيل دفعة نقدية قبل تحديد خارج للتوصيل.",
+  "invoiceCannotSettleParty": "لا يمكن التسوية: لم يتم تحديد طرف المندوب. عيّن مندوباً أو أعد المحاولة.",
+  "invoiceNothingToSettle": "لا يوجد شيء للتسوية",
+  "invoiceSettlementComplete": "اكتملت التسوية",
+  "invoiceEditAddress": "تعديل عنوان العميل",
+  "invoiceCustomerLabel": "العميل",
+  "invoicePhoneNumber": "رقم الهاتف",
+  "invoiceDeliveryAddressLabel": "عنوان التوصيل",
+  "invoiceAddressHelper": "أدخل عنوان التوصيل الكامل",
+  "invoiceAddressUpdateInfo": "سيتم تحديث العنوان ورقم الهاتف الافتراضي للعميل.",
+  "invoiceAddressEmpty": "العنوان لا يمكن أن يكون فارغاً",
+  "invoiceUpdatingAddress": "جارٍ تحديث عنوان العميل...",
+  "invoiceAddressUpdated": "تم تحديث عنوان العميل بنجاح",
+  "invoiceAddressUpdateFailed": "فشل تحديث العنوان",
+  "invoiceCopiedNumber": "تم النسخ: {number}",
+  "invoiceCopy": "نسخ",
+  "invoiceCannotCall": "تعذر إجراء المكالمة",
+  "invoiceCall": "اتصال",
+  "invoiceSettleBeforeCancel": "قم بتسوية أو استرداد المدفوعات الجزئية قبل إلغاء هذا الطلب.",
+  "invoiceCancelFailed": "فشل إلغاء الطلب. يرجى المحاولة مرة أخرى.",
+  "invoiceCancelledWithCn": "تم إلغاء الطلب. تم إنشاء إشعار دائن {creditNote}.",
+  "invoiceCancelledSuccess": "تم إلغاء الطلب بنجاح.",
+  "invoiceNoPosProfile": "لم يتم اختيار ملف نقطة بيع",
+  "invoiceAssignBranch": "تعيين إلى فرع",
+  "invoiceCustomerName": "العميل: {name}",
+  "invoiceInvoiceLabel": "الفاتورة: {name}",
+  "invoiceTransferInfo": "سيتم نقل الطلب إلى الفرع المحدد وإعادة تعيينه إلى حالة مستلم.",
+  "invoiceTransferring": "جارٍ نقل الطلب...",
+  "invoiceTransferSuccess": "تم نقل الطلب بنجاح إلى {branch}",
+  "invoiceTransferFailed": "فشل النقل. يرجى المحاولة مرة أخرى.",
+  "invoiceCannotDetermineProfile": "تعذر تحديد ملف نقطة البيع لهذه الفاتورة",
+  "invoiceLoadingSlots": "جارٍ تحميل مواعيد التوصيل...",
+  "invoiceNoSlots": "لا توجد مواعيد توصيل متاحة لهذا الفرع",
+  "invoiceChangeSlot": "تغيير موعد التوصيل",
+  "invoiceCurrentSlot": "الحالي: {slot}",
+  "invoiceSlotUpdateInfo": "سيتم تحديث موعد التوصيل لهذا الطلب.",
+  "invoiceNoChanges": "لم يتم إجراء تغييرات",
+  "invoiceUpdatingSlot": "جارٍ تحديث موعد التوصيل...",
+  "invoiceSlotUpdated": "تم تحديث موعد التوصيل إلى {slot}",
+  "invoiceSlotUpdateFailed": "فشل تحديث موعد التوصيل"
 }

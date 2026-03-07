@@ -184,7 +184,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                             ],
                           ),
                           subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 8.0, left: 36.0),
+                            padding: const EdgeInsetsDirectional.only(top: 8.0, start: 36.0),
                             child: Text(
                               isMuted 
                                 ? 'All order notification alarms are currently muted'

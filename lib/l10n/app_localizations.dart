@@ -146,6 +146,90 @@ abstract class AppLocalizations {
   /// **'Manager Dashboard'**
   String get menuManagerDashboard;
 
+  /// No description provided for @managerMenuTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get managerMenuTooltip;
+
+  /// No description provided for @managerDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager Dashboard'**
+  String get managerDashboardTitle;
+
+  /// No description provided for @managerRecentOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Orders'**
+  String get managerRecentOrders;
+
+  /// No description provided for @managerNoRecentOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent orders'**
+  String get managerNoRecentOrders;
+
+  /// No description provided for @managerBranchBalances.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch Balances'**
+  String get managerBranchBalances;
+
+  /// No description provided for @managerSwitchProfileTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: Switch POS profiles from the POS/Kanban headers.'**
+  String get managerSwitchProfileTip;
+
+  /// No description provided for @managerSwitchProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch Profile'**
+  String get managerSwitchProfile;
+
+  /// No description provided for @managerTotalCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Cash'**
+  String get managerTotalCash;
+
+  /// No description provided for @managerAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get managerAll;
+
+  /// No description provided for @managerFilterByState.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by state:'**
+  String get managerFilterByState;
+
+  /// No description provided for @managerChangeBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Branch'**
+  String get managerChangeBranch;
+
+  /// No description provided for @managerAssignToBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to Branch'**
+  String get managerAssignToBranch;
+
+  /// No description provided for @managerBranchUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch updated'**
+  String get managerBranchUpdated;
+
+  /// No description provided for @managerBranchUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String managerBranchUpdateFailed(Object error);
+
   /// No description provided for @menuPurchaseInvoice.
   ///
   /// In en, this message translates to:
@@ -170,11 +254,209 @@ abstract class AppLocalizations {
   /// **'Cash Transfer'**
   String get menuCashTransfer;
 
+  /// No description provided for @cashTransferFromAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'From Account'**
+  String get cashTransferFromAccount;
+
+  /// No description provided for @cashTransferToAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'To Account'**
+  String get cashTransferToAccount;
+
+  /// No description provided for @cashTransferPostingToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting: Today'**
+  String get cashTransferPostingToday;
+
+  /// No description provided for @cashTransferPostingDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting: {date}'**
+  String cashTransferPostingDate(Object date);
+
+  /// No description provided for @cashTransferRemarkOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Remark (optional)'**
+  String get cashTransferRemarkOptional;
+
+  /// No description provided for @cashTransferFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get cashTransferFrom;
+
+  /// No description provided for @cashTransferTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get cashTransferTo;
+
+  /// No description provided for @cashTransferAccountsMustDiffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts must differ'**
+  String get cashTransferAccountsMustDiffer;
+
+  /// No description provided for @cashTransferSelectAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Select account'**
+  String get cashTransferSelectAccount;
+
+  /// No description provided for @cashTransferBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before: {amount}'**
+  String cashTransferBefore(Object amount);
+
+  /// No description provided for @cashTransferAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After: {amount}'**
+  String cashTransferAfter(Object amount);
+
+  /// No description provided for @cashTransferNoAccountsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts found'**
+  String get cashTransferNoAccountsFound;
+
+  /// No description provided for @cashTransferJournalEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal Entry: {entry}'**
+  String cashTransferJournalEntry(Object entry);
+
+  /// No description provided for @cashTransferFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String cashTransferFailed(Object error);
+
   /// No description provided for @menuInventoryCount.
   ///
   /// In en, this message translates to:
   /// **'Inventory Count'**
   String get menuInventoryCount;
+
+  /// No description provided for @inventoryCountOfflineUsingCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline using cached data'**
+  String get inventoryCountOfflineUsingCache;
+
+  /// No description provided for @inventoryCountConfirmAllBeforeSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Please confirm all items before submitting ({remaining} remaining)'**
+  String inventoryCountConfirmAllBeforeSubmit(int remaining);
+
+  /// No description provided for @inventoryCountConfirmAtLeastOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm at least one item before submitting'**
+  String get inventoryCountConfirmAtLeastOne;
+
+  /// No description provided for @inventoryCountSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted: {result}'**
+  String inventoryCountSubmitted(Object result);
+
+  /// No description provided for @inventoryCountNoDifferences.
+  ///
+  /// In en, this message translates to:
+  /// **'No differences'**
+  String get inventoryCountNoDifferences;
+
+  /// No description provided for @inventoryCountUncategorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get inventoryCountUncategorized;
+
+  /// No description provided for @inventoryCountManagerAccessRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager access required'**
+  String get inventoryCountManagerAccessRequired;
+
+  /// No description provided for @inventoryCountSelectWarehouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Warehouse'**
+  String get inventoryCountSelectWarehouse;
+
+  /// No description provided for @inventoryCountEnforceAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Enforce all'**
+  String get inventoryCountEnforceAll;
+
+  /// No description provided for @inventoryCountConfirmedProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed {confirmed} / {total}'**
+  String inventoryCountConfirmedProgress(int confirmed, int total);
+
+  /// No description provided for @inventoryCountClearAllEnteredData.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all entered data'**
+  String get inventoryCountClearAllEnteredData;
+
+  /// No description provided for @inventoryCountAllEnteredDataCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'All entered data cleared'**
+  String get inventoryCountAllEnteredDataCleared;
+
+  /// No description provided for @inventoryCountCurrentAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {amount} {uom}'**
+  String inventoryCountCurrentAmount(Object amount, Object uom);
+
+  /// No description provided for @inventoryCountDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease'**
+  String get inventoryCountDecrease;
+
+  /// No description provided for @inventoryCountCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get inventoryCountCount;
+
+  /// No description provided for @inventoryCountIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase'**
+  String get inventoryCountIncrease;
+
+  /// No description provided for @inventoryCountValuation.
+  ///
+  /// In en, this message translates to:
+  /// **'Valuation: {amount} / {uom}'**
+  String inventoryCountValuation(Object amount, Object uom);
+
+  /// No description provided for @inventoryCountDeltaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delta: '**
+  String get inventoryCountDeltaLabel;
+
+  /// No description provided for @inventoryCountSubmitCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Count'**
+  String get inventoryCountSubmitCount;
 
   /// No description provided for @menuEndShift.
   ///
@@ -812,6 +1094,36 @@ abstract class AppLocalizations {
   /// **'Enter opening balances per payment method:'**
   String get shiftOpeningPrompt;
 
+  /// No description provided for @shiftPosProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'POS Profile: {profile}'**
+  String shiftPosProfile(Object profile);
+
+  /// No description provided for @shiftAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account: {account}'**
+  String shiftAccount(Object account);
+
+  /// No description provided for @shiftSystemBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'System Balance: {amount}'**
+  String shiftSystemBalance(Object amount);
+
+  /// No description provided for @shiftConfirmedOpeningAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed Opening Amount'**
+  String get shiftConfirmedOpeningAmount;
+
+  /// No description provided for @shiftDifferenceAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference: {amount}'**
+  String shiftDifferenceAmount(Object amount);
+
   /// No description provided for @shiftClosingPrompt.
   ///
   /// In en, this message translates to:
@@ -829,6 +1141,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expected: {amount}'**
   String shiftExpectedAmount(Object amount);
+
+  /// No description provided for @shiftLoadActiveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load active shift: {error}'**
+  String shiftLoadActiveFailed(Object error);
+
+  /// No description provided for @shiftSummaryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load shift summary.'**
+  String get shiftSummaryLoadFailed;
+
+  /// No description provided for @shiftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift: {shift}'**
+  String shiftLabel(Object shift);
+
+  /// No description provided for @shiftOutflows.
+  ///
+  /// In en, this message translates to:
+  /// **'Outflows: {amount}'**
+  String shiftOutflows(Object amount);
+
+  /// No description provided for @shiftNetMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Movement: {amount}'**
+  String shiftNetMovement(Object amount);
+
+  /// No description provided for @shiftAccountMovements.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Movements'**
+  String get shiftAccountMovements;
+
+  /// No description provided for @shiftOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get shiftOther;
+
+  /// No description provided for @shiftSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal: {amount}'**
+  String shiftSubtotal(Object amount);
 
   /// No description provided for @shiftInvoices.
   ///
@@ -1232,6 +1592,216 @@ abstract class AppLocalizations {
   /// **'Printer: Not Connected'**
   String get printerStatusDisconnected;
 
+  /// No description provided for @printerSelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Printer'**
+  String get printerSelectTitle;
+
+  /// No description provided for @printerDiagnosticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get printerDiagnosticsTitle;
+
+  /// No description provided for @printerDiagnosticsAdapter.
+  ///
+  /// In en, this message translates to:
+  /// **'Adapter: {state}'**
+  String printerDiagnosticsAdapter(Object state);
+
+  /// No description provided for @printerDiagnosticsScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Perm scan: {status}'**
+  String printerDiagnosticsScan(Object status);
+
+  /// No description provided for @printerDiagnosticsConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Perm connect: {status}'**
+  String printerDiagnosticsConnect(Object status);
+
+  /// No description provided for @printerDiagnosticsLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Perm location: {status}'**
+  String printerDiagnosticsLocation(Object status);
+
+  /// No description provided for @printerDeviceIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Device ID (MAC / Identifier)'**
+  String get printerDeviceIdLabel;
+
+  /// No description provided for @printerConnectById.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect by ID'**
+  String get printerConnectById;
+
+  /// No description provided for @printerConnectingById.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting by ID...'**
+  String get printerConnectingById;
+
+  /// No description provided for @printerConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting...'**
+  String get printerConnecting;
+
+  /// No description provided for @printerConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer connected'**
+  String get printerConnected;
+
+  /// No description provided for @printerConnectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to connect'**
+  String get printerConnectionFailed;
+
+  /// No description provided for @printerForgetSavedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget saved printer'**
+  String get printerForgetSavedTooltip;
+
+  /// No description provided for @printerForgotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot saved printer'**
+  String get printerForgotSaved;
+
+  /// No description provided for @printerRescanTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Rescan'**
+  String get printerRescanTooltip;
+
+  /// No description provided for @printerReconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting...'**
+  String get printerReconnecting;
+
+  /// No description provided for @printerReconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnected'**
+  String get printerReconnected;
+
+  /// No description provided for @printerReconnectFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect failed'**
+  String get printerReconnectFailed;
+
+  /// No description provided for @printerReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get printerReconnect;
+
+  /// No description provided for @printerConnectedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected: {name}'**
+  String printerConnectedTo(Object name);
+
+  /// No description provided for @printerTestPrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Print'**
+  String get printerTestPrint;
+
+  /// No description provided for @printerTestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Test print sent'**
+  String get printerTestSent;
+
+  /// No description provided for @printerTestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Test failed: {error}'**
+  String printerTestFailed(Object error);
+
+  /// No description provided for @printerBleDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'BLE Devices'**
+  String get printerBleDevices;
+
+  /// No description provided for @printerRescanBleTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Rescan BLE'**
+  String get printerRescanBleTooltip;
+
+  /// No description provided for @printerNoBleDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'No BLE devices discovered.'**
+  String get printerNoBleDevices;
+
+  /// No description provided for @printerUnknownName.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Printer'**
+  String get printerUnknownName;
+
+  /// No description provided for @printerConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get printerConnect;
+
+  /// No description provided for @printerClassicDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired Classic Devices'**
+  String get printerClassicDevices;
+
+  /// No description provided for @printerRefreshClassicTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh Classic List'**
+  String get printerRefreshClassicTooltip;
+
+  /// No description provided for @printerNoClassicDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'No paired classic printers found. Ensure the printer is paired in System Bluetooth settings and that Location (Android 8) is enabled.'**
+  String get printerNoClassicDevices;
+
+  /// No description provided for @printerClassicMacConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'{mac}  (Classic)'**
+  String printerClassicMacConnected(Object mac);
+
+  /// No description provided for @printerDisconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get printerDisconnect;
+
+  /// No description provided for @printerConnectingClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting (Classic)...'**
+  String get printerConnectingClassic;
+
+  /// No description provided for @printerLastSavedNotAdvertising.
+  ///
+  /// In en, this message translates to:
+  /// **'Last saved printer: {id}\nIt is not currently advertising. You can still attempt to reconnect.'**
+  String printerLastSavedNotAdvertising(Object id);
+
   /// No description provided for @branchFilterTitle.
   ///
   /// In en, this message translates to:
@@ -1386,6 +1956,90 @@ abstract class AppLocalizations {
   /// **'Net'**
   String get courierBalancesNetLabel;
 
+  /// No description provided for @courierSettlementComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement complete'**
+  String get courierSettlementComplete;
+
+  /// No description provided for @courierSettlementFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement failed'**
+  String get courierSettlementFailed;
+
+  /// No description provided for @courierSettleButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle'**
+  String get courierSettleButton;
+
+  /// No description provided for @courierPayCourierAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Courier {amount}'**
+  String courierPayCourierAmount(Object amount);
+
+  /// No description provided for @courierCollectAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect {amount}'**
+  String courierCollectAmount(Object amount);
+
+  /// No description provided for @courierSettleAllInvoicesQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle all {count} invoices for this courier?'**
+  String courierSettleAllInvoicesQuestion(int count);
+
+  /// No description provided for @courierSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get courierSettled;
+
+  /// No description provided for @courierSettleAllButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle All'**
+  String get courierSettleAllButton;
+
+  /// No description provided for @courierSettleAllDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{action} - Total {total}'**
+  String courierSettleAllDialogTitle(Object action, Object total);
+
+  /// No description provided for @courierSettleAllWillSettle.
+  ///
+  /// In en, this message translates to:
+  /// **'This will settle {count} invoice(s).'**
+  String courierSettleAllWillSettle(int count);
+
+  /// No description provided for @courierInvoicesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices:'**
+  String get courierInvoicesLabel;
+
+  /// No description provided for @courierSettleAllCollectInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'You will collect the net amount from the courier.'**
+  String get courierSettleAllCollectInfo;
+
+  /// No description provided for @courierSettleAllPayInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'You will pay the courier the net amount now.'**
+  String get courierSettleAllPayInfo;
+
+  /// No description provided for @courierSettleAllComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle All complete: {success} ok, {failed} failed'**
+  String courierSettleAllComplete(int success, int failed);
+
   /// No description provided for @courierBalancesPreviewTooltip.
   ///
   /// In en, this message translates to:
@@ -1397,6 +2051,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load settlement preview: {error}'**
   String courierBalancesPreviewFailed(Object error);
+
+  /// No description provided for @settlementTitleCollectFromCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect From Courier'**
+  String get settlementTitleCollectFromCourier;
+
+  /// No description provided for @settlementTitlePayCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Courier'**
+  String get settlementTitlePayCourier;
+
+  /// No description provided for @settlementTitleCourierSettlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier Settlement'**
+  String get settlementTitleCourierSettlement;
+
+  /// No description provided for @settlementStatusUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get settlementStatusUnpaid;
+
+  /// No description provided for @settlementStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get settlementStatusPaid;
+
+  /// No description provided for @settlementPaidNoteRecent.
+  ///
+  /// In en, this message translates to:
+  /// **' (just paid, treating as Unpaid)'**
+  String get settlementPaidNoteRecent;
+
+  /// No description provided for @settlementPaidNoteAfterOfd.
+  ///
+  /// In en, this message translates to:
+  /// **' (after OFD)'**
+  String get settlementPaidNoteAfterOfd;
+
+  /// No description provided for @settlementPaidNoteAfterOfdUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **' (paid after OFD, treated as Unpaid)'**
+  String get settlementPaidNoteAfterOfdUnpaid;
+
+  /// No description provided for @settlementInvoiceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice is: {status}{note}'**
+  String settlementInvoiceStatus(Object status, Object note);
+
+  /// No description provided for @settlementCollectFormula.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect (Order - Shipping):'**
+  String get settlementCollectFormula;
+
+  /// No description provided for @settlementPayFormula.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay the courier (Order - Shipping):'**
+  String get settlementPayFormula;
+
+  /// No description provided for @settlementNetToCollect.
+  ///
+  /// In en, this message translates to:
+  /// **'Net to Collect'**
+  String get settlementNetToCollect;
+
+  /// No description provided for @settlementPayAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Amount'**
+  String get settlementPayAmount;
+
+  /// No description provided for @settlementNothingToSettle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to pay or collect.'**
+  String get settlementNothingToSettle;
+
+  /// No description provided for @settlementOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order: {amount}'**
+  String settlementOrderLabel(Object amount);
+
+  /// No description provided for @settlementShippingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping: {amount}'**
+  String settlementShippingLabel(Object amount);
+
+  /// No description provided for @settlementTerritoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Territory: {territory}'**
+  String settlementTerritoryLabel(Object territory);
+
+  /// No description provided for @cancelOrderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Order'**
+  String get cancelOrderTitle;
+
+  /// No description provided for @cancelOrderInvoiceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice: {invoice}'**
+  String cancelOrderInvoiceLabel(Object invoice);
+
+  /// No description provided for @cancelOrderTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {amount}'**
+  String cancelOrderTotalLabel(Object amount);
+
+  /// No description provided for @cancelOrderOutstandingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding: {amount}'**
+  String cancelOrderOutstandingLabel(Object amount);
+
+  /// No description provided for @cancelOrderPartialPaymentWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This invoice has a partial payment. Please settle or refund the payment before cancelling.'**
+  String get cancelOrderPartialPaymentWarning;
+
+  /// No description provided for @cancelOrderReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation reason'**
+  String get cancelOrderReasonLabel;
+
+  /// No description provided for @cancelOrderSelectReasonValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a reason to continue'**
+  String get cancelOrderSelectReasonValidation;
+
+  /// No description provided for @cancelOrderProvideReasonValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Provide a reason'**
+  String get cancelOrderProvideReasonValidation;
+
+  /// No description provided for @cancelOrderCustomReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom reason'**
+  String get cancelOrderCustomReasonLabel;
+
+  /// No description provided for @cancelOrderDescribeReasonValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please describe the cancellation reason'**
+  String get cancelOrderDescribeReasonValidation;
+
+  /// No description provided for @cancelOrderAdditionalNotesOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional notes (optional)'**
+  String get cancelOrderAdditionalNotesOptional;
+
+  /// No description provided for @cancelOrderCreditNoteInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'A credit note will be issued automatically so the accounts stay balanced.'**
+  String get cancelOrderCreditNoteInfo;
+
+  /// No description provided for @cancelOrderConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm cancellation'**
+  String get cancelOrderConfirmButton;
+
+  /// No description provided for @invoicePreparingReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing receipt...'**
+  String get invoicePreparingReceipt;
+
+  /// No description provided for @invoiceItemsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Items ({count})'**
+  String invoiceItemsCount(int count);
+
+  /// No description provided for @invoicePrinterNotConnectedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer not connected. Open Printer Selection from menu.'**
+  String get invoicePrinterNotConnectedHint;
+
+  /// No description provided for @invoicePrintedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed successfully'**
+  String get invoicePrintedSuccessfully;
+
+  /// No description provided for @invoicePrinterDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer disconnected'**
+  String get invoicePrinterDisconnected;
+
+  /// No description provided for @invoicePrintFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Print failed: {result}'**
+  String invoicePrintFailed(Object result);
+
+  /// No description provided for @invoiceAcceptOrderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept Order'**
+  String get invoiceAcceptOrderTitle;
+
+  /// No description provided for @invoiceAcceptOrderQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept order {invoice} for {customer}?'**
+  String invoiceAcceptOrderQuestion(Object invoice, Object customer);
+
+  /// No description provided for @invoiceAcceptAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get invoiceAcceptAction;
+
+  /// No description provided for @invoiceOrderAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Order {invoice} accepted!'**
+  String invoiceOrderAccepted(Object invoice);
+
+  /// No description provided for @invoiceAcceptFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to accept order: {error}'**
+  String invoiceAcceptFailed(Object error);
+
+  /// No description provided for @invoiceMoreOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More Options'**
+  String get invoiceMoreOptions;
+
+  /// No description provided for @invoiceEditCustomerAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Customer Address'**
+  String get invoiceEditCustomerAddress;
+
+  /// No description provided for @invoiceChangeDeliverySlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Delivery Slot'**
+  String get invoiceChangeDeliverySlot;
+
+  /// No description provided for @invoiceTransferOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Order'**
+  String get invoiceTransferOrder;
+
+  /// No description provided for @invoiceCancelOrderSettleFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Order (settle payments first)'**
+  String get invoiceCancelOrderSettleFirst;
+
+  /// No description provided for @invoiceCustomerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get invoiceCustomerLabel;
+
+  /// No description provided for @invoiceShippingExpenseShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping Exp:'**
+  String get invoiceShippingExpenseShort;
 
   /// No description provided for @manufacturingTitle.
   ///
@@ -1755,6 +2697,1218 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Group'**
   String get stockTransferAddGroup;
+
+  /// No description provided for @commonClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get commonClear;
+
+  /// No description provided for @commonDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get commonDismiss;
+
+  /// No description provided for @commonSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get commonSave;
+
+  /// No description provided for @paymentMethodSelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Payment Method'**
+  String get paymentMethodSelectTitle;
+
+  /// No description provided for @paymentMethodCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get paymentMethodCash;
+
+  /// No description provided for @paymentMethodInstapay.
+  ///
+  /// In en, this message translates to:
+  /// **'Instapay'**
+  String get paymentMethodInstapay;
+
+  /// No description provided for @paymentMethodMobileWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Wallet'**
+  String get paymentMethodMobileWallet;
+
+  /// No description provided for @checkoutTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total:'**
+  String get checkoutTotal;
+
+  /// No description provided for @checkoutPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get checkoutPay;
+
+  /// No description provided for @checkoutSelectProfileFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Select POS profile first'**
+  String get checkoutSelectProfileFirst;
+
+  /// No description provided for @checkoutOrderSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Order completed successfully!'**
+  String get checkoutOrderSuccess;
+
+  /// No description provided for @checkoutFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout failed: {error}'**
+  String checkoutFailed(Object error);
+
+  /// No description provided for @salesPartnerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales Partner'**
+  String get salesPartnerTitle;
+
+  /// No description provided for @salesPartnerSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search partner'**
+  String get salesPartnerSearchHint;
+
+  /// No description provided for @salesPartnerNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No partners found'**
+  String get salesPartnerNotFound;
+
+  /// No description provided for @itemGridBundles.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundles'**
+  String get itemGridBundles;
+
+  /// No description provided for @itemGridAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get itemGridAll;
+
+  /// No description provided for @itemGridUncategorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get itemGridUncategorized;
+
+  /// No description provided for @itemGridSelectCustomerWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a customer first'**
+  String get itemGridSelectCustomerWarning;
+
+  /// No description provided for @itemGridNoItemsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No items found'**
+  String get itemGridNoItemsFound;
+
+  /// No description provided for @itemGridNoItemsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No items available'**
+  String get itemGridNoItemsAvailable;
+
+  /// No description provided for @itemGridTryDifferentCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different category'**
+  String get itemGridTryDifferentCategory;
+
+  /// No description provided for @itemGridItemsWillAppear.
+  ///
+  /// In en, this message translates to:
+  /// **'Items will appear here'**
+  String get itemGridItemsWillAppear;
+
+  /// No description provided for @itemGridFreeDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Free delivery'**
+  String get itemGridFreeDelivery;
+
+  /// No description provided for @itemGridBundlesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} bundles'**
+  String itemGridBundlesCount(Object count);
+
+  /// No description provided for @itemGridItemsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String itemGridItemsCount(Object count);
+
+  /// No description provided for @itemGridAddedToCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to cart'**
+  String get itemGridAddedToCart;
+
+  /// No description provided for @itemGridSelectCustomerFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Select customer first'**
+  String get itemGridSelectCustomerFirst;
+
+  /// No description provided for @itemGridOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get itemGridOutOfStock;
+
+  /// No description provided for @itemGridCannotAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot add item'**
+  String get itemGridCannotAdd;
+
+  /// No description provided for @kanbanFilterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get kanbanFilterTitle;
+
+  /// No description provided for @kanbanFilterActiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active'**
+  String kanbanFilterActiveCount(Object count);
+
+  /// No description provided for @kanbanFilterClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All'**
+  String get kanbanFilterClearAll;
+
+  /// No description provided for @kanbanFilterSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get kanbanFilterSearch;
+
+  /// No description provided for @kanbanFilterSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search orders...'**
+  String get kanbanFilterSearchHint;
+
+  /// No description provided for @kanbanFilterAllCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'All Customers'**
+  String get kanbanFilterAllCustomers;
+
+  /// No description provided for @kanbanFilterAllStatuses.
+  ///
+  /// In en, this message translates to:
+  /// **'All Statuses'**
+  String get kanbanFilterAllStatuses;
+
+  /// No description provided for @kanbanFilterDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Range'**
+  String get kanbanFilterDateRange;
+
+  /// No description provided for @kanbanFilterFromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From Date'**
+  String get kanbanFilterFromDate;
+
+  /// No description provided for @kanbanFilterToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To Date'**
+  String get kanbanFilterToDate;
+
+  /// No description provided for @kanbanFilterAllDates.
+  ///
+  /// In en, this message translates to:
+  /// **'All Dates'**
+  String get kanbanFilterAllDates;
+
+  /// No description provided for @kanbanFilterAmountRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount Range'**
+  String get kanbanFilterAmountRange;
+
+  /// No description provided for @kanbanFilterMinAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Min Amount'**
+  String get kanbanFilterMinAmount;
+
+  /// No description provided for @kanbanFilterMaxAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Amount'**
+  String get kanbanFilterMaxAmount;
+
+  /// No description provided for @kanbanFilterAllAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'All Amounts'**
+  String get kanbanFilterAllAmounts;
+
+  /// No description provided for @kanbanFilterActiveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Filters:'**
+  String get kanbanFilterActiveLabel;
+
+  /// No description provided for @kanbanFilterByBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by Branches'**
+  String get kanbanFilterByBranches;
+
+  /// No description provided for @kanbanFilterCustomerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get kanbanFilterCustomerTitle;
+
+  /// No description provided for @kanbanFilterCustomerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer name'**
+  String get kanbanFilterCustomerName;
+
+  /// No description provided for @kanbanFilterCustomerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter customer name'**
+  String get kanbanFilterCustomerHint;
+
+  /// No description provided for @kanbanFilterStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get kanbanFilterStatusTitle;
+
+  /// No description provided for @kanbanFilterFromAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'From Amount'**
+  String get kanbanFilterFromAmount;
+
+  /// No description provided for @kanbanFilterToAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'To Amount'**
+  String get kanbanFilterToAmount;
+
+  /// No description provided for @kanbanFilterApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get kanbanFilterApply;
+
+  /// No description provided for @kanbanRefreshOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh Orders'**
+  String get kanbanRefreshOrders;
+
+  /// No description provided for @kanbanOrdersRefreshed.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders refreshed'**
+  String get kanbanOrdersRefreshed;
+
+  /// No description provided for @kanbanHideFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Filters'**
+  String get kanbanHideFilters;
+
+  /// No description provided for @kanbanShowFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Filters'**
+  String get kanbanShowFilters;
+
+  /// No description provided for @kanbanMoreActions.
+  ///
+  /// In en, this message translates to:
+  /// **'More Actions'**
+  String get kanbanMoreActions;
+
+  /// No description provided for @kanbanMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get kanbanMenu;
+
+  /// No description provided for @kanbanMenuReceipts.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Receipts'**
+  String get kanbanMenuReceipts;
+
+  /// No description provided for @kanbanMenuPrinters.
+  ///
+  /// In en, this message translates to:
+  /// **'Printers'**
+  String get kanbanMenuPrinters;
+
+  /// No description provided for @kanbanMenuCouriers.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier Balances'**
+  String get kanbanMenuCouriers;
+
+  /// No description provided for @kanbanMenuProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get kanbanMenuProfile;
+
+  /// No description provided for @kanbanMenuPos.
+  ///
+  /// In en, this message translates to:
+  /// **'Point of Sale'**
+  String get kanbanMenuPos;
+
+  /// No description provided for @kanbanPaymentReceipts.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Receipts'**
+  String get kanbanPaymentReceipts;
+
+  /// No description provided for @kanbanCourierBalances.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier Balances'**
+  String get kanbanCourierBalances;
+
+  /// No description provided for @kanbanUserProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'User Profile'**
+  String get kanbanUserProfile;
+
+  /// No description provided for @kanbanOpenPos.
+  ///
+  /// In en, this message translates to:
+  /// **'Open POS'**
+  String get kanbanOpenPos;
+
+  /// No description provided for @kanbanTitleShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Kanban'**
+  String get kanbanTitleShort;
+
+  /// No description provided for @kanbanTitleFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales Kanban'**
+  String get kanbanTitleFull;
+
+  /// No description provided for @kanbanPrinterBle.
+  ///
+  /// In en, this message translates to:
+  /// **'BLE'**
+  String get kanbanPrinterBle;
+
+  /// No description provided for @kanbanPrinterClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic'**
+  String get kanbanPrinterClassic;
+
+  /// No description provided for @kanbanPrinterConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting...'**
+  String get kanbanPrinterConnecting;
+
+  /// No description provided for @kanbanPrinterNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Connected'**
+  String get kanbanPrinterNotConnected;
+
+  /// No description provided for @kanbanErrorLoadingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading data'**
+  String get kanbanErrorLoadingData;
+
+  /// No description provided for @kanbanNoColumnsConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No columns configured'**
+  String get kanbanNoColumnsConfigured;
+
+  /// No description provided for @kanbanEnsureStateField.
+  ///
+  /// In en, this message translates to:
+  /// **'Ensure the state field is configured properly.'**
+  String get kanbanEnsureStateField;
+
+  /// No description provided for @kanbanSelectPosProfileFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Select POS profile first'**
+  String get kanbanSelectPosProfileFirst;
+
+  /// No description provided for @kanbanSelectPosProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Select POS Profile'**
+  String get kanbanSelectPosProfile;
+
+  /// No description provided for @kanbanNoPosProfiles.
+  ///
+  /// In en, this message translates to:
+  /// **'No POS profiles available'**
+  String get kanbanNoPosProfiles;
+
+  /// No description provided for @kanbanWarehouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse: {warehouse}'**
+  String kanbanWarehouse(Object warehouse);
+
+  /// No description provided for @kanbanCourierAndMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier & Mode'**
+  String get kanbanCourierAndMode;
+
+  /// No description provided for @kanbanNoCouriersAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No couriers available'**
+  String get kanbanNoCouriersAvailable;
+
+  /// No description provided for @kanbanCreateCourierHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a courier to proceed.'**
+  String get kanbanCreateCourierHint;
+
+  /// No description provided for @kanbanNewCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'New Courier'**
+  String get kanbanNewCourier;
+
+  /// No description provided for @kanbanFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First Name'**
+  String get kanbanFirstName;
+
+  /// No description provided for @kanbanLastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Name'**
+  String get kanbanLastName;
+
+  /// No description provided for @kanbanPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get kanbanPhone;
+
+  /// No description provided for @kanbanType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get kanbanType;
+
+  /// No description provided for @kanbanEmployee.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get kanbanEmployee;
+
+  /// No description provided for @kanbanSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier'**
+  String get kanbanSupplier;
+
+  /// No description provided for @kanbanBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get kanbanBack;
+
+  /// No description provided for @kanbanCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Create failed: {error}'**
+  String kanbanCreateFailed(Object error);
+
+  /// No description provided for @kanbanMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get kanbanMode;
+
+  /// No description provided for @kanbanPayNowCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Now (Cash)'**
+  String get kanbanPayNowCash;
+
+  /// No description provided for @kanbanSettleLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle Later'**
+  String get kanbanSettleLater;
+
+  /// No description provided for @kanbanSettleLaterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier settles with branch later'**
+  String get kanbanSettleLaterSubtitle;
+
+  /// No description provided for @kanbanContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get kanbanContinue;
+
+  /// No description provided for @kanbanSettleLaterMissingParty.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle Later failed: courier party missing.'**
+  String get kanbanSettleLaterMissingParty;
+
+  /// No description provided for @kanbanSettleLaterPreviewExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle Later: preview expired. Please retry.'**
+  String get kanbanSettleLaterPreviewExpired;
+
+  /// No description provided for @kanbanSettleLaterFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle Later failed'**
+  String get kanbanSettleLaterFailed;
+
+  /// No description provided for @kanbanMarkedSettleLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked to Settle Later'**
+  String get kanbanMarkedSettleLater;
+
+  /// No description provided for @kanbanSettleLaterError.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle Later error: {error}'**
+  String kanbanSettleLaterError(Object error);
+
+  /// No description provided for @kanbanSettlementMissingParty.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement failed: courier party missing.'**
+  String get kanbanSettlementMissingParty;
+
+  /// No description provided for @kanbanPreviewExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview expired. Please retry.'**
+  String get kanbanPreviewExpired;
+
+  /// No description provided for @kanbanConfirmingSettlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming settlement...'**
+  String get kanbanConfirmingSettlement;
+
+  /// No description provided for @kanbanSettlementFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement failed'**
+  String get kanbanSettlementFailed;
+
+  /// No description provided for @kanbanSettlementConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement confirmed'**
+  String get kanbanSettlementConfirmed;
+
+  /// No description provided for @kanbanSettlementError.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement error: {error}'**
+  String kanbanSettlementError(Object error);
+
+  /// No description provided for @kanbanPreviewFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview failed: {error}'**
+  String kanbanPreviewFailed(Object error);
+
+  /// No description provided for @kanbanPickupNoSettlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup orders don\'\'t require settlement'**
+  String get kanbanPickupNoSettlement;
+
+  /// No description provided for @kanbanCannotMoveBackward.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot move backward'**
+  String get kanbanCannotMoveBackward;
+
+  /// No description provided for @kanbanMoveOneStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Can only move one stage at a time'**
+  String get kanbanMoveOneStage;
+
+  /// No description provided for @kanbanAllBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'All Branches'**
+  String get kanbanAllBranches;
+
+  /// No description provided for @kanbanBranchCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} branches'**
+  String kanbanBranchCount(Object count);
+
+  /// No description provided for @kanbanLoadingBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading branches...'**
+  String get kanbanLoadingBranches;
+
+  /// No description provided for @kanbanTapToRefreshBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to refresh balance'**
+  String get kanbanTapToRefreshBalance;
+
+  /// No description provided for @kanbanPressBackAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Press back again to exit'**
+  String get kanbanPressBackAgain;
+
+  /// No description provided for @invoiceDeliveryAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Address'**
+  String get invoiceDeliveryAddress;
+
+  /// No description provided for @invoiceItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get invoiceItems;
+
+  /// No description provided for @invoiceNetTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Total'**
+  String get invoiceNetTotal;
+
+  /// No description provided for @invoiceShippingIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping Income'**
+  String get invoiceShippingIncome;
+
+  /// No description provided for @invoiceShippingExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping Expense'**
+  String get invoiceShippingExpense;
+
+  /// No description provided for @invoiceGrandTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Grand Total'**
+  String get invoiceGrandTotal;
+
+  /// No description provided for @invoiceAlreadyStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice already {status}'**
+  String invoiceAlreadyStatus(Object status);
+
+  /// No description provided for @invoiceSelectPaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Payment Method'**
+  String get invoiceSelectPaymentMethod;
+
+  /// No description provided for @invoiceWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get invoiceWallet;
+
+  /// No description provided for @invoiceSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get invoiceSubmit;
+
+  /// No description provided for @invoiceNoPosProfileCash.
+  ///
+  /// In en, this message translates to:
+  /// **'No POS profile selected for Cash payment'**
+  String get invoiceNoPosProfileCash;
+
+  /// No description provided for @invoiceProcessingPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing {method} payment...'**
+  String invoiceProcessingPayment(Object method);
+
+  /// No description provided for @invoicePaymentSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment successful ({entry})'**
+  String invoicePaymentSuccess(Object entry);
+
+  /// No description provided for @invoiceReceiptAmountWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: Could not get payment amount for receipt'**
+  String get invoiceReceiptAmountWarning;
+
+  /// No description provided for @invoiceReceiptNoPosProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: No POS profile found - receipt not created. Please select a POS profile.'**
+  String get invoiceReceiptNoPosProfile;
+
+  /// No description provided for @invoiceReceiptCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment receipt created ({receipt}) - please upload receipt image from header'**
+  String invoiceReceiptCreated(Object receipt);
+
+  /// No description provided for @invoiceReceiptReturnedWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: Receipt creation returned: {message}'**
+  String invoiceReceiptReturnedWarning(Object message);
+
+  /// No description provided for @invoiceReceiptCreationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: Receipt creation failed: {error}'**
+  String invoiceReceiptCreationFailed(Object error);
+
+  /// No description provided for @invoicePaymentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment failed'**
+  String get invoicePaymentFailed;
+
+  /// No description provided for @invoicePaymentError.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment error: {error}'**
+  String invoicePaymentError(Object error);
+
+  /// No description provided for @invoiceCollectCashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect Cash'**
+  String get invoiceCollectCashTitle;
+
+  /// No description provided for @invoiceCollectCashBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Please collect from the customer:\n\nTotal Amount: {amount} EGP\n\nThis includes:\n• Order items\n• Shipping fee\n\nInvoice: {invoiceId}'**
+  String invoiceCollectCashBody(Object amount, Object invoiceId);
+
+  /// No description provided for @invoiceSelectPosFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Select POS profile first'**
+  String get invoiceSelectPosFirst;
+
+  /// No description provided for @invoiceCollectingCashPartner.
+  ///
+  /// In en, this message translates to:
+  /// **'Collecting cash & dispatching (Sales Partner)...'**
+  String get invoiceCollectingCashPartner;
+
+  /// No description provided for @invoiceCashCollectedOfd.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash collected & sent Out For Delivery'**
+  String get invoiceCashCollectedOfd;
+
+  /// No description provided for @invoiceOfdFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String invoiceOfdFailed(Object error);
+
+  /// No description provided for @invoiceOfdError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String invoiceOfdError(Object error);
+
+  /// No description provided for @invoiceSentOfd.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent Out For Delivery (DN will be created)'**
+  String get invoiceSentOfd;
+
+  /// No description provided for @invoiceActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Action failed: {error}'**
+  String invoiceActionFailed(Object error);
+
+  /// No description provided for @invoiceSettleLaterMissingParty.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle Later failed: courier party missing.'**
+  String get invoiceSettleLaterMissingParty;
+
+  /// No description provided for @invoiceMarkedSettleLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked to Settle Later'**
+  String get invoiceMarkedSettleLater;
+
+  /// No description provided for @invoiceSettleLaterFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle Later failed'**
+  String get invoiceSettleLaterFailed;
+
+  /// No description provided for @invoiceSettleLaterError.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle Later error: {error}'**
+  String invoiceSettleLaterError(Object error);
+
+  /// No description provided for @invoiceSettlementMissingParty.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement failed: courier party missing.'**
+  String get invoiceSettlementMissingParty;
+
+  /// No description provided for @invoicePreviewExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview expired. Please retry.'**
+  String get invoicePreviewExpired;
+
+  /// No description provided for @invoiceConfirmingSettlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming settlement...'**
+  String get invoiceConfirmingSettlement;
+
+  /// No description provided for @invoiceSettlementConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement confirmed'**
+  String get invoiceSettlementConfirmed;
+
+  /// No description provided for @invoiceSettlementFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement failed'**
+  String get invoiceSettlementFailed;
+
+  /// No description provided for @invoiceSettlementError.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement error: {error}'**
+  String invoiceSettlementError(Object error);
+
+  /// No description provided for @invoiceProcessingDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing Delivery...'**
+  String get invoiceProcessingDelivery;
+
+  /// No description provided for @invoiceUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get invoiceUpdated;
+
+  /// No description provided for @invoiceDeliveryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery action failed'**
+  String get invoiceDeliveryFailed;
+
+  /// No description provided for @invoiceDeliveryError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String invoiceDeliveryError(Object error);
+
+  /// No description provided for @invoiceDeliveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get invoiceDeliveryTitle;
+
+  /// No description provided for @invoiceUnpaidWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice is UNPAID. Choose Courier Collects Cash Now to record a cash payment before marking Out For Delivery.'**
+  String get invoiceUnpaidWarning;
+
+  /// No description provided for @invoiceCannotSettleParty.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot settle: courier party not resolved. Assign courier or retry.'**
+  String get invoiceCannotSettleParty;
+
+  /// No description provided for @invoiceNothingToSettle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to settle'**
+  String get invoiceNothingToSettle;
+
+  /// No description provided for @invoiceSettlementComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement complete'**
+  String get invoiceSettlementComplete;
+
+  /// No description provided for @invoiceEditAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Customer Address'**
+  String get invoiceEditAddress;
+
+  /// No description provided for @invoicePhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get invoicePhoneNumber;
+
+  /// No description provided for @invoiceDeliveryAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Address'**
+  String get invoiceDeliveryAddressLabel;
+
+  /// No description provided for @invoiceAddressHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the full delivery address'**
+  String get invoiceAddressHelper;
+
+  /// No description provided for @invoiceAddressUpdateInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'This will update the customer\'\'s default address and phone number.'**
+  String get invoiceAddressUpdateInfo;
+
+  /// No description provided for @invoiceAddressEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Address cannot be empty'**
+  String get invoiceAddressEmpty;
+
+  /// No description provided for @invoiceUpdatingAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating customer address...'**
+  String get invoiceUpdatingAddress;
+
+  /// No description provided for @invoiceAddressUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer address updated successfully'**
+  String get invoiceAddressUpdated;
+
+  /// No description provided for @invoiceAddressUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update address'**
+  String get invoiceAddressUpdateFailed;
+
+  /// No description provided for @invoiceCopiedNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied: {number}'**
+  String invoiceCopiedNumber(Object number);
+
+  /// No description provided for @invoiceCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get invoiceCopy;
+
+  /// No description provided for @invoiceCannotCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to make phone call'**
+  String get invoiceCannotCall;
+
+  /// No description provided for @invoiceCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get invoiceCall;
+
+  /// No description provided for @invoiceSettleBeforeCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle or refund partial payments before cancelling this order.'**
+  String get invoiceSettleBeforeCancel;
+
+  /// No description provided for @invoiceCancelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to cancel order. Please try again.'**
+  String get invoiceCancelFailed;
+
+  /// No description provided for @invoiceCancelledWithCn.
+  ///
+  /// In en, this message translates to:
+  /// **'Order cancelled. Credit note {creditNote} created.'**
+  String invoiceCancelledWithCn(Object creditNote);
+
+  /// No description provided for @invoiceCancelledSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Order cancelled successfully.'**
+  String get invoiceCancelledSuccess;
+
+  /// No description provided for @invoiceNoPosProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'No POS profile selected'**
+  String get invoiceNoPosProfile;
+
+  /// No description provided for @invoiceAssignBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to Branch'**
+  String get invoiceAssignBranch;
+
+  /// No description provided for @invoiceCustomerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer: {name}'**
+  String invoiceCustomerName(Object name);
+
+  /// No description provided for @invoiceInvoiceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice: {name}'**
+  String invoiceInvoiceLabel(Object name);
+
+  /// No description provided for @invoiceTransferInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'The order will be moved to the selected branch and reset to Received state.'**
+  String get invoiceTransferInfo;
+
+  /// No description provided for @invoiceTransferring.
+  ///
+  /// In en, this message translates to:
+  /// **'Transferring order...'**
+  String get invoiceTransferring;
+
+  /// No description provided for @invoiceTransferSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Order transferred successfully to {branch}'**
+  String invoiceTransferSuccess(Object branch);
+
+  /// No description provided for @invoiceTransferFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer failed. Please try again.'**
+  String get invoiceTransferFailed;
+
+  /// No description provided for @invoiceCannotDetermineProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to determine POS profile for this invoice'**
+  String get invoiceCannotDetermineProfile;
+
+  /// No description provided for @invoiceLoadingSlots.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading delivery slots...'**
+  String get invoiceLoadingSlots;
+
+  /// No description provided for @invoiceNoSlots.
+  ///
+  /// In en, this message translates to:
+  /// **'No delivery slots available for this branch'**
+  String get invoiceNoSlots;
+
+  /// No description provided for @invoiceChangeSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Delivery Slot'**
+  String get invoiceChangeSlot;
+
+  /// No description provided for @invoiceCurrentSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {slot}'**
+  String invoiceCurrentSlot(Object slot);
+
+  /// No description provided for @invoiceSlotUpdateInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'The delivery slot will be updated for this order.'**
+  String get invoiceSlotUpdateInfo;
+
+  /// No description provided for @invoiceNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes made'**
+  String get invoiceNoChanges;
+
+  /// No description provided for @invoiceUpdatingSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating delivery slot...'**
+  String get invoiceUpdatingSlot;
+
+  /// No description provided for @invoiceSlotUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery slot updated to {slot}'**
+  String invoiceSlotUpdated(Object slot);
+
+  /// No description provided for @invoiceSlotUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update delivery slot'**
+  String get invoiceSlotUpdateFailed;
 }
 
 class _AppLocalizationsDelegate

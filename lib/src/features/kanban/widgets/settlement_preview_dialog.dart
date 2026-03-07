@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 
 // Shared settlement dialogs used across Kanban and POS screens, to avoid duplication.
 // Computes consistent labels from preview:
@@ -101,7 +102,17 @@ bool _isUnpaidEffective(Map<String, dynamic> preview) {
   return recentlyPaid || paidAfterOfd || flag || isOutstanding || invStatusStr == 'unpaid' || invStatusStr == 'overdue' || invStatusStr == 'partially paid';
 }
 
-({String title, bool actionCollect, double netSigned, double shipping, double order, String paidLabel, Color paidColor, IconData paidIcon, String paidNote})
+({
+  bool actionCollect,
+  double netSigned,
+  double shipping,
+  double order,
+  bool unpaidEffective,
+  bool paidAfterOfd,
+  bool recentlyPaid,
+  Color paidColor,
+  IconData paidIcon,
+})
 _computeDisplay(Map<String, dynamic> preview, {double? orderFallback, double? shippingFallback}) {
   // Read order/shipping robustly from multiple potential keys
   const orderKeys = [
@@ -128,15 +139,13 @@ _computeDisplay(Map<String, dynamic> preview, {double? orderFallback, double? sh
   final net = backendNet.isNaN ? (order - shipping) : backendNet;
 
   final actionCollect = net > 0;
-  final title = actionCollect ? 'Collect From Courier' : (net < 0 ? 'Pay Courier' : 'Courier Settlement');
 
   final unpaidEff = _isUnpaidEffective(preview);
   final paidAfterOfd = preview['paid_after_ofd'] == true;
-  final paidLabel = unpaidEff ? 'Unpaid' : 'Paid';
   final paidColor = unpaidEff ? Colors.orange : Colors.green;
   final paidIcon = unpaidEff ? Icons.error_outline : Icons.check_circle_outline;
-  // Show hint if it's a very recent payment within threshold (we can infer via presence of recent seconds field)
-  String recentNote = '';
+  bool recentlyPaid = false;
+
   for (final k in const ['last_payment_seconds', 'last_payment_seconds_ago', 'seconds_since_last_payment', 'age_last_payment_seconds']) {
   if (!preview.containsKey(k)) continue;
     final v = preview[k];
@@ -145,27 +154,22 @@ _computeDisplay(Map<String, dynamic> preview, {double? orderFallback, double? sh
       if (v is num) s = v.toDouble();
       if (v is String) s = double.tryParse(v);
       if (s != null && s < 30) {
-        recentNote = ' (just paid, treating as Unpaid)';
+        recentlyPaid = true;
       }
       break;
     }
   }
-  final paidNote = recentNote.isNotEmpty
-      ? recentNote
-      : (paidAfterOfd && !unpaidEff
-          ? ' (after OFD)'
-          : (paidAfterOfd && unpaidEff ? ' (paid after OFD, treated as Unpaid)' : ''));
 
   return (
-    title: title,
     actionCollect: actionCollect,
-  netSigned: net,
+    netSigned: net,
     shipping: shipping,
     order: order,
-    paidLabel: paidLabel,
+    unpaidEffective: unpaidEff,
+    paidAfterOfd: paidAfterOfd,
+    recentlyPaid: recentlyPaid,
     paidColor: paidColor,
     paidIcon: paidIcon,
-    paidNote: paidNote,
   );
 }
 
@@ -208,58 +212,70 @@ Future<bool?> showSettlementConfirmDialog(
   double? orderFallback,
   double? shippingFallback,
 }) async {
+  final l10n = AppLocalizations.of(context);
   final d = _computeDisplay(preview, orderFallback: orderFallback, shippingFallback: shippingFallback);
   final absNet = d.netSigned.abs();
   final orderLabel = d.order.toStringAsFixed(2);
   final shipLabel = d.shipping.toStringAsFixed(2);
   final netLabel = absNet.toStringAsFixed(2);
+  final title = d.actionCollect
+    ? l10n.settlementTitleCollectFromCourier
+    : (d.netSigned < 0 ? l10n.settlementTitlePayCourier : l10n.settlementTitleCourierSettlement);
+  final paidLabel = d.unpaidEffective ? l10n.settlementStatusUnpaid : l10n.settlementStatusPaid;
+  final paidNote = d.recentlyPaid
+    ? l10n.settlementPaidNoteRecent
+    : (d.paidAfterOfd
+      ? (d.unpaidEffective
+        ? l10n.settlementPaidNoteAfterOfdUnpaid
+        : l10n.settlementPaidNoteAfterOfd)
+      : '');
 
   return showDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => AlertDialog(
-      title: Text(d.title),
+      title: Text(title),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (invoice != null) ...[
-            Text('Invoice: $invoice'),
+            Text(l10n.websocketInvoiceLabel(invoice)),
             const SizedBox(height: 6),
           ],
           Row(
             children: [
               Icon(d.paidIcon, size: 18, color: d.paidColor),
               const SizedBox(width: 6),
-              Text('Invoice is: ${d.paidLabel}${d.paidNote}',
+              Text(l10n.settlementInvoiceStatus(paidLabel, paidNote),
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: d.paidColor)),
             ],
           ),
           const SizedBox(height: 8),
           if (d.actionCollect) ...[
-            const Text('Collect (Order - Shipping):'),
+            Text(l10n.settlementCollectFormula),
             const SizedBox(height: 6),
-            _netChip(netLabel, Colors.indigo, 'Net to Collect'),
+            _netChip(netLabel, Colors.indigo, l10n.settlementNetToCollect),
           ] else if (d.netSigned < 0) ...[
-            const Text('Pay the courier (Order - Shipping):'),
+            Text(l10n.settlementPayFormula),
             const SizedBox(height: 6),
-            _netChip(netLabel, Colors.deepOrange, 'Pay Amount'),
+            _netChip(netLabel, Colors.deepOrange, l10n.settlementPayAmount),
           ] else ...[
-            const Text('Nothing to pay or collect.'),
+            Text(l10n.settlementNothingToSettle),
           ],
           const SizedBox(height: 12),
-          Row(children: [const Icon(Icons.receipt_long, size: 18, color: Colors.teal), const SizedBox(width: 6), Text('Order: $orderLabel')]),
+          Row(children: [const Icon(Icons.receipt_long, size: 18, color: Colors.teal), const SizedBox(width: 6), Text(l10n.settlementOrderLabel(orderLabel))]),
           const SizedBox(height: 6),
-          Row(children: [const Icon(Icons.local_shipping, size: 18, color: Colors.deepOrange), const SizedBox(width: 6), Text('Shipping: $shipLabel')]),
+          Row(children: [const Icon(Icons.local_shipping, size: 18, color: Colors.deepOrange), const SizedBox(width: 6), Text(l10n.settlementShippingLabel(shipLabel))]),
           if (territory != null && territory.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Row(children: [const Icon(Icons.map, size: 18, color: Colors.blueGrey), const SizedBox(width: 6), Text('Territory: $territory')]),
+            Row(children: [const Icon(Icons.map, size: 18, color: Colors.blueGrey), const SizedBox(width: 6), Text(l10n.settlementTerritoryLabel(territory))]),
           ],
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
-        ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Confirm')),
+        TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text(l10n.commonCancel)),
+        ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: Text(l10n.commonConfirm)),
       ],
     ),
   );
@@ -273,57 +289,69 @@ Future<void> showSettlementInfoDialog(
   double? orderFallback,
   double? shippingFallback,
 }) async {
+  final l10n = AppLocalizations.of(context);
   final d = _computeDisplay(preview, orderFallback: orderFallback, shippingFallback: shippingFallback);
   final absNet = d.netSigned.abs();
   final orderLabel = d.order.toStringAsFixed(2);
   final shipLabel = d.shipping.toStringAsFixed(2);
   final netLabel = absNet.toStringAsFixed(2);
+  final title = d.actionCollect
+    ? l10n.settlementTitleCollectFromCourier
+    : (d.netSigned < 0 ? l10n.settlementTitlePayCourier : l10n.settlementTitleCourierSettlement);
+  final paidLabel = d.unpaidEffective ? l10n.settlementStatusUnpaid : l10n.settlementStatusPaid;
+  final paidNote = d.recentlyPaid
+    ? l10n.settlementPaidNoteRecent
+    : (d.paidAfterOfd
+      ? (d.unpaidEffective
+        ? l10n.settlementPaidNoteAfterOfdUnpaid
+        : l10n.settlementPaidNoteAfterOfd)
+      : '');
 
   await showDialog(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => AlertDialog(
-      title: Text(d.title),
+      title: Text(title),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (invoice != null) ...[
-            Text('Invoice: $invoice'),
+            Text(l10n.websocketInvoiceLabel(invoice)),
             const SizedBox(height: 6),
           ],
           Row(
             children: [
               Icon(d.paidIcon, size: 18, color: d.paidColor),
               const SizedBox(width: 6),
-              Text('Invoice is: ${d.paidLabel}${d.paidNote}',
+              Text(l10n.settlementInvoiceStatus(paidLabel, paidNote),
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: d.paidColor)),
             ],
           ),
           const SizedBox(height: 8),
           if (d.actionCollect) ...[
-            const Text('Collect (Order - Shipping):'),
+            Text(l10n.settlementCollectFormula),
             const SizedBox(height: 6),
-            _netChip(netLabel, Colors.indigo, 'Net to Collect'),
+            _netChip(netLabel, Colors.indigo, l10n.settlementNetToCollect),
           ] else if (d.netSigned < 0) ...[
-            const Text('Pay the courier (Order - Shipping):'),
+            Text(l10n.settlementPayFormula),
             const SizedBox(height: 6),
-            _netChip(netLabel, Colors.deepOrange, 'Pay Amount'),
+            _netChip(netLabel, Colors.deepOrange, l10n.settlementPayAmount),
           ] else ...[
-            const Text('Nothing to pay or collect.'),
+            Text(l10n.settlementNothingToSettle),
           ],
           const SizedBox(height: 12),
-          Row(children: [const Icon(Icons.receipt_long, size: 18, color: Colors.teal), const SizedBox(width: 6), Text('Order: $orderLabel')]),
+          Row(children: [const Icon(Icons.receipt_long, size: 18, color: Colors.teal), const SizedBox(width: 6), Text(l10n.settlementOrderLabel(orderLabel))]),
           const SizedBox(height: 6),
-          Row(children: [const Icon(Icons.local_shipping, size: 18, color: Colors.deepOrange), const SizedBox(width: 6), Text('Shipping: $shipLabel')]),
+          Row(children: [const Icon(Icons.local_shipping, size: 18, color: Colors.deepOrange), const SizedBox(width: 6), Text(l10n.settlementShippingLabel(shipLabel))]),
           if (territory != null && territory.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Row(children: [const Icon(Icons.map, size: 18, color: Colors.blueGrey), const SizedBox(width: 6), Text('Territory: $territory')]),
+            Row(children: [const Icon(Icons.map, size: 18, color: Colors.blueGrey), const SizedBox(width: 6), Text(l10n.settlementTerritoryLabel(territory))]),
           ],
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Done')),
+        TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(l10n.commonClose)),
       ],
     ),
   );

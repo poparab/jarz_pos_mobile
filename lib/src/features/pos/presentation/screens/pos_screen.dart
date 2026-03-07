@@ -309,9 +309,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
                 // Quick reveal button when header is hidden (phones only)
                 SafeArea(
                   child: Align(
-                    alignment: Alignment.topRight,
+                    alignment: AlignmentDirectional.topEnd,
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 6, right: 8),
+                      padding: const EdgeInsetsDirectional.only(top: 6, end: 8),
                       child: AnimatedSlide(
                         duration: const Duration(milliseconds: 200),
                         offset: _headerVisible ? const Offset(0, -0.4) : Offset.zero,

@@ -62,7 +62,10 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('POS Profile: $posProfile', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    l10n.shiftPosProfile(posProfile ?? ''),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 12),
                   Text(l10n.shiftOpeningPrompt),
                   const SizedBox(height: 12),
@@ -100,21 +103,21 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(mode, style: Theme.of(context).textTheme.titleSmall),
-                            if (account.isNotEmpty) Text('Account: $account'),
-                            Text('System Balance: ${currentBalance.toStringAsFixed(2)}'),
+                            if (account.isNotEmpty) Text(l10n.shiftAccount(account)),
+                            Text(l10n.shiftSystemBalance(currentBalance.toStringAsFixed(2))),
                             const SizedBox(height: 8),
                             TextField(
                               controller: controller,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               onChanged: (_) => setState(() {}),
-                              decoration: const InputDecoration(
-                                labelText: 'Confirmed Opening Amount',
+                              decoration: InputDecoration(
+                                labelText: l10n.shiftConfirmedOpeningAmount,
                                 border: OutlineInputBorder(),
                               ),
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Difference: ${difference.toStringAsFixed(2)}',
+                              l10n.shiftDifferenceAmount(difference.toStringAsFixed(2)),
                               style: TextStyle(
                                 color: difference == 0
                                     ? Theme.of(context).colorScheme.onSurface

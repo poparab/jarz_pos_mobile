@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/kanban_models.dart';
 import '../../../core/constants/business_constants.dart';
+import '../../../core/localization/localization_extensions.dart';
 
 class KanbanFiltersWidget extends StatefulWidget {
   final KanbanFilters filters;
@@ -51,13 +52,13 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
           // Filter header with expand/collapse
           ListTile(
             title: Text(
-              'Filters',
+              context.l10n.kanbanFilterTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             subtitle: _hasActiveFilters()
-                ? Text('${_getActiveFiltersCount()} filters active')
+                ? Text(context.l10n.kanbanFilterActiveCount(_getActiveFiltersCount()))
                 : null,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -65,7 +66,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
                 if (_hasActiveFilters())
                   TextButton(
                     onPressed: _clearAllFilters,
-                    child: const Text('Clear All'),
+                    child: Text(context.l10n.kanbanFilterClearAll),
                   ),
                 IconButton(
                   icon: Icon(
@@ -90,11 +91,11 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
                 children: [
                   // Search term
                   TextField(
-                    decoration: const InputDecoration(
-                      labelText: 'Search',
-                      hintText: 'Search invoices...',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.kanbanFilterSearch,
+                      hintText: context.l10n.kanbanFilterSearchHint,
+                      prefixIcon: const Icon(Icons.search),
+                      border: const OutlineInputBorder(),
                     ),
                     onChanged: (value) {
                       setState(() {
@@ -119,7 +120,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
                       FilterChip(
                         label: Text(
                           (_currentFilters.customer?.isEmpty ?? true)
-                              ? 'All Customers'
+                              ? context.l10n.kanbanFilterAllCustomers
                               : _currentFilters.customer!,
                         ),
                         selected: _currentFilters.customer?.isNotEmpty == true,
@@ -130,7 +131,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
                       FilterChip(
                         label: Text(
                           (_currentFilters.status?.isEmpty ?? true)
-                              ? 'All Statuses'
+                              ? context.l10n.kanbanFilterAllStatuses
                               : _currentFilters.status!,
                         ),
                         selected: _currentFilters.status?.isNotEmpty == true,
@@ -162,9 +163,9 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
                   // Active filters display
                   if (_hasActiveFilters()) ...[
                     Align(
-                      alignment: Alignment.centerLeft,
+                      alignment: AlignmentDirectional.centerStart,
                       child: Text(
-                        'Active Filters:',
+                        context.l10n.kanbanFilterActiveLabel,
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                     ),
@@ -264,37 +265,37 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
 
   String _getDateRangeText() {
     if (_currentFilters.dateFrom != null && _currentFilters.dateTo != null) {
-      return 'Date Range';
+      return context.l10n.kanbanFilterDateRange;
     } else if (_currentFilters.dateFrom != null) {
-      return 'From Date';
+      return context.l10n.kanbanFilterFromDate;
     } else if (_currentFilters.dateTo != null) {
-      return 'To Date';
+      return context.l10n.kanbanFilterToDate;
     }
-    return 'All Dates';
+    return context.l10n.kanbanFilterAllDates;
   }
 
   String _getAmountRangeText() {
     if (_currentFilters.amountFrom != null &&
         _currentFilters.amountTo != null) {
-      return 'Amount Range';
+      return context.l10n.kanbanFilterAmountRange;
     } else if (_currentFilters.amountFrom != null) {
-      return 'Min Amount';
+      return context.l10n.kanbanFilterMinAmount;
     } else if (_currentFilters.amountTo != null) {
-      return 'Max Amount';
+      return context.l10n.kanbanFilterMaxAmount;
     }
-    return 'All Amounts';
+    return context.l10n.kanbanFilterAllAmounts;
   }
 
   void _showCustomerPicker(BuildContext context) {
-    // Simple customer filter for now
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Customer Filter'),
+        title: Text(l10n.kanbanFilterCustomerTitle),
         content: TextField(
-          decoration: const InputDecoration(
-            labelText: 'Customer Name',
-            hintText: 'Enter customer name...',
+          decoration: InputDecoration(
+            labelText: l10n.kanbanFilterCustomerName,
+            hintText: l10n.kanbanFilterCustomerHint,
           ),
           onChanged: (value) {
             setState(() {
@@ -311,14 +312,14 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
               Navigator.of(context).pop();
               _applyFilters();
             },
-            child: const Text('Clear'),
+            child: Text(l10n.commonClear),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               _applyFilters();
             },
-            child: const Text('Apply'),
+            child: Text(l10n.kanbanFilterApply),
           ),
         ],
       ),
@@ -326,12 +327,13 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
   }
 
   void _showStatusPicker(BuildContext context) {
+    final l10n = context.l10n;
     final statuses = [InvoiceStatus.draft, InvoiceStatus.paid, InvoiceStatus.unpaid, InvoiceStatus.cancelled, InvoiceStatus.returnStatus];
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Status Filter'),
+        title: Text(l10n.kanbanFilterStatusTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -347,8 +349,8 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const RadioListTile<String?>(
-                    title: Text('All Statuses'),
+                  RadioListTile<String?>(
+                    title: Text(l10n.kanbanFilterAllStatuses),
                     value: null,
                     dense: true,
                   ),
@@ -394,6 +396,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
   }
 
   void _showAmountRangePicker(BuildContext context) {
+    final l10n = context.l10n;
     final fromController = TextEditingController(
       text: _currentFilters.amountFrom?.toString() ?? '',
     );
@@ -404,14 +407,14 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Amount Range'),
+        title: Text(l10n.kanbanFilterAmountRange),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: fromController,
-              decoration: const InputDecoration(
-                labelText: 'From Amount',
+              decoration: InputDecoration(
+                labelText: l10n.kanbanFilterFromAmount,
                 prefixText: '\$',
               ),
               keyboardType: TextInputType.number,
@@ -419,8 +422,8 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
             const SizedBox(height: 16),
             TextField(
               controller: toController,
-              decoration: const InputDecoration(
-                labelText: 'To Amount',
+              decoration: InputDecoration(
+                labelText: l10n.kanbanFilterToAmount,
                 prefixText: '\$',
               ),
               keyboardType: TextInputType.number,
@@ -439,7 +442,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
               Navigator.of(context).pop();
               _applyFilters();
             },
-            child: const Text('Clear'),
+            child: Text(l10n.commonClear),
           ),
           TextButton(
             onPressed: () {
@@ -455,7 +458,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
               Navigator.of(context).pop();
               _applyFilters();
             },
-            child: const Text('Apply'),
+            child: Text(l10n.kanbanFilterApply),
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/constants/business_constants.dart';
+import '../../../../core/localization/localization_extensions.dart';
 
 /// Payment method selection dialog
 /// Shows Cash, Instapay, and Mobile Wallet options
@@ -32,7 +33,7 @@ class PaymentMethodDialog extends StatelessWidget {
             children: [
               // Title
               Text(
-                'Select Payment Method',
+                context.l10n.paymentMethodSelectTitle,
                 style: TextStyle(
                   fontSize: titleFontSize,
                   fontWeight: FontWeight.bold,
@@ -43,7 +44,7 @@ class PaymentMethodDialog extends StatelessWidget {
               // Cash option
               _PaymentMethodButton(
                 icon: Icons.attach_money,
-                label: 'Cash',
+                label: context.l10n.paymentMethodCash,
                 color: Colors.green,
                 onTap: () => Navigator.of(context).pop(PaymentModes.cash),
               ),
@@ -52,7 +53,7 @@ class PaymentMethodDialog extends StatelessWidget {
               // Instapay option
               _PaymentMethodButton(
                 icon: Icons.account_balance,
-                label: 'Instapay',
+                label: context.l10n.paymentMethodInstapay,
                 color: Colors.blue,
                 onTap: () => Navigator.of(context).pop('Instapay'),
               ),
@@ -61,7 +62,7 @@ class PaymentMethodDialog extends StatelessWidget {
               // Mobile Wallet option
               _PaymentMethodButton(
                 icon: Icons.phone_android,
-                label: 'Mobile Wallet',
+                label: context.l10n.paymentMethodMobileWallet,
                 color: Colors.purple,
                 onTap: () => Navigator.of(context).pop('Mobile Wallet'),
               ),
@@ -71,7 +72,7 @@ class PaymentMethodDialog extends StatelessWidget {
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text(
-                  'Cancel',
+                  context.l10n.commonCancel,
                   style: TextStyle(
                     fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16),
                     color: Colors.grey,

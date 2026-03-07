@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/kanban_models.dart';
 import '../../../core/constants/business_constants.dart';
+import '../../../core/localization/localization_extensions.dart';
 
 class CancelOrderResult {
   final String reason;
@@ -40,6 +41,7 @@ class _CancelOrderDialogState extends State<CancelOrderDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final invoice = widget.invoice;
     final isPaid = invoice.isFullyPaid;
     final hasPartial = invoice.hasPartialPayment;
@@ -47,7 +49,7 @@ class _CancelOrderDialogState extends State<CancelOrderDialog> {
     final outstandingLabel = _formatCurrency(invoice.outstandingAmount);
 
     return AlertDialog(
-      title: const Text('Cancel Order'),
+      title: Text(l10n.cancelOrderTitle),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -56,12 +58,12 @@ class _CancelOrderDialogState extends State<CancelOrderDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Invoice: ${invoice.invoiceIdShort.isNotEmpty ? invoice.invoiceIdShort : invoice.id}',
+                l10n.cancelOrderInvoiceLabel(invoice.invoiceIdShort.isNotEmpty ? invoice.invoiceIdShort : invoice.id),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 4),
-              Text('Total: $totalLabel'),
-              if (!isPaid) Text('Outstanding: $outstandingLabel'),
+              Text(l10n.cancelOrderTotalLabel(totalLabel)),
+              if (!isPaid) Text(l10n.cancelOrderOutstandingLabel(outstandingLabel)),
               const SizedBox(height: 12),
               if (hasPartial)
                 Container(
@@ -71,15 +73,15 @@ class _CancelOrderDialogState extends State<CancelOrderDialog> {
                     borderRadius: BorderRadius.circular(6),
                     color: Colors.orange.withValues(alpha: 0.15),
                   ),
-                  child: const Text(
-                    'This invoice has a partial payment. Please settle or refund the payment before cancelling.',
+                  child: Text(
+                    l10n.cancelOrderPartialPaymentWarning,
                     style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w600),
                   ),
                 ),
               DropdownButtonFormField<String>(
                 key: ValueKey(_selectedReason ?? 'none'),
-                decoration: const InputDecoration(
-                  labelText: 'Cancellation reason',
+                decoration: InputDecoration(
+                  labelText: l10n.cancelOrderReasonLabel,
                 ),
                 initialValue: _selectedReason,
                 items: _presetReasons
@@ -97,10 +99,10 @@ class _CancelOrderDialogState extends State<CancelOrderDialog> {
                 },
                 validator: (value) {
                   if ((value ?? '').isEmpty) {
-                    return 'Select a reason to continue';
+                    return l10n.cancelOrderSelectReasonValidation;
                   }
                   if (value == 'Other' && _customReasonController.text.trim().isEmpty) {
-                    return 'Provide a reason';
+                    return l10n.cancelOrderProvideReasonValidation;
                   }
                   return null;
                 },
@@ -109,13 +111,13 @@ class _CancelOrderDialogState extends State<CancelOrderDialog> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _customReasonController,
-                  decoration: const InputDecoration(
-                    labelText: 'Custom reason',
+                  decoration: InputDecoration(
+                    labelText: l10n.cancelOrderCustomReasonLabel,
                   ),
                   maxLines: 2,
                   validator: (value) {
                     if ((value ?? '').trim().isEmpty) {
-                      return 'Please describe the cancellation reason';
+                      return l10n.cancelOrderDescribeReasonValidation;
                     }
                     return null;
                   },
@@ -124,8 +126,8 @@ class _CancelOrderDialogState extends State<CancelOrderDialog> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Additional notes (optional)',
+                decoration: InputDecoration(
+                  labelText: l10n.cancelOrderAdditionalNotesOptional,
                 ),
                 minLines: 2,
                 maxLines: 4,
@@ -138,15 +140,15 @@ class _CancelOrderDialogState extends State<CancelOrderDialog> {
                     borderRadius: BorderRadius.circular(6),
                     color: Colors.teal.withValues(alpha: 0.12),
                   ),
-                  child: const Row(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.info_outline, size: 18, color: Colors.teal),
-                      SizedBox(width: 8),
+                      const Icon(Icons.info_outline, size: 18, color: Colors.teal),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'A credit note will be issued automatically so the accounts stay balanced.',
-                          style: TextStyle(color: Colors.teal),
+                          l10n.cancelOrderCreditNoteInfo,
+                          style: const TextStyle(color: Colors.teal),
                         ),
                       ),
                     ],
@@ -160,7 +162,7 @@ class _CancelOrderDialogState extends State<CancelOrderDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+          child: Text(l10n.commonClose),
         ),
         FilledButton(
           onPressed: hasPartial
@@ -180,7 +182,7 @@ class _CancelOrderDialogState extends State<CancelOrderDialog> {
                     ),
                   );
                 },
-          child: const Text('Confirm cancellation'),
+          child: Text(l10n.cancelOrderConfirmButton),
         ),
       ],
     );

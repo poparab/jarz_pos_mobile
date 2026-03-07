@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/manager_providers.dart';
 import '../data/manager_api.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 
 class ManagerDashboardScreen extends ConsumerWidget {
@@ -9,6 +10,7 @@ class ManagerDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final summaryAsync = ref.watch(dashboardSummaryProvider);
     final ordersAsync = ref.watch(managerOrdersProvider);
     final statesAsync = ref.watch(managerStatesProvider);
@@ -20,11 +22,11 @@ class ManagerDashboardScreen extends ConsumerWidget {
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu),
-            tooltip: 'Menu',
+            tooltip: l10n.managerMenuTooltip,
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
-        title: const Text('Manager Dashboard'),
+        title: Text(l10n.managerDashboardTitle),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -57,13 +59,13 @@ class ManagerDashboardScreen extends ConsumerWidget {
               error: (e, st) => const SizedBox.shrink(),
             ),
             const SizedBox(height: 12),
-            Text('Recent Orders', style: Theme.of(context).textTheme.titleMedium),
+            Text(l10n.managerRecentOrders, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             ordersAsync.when(
               data: (orders) => orders.isEmpty
-                  ? const Center(child: Padding(
+                  ? Center(child: Padding(
                       padding: EdgeInsets.all(24),
-                      child: Text('No recent orders')),
+                      child: Text(l10n.managerNoRecentOrders)),
                     )
                   : Column(
                       children: [for (final o in orders) _OrderTile(invoice: o)],
@@ -89,6 +91,7 @@ class _SummaryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final currencyStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
           color: Colors.green.shade700,
@@ -102,15 +105,17 @@ class _SummaryHeader extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Branch Balances', style: Theme.of(context).textTheme.titleMedium),
+                Text(l10n.managerBranchBalances, style: Theme.of(context).textTheme.titleMedium),
                 // Simple hint button to guide switching in POS/Kanban headers
                 TextButton.icon(
                   onPressed: () {
                     final messenger = ScaffoldMessenger.of(context);
-                    messenger.showSnackBar(const SnackBar(content: Text('Tip: Switch POS profiles from the POS/Kanban headers.')));
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(l10n.managerSwitchProfileTip)),
+                    );
                   },
                   icon: const Icon(Icons.swap_horiz),
-                  label: const Text('Switch Profile'),
+                  label: Text(l10n.managerSwitchProfile),
                 )
               ],
             ),
@@ -136,7 +141,7 @@ class _SummaryHeader extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Total Cash'),
+                Text(l10n.managerTotalCash),
                 Text(summary.totalBalance.toStringAsFixed(2), style: currencyStyle),
               ],
             ),
@@ -150,6 +155,7 @@ class _SummaryHeader extends StatelessWidget {
 class _BranchChips extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final summary = ref.watch(dashboardSummaryProvider).maybeWhen(
           data: (s) => s,
           orElse: () => null,
@@ -161,7 +167,7 @@ class _BranchChips extends ConsumerWidget {
       children: [
         ChoiceChip(
           selected: selected == 'all',
-          label: const Text('All'),
+          label: Text(l10n.managerAll),
           onSelected: (_) => ref.read(selectedBranchProvider.notifier).state = 'all',
         ),
         if (summary != null)
@@ -206,11 +212,12 @@ class _StateFilter extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final selected = ref.watch(selectedStateProvider) ?? 'all';
     final items = ['all', ...states];
     return Row(
       children: [
-        const Text('Filter by state:'),
+        Text(l10n.managerFilterByState),
         const SizedBox(width: 8),
         DropdownButton<String>(
           value: items.contains(selected) ? selected : 'all',
@@ -222,7 +229,7 @@ class _StateFilter extends ConsumerWidget {
             for (final s in items)
               DropdownMenuItem<String>(
                 value: s,
-                child: Text(s == 'all' ? 'All' : s),
+                child: Text(s == 'all' ? l10n.managerAll : s),
               ),
           ],
         ),
@@ -237,8 +244,9 @@ class _ChangeBranchButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     return IconButton(
-      tooltip: 'Change Branch',
+      tooltip: l10n.managerChangeBranch,
       icon: const Icon(Icons.swap_horiz),
       onPressed: () async {
         // Capture messenger before awaits to avoid using context across async gaps
@@ -253,7 +261,7 @@ class _ChangeBranchButton extends ConsumerWidget {
           builder: (ctx) {
             return StatefulBuilder(
               builder: (ctx, setState) => AlertDialog(
-                title: const Text('Assign to Branch'),
+                title: Text(l10n.managerAssignToBranch),
                 content: SizedBox(
                   width: 400,
                   child: Column(
@@ -271,10 +279,10 @@ class _ChangeBranchButton extends ConsumerWidget {
                   ),
                 ),
                 actions: [
-                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                  TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.commonCancel)),
                   ElevatedButton(
                     onPressed: () => Navigator.pop(ctx, selected),
-                    child: const Text('Save'),
+                    child: Text(l10n.commonSubmit),
                   ),
                 ],
               ),
@@ -287,9 +295,9 @@ class _ChangeBranchButton extends ConsumerWidget {
           await ref.read(managerApiProvider).updateInvoiceBranch(invoiceId: invoice.name, newBranch: picked);
           // refresh list after branch change
           ref.invalidate(managerOrdersProvider);
-          messenger.showSnackBar(const SnackBar(content: Text('Branch updated')));
+          messenger.showSnackBar(SnackBar(content: Text(l10n.managerBranchUpdated)));
         } catch (e) {
-          messenger.showSnackBar(SnackBar(content: Text('Failed: $e')));
+          messenger.showSnackBar(SnackBar(content: Text(l10n.managerBranchUpdateFailed(e.toString()))));
         }
       },
     );
@@ -302,13 +310,14 @@ class _ErrorTile extends StatelessWidget {
   const _ErrorTile({required this.error, required this.onRetry});
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Text('Error: $error'),
+          Text(l10n.commonErrorWithDetails(error.toString())),
           const SizedBox(height: 8),
-          OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+          OutlinedButton(onPressed: onRetry, child: Text(l10n.commonRetry)),
         ],
       ),
     );

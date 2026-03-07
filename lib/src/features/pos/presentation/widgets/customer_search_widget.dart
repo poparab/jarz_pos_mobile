@@ -308,7 +308,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
       },
       optionsViewBuilder: (context, onSelected, options) {
         return Align(
-          alignment: Alignment.topLeft,
+          alignment: AlignmentDirectional.topStart,
           child: Material(
             elevation: 4,
             borderRadius: BorderRadius.circular(8),

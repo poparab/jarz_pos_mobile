@@ -33,6 +33,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuManagerDashboard => 'Manager Dashboard';
 
   @override
+  String get managerMenuTooltip => 'Menu';
+
+  @override
+  String get managerDashboardTitle => 'Manager Dashboard';
+
+  @override
+  String get managerRecentOrders => 'Recent Orders';
+
+  @override
+  String get managerNoRecentOrders => 'No recent orders';
+
+  @override
+  String get managerBranchBalances => 'Branch Balances';
+
+  @override
+  String get managerSwitchProfileTip =>
+      'Tip: Switch POS profiles from the POS/Kanban headers.';
+
+  @override
+  String get managerSwitchProfile => 'Switch Profile';
+
+  @override
+  String get managerTotalCash => 'Total Cash';
+
+  @override
+  String get managerAll => 'All';
+
+  @override
+  String get managerFilterByState => 'Filter by state:';
+
+  @override
+  String get managerChangeBranch => 'Change Branch';
+
+  @override
+  String get managerAssignToBranch => 'Assign to Branch';
+
+  @override
+  String get managerBranchUpdated => 'Branch updated';
+
+  @override
+  String managerBranchUpdateFailed(Object error) {
+    return 'Failed: $error';
+  }
+
+  @override
   String get menuPurchaseInvoice => 'Purchase Invoice';
 
   @override
@@ -45,7 +90,127 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuCashTransfer => 'Cash Transfer';
 
   @override
+  String get cashTransferFromAccount => 'From Account';
+
+  @override
+  String get cashTransferToAccount => 'To Account';
+
+  @override
+  String get cashTransferPostingToday => 'Posting: Today';
+
+  @override
+  String cashTransferPostingDate(Object date) {
+    return 'Posting: $date';
+  }
+
+  @override
+  String get cashTransferRemarkOptional => 'Remark (optional)';
+
+  @override
+  String get cashTransferFrom => 'From';
+
+  @override
+  String get cashTransferTo => 'To';
+
+  @override
+  String get cashTransferAccountsMustDiffer => 'Accounts must differ';
+
+  @override
+  String get cashTransferSelectAccount => 'Select account';
+
+  @override
+  String cashTransferBefore(Object amount) {
+    return 'Before: $amount';
+  }
+
+  @override
+  String cashTransferAfter(Object amount) {
+    return 'After: $amount';
+  }
+
+  @override
+  String get cashTransferNoAccountsFound => 'No accounts found';
+
+  @override
+  String cashTransferJournalEntry(Object entry) {
+    return 'Journal Entry: $entry';
+  }
+
+  @override
+  String cashTransferFailed(Object error) {
+    return 'Failed: $error';
+  }
+
+  @override
   String get menuInventoryCount => 'Inventory Count';
+
+  @override
+  String get inventoryCountOfflineUsingCache => 'Offline using cached data';
+
+  @override
+  String inventoryCountConfirmAllBeforeSubmit(int remaining) {
+    return 'Please confirm all items before submitting ($remaining remaining)';
+  }
+
+  @override
+  String get inventoryCountConfirmAtLeastOne =>
+      'Confirm at least one item before submitting';
+
+  @override
+  String inventoryCountSubmitted(Object result) {
+    return 'Submitted: $result';
+  }
+
+  @override
+  String get inventoryCountNoDifferences => 'No differences';
+
+  @override
+  String get inventoryCountUncategorized => 'Uncategorized';
+
+  @override
+  String get inventoryCountManagerAccessRequired => 'Manager access required';
+
+  @override
+  String get inventoryCountSelectWarehouse => 'Select Warehouse';
+
+  @override
+  String get inventoryCountEnforceAll => 'Enforce all';
+
+  @override
+  String inventoryCountConfirmedProgress(int confirmed, int total) {
+    return 'Confirmed $confirmed / $total';
+  }
+
+  @override
+  String get inventoryCountClearAllEnteredData => 'Clear all entered data';
+
+  @override
+  String get inventoryCountAllEnteredDataCleared => 'All entered data cleared';
+
+  @override
+  String inventoryCountCurrentAmount(Object amount, Object uom) {
+    return 'Current: $amount $uom';
+  }
+
+  @override
+  String get inventoryCountDecrease => 'Decrease';
+
+  @override
+  String get inventoryCountCount => 'Count';
+
+  @override
+  String get inventoryCountIncrease => 'Increase';
+
+  @override
+  String inventoryCountValuation(Object amount, Object uom) {
+    return 'Valuation: $amount / $uom';
+  }
+
+  @override
+  String get inventoryCountDeltaLabel => 'Delta: ';
+
+  @override
+  String get inventoryCountSubmitCount => 'Submit Count';
 
   @override
   String get menuEndShift => 'End Shift';
@@ -400,6 +565,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shiftOpeningPrompt => 'Enter opening balances per payment method:';
 
   @override
+  String shiftPosProfile(Object profile) {
+    return 'POS Profile: $profile';
+  }
+
+  @override
+  String shiftAccount(Object account) {
+    return 'Account: $account';
+  }
+
+  @override
+  String shiftSystemBalance(Object amount) {
+    return 'System Balance: $amount';
+  }
+
+  @override
+  String get shiftConfirmedOpeningAmount => 'Confirmed Opening Amount';
+
+  @override
+  String shiftDifferenceAmount(Object amount) {
+    return 'Difference: $amount';
+  }
+
+  @override
   String get shiftClosingPrompt => 'Enter closing balances:';
 
   @override
@@ -408,6 +596,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String shiftExpectedAmount(Object amount) {
     return 'Expected: $amount';
+  }
+
+  @override
+  String shiftLoadActiveFailed(Object error) {
+    return 'Failed to load active shift: $error';
+  }
+
+  @override
+  String get shiftSummaryLoadFailed => 'Unable to load shift summary.';
+
+  @override
+  String shiftLabel(Object shift) {
+    return 'Shift: $shift';
+  }
+
+  @override
+  String shiftOutflows(Object amount) {
+    return 'Outflows: $amount';
+  }
+
+  @override
+  String shiftNetMovement(Object amount) {
+    return 'Net Movement: $amount';
+  }
+
+  @override
+  String get shiftAccountMovements => 'Account Movements';
+
+  @override
+  String get shiftOther => 'Other';
+
+  @override
+  String shiftSubtotal(Object amount) {
+    return 'Subtotal: $amount';
   }
 
   @override
@@ -633,6 +855,128 @@ class AppLocalizationsEn extends AppLocalizations {
   String get printerStatusDisconnected => 'Printer: Not Connected';
 
   @override
+  String get printerSelectTitle => 'Select Printer';
+
+  @override
+  String get printerDiagnosticsTitle => 'Diagnostics';
+
+  @override
+  String printerDiagnosticsAdapter(Object state) {
+    return 'Adapter: $state';
+  }
+
+  @override
+  String printerDiagnosticsScan(Object status) {
+    return 'Perm scan: $status';
+  }
+
+  @override
+  String printerDiagnosticsConnect(Object status) {
+    return 'Perm connect: $status';
+  }
+
+  @override
+  String printerDiagnosticsLocation(Object status) {
+    return 'Perm location: $status';
+  }
+
+  @override
+  String get printerDeviceIdLabel => 'Device ID (MAC / Identifier)';
+
+  @override
+  String get printerConnectById => 'Connect by ID';
+
+  @override
+  String get printerConnectingById => 'Connecting by ID...';
+
+  @override
+  String get printerConnecting => 'Connecting...';
+
+  @override
+  String get printerConnected => 'Printer connected';
+
+  @override
+  String get printerConnectionFailed => 'Failed to connect';
+
+  @override
+  String get printerForgetSavedTooltip => 'Forget saved printer';
+
+  @override
+  String get printerForgotSaved => 'Forgot saved printer';
+
+  @override
+  String get printerRescanTooltip => 'Rescan';
+
+  @override
+  String get printerReconnecting => 'Reconnecting...';
+
+  @override
+  String get printerReconnected => 'Reconnected';
+
+  @override
+  String get printerReconnectFailed => 'Reconnect failed';
+
+  @override
+  String get printerReconnect => 'Reconnect';
+
+  @override
+  String printerConnectedTo(Object name) {
+    return 'Connected: $name';
+  }
+
+  @override
+  String get printerTestPrint => 'Test Print';
+
+  @override
+  String get printerTestSent => 'Test print sent';
+
+  @override
+  String printerTestFailed(Object error) {
+    return 'Test failed: $error';
+  }
+
+  @override
+  String get printerBleDevices => 'BLE Devices';
+
+  @override
+  String get printerRescanBleTooltip => 'Rescan BLE';
+
+  @override
+  String get printerNoBleDevices => 'No BLE devices discovered.';
+
+  @override
+  String get printerUnknownName => 'Unknown Printer';
+
+  @override
+  String get printerConnect => 'Connect';
+
+  @override
+  String get printerClassicDevices => 'Paired Classic Devices';
+
+  @override
+  String get printerRefreshClassicTooltip => 'Refresh Classic List';
+
+  @override
+  String get printerNoClassicDevices =>
+      'No paired classic printers found. Ensure the printer is paired in System Bluetooth settings and that Location (Android 8) is enabled.';
+
+  @override
+  String printerClassicMacConnected(Object mac) {
+    return '$mac  (Classic)';
+  }
+
+  @override
+  String get printerDisconnect => 'Disconnect';
+
+  @override
+  String get printerConnectingClassic => 'Connecting (Classic)...';
+
+  @override
+  String printerLastSavedNotAdvertising(Object id) {
+    return 'Last saved printer: $id\nIt is not currently advertising. You can still attempt to reconnect.';
+  }
+
+  @override
   String get branchFilterTitle => 'Filter Branches';
 
   @override
@@ -723,12 +1067,243 @@ class AppLocalizationsEn extends AppLocalizations {
   String get courierBalancesNetLabel => 'Net';
 
   @override
+  String get courierSettlementComplete => 'Settlement complete';
+
+  @override
+  String get courierSettlementFailed => 'Settlement failed';
+
+  @override
+  String get courierSettleButton => 'Settle';
+
+  @override
+  String courierPayCourierAmount(Object amount) {
+    return 'Pay Courier $amount';
+  }
+
+  @override
+  String courierCollectAmount(Object amount) {
+    return 'Collect $amount';
+  }
+
+  @override
+  String courierSettleAllInvoicesQuestion(int count) {
+    return 'Settle all $count invoices for this courier?';
+  }
+
+  @override
+  String get courierSettled => 'Settled';
+
+  @override
+  String get courierSettleAllButton => 'Settle All';
+
+  @override
+  String courierSettleAllDialogTitle(Object action, Object total) {
+    return '$action - Total $total';
+  }
+
+  @override
+  String courierSettleAllWillSettle(int count) {
+    return 'This will settle $count invoice(s).';
+  }
+
+  @override
+  String get courierInvoicesLabel => 'Invoices:';
+
+  @override
+  String get courierSettleAllCollectInfo =>
+      'You will collect the net amount from the courier.';
+
+  @override
+  String get courierSettleAllPayInfo =>
+      'You will pay the courier the net amount now.';
+
+  @override
+  String courierSettleAllComplete(int success, int failed) {
+    return 'Settle All complete: $success ok, $failed failed';
+  }
+
+  @override
   String get courierBalancesPreviewTooltip => 'Preview settlement';
 
   @override
   String courierBalancesPreviewFailed(Object error) {
     return 'Failed to load settlement preview: $error';
   }
+
+  @override
+  String get settlementTitleCollectFromCourier => 'Collect From Courier';
+
+  @override
+  String get settlementTitlePayCourier => 'Pay Courier';
+
+  @override
+  String get settlementTitleCourierSettlement => 'Courier Settlement';
+
+  @override
+  String get settlementStatusUnpaid => 'Unpaid';
+
+  @override
+  String get settlementStatusPaid => 'Paid';
+
+  @override
+  String get settlementPaidNoteRecent => ' (just paid, treating as Unpaid)';
+
+  @override
+  String get settlementPaidNoteAfterOfd => ' (after OFD)';
+
+  @override
+  String get settlementPaidNoteAfterOfdUnpaid =>
+      ' (paid after OFD, treated as Unpaid)';
+
+  @override
+  String settlementInvoiceStatus(Object status, Object note) {
+    return 'Invoice is: $status$note';
+  }
+
+  @override
+  String get settlementCollectFormula => 'Collect (Order - Shipping):';
+
+  @override
+  String get settlementPayFormula => 'Pay the courier (Order - Shipping):';
+
+  @override
+  String get settlementNetToCollect => 'Net to Collect';
+
+  @override
+  String get settlementPayAmount => 'Pay Amount';
+
+  @override
+  String get settlementNothingToSettle => 'Nothing to pay or collect.';
+
+  @override
+  String settlementOrderLabel(Object amount) {
+    return 'Order: $amount';
+  }
+
+  @override
+  String settlementShippingLabel(Object amount) {
+    return 'Shipping: $amount';
+  }
+
+  @override
+  String settlementTerritoryLabel(Object territory) {
+    return 'Territory: $territory';
+  }
+
+  @override
+  String get cancelOrderTitle => 'Cancel Order';
+
+  @override
+  String cancelOrderInvoiceLabel(Object invoice) {
+    return 'Invoice: $invoice';
+  }
+
+  @override
+  String cancelOrderTotalLabel(Object amount) {
+    return 'Total: $amount';
+  }
+
+  @override
+  String cancelOrderOutstandingLabel(Object amount) {
+    return 'Outstanding: $amount';
+  }
+
+  @override
+  String get cancelOrderPartialPaymentWarning =>
+      'This invoice has a partial payment. Please settle or refund the payment before cancelling.';
+
+  @override
+  String get cancelOrderReasonLabel => 'Cancellation reason';
+
+  @override
+  String get cancelOrderSelectReasonValidation => 'Select a reason to continue';
+
+  @override
+  String get cancelOrderProvideReasonValidation => 'Provide a reason';
+
+  @override
+  String get cancelOrderCustomReasonLabel => 'Custom reason';
+
+  @override
+  String get cancelOrderDescribeReasonValidation =>
+      'Please describe the cancellation reason';
+
+  @override
+  String get cancelOrderAdditionalNotesOptional =>
+      'Additional notes (optional)';
+
+  @override
+  String get cancelOrderCreditNoteInfo =>
+      'A credit note will be issued automatically so the accounts stay balanced.';
+
+  @override
+  String get cancelOrderConfirmButton => 'Confirm cancellation';
+
+  @override
+  String get invoicePreparingReceipt => 'Preparing receipt...';
+
+  @override
+  String invoiceItemsCount(int count) {
+    return 'Items ($count)';
+  }
+
+  @override
+  String get invoicePrinterNotConnectedHint =>
+      'Printer not connected. Open Printer Selection from menu.';
+
+  @override
+  String get invoicePrintedSuccessfully => 'Printed successfully';
+
+  @override
+  String get invoicePrinterDisconnected => 'Printer disconnected';
+
+  @override
+  String invoicePrintFailed(Object result) {
+    return 'Print failed: $result';
+  }
+
+  @override
+  String get invoiceAcceptOrderTitle => 'Accept Order';
+
+  @override
+  String invoiceAcceptOrderQuestion(Object invoice, Object customer) {
+    return 'Accept order $invoice for $customer?';
+  }
+
+  @override
+  String get invoiceAcceptAction => 'Accept';
+
+  @override
+  String invoiceOrderAccepted(Object invoice) {
+    return 'Order $invoice accepted!';
+  }
+
+  @override
+  String invoiceAcceptFailed(Object error) {
+    return 'Failed to accept order: $error';
+  }
+
+  @override
+  String get invoiceMoreOptions => 'More Options';
+
+  @override
+  String get invoiceEditCustomerAddress => 'Edit Customer Address';
+
+  @override
+  String get invoiceChangeDeliverySlot => 'Change Delivery Slot';
+
+  @override
+  String get invoiceTransferOrder => 'Transfer Order';
+
+  @override
+  String get invoiceCancelOrderSettleFirst =>
+      'Cancel Order (settle payments first)';
+
+  @override
+  String get invoiceCustomerLabel => 'Customer';
+
+  @override
+  String get invoiceShippingExpenseShort => 'Shipping Exp:';
 
   @override
   String get manufacturingTitle => 'Manufacturing';
@@ -956,4 +1531,691 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stockTransferAddGroup => 'Add Group';
+
+  @override
+  String get commonClear => 'Clear';
+
+  @override
+  String get commonDismiss => 'Dismiss';
+
+  @override
+  String get commonSave => 'Save';
+
+  @override
+  String get paymentMethodSelectTitle => 'Select Payment Method';
+
+  @override
+  String get paymentMethodCash => 'Cash';
+
+  @override
+  String get paymentMethodInstapay => 'Instapay';
+
+  @override
+  String get paymentMethodMobileWallet => 'Mobile Wallet';
+
+  @override
+  String get checkoutTotal => 'Total:';
+
+  @override
+  String get checkoutPay => 'Pay';
+
+  @override
+  String get checkoutSelectProfileFirst => 'Select POS profile first';
+
+  @override
+  String get checkoutOrderSuccess => 'Order completed successfully!';
+
+  @override
+  String checkoutFailed(Object error) {
+    return 'Checkout failed: $error';
+  }
+
+  @override
+  String get salesPartnerTitle => 'Sales Partner';
+
+  @override
+  String get salesPartnerSearchHint => 'Search partner';
+
+  @override
+  String get salesPartnerNotFound => 'No partners found';
+
+  @override
+  String get itemGridBundles => 'Bundles';
+
+  @override
+  String get itemGridAll => 'All';
+
+  @override
+  String get itemGridUncategorized => 'Uncategorized';
+
+  @override
+  String get itemGridSelectCustomerWarning => 'Please select a customer first';
+
+  @override
+  String get itemGridNoItemsFound => 'No items found';
+
+  @override
+  String get itemGridNoItemsAvailable => 'No items available';
+
+  @override
+  String get itemGridTryDifferentCategory => 'Try a different category';
+
+  @override
+  String get itemGridItemsWillAppear => 'Items will appear here';
+
+  @override
+  String get itemGridFreeDelivery => 'Free delivery';
+
+  @override
+  String itemGridBundlesCount(Object count) {
+    return '$count bundles';
+  }
+
+  @override
+  String itemGridItemsCount(Object count) {
+    return '$count items';
+  }
+
+  @override
+  String get itemGridAddedToCart => 'Added to cart';
+
+  @override
+  String get itemGridSelectCustomerFirst => 'Select customer first';
+
+  @override
+  String get itemGridOutOfStock => 'Out of stock';
+
+  @override
+  String get itemGridCannotAdd => 'Cannot add item';
+
+  @override
+  String get kanbanFilterTitle => 'Filters';
+
+  @override
+  String kanbanFilterActiveCount(Object count) {
+    return '$count active';
+  }
+
+  @override
+  String get kanbanFilterClearAll => 'Clear All';
+
+  @override
+  String get kanbanFilterSearch => 'Search';
+
+  @override
+  String get kanbanFilterSearchHint => 'Search orders...';
+
+  @override
+  String get kanbanFilterAllCustomers => 'All Customers';
+
+  @override
+  String get kanbanFilterAllStatuses => 'All Statuses';
+
+  @override
+  String get kanbanFilterDateRange => 'Date Range';
+
+  @override
+  String get kanbanFilterFromDate => 'From Date';
+
+  @override
+  String get kanbanFilterToDate => 'To Date';
+
+  @override
+  String get kanbanFilterAllDates => 'All Dates';
+
+  @override
+  String get kanbanFilterAmountRange => 'Amount Range';
+
+  @override
+  String get kanbanFilterMinAmount => 'Min Amount';
+
+  @override
+  String get kanbanFilterMaxAmount => 'Max Amount';
+
+  @override
+  String get kanbanFilterAllAmounts => 'All Amounts';
+
+  @override
+  String get kanbanFilterActiveLabel => 'Active Filters:';
+
+  @override
+  String get kanbanFilterByBranches => 'Filter by Branches';
+
+  @override
+  String get kanbanFilterCustomerTitle => 'Customer';
+
+  @override
+  String get kanbanFilterCustomerName => 'Customer name';
+
+  @override
+  String get kanbanFilterCustomerHint => 'Enter customer name';
+
+  @override
+  String get kanbanFilterStatusTitle => 'Status';
+
+  @override
+  String get kanbanFilterFromAmount => 'From Amount';
+
+  @override
+  String get kanbanFilterToAmount => 'To Amount';
+
+  @override
+  String get kanbanFilterApply => 'Apply';
+
+  @override
+  String get kanbanRefreshOrders => 'Refresh Orders';
+
+  @override
+  String get kanbanOrdersRefreshed => 'Orders refreshed';
+
+  @override
+  String get kanbanHideFilters => 'Hide Filters';
+
+  @override
+  String get kanbanShowFilters => 'Show Filters';
+
+  @override
+  String get kanbanMoreActions => 'More Actions';
+
+  @override
+  String get kanbanMenu => 'Menu';
+
+  @override
+  String get kanbanMenuReceipts => 'Payment Receipts';
+
+  @override
+  String get kanbanMenuPrinters => 'Printers';
+
+  @override
+  String get kanbanMenuCouriers => 'Courier Balances';
+
+  @override
+  String get kanbanMenuProfile => 'Profile';
+
+  @override
+  String get kanbanMenuPos => 'Point of Sale';
+
+  @override
+  String get kanbanPaymentReceipts => 'Payment Receipts';
+
+  @override
+  String get kanbanCourierBalances => 'Courier Balances';
+
+  @override
+  String get kanbanUserProfile => 'User Profile';
+
+  @override
+  String get kanbanOpenPos => 'Open POS';
+
+  @override
+  String get kanbanTitleShort => 'Kanban';
+
+  @override
+  String get kanbanTitleFull => 'Sales Kanban';
+
+  @override
+  String get kanbanPrinterBle => 'BLE';
+
+  @override
+  String get kanbanPrinterClassic => 'Classic';
+
+  @override
+  String get kanbanPrinterConnecting => 'Connecting...';
+
+  @override
+  String get kanbanPrinterNotConnected => 'Not Connected';
+
+  @override
+  String get kanbanErrorLoadingData => 'Error loading data';
+
+  @override
+  String get kanbanNoColumnsConfigured => 'No columns configured';
+
+  @override
+  String get kanbanEnsureStateField =>
+      'Ensure the state field is configured properly.';
+
+  @override
+  String get kanbanSelectPosProfileFirst => 'Select POS profile first';
+
+  @override
+  String get kanbanSelectPosProfile => 'Select POS Profile';
+
+  @override
+  String get kanbanNoPosProfiles => 'No POS profiles available';
+
+  @override
+  String kanbanWarehouse(Object warehouse) {
+    return 'Warehouse: $warehouse';
+  }
+
+  @override
+  String get kanbanCourierAndMode => 'Courier & Mode';
+
+  @override
+  String get kanbanNoCouriersAvailable => 'No couriers available';
+
+  @override
+  String get kanbanCreateCourierHint => 'Create a courier to proceed.';
+
+  @override
+  String get kanbanNewCourier => 'New Courier';
+
+  @override
+  String get kanbanFirstName => 'First Name';
+
+  @override
+  String get kanbanLastName => 'Last Name';
+
+  @override
+  String get kanbanPhone => 'Phone';
+
+  @override
+  String get kanbanType => 'Type';
+
+  @override
+  String get kanbanEmployee => 'Employee';
+
+  @override
+  String get kanbanSupplier => 'Supplier';
+
+  @override
+  String get kanbanBack => 'Back';
+
+  @override
+  String kanbanCreateFailed(Object error) {
+    return 'Create failed: $error';
+  }
+
+  @override
+  String get kanbanMode => 'Mode';
+
+  @override
+  String get kanbanPayNowCash => 'Pay Now (Cash)';
+
+  @override
+  String get kanbanSettleLater => 'Settle Later';
+
+  @override
+  String get kanbanSettleLaterSubtitle => 'Courier settles with branch later';
+
+  @override
+  String get kanbanContinue => 'Continue';
+
+  @override
+  String get kanbanSettleLaterMissingParty =>
+      'Settle Later failed: courier party missing.';
+
+  @override
+  String get kanbanSettleLaterPreviewExpired =>
+      'Settle Later: preview expired. Please retry.';
+
+  @override
+  String get kanbanSettleLaterFailed => 'Settle Later failed';
+
+  @override
+  String get kanbanMarkedSettleLater => 'Marked to Settle Later';
+
+  @override
+  String kanbanSettleLaterError(Object error) {
+    return 'Settle Later error: $error';
+  }
+
+  @override
+  String get kanbanSettlementMissingParty =>
+      'Settlement failed: courier party missing.';
+
+  @override
+  String get kanbanPreviewExpired => 'Preview expired. Please retry.';
+
+  @override
+  String get kanbanConfirmingSettlement => 'Confirming settlement...';
+
+  @override
+  String get kanbanSettlementFailed => 'Settlement failed';
+
+  @override
+  String get kanbanSettlementConfirmed => 'Settlement confirmed';
+
+  @override
+  String kanbanSettlementError(Object error) {
+    return 'Settlement error: $error';
+  }
+
+  @override
+  String kanbanPreviewFailed(Object error) {
+    return 'Preview failed: $error';
+  }
+
+  @override
+  String get kanbanPickupNoSettlement =>
+      'Pickup orders don\'t require settlement';
+
+  @override
+  String get kanbanCannotMoveBackward => 'Cannot move backward';
+
+  @override
+  String get kanbanMoveOneStage => 'Can only move one stage at a time';
+
+  @override
+  String get kanbanAllBranches => 'All Branches';
+
+  @override
+  String kanbanBranchCount(Object count) {
+    return '$count branches';
+  }
+
+  @override
+  String get kanbanLoadingBranches => 'Loading branches...';
+
+  @override
+  String get kanbanTapToRefreshBalance => 'Tap to refresh balance';
+
+  @override
+  String get kanbanPressBackAgain => 'Press back again to exit';
+
+  @override
+  String get invoiceDeliveryAddress => 'Delivery Address';
+
+  @override
+  String get invoiceItems => 'Items';
+
+  @override
+  String get invoiceNetTotal => 'Net Total';
+
+  @override
+  String get invoiceShippingIncome => 'Shipping Income';
+
+  @override
+  String get invoiceShippingExpense => 'Shipping Expense';
+
+  @override
+  String get invoiceGrandTotal => 'Grand Total';
+
+  @override
+  String invoiceAlreadyStatus(Object status) {
+    return 'Invoice already $status';
+  }
+
+  @override
+  String get invoiceSelectPaymentMethod => 'Select Payment Method';
+
+  @override
+  String get invoiceWallet => 'Wallet';
+
+  @override
+  String get invoiceSubmit => 'Submit';
+
+  @override
+  String get invoiceNoPosProfileCash =>
+      'No POS profile selected for Cash payment';
+
+  @override
+  String invoiceProcessingPayment(Object method) {
+    return 'Processing $method payment...';
+  }
+
+  @override
+  String invoicePaymentSuccess(Object entry) {
+    return 'Payment successful ($entry)';
+  }
+
+  @override
+  String get invoiceReceiptAmountWarning =>
+      'Warning: Could not get payment amount for receipt';
+
+  @override
+  String get invoiceReceiptNoPosProfile =>
+      'Warning: No POS profile found - receipt not created. Please select a POS profile.';
+
+  @override
+  String invoiceReceiptCreated(Object receipt) {
+    return 'Payment receipt created ($receipt) - please upload receipt image from header';
+  }
+
+  @override
+  String invoiceReceiptReturnedWarning(Object message) {
+    return 'Warning: Receipt creation returned: $message';
+  }
+
+  @override
+  String invoiceReceiptCreationFailed(Object error) {
+    return 'Warning: Receipt creation failed: $error';
+  }
+
+  @override
+  String get invoicePaymentFailed => 'Payment failed';
+
+  @override
+  String invoicePaymentError(Object error) {
+    return 'Payment error: $error';
+  }
+
+  @override
+  String get invoiceCollectCashTitle => 'Collect Cash';
+
+  @override
+  String invoiceCollectCashBody(Object amount, Object invoiceId) {
+    return 'Please collect from the customer:\n\nTotal Amount: $amount EGP\n\nThis includes:\n• Order items\n• Shipping fee\n\nInvoice: $invoiceId';
+  }
+
+  @override
+  String get invoiceSelectPosFirst => 'Select POS profile first';
+
+  @override
+  String get invoiceCollectingCashPartner =>
+      'Collecting cash & dispatching (Sales Partner)...';
+
+  @override
+  String get invoiceCashCollectedOfd =>
+      'Cash collected & sent Out For Delivery';
+
+  @override
+  String invoiceOfdFailed(Object error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String invoiceOfdError(Object error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get invoiceSentOfd => 'Sent Out For Delivery (DN will be created)';
+
+  @override
+  String invoiceActionFailed(Object error) {
+    return 'Action failed: $error';
+  }
+
+  @override
+  String get invoiceSettleLaterMissingParty =>
+      'Settle Later failed: courier party missing.';
+
+  @override
+  String get invoiceMarkedSettleLater => 'Marked to Settle Later';
+
+  @override
+  String get invoiceSettleLaterFailed => 'Settle Later failed';
+
+  @override
+  String invoiceSettleLaterError(Object error) {
+    return 'Settle Later error: $error';
+  }
+
+  @override
+  String get invoiceSettlementMissingParty =>
+      'Settlement failed: courier party missing.';
+
+  @override
+  String get invoicePreviewExpired => 'Preview expired. Please retry.';
+
+  @override
+  String get invoiceConfirmingSettlement => 'Confirming settlement...';
+
+  @override
+  String get invoiceSettlementConfirmed => 'Settlement confirmed';
+
+  @override
+  String get invoiceSettlementFailed => 'Settlement failed';
+
+  @override
+  String invoiceSettlementError(Object error) {
+    return 'Settlement error: $error';
+  }
+
+  @override
+  String get invoiceProcessingDelivery => 'Processing Delivery...';
+
+  @override
+  String get invoiceUpdated => 'Updated';
+
+  @override
+  String get invoiceDeliveryFailed => 'Delivery action failed';
+
+  @override
+  String invoiceDeliveryError(Object error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get invoiceDeliveryTitle => 'Delivery';
+
+  @override
+  String get invoiceUnpaidWarning =>
+      'Invoice is UNPAID. Choose Courier Collects Cash Now to record a cash payment before marking Out For Delivery.';
+
+  @override
+  String get invoiceCannotSettleParty =>
+      'Cannot settle: courier party not resolved. Assign courier or retry.';
+
+  @override
+  String get invoiceNothingToSettle => 'Nothing to settle';
+
+  @override
+  String get invoiceSettlementComplete => 'Settlement complete';
+
+  @override
+  String get invoiceEditAddress => 'Edit Customer Address';
+
+  @override
+  String get invoicePhoneNumber => 'Phone Number';
+
+  @override
+  String get invoiceDeliveryAddressLabel => 'Delivery Address';
+
+  @override
+  String get invoiceAddressHelper => 'Enter the full delivery address';
+
+  @override
+  String get invoiceAddressUpdateInfo =>
+      'This will update the customer\'s default address and phone number.';
+
+  @override
+  String get invoiceAddressEmpty => 'Address cannot be empty';
+
+  @override
+  String get invoiceUpdatingAddress => 'Updating customer address...';
+
+  @override
+  String get invoiceAddressUpdated => 'Customer address updated successfully';
+
+  @override
+  String get invoiceAddressUpdateFailed => 'Failed to update address';
+
+  @override
+  String invoiceCopiedNumber(Object number) {
+    return 'Copied: $number';
+  }
+
+  @override
+  String get invoiceCopy => 'Copy';
+
+  @override
+  String get invoiceCannotCall => 'Unable to make phone call';
+
+  @override
+  String get invoiceCall => 'Call';
+
+  @override
+  String get invoiceSettleBeforeCancel =>
+      'Settle or refund partial payments before cancelling this order.';
+
+  @override
+  String get invoiceCancelFailed => 'Failed to cancel order. Please try again.';
+
+  @override
+  String invoiceCancelledWithCn(Object creditNote) {
+    return 'Order cancelled. Credit note $creditNote created.';
+  }
+
+  @override
+  String get invoiceCancelledSuccess => 'Order cancelled successfully.';
+
+  @override
+  String get invoiceNoPosProfile => 'No POS profile selected';
+
+  @override
+  String get invoiceAssignBranch => 'Assign to Branch';
+
+  @override
+  String invoiceCustomerName(Object name) {
+    return 'Customer: $name';
+  }
+
+  @override
+  String invoiceInvoiceLabel(Object name) {
+    return 'Invoice: $name';
+  }
+
+  @override
+  String get invoiceTransferInfo =>
+      'The order will be moved to the selected branch and reset to Received state.';
+
+  @override
+  String get invoiceTransferring => 'Transferring order...';
+
+  @override
+  String invoiceTransferSuccess(Object branch) {
+    return 'Order transferred successfully to $branch';
+  }
+
+  @override
+  String get invoiceTransferFailed => 'Transfer failed. Please try again.';
+
+  @override
+  String get invoiceCannotDetermineProfile =>
+      'Unable to determine POS profile for this invoice';
+
+  @override
+  String get invoiceLoadingSlots => 'Loading delivery slots...';
+
+  @override
+  String get invoiceNoSlots => 'No delivery slots available for this branch';
+
+  @override
+  String get invoiceChangeSlot => 'Change Delivery Slot';
+
+  @override
+  String invoiceCurrentSlot(Object slot) {
+    return 'Current: $slot';
+  }
+
+  @override
+  String get invoiceSlotUpdateInfo =>
+      'The delivery slot will be updated for this order.';
+
+  @override
+  String get invoiceNoChanges => 'No changes made';
+
+  @override
+  String get invoiceUpdatingSlot => 'Updating delivery slot...';
+
+  @override
+  String invoiceSlotUpdated(Object slot) {
+    return 'Delivery slot updated to $slot';
+  }
+
+  @override
+  String get invoiceSlotUpdateFailed => 'Failed to update delivery slot';
 }
