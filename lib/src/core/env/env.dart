@@ -6,7 +6,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 ///   flutter run --dart-define=ENV=local|staging|prod
 /// Defaults to local when not provided.
 Future<void> loadEnv() async {
-  const env = String.fromEnvironment('ENV', defaultValue: 'local');
+  const rawEnv = String.fromEnvironment('ENV', defaultValue: '');
+  final env = rawEnv.isNotEmpty ? rawEnv : (kReleaseMode ? 'staging' : 'local');
   // Map ENV -> file name
   final file = switch (env.toLowerCase()) {
     'local' => '.env.local',

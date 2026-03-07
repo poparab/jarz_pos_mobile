@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/auth_repository.dart';
@@ -28,8 +31,35 @@ class LoginNotifier extends AsyncNotifier<bool> {
         state = AsyncError('Invalid credentials', StackTrace.current);
       }
     } catch (e, st) {
-      state = AsyncError(e, st);
+      state = AsyncError(_mapLoginError(e), st);
     }
+  }
+
+  String _mapLoginError(Object error) {
+    if (error is DioException) {
+      if (error.response?.statusCode == 401) {
+        return 'Invalid credentials';
+      }
+
+      if (error.type == DioExceptionType.connectionError ||
+          error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.receiveTimeout) {
+        final message = (error.message ?? '').toLowerCase();
+        if (message.contains('no route to host') ||
+            message.contains('failed host lookup') ||
+            message.contains('socketexception')) {
+          return 'Cannot reach server. Check Wi-Fi/VPN and backend URL, then try again.';
+        }
+        return 'Connection failed. Please verify network and server availability.';
+      }
+      return error.message ?? 'Login failed. Please try again.';
+    }
+
+    if (error is SocketException) {
+      return 'Cannot reach server. Check Wi-Fi/VPN and backend URL, then try again.';
+    }
+
+    return error.toString();
   }
 
   Future<void> logout() async {
