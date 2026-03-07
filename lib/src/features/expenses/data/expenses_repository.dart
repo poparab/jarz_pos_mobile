@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/dio_provider.dart';
+import '../../../core/constants/api_endpoints.dart';
 import '../models/expense_models.dart';
 
 final expensesRepositoryProvider = Provider<ExpensesRepository>((ref) {
@@ -24,7 +25,7 @@ class ExpensesRepository {
       filters['payment_ids'] = paymentIds;
     }
     final response = await _dio.post(
-      '/api/method/jarz_pos.api.expenses.get_expense_bootstrap',
+      ApiEndpoints.getExpenseBootstrap,
       data: {'filters': jsonEncode(filters)},
     );
     final data = response.data is Map ? response.data['message'] ?? response.data : response.data;
@@ -54,7 +55,7 @@ class ExpensesRepository {
     };
 
     final response = await _dio.post(
-      '/api/method/jarz_pos.api.expenses.create_expense',
+      ApiEndpoints.createExpense,
       data: body,
     );
     final data = response.data is Map ? response.data['message'] ?? response.data : response.data;
@@ -64,7 +65,7 @@ class ExpensesRepository {
 
   Future<ExpenseRecord> approveExpense(String name) async {
     final response = await _dio.post(
-      '/api/method/jarz_pos.api.expenses.approve_expense',
+      ApiEndpoints.approveExpense,
       data: {'name': name},
     );
     final data = response.data is Map ? response.data['message'] ?? response.data : response.data;

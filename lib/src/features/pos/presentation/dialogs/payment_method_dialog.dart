@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/constants/business_constants.dart';
 
 /// Payment method selection dialog
 /// Shows Cash, Instapay, and Mobile Wallet options
@@ -44,7 +45,7 @@ class PaymentMethodDialog extends StatelessWidget {
                 icon: Icons.attach_money,
                 label: 'Cash',
                 color: Colors.green,
-                onTap: () => Navigator.of(context).pop('Cash'),
+                onTap: () => Navigator.of(context).pop(PaymentModes.cash),
               ),
               SizedBox(height: buttonSpacing),
               

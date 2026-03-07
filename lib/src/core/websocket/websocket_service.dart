@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
+import '../constants/ws_events.dart';
+import '../constants/timing_config.dart';
 import '../router.dart';
 import 'package:flutter/material.dart';
 
@@ -36,10 +38,10 @@ class WebSocketService {
   // Prefer explicit WEBSOCKET_URL. If not provided, DEFAULT TO SOCKET.IO at baseUrl/socket.io.
   // Only use raw ws when WEBSOCKET_URL explicitly contains a ws:// URL (optionally ending with /websocket or /ws).
   final explicit = dotenv.env['WEBSOCKET_URL'];
-  final baseUrl = dotenv.env['ERP_BASE_URL'] ?? dotenv.env['API_BASE_URL'] ?? 'http://localhost:8000';
+  final baseUrl = dotenv.env['ERP_BASE_URL'] ?? dotenv.env['API_BASE_URL'] ?? (throw StateError('ERP_BASE_URL env var is required'));
   final socketOverride = dotenv.env['SOCKET_IO_URL']; // e.g., http://192.168.1.5:9000
   // Frappe socket server segregates events per site; joining requires site name in query
-  final siteName = dotenv.env['FRAPPE_SITE'] ?? dotenv.env['SITE_NAME'] ?? 'development.localhost';
+  final siteName = dotenv.env['FRAPPE_SITE'] ?? dotenv.env['SITE_NAME'] ?? '';
   final useUrl = explicit; // may be null
     
     try {
@@ -95,20 +97,20 @@ class WebSocketService {
           });
         }
         for (final ev in [
-          'jarz_pos_new_invoice',
-          'jarz_pos_invoice_state_change',
-          'kanban_update',
-          'jarz_pos_out_for_delivery_transition',
-          'jarz_pos_courier_outstanding',
-          'jarz_pos_courier_expense_paid',
-          'jarz_pos_courier_settled',
+          WsEvents.newInvoice,
+          WsEvents.invoiceStateChange,
+          WsEvents.kanbanUpdate,
+          WsEvents.outForDeliveryTransition,
+          WsEvents.courierOutstanding,
+          WsEvents.courierExpensePaid,
+          WsEvents.courierSettled,
           // Sales Partner specific events
-          'jarz_pos_sales_partner_collect_prompt',
-          'jarz_pos_sales_partner_unpaid_ofd',
-          'jarz_pos_sales_partner_paid_ofd',
+          WsEvents.salesPartnerCollectPrompt,
+          WsEvents.salesPartnerUnpaidOfd,
+          WsEvents.salesPartnerPaidOfd,
   ]) { bindEvent(ev); }
         // Generic fallback
-        _io!.on('message', (data) {
+        _io!.on(WsEvents.message, (data) {
           try {
             if (data is String) {
               final decoded = json.decode(data);
@@ -247,7 +249,7 @@ class WebSocketService {
     final data = message['data'] as Map<String, dynamic>?;
 
     switch (event) {
-      case 'jarz_pos_new_invoice':
+      case WsEvents.newInvoice:
         if (data != null) {
           _invoiceStreamController.add(data);
           if (kDebugMode) {
@@ -255,7 +257,7 @@ class WebSocketService {
           }
         }
         break;
-      case 'new_pos_invoice':
+      case WsEvents.newPosInvoice:
         if (data != null) {
           _invoiceStreamController.add(data);
           if (kDebugMode) {
@@ -263,7 +265,7 @@ class WebSocketService {
           }
         }
         break;
-      case 'pos_profile_update':
+      case WsEvents.posProfileUpdate:
         if (data != null) {
           _posUpdateStreamController.add(data);
           if (kDebugMode) {
@@ -271,7 +273,7 @@ class WebSocketService {
           }
         }
         break;
-      case 'item_stock_update':
+      case WsEvents.itemStockUpdate:
         if (data != null) {
           _posUpdateStreamController.add(data);
           if (kDebugMode) {
@@ -279,8 +281,8 @@ class WebSocketService {
           }
         }
         break;
-      case 'jarz_pos_invoice_state_change':
-      case 'kanban_update':
+      case WsEvents.invoiceStateChange:
+      case WsEvents.kanbanUpdate:
         if (data != null) {
           _kanbanUpdateStreamController.add(data);
           if (kDebugMode) {
@@ -288,7 +290,7 @@ class WebSocketService {
           }
         }
         break;
-      case 'jarz_pos_out_for_delivery_transition':
+      case WsEvents.outForDeliveryTransition:
         if (data != null) {
           _kanbanUpdateStreamController.add(data);
           if (kDebugMode) {
@@ -296,7 +298,7 @@ class WebSocketService {
           }
         }
         break;
-      case 'jarz_pos_courier_outstanding':
+      case WsEvents.courierOutstanding:
         if (data != null) {
           _kanbanUpdateStreamController.add(data);
           _courierUpdateStreamController.add(data);
@@ -305,7 +307,7 @@ class WebSocketService {
           }
         }
         break;
-      case 'jarz_pos_courier_settled':
+      case WsEvents.courierSettled:
         if (data != null) {
           _kanbanUpdateStreamController.add(data);
           _courierUpdateStreamController.add(data);
@@ -314,7 +316,7 @@ class WebSocketService {
           }
         }
         break;
-      case 'jarz_pos_sales_partner_unpaid_ofd':
+      case WsEvents.salesPartnerUnpaidOfd:
         if (data != null) {
           _kanbanUpdateStreamController.add(data);
           if (kDebugMode) {
@@ -322,7 +324,7 @@ class WebSocketService {
           }
         }
         break;
-      case 'jarz_pos_sales_partner_paid_ofd':
+      case WsEvents.salesPartnerPaidOfd:
         if (data != null) {
           _kanbanUpdateStreamController.add(data);
           if (kDebugMode) {
@@ -330,7 +332,7 @@ class WebSocketService {
           }
         }
         break;
-      case 'jarz_pos_courier_expense_paid':
+      case WsEvents.courierExpensePaid:
         if (data != null) {
           _kanbanUpdateStreamController.add(data);
           _courierUpdateStreamController.add(data);
@@ -339,7 +341,7 @@ class WebSocketService {
           }
         }
         break;
-      case 'jarz_pos_sales_partner_collect_prompt':
+      case WsEvents.salesPartnerCollectPrompt:
         if (data != null) {
           _kanbanUpdateStreamController.add(data);
           if (kDebugMode) {
@@ -389,7 +391,7 @@ class WebSocketService {
           } catch (_) {}
         }
         break;
-      case 'pong':
+      case WsEvents.pong:
         // Heartbeat response
         break;
       default:
@@ -408,8 +410,8 @@ class WebSocketService {
     } else if (_channel != null) {
       // Subscribe to POS-related events
       _channel!.sink.add(json.encode({
-        'event': 'subscribe',
-        'rooms': ['pos_updates', 'invoice_updates', 'stock_updates'],
+        'event': WsEvents.actionSubscribe,
+        'rooms': [WsEvents.roomPosUpdates, WsEvents.roomInvoiceUpdates, WsEvents.roomStockUpdates],
       }));
       if (kDebugMode) {
         print('✅ WEBSOCKET: Subscribed to updates');
@@ -419,18 +421,18 @@ class WebSocketService {
 
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+    _heartbeatTimer = Timer.periodic(NetworkTimeouts.wsHeartbeat, (timer) {
       if (_io != null) {
-        _io!.emit('ping', {});
+        _io!.emit(WsEvents.actionPing, {});
       } else if (_channel != null) {
-        _channel!.sink.add(json.encode({'event': 'ping'}));
+        _channel!.sink.add(json.encode({'event': WsEvents.actionPing}));
       }
     });
   }
 
   void _scheduleReconnect() {
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(const Duration(seconds: 5), () {
+    _reconnectTimer = Timer(NetworkTimeouts.wsReconnectDelay, () {
       if (_shouldReconnect) {
         connect();
       }

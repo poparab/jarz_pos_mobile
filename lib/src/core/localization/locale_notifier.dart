@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../constants/storage_keys.dart';
 import 'localization_extensions.dart';
 
-const String localeSettingsBoxName = 'app_settings';
-const String _localeStorageKey = 'preferred_locale';
+const String localeSettingsBoxName = HiveBoxes.appSettings;
+const String _localeStorageKey = HiveKeys.preferredLocale;
 
 Locale? _localeFromCode(String? code) {
   if (code == null || code.isEmpty) return null;

@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
 
+import '../constants/storage_keys.dart';
+
 /// Lightweight wrapper around the Android classic printer method channel.
 class ClassicPrinterChannel {
   ClassicPrinterChannel._();
   static final ClassicPrinterChannel instance = ClassicPrinterChannel._();
 
-  static const _channel = MethodChannel('classic_printer');
+  static const _channel = MethodChannel(MethodChannels.classicPrinter);
 
   Future<List<ClassicBondedDevice>> getBondedDevices() async {
     final list = await _channel.invokeListMethod<dynamic>('getBondedDevices');

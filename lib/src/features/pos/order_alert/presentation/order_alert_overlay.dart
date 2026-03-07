@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/order_alert_controller.dart';
 import '../order_alert_native_channel.dart';
 import '../../../../core/network/user_service.dart';
+import '../../../../core/constants/timing_config.dart';
 import 'order_alert_dialog.dart';
 
 /// Global overlay-based alert system that doesn't depend on Navigator context
@@ -60,7 +61,7 @@ class _OrderAlertOverlayState extends ConsumerState<OrderAlertOverlay> {
 
   void _startPolling() {
     // Poll every 2 seconds to check for pending alerts
-    _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+    _pollTimer = Timer.periodic(PollingIntervals.overlayPoll, (_) {
       if (!_isDisposed && mounted) {
         _checkForAlerts();
       }

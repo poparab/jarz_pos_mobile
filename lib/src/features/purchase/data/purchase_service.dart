@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
+import '../../../core/constants/api_endpoints.dart';
 
 final purchaseServiceProvider = Provider<PurchaseService>((ref) {
   final dio = ref.watch(dioProvider);
@@ -13,7 +14,7 @@ class PurchaseService {
 
   Future<List<Map<String, dynamic>>> getSuppliers(String search) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.purchase.get_suppliers',
+      ApiEndpoints.getSuppliers,
       data: {'search': search},
     );
     final payload = resp.data;
@@ -26,7 +27,7 @@ class PurchaseService {
 
   Future<List<Map<String, dynamic>>> getRecentSuppliers() async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.purchase.get_recent_suppliers',
+      ApiEndpoints.getRecentSuppliers,
       data: {},
     );
     final payload = resp.data;
@@ -39,7 +40,7 @@ class PurchaseService {
 
   Future<List<Map<String, dynamic>>> searchItems(String search) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.purchase.search_items',
+      ApiEndpoints.searchItems,
       data: {'search': search},
     );
     final payload = resp.data;
@@ -52,7 +53,7 @@ class PurchaseService {
 
   Future<Map<String, dynamic>> getItemDetails(String itemCode) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.purchase.get_item_details',
+      ApiEndpoints.getItemDetails,
       data: {'item_code': itemCode},
     );
     final payload = resp.data;
@@ -65,7 +66,7 @@ class PurchaseService {
 
   Future<Map<String, dynamic>> getItemPrice(String itemCode, {String? uom}) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.purchase.get_item_price',
+      ApiEndpoints.getItemPrice,
       data: {'item_code': itemCode, if (uom != null) 'uom': uom},
     );
     final payload = resp.data;
@@ -86,7 +87,7 @@ class PurchaseService {
     double? shippingAmount,
   }) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.purchase.create_purchase_invoice',
+      ApiEndpoints.createPurchaseInvoice,
       data: {
         'supplier': supplier,
         'posting_date': postingDate,

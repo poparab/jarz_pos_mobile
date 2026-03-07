@@ -301,7 +301,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     try {
       // Start the notification polling service
       final pollingService = _ref.read(notificationPollingServiceProvider);
-      pollingService.startPolling(intervalSeconds: 30);
+      pollingService.startPolling();
       
       // Listen for polling notifications
       _pollingSub = pollingService.notificationStream.listen((event) {

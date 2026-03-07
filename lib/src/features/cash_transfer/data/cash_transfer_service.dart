@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
+import '../../../core/constants/api_endpoints.dart';
 
 final cashTransferServiceProvider = Provider<CashTransferService>((ref) {
   final dio = ref.watch(dioProvider);
@@ -12,7 +13,7 @@ class CashTransferService {
   CashTransferService(this._dio);
 
   Future<List<Map<String, dynamic>>> listAccounts({String? asOf, String? company}) async {
-    final resp = await _dio.post('/api/method/jarz_pos.api.cash_transfer.list_accounts', data: {
+    final resp = await _dio.post(ApiEndpoints.cashTransferListAccounts, data: {
       if (asOf != null) 'as_of': asOf,
       if (company != null) 'company': company,
     });
@@ -29,7 +30,7 @@ class CashTransferService {
     String? postingDate,
     String? remark,
   }) async {
-    final resp = await _dio.post('/api/method/jarz_pos.api.cash_transfer.submit_transfer', data: {
+    final resp = await _dio.post(ApiEndpoints.cashTransferSubmit, data: {
       'from_account': fromAccount,
       'to_account': toAccount,
       'amount': amount,

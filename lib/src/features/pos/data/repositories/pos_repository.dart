@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/dio_provider.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../domain/models/delivery_slot.dart';
 
 class PosRepository {
@@ -14,7 +15,7 @@ class PosRepository {
   Future<List<Map<String, dynamic>>> getPosProfiles() async {
     try {
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.pos.get_pos_profiles',
+        ApiEndpoints.getPosProfiles,
       );
 
       if (response.statusCode == 200 && response.data['message'] != null) {
@@ -39,7 +40,7 @@ class PosRepository {
   Future<List<Map<String, dynamic>>> getBundles(String posProfile) async {
     try {
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.pos.get_profile_bundles',
+        ApiEndpoints.getProfileBundles,
         data: {'profile': posProfile},
       );
 
@@ -64,7 +65,7 @@ class PosRepository {
   Future<Map<String, dynamic>> getPosProfileAccountBalance(String posProfile) async {
     try {
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.pos.get_pos_profile_account_balance',
+        ApiEndpoints.getPosProfileAccountBalance,
         data: {'profile': posProfile},
       );
 
@@ -80,7 +81,7 @@ class PosRepository {
   Future<List<Map<String, dynamic>>> getTerritories({String? search}) async {
     try {
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.customer.get_territories',
+        ApiEndpoints.getTerritories,
         data: search != null ? {'search': search} : {},
       );
 
@@ -97,7 +98,7 @@ class PosRepository {
   Future<List<Map<String, dynamic>>> getItems(String posProfile) async {
     try {
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.pos.get_profile_products',
+        ApiEndpoints.getProfileProducts,
         data: {'profile': posProfile},
       );
 
@@ -127,7 +128,7 @@ class PosRepository {
   Future<List<Map<String, dynamic>>> getSalesPartners({String? search, int limit = 10}) async {
     try {
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.pos.get_sales_partners',
+        ApiEndpoints.getSalesPartners,
         data: {
           if (search != null && search.isNotEmpty) 'search': search,
           'limit': limit,
@@ -149,7 +150,7 @@ class PosRepository {
       final isPhoneSearch = RegExp(r'^[0-9+\-\s()]+$').hasMatch(query.trim());
 
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.customer.search_customers',
+        ApiEndpoints.searchCustomers,
         data: isPhoneSearch ? {'phone': query} : {'name': query},
       );
 
@@ -172,7 +173,7 @@ class PosRepository {
   }) async {
     try {
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.customer.create_customer',
+        ApiEndpoints.createCustomer,
         data: FormData.fromMap({
           'customer_name': customerName,
           'mobile_no': mobileNumber,
@@ -367,7 +368,7 @@ class PosRepository {
       if (kDebugMode) {
         debugPrint('🚀 SENDING REQUEST TO BACKEND:');
         debugPrint(
-          '   Endpoint: /api/method/jarz_pos.api.invoices.create_pos_invoice',
+          '   Endpoint: ${ApiEndpoints.createPosInvoice}',
         );
         debugPrint('   Cart JSON: ${requestData['cart_json']}');
         debugPrint('   Customer: ${requestData['customer_name']}');
@@ -375,7 +376,7 @@ class PosRepository {
       }
 
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.invoices.create_pos_invoice',
+        ApiEndpoints.createPosInvoice,
         data: requestData,
       );
 
@@ -401,7 +402,7 @@ class PosRepository {
         debugPrint('📡 API Call: getDeliverySlots for profile: $posProfile');
       }
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.delivery_slots.get_available_delivery_slots',
+        ApiEndpoints.getAvailableDeliverySlots,
         data: {'pos_profile_name': posProfile},
       );
 
@@ -434,7 +435,7 @@ class PosRepository {
   Future<DeliverySlot?> getNextAvailableSlot(String posProfile) async {
     try {
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.delivery_slots.get_next_available_slot',
+        ApiEndpoints.getNextAvailableSlot,
         data: {'pos_profile_name': posProfile},
       );
 
@@ -483,7 +484,7 @@ class PosRepository {
       };
 
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.invoices.pay_invoice',
+        ApiEndpoints.payInvoice,
         data: data,
       );
 
@@ -514,7 +515,7 @@ class PosRepository {
       }
 
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.pos.is_pos_profile_open',
+        ApiEndpoints.isPosProfileOpen,
         data: {'pos_profile': posProfile},
       );
 

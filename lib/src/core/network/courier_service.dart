@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dio_provider.dart';
+import '../constants/api_endpoints.dart';
+import '../constants/business_constants.dart';
 
 final courierServiceProvider = Provider<CourierService>((ref) {
   final dio = ref.watch(dioProvider);
@@ -13,7 +15,7 @@ class CourierService {
 
   Future<List<dynamic>> getBalances() async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.couriers.get_courier_balances',
+      ApiEndpoints.getCourierBalances,
       data: {},
     );
     // Frappe packs data in 'message' for /api/method
@@ -31,7 +33,7 @@ class CourierService {
     String? party,
   }) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.invoices.get_invoice_settlement_preview',
+      ApiEndpoints.getInvoiceSettlementPreview,
       data: {
         'invoice_name': invoice,
         if (partyType != null) 'party_type': partyType,
@@ -55,7 +57,7 @@ class CourierService {
     int recentPaymentSeconds = 30,
   }) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.couriers.generate_settlement_preview',
+      ApiEndpoints.generateSettlementPreview,
       data: {
         'invoice': invoice,
         if (partyType != null) 'party_type': partyType,
@@ -79,11 +81,11 @@ class CourierService {
     String? posProfile,
     String? partyType,
     String? party,
-    String paymentMode = 'Cash',
+    String paymentMode = PaymentModes.cash,
   String? courier,
   }) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.couriers.confirm_settlement',
+      ApiEndpoints.confirmSettlement,
       data: {
         'invoice': invoice,
         'preview_token': previewToken,
@@ -112,8 +114,8 @@ class CourierService {
   }) async {
     // Prefer unified party endpoint; fallback to legacy courier label if needed
     final endpoint = (partyType != null && party != null && partyType.isNotEmpty && party.isNotEmpty)
-        ? '/api/method/jarz_pos.jarz_pos.services.delivery_handling.settle_delivery_party'
-        : '/api/method/jarz_pos.jarz_pos.services.delivery_handling.settle_courier';
+        ? ApiEndpoints.settleDeliveryParty
+        : ApiEndpoints.settleCourier;
     final data = <String, dynamic>{
       if (partyType != null && partyType.isNotEmpty) 'party_type': partyType,
       if (party != null && party.isNotEmpty) 'party': party,

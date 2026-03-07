@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_routes.dart';
 import '../state/login_notifier.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -84,7 +85,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ref.read(loginNotifierProvider).value ?? false;
                       if (!mounted) return;
                       if (success) {
-                        router.go('/pos');
+                        router.go(AppRoutes.pos);
                       }
                     },
                     child: const Text('Login'),

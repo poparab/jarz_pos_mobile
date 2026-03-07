@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../state/shift_notifier.dart';
@@ -38,7 +39,7 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
     if (posProfile == null && !posState.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        context.go('/pos');
+        context.go(AppRoutes.pos);
       });
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -167,7 +168,7 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
                               if (!mounted) return;
                               if (openingEntry != null) {
                                 ref.invalidate(activeShiftProvider);
-                                router.go('/pos');
+                                router.go(AppRoutes.pos);
                               }
                             },
                       child: Text(l10n.shiftStartButton),

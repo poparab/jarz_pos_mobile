@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 
+import '../../../core/constants/storage_keys.dart';
+
 typedef OrderAlertPayloadHandler = void Function(Map<String, String> payload);
 
 class AlarmSoundOption {
@@ -13,7 +15,7 @@ class AlarmSoundOption {
 class OrderAlertNativeChannel {
   OrderAlertNativeChannel._();
 
-  static const MethodChannel _channel = MethodChannel('order_alert_native');
+  static const MethodChannel _channel = MethodChannel(MethodChannels.orderAlertNative);
   static OrderAlertPayloadHandler? _onPayload;
   static bool _isInitialised = false;
 

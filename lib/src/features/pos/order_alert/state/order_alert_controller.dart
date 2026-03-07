@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/utils/logger.dart';
+import '../../../../core/constants/storage_keys.dart';
 import '../data/order_alert_service.dart';
 import '../domain/invoice_alert.dart';
 import '../order_alert_native_channel.dart';
@@ -21,10 +22,10 @@ final orderAlertControllerProvider =
 class OrderAlertController extends StateNotifier<OrderAlertState> {
   OrderAlertController(this._service, this._posRepository) : super(const OrderAlertState());
 
-  static const _prefKeyToken = 'order_alert_last_token';
-  static const _prefKeyUser = 'order_alert_last_user';
-  static const _prefKeyProfiles = 'order_alert_last_profiles';
-  static const _prefKeyGlobalMute = 'order_alert_global_mute';
+  static const _prefKeyToken = PrefKeys.orderAlertLastToken;
+  static const _prefKeyUser = PrefKeys.orderAlertLastUser;
+  static const _prefKeyProfiles = PrefKeys.orderAlertLastProfiles;
+  static const _prefKeyGlobalMute = PrefKeys.orderAlertGlobalMute;
 
   final OrderAlertService _service;
   final PosRepository _posRepository;

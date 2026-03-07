@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'constants/app_routes.dart';
+
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/data/auth_repository.dart';
 import '../features/pos/presentation/screens/pos_screen.dart';
@@ -69,26 +71,26 @@ final routerProvider = Provider<GoRouter>((ref) {
   
   return GoRouter(
     // On startup: if authenticated, land on POS main screen
-    initialLocation: isAuthenticated ? '/pos' : '/login',
+    initialLocation: isAuthenticated ? AppRoutes.pos : AppRoutes.login,
     redirect: (context, state) {
       final location = state.matchedLocation;
-      final isOnLogin = location == '/login';
-      final isOnShiftStart = location == '/shift/start';
-      final isOnProfileSelection = location == '/pos/select-profile';
+      final isOnLogin = location == AppRoutes.login;
+      final isOnShiftStart = location == AppRoutes.shiftStart;
+      final isOnProfileSelection = location == AppRoutes.selectProfile;
       // Not authenticated -> force login
-      if (!isAuthenticated && !isOnLogin) return '/login';
+      if (!isAuthenticated && !isOnLogin) return AppRoutes.login;
       // Authenticated on login -> go to POS
-      if (isAuthenticated && isOnLogin) return '/pos';
+      if (isAuthenticated && isOnLogin) return AppRoutes.pos;
 
       // Ensure POS profile is selected before shift flow.
       final hasSelectedProfile = posState.selectedProfile != null;
-      if (isAuthenticated && !hasSelectedProfile && location != '/pos') {
-        return '/pos';
+      if (isAuthenticated && !hasSelectedProfile && location != AppRoutes.pos) {
+        return AppRoutes.pos;
       }
 
       // If profile is selected, no need to keep user on profile selection screen.
       if (isAuthenticated && hasSelectedProfile && isOnProfileSelection) {
-        return '/pos';
+        return AppRoutes.pos;
       }
 
       // Global shift gating: only after POS profile is selected.
@@ -100,12 +102,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         final isActiveShiftKnown = !activeShiftAsync.isLoading;
 
         if (isActiveShiftKnown && !hasActiveShiftForSelectedProfile && !isOnShiftStart) {
-          return '/shift/start';
+          return AppRoutes.shiftStart;
         }
 
         // If there's already an open shift for this user+selected profile, skip Start Shift.
         if (hasActiveShiftForSelectedProfile && isOnShiftStart) {
-          return '/pos';
+          return AppRoutes.pos;
         }
       }
 
@@ -113,83 +115,83 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
   observers: [routeObserver],
   routes: [
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(path: AppRoutes.login, builder: (context, state) => const LoginScreen()),
       GoRoute(
-        path: '/pos',
+        path: AppRoutes.pos,
         name: 'pos',
         builder: (context, state) => const PosScreen(),
       ),
       GoRoute(
-        path: '/pos/select-profile',
+        path: AppRoutes.selectProfile,
         name: 'pos-select-profile',
         builder: (context, state) => const PosProfileSelectionScreen(),
       ),
       GoRoute(
-        path: '/kanban',
+        path: AppRoutes.kanban,
         name: 'kanban',
         builder: (context, state) => const KanbanBoardScreen(),
       ),
       GoRoute(
-        path: '/courier-balances',
+        path: AppRoutes.courierBalances,
         name: 'courier-balances',
         builder: (context, state) => const CourierBalancesScreen(),
       ),
       GoRoute(
-        path: '/printers',
+        path: AppRoutes.printers,
         name: 'printers',
         builder: (context, state) => const PrinterSelectionScreen(),
       ),
       GoRoute(
-        path: '/manager',
+        path: AppRoutes.manager,
         name: 'manager',
         builder: (context, state) => const ManagerDashboardScreen(),
       ),
       GoRoute(
-        path: '/purchase',
+        path: AppRoutes.purchase,
         name: 'purchase',
         builder: (context, state) => const PurchaseScreen(),
       ),
       GoRoute(
-        path: '/manufacturing',
+        path: AppRoutes.manufacturing,
         name: 'manufacturing',
         builder: (context, state) => const ManufacturingScreen(),
       ),
       GoRoute(
-        path: '/stock-transfer',
+        path: AppRoutes.stockTransfer,
         name: 'stock-transfer',
         builder: (context, state) => const StockTransferScreen(),
       ),
       GoRoute(
-        path: '/cash-transfer',
+        path: AppRoutes.cashTransfer,
         name: 'cash-transfer',
         builder: (context, state) => const CashTransferScreen(),
       ),
       GoRoute(
-        path: '/inventory-count',
+        path: AppRoutes.inventoryCount,
         name: 'inventory-count',
         builder: (context, state) => const InventoryCountScreen(),
       ),
       GoRoute(
-        path: '/expenses',
+        path: AppRoutes.expenses,
         name: 'expenses',
         builder: (context, state) => const ExpensesScreen(),
       ),
       GoRoute(
-        path: '/profile',
+        path: AppRoutes.profile,
         name: 'profile',
         builder: (context, state) => const UserProfileScreen(),
       ),
       GoRoute(
-        path: '/shift/start',
+        path: AppRoutes.shiftStart,
         name: 'shift-start',
         builder: (context, state) => const ShiftStartScreen(),
       ),
       GoRoute(
-        path: '/shift/end',
+        path: AppRoutes.shiftEnd,
         name: 'shift-end',
         builder: (context, state) => const ShiftEndScreen(),
       ),
-  GoRoute(path: '/', redirect: (context, state) => '/pos'),
+  GoRoute(path: AppRoutes.root, redirect: (context, state) => AppRoutes.pos),
     ],
   navigatorKey: rootNavigatorKey,
   );

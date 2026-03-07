@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/user_service.dart';
+import '../../../core/constants/business_constants.dart';
 import '../data/alarm_sound_service.dart';
 import '../../pos/order_alert/order_alert_native_channel.dart';
 import '../../pos/order_alert/state/order_alert_controller.dart';
@@ -90,7 +91,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
-                                      'JARZ Manager',
+                                      RoleNames.jarzManager,
                                       style: TextStyle(
                                         color: Theme.of(context).colorScheme.primary,
                                         fontWeight: FontWeight.bold,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../models/shift_models.dart';
 
@@ -51,7 +52,7 @@ class ShiftStatusBanner extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () => context.go('/shift/end'),
+            onPressed: () => context.go(AppRoutes.shiftEnd),
             child: Text(l10n.shiftEndButton),
           ),
         ],

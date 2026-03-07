@@ -113,7 +113,7 @@ class _FakeNotificationPollingService extends NotificationPollingService {
   Stream<Map<String, dynamic>> get notificationStream => _controller.stream;
 
   @override
-  void startPolling({int intervalSeconds = 30}) {}
+  void startPolling({Duration interval = const Duration(seconds: 30)}) {}
 
   @override
   void stopPolling() {}

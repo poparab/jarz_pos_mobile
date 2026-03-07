@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/constants/timing_config.dart';
 import '../../../core/websocket/websocket_service.dart';
 import 'courier_balances_provider.dart';
 
@@ -11,7 +12,7 @@ final courierWsBridgeProvider = Provider.autoDispose<void>((ref) {
 
   void trigger() {
     debounce?.cancel();
-    debounce = Timer(const Duration(milliseconds: 250), () {
+    debounce = Timer(UiDebounce.courierBridge, () {
       ref.read(courierBalancesProvider.notifier).load();
     });
   }

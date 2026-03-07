@@ -5,6 +5,7 @@ import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../purchase/data/purchase_service.dart';
+import '../../../core/constants/business_constants.dart';
 
 class PurchaseScreen extends ConsumerStatefulWidget {
   const PurchaseScreen({super.key});
@@ -606,7 +607,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                       dense: true,
                     ),
                     RadioListTile<String>(
-                      value: 'cash',
+                      value: PaymentModes.cashLower,
                       title: Text(dialogL10n.purchasePaymentCashTitle),
                       subtitle: Text(dialogL10n.purchasePaymentCashSubtitle),
                       dense: true,

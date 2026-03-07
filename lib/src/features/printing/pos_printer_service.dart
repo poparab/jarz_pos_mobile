@@ -8,6 +8,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:jarz_pos/src/core/printer/classic_printer_channel.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../../core/constants/timing_config.dart';
+import '../../core/constants/storage_keys.dart';
+import '../../core/constants/business_constants.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'printer_status.dart';
 
@@ -53,9 +56,9 @@ class PosPrinterService extends ChangeNotifier {
     }
   }
 
-  static const _prefsBoxName = 'pos_printer_prefs';
-  static const _lastPrinterKey = 'last_printer_id';
-  static const _lastPrinterTypeKey = 'last_printer_type'; // 'ble' | 'classic'
+  static const _prefsBoxName = HiveBoxes.printerPrefs;
+  static const _lastPrinterKey = HiveKeys.lastPrinterId;
+  static const _lastPrinterTypeKey = HiveKeys.lastPrinterType; // 'ble' | 'classic'
 
   Box? _prefsBox;
   bool _connecting = false;
@@ -90,7 +93,7 @@ class PosPrinterService extends ChangeNotifier {
   bool _isScanning = false;
   bool get isScanning => _isScanning;
 
-  Future<void> startScan({Duration timeout = const Duration(seconds: 8)}) async {
+  Future<void> startScan({Duration timeout = BluetoothTimeouts.defaultScan}) async {
     if (_isScanning) { try { await FlutterBluePlus.stopScan(); } catch (_) {} }
     await _ensurePermissions();
     final adapter = await FlutterBluePlus.adapterState.first;
@@ -211,7 +214,7 @@ class PosPrinterService extends ChangeNotifier {
     if (_connecting) return false; _connecting = true;
     try {
       _device = device;
-      await device.connect(autoConnect: false, license: License.free).timeout(const Duration(seconds: 10), onTimeout: () => device.disconnect());
+      await device.connect(autoConnect: false, license: License.free).timeout(BluetoothTimeouts.connect, onTimeout: () => device.disconnect());
       await _discoverWriteCharacteristic(device);
       if (_writeChar != null) {
         try { await _prefsBox?.put(_lastPrinterKey, device.remoteId.str); await _prefsBox?.put(_lastPrinterTypeKey, 'ble'); } catch (_) {}
@@ -531,7 +534,7 @@ class PosPrinterService extends ChangeNotifier {
       await text(_labelVal('Total', _money(grand)), bold:true);
     }
     final statusPaid = inv.outstanding <= 0.0001;
-    await text(_labelVal('Status', statusPaid ? 'PAID' : 'UNPAID'));
+    await text(_labelVal('Status', statusPaid ? InvoiceStatus.paidUpper : InvoiceStatus.unpaidUpper));
     await hr();
 
     // FOOTER ---------------------------------------------------------

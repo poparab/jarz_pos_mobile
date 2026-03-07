@@ -1,8 +1,10 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../constants/storage_keys.dart';
+
 class SessionManager {
-  static const _sessionKey = 'erpnext_session_id';
+  static const _sessionKey = SecureStorageKeys.erpnextSessionId;
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );

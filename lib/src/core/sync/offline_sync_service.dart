@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'dart:async';
 import '../offline/offline_queue.dart';
 import '../network/dio_provider.dart';
+import '../constants/timing_config.dart';
 import 'package:flutter/foundation.dart';
 
 class OfflineSyncService {
@@ -15,7 +16,7 @@ class OfflineSyncService {
 
   void startPeriodicSync() {
     _syncTimer?.cancel();
-    _syncTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+    _syncTimer = Timer.periodic(PollingIntervals.offlineSync, (timer) {
       syncPendingTransactions();
     });
   }

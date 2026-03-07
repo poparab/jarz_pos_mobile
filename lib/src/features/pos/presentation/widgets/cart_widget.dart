@@ -7,6 +7,7 @@ import '../../state/pos_notifier.dart';
 import '../dialogs/payment_method_dialog.dart';
 import 'bundle_selection_widget.dart';
 import 'delivery_slot_selection.dart';
+import '../../../../core/constants/business_constants.dart';
 
 class CartWidget extends ConsumerWidget {
   final ScrollController? scrollController;
@@ -743,7 +744,7 @@ class CartWidget extends ConsumerWidget {
   }
 
   Future<String?> _promptSalesPartnerPayment(BuildContext context) async {
-    String selected = 'cash';
+    String selected = PaymentModes.cashLower;
     final l10n = context.l10n;
     return showDialog<String>(
       context: context,
@@ -758,12 +759,12 @@ class CartWidget extends ConsumerWidget {
               SegmentedButton<String>(
                 segments: [
                   ButtonSegment<String>(
-                    value: 'cash',
+                    value: PaymentModes.cashLower,
                     label: Text(l10n.posSalesPartnerPaymentCash),
                     icon: const Icon(Icons.attach_money),
                   ),
                   ButtonSegment<String>(
-                    value: 'online',
+                    value: PaymentModes.onlineLower,
                     label: Text(l10n.posSalesPartnerPaymentOnline),
                     icon: const Icon(Icons.online_prediction),
                   ),

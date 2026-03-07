@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import '../../../core/constants/app_routes.dart';
+import '../../../core/constants/storage_keys.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../manager/state/manager_providers.dart';
 import '../data/inventory_count_service.dart';
@@ -150,7 +152,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
   }
 
   Future<void> _openBox() async {
-    _box = await Hive.openBox('inventory_count');
+    _box = await Hive.openBox(HiveBoxes.inventoryCount);
   }
 
   String _itemsKey() => 'items:${_selectedWarehouse ?? ''}';
@@ -246,7 +248,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop || !mounted) return;
-        context.go('/kanban');
+        context.go(AppRoutes.kanban);
       },
       child: Scaffold(
         drawer: const AppDrawer(),

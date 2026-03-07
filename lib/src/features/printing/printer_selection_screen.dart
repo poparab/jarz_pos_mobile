@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter/services.dart';
+import '../../core/constants/timing_config.dart';
 import 'pos_printer_provider.dart';
 import 'pos_printer_service.dart';
 import 'printer_status.dart';
@@ -282,7 +283,7 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
                         icon: const Icon(Icons.refresh, size: 18),
                         onPressed: () async {
                           // Just re-run scan (which triggers classic reload) but much faster
-                          await ref.read(posPrinterServiceProvider).startScan(timeout: const Duration(seconds: 4));
+                          await ref.read(posPrinterServiceProvider).startScan(timeout: BluetoothTimeouts.scan);
                         },
                       ),
                     ],

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/dio_provider.dart';
+import '../../../core/constants/api_endpoints.dart';
 import '../models/shift_models.dart';
 
 class ShiftRepository {
@@ -31,7 +32,7 @@ class ShiftRepository {
   }
 
   Future<ShiftEntry?> getActiveShift() async {
-    final response = await _dio.post('/api/method/jarz_pos.api.shift.get_active_shift', data: {});
+    final response = await _dio.post(ApiEndpoints.getActiveShift, data: {});
     final message = response.data is Map ? response.data['message'] : null;
     if (message is Map) {
       return ShiftEntry.fromJson(Map<String, dynamic>.from(message));
@@ -42,7 +43,7 @@ class ShiftRepository {
   Future<List<Map<String, dynamic>>> getShiftPaymentMethods(String posProfile) async {
     try {
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.shift.get_shift_payment_methods',
+        ApiEndpoints.getShiftPaymentMethods,
         data: {'pos_profile': posProfile},
       );
 
@@ -62,7 +63,7 @@ class ShiftRepository {
   }) async {
     try {
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.shift.start_shift',
+        ApiEndpoints.startShift,
         data: {
           'pos_profile': posProfile,
           'opening_balances': openingBalances,
@@ -81,7 +82,7 @@ class ShiftRepository {
 
   Future<ShiftSummary> getShiftSummary(String openingEntry) async {
     final response = await _dio.post(
-      '/api/method/jarz_pos.api.shift.get_shift_summary',
+      ApiEndpoints.getShiftSummary,
       data: {'pos_opening_entry': openingEntry},
     );
 
@@ -97,7 +98,7 @@ class ShiftRepository {
     required List<Map<String, dynamic>> closingBalances,
   }) async {
     final response = await _dio.post(
-      '/api/method/jarz_pos.api.shift.end_shift',
+      ApiEndpoints.endShift,
       data: {
         'pos_opening_entry': openingEntry,
         'closing_balances': closingBalances,

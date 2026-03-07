@@ -2,10 +2,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../constants/storage_keys.dart';
+
 class CookieManager {
   static const _storage = FlutterSecureStorage();
-  static const _cookieKey = 'session_cookies';
-  static const _sessionIdKey = 'session_id';
+  static const _cookieKey = SecureStorageKeys.sessionCookies;
+  static const _sessionIdKey = SecureStorageKeys.sessionId;
 
   static Future<void> saveCookies(Response response) async {
     try {

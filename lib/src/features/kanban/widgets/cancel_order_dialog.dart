@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/kanban_models.dart';
+import '../../../core/constants/business_constants.dart';
 
 class CancelOrderResult {
   final String reason;
@@ -19,13 +20,7 @@ class CancelOrderDialog extends StatefulWidget {
 }
 
 class _CancelOrderDialogState extends State<CancelOrderDialog> {
-  static const List<String> _presetReasons = <String>[
-    'Customer requested cancellation',
-    'Order created in error / duplicate',
-    'Inventory unavailable',
-    'Payment issue',
-    'Other',
-  ];
+  static const List<String> _presetReasons = CancelReasons.defaults;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _notesController = TextEditingController();

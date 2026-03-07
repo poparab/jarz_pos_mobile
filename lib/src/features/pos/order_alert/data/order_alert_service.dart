@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/dio_provider.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../domain/invoice_alert.dart';
 
 final orderAlertServiceProvider = Provider<OrderAlertService>((ref) {
@@ -33,21 +34,21 @@ class OrderAlertService {
     };
 
     await _dio.post(
-      '/api/method/jarz_pos.api.notifications.register_mobile_device',
+      ApiEndpoints.registerMobileDevice,
       data: payload,
     );
   }
 
   Future<void> acknowledgeInvoice(String invoiceName) async {
     await _dio.post(
-      '/api/method/jarz_pos.api.notifications.acknowledge_invoice',
+      ApiEndpoints.acknowledgeInvoice,
       data: {'invoice_name': invoiceName},
     );
   }
 
   Future<List<InvoiceAlert>> getPendingAlerts() async {
     final response = await _dio.post(
-      '/api/method/jarz_pos.api.notifications.get_pending_alerts',
+      ApiEndpoints.getPendingAlerts,
       data: const {},
     );
 

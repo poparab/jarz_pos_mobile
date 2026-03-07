@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_routes.dart';
+import '../../../core/constants/business_constants.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../models/shift_models.dart';
 import '../state/shift_notifier.dart';
@@ -18,9 +20,9 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
   ShiftSummary? _endResult;
 
   static const List<String> _preferredVoucherOrder = [
-    'Sales Invoice',
-    'Journal Entry',
-    'Payment Entry',
+    VoucherTypes.salesInvoice,
+    VoucherTypes.journalEntry,
+    VoucherTypes.paymentEntry,
   ];
 
   @override
@@ -56,7 +58,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
                   Text(l10n.shiftNoActive),
                   const SizedBox(height: 12),
                   FilledButton(
-                    onPressed: () => context.go('/pos'),
+                    onPressed: () => context.go(AppRoutes.pos),
                     child: Text(l10n.shiftBackToPos),
                   ),
                 ],
@@ -280,7 +282,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
               child: FilledButton(
                 onPressed: () {
                   ref.invalidate(activeShiftProvider);
-                  context.go('/pos');
+                  context.go(AppRoutes.pos);
                 },
                 child: Text(l10n.shiftBackToPos),
               ),

@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../constants/storage_keys.dart';
+
 class OfflineQueue {
-  static const _boxName = 'offline_queue';
+  static const _boxName = HiveBoxes.offlineQueue;
   late Box _box;
   bool _initialized = false;
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../constants/app_routes.dart';
 import '../../features/auth/state/login_notifier.dart';
 import '../../features/manager/state/manager_providers.dart';
 import '../../features/pos/presentation/widgets/courier_balances_dialog.dart';
@@ -88,7 +89,7 @@ class AppDrawer extends ConsumerWidget {
             title: Text(l10n.menuPointOfSale),
             onTap: () {
               Navigator.pop(context);
-              context.go('/pos');
+              context.go(AppRoutes.pos);
             },
           ),
           if (requirePosShift && hasActiveShift)
@@ -97,7 +98,7 @@ class AppDrawer extends ConsumerWidget {
               title: Text(l10n.menuEndShift),
               onTap: () {
                 Navigator.pop(context);
-                context.go('/shift/end');
+                context.go(AppRoutes.shiftEnd);
               },
             ),
           ListTile(
@@ -105,7 +106,7 @@ class AppDrawer extends ConsumerWidget {
             title: Text(l10n.menuSalesKanban),
             onTap: () {
               Navigator.pop(context);
-              context.go('/kanban');
+              context.go(AppRoutes.kanban);
             },
           ),
           ListTile(
@@ -113,7 +114,7 @@ class AppDrawer extends ConsumerWidget {
             title: Text(l10n.menuExpenses),
             onTap: () {
               Navigator.pop(context);
-              context.go('/expenses');
+              context.go(AppRoutes.expenses);
             },
           ),
           ListTile(
@@ -130,7 +131,7 @@ class AppDrawer extends ConsumerWidget {
               title: Text(l10n.menuManagerDashboard),
               onTap: () {
                 Navigator.pop(context);
-                context.go('/manager');
+                context.go(AppRoutes.manager);
               },
             ),
             ListTile(
@@ -138,7 +139,7 @@ class AppDrawer extends ConsumerWidget {
               title: Text(l10n.menuPurchaseInvoice),
               onTap: () {
                 Navigator.pop(context);
-                context.go('/purchase');
+                context.go(AppRoutes.purchase);
               },
             ),
             ListTile(
@@ -146,7 +147,7 @@ class AppDrawer extends ConsumerWidget {
               title: Text(l10n.menuManufacturing),
               onTap: () {
                 Navigator.pop(context);
-                context.go('/manufacturing');
+                context.go(AppRoutes.manufacturing);
               },
             ),
             ListTile(
@@ -154,7 +155,7 @@ class AppDrawer extends ConsumerWidget {
               title: Text(l10n.menuStockTransfer),
               onTap: () {
                 Navigator.pop(context);
-                context.go('/stock-transfer');
+                context.go(AppRoutes.stockTransfer);
               },
             ),
             ListTile(
@@ -162,7 +163,7 @@ class AppDrawer extends ConsumerWidget {
               title: Text(l10n.menuCashTransfer),
               onTap: () {
                 Navigator.pop(context);
-                context.go('/cash-transfer');
+                context.go(AppRoutes.cashTransfer);
               },
             ),
             ListTile(
@@ -170,7 +171,7 @@ class AppDrawer extends ConsumerWidget {
               title: Text(l10n.menuInventoryCount),
               onTap: () {
                 Navigator.pop(context);
-                context.go('/inventory-count');
+                context.go(AppRoutes.inventoryCount);
               },
             ),
           ],
@@ -193,7 +194,7 @@ class AppDrawer extends ConsumerWidget {
             onTap: () async {
               Navigator.pop(context);
               await ref.read(loginNotifierProvider.notifier).logout();
-              if (context.mounted) context.go('/login');
+              if (context.mounted) context.go(AppRoutes.login);
             },
           ),
         ],

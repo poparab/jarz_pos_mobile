@@ -1,6 +1,7 @@
 import "package:dio/dio.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:flutter_dotenv/flutter_dotenv.dart";
+import "../constants/timing_config.dart";
 import "../utils/logger.dart";
 
 class ApiClient {
@@ -23,8 +24,8 @@ class ApiClient {
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
+        connectTimeout: NetworkTimeouts.httpConnect,
+        receiveTimeout: NetworkTimeouts.httpReceive,
         headers: headers,
       ),
     );
@@ -78,7 +79,7 @@ class ApiClient {
 // Provider for ApiClient
 final apiClientProvider = Provider<ApiClient>((ref) {
   // Get base URL from environment configuration
-  final baseUrl = dotenv.env["ERP_BASE_URL"] ?? "http://192.168.1.7:8000";
+  final baseUrl = dotenv.env["ERP_BASE_URL"] ?? (throw StateError('ERP_BASE_URL env var is required'));
   final siteName = dotenv.env["FRAPPE_SITE"] ?? dotenv.env["SITE_NAME"];
   final logger = Logger("ApiClientProvider");
   logger.info("Creating API client with base URL: $baseUrl");

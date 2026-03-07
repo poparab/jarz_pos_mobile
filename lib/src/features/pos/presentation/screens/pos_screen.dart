@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/connectivity/connectivity_service.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/utils/responsive_utils.dart';
@@ -405,7 +406,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
                 ),
                 const SizedBox(height: 20),
                 FilledButton.icon(
-                  onPressed: () => context.go('/shift/end'),
+                  onPressed: () => context.go(AppRoutes.shiftEnd),
                   icon: const Icon(Icons.timer_off),
                   label: Text(l10n.shiftGoToEnd),
                 ),
@@ -812,7 +813,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
 
     // Printer chip
     final printerChip = InkWell(
-      onTap: () => context.push('/printers'),
+      onTap: () => context.push(AppRoutes.printers),
       borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: isPhone ? 6 : 10, vertical: 6),
@@ -915,7 +916,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
       IconButton(
         icon: Icon(Icons.view_kanban, color: theme.colorScheme.onPrimary, size: isPhone ? 20 : 24),
         tooltip: l10n.menuSalesKanban,
-        onPressed: () => context.push('/kanban'),
+        onPressed: () => context.push(AppRoutes.kanban),
         visualDensity: isPhone ? VisualDensity.compact : VisualDensity.standard,
       ),
       // Cart icon only shown on tablets (phones use FAB)

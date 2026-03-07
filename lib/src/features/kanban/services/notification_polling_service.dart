@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
+import '../../../core/constants/api_endpoints.dart';
+import '../../../core/constants/timing_config.dart';
 import 'package:flutter/foundation.dart';
 
 class NotificationPollingService {
@@ -17,13 +19,13 @@ class NotificationPollingService {
   
   Stream<Map<String, dynamic>> get notificationStream => _notificationController.stream;
   
-  /// Start polling for notifications every [intervalSeconds] seconds
-  void startPolling({int intervalSeconds = 30}) {
+  /// Start polling for notifications every [interval].
+  void startPolling({Duration interval = PollingIntervals.notificationPollDefault}) {
     if (_isPolling) return;
     
     _isPolling = true;
     if (kDebugMode) {
-      debugPrint('📊 POLLING: Starting notification polling every ${intervalSeconds}s');
+      debugPrint('📊 POLLING: Starting notification polling every ${interval.inSeconds}s');
     }
     
     // Initial check
@@ -31,7 +33,7 @@ class NotificationPollingService {
     
     // Set up periodic timer
     _pollingTimer = Timer.periodic(
-      Duration(seconds: intervalSeconds),
+      interval,
       (_) => _checkForUpdates(),
     );
   }
@@ -59,7 +61,7 @@ class NotificationPollingService {
       }
       
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.notifications.check_for_updates',
+        ApiEndpoints.checkForUpdates,
         data: data,
       );
       
@@ -107,7 +109,7 @@ class NotificationPollingService {
   Future<void> _fetchRecentInvoices({int minutes = 5}) async {
     try {
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.notifications.get_recent_invoices',
+        ApiEndpoints.getRecentInvoices,
         data: {'minutes': minutes},
       );
       
@@ -179,7 +181,7 @@ class NotificationPollingService {
     try {
       // Test the websocket emission endpoint
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.notifications.test_websocket_emission',
+        ApiEndpoints.testWebsocketEmission,
       );
       
       if (response.statusCode == 200) {
@@ -202,7 +204,7 @@ class NotificationPollingService {
   Future<Map<String, dynamic>> getDebugInfo() async {
     try {
       final response = await _dio.post(
-        '/api/method/jarz_pos.api.notifications.get_websocket_debug_info',
+        ApiEndpoints.getWebsocketDebugInfo,
       );
       
       if (response.statusCode == 200) {

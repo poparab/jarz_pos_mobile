@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:io';
 
+import '../constants/timing_config.dart';
+
 class ConnectivityService {
   final _connectivityController = StreamController<bool>.broadcast();
   Timer? _connectivityTimer;
@@ -12,7 +14,7 @@ class ConnectivityService {
 
   void startMonitoring() {
     // Check connectivity every 10 seconds
-    _connectivityTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    _connectivityTimer = Timer.periodic(PollingIntervals.connectivity, (timer) {
       _checkConnectivity();
     });
     

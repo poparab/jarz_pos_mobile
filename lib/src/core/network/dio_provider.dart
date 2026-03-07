@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../constants/timing_config.dart';
 import '../session/session_manager.dart';
 import 'cookie_manager.dart';
 import '../offline/offline_queue.dart';
@@ -104,15 +105,15 @@ class SessionInterceptor extends Interceptor {
 final dioProvider = Provider<Dio>((ref) {
   final sessionManager = ref.watch(sessionManagerProvider);
   final offlineQueue = ref.watch(offlineQueueProvider);
-  final baseUrl = dotenv.get('ERP_BASE_URL', fallback: 'http://localhost:8000');
+  final baseUrl = dotenv.get('ERP_BASE_URL');
   final frappeSite = dotenv.get('FRAPPE_SITE', fallback: '');
 
   final dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
-      sendTimeout: const Duration(seconds: 30),
+      connectTimeout: NetworkTimeouts.httpConnect,
+      receiveTimeout: NetworkTimeouts.httpReceive,
+      sendTimeout: NetworkTimeouts.httpSend,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',

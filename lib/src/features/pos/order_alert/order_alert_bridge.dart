@@ -14,6 +14,7 @@ import 'domain/invoice_alert.dart';
 import 'order_alert_native_channel.dart';
 import 'state/order_alert_controller.dart';
 import 'web_notification_service.dart';
+import '../../../core/constants/timing_config.dart';
 
 final orderAlertBridgeProvider = Provider<OrderAlertBridge>((ref) {
   final bridge = OrderAlertBridge(ref);
@@ -345,7 +346,7 @@ class OrderAlertBridge {
     
     // Poll every 10 seconds to check for alert updates
     // This ensures alerts are refreshed even when app is idle
-    _backgroundPollTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    _backgroundPollTimer = Timer.periodic(PollingIntervals.orderAlert, (timer) {
       final isAuthenticated = _ref.read(currentAuthStateProvider);
       if (!isAuthenticated) {
         timer.cancel();
@@ -361,7 +362,7 @@ class OrderAlertBridge {
     _logger.info("⏰ Started background polling for alerts (every 10s)");
   }
 
-  Future<List<String>?> _waitForPosProfiles({Duration timeout = const Duration(seconds: 8)}) async {
+  Future<List<String>?> _waitForPosProfiles({Duration timeout = PollingIntervals.waitForProfiles}) async {
     List<String>? extract(PosState state) {
       final selected = state.selectedProfile?['name']?.toString();
       if (selected != null && selected.isNotEmpty) {

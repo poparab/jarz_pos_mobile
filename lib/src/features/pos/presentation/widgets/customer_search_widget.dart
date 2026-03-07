@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/timing_config.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../data/repositories/pos_repository.dart';
 import '../../state/pos_notifier.dart';
@@ -63,7 +64,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
 
   void _onSearchChanged(String query) {
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+    _debounceTimer = Timer(UiDebounce.customerSearch, () {
       if (mounted) {
         setState(() {
           _currentQuery = query;

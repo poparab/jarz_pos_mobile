@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/session/session_manager.dart';
 import '../../../core/network/cookie_manager.dart';
+import '../../../core/constants/api_endpoints.dart';
 
 class AuthRepository {
   AuthRepository(this._dio, this._sessionManager);
@@ -18,7 +19,7 @@ class AuthRepository {
         debugPrint('🔐 AUTH: Attempting login for user: $username');
       }
       final response = await _dio.post(
-        '/api/method/login',
+        ApiEndpoints.login,
         data: {'usr': username, 'pwd': password},
       );
       if (kDebugMode) {
@@ -60,7 +61,7 @@ class AuthRepository {
   Future<bool> validateSession() async {
     try {
       final response = await _dio.post(
-        '/api/method/frappe.auth.get_logged_user',
+        ApiEndpoints.getLoggedUser,
       );
       return response.statusCode == 200 && response.data != null;
     } catch (e) {
@@ -70,7 +71,7 @@ class AuthRepository {
 
   Future<void> logout() async {
     try {
-      await _dio.post('/api/method/logout');
+      await _dio.post(ApiEndpoints.logout);
     } catch (e) {
       // Ignore logout errors
     } finally {

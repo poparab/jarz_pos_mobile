@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
+import '../../../core/constants/api_endpoints.dart';
 
 final managerApiProvider = Provider<ManagerApi>((ref) {
   final dio = ref.read(dioProvider);
@@ -15,7 +16,7 @@ class ManagerApi {
 
   Future<DashboardSummary> getSummary({String? company}) async {
     final resp = await _dio.get(
-      '/api/method/jarz_pos.api.manager.get_manager_dashboard_summary',
+      ApiEndpoints.getManagerDashboardSummary,
       queryParameters: {if (company != null) 'company': company},
     );
     final data = resp.data is String ? json.decode(resp.data) : resp.data;
@@ -24,7 +25,7 @@ class ManagerApi {
 
   Future<List<ManagerInvoice>> getOrders({String? branch, String? state, int limit = 200}) async {
     final resp = await _dio.get(
-      '/api/method/jarz_pos.api.manager.get_manager_orders',
+      ApiEndpoints.getManagerOrders,
       queryParameters: {
         if (branch != null) 'branch': branch,
         if (state != null) 'state': state,
@@ -38,7 +39,7 @@ class ManagerApi {
 
   Future<List<String>> getStates() async {
     final resp = await _dio.get(
-      '/api/method/jarz_pos.api.manager.get_manager_states',
+      ApiEndpoints.getManagerStates,
     );
     final data = resp.data is String ? json.decode(resp.data) : resp.data;
     final list = (data['message'] ?? data)['states'] as List<dynamic>? ?? const [];
@@ -47,7 +48,7 @@ class ManagerApi {
 
   Future<void> updateInvoiceBranch({required String invoiceId, required String newBranch}) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.manager.update_invoice_branch',
+      ApiEndpoints.updateInvoiceBranch,
       data: {'invoice_id': invoiceId, 'new_branch': newBranch},
     );
     final data = resp.data is String ? json.decode(resp.data) : resp.data;

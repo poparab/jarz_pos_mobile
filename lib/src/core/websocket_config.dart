@@ -7,7 +7,7 @@ class WebSocketConfig {
   static final Logger _logger = Logger("WebSocketConfig");
 
   static String get _baseWsUrl {
-    final httpUrl = dotenv.env["ERP_BASE_URL"] ?? "http://192.168.1.7:8000";
+    final httpUrl = dotenv.env["ERP_BASE_URL"] ?? (throw StateError('ERP_BASE_URL env var is required'));
     // Convert HTTP URL to WebSocket URL
     return httpUrl
         .replaceFirst("http://", "ws://")

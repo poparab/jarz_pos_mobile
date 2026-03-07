@@ -1,3 +1,5 @@
+import '../../../core/constants/business_constants.dart';
+
 class KanbanColumn {
   final String id;
   final String name;
@@ -314,7 +316,7 @@ class InvoiceCard {
       return false;
     }
     final normalized = status.trim().toLowerCase();
-    for (final blocked in const ['out for delivery', 'out_for_delivery', 'delivered', 'completed', 'cancelled']) {
+    for (final blocked in const [DeliveryStatus.outForDelivery, DeliveryStatus.outForDeliverySnake, DeliveryStatus.delivered, DeliveryStatus.completed, DeliveryStatus.cancelled]) {
       if (normalized.contains(blocked)) {
         return false;
       }

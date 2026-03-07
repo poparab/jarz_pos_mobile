@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
+import '../../../core/constants/api_endpoints.dart';
 
 final stockTransferServiceProvider = Provider<StockTransferService>((ref) {
   final dio = ref.watch(dioProvider);
@@ -12,7 +13,7 @@ class StockTransferService {
   StockTransferService(this._dio);
 
   Future<List<Map<String, dynamic>>> listPosProfiles() async {
-    final resp = await _dio.post('/api/method/jarz_pos.api.transfer.list_pos_profiles', data: {});
+    final resp = await _dio.post(ApiEndpoints.transferListPosProfiles, data: {});
     final payload = resp.data;
     if (payload is Map && payload['message'] is List) return (payload['message'] as List).cast<Map<String, dynamic>>();
     if (payload is List) return payload.cast<Map<String, dynamic>>();
@@ -20,7 +21,7 @@ class StockTransferService {
   }
 
   Future<List<Map<String, dynamic>>> listItemGroups({String? search}) async {
-    final resp = await _dio.post('/api/method/jarz_pos.api.transfer.list_item_groups', data: { if (search != null) 'search': search });
+    final resp = await _dio.post(ApiEndpoints.transferListItemGroups, data: { if (search != null) 'search': search });
     final payload = resp.data;
     if (payload is Map && payload['message'] is List) return (payload['message'] as List).cast<Map<String, dynamic>>();
     if (payload is List) return payload.cast<Map<String, dynamic>>();
@@ -33,7 +34,7 @@ class StockTransferService {
     String? search,
     String? itemGroup,
   }) async {
-    final resp = await _dio.post('/api/method/jarz_pos.api.transfer.search_items_with_stock', data: {
+    final resp = await _dio.post(ApiEndpoints.searchItemsWithStock, data: {
       'source_warehouse': sourceWarehouse,
       'target_warehouse': targetWarehouse,
       if (search != null) 'search': search,
@@ -51,7 +52,7 @@ class StockTransferService {
     required List<Map<String, dynamic>> lines,
     String? postingDate,
   }) async {
-    final resp = await _dio.post('/api/method/jarz_pos.api.transfer.submit_transfer', data: {
+    final resp = await _dio.post(ApiEndpoints.submitTransfer, data: {
       'source_warehouse': sourceWarehouse,
       'target_warehouse': targetWarehouse,
       'lines': lines,

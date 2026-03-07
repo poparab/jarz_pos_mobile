@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'dio_provider.dart';
+import '../constants/api_endpoints.dart';
+import '../constants/business_constants.dart';
 
 class UserRoles {
   final String user;
@@ -22,10 +24,10 @@ class UserRoles {
     this.requirePosShift = false,
   });
 
-  bool get isJarzManager => roles.contains('JARZ Manager');
+  bool get isJarzManager => roles.contains(RoleNames.jarzManager);
   bool get isManager => isJarzManager;
-  bool get isLineManager => roles.contains('JARZ line manager');
-  bool get isModerator => roles.contains('Moderator');
+  bool get isLineManager => roles.contains(RoleNames.jarzLineManager);
+  bool get isModerator => roles.contains(RoleNames.moderator);
   bool get canMuteNotifications => isJarzManager || isLineManager || isModerator;
 
   factory UserRoles.fromJson(Map<String, dynamic> json) {
@@ -54,7 +56,7 @@ class UserService {
 
   Future<UserRoles> getCurrentUserRoles() async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.user.get_current_user_roles',
+      ApiEndpoints.getCurrentUserRoles,
       data: {},
     );
     final data = resp.data;

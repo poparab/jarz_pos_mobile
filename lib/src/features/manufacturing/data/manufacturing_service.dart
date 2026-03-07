@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
+import '../../../core/constants/api_endpoints.dart';
 
 final manufacturingServiceProvider = Provider<ManufacturingService>((ref) {
   final dio = ref.watch(dioProvider);
@@ -13,7 +14,7 @@ class ManufacturingService {
 
   Future<List<Map<String, dynamic>>> listDefaultBomItems(String search) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.manufacturing.list_default_bom_items',
+      ApiEndpoints.listDefaultBomItems,
       data: {'search': search},
     );
     final payload = resp.data;
@@ -26,7 +27,7 @@ class ManufacturingService {
 
   Future<Map<String, dynamic>> getBomDetails(String itemCode) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.manufacturing.get_bom_details',
+      ApiEndpoints.getBomDetails,
       data: {'item_code': itemCode},
     );
     final payload = resp.data;
@@ -39,7 +40,7 @@ class ManufacturingService {
 
   Future<Map<String, dynamic>> submitWorkOrders(List<Map<String, dynamic>> lines) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.manufacturing.submit_work_orders',
+      ApiEndpoints.submitWorkOrders,
       data: {'lines': lines},
     );
     final payload = resp.data;
@@ -57,7 +58,7 @@ class ManufacturingService {
     String? scheduledAt,
   }) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.manufacturing.submit_single_work_order',
+      ApiEndpoints.submitSingleWorkOrder,
       data: {
         'item_code': itemCode,
         'bom_name': bomName,
@@ -75,7 +76,7 @@ class ManufacturingService {
 
   Future<List<Map<String, dynamic>>> listRecentWorkOrders({int limit = 50}) async {
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.manufacturing.list_recent_work_orders',
+      ApiEndpoints.listRecentWorkOrders,
       data: {"limit": limit},
     );
     final payload = resp.data;

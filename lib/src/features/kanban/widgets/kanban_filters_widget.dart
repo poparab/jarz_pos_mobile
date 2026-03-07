@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/kanban_models.dart';
+import '../../../core/constants/business_constants.dart';
 
 class KanbanFiltersWidget extends StatefulWidget {
   final KanbanFilters filters;
@@ -325,7 +326,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
   }
 
   void _showStatusPicker(BuildContext context) {
-    final statuses = ['Draft', 'Paid', 'Unpaid', 'Cancelled', 'Return'];
+    final statuses = [InvoiceStatus.draft, InvoiceStatus.paid, InvoiceStatus.unpaid, InvoiceStatus.cancelled, InvoiceStatus.returnStatus];
 
     showDialog(
       context: context,

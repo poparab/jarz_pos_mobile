@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
+import '../../../core/constants/api_endpoints.dart';
 
 final inventoryCountServiceProvider = Provider<InventoryCountService>((ref) {
   final dio = ref.watch(dioProvider);
@@ -24,7 +25,7 @@ class InventoryCountService {
   }
 
   Future<List<Map<String, dynamic>>> listWarehouses({String? company}) async {
-    final resp = await _dio.post('/api/method/jarz_pos.api.inventory_count.list_warehouses', data: {
+    final resp = await _dio.post(ApiEndpoints.listWarehouses, data: {
       if (company != null) 'company': company,
     });
     final payload = resp.data;
@@ -39,7 +40,7 @@ class InventoryCountService {
     String? itemGroup,
     int? limit,
   }) async {
-    final resp = await _dio.post('/api/method/jarz_pos.api.inventory_count.list_items_for_count', data: {
+    final resp = await _dio.post(ApiEndpoints.listItemsForCount, data: {
       'warehouse': warehouse,
       if (search != null) 'search': search,
       if (itemGroup != null) 'item_group': itemGroup,
@@ -81,7 +82,7 @@ class InventoryCountService {
   _debugLog('submit_reconciliation json payload', data: jsonData);
     
     final resp = await _dio.post(
-      '/api/method/jarz_pos.api.inventory_count.submit_reconciliation',
+      ApiEndpoints.submitReconciliation,
       data: jsonData,
       options: Options(
         contentType: 'application/json',

@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../../core/constants/storage_keys.dart';
 import '../../pos/order_alert/order_alert_native_channel.dart';
 
 class AlarmSoundService {
-  static const String _alarmSoundUriKey = 'alarm_sound_uri';
-  static const String _alarmSoundTitleKey = 'alarm_sound_title';
+  static const String _alarmSoundUriKey = PrefKeys.alarmSoundUri;
+  static const String _alarmSoundTitleKey = PrefKeys.alarmSoundTitle;
   final SharedPreferences _prefs;
 
   AlarmSoundService(this._prefs);

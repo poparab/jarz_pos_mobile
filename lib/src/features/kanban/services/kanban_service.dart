@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import "../models/kanban_models.dart";
 import "../models/kanban_filter_options.dart";
 import "../../../core/utils/logger.dart";
+import '../../../core/constants/api_endpoints.dart';
+import '../../../core/constants/business_constants.dart';
 
 /// Service for interacting with Kanban-related API endpoints
 class KanbanService {
@@ -27,7 +29,7 @@ class KanbanService {
     try {
       _logger.info('Fetching settlement preview for $invoiceName');
       final resp = await _dio.get(
-        '/api/method/jarz_pos.api.invoices.get_invoice_settlement_preview',
+        ApiEndpoints.getInvoiceSettlementPreview,
         queryParameters: {
           'invoice_name': invoiceName,
           if (partyType != null) 'party_type': partyType,
@@ -54,7 +56,7 @@ class KanbanService {
     try {
       _logger.info("Fetching kanban columns");
       final response = await _dio.get(
-        "/api/method/jarz_pos.api.kanban.get_kanban_columns",
+        ApiEndpoints.getKanbanColumns,
       );
 
       if (response.data["message"]["success"] == true) {
@@ -84,7 +86,7 @@ class KanbanService {
     try {
       _logger.info("Fetching kanban invoices with filters: $filters");
       final response = await _dio.post(
-        "/api/method/jarz_pos.api.kanban.get_kanban_invoices",
+        ApiEndpoints.getKanbanInvoices,
         data: filters != null ? {"filters": jsonEncode(filters)} : {},
       );
 
@@ -124,7 +126,7 @@ class KanbanService {
   /// Update the state of an invoice
   Future<bool> updateInvoiceState(String invoiceId, String newState) async {
     final response = await _dio.post(
-      "/api/method/jarz_pos.api.kanban.update_invoice_state",
+      ApiEndpoints.updateInvoiceState,
       data: {"invoice_id": invoiceId, "new_state": newState},
     );
 
@@ -156,7 +158,7 @@ class KanbanService {
       }
 
       final response = await _dio.post(
-        "/api/method/jarz_pos.api.kanban.cancel_invoice",
+        ApiEndpoints.cancelInvoice,
         data: payload,
       );
 
@@ -199,7 +201,7 @@ class KanbanService {
     try {
       _logger.info("Fetching details for invoice: $invoiceId");
       final response = await _dio.get(
-        "/api/method/jarz_pos.api.kanban.get_invoice_details",
+        ApiEndpoints.getInvoiceDetails,
         queryParameters: {"invoice_id": invoiceId},
       );
 
@@ -225,7 +227,7 @@ class KanbanService {
     try {
       _logger.info("Fetching kanban filter options");
       final response = await _dio.get(
-        "/api/method/jarz_pos.api.kanban.get_kanban_filters",
+        ApiEndpoints.getKanbanFilters,
       );
 
       if (response.data["message"]["success"] == true) {
@@ -274,7 +276,7 @@ class KanbanService {
       if (posProfile != null) data["pos_profile"] = posProfile;
 
       final response = await _dio.post(
-        "/api/method/jarz_pos.api.invoices.pay_invoice",
+        ApiEndpoints.payInvoice,
         data: data,
       );
       final msg = response.data["message"];
@@ -329,7 +331,7 @@ class KanbanService {
     try {
       _logger.info("OFD transition $invoiceName mode=$mode courier=$courier token=$idempotencyToken");
       final response = await _dio.post(
-        "/api/method/jarz_pos.api.couriers.handle_out_for_delivery_transition",
+        ApiEndpoints.handleOutForDeliveryTransition,
         data: {
           "invoice_name": invoiceName,
           "courier": courier,
@@ -361,7 +363,7 @@ class KanbanService {
   Future<List<Map<String, String>>> fetchCouriers() async {
     try {
       final resp = await _dio.get(
-        '/api/method/jarz_pos.api.couriers.get_active_couriers',
+        ApiEndpoints.getActiveCouriers,
       );
       final msg = resp.data['message'];
       if (msg is List) {
@@ -403,7 +405,7 @@ class KanbanService {
     try {
       _logger.info("Mark courier outstanding $invoiceName courier=$courier");
       final response = await _dio.post(
-        "/api/method/jarz_pos.api.couriers.mark_courier_outstanding",
+        ApiEndpoints.markCourierOutstanding,
         data: {
           "invoice_name": invoiceName,
           "courier": courier,
@@ -446,7 +448,7 @@ class KanbanService {
     try {
       _logger.info('Creating delivery party type=$partyType name=$name branch=$posProfile');
       final resp = await _dio.post(
-        '/api/method/jarz_pos.api.couriers.create_delivery_party',
+        ApiEndpoints.createDeliveryParty,
         data: {
           'party_type': partyType,
           if (name != null) 'name': name,
@@ -487,7 +489,7 @@ class KanbanService {
     try {
       _logger.info('Single courier settlement invoice=$invoiceName party=$partyType/$party');
       final resp = await _dio.post(
-        '/api/method/jarz_pos.api.couriers.settle_single_invoice_paid',
+        ApiEndpoints.settleSingleInvoicePaid,
         data: {
           'invoice_name': invoiceName,
           'pos_profile': posProfile,
@@ -517,7 +519,7 @@ class KanbanService {
     try {
       _logger.info('Courier collected settlement invoice=$invoiceName party=$partyType/$party');
       final resp = await _dio.post(
-        '/api/method/jarz_pos.api.couriers.settle_courier_collected_payment',
+        ApiEndpoints.settleCourierCollectedPayment,
         data: {
           'invoice_name': invoiceName,
           'pos_profile': posProfile,
@@ -540,12 +542,12 @@ class KanbanService {
   Future<Map<String, dynamic>> salesPartnerUnpaidOutForDelivery({
     required String invoiceName,
     required String posProfile,
-    String modeOfPayment = 'Cash',
+    String modeOfPayment = PaymentModes.cash,
   }) async {
     try {
       _logger.info('SalesPartner unpaid OFD invoice=$invoiceName pos_profile=$posProfile');
       final resp = await _dio.post(
-        '/api/method/jarz_pos.jarz_pos.services.delivery_handling.sales_partner_unpaid_out_for_delivery',
+        ApiEndpoints.salesPartnerUnpaidOutForDelivery,
         data: {
           'invoice_name': invoiceName,
           'pos_profile': posProfile,
@@ -570,7 +572,7 @@ class KanbanService {
     try {
       _logger.info('SalesPartner paid OFD invoice=$invoiceId');
       final resp = await _dio.post(
-        '/api/method/jarz_pos.jarz_pos.services.delivery_handling.sales_partner_paid_out_for_delivery',
+        ApiEndpoints.salesPartnerPaidOutForDelivery,
         data: {
           'invoice_name': invoiceId,
         },
@@ -595,7 +597,7 @@ class KanbanService {
     try {
       _logger.info('Updating customer address for $customer');
       final resp = await _dio.post(
-        '/api/method/jarz_pos.api.customer.update_default_address',
+        ApiEndpoints.updateDefaultAddress,
         data: {
           'customer': customer,
           'address': address,
@@ -621,7 +623,7 @@ class KanbanService {
     try {
       _logger.info('Transferring invoice $invoiceId to $newBranch');
       final resp = await _dio.post(
-        '/api/method/jarz_pos.api.manager.update_invoice_branch',
+        ApiEndpoints.updateInvoiceBranch,
         data: {
           'invoice_id': invoiceId,
           'new_branch': newBranch,
@@ -675,7 +677,7 @@ class KanbanService {
       _logger.info('New slot: $deliveryDate $deliveryTimeFrom, duration: ${deliveryDuration}s');
       
       final resp = await _dio.post(
-        '/api/method/jarz_pos.api.invoices.update_invoice_delivery_slot',
+        ApiEndpoints.updateInvoiceDeliverySlot,
         data: {
           'invoice_id': invoiceId,
           'delivery_date': deliveryDate,
@@ -713,7 +715,7 @@ class KanbanService {
     try {
       _logger.info('Fetching payment receipts (profile: $posProfile, status: $status)');
       final resp = await _dio.get(
-        '/api/method/jarz_pos.api.payment_receipts.list_payment_receipts',
+        ApiEndpoints.listPaymentReceipts,
         queryParameters: {
           if (posProfile != null) 'pos_profile': posProfile,
           if (status != null) 'status': status,
@@ -740,7 +742,7 @@ class KanbanService {
     try {
       _logger.info('Creating payment receipt for $salesInvoice ($paymentMethod)');
       final resp = await _dio.post(
-        '/api/method/jarz_pos.api.payment_receipts.create_payment_receipt',
+        ApiEndpoints.createPaymentReceipt,
         data: {
           'sales_invoice': salesInvoice,
           'payment_method': paymentMethod,
@@ -769,7 +771,7 @@ class KanbanService {
     try {
       _logger.info('Uploading receipt image for $receiptName');
       final resp = await _dio.post(
-        '/api/method/jarz_pos.api.payment_receipts.upload_receipt_image',
+        ApiEndpoints.uploadReceiptImage,
         data: {
           'receipt_name': receiptName,
           'image_data': imageData,
@@ -795,7 +797,7 @@ class KanbanService {
     try {
       _logger.info('Confirming receipt $receiptName');
       final resp = await _dio.post(
-        '/api/method/jarz_pos.api.payment_receipts.confirm_receipt',
+        ApiEndpoints.confirmReceipt,
         data: {
           'receipt_name': receiptName,
         },
@@ -817,7 +819,7 @@ class KanbanService {
     try {
       _logger.info('Fetching accessible POS profiles');
       final resp = await _dio.get(
-        '/api/method/jarz_pos.api.payment_receipts.get_accessible_pos_profiles',
+        ApiEndpoints.getAccessiblePosProfiles,
       );
       final msg = resp.data['message'];
       if (msg is List) {

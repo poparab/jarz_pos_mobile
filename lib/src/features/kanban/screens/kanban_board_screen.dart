@@ -3,6 +3,8 @@ import 'dart:ui' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/constants/app_routes.dart';
+import '../../../core/constants/business_constants.dart';
 import '../providers/kanban_provider.dart';
 import '../models/kanban_models.dart';
 import '../widgets/kanban_column_widget.dart';
@@ -216,13 +218,13 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               case 'receipts':
                 showDialog(context: context, builder: (_) => const PaymentReceiptListDialog());
               case 'printers':
-                context.push('/printers');
+                context.push(AppRoutes.printers);
               case 'couriers':
                 showCourierBalancesDialog(context);
               case 'profile':
-                context.push('/profile');
+                context.push(AppRoutes.profile);
               case 'pos':
-                context.push('/pos');
+                context.push(AppRoutes.pos);
             }
           },
           itemBuilder: (_) => const [
@@ -247,8 +249,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       ]);
       primaryActions.addAll([
         IconButton(tooltip: 'Courier Balances', icon: const Icon(Icons.local_shipping), onPressed: () => showCourierBalancesDialog(context)),
-        IconButton(tooltip: 'User Profile', icon: const Icon(Icons.account_circle), onPressed: () => context.push('/profile')),
-        IconButton(tooltip: 'Open POS', icon: const Icon(Icons.point_of_sale), onPressed: () => context.push('/pos')),
+        IconButton(tooltip: 'User Profile', icon: const Icon(Icons.account_circle), onPressed: () => context.push(AppRoutes.profile)),
+        IconButton(tooltip: 'Open POS', icon: const Icon(Icons.point_of_sale), onPressed: () => context.push(AppRoutes.pos)),
       ]);
     }
 
@@ -274,7 +276,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
           child: InkWell(
-            onTap: () => context.push('/printers'),
+            onTap: () => context.push(AppRoutes.printers),
             borderRadius: BorderRadius.circular(14),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -688,7 +690,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             posProfile: posProfile,
             partyType: resolvedPartyType,
             party: resolvedParty,
-            paymentMode: 'Cash',
+            paymentMode: PaymentModes.cash,
             courier: courier ?? courierDisplay ?? 'UNKNOWN',
           );
           if (res['success'] != true) {

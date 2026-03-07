@@ -8,6 +8,8 @@ import '../providers/kanban_provider.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../pos/domain/models/delivery_slot.dart';
 import '../../pos/data/repositories/pos_repository.dart';
+import '../../../core/constants/api_endpoints.dart';
+import '../../../core/constants/business_constants.dart';
 import '../../../core/network/courier_service.dart';
 import '../../../core/network/user_service.dart';
 import '../../manager/data/manager_api.dart';
@@ -104,7 +106,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             .toList()
         : [PrintableInvoiceItem(name: 'Items (${enriched.itemsCount})', qty: 1, rate: enriched.netTotal)];
     // Paid/outstanding heuristic from card
-    final isPaid = (enriched.docStatus?.toLowerCase() == 'paid') || (enriched.effectiveStatus.toLowerCase() == 'paid');
+    final isPaid = (enriched.docStatus?.toLowerCase() == InvoiceStatus.paidLower) || (enriched.effectiveStatus.toLowerCase() == InvoiceStatus.paidLower);
     final paid = isPaid ? enriched.total : 0.0;
     final outstanding = ((enriched.total - paid).clamp(0.0, enriched.total)).toDouble();
     // Use delivery slot from model if available
@@ -379,7 +381,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       );
     }
 
-    final canShowPay = !hasPartner && widget.invoice.effectiveStatus.toLowerCase() != 'paid' && !hasUnsettled;
+    final canShowPay = !hasPartner && widget.invoice.effectiveStatus.toLowerCase() != InvoiceStatus.paidLower && !hasUnsettled;
     if (canShowPay) {
       trailingWidgets.add(
         Tooltip(
@@ -984,13 +986,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'draft':
+      case InvoiceStatus.draftLower:
         return Colors.grey;
       case 'submitted':
         return Colors.blue;
-      case 'paid':
+      case InvoiceStatus.paidLower:
         return Colors.green;
-      case 'cancelled':
+      case InvoiceStatus.cancelledLower:
         return Colors.red;
       case 'overdue':
         return Colors.orange;
@@ -1015,7 +1017,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   void _payInvoice(BuildContext context) async {
     // New rule: allow payment in any state except already Paid or Cancelled
     final statusLower = widget.invoice.status.toLowerCase();
-    if (statusLower == 'paid' || statusLower == 'cancelled') {
+    if (statusLower == InvoiceStatus.paidLower || statusLower == InvoiceStatus.cancelledLower) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Invoice already ${widget.invoice.status}'),
@@ -1030,7 +1032,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   }
 
   Future<String?> _showPaymentMethodSheet(BuildContext context) async {
-    String? selected = 'Cash';
+    String? selected = PaymentModes.cash;
     return showModalBottomSheet<String>(
       context: context,
       isScrollControlled: false,
@@ -1070,7 +1072,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 ),
                 _paymentOptionTile(
                   title: 'Cash',
-                  value: 'Cash',
+                  value: PaymentModes.cash,
                   groupValue: selected,
                   onChanged: (v) => setModalState(() => selected = v),
                   icon: Icons.payments_outlined,
@@ -1161,7 +1163,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final posState = container.read(posNotifierProvider);
     final messenger = ScaffoldMessenger.of(context);
     String? posProfile;
-    if (method.toLowerCase() == 'cash') {
+    if (method.toLowerCase() == PaymentModes.cashLower) {
       posProfile = posState.selectedProfile?['name'];
       if (posProfile == null) {
         messenger.showSnackBar(
@@ -1185,7 +1187,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         );
         
         // Show collect cash dialog for cash payments
-        if (method.toLowerCase() == 'cash') {
+        if (method.toLowerCase() == PaymentModes.cashLower) {
           final amount = result['amount'] ?? result['allocated_amount'];
           if (amount != null && context.mounted) {
             _showCollectCashDialog(context, amount.toString(), widget.invoice.name);
@@ -1300,7 +1302,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     // 1. If already paid + has Sales Partner -> direct state change (legacy fast path retained)
     // 2. NEW: If UNPAID + has Sales Partner -> auto create cash Payment Entry & OFD via backend endpoint (skip courier UI completely)
     final hasPartner = ((widget.invoice.salesPartner ?? '').isNotEmpty);
-    final isPaid = (widget.invoice.status).toString().toLowerCase() == 'paid' || (widget.invoice.effectiveStatus).toString().toLowerCase() == 'paid';
+    final isPaid = (widget.invoice.status).toString().toLowerCase() == InvoiceStatus.paidLower || (widget.invoice.effectiveStatus).toString().toLowerCase() == InvoiceStatus.paidLower;
     final posProfileName = posState.selectedProfile?['name'];
 
     if (hasPartner) {
@@ -1316,11 +1318,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         try {
           // We don't have a direct method: call raw endpoint via notifier/apiService if available
           final raw = await container.read(kanbanProvider.notifier).callBackend(
-            '/api/method/jarz_pos.jarz_pos.services.delivery_handling.sales_partner_unpaid_out_for_delivery',
+            ApiEndpoints.salesPartnerUnpaidOutForDelivery,
             data: {
               'invoice_name': widget.invoice.name,
               'pos_profile': posProfileName,
-              'mode_of_payment': 'Cash',
+              'mode_of_payment': PaymentModes.cash,
             },
           );
           if ((raw['success'] == true) || (raw['message']?['success'] == true)) {
@@ -1442,7 +1444,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           posProfile: posProfile,
           partyType: partyType,
           party: party,
-          paymentMode: 'Cash',
+          paymentMode: PaymentModes.cash,
           courier: courierLabel,
         );
         if (res['success'] == true) {
@@ -1892,7 +1894,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     IconData icon;
 
     switch (paymentMethod) {
-      case 'Cash':
+      case PaymentModes.cash:
         bgColor = Colors.green[50]!;
         textColor = Colors.green[700]!;
         icon = Icons.attach_money;

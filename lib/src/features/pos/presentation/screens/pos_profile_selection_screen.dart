@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../state/pos_notifier.dart';
 import '../../../../core/localization/localization_extensions.dart';
 
@@ -146,7 +147,7 @@ class PosProfileSelectionScreen extends ConsumerWidget {
           if (ref.read(posNotifierProvider).isLoading) return; // prevent double taps
           await ref.read(posNotifierProvider.notifier).selectProfile(profile);
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) context.go('/pos');
+            if (context.mounted) context.go(AppRoutes.pos);
           });
         },
         borderRadius: BorderRadius.circular(12),
