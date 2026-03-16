@@ -48,3 +48,6 @@ android/build/
 # Firebase configuration files (sensitive)
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
+
+# Local test credentials (never commit)
+.env.test.local
