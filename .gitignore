@@ -51,3 +51,6 @@ ios/Runner/GoogleService-Info.plist
 
 # Local test credentials (never commit)
 .env.test.local
+
+# Local one-off debug scripts (never commit)
+debug_*.py

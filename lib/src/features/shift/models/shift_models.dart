@@ -132,6 +132,8 @@ class ShiftEntry {
   final String name;
   final String posProfile;
   final String status;
+  final String openedByUser;
+  final String openedByName;
   final DateTime? periodStartDate;
   final List<ShiftBalanceDetail> balanceDetails;
 
@@ -139,6 +141,8 @@ class ShiftEntry {
     required this.name,
     required this.posProfile,
     required this.status,
+    this.openedByUser = '',
+    this.openedByName = '',
     this.periodStartDate,
     this.balanceDetails = const [],
   });
@@ -161,6 +165,8 @@ class ShiftEntry {
       name: (json['name'] ?? json['opening_entry'] ?? '').toString(),
       posProfile: (json['pos_profile'] ?? '').toString(),
       status: (json['status'] ?? '').toString(),
+      openedByUser: (json['user'] ?? json['owner'] ?? json['created_by'] ?? '').toString(),
+      openedByName: (json['employee_name'] ?? json['full_name'] ?? json['user_fullname'] ?? '').toString(),
       periodStartDate: parseDate(json['period_start_date']),
       balanceDetails: balances,
     );

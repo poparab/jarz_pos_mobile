@@ -4,8 +4,37 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/network/user_service.dart';
 import '../../pos/state/pos_notifier.dart';
+import '../models/shift_models.dart';
 import '../state/shift_notifier.dart';
+
+bool _isShiftOwnedByCurrentUser(ShiftEntry shift, UserRoles? roles) {
+  if (roles == null) return true;
+
+  final currentUser = roles.user.trim().toLowerCase();
+  final currentEmployee = (roles.employee ?? '').trim().toLowerCase();
+  final currentName = (roles.fullName ?? roles.employeeName ?? '').trim().toLowerCase();
+  final shiftUser = shift.openedByUser.trim().toLowerCase();
+  final shiftName = shift.openedByName.trim().toLowerCase();
+
+  if (shiftUser.isNotEmpty) {
+    if (shiftUser == currentUser) return true;
+    if (currentEmployee.isNotEmpty && shiftUser == currentEmployee) return true;
+  }
+
+  if (shiftName.isNotEmpty && currentName.isNotEmpty && shiftName == currentName) {
+    return true;
+  }
+
+  return false;
+}
+
+String _shiftOwnerLabel(ShiftEntry shift) {
+  if (shift.openedByName.trim().isNotEmpty) return shift.openedByName.trim();
+  if (shift.openedByUser.trim().isNotEmpty) return shift.openedByUser.trim();
+  return 'Unknown user';
+}
 
 class ShiftStartScreen extends ConsumerStatefulWidget {
   const ShiftStartScreen({super.key});
@@ -32,9 +61,16 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
     final l10n = context.l10n;
     final posState = ref.watch(posNotifierProvider);
     final shiftState = ref.watch(shiftNotifierProvider);
+    final activeShift = ref.watch(activeShiftProvider).valueOrNull;
+    final userRoles = ref.watch(userRolesFutureProvider).valueOrNull;
 
     final selectedFromState = (posState.selectedProfile?['name'] ?? '').toString();
     final posProfile = selectedFromState.isNotEmpty ? selectedFromState : null;
+    final hasBlockingOpenShift =
+      activeShift != null &&
+      posProfile != null &&
+      activeShift.posProfile == posProfile &&
+      !_isShiftOwnedByCurrentUser(activeShift, userRoles);
 
     if (posProfile == null && !posState.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -51,6 +87,33 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
         _requestedProfile = posProfile;
         ref.read(shiftNotifierProvider.notifier).loadPaymentMethods(posProfile);
       });
+    }
+
+    if (hasBlockingOpenShift) {
+      final opener = _shiftOwnerLabel(activeShift);
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.shiftStartTitle)),
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.shiftAlreadyOpenByAnotherTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              Text(l10n.shiftAlreadyOpenByAnotherBody(posProfile, opener)),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: () => context.go(AppRoutes.pos),
+                icon: const Icon(Icons.arrow_back),
+                label: Text(l10n.shiftBackToPos),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return Scaffold(

@@ -1238,6 +1238,18 @@ abstract class AppLocalizations {
   /// **'Active shift is on {activeProfile}. Selected profile is {selectedProfile}.'**
   String shiftProfileMismatch(Object activeProfile, Object selectedProfile);
 
+  /// No description provided for @shiftAlreadyOpenByAnotherTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift already open'**
+  String get shiftAlreadyOpenByAnotherTitle;
+
+  /// No description provided for @shiftAlreadyOpenByAnotherBody.
+  ///
+  /// In en, this message translates to:
+  /// **'There is already an open shift in {branch} started by {user}.'**
+  String shiftAlreadyOpenByAnotherBody(Object branch, Object user);
+
   /// No description provided for @shiftSwitchToActiveProfile.
   ///
   /// In en, this message translates to:

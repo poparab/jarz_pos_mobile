@@ -299,6 +299,14 @@
   "shiftStatusActive": "شيفت مفتوح",
   "shiftStartedAt": "بدأ في {time}",
   "shiftProfileMismatch": "الشيفت المفتوح على {activeProfile} بينما الملف المختار هو {selectedProfile}.",
+  "shiftAlreadyOpenByAnotherTitle": "الشيفت مفتوح بالفعل",
+  "shiftAlreadyOpenByAnotherBody": "يوجد شيفت مفتوح بالفعل في {branch} بدأه المستخدم {user}.",
+  "@shiftAlreadyOpenByAnotherBody": {
+    "placeholders": {
+      "branch": {},
+      "user": {}
+    }
+  },
   "shiftSwitchToActiveProfile": "التبديل لملف الشيفت المفتوح",
   "shiftGoToEnd": "اذهب إلى إنهاء الشيفت",
   "shiftAccountBalance": "رصيد الحساب",

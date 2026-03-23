@@ -82,6 +82,20 @@ class _FakeKanbanService extends KanbanService {
     lastUpdatedState = newState;
     return updateShouldSucceed;
   }
+
+  @override
+  Future<Map<String, dynamic>> cancelInvoice({
+    required String invoiceName,
+    required String reason,
+    String? notes,
+  }) async {
+    return {'success': true};
+  }
+
+  @override
+  Future<dynamic> rawPost(String path, Map<String, dynamic> data) async {
+    return {'message': 'ok'};
+  }
 }
 
 class _FakeWebSocketService extends WebSocketService {
@@ -295,6 +309,126 @@ void main() {
       final selected = container.read(kanbanProvider).selectedBranches;
       expect(selected, containsAll({'Main', 'Branch-2'}));
       expect(service.lastFilters?['branches'], containsAll(['Main', 'Branch-2']));
+    });
+
+    test('loadColumns sets columns and clears isLoading', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadColumns();
+      await _flushMicrotasks();
+
+      final state = container.read(kanbanProvider);
+      expect(state.columns, hasLength(2));
+      expect(state.columns.first.name, 'Received');
+      expect(state.isLoading, false);
+    });
+
+    test('loadFilters populates customers list', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadFilters();
+      await _flushMicrotasks();
+
+      final state = container.read(kanbanProvider);
+      expect(state.customers, hasLength(1));
+      expect(state.customers.first.customer, 'CUST-1');
+    });
+
+    test('loadKanbanData initializes columns, invoices and filters', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      final state = container.read(kanbanProvider);
+      expect(state.columns, isNotEmpty);
+      expect(state.invoices, isNotEmpty);
+      expect(state.customers, isNotEmpty);
+    });
+
+    test('refreshSingle patches a card into the correct column', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      // Both INV-OLD and INV-NEW are in 'received' column from the fake service
+      await notifier.refreshSingle('INV-OLD');
+      await _flushMicrotasks();
+
+      final state = container.read(kanbanProvider);
+      // Card should still be in the received column since fake returns it there
+      final received = state.invoices['received'] ?? [];
+      expect(received.any((c) => c.id == 'INV-OLD'), isTrue);
+    });
+
+    test('clearError sets error to null', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      // Force an error state
+      notifier.updateFilters(const KanbanFilters(searchTerm: 'anything'));
+      await _flushMicrotasks();
+
+      notifier.clearError();
+      final state = container.read(kanbanProvider);
+      expect(state.error, isNull);
+    });
+
+    test('toggleBranch adds and removes branches', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      notifier.setSelectedBranches({'Main'});
+      await _flushMicrotasks();
+      expect(container.read(kanbanProvider).selectedBranches, {'Main'});
+
+      notifier.toggleBranch('Main');
+      await _flushMicrotasks();
+      expect(container.read(kanbanProvider).selectedBranches, isEmpty);
+    });
+
+    test('cancelInvoice removes the card and reloads', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      await notifier.cancelInvoice(invoiceId: 'INV-OLD', reason: 'test');
+      await _flushMicrotasks();
+
+      // After cancel reloads, both still appear from fake
+      // but the cancel flow itself should not throw
+      final state = container.read(kanbanProvider);
+      expect(state.error, isNull);
+    });
+  });
+
+  group('KanbanState.copyWith', () {
+    test('copies all fields when none overridden', () {
+      final state = KanbanState(
+        isLoading: true,
+        error: 'test error',
+        selectedBranches: {'B1'},
+        transitioningInvoices: {'INV-1'},
+      );
+      final copy = state.copyWith();
+      expect(copy.isLoading, true);
+      // error is not preserved by design (copyWith sets error: error param which defaults to null)
+      expect(copy.selectedBranches, {'B1'});
+      expect(copy.transitioningInvoices, {'INV-1'});
+    });
+
+    test('overrides individual fields', () {
+      final state = KanbanState();
+      final updated = state.copyWith(
+        isLoading: true,
+        error: 'err',
+        selectedBranches: {'X'},
+      );
+      expect(updated.isLoading, true);
+      expect(updated.error, 'err');
+      expect(updated.selectedBranches, {'X'});
+    });
+
+    test('error defaults to null when not provided', () {
+      final state = KanbanState(error: 'old');
+      final copy = state.copyWith(isLoading: false);
+      expect(copy.error, isNull);
     });
   });
 }

@@ -24,7 +24,29 @@ import '../features/shift/presentation/shift_start_screen.dart';
 import '../features/shift/presentation/shift_end_screen.dart';
 import 'network/user_service.dart';
 import '../features/shift/state/shift_notifier.dart';
+import '../features/shift/models/shift_models.dart';
 import '../features/pos/state/pos_notifier.dart';
+
+bool _isShiftOwnedByCurrentUser(ShiftEntry shift, UserRoles? roles) {
+  if (roles == null) return true;
+
+  final currentUser = roles.user.trim().toLowerCase();
+  final currentEmployee = (roles.employee ?? '').trim().toLowerCase();
+  final currentName = (roles.fullName ?? roles.employeeName ?? '').trim().toLowerCase();
+  final shiftUser = shift.openedByUser.trim().toLowerCase();
+  final shiftName = shift.openedByName.trim().toLowerCase();
+
+  if (shiftUser.isNotEmpty) {
+    if (shiftUser == currentUser) return true;
+    if (currentEmployee.isNotEmpty && shiftUser == currentEmployee) return true;
+  }
+
+  if (shiftName.isNotEmpty && currentName.isNotEmpty && shiftName == currentName) {
+    return true;
+  }
+
+  return false;
+}
 
 // Global RouteObserver for navigation lifecycle (used by Kanban to refresh on return)
 final RouteObserver<PageRoute<dynamic>> routeObserver = RouteObserver<PageRoute<dynamic>>();
@@ -61,6 +83,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(currentAuthStateProvider);
   final isAuthenticated = authState;
   final requirePosShift = ref.watch(requirePosShiftProvider);
+  final userRolesAsync = ref.watch(userRolesFutureProvider);
   final activeShiftAsync = ref.watch(activeShiftProvider);
   final posState = ref.watch(posNotifierProvider);
 
@@ -96,18 +119,26 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Global shift gating: only after POS profile is selected.
       if (isAuthenticated && hasSelectedProfile && requirePosShift) {
         final activeShift = activeShiftAsync.valueOrNull;
+        final userRoles = userRolesAsync.valueOrNull;
         final selectedProfileName = (posState.selectedProfile?['name'] ?? '').toString();
         final hasActiveShiftForSelectedProfile =
             activeShift != null && activeShift.posProfile == selectedProfileName;
+        final isCurrentUserShift = hasActiveShiftForSelectedProfile && _isShiftOwnedByCurrentUser(activeShift, userRoles);
         final isActiveShiftKnown = !activeShiftAsync.isLoading;
 
+        // No active shift for this profile: force Start Shift.
         if (isActiveShiftKnown && !hasActiveShiftForSelectedProfile && !isOnShiftStart) {
           return AppRoutes.shiftStart;
         }
 
-        // If there's already an open shift for this user+selected profile, skip Start Shift.
-        if (hasActiveShiftForSelectedProfile && isOnShiftStart) {
+        // Same user + same profile: skip Start Shift.
+        if (isCurrentUserShift && isOnShiftStart) {
           return AppRoutes.pos;
+        }
+
+        // Different user + same profile: keep user on Start Shift to show blocking message.
+        if (hasActiveShiftForSelectedProfile && !isCurrentUserShift && !isOnShiftStart) {
+          return AppRoutes.shiftStart;
         }
       }
 

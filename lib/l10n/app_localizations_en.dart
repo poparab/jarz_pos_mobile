@@ -665,6 +665,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get shiftAlreadyOpenByAnotherTitle => 'Shift already open';
+
+  @override
+  String shiftAlreadyOpenByAnotherBody(Object branch, Object user) {
+    return 'There is already an open shift in $branch started by $user.';
+  }
+
+  @override
   String get shiftSwitchToActiveProfile => 'Switch to active shift profile';
 
   @override

@@ -299,6 +299,14 @@
   "shiftStatusActive": "Shift Active",
   "shiftStartedAt": "Started at {time}",
   "shiftProfileMismatch": "Active shift is on {activeProfile}. Selected profile is {selectedProfile}.",
+  "shiftAlreadyOpenByAnotherTitle": "Shift already open",
+  "shiftAlreadyOpenByAnotherBody": "There is already an open shift in {branch} started by {user}.",
+  "@shiftAlreadyOpenByAnotherBody": {
+    "placeholders": {
+      "branch": {},
+      "user": {}
+    }
+  },
   "shiftSwitchToActiveProfile": "Switch to active shift profile",
   "shiftGoToEnd": "Go to End Shift",
   "shiftAccountBalance": "Account Balance",
