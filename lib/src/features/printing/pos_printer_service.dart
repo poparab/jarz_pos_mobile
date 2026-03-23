@@ -703,8 +703,8 @@ class PosPrinterService extends ChangeNotifier {
   }
 
   Future<void> _addRasterText(BytesBuilder b, String s, {bool bold=false, bool center=false}) async {
-    // Increase target width to 576 for 80mm printers where supported; fallback effective on narrower printers (they'll wrap/clip as per firmware).
-    const targetW = 576;
+    // 384px is broadly supported across 58/80mm ESC/POS printers and avoids garbled glyph output on some firmware.
+    const targetW = 384;
     // Prepare text painter
   final hasArabic = RegExp(r'[\u0600-\u06FF]').hasMatch(s);
     final tp = TextPainter(
@@ -714,6 +714,12 @@ class PosPrinterService extends ChangeNotifier {
           color: const ui.Color(0xFF000000),
           fontSize: 18, // smaller font
           fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+          fontFamilyFallback: const [
+            'Noto Naskh Arabic',
+            'Noto Sans Arabic',
+            'Noto Sans',
+            'Roboto',
+          ],
         ),
       ),
   textDirection: hasArabic ? ui.TextDirection.rtl : ui.TextDirection.ltr,
