@@ -92,40 +92,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final l10n = context.l10n;
     final printer = ref.read(posPrinterServiceProvider);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.invoicePreparingReceipt), duration: const Duration(seconds: 1)));
-    // Attempt to fetch enriched invoice details for phone/address/shipping if not already present
-    InvoiceCard enriched = widget.invoice;
-    try {
-      // Only fetch if phone missing (we don't currently store phone on card) or to ensure latest shipping
-      final details = await ref.read(invoiceDetailsProvider(widget.invoice.id).future);
-      if (details != null) {
-        enriched = details;
-      }
-    } catch (_) {}
-    // Map items (fallback aggregated item if list empty)
-    final items = enriched.items.isNotEmpty
-        ? enriched.items
-            .map((e) => PrintableInvoiceItem(name: e.itemName, qty: e.qty, rate: e.rate))
-            .toList()
-        : [PrintableInvoiceItem(name: l10n.invoiceItemsCount(enriched.itemsCount), qty: 1, rate: enriched.netTotal)];
-    // Paid/outstanding heuristic from card
-    final isPaid = (enriched.docStatus?.toLowerCase() == InvoiceStatus.paidLower) || (enriched.effectiveStatus.toLowerCase() == InvoiceStatus.paidLower);
-    final paid = isPaid ? enriched.total : 0.0;
-    final outstanding = ((enriched.total - paid).clamp(0.0, enriched.total)).toDouble();
-    // Use delivery slot from model if available
-    final deliveryDT = enriched.deliveryStartDateTime ?? _parseDelivery(enriched.requiredDeliveryDate);
-    final inv = PrintableInvoice(
-      id: enriched.name,
-      date: DateTime.now(),
-      customer: enriched.customerName,
-      customerAddress: enriched.address.isNotEmpty ? enriched.address : null,
-      customerPhone: enriched.customerPhone, // may be null if backend does not supply
-      deliveryDateTime: deliveryDT,
-      total: enriched.total,
-      paid: paid,
-      outstanding: outstanding,
-      shipping: enriched.isPickup ? 0.0 : enriched.shippingIncome,
-      items: items,
-    );
+    final inv = await _buildPrintableInvoice(context);
     // If not connected attempt reconnect to last saved printer silently
     if (!printer.isConnected && !printer.isClassicConnected) {
       final ok = await printer.connectLastSaved();
@@ -150,6 +117,83 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.invoicePrintFailed('$res'))),);
     }
+  }
+
+  Future<void> _previewInvoiceReceipt(BuildContext context) async {
+    final printer = ref.read(posPrinterServiceProvider);
+    final inv = await _buildPrintableInvoice(context);
+    final preview = await printer.buildReceiptPreview(inv);
+    if (!context.mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Receipt Preview'),
+        content: SingleChildScrollView(
+          child: SelectableText(
+            preview,
+            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _printInvoice(context);
+            },
+            icon: const Icon(Icons.print),
+            label: const Text('Print'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<PrintableInvoice> _buildPrintableInvoice(BuildContext context) async {
+    final l10n = context.l10n;
+    InvoiceCard enriched = widget.invoice;
+    try {
+      final details = await ref.read(invoiceDetailsProvider(widget.invoice.id).future);
+      if (details != null) {
+        enriched = details;
+      }
+    } catch (_) {}
+
+    final items = enriched.items.isNotEmpty
+        ? enriched.items
+            .map((e) => PrintableInvoiceItem(name: e.itemName, qty: e.qty, rate: e.rate))
+            .toList()
+        : [
+            PrintableInvoiceItem(
+              name: l10n.invoiceItemsCount(enriched.itemsCount),
+              qty: 1,
+              rate: enriched.netTotal,
+            )
+          ];
+
+    final isPaid = (enriched.docStatus?.toLowerCase() == InvoiceStatus.paidLower) ||
+        (enriched.effectiveStatus.toLowerCase() == InvoiceStatus.paidLower);
+    final paid = isPaid ? enriched.total : 0.0;
+    final outstanding = ((enriched.total - paid).clamp(0.0, enriched.total)).toDouble();
+    final deliveryDT = enriched.deliveryStartDateTime ?? _parseDelivery(enriched.requiredDeliveryDate);
+
+    return PrintableInvoice(
+      id: enriched.name,
+      date: DateTime.now(),
+      customer: enriched.customerName,
+      customerAddress: enriched.address.isNotEmpty ? enriched.address : null,
+      customerPhone: enriched.customerPhone,
+      deliveryDateTime: deliveryDT,
+      total: enriched.total,
+      paid: paid,
+      outstanding: outstanding,
+      shipping: enriched.isPickup ? 0.0 : enriched.shippingIncome,
+      items: items,
+    );
   }
 
   DateTime? _parseDelivery(String? text) {
@@ -420,6 +464,22 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     //     ),
     //   );
     // }
+
+    trailingWidgets.add(
+      Tooltip(
+        message: 'Preview Receipt',
+        child: IconButton(
+          icon: Icon(Icons.preview, size: iconSize),
+          padding: EdgeInsets.all(ResponsiveUtils.getSpacing(context, small: 4, medium: 5, large: 6)),
+          constraints: BoxConstraints(
+            minWidth: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
+            minHeight: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
+          ),
+          splashRadius: ResponsiveUtils.getIconSize(context, small: 16, medium: 18, large: 20),
+          onPressed: transitioning ? null : () => _previewInvoiceReceipt(context),
+        ),
+      ),
+    );
 
     trailingWidgets.add(
       Tooltip(

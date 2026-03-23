@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:dio/dio.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../core/constants/timing_config.dart';
 import '../../core/constants/storage_keys.dart';
 import '../../core/constants/business_constants.dart';
+import '../../core/constants/api_endpoints.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'printer_status.dart';
 
@@ -50,11 +52,24 @@ class PrintableInvoice {
 }
 
 class PosPrinterService extends ChangeNotifier {
-  PosPrinterService({bool autoInit = true}) {
+  PosPrinterService({Dio? dio, bool autoInit = true}) : _dio = dio {
     if (autoInit) {
       _init();
     }
   }
+
+  final Dio? _dio;
+  static const String _defaultReceiptHeader = 'ORDER RECEIPT';
+  static const String _defaultReceiptFooter = 'Thank you for Your Order';
+  static const String _defaultReceiptPhone = '01061332266';
+  static const String _defaultReceiptWebsite = 'www.orderjarz.com';
+
+  String _receiptHeader = _defaultReceiptHeader;
+  String _receiptFooter = _defaultReceiptFooter;
+  String _receiptPhone = _defaultReceiptPhone;
+  String _receiptWebsite = _defaultReceiptWebsite;
+  String _receiptLogo = '';
+  bool _receiptConfigLoaded = false;
 
   static const _prefsBoxName = HiveBoxes.printerPrefs;
   static const _lastPrinterKey = HiveKeys.lastPrinterId;
@@ -187,6 +202,7 @@ class PosPrinterService extends ChangeNotifier {
   Future<void> _init() async {
     try {
       _prefsBox = await Hive.openBox(_prefsBoxName);
+      await _loadReceiptConfig();
       // Prepare logo bytes in background (ignore errors)
       try { _logoEscPos = await _prepareLogoEscPos(); } catch (e) { debugPrint('[PosPrinterService] Logo prepare failed: $e'); }
       final id = lastPrinterId; final type = lastPrinterType;
@@ -198,6 +214,75 @@ class PosPrinterService extends ChangeNotifier {
         }
       }
     } catch (_) {}
+  }
+
+  String _normalizeOrDefault(String? value, String fallback) {
+    final v = (value ?? '').trim();
+    return v.isNotEmpty ? v : fallback;
+  }
+
+  Future<void> _loadReceiptConfig() async {
+    if (_receiptConfigLoaded || _dio == null) return;
+    try {
+      final resp = await _dio.get(ApiEndpoints.getReceiptConfig);
+      final message = resp.data['message'];
+      if (message is Map) {
+        final data = Map<String, dynamic>.from(message);
+        _receiptHeader = _normalizeOrDefault(data['header']?.toString(), _defaultReceiptHeader);
+        _receiptFooter = _normalizeOrDefault(data['footer']?.toString(), _defaultReceiptFooter);
+        _receiptPhone = _normalizeOrDefault(data['phone']?.toString(), _defaultReceiptPhone);
+        _receiptWebsite = _normalizeOrDefault(data['website']?.toString(), _defaultReceiptWebsite);
+        _receiptLogo = (data['logo']?.toString() ?? '').trim();
+      }
+    } catch (e) {
+      debugPrint('[PosPrinterService] Receipt config fetch failed, using defaults: $e');
+    } finally {
+      _receiptConfigLoaded = true;
+    }
+  }
+
+  Future<String> buildReceiptPreview(PrintableInvoice inv) async {
+    await _loadReceiptConfig();
+    final sb = StringBuffer();
+    final bool isPaid = inv.outstanding <= 0.0001;
+
+    sb.writeln(_receiptHeader);
+    sb.writeln('');
+    sb.writeln('Customer: ${inv.customer}');
+    if ((inv.customerPhone ?? '').isNotEmpty) {
+      sb.writeln('Phone: ${inv.customerPhone}');
+    }
+    sb.writeln('Inv No: ${inv.id}');
+    if (inv.deliveryDateTime != null) {
+      sb.writeln('Delivery: ${inv.deliveryDateTime}');
+    }
+    if ((inv.customerAddress ?? '').isNotEmpty) {
+      sb.writeln('Address: ${inv.customerAddress}');
+    }
+    sb.writeln('');
+
+    for (final item in inv.items) {
+      sb.writeln('${item.name} x${item.qty.toStringAsFixed(0)} @ ${_money(item.rate)} = ${_money(item.amount)}');
+    }
+    sb.writeln('');
+
+    final grand = inv.total;
+    if (inv.shipping > 0 && inv.shipping <= grand) {
+      final subtotal = (grand - inv.shipping).clamp(0.0, grand).toDouble();
+      sb.writeln('Subtotal: ${_money(subtotal)}');
+      sb.writeln('Shipping: ${_money(inv.shipping)}');
+    }
+    sb.writeln('Total: ${_money(grand)}');
+    sb.writeln('Status: ${isPaid ? InvoiceStatus.paidUpper : InvoiceStatus.unpaidUpper}');
+    sb.writeln('');
+    sb.writeln(_receiptFooter);
+    sb.writeln('Call us $_receiptPhone');
+    sb.writeln(_receiptWebsite);
+    if (_receiptLogo.isNotEmpty) {
+      sb.writeln('Logo: configured');
+    }
+
+    return sb.toString().trimRight();
   }
 
   Future<void> _attemptReconnect(BluetoothDevice device) async { final ok = await connect(device); if (!ok) { try { await _prefsBox?.delete(_lastPrinterKey); await _prefsBox?.delete(_lastPrinterTypeKey);} catch (_) {} } }
@@ -301,6 +386,7 @@ class PosPrinterService extends ChangeNotifier {
   Future<PrintResult> printInvoice(PrintableInvoice inv) async {
     if (!isConnected && !isClassicConnected) return PrintResult.disconnected;
     try {
+      await _loadReceiptConfig();
       final bytes = await _buildReceipt(inv);
       if (isConnected) {
         const chunk = 180;
@@ -385,7 +471,7 @@ class PosPrinterService extends ChangeNotifier {
       b.add(_logoEscPos!);
       esc([0x1B,0x61,0x00]); // left
     }
-    await text('ORDER RECEIPT', bold: true, center: true);
+    await text(_receiptHeader, bold: true, center: true);
     feed(1);
     // Build two vertical columns of fields for 80mm (wider) printers
     // Left column logical order: Customer, Phone, Delivery
@@ -538,9 +624,9 @@ class PosPrinterService extends ChangeNotifier {
     await hr();
 
     // FOOTER ---------------------------------------------------------
-    await text('Thank you for Your Order', center:true);
-    await text('Call us 01061332266', center:true);
-    await text('www.orderjarz.com', center:true);
+    await text(_receiptFooter, center:true);
+    await text('Call us $_receiptPhone', center:true);
+    await text(_receiptWebsite, center:true);
   // Add two cut guide lines so user can manually cut at the marked area
   await hr();
   await hr();
