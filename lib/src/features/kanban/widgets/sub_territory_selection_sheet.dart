@@ -1,0 +1,130 @@
+import 'package:flutter/material.dart';
+
+/// Bottom sheet for selecting a sub-territory for an invoice.
+class SubTerritorySelectionSheet extends StatefulWidget {
+  final String territory;
+  final List<Map<String, dynamic>> subTerritories;
+  final String? currentSelection;
+
+  const SubTerritorySelectionSheet({
+    super.key,
+    required this.territory,
+    required this.subTerritories,
+    this.currentSelection,
+  });
+
+  @override
+  State<SubTerritorySelectionSheet> createState() => _SubTerritorySelectionSheetState();
+}
+
+class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet> {
+  String _searchQuery = '';
+
+  List<Map<String, dynamic>> get _filtered {
+    if (_searchQuery.isEmpty) return widget.subTerritories;
+    final q = _searchQuery.toLowerCase();
+    return widget.subTerritories.where((t) {
+      final name = (t['territory_name'] ?? t['name'] ?? '').toString().toLowerCase();
+      return name.contains(q);
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.5,
+      minChildSize: 0.3,
+      maxChildSize: 0.85,
+      expand: false,
+      builder: (context, scrollController) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Select Sub-territory',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'for ${widget.territory}',
+                style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 12),
+              // Search field
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onChanged: (val) => setState(() => _searchQuery = val),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: _filtered.isEmpty
+                    ? Center(
+                        child: Text('No sub-territories found', style: TextStyle(color: Colors.grey[500])),
+                      )
+                    : ListView.separated(
+                        controller: scrollController,
+                        itemCount: _filtered.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final item = _filtered[index];
+                          final name = (item['territory_name'] ?? item['name'] ?? '').toString();
+                          final expense = (item['delivery_expense'] ?? 0).toDouble();
+                          final isSelected = name == widget.currentSelection;
+
+                          return ListTile(
+                            selected: isSelected,
+                            selectedTileColor: Colors.blue.withValues(alpha: 0.08),
+                            leading: Icon(
+                              isSelected ? Icons.check_circle : Icons.location_on_outlined,
+                              color: isSelected ? Colors.blue : Colors.grey,
+                              size: 22,
+                            ),
+                            title: Text(
+                              name,
+                              style: TextStyle(
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                fontSize: 14,
+                              ),
+                            ),
+                            trailing: expense > 0
+                                ? Text(
+                                    '\$${expense.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.deepOrange[700],
+                                    ),
+                                  )
+                                : null,
+                            onTap: () => Navigator.of(context).pop(name),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

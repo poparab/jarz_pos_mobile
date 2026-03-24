@@ -16,6 +16,7 @@ abstract final class AppRoutes {
   static const cashTransfer = '/cash-transfer';
   static const inventoryCount = '/inventory-count';
   static const expenses = '/expenses';
+  static const trips = '/trips';
   static const profile = '/profile';
   static const shiftStart = '/shift/start';
   static const shiftEnd = '/shift/end';

@@ -58,6 +58,12 @@ class InvoiceCard {
   final double outstandingAmount;
   final int? docstatusValue;
   final bool isReturn;
+  // Sub-territory & trip fields
+  final String? subTerritory;
+  final bool hasSubTerritories;
+  final String? deliveryTrip;
+  final double? shippingOverride;
+  final String? shippingOverrideStatus;
 
   InvoiceCard({
     required this.id,
@@ -95,6 +101,11 @@ class InvoiceCard {
     this.outstandingAmount = 0.0,
     this.docstatusValue,
     this.isReturn = false,
+    this.subTerritory,
+    this.hasSubTerritories = false,
+    this.deliveryTrip,
+    this.shippingOverride,
+    this.shippingOverrideStatus,
   });
 
   factory InvoiceCard.fromJson(Map<String, dynamic> json) {
@@ -152,6 +163,13 @@ class InvoiceCard {
           ? json['docstatus_value'] as int
           : int.tryParse((json['docstatus_value'] ?? json['docstatusValue'] ?? '').toString()),
       isReturn: [1, true, '1', 'true', 'True'].contains(json['is_return']),
+      subTerritory: json['sub_territory']?.toString(),
+      hasSubTerritories: [1, true, '1', 'true', 'True'].contains(json['has_sub_territories']),
+      deliveryTrip: json['delivery_trip']?.toString(),
+      shippingOverride: json['shipping_override'] != null
+          ? (json['shipping_override'] as num).toDouble()
+          : null,
+      shippingOverrideStatus: json['shipping_override_status']?.toString(),
     );
   }
 
@@ -191,6 +209,11 @@ class InvoiceCard {
       'outstanding_amount': outstandingAmount,
       'docstatus_value': docstatusValue,
       'is_return': isReturn,
+      'sub_territory': subTerritory,
+      'has_sub_territories': hasSubTerritories,
+      'delivery_trip': deliveryTrip,
+      'shipping_override': shippingOverride,
+      'shipping_override_status': shippingOverrideStatus,
     };
   }
 
@@ -230,6 +253,11 @@ class InvoiceCard {
   double? outstandingAmount,
   int? docstatusValue,
   bool? isReturn,
+  String? subTerritory,
+  bool? hasSubTerritories,
+  String? deliveryTrip,
+  double? shippingOverride,
+  String? shippingOverrideStatus,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -267,6 +295,11 @@ class InvoiceCard {
       outstandingAmount: outstandingAmount ?? this.outstandingAmount,
       docstatusValue: docstatusValue ?? this.docstatusValue,
       isReturn: isReturn ?? this.isReturn,
+      subTerritory: subTerritory ?? this.subTerritory,
+      hasSubTerritories: hasSubTerritories ?? this.hasSubTerritories,
+      deliveryTrip: deliveryTrip ?? this.deliveryTrip,
+      shippingOverride: shippingOverride ?? this.shippingOverride,
+      shippingOverrideStatus: shippingOverrideStatus ?? this.shippingOverrideStatus,
     );
   }
 

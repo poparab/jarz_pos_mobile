@@ -15,6 +15,8 @@ import '../../../core/network/user_service.dart';
 import '../../manager/data/manager_api.dart';
 import 'settlement_preview_dialog.dart';
 import 'cancel_order_dialog.dart';
+import 'sub_territory_selection_sheet.dart';
+import 'custom_shipping_request_dialog.dart';
 import '../../printing/pos_printer_provider.dart';
 import '../../printing/pos_printer_service.dart';
 import '../../pos/order_alert/data/order_alert_service.dart';
@@ -521,6 +523,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               await _changeDeliverySlot(context);
             } else if (value == 'cancel_order') {
               await _cancelOrder(context);
+            } else if (value == 'request_custom_shipping') {
+              await _requestCustomShipping(context);
             }
           },
           itemBuilder: (context) => [
@@ -565,6 +569,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                       Icon(Icons.cancel_presentation, size: 18, color: widget.invoice.hasPartialPayment ? Colors.grey : Colors.redAccent),
                       const SizedBox(width: 8),
                       Text(widget.invoice.hasPartialPayment ? l10n.invoiceCancelOrderSettleFirst : l10n.cancelOrderTitle),
+                    ],
+                  ),
+                ),
+              if (!widget.invoice.isPickup)
+                PopupMenuItem(
+                  value: 'request_custom_shipping',
+                  child: Row(
+                    children: [
+                      Icon(Icons.local_shipping, size: 18, color: Colors.deepOrange[700]),
+                      const SizedBox(width: 8),
+                      const Text('Request Custom Shipping'),
                     ],
                   ),
                 ),
@@ -887,6 +902,63 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                         }),
                       ],
                     ),
+
+                    // Sub-territory chip
+                    if (widget.invoice.hasSubTerritories) ...[
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: transitioning ? null : () => _showSubTerritorySheet(context),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: widget.invoice.subTerritory != null && widget.invoice.subTerritory!.isNotEmpty
+                                ? Colors.blue.withValues(alpha: 0.1)
+                                : Colors.orange.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: widget.invoice.subTerritory != null && widget.invoice.subTerritory!.isNotEmpty
+                                  ? Colors.blue.withValues(alpha: 0.5)
+                                  : Colors.orange.withValues(alpha: 0.7),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                widget.invoice.subTerritory != null && widget.invoice.subTerritory!.isNotEmpty
+                                    ? Icons.location_on
+                                    : Icons.location_searching,
+                                size: 12,
+                                color: widget.invoice.subTerritory != null && widget.invoice.subTerritory!.isNotEmpty
+                                    ? Colors.blue
+                                    : Colors.orange,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                widget.invoice.subTerritory != null && widget.invoice.subTerritory!.isNotEmpty
+                                    ? widget.invoice.subTerritory!
+                                    : 'Select Sub-territory',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: widget.invoice.subTerritory != null && widget.invoice.subTerritory!.isNotEmpty
+                                      ? Colors.blue
+                                      : Colors.orange[800],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    // Custom shipping status badge
+                    if (widget.invoice.shippingOverrideStatus != null &&
+                        widget.invoice.shippingOverrideStatus!.isNotEmpty &&
+                        widget.invoice.shippingOverrideStatus != 'null') ...[
+                      const SizedBox(height: 4),
+                      _buildShippingOverrideBadge(widget.invoice.shippingOverrideStatus!, widget.invoice.shippingOverride),
+                    ],
                   ],
                 ),
               ),
@@ -1999,6 +2071,124 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ],
       ),
     );
+  }
+
+  Widget _buildShippingOverrideBadge(String status, double? amount) {
+    Color bgColor;
+    Color textColor;
+    IconData icon;
+    String label;
+
+    switch (status) {
+      case 'Pending':
+        bgColor = Colors.orange[50]!;
+        textColor = Colors.orange[800]!;
+        icon = Icons.hourglass_top;
+        label = 'Custom \$ Pending';
+        break;
+      case 'Approved':
+        bgColor = Colors.green[50]!;
+        textColor = Colors.green[700]!;
+        icon = Icons.check_circle;
+        label = amount != null ? 'Custom \$${amount.toStringAsFixed(2)}' : 'Custom \$ Approved';
+        break;
+      case 'Rejected':
+        bgColor = Colors.red[50]!;
+        textColor = Colors.red[700]!;
+        icon = Icons.cancel;
+        label = 'Custom \$ Rejected';
+        break;
+      default:
+        return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: textColor.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: textColor),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: textColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showSubTerritorySheet(BuildContext context) async {
+    final service = ref.read(kanbanServiceProvider);
+    final territory = widget.invoice.territory;
+    if (territory.isEmpty) return;
+
+    try {
+      final subTerritories = await service.getSubTerritories(territory);
+      if (!context.mounted) return;
+
+      final selected = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (ctx) => SubTerritorySelectionSheet(
+          territory: territory,
+          subTerritories: subTerritories,
+          currentSelection: widget.invoice.subTerritory,
+        ),
+      );
+
+      if (selected != null && selected.isNotEmpty && context.mounted) {
+        await service.setInvoiceSubTerritory(widget.invoice.id, selected);
+        // Refresh invoices to get updated data
+        ref.read(kanbanProvider.notifier).loadInvoices();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load sub-territories: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _requestCustomShipping(BuildContext context) async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (ctx) => CustomShippingRequestDialog(
+        invoiceName: widget.invoice.id,
+        currentShippingExpense: widget.invoice.shippingExpenseDisplay,
+      ),
+    );
+    if (result == null || !context.mounted) return;
+
+    try {
+      final service = ref.read(kanbanServiceProvider);
+      await service.requestCustomShipping(
+        invoiceName: widget.invoice.id,
+        amount: result['amount'] as double,
+        reason: result['reason'] as String,
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Custom shipping request submitted')),
+        );
+        ref.read(kanbanProvider.notifier).loadInvoices();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit request: $e')),
+        );
+      }
+    }
   }
 
   /// Edit customer address dialog

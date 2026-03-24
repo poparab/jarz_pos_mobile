@@ -207,4 +207,30 @@ abstract final class ApiEndpoints {
   // ── Settings ──────────────────────────────────────────────────────────
   static const getReceiptConfig =
       '/api/method/jarz_pos.api.pos.get_receipt_config';
+
+  // ── Sub-territories ───────────────────────────────────────────────────
+  static const getSubTerritories =
+      '/api/method/jarz_pos.api.territories.get_sub_territories';
+  static const setInvoiceSubTerritory =
+      '/api/method/jarz_pos.api.territories.set_invoice_sub_territory';
+
+  // ── Delivery Trips ────────────────────────────────────────────────────
+  static const createDeliveryTrip =
+      '/api/method/jarz_pos.api.trips.create_delivery_trip';
+  static const getDeliveryTrips =
+      '/api/method/jarz_pos.api.trips.get_delivery_trips';
+  static const getTripDetails =
+      '/api/method/jarz_pos.api.trips.get_trip_details';
+  static const sendTripForDelivery =
+      '/api/method/jarz_pos.api.trips.send_trip_for_delivery';
+
+  // ── Custom Shipping ───────────────────────────────────────────────────
+  static const requestCustomShipping =
+      '/api/method/jarz_pos.api.custom_shipping.request_custom_shipping';
+  static const approveCustomShipping =
+      '/api/method/jarz_pos.api.custom_shipping.approve_custom_shipping';
+  static const rejectCustomShipping =
+      '/api/method/jarz_pos.api.custom_shipping.reject_custom_shipping';
+  static const getPendingCustomShippingRequests =
+      '/api/method/jarz_pos.api.custom_shipping.get_pending_custom_shipping_requests';
 }

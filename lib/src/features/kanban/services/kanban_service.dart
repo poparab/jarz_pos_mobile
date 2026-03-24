@@ -831,5 +831,228 @@ class KanbanService {
       rethrow;
     }
   }
+
+  // ── Sub-territory methods ─────────────────────────────────────────────
+
+  /// Fetch child territories for a given parent territory
+  Future<List<Map<String, dynamic>>> getSubTerritories(String territory) async {
+    try {
+      _logger.info('Fetching sub-territories for $territory');
+      final resp = await _dio.get(
+        ApiEndpoints.getSubTerritories,
+        queryParameters: {'territory_name': territory},
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        return List<Map<String, dynamic>>.from(msg['data'] ?? []);
+      }
+      throw Exception(msg is Map ? msg['message'] ?? 'Failed' : 'Failed to fetch sub-territories');
+    } catch (e) {
+      _logger.error('Failed to get sub-territories', e);
+      rethrow;
+    }
+  }
+
+  /// Assign a sub-territory to an invoice
+  Future<Map<String, dynamic>> setInvoiceSubTerritory(String invoiceName, String subTerritory) async {
+    try {
+      _logger.info('Setting sub-territory $subTerritory on $invoiceName');
+      final resp = await _dio.post(
+        ApiEndpoints.setInvoiceSubTerritory,
+        data: {'invoice_name': invoiceName, 'sub_territory': subTerritory},
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? msg['message'] ?? 'Failed' : 'Failed to set sub-territory');
+    } catch (e) {
+      _logger.error('Failed to set sub-territory', e);
+      rethrow;
+    }
+  }
+
+  // ── Delivery Trip methods ─────────────────────────────────────────────
+
+  /// Create a delivery trip grouping the given invoices
+  Future<Map<String, dynamic>> createDeliveryTrip({
+    required List<String> invoiceNames,
+    required String partyType,
+    required String party,
+  }) async {
+    try {
+      _logger.info('Creating delivery trip with ${invoiceNames.length} invoices');
+      final resp = await _dio.post(
+        ApiEndpoints.createDeliveryTrip,
+        data: {
+          'invoice_names': json.encode(invoiceNames),
+          'party_type': partyType,
+          'party': party,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? msg['message'] ?? 'Failed' : 'Failed to create trip');
+    } catch (e) {
+      _logger.error('Failed to create delivery trip', e);
+      rethrow;
+    }
+  }
+
+  /// List delivery trips with optional filters
+  Future<List<Map<String, dynamic>>> getDeliveryTrips({
+    String? status,
+    String? courierParty,
+    String? dateFrom,
+    String? dateTo,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    try {
+      _logger.info('Fetching delivery trips');
+      final resp = await _dio.get(
+        ApiEndpoints.getDeliveryTrips,
+        queryParameters: {
+          if (status != null) 'status': status,
+          if (courierParty != null) 'courier_party': courierParty,
+          if (dateFrom != null) 'date_from': dateFrom,
+          if (dateTo != null) 'date_to': dateTo,
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        return List<Map<String, dynamic>>.from(msg['data'] ?? []);
+      }
+      throw Exception('Failed to fetch delivery trips');
+    } catch (e) {
+      _logger.error('Failed to get delivery trips', e);
+      rethrow;
+    }
+  }
+
+  /// Get full details of a delivery trip
+  Future<Map<String, dynamic>> getTripDetails(String tripName) async {
+    try {
+      _logger.info('Fetching trip details for $tripName');
+      final resp = await _dio.get(
+        ApiEndpoints.getTripDetails,
+        queryParameters: {'trip_name': tripName},
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        return Map<String, dynamic>.from(msg['trip'] ?? msg);
+      }
+      throw Exception('Failed to fetch trip details');
+    } catch (e) {
+      _logger.error('Failed to get trip details', e);
+      rethrow;
+    }
+  }
+
+  /// Send a delivery trip for delivery (bulk OFD)
+  Future<Map<String, dynamic>> sendTripForDelivery(String tripName) async {
+    try {
+      _logger.info('Sending trip $tripName for delivery');
+      final resp = await _dio.post(
+        ApiEndpoints.sendTripForDelivery,
+        data: {'trip_name': tripName},
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? msg['message'] ?? 'Failed' : 'Failed to send trip for delivery');
+    } catch (e) {
+      _logger.error('Failed to send trip for delivery', e);
+      rethrow;
+    }
+  }
+
+  // ── Custom Shipping methods ───────────────────────────────────────────
+
+  /// Request custom shipping for an invoice
+  Future<Map<String, dynamic>> requestCustomShipping({
+    required String invoiceName,
+    required double amount,
+    required String reason,
+  }) async {
+    try {
+      _logger.info('Requesting custom shipping for $invoiceName');
+      final resp = await _dio.post(
+        ApiEndpoints.requestCustomShipping,
+        data: {
+          'invoice_name': invoiceName,
+          'amount': amount,
+          'reason': reason,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? msg['message'] ?? 'Failed' : 'Failed to request custom shipping');
+    } catch (e) {
+      _logger.error('Failed to request custom shipping', e);
+      rethrow;
+    }
+  }
+
+  /// Approve a custom shipping request (manager only)
+  Future<Map<String, dynamic>> approveCustomShipping(String requestName) async {
+    try {
+      _logger.info('Approving custom shipping request $requestName');
+      final resp = await _dio.post(
+        ApiEndpoints.approveCustomShipping,
+        data: {'request_name': requestName},
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? msg['message'] ?? 'Failed' : 'Failed to approve');
+    } catch (e) {
+      _logger.error('Failed to approve custom shipping', e);
+      rethrow;
+    }
+  }
+
+  /// Reject a custom shipping request (manager only)
+  Future<Map<String, dynamic>> rejectCustomShipping(String requestName, {String reason = ''}) async {
+    try {
+      _logger.info('Rejecting custom shipping request $requestName');
+      final resp = await _dio.post(
+        ApiEndpoints.rejectCustomShipping,
+        data: {'request_name': requestName, 'rejection_reason': reason},
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? msg['message'] ?? 'Failed' : 'Failed to reject');
+    } catch (e) {
+      _logger.error('Failed to reject custom shipping', e);
+      rethrow;
+    }
+  }
+
+  /// Get pending custom shipping requests (manager dashboard)
+  Future<List<Map<String, dynamic>>> getPendingCustomShippingRequests() async {
+    try {
+      _logger.info('Fetching pending custom shipping requests');
+      final resp = await _dio.get(ApiEndpoints.getPendingCustomShippingRequests);
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        return List<Map<String, dynamic>>.from(msg['data'] ?? []);
+      }
+      throw Exception('Failed to fetch pending requests');
+    } catch (e) {
+      _logger.error('Failed to get pending custom shipping requests', e);
+      rethrow;
+    }
+  }
 }
 

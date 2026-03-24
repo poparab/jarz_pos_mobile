@@ -22,6 +22,7 @@ import '../features/expenses/presentation/expenses_screen.dart';
 import '../features/settings/presentation/user_profile_screen.dart';
 import '../features/shift/presentation/shift_start_screen.dart';
 import '../features/shift/presentation/shift_end_screen.dart';
+import '../features/trips/screens/trips_screen.dart';
 import 'network/user_service.dart';
 import '../features/shift/state/shift_notifier.dart';
 import '../features/shift/models/shift_models.dart';
@@ -206,6 +207,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.expenses,
         name: 'expenses',
         builder: (context, state) => const ExpensesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.trips,
+        name: 'trips',
+        builder: (context, state) => const TripsScreen(),
       ),
       GoRoute(
         path: AppRoutes.profile,
