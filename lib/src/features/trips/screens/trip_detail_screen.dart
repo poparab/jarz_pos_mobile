@@ -16,34 +16,43 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
   bool _sending = false;
 
   @override
-  void initState() {
-    super.initState();
-    ref.read(tripProvider.notifier).loadTripDetails(widget.tripName);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final state = ref.watch(tripProvider);
-    final trip = state.selectedTrip;
+    final detailAsync = ref.watch(tripDetailProvider(widget.tripName));
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.tripName)),
-      body: trip == null
-          ? state.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Center(child: Text(state.error ?? 'Trip not found'))
-          : RefreshIndicator(
-              onRefresh: () => ref.read(tripProvider.notifier).loadTripDetails(widget.tripName),
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _buildHeader(trip),
-                  const SizedBox(height: 16),
-                  _buildInvoiceList(trip),
-                ],
+      body: detailAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Error: $err', textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(tripDetailProvider(widget.tripName)),
+                child: const Text('Retry'),
               ),
-            ),
-      bottomNavigationBar: trip != null && trip.isCreated ? _buildSendBar(trip) : null,
+            ],
+          ),
+        ),
+        data: (trip) => RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(tripDetailProvider(widget.tripName));
+          },
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildHeader(trip),
+              const SizedBox(height: 16),
+              _buildInvoiceList(trip),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: detailAsync.whenOrNull(
+        data: (trip) => trip.isCreated ? _buildSendBar(trip) : null,
+      ),
     );
   }
 
@@ -235,6 +244,8 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
     try {
       await ref.read(tripProvider.notifier).sendForDelivery(trip.name);
       if (!mounted) return;
+      // Refresh the detail view
+      ref.invalidate(tripDetailProvider(widget.tripName));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Trip sent for delivery')),
       );

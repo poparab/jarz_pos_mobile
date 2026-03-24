@@ -17,6 +17,15 @@ final tripProvider = StateNotifierProvider<TripNotifier, TripState>((ref) {
   return TripNotifier(svc);
 });
 
+/// Isolated provider for a single trip's details.
+/// Uses autoDispose + family so each detail screen has independent loading state
+/// and no race with the trip-list provider.
+final tripDetailProvider =
+    FutureProvider.autoDispose.family<DeliveryTrip, String>((ref, tripName) async {
+  final svc = ref.watch(tripServiceProvider);
+  return svc.getTripDetails(tripName);
+});
+
 // ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
