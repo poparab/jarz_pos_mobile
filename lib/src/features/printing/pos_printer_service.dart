@@ -388,15 +388,20 @@ class PosPrinterService extends ChangeNotifier {
     try {
       await _loadReceiptConfig();
       final bytes = await _buildReceipt(inv);
+      // Use conservative chunking to avoid buffer overrun artifacts (especially with Arabic raster lines).
+      const chunk = 96;
       if (isConnected) {
-        const chunk = 180;
         for (int o = 0; o < bytes.length; o += chunk) {
           final part = bytes.sublist(o, (o + chunk).clamp(0, bytes.length));
           await _writeChar!.write(part, withoutResponse: true);
-          await Future.delayed(const Duration(milliseconds: 20));
+          await Future.delayed(const Duration(milliseconds: 30));
         }
       } else if (isClassicConnected) {
-        await ClassicPrinterChannel.instance.write(bytes);
+        for (int o = 0; o < bytes.length; o += chunk) {
+          final part = bytes.sublist(o, (o + chunk).clamp(0, bytes.length));
+          await ClassicPrinterChannel.instance.write(part);
+          await Future.delayed(const Duration(milliseconds: 25));
+        }
       }
       _setError(null);
       return PrintResult.success;
@@ -406,19 +411,31 @@ class PosPrinterService extends ChangeNotifier {
   Future<Uint8List> _buildReceipt(PrintableInvoice inv) async {
     final b = BytesBuilder();
     void esc(List<int> c) => b.add(Uint8List.fromList(c));
+    bool hasArabic(String s) => RegExp(r'[\u0600-\u06FF]').hasMatch(s);
     bool hasNonAscii(String s) => RegExp(r'[^\x00-\x7F]').hasMatch(s);
+    String normalizePrintable(String s) {
+      final cleaned = s
+          .replaceAll(RegExp(r'[^\x20-\x7E]'), ' ')
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
+      return cleaned;
+    }
     Future<void> text(String s, {bool bold=false, bool center=false}) async {
-      if (hasNonAscii(s)) {
+      if (hasArabic(s)) {
         await _addRasterText(b, s, bold: bold, center: center);
-      } else {
-        esc([0x1B, 0x4D, 0x01]); // Font B (smaller)
-        esc([0x1B,0x21,bold?0x20:0x00]);
-        esc([0x1B,0x61, center?0x01:0x00]);
-        b.add(utf8.encode(s)); esc([0x0A]);
+        return;
       }
+      final printable = hasNonAscii(s) ? normalizePrintable(s) : s;
+      if (printable.isEmpty) return;
+      esc([0x1B, 0x4D, 0x01]); // Font B (smaller)
+      esc([0x1B,0x21,bold?0x20:0x00]);
+      esc([0x1B,0x61, center?0x01:0x00]);
+      b.add(utf8.encode(printable));
+      esc([0x0A]);
     }
   void feed(int n) => esc([0x1B, 0x64, n.clamp(0, 255)]);
-  Future<void> hr() async { await text('-'*48); }
+  const lineChars = 32; // Safe width for common 58mm thermal printers.
+  Future<void> hr() async { await text('-' * lineChars); }
   // Removed invoice date display; eliminate unused date helpers.
     String shortInv(String full) {
       if (full.length <= 5) return full;
@@ -484,8 +501,8 @@ class PosPrinterService extends ChangeNotifier {
     .toList();
     // Column wrapping with independent line counts; each column keeps its own continuation lines.
     // Define max character widths assuming Font B monospaced-like width.
-    const leftWidthChars = 28;
-    const rightWidthChars = 28;
+    const leftWidthChars = 16;
+    const rightWidthChars = 16;
     // Build raw logical entries first.
     final leftEntries = <MapEntry<String,String>>[];
     leftEntries.add(MapEntry('Customer', inv.customer));
@@ -495,53 +512,39 @@ class PosPrinterService extends ChangeNotifier {
     // Delivery time will be rendered as its own full-width line after the columns, so omit from columns.
     final rightEntries = <MapEntry<String,String>>[];
     rightEntries.add(MapEntry('Inv No', shortInv(inv.id)));
-    // Arabic-only detection: if ALL values across both columns are Arabic (or mixed non-ASCII) we fallback to single-column raster lines
-    final allValues = [
-      ...leftEntries.map((e)=>e.value),
-      ...rightEntries.map((e)=>e.value),
-    ].where((v)=>v.trim().isNotEmpty).toList();
-    final containsArabic = allValues.any((v)=>RegExp(r'[\u0600-\u06FF]').hasMatch(v));
-    if (containsArabic) {
-      // Fallback: print each field on its own line as 'Label: Value' using raster (RTL aware in _addRasterText)
-      for (final e in leftEntries) {
-        await _addRasterText(b, '${e.key}: ${e.value}', center:false);
-      }
-      for (final e in rightEntries) {
-        await _addRasterText(b, '${e.key}: ${e.value}', center:false);
-      }
-    } else {
-      // Normal two-column path
-      final leftLines = <List<String>>[]; // list of segments per original entry
-      for (final e in leftEntries) { leftLines.add(wrapColumn(e.key, e.value, leftWidthChars)); }
-      final rightLines = <List<String>>[]; for (final e in rightEntries) { rightLines.add(wrapColumn(e.key, e.value, rightWidthChars)); }
-      int visualRows = 0;
-      final flatLeft = <String>[]; for (final segs in leftLines) { flatLeft.addAll(segs); }
-      final flatRight = <String>[]; for (final segs in rightLines) { flatRight.addAll(segs); }
-      visualRows = flatLeft.length > flatRight.length ? flatLeft.length : flatRight.length;
-      for (int i=0;i<visualRows;i++) {
-        final lVal = i < flatLeft.length ? flatLeft[i] : '';
-        final rVal = i < flatRight.length ? flatRight[i] : '';
-        await _twoColRow(b, lLabel: '', lValue: lVal, rLabel: '', rValue: rVal);
-      }
+    final leftLines = <List<String>>[];
+    for (final e in leftEntries) { leftLines.add(wrapColumn(e.key, e.value, leftWidthChars)); }
+    final rightLines = <List<String>>[];
+    for (final e in rightEntries) { rightLines.add(wrapColumn(e.key, e.value, rightWidthChars)); }
+    int visualRows = 0;
+    final flatLeft = <String>[];
+    for (final segs in leftLines) { flatLeft.addAll(segs); }
+    final flatRight = <String>[];
+    for (final segs in rightLines) { flatRight.addAll(segs); }
+    visualRows = flatLeft.length > flatRight.length ? flatLeft.length : flatRight.length;
+    for (int i=0;i<visualRows;i++) {
+      final lVal = i < flatLeft.length ? flatLeft[i] : '';
+      final rVal = i < flatRight.length ? flatRight[i] : '';
+      await _twoColRow(b, lLabel: '', lValue: lVal, rLabel: '', rValue: rVal);
     }
     // Delivery full-width line (like address) if present
     if (inv.deliveryDateTime != null) {
-      await _addRasterText(b, 'Delivery: ${formatDeliveryRange(inv.deliveryDateTime!)}', center: false);
+      await text('Delivery: ${formatDeliveryRange(inv.deliveryDateTime!)}');
     }
     // Print full address block left-aligned (raster for robustness with possible Unicode / wrapping).
     if (addressLines.isNotEmpty) {
       for (final line in addressLines) {
-        await _addRasterText(b, line, center: false);
+        await text(line);
       }
     }
     await hr();
 
     // BODY -----------------------------------------------------------
     // Column widths in characters (Font B monospace-ish). Names are wrapped, never truncated.
-    const nameW = 18;
-    const qtyW = 8;
-    const rateW = 10;
-    const amtW = 12;
+    const nameW = 16;
+    const qtyW = 4;
+    const rateW = 6;
+    const amtW = 6;
 
     List<String> wrapFixed(String s, int width) {
       if (s.isEmpty) return [''];
@@ -607,7 +610,7 @@ class PosPrinterService extends ChangeNotifier {
         await text(line);
       }
     }
-    await hr();
+    // Keep item section compact; avoid extra divider before totals.
     // Totals section: inv.total is authoritative grand total (already includes shipping income).
     // If shipping income > 0, show Subtotal = grand_total - shipping, then Shipping, then Total = grand_total.
     final grand = inv.total;
@@ -621,23 +624,28 @@ class PosPrinterService extends ChangeNotifier {
     }
     final statusPaid = inv.outstanding <= 0.0001;
     await text(_labelVal('Status', statusPaid ? InvoiceStatus.paidUpper : InvoiceStatus.unpaidUpper));
-    await hr();
+    // Status is enough separation from footer; skip extra divider for compact receipt.
 
     // FOOTER ---------------------------------------------------------
     await text(_receiptFooter, center:true);
     await text('Call us $_receiptPhone', center:true);
     await text(_receiptWebsite, center:true);
   // Add two cut guide lines so user can manually cut at the marked area
+  // Single guide line and a short feed keeps output compact while preserving cut space.
   await hr();
-  await hr();
-  // Add ~1cm gap (assuming ~8 dots/mm at 203dpi => ~80 dots). ESC/POS feed n is in lines; approximate using 8 lines (~1cm).
-  feed(8);
+  feed(3);
     esc([0x1D,0x56,0x42,0x00]); // cut
     return b.toBytes();
   }
 
   String _money(double v) => v.toStringAsFixed(2);
-  String _labelVal(String l,String v) { final ml=20; final x=l.length>ml?l.substring(0,ml):l; return '${x.padRight(30)}${v.padLeft(18)}'; }
+  String _labelVal(String l,String v) {
+    const ml = 18;
+    const totalW = 32;
+    final x = l.length > ml ? l.substring(0, ml) : l;
+    final left = x.padRight(totalW - v.length);
+    return '$left$v';
+  }
 
   // Removed legacy _kv and _wrap helpers (now unused after two-column redesign).
 
@@ -771,7 +779,8 @@ class PosPrinterService extends ChangeNotifier {
     final left = (lLabel.isNotEmpty ? '$lLabel: ' : '') + lValue;
     final right = (rLabel.isNotEmpty ? '$rLabel: ' : '') + rValue;
     final asciiOk = !RegExp(r'[^\x00-\x7F]').hasMatch(left + right);
-    const leftWidth = 28; const rightWidth = 28;
+    const leftWidth = 16;
+    const rightWidth = 16;
     String pad(String s, int w){ return s.length > w ? s.substring(0,w) : s.padRight(w); }
     if (asciiOk) {
       final line = pad(left.trimRight(), leftWidth) + pad(right.trimRight(), rightWidth);
