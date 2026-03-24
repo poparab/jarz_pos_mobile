@@ -7,6 +7,7 @@ import '../data/auth_repository.dart';
 import '../../../core/router.dart';
 import '../../../core/network/user_service.dart';
 import '../../manager/state/manager_providers.dart';
+import '../../shift/state/shift_notifier.dart';
 
 class LoginNotifier extends AsyncNotifier<bool> {
   @override
@@ -23,6 +24,7 @@ class LoginNotifier extends AsyncNotifier<bool> {
         ref.read(currentAuthStateProvider.notifier).state = true;
         // Invalidate auth state provider to refresh with new session
         ref.invalidate(authStateProvider);
+        ref.invalidate(activeShiftProvider);
         ref.invalidate(userRolesFutureProvider);
         ref.invalidate(isJarzManagerProvider);
         ref.invalidate(managerAccessProvider);
@@ -67,6 +69,7 @@ class LoginNotifier extends AsyncNotifier<bool> {
     await repo.logout();
     ref.read(currentAuthStateProvider.notifier).state = false;
     ref.invalidate(authStateProvider);
+    ref.invalidate(activeShiftProvider);
     ref.invalidate(userRolesFutureProvider);
     ref.invalidate(isJarzManagerProvider);
     ref.invalidate(managerAccessProvider);

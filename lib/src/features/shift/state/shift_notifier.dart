@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/shift_repository.dart';
 import '../models/shift_models.dart';
+import '../../pos/state/pos_notifier.dart';
 
 class ShiftState {
   final ShiftEntry? activeShift;
@@ -122,5 +123,9 @@ final shiftNotifierProvider = StateNotifierProvider<ShiftNotifier, ShiftState>((
 
 final activeShiftProvider = FutureProvider<ShiftEntry?>((ref) async {
   final repo = ref.watch(shiftRepositoryProvider);
-  return repo.getActiveShift();
+  final posState = ref.watch(posNotifierProvider);
+  final selectedProfile = (posState.selectedProfile?['name'] ?? '').toString();
+  return repo.getActiveShift(
+    posProfile: selectedProfile.isNotEmpty ? selectedProfile : null,
+  );
 });

@@ -166,7 +166,14 @@ class ShiftEntry {
       posProfile: (json['pos_profile'] ?? '').toString(),
       status: (json['status'] ?? '').toString(),
       openedByUser: (json['user'] ?? json['owner'] ?? json['created_by'] ?? '').toString(),
-      openedByName: (json['employee_name'] ?? json['full_name'] ?? json['user_fullname'] ?? '').toString(),
+      openedByName: (
+        json['employee_name'] ??
+        json['full_name'] ??
+        json['user_fullname'] ??
+        json['user_full_name'] ??
+        json['opened_by_name'] ??
+        ''
+      ).toString(),
       periodStartDate: parseDate(json['period_start_date']),
       balanceDetails: balances,
     );

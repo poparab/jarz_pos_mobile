@@ -31,8 +31,13 @@ class ShiftRepository {
     return Exception(error.toString());
   }
 
-  Future<ShiftEntry?> getActiveShift() async {
-    final response = await _dio.post(ApiEndpoints.getActiveShift, data: {});
+  Future<ShiftEntry?> getActiveShift({String? posProfile}) async {
+    final response = await _dio.post(
+      ApiEndpoints.getActiveShift,
+      data: {
+        if (posProfile != null && posProfile.isNotEmpty) 'pos_profile': posProfile,
+      },
+    );
     final message = response.data is Map ? response.data['message'] : null;
     if (message is Map) {
       return ShiftEntry.fromJson(Map<String, dynamic>.from(message));
