@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/widgets/app_drawer.dart';
 import '../models/trip_models.dart';
 import '../providers/trip_provider.dart';
 import 'trip_detail_screen.dart';
@@ -40,6 +41,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
     final state = ref.watch(tripProvider);
 
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(
         title: const Text('Delivery Trips'),
         bottom: TabBar(
