@@ -46,10 +46,10 @@ class ShiftNotifier extends StateNotifier<ShiftState> {
 
   final ShiftRepository _repository;
 
-  Future<ShiftEntry?> checkActiveShift() async {
+  Future<ShiftEntry?> checkActiveShift({String? posProfile}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final active = await _repository.getActiveShift();
+      final active = await _repository.getActiveShift(posProfile: posProfile);
       state = state.copyWith(activeShift: active, isLoading: false);
       return active;
     } catch (e) {
@@ -82,7 +82,7 @@ class ShiftNotifier extends StateNotifier<ShiftState> {
         posProfile: posProfile,
         openingBalances: openingBalances,
       );
-      final active = await _repository.getActiveShift();
+      final active = await _repository.getActiveShift(posProfile: posProfile);
       state = state.copyWith(activeShift: active, isLoading: false);
       return openingEntry;
     } catch (e) {
@@ -92,13 +92,13 @@ class ShiftNotifier extends StateNotifier<ShiftState> {
   }
 
   Future<ShiftSummary?> getCurrentShiftSummary() async {
-    final active = state.activeShift ?? await _repository.getActiveShift();
+    final active = state.activeShift;
     if (active == null) return null;
     return _repository.getShiftSummary(active.name);
   }
 
   Future<ShiftSummary?> endShift({required List<Map<String, dynamic>> closingBalances}) async {
-    final active = state.activeShift ?? await _repository.getActiveShift();
+    final active = state.activeShift;
     if (active == null) return null;
 
     state = state.copyWith(isLoading: true, clearError: true);

@@ -674,8 +674,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String shiftAlreadyOpenByAnotherBody(Object branch, Object user) {
-    return 'يوجد شيفت مفتوح بالفعل في $branch بدأه المستخدم $user.';
+    return 'نقطة البيع \"$branch\" بها شيفت مفتوح بدأه $user. يجب إغلاق هذا الشيفت أولاً.';
   }
+
+  @override
+  String get shiftRefresh => 'تحديث';
+
+  @override
+  String get shiftLogout => 'تسجيل الخروج';
 
   @override
   String get shiftSwitchToActiveProfile => 'التبديل لملف الشيفت المفتوح';

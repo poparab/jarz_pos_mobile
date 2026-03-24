@@ -134,6 +134,7 @@ class ShiftEntry {
   final String status;
   final String openedByUser;
   final String openedByName;
+  final bool isCurrentUser;
   final DateTime? periodStartDate;
   final List<ShiftBalanceDetail> balanceDetails;
 
@@ -143,6 +144,7 @@ class ShiftEntry {
     required this.status,
     this.openedByUser = '',
     this.openedByName = '',
+    this.isCurrentUser = true,
     this.periodStartDate,
     this.balanceDetails = const [],
   });
@@ -174,6 +176,7 @@ class ShiftEntry {
         json['opened_by_name'] ??
         ''
       ).toString(),
+      isCurrentUser: json['is_current_user'] == 1 || json['is_current_user'] == true,
       periodStartDate: parseDate(json['period_start_date']),
       balanceDetails: balances,
     );

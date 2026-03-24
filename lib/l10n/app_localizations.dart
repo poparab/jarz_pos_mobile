@@ -1241,14 +1241,26 @@ abstract class AppLocalizations {
   /// No description provided for @shiftAlreadyOpenByAnotherTitle.
   ///
   /// In en, this message translates to:
-  /// **'Shift already open'**
+  /// **'Shift Already Open'**
   String get shiftAlreadyOpenByAnotherTitle;
 
   /// No description provided for @shiftAlreadyOpenByAnotherBody.
   ///
   /// In en, this message translates to:
-  /// **'There is already an open shift in {branch} started by {user}.'**
+  /// **'POS Profile \"{branch}\" already has an open shift started by {user}. That shift must be closed before you can start a new one.'**
   String shiftAlreadyOpenByAnotherBody(Object branch, Object user);
+
+  /// No description provided for @shiftRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get shiftRefresh;
+
+  /// No description provided for @shiftLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get shiftLogout;
 
   /// No description provided for @shiftSwitchToActiveProfile.
   ///

@@ -299,14 +299,16 @@
   "shiftStatusActive": "Shift Active",
   "shiftStartedAt": "Started at {time}",
   "shiftProfileMismatch": "Active shift is on {activeProfile}. Selected profile is {selectedProfile}.",
-  "shiftAlreadyOpenByAnotherTitle": "Shift already open",
-  "shiftAlreadyOpenByAnotherBody": "There is already an open shift in {branch} started by {user}.",
+  "shiftAlreadyOpenByAnotherTitle": "Shift Already Open",
+  "shiftAlreadyOpenByAnotherBody": "POS Profile \"{branch}\" already has an open shift started by {user}. That shift must be closed before you can start a new one.",
   "@shiftAlreadyOpenByAnotherBody": {
     "placeholders": {
       "branch": {},
       "user": {}
     }
   },
+  "shiftRefresh": "Refresh",
+  "shiftLogout": "Logout",
   "shiftSwitchToActiveProfile": "Switch to active shift profile",
   "shiftGoToEnd": "Go to End Shift",
   "shiftAccountBalance": "Account Balance",

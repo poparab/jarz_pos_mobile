@@ -300,13 +300,15 @@
   "shiftStartedAt": "بدأ في {time}",
   "shiftProfileMismatch": "الشيفت المفتوح على {activeProfile} بينما الملف المختار هو {selectedProfile}.",
   "shiftAlreadyOpenByAnotherTitle": "الشيفت مفتوح بالفعل",
-  "shiftAlreadyOpenByAnotherBody": "يوجد شيفت مفتوح بالفعل في {branch} بدأه المستخدم {user}.",
+  "shiftAlreadyOpenByAnotherBody": "نقطة البيع \"{branch}\" بها شيفت مفتوح بدأه {user}. يجب إغلاق هذا الشيفت أولاً.",
   "@shiftAlreadyOpenByAnotherBody": {
     "placeholders": {
       "branch": {},
       "user": {}
     }
   },
+  "shiftRefresh": "تحديث",
+  "shiftLogout": "تسجيل الخروج",
   "shiftSwitchToActiveProfile": "التبديل لملف الشيفت المفتوح",
   "shiftGoToEnd": "اذهب إلى إنهاء الشيفت",
   "shiftAccountBalance": "رصيد الحساب",
