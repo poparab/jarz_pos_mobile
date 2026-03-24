@@ -20,8 +20,9 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    // Initial load
-    ref.read(tripProvider.notifier).loadTrips();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(tripProvider.notifier).ensureInitialTripsLoaded();
+    });
   }
 
   @override

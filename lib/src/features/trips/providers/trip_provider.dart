@@ -66,6 +66,7 @@ class TripState {
 
 class TripNotifier extends StateNotifier<TripState> {
   final TripService _service;
+  bool _didInitialAutoRetry = false;
 
   TripNotifier(this._service) : super(const TripState());
 
@@ -107,12 +108,31 @@ class TripNotifier extends StateNotifier<TripState> {
   }
 
   Future<void> loadTripDetails(String tripName) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      clearSelectedTrip: true,
+    );
     try {
       final trip = await _service.getTripDetails(tripName);
       state = state.copyWith(selectedTrip: trip, isLoading: false);
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
+    }
+  }
+
+  Future<void> ensureInitialTripsLoaded() async {
+    if (state.trips.isNotEmpty || state.isLoading) {
+      return;
+    }
+
+    await loadTrips();
+
+    // One automatic retry helps when first call races session/profile initialization.
+    if ((state.trips.isEmpty || state.error != null) && !_didInitialAutoRetry) {
+      _didInitialAutoRetry = true;
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await loadTrips();
     }
   }
 

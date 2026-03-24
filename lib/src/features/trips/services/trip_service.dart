@@ -59,7 +59,8 @@ class TripService {
       );
       final msg = resp.data['message'];
       if (msg is Map && msg['success'] == true) {
-        return (msg['data'] as List? ?? [])
+        final listRaw = msg['data'] ?? msg['trips'] ?? [];
+        return (listRaw as List? ?? [])
             .map((e) => DeliveryTrip.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
       }
@@ -78,7 +79,11 @@ class TripService {
       );
       final msg = resp.data['message'];
       if (msg is Map && msg['success'] == true) {
-        return DeliveryTrip.fromJson(Map<String, dynamic>.from(msg['trip'] as Map));
+        final tripRaw = msg['trip'] ?? msg['data'] ?? msg;
+        if (tripRaw is Map) {
+          return DeliveryTrip.fromJson(Map<String, dynamic>.from(tripRaw));
+        }
+        throw Exception('Trip payload is missing');
       }
       throw Exception('Failed to fetch trip details');
     } catch (e) {

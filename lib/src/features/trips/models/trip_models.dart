@@ -32,6 +32,14 @@ class DeliveryTrip {
   });
 
   factory DeliveryTrip.fromJson(Map<String, dynamic> json) {
+    final invoicesRaw = json['invoices'];
+    final invoicesList = invoicesRaw is List
+        ? invoicesRaw
+            .whereType<Map>()
+            .map((e) => TripInvoice.fromJson(Map<String, dynamic>.from(e)))
+            .toList()
+        : <TripInvoice>[];
+
     return DeliveryTrip(
       name: (json['name'] ?? '').toString(),
       tripDate: (json['trip_date'] ?? '').toString(),
@@ -41,16 +49,11 @@ class DeliveryTrip {
       status: (json['status'] ?? 'Created').toString(),
       isDoubleShipping: [1, true, '1', 'true'].contains(json['is_double_shipping']),
       doubleShippingTerritory: json['double_shipping_territory']?.toString(),
-      totalOrders: (json['total_orders'] ?? 0) is int
-          ? json['total_orders'] as int
-          : int.tryParse(json['total_orders']?.toString() ?? '0') ?? 0,
-      totalAmount: (json['total_amount'] ?? 0).toDouble(),
-      totalShippingExpense: (json['total_shipping_expense'] ?? 0).toDouble(),
+      totalOrders: _toInt(json['total_orders']),
+      totalAmount: _toDouble(json['total_amount']),
+      totalShippingExpense: _toDouble(json['total_shipping_expense']),
       notes: json['notes']?.toString(),
-      invoices: (json['invoices'] as List?)
-              ?.map((e) => TripInvoice.fromJson(Map<String, dynamic>.from(e as Map)))
-              .toList() ??
-          [],
+      invoices: invoicesList,
     );
   }
 
@@ -84,9 +87,22 @@ class TripInvoice {
       customerName: (json['customer_name'] ?? '').toString(),
       territory: (json['territory'] ?? '').toString(),
       subTerritory: json['sub_territory']?.toString(),
-      grandTotal: (json['grand_total'] ?? 0).toDouble(),
-      shippingExpense: (json['shipping_expense'] ?? 0).toDouble(),
+      grandTotal: _toDouble(json['grand_total']),
+      shippingExpense: _toDouble(json['shipping_expense']),
       invoiceStatus: (json['invoice_status'] ?? '').toString(),
     );
   }
+}
+
+double _toDouble(dynamic value) {
+  if (value is num) return value.toDouble();
+  if (value == null) return 0;
+  return double.tryParse(value.toString()) ?? 0;
+}
+
+int _toInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value == null) return 0;
+  return int.tryParse(value.toString()) ?? 0;
 }
