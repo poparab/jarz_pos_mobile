@@ -682,6 +682,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shiftSwitchToActiveProfile => 'Switch to active shift profile';
 
   @override
+  String shiftOpenOnOtherProfile(Object otherProfile, Object shiftName) {
+    return 'You have an open shift ($shiftName) on profile \"$otherProfile\". Close that shift before starting a new one here.';
+  }
+
+  @override
   String get shiftGoToEnd => 'Go to End Shift';
 
   @override

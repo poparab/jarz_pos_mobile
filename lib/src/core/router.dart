@@ -63,7 +63,10 @@ final routerProvider = Provider<GoRouter>((ref) {
   final isAuthenticated = authState;
   final requirePosShift = ref.watch(requirePosShiftProvider);
   final activeShiftAsync = ref.watch(activeShiftProvider);
-  final posState = ref.watch(posNotifierProvider);
+  // Only watch selectedProfile – avoids recreating GoRouter on every cart/item change.
+  final selectedProfile = ref.watch(
+    posNotifierProvider.select((s) => s.selectedProfile),
+  );
 
   // Expose a RouteObserver so screens can respond to navigation lifecycle (e.g., refresh on return)
   // Keep a single observer instance; safe to reuse across router rebuilds
@@ -84,7 +87,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isAuthenticated && isOnLogin) return AppRoutes.pos;
 
       // Ensure POS profile is selected before shift flow.
-      final hasSelectedProfile = posState.selectedProfile != null;
+      final hasSelectedProfile = selectedProfile != null;
       if (isAuthenticated && !hasSelectedProfile && location != AppRoutes.pos) {
         return AppRoutes.pos;
       }
@@ -95,27 +98,27 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // Global shift gating: only after POS profile is selected.
+      // Each POS profile is independent – shifts on other profiles are irrelevant.
       if (isAuthenticated && hasSelectedProfile && requirePosShift) {
         final activeShift = activeShiftAsync.valueOrNull;
-        final selectedProfileName = (posState.selectedProfile?['name'] ?? '').toString();
-        final hasActiveShiftForSelectedProfile =
-            activeShift != null && activeShift.posProfile == selectedProfileName;
-        final isCurrentUserShift = hasActiveShiftForSelectedProfile && activeShift.isCurrentUser;
+        final selectedProfileName = (selectedProfile['name'] ?? '').toString();
         final isActiveShiftKnown = !activeShiftAsync.isLoading;
 
-        // No active shift for this profile: force Start Shift.
-        if (isActiveShiftKnown && !hasActiveShiftForSelectedProfile && !isOnShiftStart) {
-          return AppRoutes.shiftStart;
-        }
+        // While shift data is loading/refreshing, don't redirect.
+        if (!isActiveShiftKnown) return null;
 
-        // Same user + same profile: skip Start Shift, go to POS.
-        if (isCurrentUserShift && isOnShiftStart) {
-          return AppRoutes.pos;
-        }
+        final hasShiftForProfile = activeShift != null &&
+            activeShift.posProfile == selectedProfileName;
 
-        // Different user + same profile: force Start Shift to show blocking message.
-        if (hasActiveShiftForSelectedProfile && !isCurrentUserShift && !isOnShiftStart) {
-          return AppRoutes.shiftStart;
+        if (!hasShiftForProfile) {
+          // No shift on this profile → force Start Shift.
+          if (!isOnShiftStart) return AppRoutes.shiftStart;
+        } else if (activeShift.isCurrentUser) {
+          // Same user + same profile → go to POS.
+          if (isOnShiftStart) return AppRoutes.pos;
+        } else {
+          // Different user + same profile → block on Start Shift.
+          if (!isOnShiftStart) return AppRoutes.shiftStart;
         }
       }
 

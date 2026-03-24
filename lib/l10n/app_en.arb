@@ -310,6 +310,13 @@
   "shiftRefresh": "Refresh",
   "shiftLogout": "Logout",
   "shiftSwitchToActiveProfile": "Switch to active shift profile",
+  "shiftOpenOnOtherProfile": "You have an open shift ({shiftName}) on profile \"{otherProfile}\". Close that shift before starting a new one here.",
+  "@shiftOpenOnOtherProfile": {
+    "placeholders": {
+      "otherProfile": {},
+      "shiftName": {}
+    }
+  },
   "shiftGoToEnd": "Go to End Shift",
   "shiftAccountBalance": "Account Balance",
   "shiftDifference": "Difference",

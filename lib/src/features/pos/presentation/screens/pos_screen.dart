@@ -147,7 +147,6 @@ class _PosScreenState extends ConsumerState<PosScreen>
     final state = ref.watch(posNotifierProvider);
     final requirePosShift = ref.watch(requirePosShiftProvider);
     final activeShiftAsync = ref.watch(activeShiftProvider);
-    final selectedProfileName = (state.selectedProfile?['name'] ?? '').toString();
     // Enforce POS profile selection: show startup popup chooser on entry
     if (state.selectedProfile == null) {
       if (state.isLoading) {
@@ -210,11 +209,10 @@ class _PosScreenState extends ConsumerState<PosScreen>
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    if (requirePosShift) {
-      final activeShift = activeShiftAsync.valueOrNull;
-      if (activeShift != null && activeShift.posProfile != selectedProfileName) {
-        return _buildShiftProfileMismatch(context, activeShift, selectedProfileName);
-      }
+    // While shift data is still loading after a profile switch, show a spinner
+    // instead of flashing the POS UI then redirecting.
+    if (requirePosShift && activeShiftAsync.isLoading && !activeShiftAsync.hasValue) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final isPhone = ResponsiveUtils.isPhone(context);
@@ -227,7 +225,10 @@ class _PosScreenState extends ConsumerState<PosScreen>
       ref: ref,
       context: context,
     );
-    final matchedActiveShift = requirePosShift ? activeShiftAsync.valueOrNull : null;
+    // Only show shift banner when data is settled (not loading/stale).
+    final matchedActiveShift = (requirePosShift && !activeShiftAsync.isLoading)
+        ? activeShiftAsync.valueOrNull
+        : null;
 
     // ── Phone: scroll-to-hide header + FAB ──────────────────────────
     if (isPhone) {
@@ -368,74 +369,6 @@ class _PosScreenState extends ConsumerState<PosScreen>
         ),
       ),
     );
-  }
-
-  Widget _buildShiftProfileMismatch(
-    BuildContext context,
-    dynamic activeShift,
-    String selectedProfileName,
-  ) {
-    final l10n = context.l10n;
-    final activeProfile = (activeShift.posProfile).toString();
-    final fallbackName = stateSafeSelectedName(selectedProfileName, l10n);
-
-    return Scaffold(
-      key: _scaffoldKey,
-      drawer: const AppDrawer(),
-      appBar: AppBar(
-        title: Text(l10n.menuPointOfSale),
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  size: 56,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  l10n.shiftProfileMismatch(activeProfile, fallbackName),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 20),
-                FilledButton.icon(
-                  onPressed: () => context.go(AppRoutes.shiftEnd),
-                  icon: const Icon(Icons.timer_off),
-                  label: Text(l10n.shiftGoToEnd),
-                ),
-                const SizedBox(height: 10),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    final profiles = ref.read(posNotifierProvider).profiles;
-                    final target = profiles.firstWhere(
-                      (p) => (p['name'] ?? '').toString() == activeProfile,
-                      orElse: () => <String, dynamic>{},
-                    );
-                    if (target.isNotEmpty) {
-                      ref.read(posNotifierProvider.notifier).selectProfile(target);
-                    }
-                  },
-                  icon: const Icon(Icons.swap_horiz),
-                  label: Text(l10n.shiftSwitchToActiveProfile),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  String stateSafeSelectedName(String selectedProfileName, dynamic l10n) {
-    if (selectedProfileName.isNotEmpty) return selectedProfileName;
-    return l10n.posProfileSelectionShortFallback;
   }
 
   /// Build responsive layout that adapts to screen size.

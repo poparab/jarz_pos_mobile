@@ -687,6 +687,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shiftSwitchToActiveProfile => 'التبديل لملف الشيفت المفتوح';
 
   @override
+  String shiftOpenOnOtherProfile(Object otherProfile, Object shiftName) {
+    return 'لديك شيفت مفتوح ($shiftName) على ملف \"$otherProfile\". أغلق هذا الشيفت أولاً قبل بدء شيفت جديد هنا.';
+  }
+
+  @override
   String get shiftGoToEnd => 'اذهب إلى إنهاء الشيفت';
 
   @override

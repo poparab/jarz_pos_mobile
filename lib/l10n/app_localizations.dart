@@ -1268,6 +1268,12 @@ abstract class AppLocalizations {
   /// **'Switch to active shift profile'**
   String get shiftSwitchToActiveProfile;
 
+  /// No description provided for @shiftOpenOnOtherProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'You have an open shift ({shiftName}) on profile \"{otherProfile}\". Close that shift before starting a new one here.'**
+  String shiftOpenOnOtherProfile(Object otherProfile, Object shiftName);
+
   /// No description provided for @shiftGoToEnd.
   ///
   /// In en, this message translates to:

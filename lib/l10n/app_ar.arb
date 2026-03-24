@@ -310,6 +310,13 @@
   "shiftRefresh": "تحديث",
   "shiftLogout": "تسجيل الخروج",
   "shiftSwitchToActiveProfile": "التبديل لملف الشيفت المفتوح",
+  "shiftOpenOnOtherProfile": "لديك شيفت مفتوح ({shiftName}) على ملف \"{otherProfile}\". أغلق هذا الشيفت أولاً قبل بدء شيفت جديد هنا.",
+  "@shiftOpenOnOtherProfile": {
+    "placeholders": {
+      "otherProfile": {},
+      "shiftName": {}
+    }
+  },
   "shiftGoToEnd": "اذهب إلى إنهاء الشيفت",
   "shiftAccountBalance": "رصيد الحساب",
   "shiftDifference": "الفرق",

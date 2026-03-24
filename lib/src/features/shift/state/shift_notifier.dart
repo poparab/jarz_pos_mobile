@@ -123,8 +123,10 @@ final shiftNotifierProvider = StateNotifierProvider<ShiftNotifier, ShiftState>((
 
 final activeShiftProvider = FutureProvider<ShiftEntry?>((ref) async {
   final repo = ref.watch(shiftRepositoryProvider);
-  final posState = ref.watch(posNotifierProvider);
-  final selectedProfile = (posState.selectedProfile?['name'] ?? '').toString();
+  // Only watch the profile name – avoid rebuilding on every cart / item / customer change.
+  final selectedProfile = ref.watch(
+    posNotifierProvider.select((s) => (s.selectedProfile?['name'] ?? '').toString()),
+  );
   return repo.getActiveShift(
     posProfile: selectedProfile.isNotEmpty ? selectedProfile : null,
   );

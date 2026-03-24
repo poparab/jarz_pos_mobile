@@ -57,6 +57,15 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       );
       return;
     }
+
+    // Skip cancelled invoices (kanban column or ERPNext status)
+    final invoiceState = alert.salesInvoiceState?.toLowerCase() ?? '';
+    if (invoiceState == 'cancelled') {
+      _logger.warning(
+        "Alert for ${alert.invoiceId} is Cancelled (state: ${alert.salesInvoiceState}). Skipping enqueue."
+      );
+      return;
+    }
     
     await OrderAlertNativeChannel.ensureInitialised();
     final currentQueue = List<InvoiceAlert>.from(state.queue);
@@ -183,9 +192,14 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     }
     _loadingPending = true;
     try {
-      final alerts = await _service.getPendingAlerts();
+      final rawAlerts = await _service.getPendingAlerts();
+      // Filter out cancelled invoices client-side as a safety net
+      final alerts = rawAlerts.where((a) {
+        final st = a.salesInvoiceState?.toLowerCase() ?? '';
+        return st != 'cancelled';
+      }).toList();
       final now = DateTime.now();
-      _logger.info("syncPendingAlerts fetched ${alerts.length} alerts from server");
+      _logger.info("syncPendingAlerts fetched ${rawAlerts.length} alerts, ${alerts.length} after filtering cancelled");
       
       if (alerts.isEmpty) {
         _logger.info("No pending alerts from server, clearing local queue and stopping alarm");

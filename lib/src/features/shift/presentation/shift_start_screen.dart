@@ -56,8 +56,8 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
         posProfile != null &&
         activeShift.posProfile == posProfile;
 
-    // Same user owns the active shift → auto-redirect to POS (router handles
-    // this too, but guard here to avoid any flicker).
+    // Same user owns the active shift on THIS profile → auto-redirect to POS
+    // (router handles this too, but guard here to avoid any flicker).
     if (hasActiveShiftForProfile && activeShift.isCurrentUser) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.go(AppRoutes.pos);
@@ -65,8 +65,8 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // Different user owns the active shift → blocking message.
-    final hasBlockingOpenShift = hasActiveShiftForProfile && !activeShift.isCurrentUser;
+    // Different user owns the active shift on THIS profile → blocking message.
+    final hasBlockingOpenShift = hasActiveShiftForProfile && !activeShift!.isCurrentUser;
 
     if (posProfile == null && !posState.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
