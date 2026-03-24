@@ -176,6 +176,13 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       // Listen for kanban state change updates
       _kanbanSub = _wsService?.kanbanUpdates.listen((event) {
         final invoiceId = event['invoice'] as String? ?? event['invoice_id'] as String?;
+        final eventName = (event['event'] ?? '').toString().toLowerCase();
+
+        if (eventName.contains('custom_shipping') || eventName.contains('trip_')) {
+          loadInvoices();
+          return;
+        }
+
         // Pre-payment collect prompt for Sales Partner unpaid flow
         try {
           final mode = (event['mode'] ?? '').toString();

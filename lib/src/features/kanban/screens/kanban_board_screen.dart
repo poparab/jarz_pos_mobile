@@ -8,6 +8,7 @@ import '../../../core/constants/business_constants.dart';
 import '../providers/kanban_provider.dart';
 import '../models/kanban_models.dart';
 import '../widgets/kanban_column_widget.dart';
+import '../widgets/invoice_card_widget.dart';
 import '../widgets/kanban_filters_widget.dart';
 import '../widgets/payment_receipt_list_dialog.dart';
 import '../../pos/state/pos_notifier.dart';
@@ -19,6 +20,9 @@ import '../../../core/utils/responsive_utils.dart';
 import '../widgets/settlement_preview_dialog.dart';
 import '../../printing/pos_printer_provider.dart';
 import '../../printing/printer_status.dart';
+import '../../trips/providers/trip_provider.dart';
+import '../../trips/widgets/create_trip_dialog.dart';
+import '../../trips/widgets/trip_group_card.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/branch_filter_dialog.dart';
 import '../../../core/localization/localization_extensions.dart';
@@ -61,6 +65,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final notifier = ref.read(kanbanProvider.notifier);
       notifier.loadInvoices();
+      ref.read(tripProvider.notifier).loadTrips();
       // Proactively load POS profiles so branch filter is available immediately
       final posState = ref.read(posNotifierProvider);
       if (!posState.isLoading && posState.profiles.isEmpty) {
@@ -370,6 +375,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   }
 
   Widget _buildKanbanContent(KanbanState kanbanState) {
+    final tripState = ref.watch(tripProvider);
+
     if (kanbanState.isLoading && kanbanState.columns.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -434,50 +441,210 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       );
     }
 
-    return ScrollConfiguration(
-      behavior: const _KanbanScrollBehavior(),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(), // Allow pull-to-refresh
-            child: SizedBox(
-              height: constraints.maxHeight,
-              child: Scrollbar(
-                controller: _horizontalScrollController,
-                thumbVisibility: true,
-                thickness: 8,
-                radius: const Radius.circular(12),
-                child: SingleChildScrollView(
-                  controller: _horizontalScrollController,
-                  scrollDirection: Axis.horizontal,
-                  physics: _allowHScroll ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      for (final column in kanbanState.columns) ...[
-                        Container(
-                          width: 300,
-                          margin: const EdgeInsetsDirectional.only(end: 16),
-                          child: KanbanColumnWidget(
-                            column: column,
-                            invoices: kanbanState.invoices[column.id] ?? const [],
-                            canAcceptMove: _canAcceptCardMove,
-                            onCardMoved: (invoiceId, fromColumnId, newColumnId) =>
-                                _handleCardMove(invoiceId, fromColumnId, newColumnId),
-                            onCardPointerActive: (active) => _setScrollActive(!active),
-                          ),
-                        )
-                      ]
-                    ],
+    return Stack(
+      children: [
+        ScrollConfiguration(
+          behavior: const _KanbanScrollBehavior(),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(), // Allow pull-to-refresh
+                child: SizedBox(
+                  height: constraints.maxHeight,
+                  child: Scrollbar(
+                    controller: _horizontalScrollController,
+                    thumbVisibility: true,
+                    thickness: 8,
+                    radius: const Radius.circular(12),
+                    child: SingleChildScrollView(
+                      controller: _horizontalScrollController,
+                      scrollDirection: Axis.horizontal,
+                      physics: _allowHScroll ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (final column in kanbanState.columns) ...[
+                            Builder(
+                              builder: (context) {
+                                final invoices = kanbanState.invoices[column.id] ?? const <InvoiceCard>[];
+                                final isReady = _isReadyColumn(column);
+                                final isOFD = _isOutForDeliveryColumn(column);
+                                return Container(
+                                  width: 300,
+                                  margin: const EdgeInsetsDirectional.only(end: 16),
+                                  child: KanbanColumnWidget(
+                                    column: column,
+                                    invoices: invoices,
+                                    canAcceptMove: _canAcceptCardMove,
+                                    onCardMoved: (invoiceId, fromColumnId, newColumnId) =>
+                                        _handleCardMove(invoiceId, fromColumnId, newColumnId),
+                                    onCardPointerActive: (active) => _setScrollActive(!active),
+                                    headerAction: isReady
+                                        ? IconButton(
+                                            tooltip: tripState.multiSelectActive ? 'Exit Selection' : 'Select Orders',
+                                            icon: Icon(
+                                              tripState.multiSelectActive ? Icons.close : Icons.checklist,
+                                              size: 18,
+                                            ),
+                                            onPressed: () {
+                                              ref.read(tripProvider.notifier).toggleMultiSelect();
+                                            },
+                                          )
+                                        : null,
+                                    selectionMode: isReady && tripState.multiSelectActive,
+                                    selectedInvoiceIds: isReady ? tripState.selectedInvoiceIds : const <String>{},
+                                    onToggleInvoiceSelection: isReady
+                                        ? (id) => ref.read(tripProvider.notifier).toggleInvoiceSelection(id)
+                                        : null,
+                                    customListBuilder: isOFD
+                                        ? (ctx, ofdInvoices) => _buildOFDTripGroupedList(ofdInvoices, tripState)
+                                        : null,
+                                  ),
+                                );
+                              },
+                            )
+                          ]
+                        ],
+                      ),
+                    ),
                   ),
                 ),
+              );
+            },
+          ),
+        ),
+        if (tripState.multiSelectActive) _buildTripSelectionBar(kanbanState, tripState),
+      ],
+    );
+  }
+
+  Widget _buildOFDTripGroupedList( List<InvoiceCard> invoices, TripState tripState) {
+    if (invoices.isEmpty) {
+      return const Center(child: Text('No invoices'));
+    }
+
+    final grouped = <String, List<InvoiceCard>>{};
+    final nonTrip = <InvoiceCard>[];
+    for (final inv in invoices) {
+      final tripName = (inv.deliveryTrip ?? '').trim();
+      if (tripName.isEmpty) {
+        nonTrip.add(inv);
+      } else {
+        grouped.putIfAbsent(tripName, () => <InvoiceCard>[]).add(inv);
+      }
+    }
+
+    String courierLabelFor(String tripName) {
+      for (final t in tripState.trips) {
+        if (t.name == tripName) {
+          return t.courierDisplayName;
+        }
+      }
+      return 'Courier';
+    }
+
+    bool isDoubleShipping(String tripName) {
+      for (final t in tripState.trips) {
+        if (t.name == tripName) {
+          return t.isDoubleShipping;
+        }
+      }
+      return false;
+    }
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4).copyWith(bottom: 2),
+      children: [
+        for (final entry in grouped.entries)
+          TripGroupCard(
+            tripName: entry.key,
+            courierDisplayName: courierLabelFor(entry.key),
+            isDoubleShipping: isDoubleShipping(entry.key),
+            invoices: entry.value,
+          ),
+        for (final inv in nonTrip)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTripSelectionBar(KanbanState kanbanState, TripState tripState) {
+    final selectedInvoices = _selectedReadyInvoices(kanbanState, tripState.selectedInvoiceIds);
+    return Positioned(
+      left: 16,
+      right: 16,
+      bottom: 16,
+      child: Card(
+        elevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${selectedInvoices.length} orders selected',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
-            ),
-          );
-        },
+              TextButton(
+                onPressed: () => ref.read(tripProvider.notifier).clearSelection(),
+                child: const Text('Clear'),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                onPressed: selectedInvoices.isEmpty ? null : () => _createTripFromSelection(selectedInvoices),
+                icon: const Icon(Icons.local_shipping),
+                label: const Text('Create Trip'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  List<InvoiceCard> _selectedReadyInvoices(KanbanState kanbanState, Set<String> selectedIds) {
+    KanbanColumn? readyColumn;
+    for (final col in kanbanState.columns) {
+      if (_isReadyColumn(col)) {
+        readyColumn = col;
+        break;
+      }
+    }
+    if (readyColumn == null) return const <InvoiceCard>[];
+    final readyInvoices = kanbanState.invoices[readyColumn.id] ?? const <InvoiceCard>[];
+    return readyInvoices.where((inv) => selectedIds.contains(inv.id)).toList();
+  }
+
+  bool _isReadyColumn(KanbanColumn column) {
+    final id = column.id.trim().toLowerCase().replaceAll(' ', '_');
+    final name = column.name.trim().toLowerCase().replaceAll(' ', '_');
+    return id == 'ready' || name == 'ready';
+  }
+
+  bool _isOutForDeliveryColumn(KanbanColumn column) {
+    final id = column.id.trim().toLowerCase().replaceAll(' ', '_');
+    final name = column.name.trim().toLowerCase().replaceAll(' ', '_');
+    return id == 'out_for_delivery' || name == 'out_for_delivery';
+  }
+
+  Future<void> _createTripFromSelection(List<InvoiceCard> selectedInvoices) async {
+    final created = await showDialog<dynamic>(
+      context: context,
+      builder: (_) => CreateTripDialog(selectedInvoices: selectedInvoices),
+    );
+    if (!mounted || created == null) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Delivery trip created successfully')),
+    );
+    await ref.read(kanbanProvider.notifier).loadInvoices();
+    await ref.read(tripProvider.notifier).loadTrips();
   }
 
   Future<void> _handleCardMove(

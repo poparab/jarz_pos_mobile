@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/features/kanban/services/notification_polling_service.dart';
 import '../../../helpers/mock_services.dart';

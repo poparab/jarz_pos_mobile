@@ -56,6 +56,44 @@ class ManagerApi {
       throw Exception('Failed to update branch');
     }
   }
+
+  Future<List<CustomShippingRequest>> getPendingCustomShippingRequests() async {
+    final resp = await _dio.get(ApiEndpoints.getPendingCustomShippingRequests);
+    final data = resp.data is String ? json.decode(resp.data) : resp.data;
+    final msg = data['message'] ?? data;
+    final ok = (msg is Map<String, dynamic>) ? (msg['success'] == true) : false;
+    if (!ok) {
+      throw Exception('Failed to fetch pending custom shipping requests');
+    }
+    final list = (msg['data'] as List<dynamic>? ?? const []);
+    return list
+        .map((j) => CustomShippingRequest.fromJson(j as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> approveCustomShipping(String requestName) async {
+    final resp = await _dio.post(
+      ApiEndpoints.approveCustomShipping,
+      data: {'request_name': requestName},
+    );
+    final data = resp.data is String ? json.decode(resp.data) : resp.data;
+    final msg = data['message'] ?? data;
+    if (!((msg is Map<String, dynamic>) && msg['success'] == true)) {
+      throw Exception((msg is Map<String, dynamic>) ? (msg['message'] ?? 'Failed to approve') : 'Failed to approve');
+    }
+  }
+
+  Future<void> rejectCustomShipping(String requestName, {String reason = ''}) async {
+    final resp = await _dio.post(
+      ApiEndpoints.rejectCustomShipping,
+      data: {'request_name': requestName, 'rejection_reason': reason},
+    );
+    final data = resp.data is String ? json.decode(resp.data) : resp.data;
+    final msg = data['message'] ?? data;
+    if (!((msg is Map<String, dynamic>) && msg['success'] == true)) {
+      throw Exception((msg is Map<String, dynamic>) ? (msg['message'] ?? 'Failed to reject') : 'Failed to reject');
+    }
+  }
 }
 
 class DashboardSummary {
@@ -118,4 +156,42 @@ class ManagerInvoice {
         status: json['status'] as String,
         branch: json['branch'] as String,
       );
+}
+
+class CustomShippingRequest {
+  final String name;
+  final String invoice;
+  final String customerName;
+  final String territory;
+  final double originalAmount;
+  final double requestedAmount;
+  final String reason;
+  final String requestedBy;
+  final String requestedOn;
+
+  CustomShippingRequest({
+    required this.name,
+    required this.invoice,
+    required this.customerName,
+    required this.territory,
+    required this.originalAmount,
+    required this.requestedAmount,
+    required this.reason,
+    required this.requestedBy,
+    required this.requestedOn,
+  });
+
+  factory CustomShippingRequest.fromJson(Map<String, dynamic> json) {
+    return CustomShippingRequest(
+      name: (json['name'] ?? '').toString(),
+      invoice: (json['invoice'] ?? '').toString(),
+      customerName: (json['customer_name'] ?? '').toString(),
+      territory: (json['territory'] ?? '').toString(),
+      originalAmount: (json['original_amount'] as num?)?.toDouble() ?? 0,
+      requestedAmount: (json['requested_amount'] as num?)?.toDouble() ?? 0,
+      reason: (json['reason'] ?? '').toString(),
+      requestedBy: (json['requested_by'] ?? '').toString(),
+      requestedOn: (json['requested_on'] ?? '').toString(),
+    );
+  }
 }

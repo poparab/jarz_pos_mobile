@@ -457,7 +457,7 @@ void main() {
         // Response is {"success": true, "data": {col: [inv, ...], ...}}
         final columns = data['data'];
         final source = columns is Map ? columns : data;
-        for (final entry in (source as Map).entries) {
+        for (final entry in source.entries) {
           if (entry.value is List) {
             for (final inv in entry.value) {
               if (inv is Map && inv['name'] != null) {

@@ -31,6 +31,11 @@ final managerStatesProvider = FutureProvider.autoDispose<List<String>>((ref) asy
   return api.getStates();
 });
 
+final pendingCustomShippingProvider = FutureProvider.autoDispose<List<CustomShippingRequest>>((ref) async {
+  final api = ref.read(managerApiProvider);
+  return api.getPendingCustomShippingRequests();
+});
+
 // Lightweight access check for Manager Dashboard visibility
 final managerAccessProvider = FutureProvider<bool>((ref) async {
   final roles = await ref.watch(userRolesFutureProvider.future);

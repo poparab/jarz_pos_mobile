@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jarz_pos/src/features/shift/models/shift_models.dart';
 import 'package:jarz_pos/src/features/shift/data/shift_repository.dart';
 import 'package:jarz_pos/src/features/shift/state/shift_notifier.dart';

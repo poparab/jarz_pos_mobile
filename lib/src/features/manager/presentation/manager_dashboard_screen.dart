@@ -14,6 +14,7 @@ class ManagerDashboardScreen extends ConsumerWidget {
     final summaryAsync = ref.watch(dashboardSummaryProvider);
     final ordersAsync = ref.watch(managerOrdersProvider);
     final statesAsync = ref.watch(managerStatesProvider);
+    final pendingCustomShippingAsync = ref.watch(pendingCustomShippingProvider);
 
     return Scaffold(
       drawer: const AppDrawer(),
@@ -32,9 +33,11 @@ class ManagerDashboardScreen extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(dashboardSummaryProvider);
           ref.invalidate(managerOrdersProvider);
+          ref.invalidate(pendingCustomShippingProvider);
           await Future.wait([
             ref.read(dashboardSummaryProvider.future),
             ref.read(managerOrdersProvider.future),
+            ref.read(pendingCustomShippingProvider.future),
           ]);
         },
         child: ListView(
@@ -57,6 +60,21 @@ class ManagerDashboardScreen extends ConsumerWidget {
               data: (states) => _StateFilter(states: states),
               loading: () => const SizedBox.shrink(),
               error: (e, st) => const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 12),
+            Text('Pending Custom Shipping Approvals', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            pendingCustomShippingAsync.when(
+              data: (items) => _PendingCustomShippingSection(items: items),
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              error: (e, st) => _ErrorTile(error: e, onRetry: () {
+                ref.invalidate(pendingCustomShippingProvider);
+              }),
             ),
             const SizedBox(height: 12),
             Text(l10n.managerRecentOrders, style: Theme.of(context).textTheme.titleMedium),
@@ -203,6 +221,118 @@ class _OrderTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _PendingCustomShippingSection extends ConsumerWidget {
+  final List<CustomShippingRequest> items;
+  const _PendingCustomShippingSection({required this.items});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (items.isEmpty) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(14),
+          child: Text('No pending requests'),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        for (final item in items)
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${item.invoice} • ${item.customerName}',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Text(
+                        '\$${item.originalAmount.toStringAsFixed(2)} → \$${item.requestedAmount.toStringAsFixed(2)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text('Territory: ${item.territory}'),
+                  const SizedBox(height: 4),
+                  Text('Reason: ${item.reason}'),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () => _reject(context, ref, item),
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        label: const Text('Reject', style: TextStyle(color: Colors.red)),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton.icon(
+                        onPressed: () => _approve(context, ref, item),
+                        icon: const Icon(Icons.check),
+                        label: const Text('Approve'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _approve(BuildContext context, WidgetRef ref, CustomShippingRequest item) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(managerApiProvider).approveCustomShipping(item.name);
+      ref.invalidate(pendingCustomShippingProvider);
+      ref.invalidate(managerOrdersProvider);
+      messenger.showSnackBar(const SnackBar(content: Text('Custom shipping approved')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Approve failed: $e')));
+    }
+  }
+
+  Future<void> _reject(BuildContext context, WidgetRef ref, CustomShippingRequest item) async {
+    final reasonController = TextEditingController();
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reject Custom Shipping'),
+        content: TextField(
+          controller: reasonController,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            labelText: 'Reason',
+            hintText: 'Optional rejection reason',
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.of(ctx).pop(reasonController.text.trim()), child: const Text('Reject')),
+        ],
+      ),
+    );
+    if (reason == null) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(managerApiProvider).rejectCustomShipping(item.name, reason: reason);
+      ref.invalidate(pendingCustomShippingProvider);
+      ref.invalidate(managerOrdersProvider);
+      messenger.showSnackBar(const SnackBar(content: Text('Custom shipping rejected')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Reject failed: $e')));
+    }
   }
 }
 

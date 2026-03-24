@@ -9,6 +9,11 @@ class KanbanColumnWidget extends StatefulWidget { // changed to Stateful for hov
   final Future<void> Function(String invoiceId, String fromColumnId, String newColumnId) onCardMoved;
   final bool Function(String invoiceId, String fromColumnId, String newColumnId)? canAcceptMove;
   final ValueChanged<bool>? onCardPointerActive; // new
+  final Widget? headerAction;
+  final Widget Function(BuildContext context, List<InvoiceCard> invoices)? customListBuilder;
+  final bool selectionMode;
+  final Set<String> selectedInvoiceIds;
+  final ValueChanged<String>? onToggleInvoiceSelection;
 
   const KanbanColumnWidget({
     super.key,
@@ -17,6 +22,11 @@ class KanbanColumnWidget extends StatefulWidget { // changed to Stateful for hov
     required this.onCardMoved,
     this.canAcceptMove,
     this.onCardPointerActive,
+    this.headerAction,
+    this.customListBuilder,
+    this.selectionMode = false,
+    this.selectedInvoiceIds = const {},
+    this.onToggleInvoiceSelection,
   });
 
   @override
@@ -132,7 +142,11 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
                       ),
                     ),
                   ),
-                )
+                ),
+                if (widget.headerAction != null) ...[
+                  const SizedBox(width: 6),
+                  widget.headerAction!,
+                ],
               ],
             ),
           ),
@@ -200,6 +214,9 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
   }
 
   Widget _buildList() {
+    if (widget.customListBuilder != null) {
+      return widget.customListBuilder!(context, widget.invoices);
+    }
     if (widget.invoices.isEmpty) return _buildEmptyState();
     return Scrollbar(
       controller: _columnScrollController,
@@ -212,67 +229,112 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4).copyWith(bottom: 2),
         itemCount: widget.invoices.length,
         itemBuilder: (context, index) {
-        final invoice = widget.invoices[index];
-        final isDraggingThis = _draggingId == invoice.id;
-        return Listener(
-          onPointerDown: (_) => widget.onCardPointerActive?.call(true),
-          onPointerUp: (_) => widget.onCardPointerActive?.call(false),
-          onPointerCancel: (_) => widget.onCardPointerActive?.call(false),
-          child: LongPressDraggable<Map<String, dynamic>>(
-            data: {
-              'invoiceId': invoice.id,
-              'fromColumnId': widget.column.id,
-            },
-            dragAnchorStrategy: pointerDragAnchorStrategy,
-            maxSimultaneousDrags: 1,
-            onDragStarted: () => setState(() => _draggingId = invoice.id),
-            onDraggableCanceled: (velocity, offset) {
-              setState(() => _draggingId = null);
-              widget.onCardPointerActive?.call(false);
-            },
-            onDragEnd: (_) {
-              setState(() => _draggingId = null);
-              widget.onCardPointerActive?.call(false);
-            },
-            feedback: Material(
-              color: Colors.transparent,
-              child: Transform.scale(
-                scale: 1.03,
-                child: Opacity(
-                  opacity: 0.95,
-                  child: SizedBox(
-                    width: ResponsiveUtils.getKanbanColumnWidth(context),
-                    child: InvoiceCardWidget(
-                      invoice: invoice,
-                      isDragging: true,
-                      compact: true,
+          final invoice = widget.invoices[index];
+          if (widget.selectionMode) {
+            final isSelected = widget.selectedInvoiceIds.contains(invoice.id);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => widget.onToggleInvoiceSelection?.call(invoice.id),
+                  child: Stack(
+                    children: [
+                      AbsorbPointer(
+                        child: Opacity(
+                          opacity: isSelected ? 0.95 : 1,
+                          child: InvoiceCardWidget(invoice: invoice, isDragging: false, compact: false),
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              )
+                            ],
+                          ),
+                          child: Checkbox(
+                            value: isSelected,
+                            onChanged: (_) => widget.onToggleInvoiceSelection?.call(invoice.id),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+
+          final isDraggingThis = _draggingId == invoice.id;
+          return Listener(
+            onPointerDown: (_) => widget.onCardPointerActive?.call(true),
+            onPointerUp: (_) => widget.onCardPointerActive?.call(false),
+            onPointerCancel: (_) => widget.onCardPointerActive?.call(false),
+            child: LongPressDraggable<Map<String, dynamic>>(
+              data: {
+                'invoiceId': invoice.id,
+                'fromColumnId': widget.column.id,
+              },
+              dragAnchorStrategy: pointerDragAnchorStrategy,
+              maxSimultaneousDrags: 1,
+              onDragStarted: () => setState(() => _draggingId = invoice.id),
+              onDraggableCanceled: (velocity, offset) {
+                setState(() => _draggingId = null);
+                widget.onCardPointerActive?.call(false);
+              },
+              onDragEnd: (_) {
+                setState(() => _draggingId = null);
+                widget.onCardPointerActive?.call(false);
+              },
+              feedback: Material(
+                color: Colors.transparent,
+                child: Transform.scale(
+                  scale: 1.03,
+                  child: Opacity(
+                    opacity: 0.95,
+                    child: SizedBox(
+                      width: ResponsiveUtils.getKanbanColumnWidth(context),
+                      child: InvoiceCardWidget(
+                        invoice: invoice,
+                        isDragging: true,
+                        compact: true,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            childWhenDragging: AnimatedOpacity(
-              duration: const Duration(milliseconds: 150),
-              opacity: 0.25,
-              child: InvoiceCardWidget(invoice: invoice, isDragging: false, compact: false),
-            ),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTapDown: (_) => widget.onCardPointerActive?.call(true),
-              onTapUp: (_) => widget.onCardPointerActive?.call(false),
-              onTapCancel: () => widget.onCardPointerActive?.call(false),
-              child: AnimatedScale(
-                duration: const Duration(milliseconds: 160),
-                scale: isDraggingThis ? 0.92 : 1,
-                child: InvoiceCardWidget(
-                  invoice: invoice,
-                  isDragging: false,
-                  compact: false,
+              childWhenDragging: AnimatedOpacity(
+                duration: const Duration(milliseconds: 150),
+                opacity: 0.25,
+                child: InvoiceCardWidget(invoice: invoice, isDragging: false, compact: false),
+              ),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTapDown: (_) => widget.onCardPointerActive?.call(true),
+                onTapUp: (_) => widget.onCardPointerActive?.call(false),
+                onTapCancel: () => widget.onCardPointerActive?.call(false),
+                child: AnimatedScale(
+                  duration: const Duration(milliseconds: 160),
+                  scale: isDraggingThis ? 0.92 : 1,
+                  child: InvoiceCardWidget(
+                    invoice: invoice,
+                    isDragging: false,
+                    compact: false,
+                  ),
                 ),
               ),
             ),
-          ),
-        );
+          );
         },
       ),
     );
