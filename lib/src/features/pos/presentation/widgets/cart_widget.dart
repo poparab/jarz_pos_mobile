@@ -541,13 +541,22 @@ class CartWidget extends ConsumerWidget {
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.add, size: isPhone ? 18 : 20),
-                        onPressed: () => ref
-                            .read(posNotifierProvider.notifier)
-                            .updateCartItemQuantity(index, quantity + 1),
-                        iconSize: isPhone ? 18 : 20,
-                        visualDensity: VisualDensity.compact,
+                      Builder(
+                        builder: (context) {
+                          final itemCode = cartItem['item_code']?.toString() ?? '';
+                          final stockQty = ref.read(posNotifierProvider.notifier).getStockForItem(itemCode);
+                          final atLimit = quantity >= stockQty.toInt();
+                          return IconButton(
+                            icon: Icon(Icons.add, size: isPhone ? 18 : 20),
+                            onPressed: atLimit
+                                ? null
+                                : () => ref
+                                    .read(posNotifierProvider.notifier)
+                                    .updateCartItemQuantity(index, quantity + 1),
+                            iconSize: isPhone ? 18 : 20,
+                            visualDensity: VisualDensity.compact,
+                          );
+                        },
                       ),
                     ],
                   )

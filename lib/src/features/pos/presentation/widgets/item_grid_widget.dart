@@ -479,8 +479,12 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
       child: InkWell(
         onTap: canAddToCart
             ? () {
-                ref.read(posNotifierProvider.notifier).addToCart(item);
-                _showAddedToCartSnackbar(item);
+                final added = ref.read(posNotifierProvider.notifier).addToCart(item);
+                if (added) {
+                  _showAddedToCartSnackbar(item);
+                } else {
+                  _showStockLimitMessage(stockQty.toInt());
+                }
               }
             : () {
                 _showCannotAddToCartMessage(selectedCustomer, isOutOfStock);
@@ -578,6 +582,17 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
         content: Text(context.l10n.itemGridAddedToCart),
         duration: const Duration(seconds: 1),
         behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showStockLimitMessage(int stockQty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Stock limit reached. Only $stockQty available.'),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.orange,
       ),
     );
   }

@@ -201,7 +201,8 @@ class PosNotifier extends StateNotifier<PosState> {
     }
   }
 
-  void addToCart(Map<String, dynamic> item) {
+  /// Returns `true` if the item was added, `false` if blocked by stock limit.
+  bool addToCart(Map<String, dynamic> item) {
     // Block adding delivery/shipping related items when a Sales Partner is selected
     if (state.selectedSalesPartner != null) {
       final group = (item['item_group'] ?? '').toString().toLowerCase();
@@ -217,12 +218,24 @@ class PosNotifier extends StateNotifier<PosState> {
         if (kDebugMode) {
           debugPrint('🚫 Skipping add: delivery/shipping charge is hidden for Sales Partner invoices');
         }
-        return;
+        return false;
       }
     }
+
+    // Check stock limit
+    final stockQty = ((item['actual_qty'] ?? 0) as num).toDouble();
     final existingItemIndex = state.cartItems.indexWhere(
       (cartItem) => cartItem['item_code'] == item['name'],
     );
+    final currentCartQty = existingItemIndex >= 0
+        ? ((state.cartItems[existingItemIndex]['quantity'] ?? 1) as num).toInt()
+        : 0;
+    if (currentCartQty >= stockQty) {
+      if (kDebugMode) {
+        debugPrint('🚫 Stock limit reached: ${item['name']} has $stockQty available, $currentCartQty in cart');
+      }
+      return false;
+    }
 
     List<Map<String, dynamic>> updatedCart;
     if (existingItemIndex >= 0) {
@@ -260,6 +273,7 @@ class PosNotifier extends StateNotifier<PosState> {
     }
 
     state = state.copyWith(cartItems: updatedCart);
+    return true;
   }
 
   void addBundleToCart(
@@ -306,14 +320,29 @@ class PosNotifier extends StateNotifier<PosState> {
     }
   }
 
+  /// Returns the available stock for an item by its item_code.
+  double getStockForItem(String itemCode) {
+    final item = state.items.cast<Map<String, dynamic>?>().firstWhere(
+      (i) => i?['name'] == itemCode,
+      orElse: () => null,
+    );
+    return item != null ? ((item['actual_qty'] ?? 0) as num).toDouble() : double.infinity;
+  }
+
   void updateCartItemQuantity(int index, int newQuantity) {
     if (newQuantity <= 0) {
       removeFromCart(index);
       return;
     }
 
+    // Cap at available stock
+    final itemCode = state.cartItems[index]['item_code']?.toString() ?? '';
+    final stockQty = getStockForItem(itemCode);
+    final cappedQuantity = newQuantity <= stockQty.toInt() ? newQuantity : stockQty.toInt();
+    if (cappedQuantity <= 0) return;
+
     final updatedCart = List<Map<String, dynamic>>.from(state.cartItems);
-    updatedCart[index] = {...updatedCart[index], 'quantity': newQuantity};
+    updatedCart[index] = {...updatedCart[index], 'quantity': cappedQuantity};
     state = state.copyWith(cartItems: updatedCart);
   }
 
