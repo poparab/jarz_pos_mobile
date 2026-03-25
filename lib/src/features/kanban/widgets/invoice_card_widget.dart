@@ -3033,6 +3033,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         deliveryDate: picked.date,
         deliveryTimeFrom: picked.time,
         deliveryDuration: durationSeconds,
+        deliverySlotLabel: picked.label,
       );
 
       messenger.clearSnackBars();

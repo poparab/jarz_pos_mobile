@@ -1076,6 +1076,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     required String deliveryDate,
     required String deliveryTimeFrom,
     required int deliveryDuration,
+    String deliverySlotLabel = '',
   }) async {
     try {
       await _kanbanService.updateDeliverySlot(
@@ -1083,6 +1084,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         deliveryDate: deliveryDate,
         deliveryTimeFrom: deliveryTimeFrom,
         deliveryDuration: deliveryDuration,
+        deliverySlotLabel: deliverySlotLabel,
       );
       return true;
     } catch (e) {

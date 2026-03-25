@@ -671,6 +671,7 @@ class KanbanService {
     required String deliveryDate,
     required String deliveryTimeFrom,
     required int deliveryDuration,
+    String deliverySlotLabel = '',
   }) async {
     try {
       _logger.info('Updating delivery slot for invoice $invoiceId');
@@ -683,6 +684,7 @@ class KanbanService {
           'delivery_date': deliveryDate,
           'delivery_time_from': deliveryTimeFrom,
           'delivery_duration': deliveryDuration,
+          if (deliverySlotLabel.isNotEmpty) 'delivery_slot_label': deliverySlotLabel,
         },
       );
       
