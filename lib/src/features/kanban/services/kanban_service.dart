@@ -593,15 +593,17 @@ class KanbanService {
     required String customer,
     required String address,
     required String phone,
+    String? invoice,
   }) async {
     try {
-      _logger.info('Updating customer address for $customer');
+      _logger.info('Updating customer address for $customer (invoice: $invoice)');
       final resp = await _dio.post(
         ApiEndpoints.updateDefaultAddress,
         data: {
           'customer': customer,
           'address': address,
           'phone': phone,
+          if (invoice != null) 'invoice': invoice,
         },
       );
       final msg = resp.data['message'];

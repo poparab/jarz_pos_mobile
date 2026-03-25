@@ -2378,6 +2378,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         customer: widget.invoice.customer,
         address: result['address']!,
         phone: result['phone']!,
+        invoice: widget.invoice.name,
       );
 
       messenger.clearSnackBars();

@@ -1037,12 +1037,14 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     required String customer,
     required String address,
     required String phone,
+    String? invoice,
   }) async {
     try {
       final response = await _kanbanService.updateCustomerAddress(
         customer: customer,
         address: address,
         phone: phone,
+        invoice: invoice,
       );
       
       return response['success'] == true || response['message'] == 'success';
