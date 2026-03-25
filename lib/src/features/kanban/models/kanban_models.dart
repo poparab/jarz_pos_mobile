@@ -321,7 +321,10 @@ class InvoiceCard {
   double get total => grandTotal;
   double get taxAmount => totalTaxesAndCharges;
   double get shippingIncomeDisplay => shippingIncome; // new helper
-  double get shippingExpenseDisplay => shippingExpense; // new helper
+  double get shippingExpenseDisplay =>
+      (shippingOverrideStatus == 'Approved' && shippingOverride != null && shippingOverride! > 0)
+          ? shippingOverride!
+          : shippingExpense;
   String get address => fullAddress;
   String get effectiveStatus => docStatus ?? status; // prefer real doc status
   int get itemsCount => items.length;
