@@ -467,37 +467,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     //   );
     // }
 
-    trailingWidgets.add(
-      Tooltip(
-        message: 'Preview Receipt',
-        child: IconButton(
-          icon: Icon(Icons.preview, size: iconSize),
-          padding: EdgeInsets.all(ResponsiveUtils.getSpacing(context, small: 4, medium: 5, large: 6)),
-          constraints: BoxConstraints(
-            minWidth: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
-            minHeight: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
-          ),
-          splashRadius: ResponsiveUtils.getIconSize(context, small: 16, medium: 18, large: 20),
-          onPressed: transitioning ? null : () => _previewInvoiceReceipt(context),
-        ),
-      ),
-    );
-
-    trailingWidgets.add(
-      Tooltip(
-        message: l10n.printerTestPrint,
-        child: IconButton(
-          icon: Icon(Icons.print, size: iconSize),
-          padding: EdgeInsets.all(ResponsiveUtils.getSpacing(context, small: 4, medium: 5, large: 6)),
-          constraints: BoxConstraints(
-            minWidth: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
-            minHeight: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
-          ),
-          splashRadius: ResponsiveUtils.getIconSize(context, small: 16, medium: 18, large: 20),
-          onPressed: transitioning ? null : () => _printInvoice(context),
-        ),
-      ),
-    );
+    // Preview Receipt and Print moved to three-dot menu for compactness
 
     // Add three-dot menu for additional actions
     final isLineManager = ref.watch(isLineManagerProvider);
@@ -517,6 +487,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           onSelected: (value) async {
             if (value == 'edit_address') {
               await _editCustomerAddress(context);
+            } else if (value == 'preview_receipt') {
+              await _previewInvoiceReceipt(context);
+            } else if (value == 'print') {
+              await _printInvoice(context);
             } else if (value == 'transfer_order') {
               await _transferOrder(context);
             } else if (value == 'change_delivery_slot') {
@@ -549,17 +523,36 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                   ],
                 ),
               ),
-            if (isLineManager)
-              PopupMenuItem(
-                value: 'transfer_order',
-                child: Row(
-                  children: [
-                    const Icon(Icons.swap_horiz, size: 18),
-                    const SizedBox(width: 8),
-                    Text(l10n.invoiceTransferOrder),
-                  ],
-                ),
+            PopupMenuItem(
+              value: 'preview_receipt',
+              child: Row(
+                children: [
+                  const Icon(Icons.receipt_long, size: 18),
+                  const SizedBox(width: 8),
+                  const Text('Preview Receipt'),
+                ],
               ),
+            ),
+            PopupMenuItem(
+              value: 'print',
+              child: Row(
+                children: [
+                  const Icon(Icons.print, size: 18),
+                  const SizedBox(width: 8),
+                  Text(l10n.printerTestPrint),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'transfer_order',
+              child: Row(
+                children: [
+                  const Icon(Icons.swap_horiz, size: 18),
+                  const SizedBox(width: 8),
+                  Text(l10n.invoiceTransferOrder),
+                ],
+              ),
+            ),
               if (isLineManager && widget.invoice.canCancel)
                 PopupMenuItem(
                   value: 'cancel_order',
