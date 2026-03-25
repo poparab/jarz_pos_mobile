@@ -672,6 +672,24 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       final inv = _findInvoice(invoiceId);
       final hasPartner = ((inv?.salesPartner ?? '').isNotEmpty);
       final isPickup = (inv?.isPickup ?? false);
+
+      // Block individual OFD for invoices that belong to a trip — must use bulk trip send
+      final tripName = inv?.deliveryTrip;
+      if (tripName != null && tripName.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('This order is part of trip $tripName. Send the entire trip for delivery from the Trips screen.'),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+        // Revert visual move
+        final fromCol = ref.read(kanbanProvider).columns.firstWhere(
+          (c) => c.id == fromColumnId,
+          orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
+        );
+        ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
+        return;
+      }
       
       // Fast-path for Sales Partner OR Pickup orders - no courier dialog needed
       if (hasPartner || isPickup) {

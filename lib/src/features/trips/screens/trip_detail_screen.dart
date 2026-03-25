@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/trip_models.dart';
 import '../providers/trip_provider.dart';
 
@@ -146,64 +147,8 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       children: [
         Text('Invoices (${trip.invoices.length})', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
-        ...trip.invoices.map(_buildInvoiceRow),
+        ...trip.invoices.map((inv) => _TripInvoiceCard(invoice: inv)),
       ],
-    );
-  }
-
-  Widget _buildInvoiceRow(TripInvoice inv) {
-    final statusColor = switch (inv.invoiceStatus) {
-      'Delivered' => Colors.green,
-      'Out for Delivery' => Colors.orange,
-      'Return' || 'Returned to Sender' => Colors.red,
-      _ => Colors.grey,
-    };
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(inv.invoice, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 2),
-                  Text(inv.customerName, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-                  Text(
-                    inv.subTerritory ?? inv.territory,
-                    style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '\$${inv.grandTotal.toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 2),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    inv.invoiceStatus,
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: statusColor),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -257,5 +202,205 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
     } finally {
       if (mounted) setState(() => _sending = false);
     }
+  }
+}
+
+/// Expandable card showing full details of a trip invoice.
+class _TripInvoiceCard extends StatefulWidget {
+  final TripInvoice invoice;
+  const _TripInvoiceCard({required this.invoice});
+
+  @override
+  State<_TripInvoiceCard> createState() => _TripInvoiceCardState();
+}
+
+class _TripInvoiceCardState extends State<_TripInvoiceCard> {
+  bool _expanded = false;
+
+  TripInvoice get inv => widget.invoice;
+
+  Color get _statusColor => switch (inv.invoiceStatus) {
+    'Delivered' => Colors.green,
+    'Out for Delivery' => Colors.orange,
+    'Return' || 'Returned to Sender' => Colors.red,
+    _ => Colors.grey,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => setState(() => _expanded = !_expanded),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildCompactRow(),
+              if (_expanded) ...[
+                const Divider(height: 16),
+                _buildExpandedDetails(),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(inv.invoice, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(width: 6),
+                  _statusBadge(inv.invoiceStatus, _statusColor),
+                  if (inv.isPaid) ...[
+                    const SizedBox(width: 4),
+                    _statusBadge('Paid', Colors.green),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 3),
+              Text(inv.customerName, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+              Text(inv.subTerritory ?? inv.territory, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+            ],
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('\$${inv.grandTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+            if (inv.shippingExpense > 0)
+              Text('Ship: \$${inv.shippingExpense.toStringAsFixed(2)}', style: TextStyle(fontSize: 10, color: Colors.grey[500])),
+            Icon(_expanded ? Icons.expand_less : Icons.expand_more, size: 18, color: Colors.grey),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExpandedDetails() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Contact info
+        if (inv.customerPhone != null && inv.customerPhone!.isNotEmpty)
+          _infoTile(Icons.phone, inv.customerPhone!, onTap: () {
+            final cleaned = inv.customerPhone!.replaceAll(RegExp(r'[^\d+]'), '');
+            launchUrl(Uri.parse('tel:$cleaned'));
+          }),
+        if (inv.address != null && inv.address!.isNotEmpty)
+          _infoTile(Icons.location_on, inv.address!),
+
+        // Delivery slot
+        if (inv.deliverySlotLabel != null && inv.deliverySlotLabel!.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          _infoTile(Icons.schedule, inv.deliverySlotLabel!),
+        ],
+        if (inv.deliveryDate != null && inv.deliveryDate!.isNotEmpty)
+          _infoTile(Icons.calendar_today, inv.deliveryDate!),
+
+        // Payment info
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            _labelValue('Payment', inv.paymentMethod ?? 'N/A'),
+            const SizedBox(width: 16),
+            _labelValue('Outstanding', '\$${inv.outstandingAmount.toStringAsFixed(2)}'),
+          ],
+        ),
+
+        // Items table
+        if (inv.items.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          const Text('Items', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Column(
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Expanded(flex: 4, child: Text('Item', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600))),
+                      Expanded(flex: 1, child: Text('Qty', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600), textAlign: TextAlign.center)),
+                      Expanded(flex: 2, child: Text('Rate', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600), textAlign: TextAlign.right)),
+                      Expanded(flex: 2, child: Text('Amount', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600), textAlign: TextAlign.right)),
+                    ],
+                  ),
+                ),
+                // Rows
+                ...inv.items.map((item) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    children: [
+                      Expanded(flex: 4, child: Text(item.itemName, style: const TextStyle(fontSize: 10), overflow: TextOverflow.ellipsis)),
+                      Expanded(flex: 1, child: Text(item.qty.toStringAsFixed(0), style: const TextStyle(fontSize: 10), textAlign: TextAlign.center)),
+                      Expanded(flex: 2, child: Text('\$${item.rate.toStringAsFixed(2)}', style: const TextStyle(fontSize: 10), textAlign: TextAlign.right)),
+                      Expanded(flex: 2, child: Text('\$${item.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 10), textAlign: TextAlign.right)),
+                    ],
+                  ),
+                )),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _statusBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: color)),
+    );
+  }
+
+  Widget _infoTile(IconData icon, String text, {VoidCallback? onTap}) {
+    final content = Row(
+      children: [
+        Icon(icon, size: 14, color: Colors.grey[600]),
+        const SizedBox(width: 6),
+        Expanded(child: Text(text, style: TextStyle(fontSize: 11, color: Colors.grey[700]))),
+      ],
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: onTap != null
+          ? InkWell(onTap: onTap, child: content)
+          : content,
+    );
+  }
+
+  Widget _labelValue(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[500])),
+        Text(value, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+      ],
+    );
   }
 }

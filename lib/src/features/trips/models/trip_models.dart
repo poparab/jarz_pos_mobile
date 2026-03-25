@@ -70,6 +70,16 @@ class TripInvoice {
   final double grandTotal;
   final double shippingExpense;
   final String invoiceStatus;
+  final double outstandingAmount;
+  final String paymentStatus;
+  final String paymentMethod;
+  final String address;
+  final String customerPhone;
+  final List<TripInvoiceItem> items;
+  final String deliveryDate;
+  final String deliveryTimeFrom;
+  final dynamic deliveryDuration;
+  final String deliverySlotLabel;
 
   TripInvoice({
     required this.invoice,
@@ -79,9 +89,29 @@ class TripInvoice {
     this.grandTotal = 0,
     this.shippingExpense = 0,
     this.invoiceStatus = '',
+    this.outstandingAmount = 0,
+    this.paymentStatus = '',
+    this.paymentMethod = '',
+    this.address = '',
+    this.customerPhone = '',
+    this.items = const [],
+    this.deliveryDate = '',
+    this.deliveryTimeFrom = '',
+    this.deliveryDuration,
+    this.deliverySlotLabel = '',
   });
 
+  bool get isPaid => outstandingAmount <= 0.01;
+
   factory TripInvoice.fromJson(Map<String, dynamic> json) {
+    final itemsRaw = json['items'];
+    final itemsList = itemsRaw is List
+        ? itemsRaw
+            .whereType<Map>()
+            .map((e) => TripInvoiceItem.fromJson(Map<String, dynamic>.from(e)))
+            .toList()
+        : <TripInvoiceItem>[];
+
     return TripInvoice(
       invoice: (json['invoice'] ?? '').toString(),
       customerName: (json['customer_name'] ?? '').toString(),
@@ -90,6 +120,42 @@ class TripInvoice {
       grandTotal: _toDouble(json['grand_total']),
       shippingExpense: _toDouble(json['shipping_expense']),
       invoiceStatus: (json['invoice_status'] ?? '').toString(),
+      outstandingAmount: _toDouble(json['outstanding_amount']),
+      paymentStatus: (json['payment_status'] ?? '').toString(),
+      paymentMethod: (json['payment_method'] ?? '').toString(),
+      address: (json['address'] ?? '').toString(),
+      customerPhone: (json['customer_phone'] ?? '').toString(),
+      items: itemsList,
+      deliveryDate: (json['delivery_date'] ?? '').toString(),
+      deliveryTimeFrom: (json['delivery_time_from'] ?? '').toString(),
+      deliveryDuration: json['delivery_duration'],
+      deliverySlotLabel: (json['delivery_slot_label'] ?? '').toString(),
+    );
+  }
+}
+
+class TripInvoiceItem {
+  final String itemCode;
+  final String itemName;
+  final double qty;
+  final double rate;
+  final double amount;
+
+  TripInvoiceItem({
+    required this.itemCode,
+    required this.itemName,
+    this.qty = 0,
+    this.rate = 0,
+    this.amount = 0,
+  });
+
+  factory TripInvoiceItem.fromJson(Map<String, dynamic> json) {
+    return TripInvoiceItem(
+      itemCode: (json['item_code'] ?? '').toString(),
+      itemName: (json['item_name'] ?? '').toString(),
+      qty: _toDouble(json['qty']),
+      rate: _toDouble(json['rate']),
+      amount: _toDouble(json['amount']),
     );
   }
 }

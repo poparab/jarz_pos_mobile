@@ -434,7 +434,7 @@ class PosPrinterService extends ChangeNotifier {
       esc([0x0A]);
     }
   void feed(int n) => esc([0x1B, 0x64, n.clamp(0, 255)]);
-  const lineChars = 32; // Safe width for common 58mm thermal printers.
+  const lineChars = 48; // Width for common 80mm thermal printers.
   Future<void> hr() async { await text('-' * lineChars); }
   // Removed invoice date display; eliminate unused date helpers.
     String shortInv(String full) {
@@ -501,8 +501,8 @@ class PosPrinterService extends ChangeNotifier {
     .toList();
     // Column wrapping with independent line counts; each column keeps its own continuation lines.
     // Define max character widths assuming Font B monospaced-like width.
-    const leftWidthChars = 16;
-    const rightWidthChars = 16;
+    const leftWidthChars = 24;
+    const rightWidthChars = 24;
     // Build raw logical entries first.
     final leftEntries = <MapEntry<String,String>>[];
     leftEntries.add(MapEntry('Customer', inv.customer));
@@ -541,10 +541,10 @@ class PosPrinterService extends ChangeNotifier {
 
     // BODY -----------------------------------------------------------
     // Column widths in characters (Font B monospace-ish). Names are wrapped, never truncated.
-    const nameW = 16;
+    const nameW = 24;
     const qtyW = 4;
-    const rateW = 6;
-    const amtW = 6;
+    const rateW = 10;
+    const amtW = 10;
 
     List<String> wrapFixed(String s, int width) {
       if (s.isEmpty) return [''];
@@ -640,8 +640,8 @@ class PosPrinterService extends ChangeNotifier {
 
   String _money(double v) => v.toStringAsFixed(2);
   String _labelVal(String l,String v) {
-    const ml = 18;
-    const totalW = 32;
+    const ml = 28;
+    const totalW = 48;
     final x = l.length > ml ? l.substring(0, ml) : l;
     final left = x.padRight(totalW - v.length);
     return '$left$v';
@@ -655,9 +655,9 @@ class PosPrinterService extends ChangeNotifier {
       final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
       final frame = await codec.getNextFrame();
       final img = frame.image;
-      // Render into a canvas as wide as a 58mm printer (384px) and center the scaled logo.
-      const canvasW = 384;
-      const logoTargetW = 288; // scale down to keep proportions and leave margins
+      // Render into a canvas as wide as an 80mm printer (576px) and center the scaled logo.
+      const canvasW = 576;
+      const logoTargetW = 432; // keep margins while using wider paper
       final scale = logoTargetW / img.width;
       final targetH = (img.height * scale).round();
       final recorder = ui.PictureRecorder();
@@ -711,8 +711,8 @@ class PosPrinterService extends ChangeNotifier {
   }
 
   Future<void> _addRasterText(BytesBuilder b, String s, {bool bold=false, bool center=false}) async {
-    // 384px is broadly supported across 58/80mm ESC/POS printers and avoids garbled glyph output on some firmware.
-    const targetW = 384;
+    // 576px matches common 80mm ESC/POS printers.
+    const targetW = 576;
     // Prepare text painter
   final hasArabic = RegExp(r'[\u0600-\u06FF]').hasMatch(s);
     final tp = TextPainter(
@@ -779,8 +779,8 @@ class PosPrinterService extends ChangeNotifier {
     final left = (lLabel.isNotEmpty ? '$lLabel: ' : '') + lValue;
     final right = (rLabel.isNotEmpty ? '$rLabel: ' : '') + rValue;
     final asciiOk = !RegExp(r'[^\x00-\x7F]').hasMatch(left + right);
-    const leftWidth = 16;
-    const rightWidth = 16;
+    const leftWidth = 24;
+    const rightWidth = 24;
     String pad(String s, int w){ return s.length > w ? s.substring(0,w) : s.padRight(w); }
     if (asciiOk) {
       final line = pad(left.trimRight(), leftWidth) + pad(right.trimRight(), rightWidth);
