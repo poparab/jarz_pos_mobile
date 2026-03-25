@@ -524,6 +524,12 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       return const Center(child: Text('No invoices'));
     }
 
+    // Find the OFD column id for drag data
+    final ofdColumnId = ref.read(kanbanProvider).columns
+        .where(_isOutForDeliveryColumn)
+        .map((c) => c.id)
+        .firstOrNull ?? 'out_for_delivery';
+
     final grouped = <String, List<InvoiceCard>>{};
     final nonTrip = <InvoiceCard>[];
     for (final inv in invoices) {
@@ -566,7 +572,33 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         for (final inv in nonTrip)
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
-            child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
+            child: LongPressDraggable<Map<String, dynamic>>(
+              data: {
+                'invoiceId': inv.id,
+                'fromColumnId': ofdColumnId,
+              },
+              dragAnchorStrategy: pointerDragAnchorStrategy,
+              maxSimultaneousDrags: 1,
+              feedback: Material(
+                color: Colors.transparent,
+                child: Transform.scale(
+                  scale: 1.03,
+                  child: Opacity(
+                    opacity: 0.95,
+                    child: SizedBox(
+                      width: ResponsiveUtils.getKanbanColumnWidth(context),
+                      child: InvoiceCardWidget(invoice: inv, isDragging: true, compact: true),
+                    ),
+                  ),
+                ),
+              ),
+              childWhenDragging: AnimatedOpacity(
+                duration: const Duration(milliseconds: 150),
+                opacity: 0.25,
+                child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
+              ),
+              child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
+            ),
           ),
       ],
     );
