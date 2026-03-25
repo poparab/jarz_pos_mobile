@@ -444,15 +444,17 @@ class PosPrinterService extends ChangeNotifier {
       if (cleaned.length <= 5) return cleaned;
       return cleaned.substring(cleaned.length - 5);
     }
+    String _amPm(DateTime t) {
+      final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+      final m = t.minute.toString().padLeft(2, '0');
+      final p = t.hour < 12 ? 'AM' : 'PM';
+      return '$h:$m $p';
+    }
     String formatDeliveryRange(DateTime start, {Duration slot = const Duration(hours: 1)}) {
       final end = start.add(slot);
       final day = start.day.toString().padLeft(2,'0');
       final month = start.month.toString().padLeft(2,'0');
-      final sh = start.hour.toString().padLeft(2,'0');
-      final sm = start.minute.toString().padLeft(2,'0');
-      final eh = end.hour.toString().padLeft(2,'0');
-      final em = end.minute.toString().padLeft(2,'0');
-      return '$day-$month from $sh:$sm to $eh:$em';
+      return '$day-$month from ${_amPm(start)} to ${_amPm(end)}';
     }
     List<String> wrapColumn(String label, String value, int maxWidth) {
       final prefix = label.isNotEmpty ? '$label: ' : '';

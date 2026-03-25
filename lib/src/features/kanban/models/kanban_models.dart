@@ -423,16 +423,18 @@ class InvoiceCard {
         dateStr = "${d.year.toString().padLeft(4,'0')}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}";
       }
     }
-    final hh = d.hour.toString().padLeft(2, '0');
-    final mm = d.minute.toString().padLeft(2, '0');
+    String _amPm(DateTime t) {
+      final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+      final m = t.minute.toString().padLeft(2, '0');
+      final p = t.hour < 12 ? 'AM' : 'PM';
+      return '$h:$m $p';
+    }
     final dur = deliveryDurationParsed;
     if (dur != null && dur.inMinutes > 0) {
       final end = d.add(dur);
-      final eh = end.hour.toString().padLeft(2, '0');
-      final em = end.minute.toString().padLeft(2, '0');
-      return "$dateStr $hh:$mm–$eh:$em";
+      return "$dateStr ${_amPm(d)}\u2013${_amPm(end)}";
     }
-    return "$dateStr $hh:$mm";
+    return "$dateStr ${_amPm(d)}";
   }
 
   String get postingDateHumanized {

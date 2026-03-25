@@ -183,7 +183,7 @@ class _Timeline extends StatelessWidget {
       );
     }
 
-    final dateFormat = DateFormat('MMM d, yyyy • HH:mm');
+    final dateFormat = DateFormat('MMM d, yyyy • h:mm a');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -19,7 +19,7 @@ class ShiftStatusBanner extends StatelessWidget {
     final start = shift.periodStartDate;
     final time = start == null
         ? '--:--'
-        : '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}';
+        : '${start.hour % 12 == 0 ? 12 : start.hour % 12}:${start.minute.toString().padLeft(2, '0')} ${start.hour < 12 ? 'AM' : 'PM'}';
 
     return Container(
       width: double.infinity,

@@ -167,8 +167,11 @@ class SystemStatusBar extends ConsumerWidget {
             stream: Stream.periodic(const Duration(seconds: 1)),
             builder: (context, snapshot) {
               final now = DateTime.now();
+              final _h = now.hour % 12 == 0 ? 12 : now.hour % 12;
+              final _m = now.minute.toString().padLeft(2, '0');
+              final _p = now.hour < 12 ? 'AM' : 'PM';
               return Text(
-                '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
+                '$_h:$_m $_p',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
