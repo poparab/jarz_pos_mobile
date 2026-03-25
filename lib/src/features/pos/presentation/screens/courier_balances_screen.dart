@@ -48,7 +48,30 @@ class CourierBalancesScreen extends ConsumerWidget {
           : (isPayCourier ? l10n.courierBalancesPayCourierLabel : l10n.courierBalancesCourierPaysUsLabel);
 
                 return ListTile(
-                  title: Text(b.courierName.isNotEmpty ? b.courierName : b.courier),
+                  title: Row(
+                    children: [
+                      Flexible(child: Text(b.courierName.isNotEmpty ? b.courierName : b.courier)),
+                      if (b.isPartnerCourier) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.deepPurple.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.handshake, size: 12, color: Colors.deepPurple.shade400),
+                              const SizedBox(width: 3),
+                              Text(b.deliveryPartner ?? 'Partner',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.deepPurple.shade700)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                   subtitle: Text(label),
                   trailing: Text(
                     amount.toStringAsFixed(2),

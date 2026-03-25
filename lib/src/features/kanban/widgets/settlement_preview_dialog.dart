@@ -110,6 +110,8 @@ bool _isUnpaidEffective(Map<String, dynamic> preview) {
   bool unpaidEffective,
   bool paidAfterOfd,
   bool recentlyPaid,
+  bool isPartnerOrder,
+  String? deliveryPartner,
   Color paidColor,
   IconData paidIcon,
 })
@@ -160,6 +162,10 @@ _computeDisplay(Map<String, dynamic> preview, {double? orderFallback, double? sh
     }
   }
 
+  // Detect partner order
+  final isPartnerOrder = preview['is_partner_order'] == true || preview['is_partner_order'] == 1;
+  final deliveryPartner = (preview['delivery_partner'] ?? '').toString();
+
   return (
     actionCollect: actionCollect,
     netSigned: net,
@@ -168,6 +174,8 @@ _computeDisplay(Map<String, dynamic> preview, {double? orderFallback, double? sh
     unpaidEffective: unpaidEff,
     paidAfterOfd: paidAfterOfd,
     recentlyPaid: recentlyPaid,
+    isPartnerOrder: isPartnerOrder,
+    deliveryPartner: deliveryPartner.isEmpty ? null : deliveryPartner,
     paidColor: paidColor,
     paidIcon: paidIcon,
   );
@@ -218,9 +226,11 @@ Future<bool?> showSettlementConfirmDialog(
   final orderLabel = d.order.toStringAsFixed(2);
   final shipLabel = d.shipping.toStringAsFixed(2);
   final netLabel = absNet.toStringAsFixed(2);
-  final title = d.actionCollect
-    ? l10n.settlementTitleCollectFromCourier
-    : (d.netSigned < 0 ? l10n.settlementTitlePayCourier : l10n.settlementTitleCourierSettlement);
+  final title = d.isPartnerOrder
+    ? 'Partner Delivery Settlement'
+    : (d.actionCollect
+      ? l10n.settlementTitleCollectFromCourier
+      : (d.netSigned < 0 ? l10n.settlementTitlePayCourier : l10n.settlementTitleCourierSettlement));
   final paidLabel = d.unpaidEffective ? l10n.settlementStatusUnpaid : l10n.settlementStatusPaid;
   final paidNote = d.recentlyPaid
     ? l10n.settlementPaidNoteRecent
@@ -239,6 +249,28 @@ Future<bool?> showSettlementConfirmDialog(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (d.isPartnerOrder) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.purple.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.handshake, size: 16, color: Colors.purple),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Partner: ${d.deliveryPartner ?? ""}',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.purple),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           if (invoice != null) ...[
             Text(l10n.websocketInvoiceLabel(invoice)),
             const SizedBox(height: 6),
@@ -252,21 +284,40 @@ Future<bool?> showSettlementConfirmDialog(
             ],
           ),
           const SizedBox(height: 8),
-          if (d.actionCollect) ...[
-            Text(l10n.settlementCollectFormula),
-            const SizedBox(height: 6),
-            _netChip(netLabel, Colors.indigo, l10n.settlementNetToCollect),
-          ] else if (d.netSigned < 0) ...[
-            Text(l10n.settlementPayFormula),
-            const SizedBox(height: 6),
-            _netChip(netLabel, Colors.deepOrange, l10n.settlementPayAmount),
+          if (d.isPartnerOrder) ...[
+            // Partner orders: show full amount to collect (no shipping deduction)
+            if (d.unpaidEffective) ...[
+              const Text('Collect full order amount from courier:'),
+              const SizedBox(height: 6),
+              _netChip(netLabel, Colors.indigo, 'Collect (Full Amount)'),
+            ] else ...[
+              const Text('Online-paid — no cash exchange with courier'),
+              const SizedBox(height: 6),
+              _netChip('0.00', Colors.green, 'No Cash Exchange'),
+            ],
           ] else ...[
-            Text(l10n.settlementNothingToSettle),
+            if (d.actionCollect) ...[
+              Text(l10n.settlementCollectFormula),
+              const SizedBox(height: 6),
+              _netChip(netLabel, Colors.indigo, l10n.settlementNetToCollect),
+            ] else if (d.netSigned < 0) ...[
+              Text(l10n.settlementPayFormula),
+              const SizedBox(height: 6),
+              _netChip(netLabel, Colors.deepOrange, l10n.settlementPayAmount),
+            ] else ...[
+              Text(l10n.settlementNothingToSettle),
+            ],
           ],
           const SizedBox(height: 12),
-          Row(children: [const Icon(Icons.receipt_long, size: 18, color: Colors.teal), const SizedBox(width: 6), Text(l10n.settlementOrderLabel(orderLabel))]),
-          const SizedBox(height: 6),
-          Row(children: [const Icon(Icons.local_shipping, size: 18, color: Colors.deepOrange), const SizedBox(width: 6), Text(l10n.settlementShippingLabel(shipLabel))]),
+          if (d.isPartnerOrder) ...[
+            Row(children: [const Icon(Icons.receipt_long, size: 18, color: Colors.teal), const SizedBox(width: 6), Text('Order: $orderLabel')]),
+            const SizedBox(height: 6),
+            Row(children: [const Icon(Icons.local_shipping, size: 18, color: Colors.grey), const SizedBox(width: 6), Text('Partner fee (tracked): $shipLabel', style: const TextStyle(color: Colors.grey, fontSize: 12))]),
+          ] else ...[
+            Row(children: [const Icon(Icons.receipt_long, size: 18, color: Colors.teal), const SizedBox(width: 6), Text(l10n.settlementOrderLabel(orderLabel))]),
+            const SizedBox(height: 6),
+            Row(children: [const Icon(Icons.local_shipping, size: 18, color: Colors.deepOrange), const SizedBox(width: 6), Text(l10n.settlementShippingLabel(shipLabel))]),
+          ],
           if (territory != null && territory.isNotEmpty) ...[
             const SizedBox(height: 6),
             Row(children: [const Icon(Icons.map, size: 18, color: Colors.blueGrey), const SizedBox(width: 6), Text(l10n.settlementTerritoryLabel(territory))]),
@@ -295,9 +346,15 @@ Future<void> showSettlementInfoDialog(
   final orderLabel = d.order.toStringAsFixed(2);
   final shipLabel = d.shipping.toStringAsFixed(2);
   final netLabel = absNet.toStringAsFixed(2);
-  final title = d.actionCollect
-    ? l10n.settlementTitleCollectFromCourier
-    : (d.netSigned < 0 ? l10n.settlementTitlePayCourier : l10n.settlementTitleCourierSettlement);
+
+  final isPartner = d.isPartnerOrder;
+  final partnerName = d.deliveryPartner ?? '';
+
+  final title = isPartner
+    ? 'Partner Settlement Info'
+    : d.actionCollect
+      ? l10n.settlementTitleCollectFromCourier
+      : (d.netSigned < 0 ? l10n.settlementTitlePayCourier : l10n.settlementTitleCourierSettlement);
   final paidLabel = d.unpaidEffective ? l10n.settlementStatusUnpaid : l10n.settlementStatusPaid;
   final paidNote = d.recentlyPaid
     ? l10n.settlementPaidNoteRecent
@@ -316,6 +373,26 @@ Future<void> showSettlementInfoDialog(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (isPartner && partnerName.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.deepPurple.shade200),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.handshake, size: 16, color: Colors.deepPurple.shade400),
+                  const SizedBox(width: 6),
+                  Text('Partner: $partnerName',
+                    style: TextStyle(fontWeight: FontWeight.w600, color: Colors.deepPurple.shade700, fontSize: 12)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           if (invoice != null) ...[
             Text(l10n.websocketInvoiceLabel(invoice)),
             const SizedBox(height: 6),
@@ -329,21 +406,39 @@ Future<void> showSettlementInfoDialog(
             ],
           ),
           const SizedBox(height: 8),
-          if (d.actionCollect) ...[
-            Text(l10n.settlementCollectFormula),
-            const SizedBox(height: 6),
-            _netChip(netLabel, Colors.indigo, l10n.settlementNetToCollect),
-          ] else if (d.netSigned < 0) ...[
-            Text(l10n.settlementPayFormula),
-            const SizedBox(height: 6),
-            _netChip(netLabel, Colors.deepOrange, l10n.settlementPayAmount),
+          if (isPartner) ...[
+            // Partner order: show full order amount as the settlement amount
+            if (d.unpaidEffective) ...[
+              Text('Collected full order amount from courier'),
+              const SizedBox(height: 6),
+              _netChip(orderLabel, Colors.indigo, 'Full amount'),
+            ] else ...[
+              Text('Online paid — no cash exchange'),
+            ],
+            const SizedBox(height: 8),
+            Row(children: [
+              Icon(Icons.local_shipping, size: 18, color: Colors.grey.shade400),
+              const SizedBox(width: 6),
+              Text('Partner fee (tracked): $shipLabel',
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+            ]),
           ] else ...[
-            Text(l10n.settlementNothingToSettle),
+            if (d.actionCollect) ...[
+              Text(l10n.settlementCollectFormula),
+              const SizedBox(height: 6),
+              _netChip(netLabel, Colors.indigo, l10n.settlementNetToCollect),
+            ] else if (d.netSigned < 0) ...[
+              Text(l10n.settlementPayFormula),
+              const SizedBox(height: 6),
+              _netChip(netLabel, Colors.deepOrange, l10n.settlementPayAmount),
+            ] else ...[
+              Text(l10n.settlementNothingToSettle),
+            ],
+            const SizedBox(height: 12),
+            Row(children: [const Icon(Icons.receipt_long, size: 18, color: Colors.teal), const SizedBox(width: 6), Text(l10n.settlementOrderLabel(orderLabel))]),
+            const SizedBox(height: 6),
+            Row(children: [const Icon(Icons.local_shipping, size: 18, color: Colors.deepOrange), const SizedBox(width: 6), Text(l10n.settlementShippingLabel(shipLabel))]),
           ],
-          const SizedBox(height: 12),
-          Row(children: [const Icon(Icons.receipt_long, size: 18, color: Colors.teal), const SizedBox(width: 6), Text(l10n.settlementOrderLabel(orderLabel))]),
-          const SizedBox(height: 6),
-          Row(children: [const Icon(Icons.local_shipping, size: 18, color: Colors.deepOrange), const SizedBox(width: 6), Text(l10n.settlementShippingLabel(shipLabel))]),
           if (territory != null && territory.isNotEmpty) ...[
             const SizedBox(height: 6),
             Row(children: [const Icon(Icons.map, size: 18, color: Colors.blueGrey), const SizedBox(width: 6), Text(l10n.settlementTerritoryLabel(territory))]),

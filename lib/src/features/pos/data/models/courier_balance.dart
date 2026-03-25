@@ -5,17 +5,22 @@ class CourierBalance {
   final List<CourierBalanceDetail> details;
   final String partyType;
   final String party;
+  final String? deliveryPartner;
+  final bool isPartnerCourier;
 
   CourierBalance({
     required this.courier,
     required this.courierName,
     required this.balance,
     required this.details,
-  required this.partyType,
-  required this.party,
+    required this.partyType,
+    required this.party,
+    this.deliveryPartner,
+    this.isPartnerCourier = false,
   });
 
   factory CourierBalance.fromMap(Map<String, dynamic> map) {
+    final dp = (map['delivery_partner'] ?? '').toString();
     return CourierBalance(
       courier: (map['courier'] ?? '') as String,
       courierName: (map['courier_name'] ?? map['courierName'] ?? '') as String,
@@ -23,8 +28,10 @@ class CourierBalance {
       details: ((map['details'] as List?) ?? const [])
           .map((e) => CourierBalanceDetail.fromMap(Map<String, dynamic>.from(e)))
           .toList(),
-  partyType: (map['party_type'] ?? '') as String,
-  party: (map['party'] ?? '') as String,
+      partyType: (map['party_type'] ?? '') as String,
+      party: (map['party'] ?? '') as String,
+      deliveryPartner: dp.isEmpty ? null : dp,
+      isPartnerCourier: dp.isNotEmpty,
     );
   }
 

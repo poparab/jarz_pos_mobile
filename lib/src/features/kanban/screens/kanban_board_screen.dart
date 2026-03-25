@@ -1189,7 +1189,14 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                                         color: selected ? Colors.blue[800] : Colors.black87,
                                                       ),
                                                     ),
-                                                    if (c['party_type'] != null)
+                                                    if (c['delivery_partner'] != null && c['delivery_partner']!.isNotEmpty)
+                                                      Text(
+                                                        '🤝 ${c['delivery_partner']}',
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                        style: TextStyle(fontSize: 10, color: Colors.deepPurple[600], fontWeight: FontWeight.w500),
+                                                      )
+                                                    else if (c['party_type'] != null)
                                                       Text(
                                                         c['party_type']!,
                                                         style: TextStyle(fontSize: 11, color: Colors.grey[600]),
