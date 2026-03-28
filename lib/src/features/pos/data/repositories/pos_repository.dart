@@ -262,6 +262,7 @@ class PosRepository {
     required List<Map<String, dynamic>> items,
     Map<String, dynamic>? customer,
     String? requiredDeliveryDatetime,
+    String? deliveryEndDatetime,
     String? salesPartner,
     String? paymentType, // 'cash' | 'online' (optional, advisory)
     bool isPickup = false,
@@ -347,6 +348,11 @@ class PosRepository {
       if (requiredDeliveryDatetime != null &&
           requiredDeliveryDatetime.isNotEmpty) {
         requestData['required_delivery_datetime'] = requiredDeliveryDatetime;
+      }
+
+      // Add delivery end datetime for correct duration calculation
+      if (deliveryEndDatetime != null && deliveryEndDatetime.isNotEmpty) {
+        requestData['delivery_end_datetime'] = deliveryEndDatetime;
       }
 
       // Pickup flag: informs backend to suppress shipping logic and mark invoice as pickup

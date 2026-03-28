@@ -481,6 +481,7 @@ class PosNotifier extends StateNotifier<PosState> {
         items: state.cartItems,
         customer: state.selectedCustomer,
         requiredDeliveryDatetime: state.isPickup ? null : state.selectedDeliverySlot?.datetime,
+        deliveryEndDatetime: state.isPickup ? null : state.selectedDeliverySlot?.endDatetime,
         isPickup: state.isPickup,
         salesPartner: state.selectedSalesPartner?['name'],
         paymentType: paymentType,
