@@ -739,10 +739,19 @@ class CartWidget extends ConsumerWidget {
           ...selectedItems.entries.map((entry) {
             final groupName = entry.key;
             final items = entry.value;
+            // Group identical items by name and show count
+            final counts = <String, int>{};
+            for (final item in items) {
+              final name = (item['name'] ?? '').toString();
+              counts[name] = (counts[name] ?? 0) + 1;
+            }
+            final summary = counts.entries.map((e) {
+              return e.value > 1 ? '${e.key} x${e.value}' : e.key;
+            }).join(', ');
             return Padding(
               padding: const EdgeInsets.only(bottom: 2),
               child: Text(
-                '$groupName: ${items.map((item) => item['name']).join(', ')}',
+                '$groupName: $summary',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             );

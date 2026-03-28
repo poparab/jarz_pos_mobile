@@ -250,7 +250,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '(${categoryItems.length} ${isBundleCategory ? context.l10n.itemGridBundlesCount : context.l10n.itemGridItemsCount})',
+                    '(${isBundleCategory ? context.l10n.itemGridBundlesCount(categoryItems.length) : context.l10n.itemGridItemsCount(categoryItems.length)})',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
