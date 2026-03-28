@@ -432,7 +432,7 @@ class CartWidget extends ConsumerWidget {
     final l10n = context.l10n;
     final isPhone = ResponsiveUtils.isPhone(context);
     final quantity = (cartItem['quantity'] ?? 1) as int;
-    final rate = (cartItem['rate'] ?? 0.0) as double;
+    final rate = ((cartItem['rate'] ?? 0) as num).toDouble();
     final total = quantity.toDouble() * rate;
     final isBundle = cartItem['type'] == 'bundle';
     final isShipping = cartItem['is_shipping'] == true;
