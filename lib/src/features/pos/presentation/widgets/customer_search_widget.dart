@@ -547,6 +547,7 @@ class _QuickAddCustomerWidgetState
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _mobileController = TextEditingController();
+  final _secondaryMobileController = TextEditingController();
   final _addressController = TextEditingController();
   final _locationController = TextEditingController();
 
@@ -571,6 +572,7 @@ class _QuickAddCustomerWidgetState
   void dispose() {
     _nameController.dispose();
     _mobileController.dispose();
+    _secondaryMobileController.dispose();
     _addressController.dispose();
     _locationController.dispose();
     super.dispose();
@@ -657,6 +659,19 @@ class _QuickAddCustomerWidgetState
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Second phone number (optional)
+                    TextFormField(
+                      controller: _secondaryMobileController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'Secondary Phone (Optional)',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.phone_android),
+                        hintText: 'Additional contact number',
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -845,6 +860,9 @@ class _QuickAddCustomerWidgetState
     detailedAddress: addressValue,
     locationLink: _locationController.text.trim().isNotEmpty
         ? _locationController.text.trim()
+        : null,
+    secondaryMobile: _secondaryMobileController.text.trim().isNotEmpty
+        ? _secondaryMobileController.text.trim()
         : null,
       );
 

@@ -170,6 +170,7 @@ class PosRepository {
     required String territoryId,
     required String detailedAddress,
     String? locationLink,
+    String? secondaryMobile,
   }) async {
     try {
       final response = await _dio.post(
@@ -181,6 +182,8 @@ class PosRepository {
           'territory_id': territoryId,
           if (locationLink != null && locationLink.isNotEmpty)
             'location_link': locationLink,
+          if (secondaryMobile != null && secondaryMobile.isNotEmpty)
+            'secondary_mobile': secondaryMobile,
         }),
       );
 
