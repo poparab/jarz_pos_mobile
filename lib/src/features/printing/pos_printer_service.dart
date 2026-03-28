@@ -427,10 +427,11 @@ class PosPrinterService extends ChangeNotifier {
       }
       final printable = hasNonAscii(s) ? normalizePrintable(s) : s;
       if (printable.isEmpty) return;
+      esc([0x1C, 0x2E]); // Ensure CJK mode stays cancelled
       esc([0x1B, 0x4D, 0x01]); // Font B (smaller)
       esc([0x1B,0x21,bold?0x20:0x00]);
       esc([0x1B,0x61, center?0x01:0x00]);
-      b.add(utf8.encode(printable));
+      b.add(latin1.encode(printable));
       esc([0x0A]);
     }
   void feed(int n) => esc([0x1B, 0x64, n.clamp(0, 255)]);
@@ -481,6 +482,12 @@ class PosPrinterService extends ChangeNotifier {
     }
     // Reset printer to a known state to avoid stray characters or misalignment
     esc([0x1B, 0x40]);
+    // Cancel Chinese/Kanji double-byte character mode (FS .)
+    // Many thermal printers ship with CJK mode enabled by default, causing
+    // ASCII bytes to be interpreted as double-byte CJK character codes → garbled output.
+    esc([0x1C, 0x2E]);
+    // Select single-byte character code table: PC437 (ESC t 0)
+    esc([0x1B, 0x74, 0x00]);
     // Use Font B globally (smaller)
     esc([0x1B, 0x4D, 0x01]);
     // HEADER ---------------------------------------------------------
@@ -786,10 +793,11 @@ class PosPrinterService extends ChangeNotifier {
     String pad(String s, int w){ return s.length > w ? s.substring(0,w) : s.padRight(w); }
     if (asciiOk) {
       final line = pad(left.trimRight(), leftWidth) + pad(right.trimRight(), rightWidth);
+      b.add(Uint8List.fromList([0x1C, 0x2E])); // Ensure CJK mode stays cancelled
       b.add(Uint8List.fromList([0x1B, 0x4D, 0x01]));
       b.add(Uint8List.fromList([0x1B,0x21,0x00]));
       b.add(Uint8List.fromList([0x1B,0x61,0x00]));
-      b.add(utf8.encode(line));
+      b.add(latin1.encode(line));
       b.add([0x0A]);
     } else {
       // Fallback to raster for mixed or non-ASCII content.
