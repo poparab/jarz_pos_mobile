@@ -67,7 +67,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
           }
 
           return FutureBuilder(
-            future: ref.read(shiftNotifierProvider.notifier).getCurrentShiftSummary(),
+            future: ref.read(shiftNotifierProvider.notifier).getCurrentShiftSummary(openingEntry: activeShift.name),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());

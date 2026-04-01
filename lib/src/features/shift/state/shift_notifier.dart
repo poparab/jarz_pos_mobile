@@ -91,10 +91,10 @@ class ShiftNotifier extends StateNotifier<ShiftState> {
     }
   }
 
-  Future<ShiftSummary?> getCurrentShiftSummary() async {
-    final active = state.activeShift;
-    if (active == null) return null;
-    return _repository.getShiftSummary(active.name);
+  Future<ShiftSummary?> getCurrentShiftSummary({String? openingEntry}) async {
+    final entryName = openingEntry ?? state.activeShift?.name;
+    if (entryName == null) return null;
+    return _repository.getShiftSummary(entryName);
   }
 
   Future<ShiftSummary?> endShift({required List<Map<String, dynamic>> closingBalances}) async {
