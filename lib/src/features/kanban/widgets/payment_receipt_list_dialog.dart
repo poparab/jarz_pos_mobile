@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../providers/kanban_provider.dart';
@@ -106,6 +107,39 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
         SnackBar(content: Text('Error uploading image: $e')),
       );
     }
+  }
+
+  void _showFullImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => const Center(
+                    child: Icon(Icons.error, color: Colors.white, size: 48),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                onPressed: () => Navigator.of(ctx).pop(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _confirmReceipt(String receiptName) async {
@@ -229,6 +263,17 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
     final isConfirmed = status == 'Confirmed';
     final hasImage = receiptImageUrl != null && receiptImageUrl.isNotEmpty;
 
+    // Build full image URL: prepend ERP base URL if path is relative
+    String? fullImageUrl;
+    if (hasImage) {
+      if (receiptImageUrl.startsWith('http')) {
+        fullImageUrl = receiptImageUrl;
+      } else {
+        final base = dotenv.get('ERP_BASE_URL', fallback: '');
+        fullImageUrl = '$base$receiptImageUrl';
+      }
+    }
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -281,18 +326,21 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
             if (hasImage)
               Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      receiptImageUrl,
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
+                  GestureDetector(
+                    onTap: () => _showFullImage(context, fullImageUrl!),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        fullImageUrl!,
                         width: 80,
                         height: 80,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.error),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 80,
+                          height: 80,
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.error),
+                        ),
                       ),
                     ),
                   ),
