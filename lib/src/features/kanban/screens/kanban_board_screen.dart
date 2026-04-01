@@ -77,6 +77,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       if (profileName != null && profileName.isNotEmpty) {
         ref.invalidate(posAccountBalanceProvider(profileName));
       }
+      // Auto-refresh unconfirmed receipts badge
+      ref.invalidate(unconfirmedReceiptsCountProvider);
     });
   }
 
@@ -152,6 +154,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                   if (profileName != null && profileName.isNotEmpty) {
                     ref.invalidate(posAccountBalanceProvider(profileName));
                   }
+                  ref.invalidate(unconfirmedReceiptsCountProvider);
                 },
                 child: _buildKanbanContent(kanbanState),
               ),
@@ -194,6 +197,11 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   /// Responsive AppBar: on phones collapses secondary actions into overflow menu.
   AppBar _buildResponsiveAppBar(BuildContext context) {
     final isPhone = ResponsiveUtils.isPhone(context);
+    final unconfirmedCount = ref.watch(unconfirmedReceiptsCountProvider).maybeWhen(
+      data: (n) => n,
+      orElse: () => 0,
+    );
+    final hasUnconfirmed = unconfirmedCount > 0;
 
     // Primary actions always visible
     final primaryActions = <Widget>[
@@ -228,12 +236,25 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     if (isPhone) {
       primaryActions.add(
         PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
+          icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.more_vert),
+                if (hasUnconfirmed) Positioned(
+                  top: -2, right: -2,
+                  child: Container(
+                    width: 9, height: 9,
+                    decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+                  ),
+                ),
+              ],
+            ),
           tooltip: context.l10n.kanbanMoreActions,
           onSelected: (value) {
             switch (value) {
               case 'receipts':
-                showDialog(context: context, builder: (_) => const PaymentReceiptListDialog());
+                showDialog(context: context, builder: (_) => const PaymentReceiptListDialog())
+                  .then((_) => ref.invalidate(unconfirmedReceiptsCountProvider));
               case 'printers':
                 context.push(AppRoutes.printers);
               case 'couriers':
@@ -245,7 +266,23 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             }
           },
           itemBuilder: (_) => [
-            PopupMenuItem(value: 'receipts', child: ListTile(leading: const Icon(Icons.receipt_long), title: Text(context.l10n.kanbanMenuReceipts), dense: true)),
+            PopupMenuItem(value: 'receipts', child: ListTile(
+              leading: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.receipt_long),
+                  if (hasUnconfirmed) Positioned(
+                    top: -4, right: -6,
+                    child: Container(
+                      width: 10, height: 10,
+                      decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+                    ),
+                  ),
+                ],
+              ),
+              title: Text(context.l10n.kanbanMenuReceipts),
+              dense: true,
+            )),
             PopupMenuItem(value: 'printers', child: ListTile(leading: const Icon(Icons.print), title: Text(context.l10n.kanbanMenuPrinters), dense: true)),
             PopupMenuItem(value: 'couriers', child: ListTile(leading: const Icon(Icons.local_shipping), title: Text(context.l10n.kanbanMenuCouriers), dense: true)),
             PopupMenuItem(value: 'profile', child: ListTile(leading: const Icon(Icons.account_circle), title: Text(context.l10n.kanbanMenuProfile), dense: true)),
@@ -258,9 +295,15 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       primaryActions.insertAll(0, [
         IconButton(
           tooltip: context.l10n.kanbanPaymentReceipts,
-          icon: const Icon(Icons.receipt_long),
+          icon: Badge(
+            isLabelVisible: hasUnconfirmed,
+            label: Text('$unconfirmedCount'),
+            backgroundColor: Colors.orange,
+            child: const Icon(Icons.receipt_long),
+          ),
           onPressed: () {
-            showDialog(context: context, builder: (ctx) => const PaymentReceiptListDialog());
+            showDialog(context: context, builder: (ctx) => const PaymentReceiptListDialog())
+              .then((_) => ref.invalidate(unconfirmedReceiptsCountProvider));
           },
         ),
       ]);

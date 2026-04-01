@@ -1207,6 +1207,17 @@ final kanbanProvider = StateNotifierProvider<KanbanNotifier, KanbanState>((ref) 
   return KanbanNotifier(svc, ref);
 });
 
+/// Provider for the count of unconfirmed payment receipts (refreshed on demand).
+final unconfirmedReceiptsCountProvider = FutureProvider.autoDispose<int>((ref) async {
+  try {
+    final svc = ref.watch(kanbanServiceProvider);
+    final receipts = await svc.listPaymentReceipts(status: 'Unconfirmed');
+    return receipts.length;
+  } catch (_) {
+    return 0;
+  }
+});
+
 // Provider for specific invoice details
 final invoiceDetailsProvider = FutureProvider.family<InvoiceCard?, String>((
   ref,
