@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../providers/kanban_provider.dart';
 
 class PaymentReceiptListDialog extends ConsumerStatefulWidget {
@@ -49,18 +50,18 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
       final source = await showDialog<ImageSource>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Select Image Source'),
+          title: Text(context.l10n.receiptSelectImageSource),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: const Icon(Icons.camera_alt),
-                title: const Text('Camera'),
+                title: Text(context.l10n.receiptCamera),
                 onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text('Gallery'),
+                title: Text(context.l10n.receiptGallery),
                 onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
               ),
             ],
@@ -82,7 +83,7 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       messenger.showSnackBar(
-        const SnackBar(content: Text('Uploading receipt image...')),
+        SnackBar(content: Text(context.l10n.receiptUploading)),
       );
 
       final result = await ref.read(kanbanProvider.notifier).uploadReceiptImage(
@@ -93,18 +94,18 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
 
       if (result != null && result['success'] == true) {
         messenger.showSnackBar(
-          const SnackBar(content: Text('Receipt image uploaded successfully')),
+          SnackBar(content: Text(context.l10n.receiptUploadedSuccess)),
         );
         await _loadData(); // Refresh list
       } else {
         messenger.showSnackBar(
-          const SnackBar(content: Text('Failed to upload receipt image')),
+          SnackBar(content: Text(context.l10n.receiptUploadFailed)),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error uploading image: $e')),
+        SnackBar(content: Text(context.l10n.receiptUploadError(e.toString()))),
       );
     }
   }
@@ -146,7 +147,7 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
     try {
       final messenger = ScaffoldMessenger.of(context);
       messenger.showSnackBar(
-        const SnackBar(content: Text('Confirming receipt...')),
+        SnackBar(content: Text(context.l10n.receiptConfirming)),
       );
 
       final result = await ref.read(kanbanProvider.notifier).confirmReceipt(
@@ -155,18 +156,18 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
 
       if (result != null && result['success'] == true) {
         messenger.showSnackBar(
-          const SnackBar(content: Text('Receipt confirmed successfully')),
+          SnackBar(content: Text(context.l10n.receiptConfirmedSuccess)),
         );
         await _loadData(); // Refresh list
       } else {
         messenger.showSnackBar(
-          const SnackBar(content: Text('Failed to confirm receipt')),
+          SnackBar(content: Text(context.l10n.receiptConfirmFailed)),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error confirming receipt: $e')),
+        SnackBar(content: Text(context.l10n.receiptConfirmError(e.toString()))),
       );
     }
   }
@@ -206,9 +207,9 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
                   border: OutlineInputBorder(),
                 ),
                 items: [
-                  const DropdownMenuItem<String>(
+                  DropdownMenuItem<String>(
                     value: null,
-                    child: Text('All Profiles'),
+                    child: Text(context.l10n.receiptAllProfiles),
                   ),
                   ...posProfiles.map((profile) => DropdownMenuItem<String>(
                         value: profile,
@@ -228,9 +229,9 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
                 child: Center(child: CircularProgressIndicator()),
               )
             else if (receipts.isEmpty)
-              const Expanded(
+              Expanded(
                 child: Center(
-                  child: Text('No payment receipts found'),
+                  child: Text(context.l10n.receiptNoReceiptsFound),
                 ),
               )
             else
@@ -349,7 +350,7 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
                     ElevatedButton.icon(
                       onPressed: () => _confirmReceipt(receiptName),
                       icon: const Icon(Icons.check, size: 16),
-                      label: const Text('Confirm'),
+                      label: Text(context.l10n.commonConfirm),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
@@ -361,7 +362,7 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
               ElevatedButton.icon(
                 onPressed: () => _uploadImage(receiptName),
                 icon: const Icon(Icons.upload, size: 16),
-                label: const Text('Upload Receipt Image'),
+                label: Text(context.l10n.receiptUploadImageButton),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,

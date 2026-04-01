@@ -227,7 +227,7 @@ Future<bool?> showSettlementConfirmDialog(
   final shipLabel = d.shipping.toStringAsFixed(2);
   final netLabel = absNet.toStringAsFixed(2);
   final title = d.isPartnerOrder
-    ? 'Partner Delivery Settlement'
+    ? l10n.settlementPartnerDeliveryTitle
     : (d.actionCollect
       ? l10n.settlementTitleCollectFromCourier
       : (d.netSigned < 0 ? l10n.settlementTitlePayCourier : l10n.settlementTitleCourierSettlement));
@@ -263,7 +263,7 @@ Future<bool?> showSettlementConfirmDialog(
                   const Icon(Icons.handshake, size: 16, color: Colors.purple),
                   const SizedBox(width: 6),
                   Text(
-                    'Partner: ${d.deliveryPartner ?? ""}',
+                    l10n.settlementPartnerLabel(d.deliveryPartner ?? ''),
                     style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.purple),
                   ),
                 ],
@@ -287,13 +287,13 @@ Future<bool?> showSettlementConfirmDialog(
           if (d.isPartnerOrder) ...[
             // Partner orders: show full amount to collect (no shipping deduction)
             if (d.unpaidEffective) ...[
-              const Text('Collect full order amount from courier:'),
+              Text(l10n.settlementPartnerCollectFull),
               const SizedBox(height: 6),
-              _netChip(netLabel, Colors.indigo, 'Collect (Full Amount)'),
+              _netChip(netLabel, Colors.indigo, l10n.settlementPartnerCollectFullChip),
             ] else ...[
-              const Text('Online-paid — no cash exchange with courier'),
+              Text(l10n.settlementPartnerOnlinePaid),
               const SizedBox(height: 6),
-              _netChip('0.00', Colors.green, 'No Cash Exchange'),
+              _netChip('0.00', Colors.green, l10n.settlementNoExchange),
             ],
           ] else ...[
             if (d.actionCollect) ...[
@@ -310,9 +310,9 @@ Future<bool?> showSettlementConfirmDialog(
           ],
           const SizedBox(height: 12),
           if (d.isPartnerOrder) ...[
-            Row(children: [const Icon(Icons.receipt_long, size: 18, color: Colors.teal), const SizedBox(width: 6), Text('Order: $orderLabel')]),
+            Row(children: [const Icon(Icons.receipt_long, size: 18, color: Colors.teal), const SizedBox(width: 6), Text(l10n.settlementOrderLabel(orderLabel))]),
             const SizedBox(height: 6),
-            Row(children: [const Icon(Icons.local_shipping, size: 18, color: Colors.grey), const SizedBox(width: 6), Text('Partner fee (tracked): $shipLabel', style: const TextStyle(color: Colors.grey, fontSize: 12))]),
+            Row(children: [const Icon(Icons.local_shipping, size: 18, color: Colors.grey), const SizedBox(width: 6), Text(l10n.settlementPartnerFeeTracked(shipLabel), style: const TextStyle(color: Colors.grey, fontSize: 12))]),
           ] else ...[
             Row(children: [const Icon(Icons.receipt_long, size: 18, color: Colors.teal), const SizedBox(width: 6), Text(l10n.settlementOrderLabel(orderLabel))]),
             const SizedBox(height: 6),
@@ -351,7 +351,7 @@ Future<void> showSettlementInfoDialog(
   final partnerName = d.deliveryPartner ?? '';
 
   final title = isPartner
-    ? 'Partner Settlement Info'
+    ? l10n.settlementPartnerInfoTitle
     : d.actionCollect
       ? l10n.settlementTitleCollectFromCourier
       : (d.netSigned < 0 ? l10n.settlementTitlePayCourier : l10n.settlementTitleCourierSettlement);
@@ -386,7 +386,7 @@ Future<void> showSettlementInfoDialog(
                 children: [
                   Icon(Icons.handshake, size: 16, color: Colors.deepPurple.shade400),
                   const SizedBox(width: 6),
-                  Text('Partner: $partnerName',
+                  Text(l10n.settlementPartnerLabel(partnerName),
                     style: TextStyle(fontWeight: FontWeight.w600, color: Colors.deepPurple.shade700, fontSize: 12)),
                 ],
               ),
@@ -409,17 +409,17 @@ Future<void> showSettlementInfoDialog(
           if (isPartner) ...[
             // Partner order: show full order amount as the settlement amount
             if (d.unpaidEffective) ...[
-              Text('Collected full order amount from courier'),
+              Text(l10n.settlementPartnerCollectedFull),
               const SizedBox(height: 6),
-              _netChip(orderLabel, Colors.indigo, 'Full amount'),
+              _netChip(orderLabel, Colors.indigo, l10n.settlementPartnerFullAmountChip),
             ] else ...[
-              Text('Online paid — no cash exchange'),
+              Text(l10n.settlementPartnerOnlinePaidInfo),
             ],
             const SizedBox(height: 8),
             Row(children: [
               Icon(Icons.local_shipping, size: 18, color: Colors.grey.shade400),
               const SizedBox(width: 6),
-              Text('Partner fee (tracked): $shipLabel',
+              Text(l10n.settlementPartnerFeeTracked(shipLabel),
                 style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
             ]),
           ] else ...[

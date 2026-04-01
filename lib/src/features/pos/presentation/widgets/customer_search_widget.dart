@@ -732,7 +732,7 @@ class _QuickAddCustomerWidgetState
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: Text(context.l10n.commonCancel),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -745,7 +745,7 @@ class _QuickAddCustomerWidgetState
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Create Customer'),
+                        : Text(context.l10n.posCreateCustomer),
                   ),
                 ),
               ],
@@ -869,8 +869,8 @@ class _QuickAddCustomerWidgetState
       if (mounted) {
         widget.onCustomerCreated(newCustomer);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Customer created successfully!'),
+          SnackBar(
+            content: Text(context.l10n.posCustomerCreatedSuccess),
             backgroundColor: Colors.green,
           ),
         );

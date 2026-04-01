@@ -589,7 +589,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
   void _showStockLimitMessage(int stockQty) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Stock limit reached. Only $stockQty available.'),
+        content: Text(context.l10n.itemGridStockLimitReached(stockQty)),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.orange,

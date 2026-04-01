@@ -3939,6 +3939,540 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to update delivery slot'**
   String get invoiceSlotUpdateFailed;
+
+  /// No description provided for @tripsDeliveryTripsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Trips'**
+  String get tripsDeliveryTripsTitle;
+
+  /// No description provided for @tripsActiveTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get tripsActiveTab;
+
+  /// No description provided for @tripsCompletedTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get tripsCompletedTab;
+
+  /// No description provided for @tripsCreateTripTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Delivery Trip'**
+  String get tripsCreateTripTitle;
+
+  /// No description provided for @tripsCreateTripButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Trip'**
+  String get tripsCreateTripButton;
+
+  /// No description provided for @tripsCreateTripFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create trip: {error}'**
+  String tripsCreateTripFailed(Object error);
+
+  /// No description provided for @tripsOrdersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get tripsOrdersLabel;
+
+  /// No description provided for @tripsTotalAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Amount'**
+  String get tripsTotalAmount;
+
+  /// No description provided for @tripsTotalShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Shipping'**
+  String get tripsTotalShipping;
+
+  /// No description provided for @tripsSameTerritory.
+  ///
+  /// In en, this message translates to:
+  /// **'Same territory: {territory}'**
+  String tripsSameTerritory(Object territory);
+
+  /// No description provided for @tripsSelectCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Courier'**
+  String get tripsSelectCourier;
+
+  /// No description provided for @tripsMarkTripAsDeliveredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark Trip as Delivered'**
+  String get tripsMarkTripAsDeliveredTitle;
+
+  /// No description provided for @tripsMarkTripAsDeliveredContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark \"{tripName}\" with {count} orders as delivered?'**
+  String tripsMarkTripAsDeliveredContent(Object tripName, Object count);
+
+  /// No description provided for @tripsTripMarkedAsDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'{tripName} marked as delivered'**
+  String tripsTripMarkedAsDelivered(Object tripName);
+
+  /// No description provided for @tripsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String tripsFailed(Object error);
+
+  /// No description provided for @tripsSendForDeliveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send for Delivery'**
+  String get tripsSendForDeliveryTitle;
+
+  /// No description provided for @tripsSendForDeliveryContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Send {count} orders for delivery?\n\nCourier: {courierName}'**
+  String tripsSendForDeliveryContent(Object count, Object courierName);
+
+  /// No description provided for @tripsSentForDeliverySuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip sent for delivery'**
+  String get tripsSentForDeliverySuccess;
+
+  /// No description provided for @tripsMarkAsDeliveredButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Delivered'**
+  String get tripsMarkAsDeliveredButton;
+
+  /// No description provided for @tripsMarkAllAsDeliveredContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all {count} orders as delivered?\n\nThis will complete the trip.'**
+  String tripsMarkAllAsDeliveredContent(Object count);
+
+  /// No description provided for @tripsTripMarkedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip marked as delivered'**
+  String get tripsTripMarkedSuccess;
+
+  /// No description provided for @tripsSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending...'**
+  String get tripsSending;
+
+  /// No description provided for @tripsMarking.
+  ///
+  /// In en, this message translates to:
+  /// **'Marking...'**
+  String get tripsMarking;
+
+  /// No description provided for @tripsInvoicesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices ({count})'**
+  String tripsInvoicesCount(Object count);
+
+  /// No description provided for @receiptSelectImageSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Image Source'**
+  String get receiptSelectImageSource;
+
+  /// No description provided for @receiptCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get receiptCamera;
+
+  /// No description provided for @receiptGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get receiptGallery;
+
+  /// No description provided for @receiptUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading receipt image...'**
+  String get receiptUploading;
+
+  /// No description provided for @receiptUploadedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt image uploaded successfully'**
+  String get receiptUploadedSuccess;
+
+  /// No description provided for @receiptUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upload receipt image'**
+  String get receiptUploadFailed;
+
+  /// No description provided for @receiptUploadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error uploading image: {error}'**
+  String receiptUploadError(Object error);
+
+  /// No description provided for @receiptConfirming.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming receipt...'**
+  String get receiptConfirming;
+
+  /// No description provided for @receiptConfirmedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt confirmed successfully'**
+  String get receiptConfirmedSuccess;
+
+  /// No description provided for @receiptConfirmFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to confirm receipt'**
+  String get receiptConfirmFailed;
+
+  /// No description provided for @receiptConfirmError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error confirming receipt: {error}'**
+  String receiptConfirmError(Object error);
+
+  /// No description provided for @receiptAllProfiles.
+  ///
+  /// In en, this message translates to:
+  /// **'All Profiles'**
+  String get receiptAllProfiles;
+
+  /// No description provided for @receiptNoReceiptsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No payment receipts found'**
+  String get receiptNoReceiptsFound;
+
+  /// No description provided for @receiptUploadImageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Receipt Image'**
+  String get receiptUploadImageButton;
+
+  /// No description provided for @receiptPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt Preview'**
+  String get receiptPreviewTitle;
+
+  /// No description provided for @receiptPreviewButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview Receipt'**
+  String get receiptPreviewButton;
+
+  /// No description provided for @commonPrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Print'**
+  String get commonPrint;
+
+  /// No description provided for @kanbanNoInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'No invoices'**
+  String get kanbanNoInvoices;
+
+  /// No description provided for @kanbanTripCreatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery trip created successfully'**
+  String get kanbanTripCreatedSuccess;
+
+  /// No description provided for @kanbanPartOfTripWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This order is part of trip {tripName}. Send the entire trip for delivery from the Trips screen.'**
+  String kanbanPartOfTripWarning(Object tripName);
+
+  /// No description provided for @kanbanDeliveryPartnerCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Partner Courier'**
+  String get kanbanDeliveryPartnerCourier;
+
+  /// No description provided for @kanbanDeliveryPartnerCourierSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This courier belongs to a delivery partner'**
+  String get kanbanDeliveryPartnerCourierSubtitle;
+
+  /// No description provided for @kanbanRequestCustomShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Custom Shipping'**
+  String get kanbanRequestCustomShipping;
+
+  /// No description provided for @kanbanCustomShippingSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom shipping request submitted'**
+  String get kanbanCustomShippingSubmitted;
+
+  /// No description provided for @kanbanCustomShippingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to submit request: {error}'**
+  String kanbanCustomShippingFailed(Object error);
+
+  /// No description provided for @settlementPartnerDeliveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner Delivery Settlement'**
+  String get settlementPartnerDeliveryTitle;
+
+  /// No description provided for @settlementPartnerInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner Settlement Info'**
+  String get settlementPartnerInfoTitle;
+
+  /// No description provided for @settlementPartnerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner: {name}'**
+  String settlementPartnerLabel(Object name);
+
+  /// No description provided for @settlementPartnerCollectFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect full order amount from courier:'**
+  String get settlementPartnerCollectFull;
+
+  /// No description provided for @settlementPartnerOnlinePaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Online-paid — no cash exchange with courier'**
+  String get settlementPartnerOnlinePaid;
+
+  /// No description provided for @settlementPartnerCollectFullChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect (Full Amount)'**
+  String get settlementPartnerCollectFullChip;
+
+  /// No description provided for @settlementNoExchange.
+  ///
+  /// In en, this message translates to:
+  /// **'No Cash Exchange'**
+  String get settlementNoExchange;
+
+  /// No description provided for @settlementPartnerFeeTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner fee (tracked): {amount}'**
+  String settlementPartnerFeeTracked(Object amount);
+
+  /// No description provided for @settlementPartnerCollectedFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Collected full order amount from courier'**
+  String get settlementPartnerCollectedFull;
+
+  /// No description provided for @settlementPartnerFullAmountChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Full amount'**
+  String get settlementPartnerFullAmountChip;
+
+  /// No description provided for @settlementPartnerOnlinePaidInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Online paid — no cash exchange'**
+  String get settlementPartnerOnlinePaidInfo;
+
+  /// No description provided for @managerPendingCustomShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Custom Shipping Approvals'**
+  String get managerPendingCustomShipping;
+
+  /// No description provided for @managerNoPendingRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending requests'**
+  String get managerNoPendingRequests;
+
+  /// No description provided for @managerReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {reason}'**
+  String managerReasonLabel(Object reason);
+
+  /// No description provided for @managerCustomShippingApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom shipping approved'**
+  String get managerCustomShippingApproved;
+
+  /// No description provided for @managerApproveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve failed: {error}'**
+  String managerApproveFailed(Object error);
+
+  /// No description provided for @managerRejectCustomShippingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject Custom Shipping'**
+  String get managerRejectCustomShippingTitle;
+
+  /// No description provided for @managerReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get managerReject;
+
+  /// No description provided for @managerCustomShippingRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom shipping rejected'**
+  String get managerCustomShippingRejected;
+
+  /// No description provided for @managerRejectFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject failed: {error}'**
+  String managerRejectFailed(Object error);
+
+  /// No description provided for @purchaseNoInvoicesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No purchase invoices yet'**
+  String get purchaseNoInvoicesYet;
+
+  /// No description provided for @purchaseReorderFromSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder from same supplier'**
+  String get purchaseReorderFromSupplier;
+
+  /// No description provided for @purchaseHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase History'**
+  String get purchaseHistoryTitle;
+
+  /// No description provided for @posCreateCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Customer'**
+  String get posCreateCustomer;
+
+  /// No description provided for @posCustomerCreatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer created successfully!'**
+  String get posCustomerCreatedSuccess;
+
+  /// No description provided for @settingsUserProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'User Profile'**
+  String get settingsUserProfileTitle;
+
+  /// No description provided for @settingsRolesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Roles'**
+  String get settingsRolesTitle;
+
+  /// No description provided for @settingsNoRolesAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'No roles assigned'**
+  String get settingsNoRolesAssigned;
+
+  /// No description provided for @settingsNotificationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Settings'**
+  String get settingsNotificationSettings;
+
+  /// No description provided for @settingsNoAlarmSounds.
+  ///
+  /// In en, this message translates to:
+  /// **'No alarm sounds available'**
+  String get settingsNoAlarmSounds;
+
+  /// No description provided for @settingsAlarmSoundLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm Sound'**
+  String get settingsAlarmSoundLabel;
+
+  /// No description provided for @settingsFailedToLoadAlarmSounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load alarm sounds: {error}'**
+  String settingsFailedToLoadAlarmSounds(Object error);
+
+  /// No description provided for @settingsAlarmSoundChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm sound changed to {title}'**
+  String settingsAlarmSoundChanged(Object title);
+
+  /// No description provided for @settingsCustomAlarmSoundSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom alarm sound set: {title}'**
+  String settingsCustomAlarmSoundSet(Object title);
+
+  /// No description provided for @settingsNoFileSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No file selected'**
+  String get settingsNoFileSelected;
+
+  /// No description provided for @itemGridStockLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock limit reached. Only {stockQty} available.'**
+  String itemGridStockLimitReached(Object stockQty);
+
+  /// No description provided for @menuDeliveryTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Trips'**
+  String get menuDeliveryTrips;
+
+  /// No description provided for @authLoginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get authLoginTitle;
+
+  /// No description provided for @printingPrintersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Printers'**
+  String get printingPrintersTitle;
+
+  /// No description provided for @kanbanOrdersSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} orders selected'**
+  String kanbanOrdersSelectedCount(int count);
 }
 
 class _AppLocalizationsDelegate

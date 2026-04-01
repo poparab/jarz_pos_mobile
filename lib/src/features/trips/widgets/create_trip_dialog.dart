@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../../kanban/models/kanban_models.dart';
 import '../../kanban/providers/kanban_provider.dart';
 import '../providers/trip_provider.dart';
@@ -57,11 +58,11 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
           Icon(Icons.local_shipping, color: Colors.indigo),
           SizedBox(width: 8),
-          Text('Create Delivery Trip', style: TextStyle(fontSize: 16)),
+          Text(context.l10n.tripsCreateTripTitle, style: TextStyle(fontSize: 16)),
         ],
       ),
       content: SizedBox(
@@ -82,17 +83,17 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text('Orders', style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                      Text(context.l10n.tripsOrdersLabel, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
                       Text('${widget.selectedInvoices.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
                     ]),
                     const SizedBox(height: 4),
                     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text('Total Amount', style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                      Text(context.l10n.tripsTotalAmount, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
                       Text('\$${_totalAmount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
                     ]),
                     const SizedBox(height: 4),
                     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text('Total Shipping', style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                      Text(context.l10n.tripsTotalShipping, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
                       Text('\$${_totalShipping.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange[700])),
                     ]),
                     if (_allSameTerritory) ...[
@@ -108,7 +109,7 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
                           Icon(Icons.double_arrow, size: 14, color: Colors.amber[800]),
                           const SizedBox(width: 4),
                           Text(
-                            'Same territory: ${_territories.first}',
+                            context.l10n.tripsSameTerritory(_territories.first),
                             style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.amber[800]),
                           ),
                         ]),
@@ -120,7 +121,7 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
               const SizedBox(height: 16),
 
               // Courier selection
-              const Text('Select Courier', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text(context.l10n.tripsSelectCourier, style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               if (_couriers.isEmpty)
                 const Center(child: CircularProgressIndicator(strokeWidth: 2))
@@ -166,14 +167,14 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         ElevatedButton(
           onPressed: _isLoading || _selectedParty == null ? null : _createTrip,
           style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
           child: _isLoading
               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('Create Trip', style: TextStyle(color: Colors.white)),
+              : Text(context.l10n.tripsCreateTripButton, style: const TextStyle(color: Colors.white)),
         ),
       ],
     );
@@ -194,7 +195,7 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create trip: $e')),
+          SnackBar(content: Text(context.l10n.tripsCreateTripFailed(e.toString()))),
         );
       }
     } finally {

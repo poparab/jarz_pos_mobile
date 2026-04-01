@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../models/trip_models.dart';
 import '../providers/trip_provider.dart';
@@ -41,15 +42,16 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
   Widget build(BuildContext context) {
     final state = ref.watch(tripProvider);
 
+    final l10n = context.l10n;
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
-        title: const Text('Delivery Trips'),
+        title: Text(l10n.tripsDeliveryTripsTitle),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Active'),
-            Tab(text: 'Completed'),
+          tabs: [
+            Tab(text: l10n.tripsActiveTab),
+            Tab(text: l10n.tripsCompletedTab),
           ],
         ),
         actions: [
@@ -62,7 +64,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
       body: state.isLoading && state.trips.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : state.error != null && state.trips.isEmpty
-              ? Center(child: Text('Error: ${state.error}'))
+              ? Center(child: Text(l10n.commonErrorWithDetails(state.error.toString())))
               : TabBarView(
                   controller: _tabController,
                   children: [

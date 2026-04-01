@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/constants/business_constants.dart';
 import '../data/alarm_sound_service.dart';
@@ -30,7 +31,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Profile'),
+        title: Text(context.l10n.settingsUserProfileTitle),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: userRolesAsync.when(
@@ -114,7 +115,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
 
               // Roles Section
               Text(
-                'Roles',
+                context.l10n.settingsRolesTitle,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -128,7 +129,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (userRoles.roles.isEmpty)
-                        const Text('No roles assigned')
+                        Text(context.l10n.settingsNoRolesAssigned)
                       else
                         Wrap(
                           spacing: 8,
@@ -152,7 +153,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
 
               // Alarm Sound Settings
               Text(
-                'Notification Settings',
+                context.l10n.settingsNotificationSettings,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -239,7 +240,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'Alarm Sound',
+                            context.l10n.settingsAlarmSoundLabel,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ],
@@ -257,7 +258,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                       availableSoundsAsync.when(
                         data: (availableSounds) {
                           if (availableSounds.isEmpty) {
-                            return const Text('No alarm sounds available');
+                            return Text(context.l10n.settingsNoAlarmSounds);
                           }
                           
                           return Column(
@@ -274,7 +275,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text('Alarm sound changed to ${sound.title}'),
+                                        content: Text(context.l10n.settingsAlarmSoundChanged(sound.title)),
                                         duration: const Duration(seconds: 2),
                                       ),
                                     );
@@ -350,7 +351,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                         error: (error, stack) => Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
-                            'Failed to load alarm sounds: $error',
+                            context.l10n.settingsFailedToLoadAlarmSounds(error.toString()),
                             style: TextStyle(color: Colors.red[700]),
                           ),
                         ),
@@ -392,7 +393,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Custom alarm sound set: ${customSound.title}'),
+                                      content: Text(context.l10n.settingsCustomAlarmSoundSet(customSound.title)),
                                       duration: const Duration(seconds: 2),
                                     ),
                                   );
@@ -417,7 +418,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Error: $e'),
+                                    content: Text(context.l10n.commonErrorWithDetails(e.toString())),
                                     duration: const Duration(seconds: 3),
                                     backgroundColor: Colors.red,
                                   ),
@@ -546,7 +547,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.invalidate(userRolesFutureProvider),
-                child: const Text('Retry'),
+                child: Text(context.l10n.commonRetry),
               ),
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../models/trip_models.dart';
 import '../providers/trip_provider.dart';
 
@@ -28,11 +29,11 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Error: $err', textAlign: TextAlign.center),
+              Text(context.l10n.commonErrorWithDetails(err.toString()), textAlign: TextAlign.center),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () => ref.invalidate(tripDetailProvider(widget.tripName)),
-                child: const Text('Retry'),
+                child: Text(context.l10n.commonRetry),
               ),
             ],
           ),
@@ -165,7 +166,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
           icon: _sending
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
               : const Icon(Icons.send),
-          label: Text(_sending ? 'Sending...' : 'Send for Delivery'),
+          label: Text(_sending ? context.l10n.tripsSending : context.l10n.tripsSendForDeliveryTitle),
           style: ElevatedButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -184,7 +185,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
           icon: _sending
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
               : const Icon(Icons.check_circle_outline),
-          label: Text(_sending ? 'Marking...' : 'Mark as Delivered'),
+          label: Text(_sending ? context.l10n.tripsMarking : context.l10n.tripsMarkAsDeliveredButton),
           style: ElevatedButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
             backgroundColor: Colors.green,
@@ -200,11 +201,11 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Send for Delivery'),
-        content: Text('Send ${trip.totalOrders} orders for delivery?\n\nCourier: ${trip.courierDisplayName}'),
+        title: Text(context.l10n.tripsSendForDeliveryTitle),
+        content: Text(context.l10n.tripsSendForDeliveryContent(trip.totalOrders, trip.courierDisplayName)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Confirm')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l10n.commonCancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(context.l10n.commonConfirm)),
         ],
       ),
     );
@@ -217,12 +218,12 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       // Refresh the detail view
       ref.invalidate(tripDetailProvider(widget.tripName));
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Trip sent for delivery')),
+        SnackBar(content: Text(context.l10n.tripsSentForDeliverySuccess)),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))),
       );
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -233,14 +234,14 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Mark as Delivered'),
-        content: Text('Mark all ${trip.totalOrders} orders as delivered?\n\nThis will complete the trip.'),
+        title: Text(context.l10n.tripsMarkAsDeliveredButton),
+        content: Text(context.l10n.tripsMarkAllAsDeliveredContent(trip.totalOrders)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l10n.commonCancel)),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.green),
-            child: const Text('Confirm'),
+            child: Text(context.l10n.commonConfirm),
           ),
         ],
       ),
@@ -253,12 +254,12 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       if (!mounted) return;
       ref.invalidate(tripDetailProvider(widget.tripName));
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Trip marked as delivered')),
+        SnackBar(content: Text(context.l10n.tripsTripMarkedSuccess)),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))),
       );
     } finally {
       if (mounted) setState(() => _sending = false);

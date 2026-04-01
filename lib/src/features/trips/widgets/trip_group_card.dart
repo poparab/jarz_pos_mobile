@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../../kanban/models/kanban_models.dart';
 import '../../kanban/widgets/invoice_card_widget.dart';
 
@@ -115,7 +116,7 @@ class _TripGroupCardState extends State<TripGroupCard> {
                     icon: _markingDelivered
                         ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.check_circle, size: 18),
-                    label: Text(_markingDelivered ? 'Marking...' : 'Mark as Delivered'),
+                    label: Text(_markingDelivered ? context.l10n.tripsMarking : context.l10n.tripsMarkAsDeliveredButton),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green[600],
                       foregroundColor: Colors.white,
@@ -209,14 +210,14 @@ class _TripGroupCardState extends State<TripGroupCard> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Mark Trip as Delivered'),
-        content: Text('Mark "${widget.tripName}" with ${widget.invoices.length} orders as delivered?'),
+        title: Text(context.l10n.tripsMarkTripAsDeliveredTitle),
+        content: Text(context.l10n.tripsMarkTripAsDeliveredContent(widget.tripName, widget.invoices.length)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l10n.commonCancel)),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+            child: Text(context.l10n.commonConfirm, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -227,13 +228,13 @@ class _TripGroupCardState extends State<TripGroupCard> {
       await widget.onMarkDelivered!(widget.tripName);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${widget.tripName} marked as delivered'), backgroundColor: Colors.green),
+          SnackBar(content: Text(context.l10n.tripsTripMarkedAsDelivered(widget.tripName)), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(context.l10n.tripsFailed(e.toString())), backgroundColor: Colors.red),
         );
       }
     } finally {

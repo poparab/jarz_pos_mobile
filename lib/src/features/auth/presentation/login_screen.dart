@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../state/login_notifier.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -36,7 +37,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final state = ref.watch(loginNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: Text(context.l10n.authLoginTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -88,7 +89,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         router.go(AppRoutes.pos);
                       }
                     },
-                    child: const Text('Login'),
+                    child: Text(context.l10n.authLoginTitle),
                   ),
             if (state.hasError) ...[
               const SizedBox(height: 16),

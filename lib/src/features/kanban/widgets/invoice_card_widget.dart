@@ -131,7 +131,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Receipt Preview'),
+        title: Text(context.l10n.receiptPreviewTitle),
         content: SingleChildScrollView(
           child: SelectableText(
             preview,
@@ -141,7 +141,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Close'),
+            child: Text(context.l10n.commonClose),
           ),
           ElevatedButton.icon(
             onPressed: () {
@@ -149,7 +149,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               _printInvoice(context);
             },
             icon: const Icon(Icons.print),
-            label: const Text('Print'),
+            label: Text(context.l10n.commonPrint),
           ),
         ],
       ),
@@ -530,7 +530,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 children: [
                   const Icon(Icons.receipt_long, size: 18),
                   const SizedBox(width: 8),
-                  const Text('Preview Receipt'),
+                  Text(l10n.receiptPreviewButton),
                 ],
               ),
             ),
@@ -574,7 +574,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                     children: [
                       Icon(Icons.local_shipping, size: 18, color: Colors.deepOrange[700]),
                       const SizedBox(width: 8),
-                      const Text('Request Custom Shipping'),
+                      Text(l10n.kanbanRequestCustomShipping),
                     ],
                   ),
                 ),
@@ -1844,8 +1844,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                               const SizedBox(height: 8),
                               SwitchListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: const Text('Delivery Partner Courier'),
-                                subtitle: const Text('This courier belongs to a delivery partner', style: TextStyle(fontSize: 12)),
+                              title: Text(context.l10n.kanbanDeliveryPartnerCourier),
+                                subtitle: Text(context.l10n.kanbanDeliveryPartnerCourierSubtitle, style: const TextStyle(fontSize: 12)),
                                 value: isPartnerCourier,
                                 onChanged: (v) async {
                                   setState(() => isPartnerCourier = v);
@@ -2239,14 +2239,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       );
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Custom shipping request submitted')),
+          SnackBar(content: Text(context.l10n.kanbanCustomShippingSubmitted)),
         );
         ref.read(kanbanProvider.notifier).loadInvoices();
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to submit request: $e')),
+          SnackBar(content: Text(context.l10n.kanbanCustomShippingFailed(e.toString()))),
         );
       }
     }

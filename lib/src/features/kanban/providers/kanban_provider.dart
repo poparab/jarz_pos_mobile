@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 import '../models/kanban_models.dart';
 import '../services/kanban_service.dart';
 import '../services/notification_polling_service.dart';
@@ -275,32 +276,35 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       }
       showDialog(
         context: ctx,
-        builder: (c) => AlertDialog(
-          title: const Text('Collect Cash'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Emphasize amount
-              Text(
-                amountLabel,
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              const Text('Collect the full order amount now from the Sales Partner courier.'),
-              if (invoiceId != null && invoiceId.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text('Invoice: $invoiceId', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        builder: (c) {
+          final l10n = AppLocalizations.of(c)!;
+          return AlertDialog(
+            title: Text(l10n.websocketCollectCashTitle),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Emphasize amount
+                Text(
+                  amountLabel,
+                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                Text(l10n.websocketCollectCashMessage),
+                if (invoiceId != null && invoiceId.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(l10n.websocketInvoiceLabel(invoiceId), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                ],
               ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(c).pop(),
-              child: const Text('OK'),
             ),
-          ],
-        ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(c).pop(),
+                child: Text(l10n.commonOk),
+              ),
+            ],
+          );
+        },
       );
     } catch (_) {}
   }

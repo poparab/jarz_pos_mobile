@@ -53,7 +53,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
         title: Text(l10n.purchaseTitle),
         actions: [
           IconButton(
-            tooltip: 'Purchase History',
+            tooltip: context.l10n.purchaseHistoryTitle,
             icon: const Icon(Icons.history),
             onPressed: _openPurchaseHistory,
           ),
@@ -206,7 +206,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                   children: [
                     const Icon(Icons.history),
                     const SizedBox(width: 8),
-                    Text('Purchase History',
+                    Text(context.l10n.purchaseHistoryTitle,
                         style: Theme.of(context).textTheme.titleMedium),
                     const Spacer(),
                     IconButton(
@@ -759,15 +759,15 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Error: $_error', textAlign: TextAlign.center),
+            Text(context.l10n.commonErrorWithDetails(_error.toString()), textAlign: TextAlign.center),
             const SizedBox(height: 12),
-            ElevatedButton(onPressed: _refresh, child: const Text('Retry')),
+            ElevatedButton(onPressed: _refresh, child: Text(context.l10n.commonRetry)),
           ],
         ),
       );
     }
     if (_invoices.isEmpty) {
-      return const Center(child: Text('No purchase invoices yet'));
+      return Center(child: Text(context.l10n.purchaseNoInvoicesYet));
     }
     return RefreshIndicator(
       onRefresh: _refresh,
@@ -964,7 +964,7 @@ class _PurchaseInvoiceCardState extends State<_PurchaseInvoiceCard> {
                       child: OutlinedButton.icon(
                         onPressed: widget.onReorder,
                         icon: const Icon(Icons.replay, size: 16),
-                        label: const Text('Reorder from same supplier'),
+                        label: Text(context.l10n.purchaseReorderFromSupplier),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.indigo,
                           side: const BorderSide(color: Colors.indigo),

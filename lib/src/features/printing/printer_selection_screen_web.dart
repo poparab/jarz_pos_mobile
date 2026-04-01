@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/localization/localization_extensions.dart';
+
 /// Web placeholder for the printer selection screen.
 /// Bluetooth printing is not available in web browsers.
 class PrinterSelectionScreen extends ConsumerStatefulWidget {
@@ -14,7 +16,7 @@ class _PrinterSelectionScreenState extends ConsumerState<PrinterSelectionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Printers')),
+      appBar: AppBar(title: Text(context.l10n.printingPrintersTitle)),
       body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

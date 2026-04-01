@@ -2236,4 +2236,318 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invoiceSlotUpdateFailed => 'فشل تحديث موعد التوصيل';
+
+  @override
+  String get tripsDeliveryTripsTitle => 'رحلات التوصيل';
+
+  @override
+  String get tripsActiveTab => 'نشطة';
+
+  @override
+  String get tripsCompletedTab => 'مكتملة';
+
+  @override
+  String get tripsCreateTripTitle => 'إنشاء رحلة توصيل';
+
+  @override
+  String get tripsCreateTripButton => 'إنشاء رحلة';
+
+  @override
+  String tripsCreateTripFailed(Object error) {
+    return 'فشل إنشاء الرحلة: $error';
+  }
+
+  @override
+  String get tripsOrdersLabel => 'الطلبات';
+
+  @override
+  String get tripsTotalAmount => 'إجمالي المبلغ';
+
+  @override
+  String get tripsTotalShipping => 'إجمالي الشحن';
+
+  @override
+  String tripsSameTerritory(Object territory) {
+    return 'نفس المنطقة: $territory';
+  }
+
+  @override
+  String get tripsSelectCourier => 'اختر الساعي';
+
+  @override
+  String get tripsMarkTripAsDeliveredTitle => 'تعليم الرحلة كمسلمة';
+
+  @override
+  String tripsMarkTripAsDeliveredContent(Object tripName, Object count) {
+    return 'تعليم \"$tripName\" مع $count طلبات كمسلمة؟';
+  }
+
+  @override
+  String tripsTripMarkedAsDelivered(Object tripName) {
+    return 'تم تعليم $tripName كمسلمة';
+  }
+
+  @override
+  String tripsFailed(Object error) {
+    return 'فشل: $error';
+  }
+
+  @override
+  String get tripsSendForDeliveryTitle => 'إرسال للتوصيل';
+
+  @override
+  String tripsSendForDeliveryContent(Object count, Object courierName) {
+    return 'إرسال $count طلبات للتوصيل؟\n\nالساعي: $courierName';
+  }
+
+  @override
+  String get tripsSentForDeliverySuccess => 'تم إرسال الرحلة للتوصيل';
+
+  @override
+  String get tripsMarkAsDeliveredButton => 'تعليم كمسلمة';
+
+  @override
+  String tripsMarkAllAsDeliveredContent(Object count) {
+    return 'تعليم جميع $count طلبات كمسلمة؟\n\nسيؤدي ذلك إلى إتمام الرحلة.';
+  }
+
+  @override
+  String get tripsTripMarkedSuccess => 'تم تعليم الرحلة كمسلمة';
+
+  @override
+  String get tripsSending => 'جارٍ الإرسال...';
+
+  @override
+  String get tripsMarking => 'جارٍ التعليم...';
+
+  @override
+  String tripsInvoicesCount(Object count) {
+    return 'الفواتير ($count)';
+  }
+
+  @override
+  String get receiptSelectImageSource => 'اختر مصدر الصورة';
+
+  @override
+  String get receiptCamera => 'الكاميرا';
+
+  @override
+  String get receiptGallery => 'المعرض';
+
+  @override
+  String get receiptUploading => 'جارٍ رفع صورة الإيصال...';
+
+  @override
+  String get receiptUploadedSuccess => 'تم رفع صورة الإيصال بنجاح';
+
+  @override
+  String get receiptUploadFailed => 'فشل رفع صورة الإيصال';
+
+  @override
+  String receiptUploadError(Object error) {
+    return 'خطأ في رفع الصورة: $error';
+  }
+
+  @override
+  String get receiptConfirming => 'جارٍ تأكيد الإيصال...';
+
+  @override
+  String get receiptConfirmedSuccess => 'تم تأكيد الإيصال بنجاح';
+
+  @override
+  String get receiptConfirmFailed => 'فشل تأكيد الإيصال';
+
+  @override
+  String receiptConfirmError(Object error) {
+    return 'خطأ في تأكيد الإيصال: $error';
+  }
+
+  @override
+  String get receiptAllProfiles => 'جميع الملفات الشخصية';
+
+  @override
+  String get receiptNoReceiptsFound => 'لا توجد إيصالات دفع';
+
+  @override
+  String get receiptUploadImageButton => 'رفع صورة الإيصال';
+
+  @override
+  String get receiptPreviewTitle => 'معاينة الإيصال';
+
+  @override
+  String get receiptPreviewButton => 'معاينة الإيصال';
+
+  @override
+  String get commonPrint => 'طباعة';
+
+  @override
+  String get kanbanNoInvoices => 'لا توجد فواتير';
+
+  @override
+  String get kanbanTripCreatedSuccess => 'تم إنشاء رحلة التوصيل بنجاح';
+
+  @override
+  String kanbanPartOfTripWarning(Object tripName) {
+    return 'هذا الطلب جزء من رحلة $tripName. أرسل الرحلة كاملة للتوصيل من شاشة الرحلات.';
+  }
+
+  @override
+  String get kanbanDeliveryPartnerCourier => 'ساعي شريك التوصيل';
+
+  @override
+  String get kanbanDeliveryPartnerCourierSubtitle =>
+      'هذا الساعي تابع لشريك توصيل';
+
+  @override
+  String get kanbanRequestCustomShipping => 'طلب شحن مخصص';
+
+  @override
+  String get kanbanCustomShippingSubmitted => 'تم تقديم طلب الشحن المخصص';
+
+  @override
+  String kanbanCustomShippingFailed(Object error) {
+    return 'فشل تقديم الطلب: $error';
+  }
+
+  @override
+  String get settlementPartnerDeliveryTitle => 'تسوية شريك التوصيل';
+
+  @override
+  String get settlementPartnerInfoTitle => 'معلومات تسوية الشريك';
+
+  @override
+  String settlementPartnerLabel(Object name) {
+    return 'الشريك: $name';
+  }
+
+  @override
+  String get settlementPartnerCollectFull => 'استلم كامل مبلغ الطلب من الساعي:';
+
+  @override
+  String get settlementPartnerOnlinePaid =>
+      'مدفوع إلكترونياً — لا يوجد تبادل نقدي مع الساعي';
+
+  @override
+  String get settlementPartnerCollectFullChip => 'استلام (المبلغ الكامل)';
+
+  @override
+  String get settlementNoExchange => 'لا يوجد تبادل نقدي';
+
+  @override
+  String settlementPartnerFeeTracked(Object amount) {
+    return 'رسوم الشريك (محسوبة): $amount';
+  }
+
+  @override
+  String get settlementPartnerCollectedFull =>
+      'تم تحصيل مبلغ الطلب كاملاً من السائق';
+
+  @override
+  String get settlementPartnerFullAmountChip => 'المبلغ الكامل';
+
+  @override
+  String get settlementPartnerOnlinePaidInfo => 'دفع إلكتروني — لا تبادل نقدي';
+
+  @override
+  String get managerPendingCustomShipping => 'طلبات الشحن المخصص المعلقة';
+
+  @override
+  String get managerNoPendingRequests => 'لا توجد طلبات معلقة';
+
+  @override
+  String managerReasonLabel(Object reason) {
+    return 'السبب: $reason';
+  }
+
+  @override
+  String get managerCustomShippingApproved => 'تمت الموافقة على الشحن المخصص';
+
+  @override
+  String managerApproveFailed(Object error) {
+    return 'فشلت الموافقة: $error';
+  }
+
+  @override
+  String get managerRejectCustomShippingTitle => 'رفض الشحن المخصص';
+
+  @override
+  String get managerReject => 'رفض';
+
+  @override
+  String get managerCustomShippingRejected => 'تم رفض الشحن المخصص';
+
+  @override
+  String managerRejectFailed(Object error) {
+    return 'فشل الرفض: $error';
+  }
+
+  @override
+  String get purchaseNoInvoicesYet => 'لا توجد فواتير شراء بعد';
+
+  @override
+  String get purchaseReorderFromSupplier => 'إعادة الطلب من نفس المورد';
+
+  @override
+  String get purchaseHistoryTitle => 'سجل المشتريات';
+
+  @override
+  String get posCreateCustomer => 'إنشاء عميل';
+
+  @override
+  String get posCustomerCreatedSuccess => 'تم إنشاء العميل بنجاح!';
+
+  @override
+  String get settingsUserProfileTitle => 'الملف الشخصي';
+
+  @override
+  String get settingsRolesTitle => 'الأدوار';
+
+  @override
+  String get settingsNoRolesAssigned => 'لا توجد أدوار مخصصة';
+
+  @override
+  String get settingsNotificationSettings => 'إعدادات الإشعارات';
+
+  @override
+  String get settingsNoAlarmSounds => 'لا توجد أصوات تنبيه متاحة';
+
+  @override
+  String get settingsAlarmSoundLabel => 'صوت التنبيه';
+
+  @override
+  String settingsFailedToLoadAlarmSounds(Object error) {
+    return 'فشل تحميل أصوات التنبيه: $error';
+  }
+
+  @override
+  String settingsAlarmSoundChanged(Object title) {
+    return 'تم تغيير صوت التنبيه إلى $title';
+  }
+
+  @override
+  String settingsCustomAlarmSoundSet(Object title) {
+    return 'تم تعيين صوت التنبيه المخصص: $title';
+  }
+
+  @override
+  String get settingsNoFileSelected => 'لم يتم اختيار ملف';
+
+  @override
+  String itemGridStockLimitReached(Object stockQty) {
+    return 'تم الوصول لحد المخزون. المتوفر $stockQty فقط.';
+  }
+
+  @override
+  String get menuDeliveryTrips => 'رحلات التوصيل';
+
+  @override
+  String get authLoginTitle => 'تسجيل الدخول';
+
+  @override
+  String get printingPrintersTitle => 'الطابعات';
+
+  @override
+  String kanbanOrdersSelectedCount(int count) {
+    return '$count طلبات محددة';
+  }
 }

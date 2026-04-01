@@ -111,7 +111,7 @@ class AppDrawer extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.local_shipping_outlined),
-            title: const Text('Delivery Trips'),
+            title: Text(l10n.menuDeliveryTrips),
             onTap: () {
               Navigator.pop(context);
               context.go(AppRoutes.trips);

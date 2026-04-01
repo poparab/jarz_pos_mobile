@@ -2237,4 +2237,322 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invoiceSlotUpdateFailed => 'Failed to update delivery slot';
+
+  @override
+  String get tripsDeliveryTripsTitle => 'Delivery Trips';
+
+  @override
+  String get tripsActiveTab => 'Active';
+
+  @override
+  String get tripsCompletedTab => 'Completed';
+
+  @override
+  String get tripsCreateTripTitle => 'Create Delivery Trip';
+
+  @override
+  String get tripsCreateTripButton => 'Create Trip';
+
+  @override
+  String tripsCreateTripFailed(Object error) {
+    return 'Failed to create trip: $error';
+  }
+
+  @override
+  String get tripsOrdersLabel => 'Orders';
+
+  @override
+  String get tripsTotalAmount => 'Total Amount';
+
+  @override
+  String get tripsTotalShipping => 'Total Shipping';
+
+  @override
+  String tripsSameTerritory(Object territory) {
+    return 'Same territory: $territory';
+  }
+
+  @override
+  String get tripsSelectCourier => 'Select Courier';
+
+  @override
+  String get tripsMarkTripAsDeliveredTitle => 'Mark Trip as Delivered';
+
+  @override
+  String tripsMarkTripAsDeliveredContent(Object tripName, Object count) {
+    return 'Mark \"$tripName\" with $count orders as delivered?';
+  }
+
+  @override
+  String tripsTripMarkedAsDelivered(Object tripName) {
+    return '$tripName marked as delivered';
+  }
+
+  @override
+  String tripsFailed(Object error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String get tripsSendForDeliveryTitle => 'Send for Delivery';
+
+  @override
+  String tripsSendForDeliveryContent(Object count, Object courierName) {
+    return 'Send $count orders for delivery?\n\nCourier: $courierName';
+  }
+
+  @override
+  String get tripsSentForDeliverySuccess => 'Trip sent for delivery';
+
+  @override
+  String get tripsMarkAsDeliveredButton => 'Mark as Delivered';
+
+  @override
+  String tripsMarkAllAsDeliveredContent(Object count) {
+    return 'Mark all $count orders as delivered?\n\nThis will complete the trip.';
+  }
+
+  @override
+  String get tripsTripMarkedSuccess => 'Trip marked as delivered';
+
+  @override
+  String get tripsSending => 'Sending...';
+
+  @override
+  String get tripsMarking => 'Marking...';
+
+  @override
+  String tripsInvoicesCount(Object count) {
+    return 'Invoices ($count)';
+  }
+
+  @override
+  String get receiptSelectImageSource => 'Select Image Source';
+
+  @override
+  String get receiptCamera => 'Camera';
+
+  @override
+  String get receiptGallery => 'Gallery';
+
+  @override
+  String get receiptUploading => 'Uploading receipt image...';
+
+  @override
+  String get receiptUploadedSuccess => 'Receipt image uploaded successfully';
+
+  @override
+  String get receiptUploadFailed => 'Failed to upload receipt image';
+
+  @override
+  String receiptUploadError(Object error) {
+    return 'Error uploading image: $error';
+  }
+
+  @override
+  String get receiptConfirming => 'Confirming receipt...';
+
+  @override
+  String get receiptConfirmedSuccess => 'Receipt confirmed successfully';
+
+  @override
+  String get receiptConfirmFailed => 'Failed to confirm receipt';
+
+  @override
+  String receiptConfirmError(Object error) {
+    return 'Error confirming receipt: $error';
+  }
+
+  @override
+  String get receiptAllProfiles => 'All Profiles';
+
+  @override
+  String get receiptNoReceiptsFound => 'No payment receipts found';
+
+  @override
+  String get receiptUploadImageButton => 'Upload Receipt Image';
+
+  @override
+  String get receiptPreviewTitle => 'Receipt Preview';
+
+  @override
+  String get receiptPreviewButton => 'Preview Receipt';
+
+  @override
+  String get commonPrint => 'Print';
+
+  @override
+  String get kanbanNoInvoices => 'No invoices';
+
+  @override
+  String get kanbanTripCreatedSuccess => 'Delivery trip created successfully';
+
+  @override
+  String kanbanPartOfTripWarning(Object tripName) {
+    return 'This order is part of trip $tripName. Send the entire trip for delivery from the Trips screen.';
+  }
+
+  @override
+  String get kanbanDeliveryPartnerCourier => 'Delivery Partner Courier';
+
+  @override
+  String get kanbanDeliveryPartnerCourierSubtitle =>
+      'This courier belongs to a delivery partner';
+
+  @override
+  String get kanbanRequestCustomShipping => 'Request Custom Shipping';
+
+  @override
+  String get kanbanCustomShippingSubmitted =>
+      'Custom shipping request submitted';
+
+  @override
+  String kanbanCustomShippingFailed(Object error) {
+    return 'Failed to submit request: $error';
+  }
+
+  @override
+  String get settlementPartnerDeliveryTitle => 'Partner Delivery Settlement';
+
+  @override
+  String get settlementPartnerInfoTitle => 'Partner Settlement Info';
+
+  @override
+  String settlementPartnerLabel(Object name) {
+    return 'Partner: $name';
+  }
+
+  @override
+  String get settlementPartnerCollectFull =>
+      'Collect full order amount from courier:';
+
+  @override
+  String get settlementPartnerOnlinePaid =>
+      'Online-paid — no cash exchange with courier';
+
+  @override
+  String get settlementPartnerCollectFullChip => 'Collect (Full Amount)';
+
+  @override
+  String get settlementNoExchange => 'No Cash Exchange';
+
+  @override
+  String settlementPartnerFeeTracked(Object amount) {
+    return 'Partner fee (tracked): $amount';
+  }
+
+  @override
+  String get settlementPartnerCollectedFull =>
+      'Collected full order amount from courier';
+
+  @override
+  String get settlementPartnerFullAmountChip => 'Full amount';
+
+  @override
+  String get settlementPartnerOnlinePaidInfo =>
+      'Online paid — no cash exchange';
+
+  @override
+  String get managerPendingCustomShipping =>
+      'Pending Custom Shipping Approvals';
+
+  @override
+  String get managerNoPendingRequests => 'No pending requests';
+
+  @override
+  String managerReasonLabel(Object reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String get managerCustomShippingApproved => 'Custom shipping approved';
+
+  @override
+  String managerApproveFailed(Object error) {
+    return 'Approve failed: $error';
+  }
+
+  @override
+  String get managerRejectCustomShippingTitle => 'Reject Custom Shipping';
+
+  @override
+  String get managerReject => 'Reject';
+
+  @override
+  String get managerCustomShippingRejected => 'Custom shipping rejected';
+
+  @override
+  String managerRejectFailed(Object error) {
+    return 'Reject failed: $error';
+  }
+
+  @override
+  String get purchaseNoInvoicesYet => 'No purchase invoices yet';
+
+  @override
+  String get purchaseReorderFromSupplier => 'Reorder from same supplier';
+
+  @override
+  String get purchaseHistoryTitle => 'Purchase History';
+
+  @override
+  String get posCreateCustomer => 'Create Customer';
+
+  @override
+  String get posCustomerCreatedSuccess => 'Customer created successfully!';
+
+  @override
+  String get settingsUserProfileTitle => 'User Profile';
+
+  @override
+  String get settingsRolesTitle => 'Roles';
+
+  @override
+  String get settingsNoRolesAssigned => 'No roles assigned';
+
+  @override
+  String get settingsNotificationSettings => 'Notification Settings';
+
+  @override
+  String get settingsNoAlarmSounds => 'No alarm sounds available';
+
+  @override
+  String get settingsAlarmSoundLabel => 'Alarm Sound';
+
+  @override
+  String settingsFailedToLoadAlarmSounds(Object error) {
+    return 'Failed to load alarm sounds: $error';
+  }
+
+  @override
+  String settingsAlarmSoundChanged(Object title) {
+    return 'Alarm sound changed to $title';
+  }
+
+  @override
+  String settingsCustomAlarmSoundSet(Object title) {
+    return 'Custom alarm sound set: $title';
+  }
+
+  @override
+  String get settingsNoFileSelected => 'No file selected';
+
+  @override
+  String itemGridStockLimitReached(Object stockQty) {
+    return 'Stock limit reached. Only $stockQty available.';
+  }
+
+  @override
+  String get menuDeliveryTrips => 'Delivery Trips';
+
+  @override
+  String get authLoginTitle => 'Login';
+
+  @override
+  String get printingPrintersTitle => 'Printers';
+
+  @override
+  String kanbanOrdersSelectedCount(int count) {
+    return '$count orders selected';
+  }
 }

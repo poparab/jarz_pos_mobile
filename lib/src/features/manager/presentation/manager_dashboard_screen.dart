@@ -62,7 +62,7 @@ class ManagerDashboardScreen extends ConsumerWidget {
               error: (e, st) => const SizedBox.shrink(),
             ),
             const SizedBox(height: 12),
-            Text('Pending Custom Shipping Approvals', style: Theme.of(context).textTheme.titleMedium),
+            Text(l10n.managerPendingCustomShipping, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             pendingCustomShippingAsync.when(
               data: (items) => _PendingCustomShippingSection(items: items),
@@ -231,10 +231,10 @@ class _PendingCustomShippingSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (items.isEmpty) {
-      return const Card(
+      return Card(
         child: Padding(
-          padding: EdgeInsets.all(14),
-          child: Text('No pending requests'),
+          padding: const EdgeInsets.all(14),
+          child: Text(context.l10n.managerNoPendingRequests),
         ),
       );
     }
@@ -263,22 +263,22 @@ class _PendingCustomShippingSection extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text('Territory: ${item.territory}'),
+                  Text(context.l10n.settlementTerritoryLabel(item.territory)),
                   const SizedBox(height: 4),
-                  Text('Reason: ${item.reason}'),
+                  Text(context.l10n.managerReasonLabel(item.reason)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       OutlinedButton.icon(
                         onPressed: () => _reject(context, ref, item),
                         icon: const Icon(Icons.close, color: Colors.red),
-                        label: const Text('Reject', style: TextStyle(color: Colors.red)),
+                        label: Text(context.l10n.managerReject, style: const TextStyle(color: Colors.red)),
                       ),
                       const SizedBox(width: 8),
                       FilledButton.icon(
                         onPressed: () => _approve(context, ref, item),
                         icon: const Icon(Icons.check),
-                        label: const Text('Approve'),
+                        label: Text(context.l10n.expensesApprove),
                       ),
                     ],
                   ),
@@ -296,9 +296,9 @@ class _PendingCustomShippingSection extends ConsumerWidget {
       await ref.read(managerApiProvider).approveCustomShipping(item.name);
       ref.invalidate(pendingCustomShippingProvider);
       ref.invalidate(managerOrdersProvider);
-      messenger.showSnackBar(const SnackBar(content: Text('Custom shipping approved')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.managerCustomShippingApproved)));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Approve failed: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.managerApproveFailed(e.toString()))));
     }
   }
 
@@ -307,7 +307,7 @@ class _PendingCustomShippingSection extends ConsumerWidget {
     final reason = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Reject Custom Shipping'),
+        title: Text(context.l10n.managerRejectCustomShippingTitle),
         content: TextField(
           controller: reasonController,
           maxLines: 3,
@@ -317,8 +317,8 @@ class _PendingCustomShippingSection extends ConsumerWidget {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.of(ctx).pop(reasonController.text.trim()), child: const Text('Reject')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(context.l10n.commonCancel)),
+          FilledButton(onPressed: () => Navigator.of(ctx).pop(reasonController.text.trim()), child: Text(context.l10n.managerReject)),
         ],
       ),
     );
@@ -329,9 +329,9 @@ class _PendingCustomShippingSection extends ConsumerWidget {
       await ref.read(managerApiProvider).rejectCustomShipping(item.name, reason: reason);
       ref.invalidate(pendingCustomShippingProvider);
       ref.invalidate(managerOrdersProvider);
-      messenger.showSnackBar(const SnackBar(content: Text('Custom shipping rejected')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.managerCustomShippingRejected)));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Reject failed: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.managerRejectFailed(e.toString()))));
     }
   }
 }

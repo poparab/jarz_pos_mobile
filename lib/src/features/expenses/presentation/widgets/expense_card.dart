@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../models/expense_models.dart';
 
 class ExpenseCard extends StatelessWidget {
@@ -84,7 +85,7 @@ class ExpenseCard extends StatelessWidget {
                 alignment: AlignmentDirectional.centerEnd,
                 child: FilledButton.icon(
                   icon: const Icon(Icons.check_circle_outline),
-                  label: const Text('Approve'),
+                  label: Text(context.l10n.expensesApprove),
                   onPressed: () => onApprove?.call(),
                 ),
               ),

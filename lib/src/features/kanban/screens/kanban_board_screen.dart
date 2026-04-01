@@ -521,7 +521,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
 
   Widget _buildOFDTripGroupedList( List<InvoiceCard> invoices, TripState tripState) {
     if (invoices.isEmpty) {
-      return const Center(child: Text('No invoices'));
+      return Center(child: Text(context.l10n.kanbanNoInvoices));
     }
 
     // Find the OFD column id for drag data
@@ -628,19 +628,19 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             children: [
               Expanded(
                 child: Text(
-                  '${selectedInvoices.length} orders selected',
+                  context.l10n.kanbanOrdersSelectedCount(selectedInvoices.length),
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
               TextButton(
                 onPressed: () => ref.read(tripProvider.notifier).clearSelection(),
-                child: const Text('Clear'),
+                child: Text(context.l10n.commonClear),
               ),
               const SizedBox(width: 8),
               FilledButton.icon(
                 onPressed: selectedInvoices.isEmpty ? null : () => _createTripFromSelection(selectedInvoices),
                 icon: const Icon(Icons.local_shipping),
-                label: const Text('Create Trip'),
+                label: Text(context.l10n.tripsCreateTripButton),
               ),
             ],
           ),
@@ -682,7 +682,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     if (!mounted || created == null) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Delivery trip created successfully')),
+      SnackBar(content: Text(context.l10n.kanbanTripCreatedSuccess)),
     );
     await ref.read(kanbanProvider.notifier).loadInvoices();
     await ref.read(tripProvider.notifier).loadTrips();
@@ -719,7 +719,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       if (tripName != null && tripName.isNotEmpty) {
         messenger.showSnackBar(
           SnackBar(
-            content: Text('This order is part of trip $tripName. Send the entire trip for delivery from the Trips screen.'),
+            content: Text(context.l10n.kanbanPartOfTripWarning(tripName)),
             duration: const Duration(seconds: 4),
           ),
         );
@@ -1327,8 +1327,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                               const SizedBox(height: 8),
                               SwitchListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: const Text('Delivery Partner Courier'),
-                                subtitle: const Text('This courier belongs to a delivery partner', style: TextStyle(fontSize: 12)),
+                                title: Text(context.l10n.kanbanDeliveryPartnerCourier),
+                                subtitle: Text(context.l10n.kanbanDeliveryPartnerCourierSubtitle, style: const TextStyle(fontSize: 12)),
                                 value: isPartnerCourier,
                                 onChanged: (v) async {
                                   setState(() => isPartnerCourier = v);
