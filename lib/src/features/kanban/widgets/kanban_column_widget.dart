@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../models/kanban_models.dart';
@@ -276,64 +277,95 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
           }
 
           final isDraggingThis = _draggingId == invoice.id;
-          return Listener(
-            onPointerDown: (_) => widget.onCardPointerActive?.call(true),
-            onPointerUp: (_) => widget.onCardPointerActive?.call(false),
-            onPointerCancel: (_) => widget.onCardPointerActive?.call(false),
-            child: LongPressDraggable<Map<String, dynamic>>(
-              data: {
-                'invoiceId': invoice.id,
-                'fromColumnId': widget.column.id,
-              },
-              dragAnchorStrategy: pointerDragAnchorStrategy,
-              maxSimultaneousDrags: 1,
-              onDragStarted: () => setState(() => _draggingId = invoice.id),
-              onDraggableCanceled: (velocity, offset) {
-                setState(() => _draggingId = null);
-                widget.onCardPointerActive?.call(false);
-              },
-              onDragEnd: (_) {
-                setState(() => _draggingId = null);
-                widget.onCardPointerActive?.call(false);
-              },
-              feedback: Material(
-                color: Colors.transparent,
-                child: Transform.scale(
-                  scale: 1.03,
-                  child: Opacity(
-                    opacity: 0.95,
-                    child: SizedBox(
-                      width: ResponsiveUtils.getKanbanColumnWidth(context),
-                      child: InvoiceCardWidget(
-                        invoice: invoice,
-                        isDragging: true,
-                        compact: true,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              childWhenDragging: AnimatedOpacity(
-                duration: const Duration(milliseconds: 150),
-                opacity: 0.25,
-                child: InvoiceCardWidget(invoice: invoice, isDragging: false, compact: false),
-              ),
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTapDown: (_) => widget.onCardPointerActive?.call(true),
-                onTapUp: (_) => widget.onCardPointerActive?.call(false),
-                onTapCancel: () => widget.onCardPointerActive?.call(false),
-                child: AnimatedScale(
-                  duration: const Duration(milliseconds: 160),
-                  scale: isDraggingThis ? 0.92 : 1,
+
+          final dragData = <String, dynamic>{
+            'invoiceId': invoice.id,
+            'fromColumnId': widget.column.id,
+          };
+
+          final feedbackWidget = Material(
+            color: Colors.transparent,
+            child: Transform.scale(
+              scale: 1.03,
+              child: Opacity(
+                opacity: 0.95,
+                child: SizedBox(
+                  width: ResponsiveUtils.getKanbanColumnWidth(context),
                   child: InvoiceCardWidget(
                     invoice: invoice,
-                    isDragging: false,
-                    compact: false,
+                    isDragging: true,
+                    compact: true,
                   ),
                 ),
               ),
             ),
+          );
+
+          final childWhenDraggingWidget = AnimatedOpacity(
+            duration: const Duration(milliseconds: 150),
+            opacity: 0.25,
+            child: InvoiceCardWidget(invoice: invoice, isDragging: false, compact: false),
+          );
+
+          final cardChild = GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (_) => widget.onCardPointerActive?.call(true),
+            onTapUp: (_) => widget.onCardPointerActive?.call(false),
+            onTapCancel: () => widget.onCardPointerActive?.call(false),
+            child: AnimatedScale(
+              duration: const Duration(milliseconds: 160),
+              scale: isDraggingThis ? 0.92 : 1,
+              child: InvoiceCardWidget(
+                invoice: invoice,
+                isDragging: false,
+                compact: false,
+              ),
+            ),
+          );
+
+          // On web use Draggable (click-and-drag); on mobile use
+          // LongPressDraggable so scrolling isn't hijacked.
+          final draggable = kIsWeb
+              ? Draggable<Map<String, dynamic>>(
+                  data: dragData,
+                  dragAnchorStrategy: pointerDragAnchorStrategy,
+                  maxSimultaneousDrags: 1,
+                  onDragStarted: () => setState(() => _draggingId = invoice.id),
+                  onDraggableCanceled: (velocity, offset) {
+                    setState(() => _draggingId = null);
+                    widget.onCardPointerActive?.call(false);
+                  },
+                  onDragEnd: (_) {
+                    setState(() => _draggingId = null);
+                    widget.onCardPointerActive?.call(false);
+                  },
+                  feedback: feedbackWidget,
+                  childWhenDragging: childWhenDraggingWidget,
+                  child: cardChild,
+                )
+              : LongPressDraggable<Map<String, dynamic>>(
+                  data: dragData,
+                  dragAnchorStrategy: pointerDragAnchorStrategy,
+                  maxSimultaneousDrags: 1,
+                  onDragStarted: () => setState(() => _draggingId = invoice.id),
+                  onDraggableCanceled: (velocity, offset) {
+                    setState(() => _draggingId = null);
+                    widget.onCardPointerActive?.call(false);
+                  },
+                  onDragEnd: (_) {
+                    setState(() => _draggingId = null);
+                    widget.onCardPointerActive?.call(false);
+                  },
+                  feedback: feedbackWidget,
+                  childWhenDragging: childWhenDraggingWidget,
+                  child: cardChild,
+                );
+
+          return Listener(
+            onPointerDown: (_) => widget.onCardPointerActive?.call(true),
+            onPointerUp: (_) => widget.onCardPointerActive?.call(false),
+            onPointerCancel: (_) => widget.onCardPointerActive?.call(false),
+            child: draggable,
           );
         },
       ),
