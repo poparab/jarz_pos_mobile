@@ -7,7 +7,8 @@ import 'package:jarz_pos/l10n/app_localizations.dart';
 import '../../core/constants/timing_config.dart';
 import '../../core/localization/localization_extensions.dart';
 import 'pos_printer_provider.dart';
-import 'pos_printer_service.dart';
+import 'pos_printer_service.dart'
+    if (dart.library.html) 'pos_printer_service_web.dart';
 import 'printer_status.dart';
 
 class PrinterSelectionScreen extends ConsumerStatefulWidget {

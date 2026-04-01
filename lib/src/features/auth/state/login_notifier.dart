@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,8 +20,9 @@ class LoginNotifier extends AsyncNotifier<bool> {
       final success = await repo.login(username, password);
       if (success) {
         ref.read(currentAuthStateProvider.notifier).state = true;
-        // Invalidate auth state provider to refresh with new session
-        ref.invalidate(authStateProvider);
+        // Do NOT invalidate authStateProvider here — it is watched by
+        // currentAuthStateProvider whose build() returns false while loading,
+        // which would immediately reset the auth state we just set above.
         ref.invalidate(activeShiftProvider);
         ref.invalidate(userRolesFutureProvider);
         ref.invalidate(isJarzManagerProvider);
@@ -57,7 +56,8 @@ class LoginNotifier extends AsyncNotifier<bool> {
       return error.message ?? 'Login failed. Please try again.';
     }
 
-    if (error is SocketException) {
+    final errorStr = error.toString().toLowerCase();
+    if (errorStr.contains('socketexception')) {
       return 'Cannot reach server. Check Wi-Fi/VPN and backend URL, then try again.';
     }
 

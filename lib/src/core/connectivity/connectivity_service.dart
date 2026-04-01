@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
-import 'dart:io';
 
 import '../constants/timing_config.dart';
+import 'connectivity_check_mobile.dart'
+    if (dart.library.html) 'connectivity_check_web.dart'
+    as platform;
 
 class ConnectivityService {
   final _connectivityController = StreamController<bool>.broadcast();
@@ -29,8 +31,7 @@ class ConnectivityService {
 
   Future<void> _checkConnectivity() async {
     try {
-      final result = await InternetAddress.lookup('google.com');
-      final isConnected = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      final isConnected = await platform.checkConnectivityPlatform();
       
       if (isConnected != _lastKnownStatus) {
         _lastKnownStatus = isConnected;
@@ -52,8 +53,7 @@ class ConnectivityService {
 
   Future<bool> hasConnection() async {
     try {
-      final result = await InternetAddress.lookup('google.com');
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      return await platform.checkConnectivityPlatform();
     } catch (e) {
       return false;
     }

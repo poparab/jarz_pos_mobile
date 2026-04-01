@@ -545,7 +545,7 @@ class CartWidget extends ConsumerWidget {
                         builder: (context) {
                           final itemCode = cartItem['item_code']?.toString() ?? '';
                           final stockQty = ref.read(posNotifierProvider.notifier).getStockForItem(itemCode);
-                          final atLimit = quantity >= stockQty.toInt();
+                          final atLimit = stockQty.isFinite && quantity >= stockQty.toInt();
                           return IconButton(
                             icon: Icon(Icons.add, size: isPhone ? 18 : 20),
                             onPressed: atLimit

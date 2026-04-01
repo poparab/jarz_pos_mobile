@@ -20,13 +20,17 @@ class SessionInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    // Add session cookies
-    await CookieManager.attachCookiesToRequest(options);
-    
-    // Also use session manager for backward compatibility
-    final sessionId = await _sessionManager.getSessionId();
-    if (sessionId != null) {
-      options.headers['Cookie'] = 'sid=$sessionId';
+    // On web, browsers manage cookies automatically for same-origin requests.
+    // Manually setting Cookie headers is blocked by browsers and causes issues.
+    if (!kIsWeb) {
+      // Add session cookies
+      await CookieManager.attachCookiesToRequest(options);
+      
+      // Also use session manager for backward compatibility
+      final sessionId = await _sessionManager.getSessionId();
+      if (sessionId != null) {
+        options.headers['Cookie'] = 'sid=$sessionId';
+      }
     }
     
     // Ensure Frappe site routing for multi-tenant backend
@@ -44,17 +48,21 @@ class SessionInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) async {
-    // Save cookies using new cookie manager
-    await CookieManager.saveCookies(response);
-    
-    // Also extract session cookie for session manager (backward compatibility)
-    final setCookieHeader = response.headers['set-cookie'];
-    if (setCookieHeader != null) {
-      for (final cookie in setCookieHeader) {
-        if (cookie.startsWith('sid=')) {
-          final sessionId = cookie.split(';')[0].split('=')[1];
-          await _sessionManager.saveSessionId(sessionId);
-          break;
+    // On web, browsers manage cookies automatically. The set-cookie header
+    // is hidden from JavaScript by the browser for security.
+    if (!kIsWeb) {
+      // Save cookies using new cookie manager
+      await CookieManager.saveCookies(response);
+      
+      // Also extract session cookie for session manager (backward compatibility)
+      final setCookieHeader = response.headers['set-cookie'];
+      if (setCookieHeader != null) {
+        for (final cookie in setCookieHeader) {
+          if (cookie.startsWith('sid=')) {
+            final sessionId = cookie.split(';')[0].split('=')[1];
+            await _sessionManager.saveSessionId(sessionId);
+            break;
+          }
         }
       }
     }

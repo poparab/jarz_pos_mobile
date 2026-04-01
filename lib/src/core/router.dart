@@ -11,7 +11,8 @@ import '../features/pos/presentation/screens/pos_profile_selection_screen.dart';
 import '../features/kanban/screens/kanban_board_screen.dart';
 import 'session/session_manager.dart';
 import '../features/pos/presentation/screens/courier_balances_screen.dart';
-import '../features/printing/printer_selection_screen.dart';
+import '../features/printing/printer_selection_screen.dart'
+    if (dart.library.html) '../features/printing/printer_selection_screen_web.dart';
 import '../features/manager/presentation/manager_dashboard_screen.dart';
 import '../features/purchase/presentation/purchase_screen.dart';
 import '../features/manufacturing/presentation/manufacturing_screen.dart';

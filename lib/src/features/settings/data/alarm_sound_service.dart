@@ -38,6 +38,10 @@ class AlarmSoundService {
 
   /// Pick a custom alarm sound file from device storage
   Future<AlarmSoundOption?> pickCustomAlarmSound() async {
+    // Alarm sound picking requires native file permissions — skip on web
+    if (kIsWeb) {
+      throw Exception('Custom alarm sounds are not available on web');
+    }
     try {
       // Request storage permission first
       if (kDebugMode) {

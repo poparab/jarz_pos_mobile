@@ -335,10 +335,12 @@ class PosNotifier extends StateNotifier<PosState> {
       return;
     }
 
-    // Cap at available stock
+    // Cap at available stock (skip for bundles / items not in stock list)
     final itemCode = state.cartItems[index]['item_code']?.toString() ?? '';
     final stockQty = getStockForItem(itemCode);
-    final cappedQuantity = newQuantity <= stockQty.toInt() ? newQuantity : stockQty.toInt();
+    final cappedQuantity = stockQty.isFinite
+        ? (newQuantity <= stockQty.toInt() ? newQuantity : stockQty.toInt())
+        : newQuantity;
     if (cappedQuantity <= 0) return;
 
     final updatedCart = List<Map<String, dynamic>>.from(state.cartItems);
