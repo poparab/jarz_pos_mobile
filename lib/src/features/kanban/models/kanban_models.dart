@@ -54,6 +54,7 @@ class InvoiceCard {
   final String? acceptanceStatus; // new: Pending/Accepted status for order acceptance
   final bool? requiresAcceptanceFlag; // optional flag directly from backend
   final String? paymentMethod; // new: Cash, Instapay, or Mobile Wallet
+  final String? actualPaymentMethod; // actual payment method from Payment Entry when paid
   final String? posProfile; // POS Profile for payment receipt tracking
   final double outstandingAmount;
   final int? docstatusValue;
@@ -97,6 +98,7 @@ class InvoiceCard {
   this.acceptanceStatus,
   this.requiresAcceptanceFlag,
   this.paymentMethod,
+  this.actualPaymentMethod,
   this.posProfile,
     this.outstandingAmount = 0.0,
     this.docstatusValue,
@@ -157,6 +159,7 @@ class InvoiceCard {
       acceptanceStatus: (json['acceptance_status'] ?? json['custom_acceptance_status'])?.toString(),
       requiresAcceptanceFlag: requiresAcceptanceFlag,
       paymentMethod: (json['payment_method'] ?? json['custom_payment_method'])?.toString(),
+      actualPaymentMethod: json['actual_payment_method']?.toString(),
       posProfile: (json['pos_profile'] ?? json['custom_kanban_profile'])?.toString(),
       outstandingAmount: (double.tryParse((json['outstanding_amount'] ?? json['outstandingAmount'] ?? 0).toString()) ?? 0.0),
       docstatusValue: json['docstatus_value'] is int
@@ -205,6 +208,7 @@ class InvoiceCard {
   'acceptance_status': acceptanceStatus,
   'requires_acceptance': requiresAcceptanceFlag,
   'payment_method': paymentMethod,
+  'actual_payment_method': actualPaymentMethod,
   'pos_profile': posProfile,
       'outstanding_amount': outstandingAmount,
       'docstatus_value': docstatusValue,
@@ -249,6 +253,7 @@ class InvoiceCard {
   String? acceptanceStatus,
   bool? requiresAcceptanceFlag,
   String? paymentMethod,
+  String? actualPaymentMethod,
   String? posProfile,
   double? outstandingAmount,
   int? docstatusValue,
@@ -291,6 +296,7 @@ class InvoiceCard {
   acceptanceStatus: acceptanceStatus ?? this.acceptanceStatus,
   requiresAcceptanceFlag: requiresAcceptanceFlag ?? this.requiresAcceptanceFlag,
   paymentMethod: paymentMethod ?? this.paymentMethod,
+  actualPaymentMethod: actualPaymentMethod ?? this.actualPaymentMethod,
   posProfile: posProfile ?? this.posProfile,
       outstandingAmount: outstandingAmount ?? this.outstandingAmount,
       docstatusValue: docstatusValue ?? this.docstatusValue,
