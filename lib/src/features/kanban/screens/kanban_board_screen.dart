@@ -569,8 +569,13 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             isDoubleShipping: isDoubleShipping(entry.key),
             invoices: entry.value,
             onMarkDelivered: (tripName) async {
-              await ref.read(tripProvider.notifier).markAsDelivered(tripName);
-              await ref.read(kanbanProvider.notifier).loadInvoices(immediate: true);
+              try {
+                await ref.read(tripProvider.notifier).markAsDelivered(tripName);
+              } finally {
+                // Always refresh kanban — backend may have completed even if
+                // the client saw an error (timeout, etc.)
+                await ref.read(kanbanProvider.notifier).loadInvoices(immediate: true);
+              }
             },
           ),
         for (final inv in nonTrip)

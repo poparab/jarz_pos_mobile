@@ -181,6 +181,10 @@ class TripNotifier extends StateNotifier<TripState> {
       await loadTrips();
       return result;
     } catch (e) {
+      // Always refresh from server — the backend may have partially or
+      // fully completed before the client timed out / errored.
+      try { await loadTripDetails(tripName); } catch (_) {}
+      try { await loadTrips(); } catch (_) {}
       state = state.copyWith(error: e.toString(), isLoading: false);
       return null;
     }
@@ -194,6 +198,9 @@ class TripNotifier extends StateNotifier<TripState> {
       await loadTrips();
       return result;
     } catch (e) {
+      // Same as above — always refresh to reflect actual backend state.
+      try { await loadTripDetails(tripName); } catch (_) {}
+      try { await loadTrips(); } catch (_) {}
       state = state.copyWith(error: e.toString(), isLoading: false);
       return null;
     }
