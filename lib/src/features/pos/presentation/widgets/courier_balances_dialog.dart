@@ -27,9 +27,8 @@ class CourierBalancesDialog extends ConsumerWidget {
     final state = ref.watch(courierBalancesProvider);
     // Activate websocket bridge for auto-refresh while dialog is open
     ref.watch(courierWsBridgeProvider);
-    // Auto-load if empty & not already loading
-    if (!state.loading && state.balances.isEmpty && state.error == null) {
-      // schedule microtask to avoid setState during build warning
+    // Auto-load on first open if not yet loaded
+    if (!state.loading && !state.hasLoaded) {
       Future.microtask(() => ref.read(courierBalancesProvider.notifier).load());
     }
     return Dialog(

@@ -17,11 +17,10 @@ final courierWsBridgeProvider = Provider.autoDispose<void>((ref) {
     });
   }
 
-  final sub1 = ws.kanbanUpdates.listen((_) => trigger());
-  final sub2 = ws.courierUpdates.listen((_) => trigger());
+  // Only listen to courier-specific updates, not kanban updates
+  final sub = ws.courierUpdates.listen((_) => trigger());
   ref.onDispose(() {
-    sub1.cancel();
-    sub2.cancel();
+    sub.cancel();
     debounce?.cancel();
     keep.close();
   });
