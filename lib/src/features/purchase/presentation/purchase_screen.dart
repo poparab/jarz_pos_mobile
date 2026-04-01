@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
@@ -14,30 +15,31 @@ class PurchaseScreen extends ConsumerStatefulWidget {
   ConsumerState<PurchaseScreen> createState() => _PurchaseScreenState();
 }
 
-class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
+class _PurchaseScreenState extends ConsumerState<PurchaseScreen> with SingleTickerProviderStateMixin {
   String? supplier;
   String supplierQuery = '';
   String itemQuery = '';
   DateTime postingDate = DateTime.now();
-  double shippingAmount = 0.0; // Freight & Forwarding (Actual amount)
-  // Payment is always marked as paid in background
+  double shippingAmount = 0.0;
 
-  // Cart lines: {item_code, item_name, uom, qty, rate, uoms:[], prices:[]}
   final List<Map<String, dynamic>> cart = [];
   late final TextEditingController _itemSearchController;
   late final TextEditingController _shippingController;
+  late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _itemSearchController = TextEditingController(text: itemQuery);
     _shippingController = TextEditingController(text: shippingAmount.toStringAsFixed(2));
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
     _itemSearchController.dispose();
     _shippingController.dispose();
+    _tabController.dispose();
     for (final line in cart) {
       try {
         (line['qtyCtrl'] as TextEditingController?)?.dispose();
@@ -49,11 +51,39 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.purchaseTitle)),
+      appBar: AppBar(
+        title: Text(l10n.purchaseTitle),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(icon: Icon(Icons.add_shopping_cart), text: 'New Invoice'),
+            Tab(icon: Icon(Icons.history), text: 'History'),
+          ],
+        ),
+      ),
       drawer: const AppDrawer(),
-      body: Row(
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildNewInvoiceTab(),
+          _PurchaseHistoryTab(onNavigateToInvoice: (inv) {
+            // Switch to new invoice tab and pre-populate supplier
+            _tabController.animateTo(0);
+            final supplierName = (inv['supplier'] ?? inv['supplier_name'] ?? '').toString();
+            if (supplierName.isNotEmpty) {
+              setState(() => supplier = supplierName);
+            }
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNewInvoiceTab() {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    return Row(
         children: [
           // Left: suppliers + items
           Expanded(
@@ -172,7 +202,6 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
             ),
           )
         ],
-      ),
     );
   }
 
@@ -624,5 +653,305 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
         );
       },
     );
+  }
+}
+
+/// History tab showing recent purchase invoices with expandable item details.
+class _PurchaseHistoryTab extends ConsumerStatefulWidget {
+  final void Function(Map<String, dynamic> invoice)? onNavigateToInvoice;
+  const _PurchaseHistoryTab({this.onNavigateToInvoice});
+
+  @override
+  ConsumerState<_PurchaseHistoryTab> createState() => _PurchaseHistoryTabState();
+}
+
+class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
+  List<Map<String, dynamic>> _invoices = [];
+  int _total = 0;
+  bool _loading = false;
+  String? _error;
+  int _page = 0;
+  static const _pageSize = 30;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInvoices();
+  }
+
+  Future<void> _loadInvoices({bool append = false}) async {
+    if (_loading) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final service = ref.read(purchaseServiceProvider);
+      final result = await service.getPurchaseInvoices(limit: _pageSize, page: _page);
+      final list = (result['invoices'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      setState(() {
+        if (append) {
+          _invoices.addAll(list);
+        } else {
+          _invoices = list;
+        }
+        _total = (result['total'] as int?) ?? 0;
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _refresh() async {
+    _page = 0;
+    await _loadInvoices();
+  }
+
+  void _loadMore() {
+    if (_invoices.length < _total && !_loading) {
+      _page++;
+      _loadInvoices(append: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading && _invoices.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null && _invoices.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Error: $_error', textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            ElevatedButton(onPressed: _refresh, child: const Text('Retry')),
+          ],
+        ),
+      );
+    }
+    if (_invoices.isEmpty) {
+      return const Center(child: Text('No purchase invoices yet'));
+    }
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (scroll) {
+          if (scroll.metrics.pixels > scroll.metrics.maxScrollExtent - 200) {
+            _loadMore();
+          }
+          return false;
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.all(8),
+          itemCount: _invoices.length + (_invoices.length < _total ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == _invoices.length) {
+              return const Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return _PurchaseInvoiceCard(
+              invoice: _invoices[index],
+              onReorder: widget.onNavigateToInvoice != null
+                  ? () => widget.onNavigateToInvoice!(_invoices[index])
+                  : null,
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _PurchaseInvoiceCard extends StatefulWidget {
+  final Map<String, dynamic> invoice;
+  final VoidCallback? onReorder;
+  const _PurchaseInvoiceCard({required this.invoice, this.onReorder});
+
+  @override
+  State<_PurchaseInvoiceCard> createState() => _PurchaseInvoiceCardState();
+}
+
+class _PurchaseInvoiceCardState extends State<_PurchaseInvoiceCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final inv = widget.invoice;
+    final name = (inv['name'] ?? '').toString();
+    final supplierName = (inv['supplier_name'] ?? inv['supplier'] ?? '').toString();
+    final postingDate = (inv['posting_date'] ?? '').toString();
+    final grandTotal = _parseDouble(inv['grand_total']);
+    final outstanding = _parseDouble(inv['outstanding_amount']);
+    final status = (inv['status'] ?? '').toString();
+    final isPaid = (inv['is_paid'] == 1 || inv['is_paid'] == true);
+    final items = (inv['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+
+    final statusColor = switch (status.toLowerCase()) {
+      'paid' => Colors.green,
+      'unpaid' => Colors.red,
+      'overdue' => Colors.red[800]!,
+      'cancelled' => Colors.grey,
+      _ => Colors.blue,
+    };
+
+    String formattedDate = postingDate;
+    try {
+      final dt = DateTime.parse(postingDate);
+      formattedDate = DateFormat('MMM d, yyyy').format(dt);
+    } catch (_) {}
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => setState(() => _expanded = !_expanded),
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          isPaid ? 'Paid' : status,
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(Icons.store, size: 14, color: Colors.grey[600]),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(supplierName, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                      ),
+                      Text(formattedDate, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        '\$${grandTotal.toStringAsFixed(2)}',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.green),
+                      ),
+                      if (outstanding > 0.01) ...[
+                        const SizedBox(width: 12),
+                        Text(
+                          'Outstanding: \$${outstanding.toStringAsFixed(2)}',
+                          style: TextStyle(fontSize: 12, color: Colors.red[600]),
+                        ),
+                      ],
+                      const Spacer(),
+                      Text('${items.length} items', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                      const SizedBox(width: 4),
+                      AnimatedRotation(
+                        turns: _expanded ? 0.5 : 0,
+                        duration: const Duration(milliseconds: 200),
+                        child: Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.grey[500]),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_expanded) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Column(
+                children: [
+                  // Item rows
+                  for (final item in items)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              (item['item_name'] ?? item['item_code'] ?? '').toString(),
+                              style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 60,
+                            child: Text(
+                              '${_parseDouble(item['qty']).toStringAsFixed(1)} ${item['uom'] ?? ''}',
+                              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 60,
+                            child: Text(
+                              '@${_parseDouble(item['rate']).toStringAsFixed(2)}',
+                              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                              textAlign: TextAlign.right,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 70,
+                            child: Text(
+                              '\$${_parseDouble(item['amount']).toStringAsFixed(2)}',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                              textAlign: TextAlign.right,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  if (widget.onReorder != null)
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: widget.onReorder,
+                        icon: const Icon(Icons.replay, size: 16),
+                        label: const Text('Reorder from same supplier'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.indigo,
+                          side: const BorderSide(color: Colors.indigo),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  double _parseDouble(dynamic v) {
+    if (v == null) return 0;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString()) ?? 0;
   }
 }

@@ -105,4 +105,17 @@ class PurchaseService {
     if (payload is Map) return Map<String, dynamic>.from(payload);
     throw Exception('Unexpected create PI response');
   }
+
+  Future<Map<String, dynamic>> getPurchaseInvoices({int limit = 50, int page = 0}) async {
+    final resp = await _dio.post(
+      ApiEndpoints.getPurchaseInvoices,
+      data: {'limit': limit, 'page': page},
+    );
+    final payload = resp.data;
+    if (payload is Map && payload['message'] is Map) {
+      return Map<String, dynamic>.from(payload['message'] as Map);
+    }
+    if (payload is Map) return Map<String, dynamic>.from(payload);
+    throw Exception('Unexpected get PI response');
+  }
 }
