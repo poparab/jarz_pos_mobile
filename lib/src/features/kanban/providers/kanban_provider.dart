@@ -72,6 +72,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
   StreamSubscription<Map<String, dynamic>>? _pollingSub;
   final Ref _ref; // store ref for offline queue & connectivity
   bool _autoBranchesInitialized = false; // ensure we don't override user choice
+  Timer? _loadInvoicesDebounce; // debounce rapid loadInvoices calls
 
   KanbanNotifier(this._kanbanService, Ref ref) : _ref = ref, super(KanbanState()) {
     _wsService = ref.read(webSocketServiceProvider);
@@ -163,7 +164,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
 
   Future<void> _initializeKanban() async {
     await loadColumns();
-    await loadInvoices();
+    await loadInvoices(immediate: true);
     await loadFilters();
   }
 
@@ -452,7 +453,20 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     }
   }
 
-  Future<void> loadInvoices() async {
+  Future<void> loadInvoices({bool immediate = false}) async {
+    _loadInvoicesDebounce?.cancel();
+    if (!immediate) {
+      final completer = Completer<void>();
+      _loadInvoicesDebounce = Timer(const Duration(milliseconds: 500), () async {
+        await _doLoadInvoices();
+        completer.complete();
+      });
+      return completer.future;
+    }
+    return _doLoadInvoices();
+  }
+
+  Future<void> _doLoadInvoices() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -734,6 +748,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
   void dispose() {
     _kanbanSub?.cancel();
     _pollingSub?.cancel();
+    _loadInvoicesDebounce?.cancel();
     super.dispose();
   }
 
@@ -971,6 +986,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     String? lastName,
     required String phone,
     String? posProfile,
+    String? deliveryPartner,
   }) async {
     try {
       final res = await _kanbanService.createDeliveryParty(
@@ -980,12 +996,17 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         lastName: lastName,
         phone: phone,
         posProfile: posProfile,
+        deliveryPartner: deliveryPartner,
       );
       return res;
     } catch (e) {
       state = state.copyWith(error: 'Create courier failed: $e');
       return null;
     }
+  }
+
+  Future<List<Map<String, String>>> getDeliveryPartnersList() async {
+    return _kanbanService.getDeliveryPartnersList();
   }
 
   void _listenConnectivity() {

@@ -444,9 +444,10 @@ class KanbanService {
     String? lastName,
     required String phone,
     String? posProfile, // used as branch on backend
+    String? deliveryPartner, // Delivery Partner to link
   }) async {
     try {
-      _logger.info('Creating delivery party type=$partyType name=$name branch=$posProfile');
+      _logger.info('Creating delivery party type=$partyType name=$name branch=$posProfile deliveryPartner=$deliveryPartner');
       final resp = await _dio.post(
         ApiEndpoints.createDeliveryParty,
         data: {
@@ -456,6 +457,7 @@ class KanbanService {
           if (posProfile != null) 'pos_profile': posProfile,
           if (firstName != null) 'first_name': firstName,
           if (lastName != null) 'last_name': lastName,
+          if (deliveryPartner != null && deliveryPartner.isNotEmpty) 'delivery_partner': deliveryPartner,
         },
       );
       final msg = resp.data['message'];
@@ -469,6 +471,7 @@ class KanbanService {
           'name': (msg['party'] ?? '').toString(),
           if (msg['branch'] != null) 'branch': (msg['branch'] ?? '').toString(),
           if (msg['phone'] != null) 'phone': (msg['phone'] ?? '').toString(),
+          if (msg['delivery_partner'] != null) 'delivery_partner': (msg['delivery_partner'] ?? '').toString(),
         };
         return map;
       }
@@ -476,6 +479,24 @@ class KanbanService {
     } catch (e) {
       _logger.error('Failed to create delivery party', e);
       rethrow;
+    }
+  }
+
+  /// Get list of active Delivery Partners for dropdown
+  Future<List<Map<String, String>>> getDeliveryPartnersList() async {
+    try {
+      final resp = await _dio.post(ApiEndpoints.getDeliveryPartnersList, data: {});
+      final msg = resp.data['message'];
+      if (msg is List) {
+        return msg.map<Map<String, String>>((e) => {
+          'name': (e['name'] ?? '').toString(),
+          'partner_name': (e['partner_name'] ?? '').toString(),
+        }).toList();
+      }
+      return [];
+    } catch (e) {
+      _logger.error('Failed to fetch delivery partners list', e);
+      return [];
     }
   }
 

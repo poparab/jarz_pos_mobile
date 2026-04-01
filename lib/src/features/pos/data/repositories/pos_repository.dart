@@ -21,13 +21,24 @@ class PosRepository {
       if (response.statusCode == 200 && response.data['message'] != null) {
         final List<dynamic> profilesData = response.data['message'];
 
-        // Convert profile names to profile objects with basic info
+        // Convert profile names/objects to profile objects with basic info
         List<Map<String, dynamic>> profiles = [];
-        for (String profileName in profilesData) {
-          profiles.add({
-            'name': profileName,
-            'title': profileName, // Use name as title for now
-          });
+        for (final item in profilesData) {
+          if (item is String) {
+            // Legacy format: just a name string
+            profiles.add({
+              'name': item,
+              'title': item,
+            });
+          } else if (item is Map) {
+            // New format: {name, allow_delivery_partner, ...}
+            final name = (item['name'] ?? '').toString();
+            profiles.add({
+              'name': name,
+              'title': name,
+              'allow_delivery_partner': item['allow_delivery_partner'] == true,
+            });
+          }
         }
         return profiles;
       }

@@ -18,7 +18,8 @@ import 'cancel_order_dialog.dart';
 import 'sub_territory_selection_sheet.dart';
 import 'custom_shipping_request_dialog.dart';
 import '../../printing/pos_printer_provider.dart';
-import '../../printing/pos_printer_service.dart';
+import '../../printing/pos_printer_service.dart'
+    if (dart.library.html) '../../printing/pos_printer_service_web.dart';
 import '../../pos/order_alert/data/order_alert_service.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/localization/localization_extensions.dart';
@@ -800,8 +801,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                   ),
                                 ),
                               ],
-                              // Payment method badge
-                              if (widget.invoice.paymentMethod != null && widget.invoice.paymentMethod!.isNotEmpty) ...[
+                              // Payment method badge – only show when NOT fully paid
+                              if (!widget.invoice.isFullyPaid && widget.invoice.paymentMethod != null && widget.invoice.paymentMethod!.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 _buildPaymentMethodBadge(widget.invoice.paymentMethod!),
                               ],
@@ -862,7 +863,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
+                        Flexible(
+                          fit: FlexFit.loose,
+                          child: widget.invoice.isFullyPaid && widget.invoice.actualPaymentMethod != null && widget.invoice.actualPaymentMethod!.isNotEmpty
+                            ? _buildPaymentMethodBadge(widget.invoice.actualPaymentMethod!)
+                            : Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
                             vertical: 4,
@@ -880,20 +885,30 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                               fontWeight: FontWeight.w500,
                               color: _getStatusColor(widget.invoice.effectiveStatus),
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        ),
+                        const SizedBox(width: 6),
                         // Show delivery slot label if available; fallback to posting date
-                        Builder(builder: (context) {
-                          final label = (widget.invoice.deliveryDateTimeLabel).trim();
-                          final show = label.isNotEmpty;
-                          return Text(
-                            show ? label : widget.invoice.postingDateHumanized,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          );
-                        }),
+                        Flexible(
+                          child: Builder(builder: (context) {
+                            final label = (widget.invoice.deliveryDateTimeLabel).trim();
+                            final show = label.isNotEmpty;
+                            return Text(
+                              show ? label : widget.invoice.postingDateHumanized,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                              textAlign: TextAlign.end,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: false,
+                            );
+                          }),
+                        ),
                       ],
                     ),
 
@@ -1619,12 +1634,18 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     List<Map<String, String>> couriers = [];
     bool creating = false;
     String newPartyType = 'Supplier'; // Default to Supplier (Employee has validation issues on staging)
+    bool isPartnerCourier = false;
+    String? selectedDeliveryPartner;
+    List<Map<String, String>> deliveryPartners = [];
 
     final firstNameController = TextEditingController();
     final lastNameController = TextEditingController();
     final phoneController = TextEditingController();
 
     final container = ProviderScope.containerOf(context, listen: false);
+    // Check if current POS profile allows delivery partner assignment
+    final currentProfile = container.read(posNotifierProvider).selectedProfile;
+    final allowDeliveryPartner = currentProfile?['allow_delivery_partner'] == true;
     try {
       couriers = await container.read(kanbanProvider.notifier).getCouriers();
       final posProfile = container.read(posNotifierProvider).selectedProfile?['name'];
@@ -1819,6 +1840,44 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                               ],
                               onChanged: (v) => setState(() => newPartyType = v ?? 'Employee'),
                             ),
+                            if (allowDeliveryPartner) ...[
+                              const SizedBox(height: 8),
+                              SwitchListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: const Text('Delivery Partner Courier'),
+                                subtitle: const Text('This courier belongs to a delivery partner', style: TextStyle(fontSize: 12)),
+                                value: isPartnerCourier,
+                                onChanged: (v) async {
+                                  setState(() => isPartnerCourier = v);
+                                  if (v && deliveryPartners.isEmpty) {
+                                    try {
+                                      deliveryPartners = await container.read(kanbanProvider.notifier).getDeliveryPartnersList();
+                                      setState(() {});
+                                    } catch (_) {}
+                                  }
+                                  if (!v) {
+                                    setState(() => selectedDeliveryPartner = null);
+                                  }
+                                },
+                              ),
+                              if (isPartnerCourier) ...[
+                                if (deliveryPartners.isEmpty)
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 8),
+                                    child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+                                  )
+                                else
+                                  DropdownButtonFormField<String>(
+                                    value: selectedDeliveryPartner,
+                                    decoration: const InputDecoration(labelText: 'Delivery Partner'),
+                                    items: deliveryPartners.map((dp) => DropdownMenuItem(
+                                      value: dp['name'],
+                                      child: Text(dp['partner_name'] ?? dp['name'] ?? ''),
+                                    )).toList(),
+                                    onChanged: (v) => setState(() => selectedDeliveryPartner = v),
+                                  ),
+                              ],
+                            ],
                             const SizedBox(height: 12),
                             Row(
                               children: [
@@ -1844,6 +1903,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                               lastName: lastName,
                                               phone: phone,
                                               posProfile: posProfile,
+                                              deliveryPartner: isPartnerCourier ? selectedDeliveryPartner : null,
                                             );
                                             if (created != null) {
                                               couriers = [...couriers, created];

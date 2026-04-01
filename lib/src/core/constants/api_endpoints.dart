@@ -89,6 +89,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.couriers.mark_courier_outstanding';
   static const createDeliveryParty =
       '/api/method/jarz_pos.api.couriers.create_delivery_party';
+  static const getDeliveryPartnersList =
+      '/api/method/jarz_pos.api.couriers.get_delivery_partners_list';
   static const settleSingleInvoicePaid =
       '/api/method/jarz_pos.api.couriers.settle_single_invoice_paid';
   static const settleCourierCollectedPayment =
@@ -137,6 +139,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.purchase.get_item_price';
   static const createPurchaseInvoice =
       '/api/method/jarz_pos.api.purchase.create_purchase_invoice';
+  static const getPurchaseInvoices =
+      '/api/method/jarz_pos.api.purchase.get_purchase_invoices';
 
   // ── Manager ───────────────────────────────────────────────────────────
   static const getManagerDashboardSummary =
@@ -223,6 +227,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.trips.get_trip_details';
   static const sendTripForDelivery =
       '/api/method/jarz_pos.api.trips.send_trip_for_delivery';
+  static const markTripAsDelivered =
+      '/api/method/jarz_pos.api.trips.mark_trip_as_delivered';
 
   // ── Custom Shipping ───────────────────────────────────────────────────
   static const requestCustomShipping =

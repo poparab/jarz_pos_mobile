@@ -568,6 +568,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             courierDisplayName: courierLabelFor(entry.key),
             isDoubleShipping: isDoubleShipping(entry.key),
             invoices: entry.value,
+            onMarkDelivered: (tripName) async {
+              await ref.read(tripProvider.notifier).markAsDelivered(tripName);
+              await ref.read(kanbanProvider.notifier).loadInvoices(immediate: true);
+            },
           ),
         for (final inv in nonTrip)
           Padding(
@@ -1135,9 +1139,15 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     List<Map<String, String>> couriers = [];
     bool creating = false;
     String newPartyType = 'Supplier'; // Default to Supplier (Employee has validation issues on staging)
+    bool isPartnerCourier = false;
+    String? selectedDeliveryPartner;
+    List<Map<String, String>> deliveryPartners = [];
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
     final phoneController = TextEditingController();
+    // Check if current POS profile allows delivery partner assignment
+    final currentProfile = ref.read(posNotifierProvider).selectedProfile;
+    final allowDeliveryPartner = currentProfile?['allow_delivery_partner'] == true;
     try {
       couriers = await ref.read(kanbanProvider.notifier).getCouriers();
       // Branch filter: keep only couriers whose branch matches selected POS profile name (if branch present)
@@ -1308,6 +1318,45 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                               ],
                               onChanged: (v) => setState(() => newPartyType = v ?? 'Employee'),
                             ),
+                            if (allowDeliveryPartner) ...[
+                              const SizedBox(height: 8),
+                              SwitchListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: const Text('Delivery Partner Courier'),
+                                subtitle: const Text('This courier belongs to a delivery partner', style: TextStyle(fontSize: 12)),
+                                value: isPartnerCourier,
+                                onChanged: (v) async {
+                                  setState(() => isPartnerCourier = v);
+                                  if (v && deliveryPartners.isEmpty) {
+                                    // Load delivery partners list
+                                    try {
+                                      deliveryPartners = await ref.read(kanbanProvider.notifier).getDeliveryPartnersList();
+                                      setState(() {});
+                                    } catch (_) {}
+                                  }
+                                  if (!v) {
+                                    setState(() => selectedDeliveryPartner = null);
+                                  }
+                                },
+                              ),
+                              if (isPartnerCourier) ...[
+                                if (deliveryPartners.isEmpty)
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 8),
+                                    child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+                                  )
+                                else
+                                  DropdownButtonFormField<String>(
+                                    value: selectedDeliveryPartner,
+                                    decoration: const InputDecoration(labelText: 'Delivery Partner'),
+                                    items: deliveryPartners.map((dp) => DropdownMenuItem(
+                                      value: dp['name'],
+                                      child: Text(dp['partner_name'] ?? dp['name'] ?? ''),
+                                    )).toList(),
+                                    onChanged: (v) => setState(() => selectedDeliveryPartner = v),
+                                  ),
+                              ],
+                            ],
                             const SizedBox(height: 12),
                             Row(
                               children: [
@@ -1333,6 +1382,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                         lastName: lastName,
                                               phone: phone,
                                               posProfile: posProfile,
+                                              deliveryPartner: isPartnerCourier ? selectedDeliveryPartner : null,
                                             );
                                             if (created != null) {
                                               couriers = [...couriers, created];
