@@ -15,7 +15,7 @@ class PurchaseScreen extends ConsumerStatefulWidget {
   ConsumerState<PurchaseScreen> createState() => _PurchaseScreenState();
 }
 
-class _PurchaseScreenState extends ConsumerState<PurchaseScreen> with SingleTickerProviderStateMixin {
+class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   String? supplier;
   String supplierQuery = '';
   String itemQuery = '';
@@ -25,21 +25,18 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> with SingleTick
   final List<Map<String, dynamic>> cart = [];
   late final TextEditingController _itemSearchController;
   late final TextEditingController _shippingController;
-  late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _itemSearchController = TextEditingController(text: itemQuery);
     _shippingController = TextEditingController(text: shippingAmount.toStringAsFixed(2));
-    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
     _itemSearchController.dispose();
     _shippingController.dispose();
-    _tabController.dispose();
     for (final line in cart) {
       try {
         (line['qtyCtrl'] as TextEditingController?)?.dispose();
@@ -54,29 +51,16 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> with SingleTick
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.purchaseTitle),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.add_shopping_cart), text: 'New Invoice'),
-            Tab(icon: Icon(Icons.history), text: 'History'),
-          ],
-        ),
-      ),
-      drawer: const AppDrawer(),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildNewInvoiceTab(),
-          _PurchaseHistoryTab(onNavigateToInvoice: (inv) {
-            // Switch to new invoice tab and pre-populate supplier
-            _tabController.animateTo(0);
-            final supplierName = (inv['supplier'] ?? inv['supplier_name'] ?? '').toString();
-            if (supplierName.isNotEmpty) {
-              setState(() => supplier = supplierName);
-            }
-          }),
+        actions: [
+          IconButton(
+            tooltip: 'Purchase History',
+            icon: const Icon(Icons.history),
+            onPressed: _openPurchaseHistory,
+          ),
         ],
       ),
+      drawer: const AppDrawer(),
+      body: _buildNewInvoiceTab(),
     );
   }
 
@@ -202,6 +186,53 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> with SingleTick
             ),
           )
         ],
+    );
+  }
+
+  void _openPurchaseHistory() {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        insetPadding: const EdgeInsets.all(24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: SizedBox(
+          width: 700,
+          height: 500,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 0),
+                child: Row(
+                  children: [
+                    const Icon(Icons.history),
+                    const SizedBox(width: 8),
+                    Text('Purchase History',
+                        style: Theme.of(context).textTheme.titleMedium),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              Expanded(
+                child: _PurchaseHistoryTab(
+                  onNavigateToInvoice: (inv) {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    final supplierName =
+                        (inv['supplier'] ?? inv['supplier_name'] ?? '').toString();
+                    if (supplierName.isNotEmpty) {
+                      setState(() => supplier = supplierName);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
