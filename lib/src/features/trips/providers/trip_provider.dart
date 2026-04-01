@@ -185,4 +185,17 @@ class TripNotifier extends StateNotifier<TripState> {
       return null;
     }
   }
+
+  Future<Map<String, dynamic>?> markAsDelivered(String tripName) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final result = await _service.markAsDelivered(tripName);
+      await loadTripDetails(tripName);
+      await loadTrips();
+      return result;
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isLoading: false);
+      return null;
+    }
+  }
 }

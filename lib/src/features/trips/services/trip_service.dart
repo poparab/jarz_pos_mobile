@@ -109,4 +109,22 @@ class TripService {
       rethrow;
     }
   }
+
+  Future<Map<String, dynamic>> markAsDelivered(String tripName) async {
+    try {
+      _logger.info('Marking trip $tripName as delivered');
+      final resp = await _dio.post(
+        ApiEndpoints.markTripAsDelivered,
+        data: {'trip_name': tripName},
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? msg['message'] ?? 'Failed' : 'Failed to mark trip as delivered');
+    } catch (e) {
+      _logger.error('Failed to mark trip as delivered', e);
+      rethrow;
+    }
+  }
 }

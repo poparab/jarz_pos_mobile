@@ -52,7 +52,11 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
         ),
       ),
       bottomNavigationBar: detailAsync.whenOrNull(
-        data: (trip) => trip.isCreated ? _buildSendBar(trip) : null,
+        data: (trip) {
+          if (trip.isCreated) return _buildSendBar(trip);
+          if (trip.isOutForDelivery) return _buildMarkDeliveredBar(trip);
+          return null;
+        },
       ),
     );
   }
@@ -171,6 +175,27 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
     );
   }
 
+  Widget _buildMarkDeliveredBar(DeliveryTrip trip) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: ElevatedButton.icon(
+          onPressed: _sending ? null : () => _markAsDelivered(trip),
+          icon: _sending
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Icon(Icons.check_circle_outline),
+          label: Text(_sending ? 'Marking...' : 'Mark as Delivered'),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _sendForDelivery(DeliveryTrip trip) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -193,6 +218,42 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       ref.invalidate(tripDetailProvider(widget.tripName));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Trip sent for delivery')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _markAsDelivered(DeliveryTrip trip) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Mark as Delivered'),
+        content: Text('Mark all ${trip.totalOrders} orders as delivered?\n\nThis will complete the trip.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _sending = true);
+    try {
+      await ref.read(tripProvider.notifier).markAsDelivered(trip.name);
+      if (!mounted) return;
+      ref.invalidate(tripDetailProvider(widget.tripName));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Trip marked as delivered')),
       );
     } catch (e) {
       if (!mounted) return;

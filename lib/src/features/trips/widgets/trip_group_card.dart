@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../kanban/models/kanban_models.dart';
+import '../../kanban/widgets/invoice_card_widget.dart';
 
 /// Collapsible card that groups trip invoices in the OFD column.
 class TripGroupCard extends StatefulWidget {
@@ -7,6 +8,7 @@ class TripGroupCard extends StatefulWidget {
   final String courierDisplayName;
   final bool isDoubleShipping;
   final List<InvoiceCard> invoices;
+  final Future<void> Function(String tripName)? onMarkDelivered;
 
   const TripGroupCard({
     super.key,
@@ -14,6 +16,7 @@ class TripGroupCard extends StatefulWidget {
     required this.courierDisplayName,
     this.isDoubleShipping = false,
     required this.invoices,
+    this.onMarkDelivered,
   });
 
   @override
@@ -22,6 +25,7 @@ class TripGroupCard extends StatefulWidget {
 
 class _TripGroupCardState extends State<TripGroupCard> {
   bool _expanded = false;
+  bool _markingDelivered = false;
 
   double get _totalAmount =>
       widget.invoices.fold(0.0, (sum, inv) => sum + inv.grandTotal);
@@ -100,6 +104,28 @@ class _TripGroupCardState extends State<TripGroupCard> {
           if (_expanded) ...[
             const Divider(height: 1),
             ...widget.invoices.map((inv) => _buildInvoiceRow(inv)),
+            if (widget.onMarkDelivered != null) ...[
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _markingDelivered ? null : _handleMarkDelivered,
+                    icon: _markingDelivered
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.check_circle, size: 18),
+                    label: Text(_markingDelivered ? 'Marking...' : 'Mark as Delivered'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[600],
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ],
       ),
@@ -107,32 +133,111 @@ class _TripGroupCardState extends State<TripGroupCard> {
   }
 
   Widget _buildInvoiceRow(InvoiceCard inv) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  inv.customerName,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  inv.subTerritory ?? inv.territory,
-                  style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                ),
-              ],
+    return InkWell(
+      onTap: () => _showInvoiceDetails(inv),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    inv.customerName,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    inv.subTerritory ?? inv.territory,
+                    style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
             ),
+            Text(
+              '\$${inv.grandTotal.toStringAsFixed(2)}',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.green),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right, size: 16, color: Colors.grey[400]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showInvoiceDetails(InvoiceCard inv) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.4,
+        maxChildSize: 0.95,
+        builder: (ctx, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
           ),
-          Text(
-            '\$${inv.grandTotal.toStringAsFixed(2)}',
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.green),
+          child: Column(
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: InvoiceCardWidget(invoice: inv),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleMarkDelivered() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Mark Trip as Delivered'),
+        content: Text('Mark "${widget.tripName}" with ${widget.invoices.length} orders as delivered?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text('Confirm', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
+    if (confirmed != true) return;
+    setState(() => _markingDelivered = true);
+    try {
+      await widget.onMarkDelivered!(widget.tripName);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${widget.tripName} marked as delivered'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _markingDelivered = false);
+    }
   }
 }
