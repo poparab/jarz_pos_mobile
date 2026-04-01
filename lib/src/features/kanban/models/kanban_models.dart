@@ -426,7 +426,8 @@ class InvoiceCard {
         dateStr = 'Tomorrow';
       }
       else {
-        dateStr = "${d.year.toString().padLeft(4,'0')}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}";
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        dateStr = "${months[d.month - 1]} ${d.day}";
       }
     }
     String _amPm(DateTime t) {
@@ -460,7 +461,9 @@ class InvoiceCard {
       if (diff == 1) {
         return 'Tomorrow';
       }
-      return postingDate;
+      // Show month and day only — year is always current so adds no information
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return '${months[p.month - 1]} ${p.day}';
     } catch (_) {
       return postingDate;
     }

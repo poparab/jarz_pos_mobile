@@ -72,6 +72,11 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         ref.read(posNotifierProvider.notifier).loadProfiles();
       }
       _handlePosStateChange(posState);
+      // Auto-refresh account balance on every screen entry
+      final profileName = posState.selectedProfile?['name']?.toString();
+      if (profileName != null && profileName.isNotEmpty) {
+        ref.invalidate(posAccountBalanceProvider(profileName));
+      }
     });
   }
 
@@ -141,6 +146,12 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                 onRefresh: () async {
                   final notifier = ref.read(kanbanProvider.notifier);
                   await notifier.loadInvoices();
+                  // Also refresh the account balance
+                  final posState = ref.read(posNotifierProvider);
+                  final profileName = posState.selectedProfile?['name']?.toString();
+                  if (profileName != null && profileName.isNotEmpty) {
+                    ref.invalidate(posAccountBalanceProvider(profileName));
+                  }
                 },
                 child: _buildKanbanContent(kanbanState),
               ),
