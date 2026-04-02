@@ -168,7 +168,7 @@ class TripNotifier extends StateNotifier<TripState> {
       return trip;
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
-      return null;
+      rethrow;
     }
   }
 
