@@ -407,7 +407,10 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
 
     final result = await ref
         .read(shiftNotifierProvider.notifier)
-        .endShift(closingBalances: balances);
+        .endShift(
+          closingBalances: balances,
+          openingEntry: summary.openingEntry,
+        );
 
     if (!mounted) return;
     if (result != null) {
