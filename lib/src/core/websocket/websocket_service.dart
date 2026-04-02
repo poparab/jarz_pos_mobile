@@ -20,6 +20,7 @@ class WebSocketService {
   final _connectionStatusController = StreamController<bool>.broadcast();
   final _kanbanUpdateStreamController = StreamController<Map<String, dynamic>>.broadcast();
   final _courierUpdateStreamController = StreamController<Map<String, dynamic>>.broadcast();
+  final _shiftUpdateStreamController = StreamController<Map<String, dynamic>>.broadcast();
   Timer? _reconnectTimer;
   Timer? _heartbeatTimer;
   bool _isConnecting = false;
@@ -30,6 +31,7 @@ class WebSocketService {
   Stream<bool> get connectionStatus => _connectionStatusController.stream;
   Stream<Map<String, dynamic>> get kanbanUpdates => _kanbanUpdateStreamController.stream;
   Stream<Map<String, dynamic>> get courierUpdates => _courierUpdateStreamController.stream;
+  Stream<Map<String, dynamic>> get shiftUpdates => _shiftUpdateStreamController.stream;
 
   void connect() {
     if (_isConnecting) return;
@@ -394,6 +396,15 @@ class WebSocketService {
       case WsEvents.pong:
         // Heartbeat response
         break;
+      case WsEvents.shiftStarted:
+      case WsEvents.shiftEnded:
+        if (data != null) {
+          _shiftUpdateStreamController.add(data);
+          if (kDebugMode) {
+            debugPrint('📢 WEBSOCKET: Shift ${data['event_type']} by ${data['user_full_name']} on ${data['pos_profile']}');
+          }
+        }
+        break;
       default:
         if (kDebugMode) {
           debugPrint('🔔 WEBSOCKET: Unknown event: $event');
@@ -466,6 +477,7 @@ class WebSocketService {
     _connectionStatusController.close();
     _kanbanUpdateStreamController.close();
   _courierUpdateStreamController.close();
+  _shiftUpdateStreamController.close();
   }
 }
 

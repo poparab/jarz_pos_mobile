@@ -20,7 +20,9 @@ import kotlin.jvm.Volatile
 
 object OrderAlertNative {
     private const val DEFAULT_NOTIFICATION_ID = 4010
+    private const val SHIFT_NOTIFICATION_ID = 4020
     const val CHANNEL_ID = "jarz_order_alerts"
+    private const val SHIFT_CHANNEL_ID = "jarz_shift_updates"
 
     private var mediaPlayer: MediaPlayer? = null
     private var audioManager: AudioManager? = null
@@ -233,6 +235,55 @@ object OrderAlertNative {
                 channel.enableVibration(true)
                 // Notification sound intentionally null; alarm playback is handled separately
                 channel.setSound(null, null)
+                manager.createNotificationChannel(channel)
+            }
+        }
+    }
+
+    fun showShiftNotification(context: Context, data: Map<String, String>) {
+        ensureShiftChannel(context)
+
+        val notificationId = SHIFT_NOTIFICATION_ID + (System.currentTimeMillis() % 1000).toInt()
+
+        val title = data["title"] ?: "Shift Update"
+        val body = data["body"] ?: ""
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            notificationId,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        val builder = NotificationCompat.Builder(context, SHIFT_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setShowWhen(true)
+
+        NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+    }
+
+    private fun ensureShiftChannel(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val existing = manager.getNotificationChannel(SHIFT_CHANNEL_ID)
+            if (existing == null) {
+                val channel = NotificationChannel(
+                    SHIFT_CHANNEL_ID,
+                    "Shift Updates",
+                    NotificationManager.IMPORTANCE_DEFAULT,
+                )
+                channel.description = "Notifications when shifts are started or ended"
                 manager.createNotificationChannel(channel)
             }
         }

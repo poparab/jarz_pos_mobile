@@ -34,6 +34,7 @@ class OrderAlertBridge {
   StreamSubscription<RemoteMessage>? _onOpenedSub;
   StreamSubscription<String>? _onTokenRefreshSub;
   StreamSubscription<Map<String, dynamic>>? _invoiceStreamSub;
+  StreamSubscription<Map<String, dynamic>>? _shiftStreamSub;
   ProviderSubscription<PosState>? _posStateSub;
   Timer? _backgroundPollTimer;
   bool _hasInit = false;
@@ -55,6 +56,11 @@ class OrderAlertBridge {
     _logger.info("📡 Subscribing to websocket invoiceStream...");
     _invoiceStreamSub = ws.invoiceStream.listen(_handleRealtimeInvoice, onError: (error) {
       _logger.error('Failed processing websocket invoice alert', error, StackTrace.current);
+    });
+
+    // Listen for shift start/end events via websocket
+    _shiftStreamSub = ws.shiftUpdates.listen(_handleShiftEvent, onError: (error) {
+      _logger.error('Failed processing websocket shift event', error, StackTrace.current);
     });
 
     // Listen for authentication transitions
@@ -131,6 +137,7 @@ class OrderAlertBridge {
     _onOpenedSub?.cancel();
     _onTokenRefreshSub?.cancel();
     _invoiceStreamSub?.cancel();
+    _shiftStreamSub?.cancel();
     _posStateSub?.close();
     _backgroundPollTimer?.cancel();
     OrderAlertNativeChannel.setLaunchHandler(null);
@@ -191,6 +198,12 @@ class OrderAlertBridge {
             await controller.syncPendingAlerts();
           }));
         }
+        break;
+      case 'shift_started':
+      case 'shift_ended':
+        _logger.info('FCM shift event: $type - ${data['user_full_name']} on ${data['pos_profile']}');
+        // Android shows the FCM notification automatically (it has title/body in the data payload)
+        // No additional in-app handling needed — the native notification is sufficient
         break;
       default:
         _logger.debug('Ignored push message of type $type');
@@ -270,6 +283,33 @@ class OrderAlertBridge {
       });
     } catch (error, stackTrace) {
       _logger.error('Failed to enqueue realtime invoice alert', error, stackTrace);
+    }
+  }
+
+  void _handleShiftEvent(Map<String, dynamic> payload) {
+    try {
+      final eventType = payload['event_type']?.toString() ?? '';
+      final userFullName = payload['user_full_name']?.toString() ?? 'Unknown';
+      final posProfile = payload['pos_profile']?.toString() ?? '';
+
+      final isStarted = eventType == 'started';
+      final title = isStarted ? 'Shift Started' : 'Shift Ended';
+      final body = '$userFullName ${isStarted ? 'opened' : 'closed'} a shift on $posProfile';
+
+      _logger.info('Shift event: $eventType by $userFullName on $posProfile');
+
+      // Show browser notification on web
+      if (kIsWeb) {
+        unawaited(
+          WebNotificationService.showShiftNotification(
+            title: title,
+            body: body,
+            posProfile: posProfile,
+          ),
+        );
+      }
+    } catch (error, stackTrace) {
+      _logger.error('Failed processing shift event', error, stackTrace);
     }
   }
 

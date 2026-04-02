@@ -29,6 +29,10 @@ abstract final class WsEvents {
       'jarz_pos_sales_partner_unpaid_ofd';
   static const salesPartnerPaidOfd = 'jarz_pos_sales_partner_paid_ofd';
 
+  // ── Shift ─────────────────────────────────────────────────────────────
+  static const shiftStarted = 'jarz_pos_shift_started';
+  static const shiftEnded = 'jarz_pos_shift_ended';
+
   // ── Legacy / generic ─────────────────────────────────────────────────
   static const newPosInvoice = 'new_pos_invoice';
   static const posProfileUpdate = 'pos_profile_update';

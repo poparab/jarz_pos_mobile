@@ -108,4 +108,17 @@ class WebNotificationService {
       },
     );
   }
+
+  /// Show notification for shift events
+  static Future<void> showShiftNotification({
+    required String title,
+    required String body,
+    String? posProfile,
+  }) async {
+    await showNotification(
+      title: title,
+      body: body,
+      tag: 'shift_${posProfile ?? 'unknown'}',
+    );
+  }
 }

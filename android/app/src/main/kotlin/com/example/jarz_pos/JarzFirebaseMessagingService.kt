@@ -16,6 +16,9 @@ class JarzFirebaseMessagingService : FlutterFirebaseMessagingService() {
                     OrderAlertNative.stopAlarm()
                     OrderAlertNative.cancelNotification(applicationContext, data["invoice_id"])
                 }
+                "shift_started", "shift_ended" -> {
+                    OrderAlertNative.showShiftNotification(applicationContext, data)
+                }
             }
         }
         super.onMessageReceived(remoteMessage)

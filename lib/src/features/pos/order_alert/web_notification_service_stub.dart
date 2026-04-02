@@ -29,4 +29,13 @@ class WebNotificationService {
   }) async {
     // No-op on non-web platforms
   }
+
+  /// Show notification for shift events (no-op on non-web platforms)
+  static Future<void> showShiftNotification({
+    required String title,
+    required String body,
+    String? posProfile,
+  }) async {
+    // No-op on non-web platforms
+  }
 }
