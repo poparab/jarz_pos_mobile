@@ -463,12 +463,12 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                   right: 4,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 2,
+                      horizontal: 6,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.7),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -476,43 +476,48 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                       children: [
                         if (canRemove)
                           GestureDetector(
+                            behavior: HitTestBehavior.opaque,
                             onTap: () =>
                                 _removeItemFromSelection(item, groupName),
                             child: Container(
-                              padding: const EdgeInsets.all(3),
+                              width: 32,
+                              height: 32,
                               decoration: BoxDecoration(
                                 color: Theme.of(context).colorScheme.error,
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(
+                              child: const Icon(
                                 Icons.remove,
-                                size: 12,
+                                size: 18,
                                 color: Colors.white,
                               ),
                             ),
                           ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '$selectedCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(
+                            '$selectedCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 8),
                         if (canActuallyAdd)
                           GestureDetector(
+                            behavior: HitTestBehavior.opaque,
                             onTap: () => _addItemToSelection(item, groupName),
                             child: Container(
-                              padding: const EdgeInsets.all(3),
+                              width: 32,
+                              height: 32,
                               decoration: BoxDecoration(
                                 color: Theme.of(context).colorScheme.primary,
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(
+                              child: const Icon(
                                 Icons.add,
-                                size: 12,
+                                size: 18,
                                 color: Colors.white,
                               ),
                             ),
