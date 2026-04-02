@@ -4078,6 +4078,12 @@ abstract class AppLocalizations {
   /// **'Marking...'**
   String get tripsMarking;
 
+  /// No description provided for @tripsSubTerritoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a sub-territory for the following orders before creating a trip: {invoices}'**
+  String tripsSubTerritoryRequired(Object invoices);
+
   /// No description provided for @tripsInvoicesCount.
   ///
   /// In en, this message translates to:

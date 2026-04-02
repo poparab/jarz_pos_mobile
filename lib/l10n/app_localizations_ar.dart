@@ -2321,6 +2321,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tripsMarking => 'جارٍ التعليم...';
 
   @override
+  String tripsSubTerritoryRequired(Object invoices) {
+    return 'يرجى اختيار منطقة فرعية للطلبات التالية قبل إنشاء رحلة: $invoices';
+  }
+
+  @override
   String tripsInvoicesCount(Object count) {
     return 'الفواتير ($count)';
   }

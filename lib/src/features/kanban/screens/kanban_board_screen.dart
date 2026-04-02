@@ -553,7 +553,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                         : null,
                                     customListBuilder: isOFD
                                         ? (ctx, ofdInvoices) => _buildOFDTripGroupedList(ofdInvoices, tripState)
-                                        : null,
+                                        : (isReady && !tripState.multiSelectActive)
+                                            ? (ctx, readyInvoices) => _buildReadyTripGroupedList(readyInvoices, tripState)
+                                            : null,
                                   ),
                                 );
                               },
@@ -639,6 +641,141 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               data: {
                 'invoiceId': inv.id,
                 'fromColumnId': ofdColumnId,
+              },
+              dragAnchorStrategy: pointerDragAnchorStrategy,
+              maxSimultaneousDrags: 1,
+              feedback: Material(
+                color: Colors.transparent,
+                child: Transform.scale(
+                  scale: 1.03,
+                  child: Opacity(
+                    opacity: 0.95,
+                    child: SizedBox(
+                      width: ResponsiveUtils.getKanbanColumnWidth(context),
+                      child: InvoiceCardWidget(invoice: inv, isDragging: true, compact: true),
+                    ),
+                  ),
+                ),
+              ),
+              childWhenDragging: AnimatedOpacity(
+                duration: const Duration(milliseconds: 150),
+                opacity: 0.25,
+                child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
+              ),
+              child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildReadyTripGroupedList(List<InvoiceCard> invoices, TripState tripState) {
+    if (invoices.isEmpty) {
+      return Center(child: Text(context.l10n.kanbanNoInvoices));
+    }
+
+    // Find the Ready column id for drag data
+    final readyColumnId = ref.read(kanbanProvider).columns
+        .where(_isReadyColumn)
+        .map((c) => c.id)
+        .firstOrNull ?? 'ready';
+
+    final grouped = <String, List<InvoiceCard>>{};
+    final nonTrip = <InvoiceCard>[];
+    for (final inv in invoices) {
+      final tripName = (inv.deliveryTrip ?? '').trim();
+      if (tripName.isEmpty) {
+        nonTrip.add(inv);
+      } else {
+        grouped.putIfAbsent(tripName, () => <InvoiceCard>[]).add(inv);
+      }
+    }
+
+    // If no trip groups, skip custom rendering so default drag/drop works
+    if (grouped.isEmpty) return _buildDefaultDraggableList(nonTrip, readyColumnId);
+
+    String courierLabelFor(String tripName) {
+      for (final t in tripState.trips) {
+        if (t.name == tripName) return t.courierDisplayName;
+      }
+      return 'Courier';
+    }
+
+    bool isDoubleShipping(String tripName) {
+      for (final t in tripState.trips) {
+        if (t.name == tripName) return t.isDoubleShipping;
+      }
+      return false;
+    }
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4).copyWith(bottom: 2),
+      children: [
+        for (final entry in grouped.entries)
+          TripGroupCard(
+            tripName: entry.key,
+            courierDisplayName: courierLabelFor(entry.key),
+            isDoubleShipping: isDoubleShipping(entry.key),
+            invoices: entry.value,
+            onSendForDelivery: (tripName) async {
+              try {
+                await ref.read(tripProvider.notifier).sendForDelivery(tripName);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(context.l10n.tripsSentForDeliverySuccess)),
+                  );
+                }
+              } finally {
+                await ref.read(kanbanProvider.notifier).loadInvoices(immediate: true);
+              }
+            },
+          ),
+        for (final inv in nonTrip)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: LongPressDraggable<Map<String, dynamic>>(
+              data: {
+                'invoiceId': inv.id,
+                'fromColumnId': readyColumnId,
+              },
+              dragAnchorStrategy: pointerDragAnchorStrategy,
+              maxSimultaneousDrags: 1,
+              feedback: Material(
+                color: Colors.transparent,
+                child: Transform.scale(
+                  scale: 1.03,
+                  child: Opacity(
+                    opacity: 0.95,
+                    child: SizedBox(
+                      width: ResponsiveUtils.getKanbanColumnWidth(context),
+                      child: InvoiceCardWidget(invoice: inv, isDragging: true, compact: true),
+                    ),
+                  ),
+                ),
+              ),
+              childWhenDragging: AnimatedOpacity(
+                duration: const Duration(milliseconds: 150),
+                opacity: 0.25,
+                child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
+              ),
+              child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDefaultDraggableList(List<InvoiceCard> invoices, String columnId) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4).copyWith(bottom: 2),
+      children: [
+        for (final inv in invoices)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: LongPressDraggable<Map<String, dynamic>>(
+              data: {
+                'invoiceId': inv.id,
+                'fromColumnId': columnId,
               },
               dragAnchorStrategy: pointerDragAnchorStrategy,
               maxSimultaneousDrags: 1,

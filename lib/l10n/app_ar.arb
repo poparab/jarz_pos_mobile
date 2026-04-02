@@ -943,6 +943,7 @@
   "tripsTripMarkedSuccess": "تم تعليم الرحلة كمسلمة",
   "tripsSending": "جارٍ الإرسال...",
   "tripsMarking": "جارٍ التعليم...",
+  "tripsSubTerritoryRequired": "يرجى اختيار منطقة فرعية للطلبات التالية قبل إنشاء رحلة: {invoices}",
   "tripsInvoicesCount": "الفواتير ({count})",
 
   "receiptSelectImageSource": "اختر مصدر الصورة",

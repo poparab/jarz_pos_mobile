@@ -181,6 +181,24 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
   }
 
   Future<void> _createTrip() async {
+    // Client-side pre-validation: check sub-territory requirements
+    final missingSubTerritory = widget.selectedInvoices
+        .where((inv) => inv.hasSubTerritories && (inv.subTerritory == null || inv.subTerritory!.isEmpty))
+        .toList();
+    if (missingSubTerritory.isNotEmpty) {
+      if (mounted) {
+        final names = missingSubTerritory.map((inv) => inv.id).join(', ');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.tripsSubTerritoryRequired(names)),
+            backgroundColor: Colors.orange[800],
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       final tripNotifier = ref.read(tripProvider.notifier);

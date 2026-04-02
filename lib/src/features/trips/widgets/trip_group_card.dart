@@ -3,13 +3,14 @@ import '../../../core/localization/localization_extensions.dart';
 import '../../kanban/models/kanban_models.dart';
 import '../../kanban/widgets/invoice_card_widget.dart';
 
-/// Collapsible card that groups trip invoices in the OFD column.
+/// Collapsible card that groups trip invoices in a kanban column.
 class TripGroupCard extends StatefulWidget {
   final String tripName;
   final String courierDisplayName;
   final bool isDoubleShipping;
   final List<InvoiceCard> invoices;
   final Future<void> Function(String tripName)? onMarkDelivered;
+  final Future<void> Function(String tripName)? onSendForDelivery;
 
   const TripGroupCard({
     super.key,
@@ -18,6 +19,7 @@ class TripGroupCard extends StatefulWidget {
     this.isDoubleShipping = false,
     required this.invoices,
     this.onMarkDelivered,
+    this.onSendForDelivery,
   });
 
   @override
@@ -26,7 +28,7 @@ class TripGroupCard extends StatefulWidget {
 
 class _TripGroupCardState extends State<TripGroupCard> {
   bool _expanded = false;
-  bool _markingDelivered = false;
+  bool _actionInProgress = false;
 
   double get _totalAmount =>
       widget.invoices.fold(0.0, (sum, inv) => sum + inv.grandTotal);
@@ -105,6 +107,28 @@ class _TripGroupCardState extends State<TripGroupCard> {
           if (_expanded) ...[
             const Divider(height: 1),
             ...widget.invoices.map((inv) => _buildInvoiceRow(inv)),
+            if (widget.onSendForDelivery != null) ...[
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _actionInProgress ? null : _handleSendForDelivery,
+                    icon: _actionInProgress
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.send, size: 18),
+                    label: Text(_actionInProgress ? context.l10n.tripsSending : context.l10n.tripsSendForDeliveryTitle),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.indigo,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
             if (widget.onMarkDelivered != null) ...[
               const Divider(height: 1),
               Padding(
@@ -112,11 +136,11 @@ class _TripGroupCardState extends State<TripGroupCard> {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: _markingDelivered ? null : _handleMarkDelivered,
-                    icon: _markingDelivered
+                    onPressed: _actionInProgress ? null : _handleMarkDelivered,
+                    icon: _actionInProgress
                         ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.check_circle, size: 18),
-                    label: Text(_markingDelivered ? context.l10n.tripsMarking : context.l10n.tripsMarkAsDeliveredButton),
+                    label: Text(_actionInProgress ? context.l10n.tripsMarking : context.l10n.tripsMarkAsDeliveredButton),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green[600],
                       foregroundColor: Colors.white,
@@ -206,6 +230,33 @@ class _TripGroupCardState extends State<TripGroupCard> {
     );
   }
 
+  Future<void> _handleSendForDelivery() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.l10n.tripsSendForDeliveryTitle),
+        content: Text(context.l10n.tripsSendForDeliveryContent(widget.invoices.length, widget.courierDisplayName)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l10n.commonCancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(context.l10n.commonConfirm)),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    setState(() => _actionInProgress = true);
+    try {
+      await widget.onSendForDelivery!(widget.tripName);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.tripsFailed(e.toString())), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _actionInProgress = false);
+    }
+  }
+
   Future<void> _handleMarkDelivered() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -223,7 +274,7 @@ class _TripGroupCardState extends State<TripGroupCard> {
       ),
     );
     if (confirmed != true) return;
-    setState(() => _markingDelivered = true);
+    setState(() => _actionInProgress = true);
     try {
       await widget.onMarkDelivered!(widget.tripName);
       if (mounted) {
@@ -238,7 +289,7 @@ class _TripGroupCardState extends State<TripGroupCard> {
         );
       }
     } finally {
-      if (mounted) setState(() => _markingDelivered = false);
+      if (mounted) setState(() => _actionInProgress = false);
     }
   }
 }

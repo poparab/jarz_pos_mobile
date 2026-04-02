@@ -2322,6 +2322,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tripsMarking => 'Marking...';
 
   @override
+  String tripsSubTerritoryRequired(Object invoices) {
+    return 'Please select a sub-territory for the following orders before creating a trip: $invoices';
+  }
+
+  @override
   String tripsInvoicesCount(Object count) {
     return 'Invoices ($count)';
   }

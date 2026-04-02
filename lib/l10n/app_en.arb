@@ -981,6 +981,8 @@
   "tripsTripMarkedSuccess": "Trip marked as delivered",
   "tripsSending": "Sending...",
   "tripsMarking": "Marking...",
+  "tripsSubTerritoryRequired": "Please select a sub-territory for the following orders before creating a trip: {invoices}",
+  "@tripsSubTerritoryRequired": { "placeholders": { "invoices": {} } },
   "tripsInvoicesCount": "Invoices ({count})",
   "@tripsInvoicesCount": { "placeholders": { "count": {} } },
 
