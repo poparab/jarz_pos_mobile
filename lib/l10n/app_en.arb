@@ -1076,5 +1076,37 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+
+  "loginModeDialogTitle": "Choose Login Mode",
+  "loginModeLineManager": "Line Manager",
+  "loginModeLineManagerDesc": "Skip shift opening — manage operations directly",
+  "loginModeEmployee": "Employee",
+  "loginModeEmployeeDesc": "Open a shift before starting work",
+
+  "customerSearchByPhone": "Search by phone number...",
+  "customerSearchByName": "Search by customer name...",
+  "quickAddCustomerTitle": "Quick Add Customer",
+  "quickAddCustomerTap": "Tap to create new customer",
+  "customerNameLabel": "Customer Name *",
+  "customerNameRequired": "Customer name is required",
+  "mobileNumberLabel": "Mobile Number *",
+  "mobileNumberRequired": "Mobile number is required",
+  "secondaryPhoneLabel": "Secondary Phone (Optional)",
+  "secondaryPhoneHint": "Additional contact number",
+  "locationLinkLabel": "Location Link (Optional)",
+  "locationLinkHint": "Google Maps link, etc.",
+  "detailedAddressRequired": "Detailed Address *",
+  "detailedAddressOptional": "Detailed Address (Optional)",
+  "addressOptionalPartner": "Optional when Sales Partner is selected",
+  "addressRequired": "Address is required",
+  "territoryLabel": "Territory *",
+  "territorySelectRequired": "Please select a territory",
+  "territoryLoadFailed": "Failed to load territories",
+  "unknownTerritory": "Unknown Territory",
+  "customerCreateFailed": "Failed to create customer",
+  "authUsernameLabel": "Username",
+  "authPasswordLabel": "Password",
+  "authShowPassword": "Show password",
+  "authHidePassword": "Hide password"
 }

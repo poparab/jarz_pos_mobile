@@ -2560,4 +2560,96 @@ class AppLocalizationsEn extends AppLocalizations {
   String kanbanOrdersSelectedCount(int count) {
     return '$count orders selected';
   }
+
+  @override
+  String get loginModeDialogTitle => 'Choose Login Mode';
+
+  @override
+  String get loginModeLineManager => 'Line Manager';
+
+  @override
+  String get loginModeLineManagerDesc =>
+      'Skip shift opening — manage operations directly';
+
+  @override
+  String get loginModeEmployee => 'Employee';
+
+  @override
+  String get loginModeEmployeeDesc => 'Open a shift before starting work';
+
+  @override
+  String get customerSearchByPhone => 'Search by phone number...';
+
+  @override
+  String get customerSearchByName => 'Search by customer name...';
+
+  @override
+  String get quickAddCustomerTitle => 'Quick Add Customer';
+
+  @override
+  String get quickAddCustomerTap => 'Tap to create new customer';
+
+  @override
+  String get customerNameLabel => 'Customer Name *';
+
+  @override
+  String get customerNameRequired => 'Customer name is required';
+
+  @override
+  String get mobileNumberLabel => 'Mobile Number *';
+
+  @override
+  String get mobileNumberRequired => 'Mobile number is required';
+
+  @override
+  String get secondaryPhoneLabel => 'Secondary Phone (Optional)';
+
+  @override
+  String get secondaryPhoneHint => 'Additional contact number';
+
+  @override
+  String get locationLinkLabel => 'Location Link (Optional)';
+
+  @override
+  String get locationLinkHint => 'Google Maps link, etc.';
+
+  @override
+  String get detailedAddressRequired => 'Detailed Address *';
+
+  @override
+  String get detailedAddressOptional => 'Detailed Address (Optional)';
+
+  @override
+  String get addressOptionalPartner =>
+      'Optional when Sales Partner is selected';
+
+  @override
+  String get addressRequired => 'Address is required';
+
+  @override
+  String get territoryLabel => 'Territory *';
+
+  @override
+  String get territorySelectRequired => 'Please select a territory';
+
+  @override
+  String get territoryLoadFailed => 'Failed to load territories';
+
+  @override
+  String get unknownTerritory => 'Unknown Territory';
+
+  @override
+  String get customerCreateFailed => 'Failed to create customer';
+
+  @override
+  String get authUsernameLabel => 'Username';
+
+  @override
+  String get authPasswordLabel => 'Password';
+
+  @override
+  String get authShowPassword => 'Show password';
+
+  @override
+  String get authHidePassword => 'Hide password';
 }

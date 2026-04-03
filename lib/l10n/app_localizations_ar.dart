@@ -2555,4 +2555,95 @@ class AppLocalizationsAr extends AppLocalizations {
   String kanbanOrdersSelectedCount(int count) {
     return '$count طلبات محددة';
   }
+
+  @override
+  String get loginModeDialogTitle => 'اختر وضع الدخول';
+
+  @override
+  String get loginModeLineManager => 'مدير خط';
+
+  @override
+  String get loginModeLineManagerDesc =>
+      'تخطي فتح الوردية — إدارة العمليات مباشرة';
+
+  @override
+  String get loginModeEmployee => 'موظف';
+
+  @override
+  String get loginModeEmployeeDesc => 'فتح وردية قبل بدء العمل';
+
+  @override
+  String get customerSearchByPhone => '...بحث برقم الهاتف';
+
+  @override
+  String get customerSearchByName => '...بحث باسم العميل';
+
+  @override
+  String get quickAddCustomerTitle => 'إضافة عميل سريع';
+
+  @override
+  String get quickAddCustomerTap => 'اضغط لإنشاء عميل جديد';
+
+  @override
+  String get customerNameLabel => 'اسم العميل *';
+
+  @override
+  String get customerNameRequired => 'اسم العميل مطلوب';
+
+  @override
+  String get mobileNumberLabel => 'رقم الهاتف *';
+
+  @override
+  String get mobileNumberRequired => 'رقم الهاتف مطلوب';
+
+  @override
+  String get secondaryPhoneLabel => 'هاتف ثانوي (اختياري)';
+
+  @override
+  String get secondaryPhoneHint => 'رقم تواصل إضافي';
+
+  @override
+  String get locationLinkLabel => 'رابط الموقع (اختياري)';
+
+  @override
+  String get locationLinkHint => 'رابط خرائط جوجل، إلخ.';
+
+  @override
+  String get detailedAddressRequired => 'العنوان التفصيلي *';
+
+  @override
+  String get detailedAddressOptional => 'العنوان التفصيلي (اختياري)';
+
+  @override
+  String get addressOptionalPartner => 'اختياري عند اختيار شريك مبيعات';
+
+  @override
+  String get addressRequired => 'العنوان مطلوب';
+
+  @override
+  String get territoryLabel => 'المنطقة *';
+
+  @override
+  String get territorySelectRequired => 'يرجى اختيار منطقة';
+
+  @override
+  String get territoryLoadFailed => 'فشل تحميل المناطق';
+
+  @override
+  String get unknownTerritory => 'منطقة غير معروفة';
+
+  @override
+  String get customerCreateFailed => 'فشل إنشاء العميل';
+
+  @override
+  String get authUsernameLabel => 'اسم المستخدم';
+
+  @override
+  String get authPasswordLabel => 'كلمة المرور';
+
+  @override
+  String get authShowPassword => 'إظهار كلمة المرور';
+
+  @override
+  String get authHidePassword => 'إخفاء كلمة المرور';
 }

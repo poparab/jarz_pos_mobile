@@ -4479,6 +4479,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} orders selected'**
   String kanbanOrdersSelectedCount(int count);
+
+  /// No description provided for @loginModeDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Login Mode'**
+  String get loginModeDialogTitle;
+
+  /// No description provided for @loginModeLineManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Line Manager'**
+  String get loginModeLineManager;
+
+  /// No description provided for @loginModeLineManagerDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip shift opening — manage operations directly'**
+  String get loginModeLineManagerDesc;
+
+  /// No description provided for @loginModeEmployee.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get loginModeEmployee;
+
+  /// No description provided for @loginModeEmployeeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a shift before starting work'**
+  String get loginModeEmployeeDesc;
+
+  /// No description provided for @customerSearchByPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by phone number...'**
+  String get customerSearchByPhone;
+
+  /// No description provided for @customerSearchByName.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by customer name...'**
+  String get customerSearchByName;
+
+  /// No description provided for @quickAddCustomerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Add Customer'**
+  String get quickAddCustomerTitle;
+
+  /// No description provided for @quickAddCustomerTap.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to create new customer'**
+  String get quickAddCustomerTap;
+
+  /// No description provided for @customerNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Name *'**
+  String get customerNameLabel;
+
+  /// No description provided for @customerNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer name is required'**
+  String get customerNameRequired;
+
+  /// No description provided for @mobileNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Number *'**
+  String get mobileNumberLabel;
+
+  /// No description provided for @mobileNumberRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile number is required'**
+  String get mobileNumberRequired;
+
+  /// No description provided for @secondaryPhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Secondary Phone (Optional)'**
+  String get secondaryPhoneLabel;
+
+  /// No description provided for @secondaryPhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional contact number'**
+  String get secondaryPhoneHint;
+
+  /// No description provided for @locationLinkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Link (Optional)'**
+  String get locationLinkLabel;
+
+  /// No description provided for @locationLinkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Maps link, etc.'**
+  String get locationLinkHint;
+
+  /// No description provided for @detailedAddressRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed Address *'**
+  String get detailedAddressRequired;
+
+  /// No description provided for @detailedAddressOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed Address (Optional)'**
+  String get detailedAddressOptional;
+
+  /// No description provided for @addressOptionalPartner.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional when Sales Partner is selected'**
+  String get addressOptionalPartner;
+
+  /// No description provided for @addressRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Address is required'**
+  String get addressRequired;
+
+  /// No description provided for @territoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Territory *'**
+  String get territoryLabel;
+
+  /// No description provided for @territorySelectRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a territory'**
+  String get territorySelectRequired;
+
+  /// No description provided for @territoryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load territories'**
+  String get territoryLoadFailed;
+
+  /// No description provided for @unknownTerritory.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Territory'**
+  String get unknownTerritory;
+
+  /// No description provided for @customerCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create customer'**
+  String get customerCreateFailed;
+
+  /// No description provided for @authUsernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get authUsernameLabel;
+
+  /// No description provided for @authPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get authPasswordLabel;
+
+  /// No description provided for @authShowPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get authShowPassword;
+
+  /// No description provided for @authHidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get authHidePassword;
 }
 
 class _AppLocalizationsDelegate
