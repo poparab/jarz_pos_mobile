@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/network/user_service.dart';
 import '../state/login_notifier.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -45,13 +46,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           children: [
             TextField(
               controller: _usernameController,
-              decoration: const InputDecoration(labelText: 'Username'),
+              decoration: InputDecoration(labelText: context.l10n.authUsernameLabel),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
-                labelText: 'Password',
+                labelText: context.l10n.authPasswordLabel,
                 suffixIcon: IconButton(
                   icon: Icon(
                     _isPasswordObscured
@@ -64,8 +65,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     });
                   },
                   tooltip: _isPasswordObscured
-                      ? 'Show password'
-                      : 'Hide password',
+                      ? context.l10n.authShowPassword
+                      : context.l10n.authHidePassword,
                 ),
               ),
               obscureText: _isPasswordObscured,
@@ -86,6 +87,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ref.read(loginNotifierProvider).value ?? false;
                       if (!mounted) return;
                       if (success) {
+                        final showChoice =
+                            ref.read(shouldShowLoginModeChoiceProvider);
+                        if (showChoice) {
+                          final chosen = await _showLoginModeDialog();
+                          if (!mounted) return;
+                          if (chosen == null) return; // dismissed
+                          ref.read(loginModeProvider.notifier).state = chosen;
+                        }
                         router.go(AppRoutes.pos);
                       }
                     },
@@ -100,6 +109,63 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Future<LoginMode?> _showLoginModeDialog() {
+    return showDialog<LoginMode>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        final l10n = ctx.l10n;
+        return AlertDialog(
+          title: Text(l10n.loginModeDialogTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _LoginModeOption(
+                icon: Icons.supervisor_account,
+                title: l10n.loginModeLineManager,
+                subtitle: l10n.loginModeLineManagerDesc,
+                onTap: () => Navigator.of(ctx).pop(LoginMode.lineManager),
+              ),
+              const SizedBox(height: 12),
+              _LoginModeOption(
+                icon: Icons.badge,
+                title: l10n.loginModeEmployee,
+                subtitle: l10n.loginModeEmployeeDesc,
+                onTap: () => Navigator.of(ctx).pop(LoginMode.employee),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _LoginModeOption extends StatelessWidget {
+  const _LoginModeOption({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        leading: Icon(icon, size: 36),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle),
+        onTap: onTap,
       ),
     );
   }

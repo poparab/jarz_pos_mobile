@@ -186,7 +186,7 @@ class TripNotifier extends StateNotifier<TripState> {
       try { await loadTripDetails(tripName); } catch (_) {}
       try { await loadTrips(); } catch (_) {}
       state = state.copyWith(error: e.toString(), isLoading: false);
-      return null;
+      rethrow; // Propagate so callers (TripGroupCard) can show the error
     }
   }
 
@@ -202,7 +202,7 @@ class TripNotifier extends StateNotifier<TripState> {
       try { await loadTripDetails(tripName); } catch (_) {}
       try { await loadTrips(); } catch (_) {}
       state = state.copyWith(error: e.toString(), isLoading: false);
-      return null;
+      rethrow; // Propagate so callers (TripGroupCard) can show the error
     }
   }
 }

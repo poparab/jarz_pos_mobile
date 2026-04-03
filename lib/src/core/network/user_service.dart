@@ -108,10 +108,36 @@ final canMuteNotificationsProvider = Provider<bool>((ref) {
   );
 });
 
+/// Login mode: when a Line Manager who requires a shift logs in,
+/// they can choose to operate as 'line_manager' (skip shift) or
+/// 'employee' (require shift). Defaults to 'employee'.
+/// Reset on logout.
+enum LoginMode { employee, lineManager }
+
+final loginModeProvider = StateProvider<LoginMode>((ref) => LoginMode.employee);
+
+/// Whether the user needs to open a POS shift.
+/// Returns false if the user chose to log in as Line Manager.
 final requirePosShiftProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
+  final loginMode = ref.watch(loginModeProvider);
   return rolesAsync.maybeWhen(
-    data: (roles) => roles.requirePosShift,
+    data: (roles) {
+      if (!roles.requirePosShift) return false;
+      // Line managers who chose manager mode skip shift requirement
+      if (roles.isLineManager && loginMode == LoginMode.lineManager) return false;
+      return true;
+    },
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user should be shown the login mode choice
+/// (is a line manager AND has shift requirement).
+final shouldShowLoginModeChoiceProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.isLineManager && roles.requirePosShift,
     orElse: () => false,
   );
 });

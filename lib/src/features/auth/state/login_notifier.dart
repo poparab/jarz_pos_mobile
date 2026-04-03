@@ -73,6 +73,8 @@ class LoginNotifier extends AsyncNotifier<bool> {
     ref.invalidate(userRolesFutureProvider);
     ref.invalidate(isJarzManagerProvider);
     ref.invalidate(managerAccessProvider);
+    // Reset login mode so next login starts fresh
+    ref.read(loginModeProvider.notifier).state = LoginMode.employee;
     state = AsyncData(false);
   }
 }

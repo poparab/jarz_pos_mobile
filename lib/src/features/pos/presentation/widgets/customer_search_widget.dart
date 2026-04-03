@@ -284,8 +284,8 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
               : TextInputType.text,
           decoration: InputDecoration(
             hintText: isPhoneSearch
-                ? 'Search by phone number...'
-                : 'Search by customer name...',
+                ? context.l10n.customerSearchByPhone
+                : context.l10n.customerSearchByName,
             prefixIcon: Icon(isPhoneSearch ? Icons.phone : Icons.search),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             contentPadding: const EdgeInsets.symmetric(
@@ -359,7 +359,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
-                                        'Quick Add Customer',
+                                        context.l10n.quickAddCustomerTitle,
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleSmall
@@ -371,7 +371,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
                                             ),
                                       ),
                                       Text(
-                                        'Tap to create new customer',
+                                        context.l10n.quickAddCustomerTap,
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall
@@ -602,7 +602,7 @@ class _QuickAddCustomerWidgetState
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Quick Add Customer',
+                  context.l10n.quickAddCustomerTitle,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -627,14 +627,14 @@ class _QuickAddCustomerWidgetState
                         Expanded(
                           child: TextFormField(
                             controller: _nameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Customer Name *',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.person),
+                            decoration: InputDecoration(
+                              labelText: context.l10n.customerNameLabel,
+                              border: const OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.person),
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Customer name is required';
+                                return context.l10n.customerNameRequired;
                               }
                               return null;
                             },
@@ -645,14 +645,14 @@ class _QuickAddCustomerWidgetState
                           child: TextFormField(
                             controller: _mobileController,
                             keyboardType: TextInputType.phone,
-                            decoration: const InputDecoration(
-                              labelText: 'Mobile Number *',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.phone),
+                            decoration: InputDecoration(
+                              labelText: context.l10n.mobileNumberLabel,
+                              border: const OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.phone),
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Mobile number is required';
+                                return context.l10n.mobileNumberRequired;
                               }
                               return null;
                             },
@@ -666,11 +666,11 @@ class _QuickAddCustomerWidgetState
                     TextFormField(
                       controller: _secondaryMobileController,
                       keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'Secondary Phone (Optional)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.phone_android),
-                        hintText: 'Additional contact number',
+                      decoration: InputDecoration(
+                        labelText: context.l10n.secondaryPhoneLabel,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.phone_android),
+                        hintText: context.l10n.secondaryPhoneHint,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -683,11 +683,11 @@ class _QuickAddCustomerWidgetState
                         Expanded(
                           child: TextFormField(
                             controller: _locationController,
-                            decoration: const InputDecoration(
-                              labelText: 'Location Link (Optional)',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.link),
-                              hintText: 'Google Maps link, etc.',
+                            decoration: InputDecoration(
+                              labelText: context.l10n.locationLinkLabel,
+                              border: const OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.link),
+                              hintText: context.l10n.locationLinkHint,
                             ),
                           ),
                         ),
@@ -701,19 +701,19 @@ class _QuickAddCustomerWidgetState
                       maxLines: 3,
                       decoration: InputDecoration(
                         labelText: hasPartner
-                            ? 'Detailed Address (Optional)'
-                            : 'Detailed Address *',
+                            ? context.l10n.detailedAddressOptional
+                            : context.l10n.detailedAddressRequired,
                         border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.location_on),
                         alignLabelWithHint: true,
                         helperText: hasPartner
-                            ? 'Optional when Sales Partner is selected'
+                            ? context.l10n.addressOptionalPartner
                             : null,
                       ),
                       validator: (value) {
                         if (!hasPartner) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Address is required';
+                            return context.l10n.addressRequired;
                           }
                         }
                         return null;
@@ -762,10 +762,10 @@ class _QuickAddCustomerWidgetState
     return territoriesAsync.when(
       data: (territories) => DropdownButtonFormField<String>(
         initialValue: _selectedTerritoryId,
-        decoration: const InputDecoration(
-          labelText: 'Territory *',
-          border: OutlineInputBorder(),
-          prefixIcon: Icon(Icons.location_on),
+        decoration: InputDecoration(
+          labelText: context.l10n.territoryLabel,
+          border: const OutlineInputBorder(),
+          prefixIcon: const Icon(Icons.location_on),
         ),
         isExpanded: true,
         menuMaxHeight: 320,
@@ -781,7 +781,7 @@ class _QuickAddCustomerWidgetState
             child: SizedBox(
               width: 360,
               child: Text(
-                '${territory['territory_name'] ?? 'Unknown Territory'}$deliveryInfo',
+                '${territory['territory_name'] ?? context.l10n.unknownTerritory}$deliveryInfo',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -796,14 +796,14 @@ class _QuickAddCustomerWidgetState
         },
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return 'Please select a territory';
+            return context.l10n.territorySelectRequired;
           }
           return null;
         },
       ),
       loading: () => TextFormField(
         decoration: InputDecoration(
-          labelText: 'Territory *',
+          labelText: context.l10n.territoryLabel,
           border: OutlineInputBorder(),
           prefixIcon: Icon(Icons.location_on),
           suffixIcon: SizedBox(
@@ -816,10 +816,10 @@ class _QuickAddCustomerWidgetState
       ),
       error: (error, stack) => TextFormField(
         decoration: InputDecoration(
-          labelText: 'Territory *',
+          labelText: context.l10n.territoryLabel,
           border: const OutlineInputBorder(),
           prefixIcon: const Icon(Icons.location_on),
-          errorText: 'Failed to load territories',
+          errorText: context.l10n.territoryLoadFailed,
         ),
         enabled: false,
       ),
@@ -877,7 +877,7 @@ class _QuickAddCustomerWidgetState
       }
     } catch (e) {
       if (mounted) {
-        final friendly = e is ApiException ? e.message : 'Failed to create customer';
+        final friendly = e is ApiException ? e.message : context.l10n.customerCreateFailed;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(friendly),

@@ -671,7 +671,14 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     );
     final requiredQuantity = group['quantity'] as int? ?? 0;
     final selectedForGroup = selectedItems[groupName] ?? [];
-    return selectedForGroup.length < requiredQuantity;
+    if (selectedForGroup.length >= requiredQuantity) return false;
+
+    // Check stock limit: don't allow adding more than available inventory
+    final stockQty = (item['qty'] ?? item['actual_qty'] ?? 0).toDouble();
+    final selectedCount = _getSelectedCount(item, groupName);
+    if (selectedCount >= stockQty) return false;
+
+    return true;
   }
 
   void _addBundleToCart() {
