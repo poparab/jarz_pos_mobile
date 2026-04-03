@@ -945,7 +945,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                               const SizedBox(width: 4),
                               Text(
                                 widget.invoice.subTerritory != null && widget.invoice.subTerritory!.isNotEmpty
-                                    ? widget.invoice.subTerritory!
+                                    ? (widget.invoice.subTerritoryDisplay ?? widget.invoice.subTerritory!)
                                     : 'Select Sub-territory',
                                 style: TextStyle(
                                   fontSize: 11,

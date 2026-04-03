@@ -333,7 +333,7 @@ class _TripInvoiceCardState extends State<_TripInvoiceCard> {
               ),
               const SizedBox(height: 3),
               Text(inv.customerName, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-              Text(inv.subTerritory ?? inv.territory, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+              Text(inv.subTerritoryDisplay ?? inv.territoryDisplay ?? inv.subTerritory ?? inv.territory, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
             ],
           ),
         ),

@@ -61,6 +61,8 @@ class InvoiceCard {
   final bool isReturn;
   // Sub-territory & trip fields
   final String? subTerritory;
+  final String? territoryDisplay;
+  final String? subTerritoryDisplay;
   final bool hasSubTerritories;
   final String? deliveryTrip;
   final double? shippingOverride;
@@ -104,6 +106,8 @@ class InvoiceCard {
     this.docstatusValue,
     this.isReturn = false,
     this.subTerritory,
+    this.territoryDisplay,
+    this.subTerritoryDisplay,
     this.hasSubTerritories = false,
     this.deliveryTrip,
     this.shippingOverride,
@@ -167,6 +171,8 @@ class InvoiceCard {
           : int.tryParse((json['docstatus_value'] ?? json['docstatusValue'] ?? '').toString()),
       isReturn: [1, true, '1', 'true', 'True'].contains(json['is_return']),
       subTerritory: json['sub_territory']?.toString(),
+      territoryDisplay: json['territory_display']?.toString(),
+      subTerritoryDisplay: json['sub_territory_display']?.toString(),
       hasSubTerritories: [1, true, '1', 'true', 'True'].contains(json['has_sub_territories']),
       deliveryTrip: json['delivery_trip']?.toString(),
       shippingOverride: json['shipping_override'] != null
@@ -214,6 +220,8 @@ class InvoiceCard {
       'docstatus_value': docstatusValue,
       'is_return': isReturn,
       'sub_territory': subTerritory,
+      'territory_display': territoryDisplay,
+      'sub_territory_display': subTerritoryDisplay,
       'has_sub_territories': hasSubTerritories,
       'delivery_trip': deliveryTrip,
       'shipping_override': shippingOverride,
@@ -259,6 +267,8 @@ class InvoiceCard {
   int? docstatusValue,
   bool? isReturn,
   String? subTerritory,
+  String? territoryDisplay,
+  String? subTerritoryDisplay,
   bool? hasSubTerritories,
   String? deliveryTrip,
   double? shippingOverride,
@@ -302,6 +312,8 @@ class InvoiceCard {
       docstatusValue: docstatusValue ?? this.docstatusValue,
       isReturn: isReturn ?? this.isReturn,
       subTerritory: subTerritory ?? this.subTerritory,
+      territoryDisplay: territoryDisplay ?? this.territoryDisplay,
+      subTerritoryDisplay: subTerritoryDisplay ?? this.subTerritoryDisplay,
       hasSubTerritories: hasSubTerritories ?? this.hasSubTerritories,
       deliveryTrip: deliveryTrip ?? this.deliveryTrip,
       shippingOverride: shippingOverride ?? this.shippingOverride,

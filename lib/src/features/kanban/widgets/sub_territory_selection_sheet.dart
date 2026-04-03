@@ -87,9 +87,10 @@ class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet>
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (context, index) {
                           final item = _filtered[index];
-                          final name = (item['territory_name'] ?? item['name'] ?? '').toString();
+                          final code = (item['name'] ?? '').toString();
+                          final displayName = (item['territory_name'] ?? code).toString();
                           final expense = (item['delivery_expense'] ?? 0).toDouble();
-                          final isSelected = name == widget.currentSelection;
+                          final isSelected = code == widget.currentSelection;
 
                           return ListTile(
                             selected: isSelected,
@@ -100,7 +101,7 @@ class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet>
                               size: 22,
                             ),
                             title: Text(
-                              name,
+                              displayName,
                               style: TextStyle(
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                                 fontSize: 14,
@@ -116,7 +117,7 @@ class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet>
                                     ),
                                   )
                                 : null,
-                            onTap: () => Navigator.of(context).pop(name),
+                            onTap: () => Navigator.of(context).pop(code),
                           );
                         },
                       ),
