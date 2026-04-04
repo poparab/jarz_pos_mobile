@@ -582,8 +582,11 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         if (!isPaid) {
           // UNPAID + Sales Partner -> invoke fast-path backend (auto cash PE & OFD)
           try {
-            // Need POS Profile for branch cash account; attempt to resolve from POS notifier
-            final posProfile = _ref.read(posNotifierProvider).selectedProfile?['name'];
+            // Prefer the invoice's own POS profile (its branch) for the cash account.
+            // Fall back to the globally selected profile so single-profile users still work.
+            final posProfile = (card.posProfile?.isNotEmpty == true)
+                ? card.posProfile
+                : _ref.read(posNotifierProvider).selectedProfile?['name'];
             if (posProfile == null) {
               state = state.copyWith(error: 'Select POS Profile before dispatching unpaid Sales Partner invoice');
               return;

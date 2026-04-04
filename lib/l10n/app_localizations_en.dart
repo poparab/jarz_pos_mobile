@@ -2652,4 +2652,92 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authHidePassword => 'Hide password';
+
+  @override
+  String get menuReports => 'Reports';
+
+  @override
+  String get reportsTitle => 'Reports';
+
+  @override
+  String get reportsFinalProducts => 'Final Products';
+
+  @override
+  String get reportsFinalProductsDesc =>
+      'Stock count by warehouse for Medium & Large items';
+
+  @override
+  String get reportsMaterials => 'Materials & Consumables';
+
+  @override
+  String get reportsMaterialsDesc =>
+      'Raw materials, sub assemblies, and consumables stock';
+
+  @override
+  String get reportsRawMaterials => 'Raw Materials';
+
+  @override
+  String get reportsSubAssemblies => 'Sub Assemblies';
+
+  @override
+  String get reportsConsumables => 'Consumables';
+
+  @override
+  String get reportsItemName => 'Item';
+
+  @override
+  String get reportsItemGroup => 'Group';
+
+  @override
+  String get reportsTotal => 'Total';
+
+  @override
+  String get reportsNoData => 'No data available';
+
+  @override
+  String get reportsRetry => 'Retry';
+
+  @override
+  String get menuMasterOrders => 'Master Orders';
+
+  @override
+  String get masterOrdersTitle => 'Master Orders';
+
+  @override
+  String get masterOrdersSearchHint => 'Search by order ID, customer...';
+
+  @override
+  String get masterOrdersNoResults => 'No orders found';
+
+  @override
+  String get masterOrdersClearFilters => 'Clear Filters';
+
+  @override
+  String masterOrdersResultCount(int count) {
+    return '$count orders';
+  }
+
+  @override
+  String get masterOrdersFilterStatus => 'Status';
+
+  @override
+  String get masterOrdersFilterBranch => 'Branch';
+
+  @override
+  String get masterOrdersFilterPayment => 'Payment';
+
+  @override
+  String get masterOrdersFilterDate => 'Date Range';
+
+  @override
+  String get masterOrdersFilterDateFrom => 'From';
+
+  @override
+  String get masterOrdersFilterDateTo => 'To';
+
+  @override
+  String get masterOrdersOutstanding => 'Outstanding';
+
+  @override
+  String get masterOrdersCurrency => 'EGP';
 }

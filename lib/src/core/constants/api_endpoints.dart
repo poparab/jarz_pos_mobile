@@ -208,6 +208,14 @@ abstract final class ApiEndpoints {
   static const getAccessiblePosProfiles =
       '/api/method/jarz_pos.api.payment_receipts.get_accessible_pos_profiles';
 
+  // ── Reports ───────────────────────────────────────────────────────────
+  static const getFinalProductsReport =
+      '/api/method/jarz_pos.api.reports.get_final_products_report';
+  static const getMaterialsReport =
+      '/api/method/jarz_pos.api.reports.get_materials_report';
+  static const getMasterOrders =
+      '/api/method/jarz_pos.api.orders.get_master_orders';
+
   // ── Settings ──────────────────────────────────────────────────────────
   static const getReceiptConfig =
       '/api/method/jarz_pos.api.pos.get_receipt_config';

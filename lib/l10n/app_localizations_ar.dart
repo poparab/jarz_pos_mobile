@@ -2646,4 +2646,92 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authHidePassword => 'إخفاء كلمة المرور';
+
+  @override
+  String get menuReports => 'التقارير';
+
+  @override
+  String get reportsTitle => 'التقارير';
+
+  @override
+  String get reportsFinalProducts => 'المنتجات النهائية';
+
+  @override
+  String get reportsFinalProductsDesc =>
+      'جرد المخزون حسب المستودع للأصناف المتوسطة والكبيرة';
+
+  @override
+  String get reportsMaterials => 'المواد والمستهلكات';
+
+  @override
+  String get reportsMaterialsDesc =>
+      'المواد الخام والتجميعات الفرعية والمستهلكات';
+
+  @override
+  String get reportsRawMaterials => 'المواد الخام';
+
+  @override
+  String get reportsSubAssemblies => 'التجميعات الفرعية';
+
+  @override
+  String get reportsConsumables => 'المستهلكات';
+
+  @override
+  String get reportsItemName => 'الصنف';
+
+  @override
+  String get reportsItemGroup => 'المجموعة';
+
+  @override
+  String get reportsTotal => 'الإجمالي';
+
+  @override
+  String get reportsNoData => 'لا توجد بيانات';
+
+  @override
+  String get reportsRetry => 'إعادة المحاولة';
+
+  @override
+  String get menuMasterOrders => 'جميع الطلبات';
+
+  @override
+  String get masterOrdersTitle => 'جميع الطلبات';
+
+  @override
+  String get masterOrdersSearchHint => 'بحث برقم الطلب أو العميل...';
+
+  @override
+  String get masterOrdersNoResults => 'لا توجد طلبات';
+
+  @override
+  String get masterOrdersClearFilters => 'مسح الفلاتر';
+
+  @override
+  String masterOrdersResultCount(int count) {
+    return '$count طلب';
+  }
+
+  @override
+  String get masterOrdersFilterStatus => 'الحالة';
+
+  @override
+  String get masterOrdersFilterBranch => 'الفرع';
+
+  @override
+  String get masterOrdersFilterPayment => 'الدفع';
+
+  @override
+  String get masterOrdersFilterDate => 'نطاق التاريخ';
+
+  @override
+  String get masterOrdersFilterDateFrom => 'من';
+
+  @override
+  String get masterOrdersFilterDateTo => 'إلى';
+
+  @override
+  String get masterOrdersOutstanding => 'المتبقي';
+
+  @override
+  String get masterOrdersCurrency => 'ج.م';
 }

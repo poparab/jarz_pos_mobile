@@ -18,6 +18,8 @@ class AppDrawer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final isManager = ref.watch(isJarzManagerProvider);
+    final isLineManager = ref.watch(isLineManagerProvider);
+    final isModerator = ref.watch(isModeratorProvider);
     final managerAccess = isManager
         ? ref.watch(managerAccessProvider)
         : const AsyncValue<bool>.data(false);
@@ -28,6 +30,7 @@ class AppDrawer extends ConsumerWidget {
       data: (v) => v,
       orElse: () => false,
     );
+    final hasElevatedAccess = hasManagerAccess || isLineManager || isModerator;
     final locale = ref.watch(localeNotifierProvider);
     final englishLocale = const Locale('en');
     final arabicLocale = const Locale('ar');
@@ -133,6 +136,15 @@ class AppDrawer extends ConsumerWidget {
               showCourierBalancesDialog(context);
             },
           ),
+          if (hasElevatedAccess)
+            ListTile(
+              leading: const Icon(Icons.list_alt),
+              title: Text(l10n.menuMasterOrders),
+              onTap: () {
+                Navigator.pop(context);
+                context.go(AppRoutes.masterOrders);
+              },
+            ),
           if (hasManagerAccess) ...[
             ListTile(
               leading: const Icon(Icons.dashboard),
@@ -180,6 +192,14 @@ class AppDrawer extends ConsumerWidget {
               onTap: () {
                 Navigator.pop(context);
                 context.go(AppRoutes.inventoryCount);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.bar_chart),
+              title: Text(l10n.menuReports),
+              onTap: () {
+                Navigator.pop(context);
+                context.go(AppRoutes.reports);
               },
             ),
           ],

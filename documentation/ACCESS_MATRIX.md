@@ -6,14 +6,29 @@
 
 ## 1. Role Definitions
 
-### Flutter App Roles
+### Custom App Roles — Hierarchy & Distinctions
 
-| Role | Constant | Description |
-|------|----------|-------------|
-| **JARZ Manager** | `isJarzManager` / `isManager` | Full management access — dashboard, financial operations, expense approval |
-| **JARZ Line Manager** | `isLineManager` | Supervisory access — can cancel orders, transfer orders, mute notifications |
-| **Moderator** | `isModerator` | Can mute notifications |
-| **Sales User (Staff)** | *(default)* | Standard POS operations — create invoices, manage kanban, handle deliveries |
+The app has **four named roles**, each granting a distinct level of authority. They are listed from highest to lowest privilege:
+
+| # | Role | Constant | Who it is | Unique capabilities vs. tier below |
+|---|------|----------|-----------|--------------------------------------|
+| 1 | **High Management** | `isHighManagement` | Cross-branch executives / owners | Unrestricted access to **all** features and **all** POS profiles with no profile assignment requirement; bypasses every app-level restriction |
+| 2 | **JARZ Manager** | `isJarzManager` / `isManager` | Branch-level managers | Unlocks the Manager Dashboard, financial operations (cash/stock transfer, purchase invoices, manufacturing, inventory count), and expense approval; POS profile access still requires profile assignment |
+| 3 | **JARZ Line Manager** | `isLineManager` | Floor supervisors / shift leads | Can cancel and transfer orders, can skip the shift-opening flow; no access to financial operations or the Manager Dashboard |
+| 4 | **Moderator** | `isModerator` | Senior staff / support agents | Same POS/Kanban access as regular staff plus the ability to mute push notifications; cannot cancel orders or use any managerial feature |
+| — | **Sales User (Staff)** | *(default)* | Regular sales staff | Standard POS operations only — create invoices, manage kanban, handle deliveries |
+
+#### Key Distinctions at a Glance
+
+| What distinguishes each role | High Mgmt | Manager | Line Manager | Moderator | Staff |
+|------------------------------|:---------:|:-------:|:------------:|:---------:|:-----:|
+| All POS profiles without assignment | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Manager Dashboard & financial ops | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Approve expenses | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Cancel / Transfer orders | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Mute push notifications | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Skip shift-opening flow | ✅ | ✅ | ✅ (opt-in) | ❌ | ❌ |
+| Standard POS, Kanban, Trips, Expenses | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### Backend Role Groups (constants.py)
 
@@ -33,6 +48,7 @@ The POS profile a user can operate on is the first access gate — many features
 
 | User Type | Profiles Visible |
 |-----------|-----------------|
+| **High Management** | **All** active profiles (no assignment required) |
 | System Manager / POS Manager (`ROLES.ADMIN`) | **All** active profiles |
 | Other users | Only profiles linked in **POS Profile User** table |
 
@@ -52,39 +68,39 @@ The POS profile a user can operate on is the first access gate — many features
 
 ### 3.1 Navigation / Drawer Menu
 
-| Feature | Manager | Line Manager | Moderator | Staff |
-|---------|---------|-------------|-----------|-------|
-| POS Screen | ✅ | ✅ | ✅ | ✅ |
-| Kanban Board | ✅ | ✅ | ✅ | ✅ |
-| Trips | ✅ | ✅ | ✅ | ✅ |
-| Courier Balances | ✅ | ✅ | ✅ | ✅ |
-| Expenses | ✅ | ✅ | ✅ | ✅ |
-| Printers | ✅ | ✅ | ✅ | ✅ |
-| Manager Dashboard | ✅ | ❌ | ❌ | ❌ |
-| Purchase Invoices | ✅ | ❌ | ❌ | ❌ |
-| Manufacturing | ✅ | ❌ | ❌ | ❌ |
-| Stock Transfer | ✅ | ❌ | ❌ | ❌ |
-| Cash Transfer | ✅ | ❌ | ❌ | ❌ |
-| Inventory Count | ✅ | ❌ | ❌ | ❌ |
+| Feature | High Mgmt | Manager | Line Manager | Moderator | Staff |
+|---------|:---------:|:-------:|:------------:|:---------:|:-----:|
+| POS Screen | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Kanban Board | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Trips | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Courier Balances | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Expenses | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Printers | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Manager Dashboard | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Purchase Invoices | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Manufacturing | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Stock Transfer | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Cash Transfer | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Inventory Count | ✅ | ✅ | ❌ | ❌ | ❌ |
 
-> **Note:** Manager Dashboard, Purchase, Manufacturing, Stock Transfer, Cash Transfer, and Inventory Count are only shown in the drawer when `hasManagerAccess` is true (user has `isJarzManager` role **and** has at least one allowed POS profile).
+> **Note:** Manager Dashboard, Purchase, Manufacturing, Stock Transfer, Cash Transfer, and Inventory Count require `isJarzManager` or `isHighManagement`. High Management users always have access regardless of POS profile assignment.
 
 ---
 
 ### 3.2 POS & Checkout
 
-| Action | Manager | Line Manager | Moderator | Staff |
-|--------|---------|-------------|-----------|-------|
-| View items & bundles | ✅ | ✅ | ✅ | ✅ |
-| Add items to cart | ✅ | ✅ | ✅ | ✅ |
-| Change item quantity | ✅ | ✅ | ✅ | ✅ |
-| Change item rate | ✅ | ✅ | ✅ | ✅ |
-| Submit invoice (Cash) | ✅ | ✅ | ✅ | ✅ |
-| Submit invoice (Card) | ✅ | ✅ | ✅ | ✅ |
-| Submit invoice (Settle Later) | ✅ | ✅ | ✅ | ✅ |
-| Assign customer | ✅ | ✅ | ✅ | ✅ |
-| Select delivery slot | ✅ | ✅ | ✅ | ✅ |
-| Create new customer | ✅ | ✅ | ✅ | ✅ |
+| Action | High Mgmt | Manager | Line Manager | Moderator | Staff |
+|--------|:---------:|:-------:|:------------:|:---------:|:-----:|
+| View items & bundles | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Add items to cart | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Change item quantity | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Change item rate | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Submit invoice (Cash) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Submit invoice (Card) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Submit invoice (Settle Later) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Assign customer | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Select delivery slot | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Create new customer | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 > All POS operations are available to any user with access to a POS profile. Stock quantity limits are enforced for all users.
 
@@ -92,18 +108,18 @@ The POS profile a user can operate on is the first access gate — many features
 
 ### 3.3 Kanban Board & Invoice Operations
 
-| Action | Manager | Line Manager | Moderator | Staff |
-|--------|---------|-------------|-----------|-------|
-| View kanban board | ✅ | ✅ | ✅ | ✅ |
-| Drag to next status | ✅ | ✅ | ✅ | ✅ |
-| Preview invoice | ✅ | ✅ | ✅ | ✅ |
-| Print invoice | ✅ | ✅ | ✅ | ✅ |
-| **Transfer order** | ✅ | ✅ | ❌ | ❌ |
-| **Cancel order** | ✅ | ✅ | ❌ | ❌ |
-| Assign delivery partner | ✅ | ✅ | ✅ | ✅ |
-| Settle courier | ✅ | ✅ | ✅ | ✅ |
+| Action | High Mgmt | Manager | Line Manager | Moderator | Staff |
+|--------|:---------:|:-------:|:------------:|:---------:|:-----:|
+| View kanban board | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Drag to next status | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Preview invoice | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Print invoice | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Transfer order** | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Cancel order** | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Assign delivery partner | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Settle courier | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-> **Transfer Order** and **Cancel Order** require `isLineManager` (which is true for both JARZ Manager and JARZ Line Manager). Cancel Order is also blocked if the invoice has a partial payment.
+> **Transfer Order** and **Cancel Order** require `isLineManager` (true for JARZ Manager and JARZ Line Manager) or `isHighManagement`. Cancel Order is also blocked if the invoice has a partial payment.
 
 **Backend enforcement for Cancel Order:**
 - Allowed roles: `Administrator`, `JARZ Line Manager`
@@ -113,12 +129,12 @@ The POS profile a user can operate on is the first access gate — many features
 
 ### 3.4 Delivery & Trips
 
-| Action | Manager | Line Manager | Moderator | Staff |
-|--------|---------|-------------|-----------|-------|
-| View trips | ✅ | ✅ | ✅ | ✅ |
-| Create trip | ✅ | ✅ | ✅ | ✅ |
-| Add invoices to trip | ✅ | ✅ | ✅ | ✅ |
-| Send trip for delivery (OFD) | ✅ | ✅ | ✅ | ✅ |
+| Action | High Mgmt | Manager | Line Manager | Moderator | Staff |
+|--------|:---------:|:-------:|:------------:|:---------:|:-----:|
+| View trips | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Create trip | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Add invoices to trip | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Send trip for delivery (OFD) | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 > OFD transition requires `Sales User` or `Accounts User` role on the backend. Pickup orders cannot be added to trips.
 
@@ -126,14 +142,14 @@ The POS profile a user can operate on is the first access gate — many features
 
 ### 3.5 Expenses
 
-| Action | Manager | Line Manager | Moderator | Staff |
-|--------|---------|-------------|-----------|-------|
-| Create expense | ✅ | ✅ | ✅ | ✅ |
-| **Approve expense** | ✅ | ❌ | ❌ | ❌ |
-| **Payment sources — all accounts** | ✅ | ❌ | ❌ | ❌ |
-| Payment sources — own POS profiles | ✅ | ✅ | ✅ | ✅ |
+| Action | High Mgmt | Manager | Line Manager | Moderator | Staff |
+|--------|:---------:|:-------:|:------------:|:---------:|:-----:|
+| Create expense | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Approve expense** | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Payment sources — all accounts** | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Payment sources — own POS profiles | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-> Manager-created expenses are **auto-approved** and automatically submitted. Staff-created expenses are created with `requires_approval = 1` and remain in draft until a manager approves them. Mobile Wallet payments always require approval.
+> Manager- and High Management-created expenses are **auto-approved** and automatically submitted. Staff-created expenses are created with `requires_approval = 1` and remain in draft until a manager approves them. Mobile Wallet payments always require approval.
 
 ---
 
@@ -155,14 +171,14 @@ The POS profile a user can operate on is the first access gate — many features
 
 ### 3.7 Settings & Notifications
 
-| Action | Manager | Line Manager | Moderator | Staff |
-|--------|---------|-------------|-----------|-------|
-| View profile | ✅ | ✅ | ✅ | ✅ |
-| Change language | ✅ | ✅ | ✅ | ✅ |
-| Select POS profile | ✅ | ✅ | ✅ | ✅ |
-| **Mute notifications** | ✅ | ✅ | ✅ | ❌ |
+| Action | High Mgmt | Manager | Line Manager | Moderator | Staff |
+|--------|:---------:|:-------:|:------------:|:---------:|:-----:|
+| View profile | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Change language | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Select POS profile | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Mute notifications** | ✅ | ✅ | ✅ | ✅ | ❌ |
 
-> Mute notifications is available when `canMuteNotifications` = `isJarzManager || isLineManager || isModerator`.
+> Mute notifications is available when `canMuteNotifications` = `isHighManagement || isJarzManager || isLineManager || isModerator`.
 
 ---
 
@@ -180,19 +196,20 @@ The POS profile a user can operate on is the first access gate — many features
 
 ## 4. Summary: Role Capabilities at a Glance
 
-| Capability | Manager | Line Manager | Moderator | Staff |
-|------------|---------|-------------|-----------|-------|
-| POS (create invoices) | ✅ | ✅ | ✅ | ✅ |
-| Kanban (view & transition) | ✅ | ✅ | ✅ | ✅ |
-| Cancel / Transfer orders | ✅ | ✅ | ❌ | ❌ |
-| Manager Dashboard | ✅ | ❌ | ❌ | ❌ |
-| Cash Transfer | ✅ | ❌ | ❌ | ❌ |
-| Stock Transfer | ✅ | ❌ | ❌ | ❌ |
-| Purchase Invoices | ✅ | ❌ | ❌ | ❌ |
-| Manufacturing | ✅ | ❌ | ❌ | ❌ |
-| Inventory Count | ✅ | ❌ | ❌ | ❌ |
-| Approve Expenses | ✅ | ❌ | ❌ | ❌ |
-| Mute Notifications | ✅ | ✅ | ✅ | ❌ |
-| Trips & Delivery | ✅ | ✅ | ✅ | ✅ |
-| Expenses (create) | ✅ | ✅ | ✅ | ✅ |
-| Printing | ✅ | ✅ | ✅ | ✅ |
+| Capability | High Mgmt | Manager | Line Manager | Moderator | Staff |
+|------------|:---------:|:-------:|:------------:|:---------:|:-----:|
+| POS (create invoices) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Kanban (view & transition) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Cancel / Transfer orders | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Manager Dashboard | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Cash Transfer | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Stock Transfer | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Purchase Invoices | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Manufacturing | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Inventory Count | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Approve Expenses | ✅ | ✅ | ❌ | ❌ | ❌ |
+| All POS profiles (no assignment) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Mute Notifications | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Trips & Delivery | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Expenses (create) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Printing | ✅ | ✅ | ✅ | ✅ | ✅ |

@@ -1108,5 +1108,40 @@
   "authUsernameLabel": "Username",
   "authPasswordLabel": "Password",
   "authShowPassword": "Show password",
-  "authHidePassword": "Hide password"
+  "authHidePassword": "Hide password",
+
+  "menuReports": "Reports",
+  "reportsTitle": "Reports",
+  "reportsFinalProducts": "Final Products",
+  "reportsFinalProductsDesc": "Stock count by warehouse for Medium & Large items",
+  "reportsMaterials": "Materials & Consumables",
+  "reportsMaterialsDesc": "Raw materials, sub assemblies, and consumables stock",
+  "reportsRawMaterials": "Raw Materials",
+  "reportsSubAssemblies": "Sub Assemblies",
+  "reportsConsumables": "Consumables",
+  "reportsItemName": "Item",
+  "reportsItemGroup": "Group",
+  "reportsTotal": "Total",
+  "reportsNoData": "No data available",
+  "reportsRetry": "Retry",
+
+  "menuMasterOrders": "Master Orders",
+  "masterOrdersTitle": "Master Orders",
+  "masterOrdersSearchHint": "Search by order ID, customer...",
+  "masterOrdersNoResults": "No orders found",
+  "masterOrdersClearFilters": "Clear Filters",
+  "masterOrdersResultCount": "{count} orders",
+  "@masterOrdersResultCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "masterOrdersFilterStatus": "Status",
+  "masterOrdersFilterBranch": "Branch",
+  "masterOrdersFilterPayment": "Payment",
+  "masterOrdersFilterDate": "Date Range",
+  "masterOrdersFilterDateFrom": "From",
+  "masterOrdersFilterDateTo": "To",
+  "masterOrdersOutstanding": "Outstanding",
+  "masterOrdersCurrency": "EGP"
 }

@@ -1050,5 +1050,40 @@
   "authUsernameLabel": "اسم المستخدم",
   "authPasswordLabel": "كلمة المرور",
   "authShowPassword": "إظهار كلمة المرور",
-  "authHidePassword": "إخفاء كلمة المرور"
+  "authHidePassword": "إخفاء كلمة المرور",
+
+  "menuReports": "التقارير",
+  "reportsTitle": "التقارير",
+  "reportsFinalProducts": "المنتجات النهائية",
+  "reportsFinalProductsDesc": "جرد المخزون حسب المستودع للأصناف المتوسطة والكبيرة",
+  "reportsMaterials": "المواد والمستهلكات",
+  "reportsMaterialsDesc": "المواد الخام والتجميعات الفرعية والمستهلكات",
+  "reportsRawMaterials": "المواد الخام",
+  "reportsSubAssemblies": "التجميعات الفرعية",
+  "reportsConsumables": "المستهلكات",
+  "reportsItemName": "الصنف",
+  "reportsItemGroup": "المجموعة",
+  "reportsTotal": "الإجمالي",
+  "reportsNoData": "لا توجد بيانات",
+  "reportsRetry": "إعادة المحاولة",
+
+  "menuMasterOrders": "جميع الطلبات",
+  "masterOrdersTitle": "جميع الطلبات",
+  "masterOrdersSearchHint": "بحث برقم الطلب أو العميل...",
+  "masterOrdersNoResults": "لا توجد طلبات",
+  "masterOrdersClearFilters": "مسح الفلاتر",
+  "masterOrdersResultCount": "{count} طلب",
+  "@masterOrdersResultCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "masterOrdersFilterStatus": "الحالة",
+  "masterOrdersFilterBranch": "الفرع",
+  "masterOrdersFilterPayment": "الدفع",
+  "masterOrdersFilterDate": "نطاق التاريخ",
+  "masterOrdersFilterDateFrom": "من",
+  "masterOrdersFilterDateTo": "إلى",
+  "masterOrdersOutstanding": "المتبقي",
+  "masterOrdersCurrency": "ج.م"
 }

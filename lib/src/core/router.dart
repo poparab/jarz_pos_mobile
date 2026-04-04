@@ -24,6 +24,8 @@ import '../features/settings/presentation/user_profile_screen.dart';
 import '../features/shift/presentation/shift_start_screen.dart';
 import '../features/shift/presentation/shift_end_screen.dart';
 import '../features/trips/screens/trips_screen.dart';
+import '../features/reports/presentation/reports_screen.dart';
+import '../features/master_orders/presentation/master_orders_screen.dart';
 import 'network/user_service.dart';
 import '../features/shift/state/shift_notifier.dart';
 import '../features/pos/state/pos_notifier.dart';
@@ -87,11 +89,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Authenticated on login -> go to POS
       if (isAuthenticated && isOnLogin) return AppRoutes.pos;
 
-      // Ensure POS profile is selected before shift flow.
+      // Track whether a profile has been selected (used for subsequent checks).
       final hasSelectedProfile = selectedProfile != null;
-      if (isAuthenticated && !hasSelectedProfile && location != AppRoutes.pos) {
-        return AppRoutes.pos;
-      }
+      // NOTE: We do NOT redirect non-POS/shift screens when no profile is selected.
+      // Kanban, Trips, Expenses, and Courier screens can operate across all accessible
+      // profiles without requiring a single selection. Profile selection is only mandatory
+      // for POS order creation (handled inline by PosScreen) and shift management
+      // (handled by the shift gating block below).
 
       // If profile is selected, no need to keep user on profile selection screen.
       if (isAuthenticated && hasSelectedProfile && isOnProfileSelection) {
@@ -192,6 +196,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.trips,
         name: 'trips',
         builder: (context, state) => const TripsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.reports,
+        name: 'reports',
+        builder: (context, state) => const ReportsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.masterOrders,
+        name: 'master-orders',
+        builder: (context, state) => const MasterOrdersScreen(),
       ),
       GoRoute(
         path: AppRoutes.profile,

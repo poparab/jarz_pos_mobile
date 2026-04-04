@@ -17,6 +17,8 @@ abstract final class AppRoutes {
   static const inventoryCount = '/inventory-count';
   static const expenses = '/expenses';
   static const trips = '/trips';
+  static const reports = '/reports';
+  static const masterOrders = '/master-orders';
   static const profile = '/profile';
   static const shiftStart = '/shift/start';
   static const shiftEnd = '/shift/end';

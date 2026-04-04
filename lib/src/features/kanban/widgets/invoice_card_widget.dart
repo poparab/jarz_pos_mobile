@@ -544,18 +544,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 ],
               ),
             ),
-            if (isLineManager)
-              PopupMenuItem(
-                value: 'transfer_order',
-                child: Row(
-                  children: [
-                    const Icon(Icons.swap_horiz, size: 18),
-                    const SizedBox(width: 8),
-                    Text(l10n.invoiceTransferOrder),
-                  ],
-                ),
+            PopupMenuItem(
+              value: 'transfer_order',
+              child: Row(
+                children: [
+                  const Icon(Icons.swap_horiz, size: 18),
+                  const SizedBox(width: 8),
+                  Text(l10n.invoiceTransferOrder),
+                ],
               ),
-              if (isLineManager && widget.invoice.canCancel)
+            ),
+            if (isLineManager && widget.invoice.canCancel)
                 PopupMenuItem(
                   value: 'cancel_order',
                   enabled: !widget.invoice.hasPartialPayment,

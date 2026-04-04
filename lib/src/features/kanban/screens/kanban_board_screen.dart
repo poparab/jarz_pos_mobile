@@ -40,6 +40,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   bool _showFilters = false;
   bool _allowHScroll = true; // new state
   bool _posProfileDialogActive = false;
+  bool _profileDialogDismissed = false; // once dismissed, don't re-prompt automatically
   late final ScrollController _horizontalScrollController;
   ProviderSubscription<PosState>? _posStateSubscription;
   DateTime? _lastBackPress;
@@ -936,7 +937,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       // Launch courier/mode dialog for regular delivery orders
       // Show "Settle Later" for non-partner, non-pickup only (per business rule)
       final showSettleLater = !hasPartner && !isPickup;
-      final dialogResult = await _showCourierSettlementDialog(hideSettleLater: !showSettleLater);
+      final dialogResult = await _showCourierSettlementDialog(
+        hideSettleLater: !showSettleLater,
+        invoicePosProfile: inv?.posProfile,
+      );
       if (dialogResult == null) {
         // Revert visual move if user cancelled (pass label)
         final fromCol = ref.read(kanbanProvider).columns.firstWhere(
@@ -951,7 +955,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     final partyType = dialogResult['party_type'] as String?;
     final party = dialogResult['party'] as String?;
     final courierDisplay = dialogResult['display_name'] as String? ?? courier;
-      final posProfile = _getPosProfile();
+      // Use the invoice's own POS profile for settlement. This ensures the correct
+      // branch cash account is used regardless of which profile is globally selected.
+      final posProfile = _getEffectiveProfileForInvoice(inv);
       if (posProfile == null) {
         messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSelectPosProfileFirst)));
         // revert
@@ -1265,17 +1271,36 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     return posState.selectedProfile?['name'];
   }
 
+  /// Returns the POS profile to use for a specific invoice's operations.
+  /// Prefers the invoice's own posProfile (its branch), falling back to the
+  /// globally selected profile. This allows multi-profile users to process
+  /// invoices from any of their accessible branches without changing their
+  /// current POS selection.
+  String? _getEffectiveProfileForInvoice(InvoiceCard? inv) {
+    final invProfile = (inv?.posProfile ?? '').trim();
+    if (invProfile.isNotEmpty) return invProfile;
+    return _getPosProfile();
+  }
+
   void _handlePosStateChange(PosState state) {
     if (!mounted) return;
     final hasMultipleProfiles = state.profiles.length > 1;
     final noProfileSelected = state.selectedProfile == null;
-    if (!_posProfileDialogActive && hasMultipleProfiles && noProfileSelected && !state.isLoading) {
+    // Show a dismissible profile-selection hint when the user has multiple profiles and
+    // hasn't selected one yet. Selecting a profile enables the cash-balance chip and
+    // scopes OFD couriers to the matching branch.  The dialog is NOT mandatory —
+    // the user can dismiss it and all non-POS/shift operations will still work across
+    // all their accessible profiles (OFD uses the invoice's own POS profile instead).
+    if (!_posProfileDialogActive && !_profileDialogDismissed && hasMultipleProfiles && noProfileSelected && !state.isLoading) {
       _posProfileDialogActive = true;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final selected = await _showPosProfileSelectionDialog(state.profiles);
         _posProfileDialogActive = false;
         if (selected != null && mounted) {
           await ref.read(posNotifierProvider.notifier).selectProfile(selected);
+        } else {
+          // User dismissed — don't re-prompt automatically for this screen session.
+          _profileDialogDismissed = true;
         }
       });
     }
@@ -1285,11 +1310,11 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     if (!mounted) return null;
     return showDialog<Map<String, dynamic>>(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (ctx) {
         final dialogWidth = ResponsiveUtils.getDialogWidth(ctx);
         return PopScope(
-          canPop: false,
+          canPop: true,
           child: AlertDialog(
             title: Text(context.l10n.kanbanSelectPosProfile),
             content: SizedBox(
@@ -1328,7 +1353,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     );
   }
 
-  Future<Map<String, dynamic>?> _showCourierSettlementDialog({bool hideSettleLater = false}) async {
+  Future<Map<String, dynamic>?> _showCourierSettlementDialog({
+    bool hideSettleLater = false,
+    String? invoicePosProfile, // The specific invoice's POS profile (branch)
+  }) async {
     String? courier;
     String mode = 'pay_now';
     bool loading = true;
@@ -1341,15 +1369,27 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
     final phoneController = TextEditingController();
-    // Check if current POS profile allows delivery partner assignment
-    final currentProfile = ref.read(posNotifierProvider).selectedProfile;
+    // Resolve the POS profile for this operation: prefer the invoice's own profile
+    // so multi-profile users can process invoices from any branch.
+    final effectiveProfile = invoicePosProfile?.trim().isNotEmpty == true
+        ? invoicePosProfile!.trim()
+        : _getPosProfile();
+    // Check if the effective profile allows delivery partner assignment
+    final posState = ref.read(posNotifierProvider);
+    final currentProfile = effectiveProfile != null
+        ? posState.profiles.cast<Map<String, dynamic>?>().firstWhere(
+            (p) => p?['name'] == effectiveProfile,
+            orElse: () => posState.selectedProfile,
+          )
+        : posState.selectedProfile;
     final allowDeliveryPartner = currentProfile?['allow_delivery_partner'] == true;
     try {
       couriers = await ref.read(kanbanProvider.notifier).getCouriers();
-      // Branch filter: keep only couriers whose branch matches selected POS profile name (if branch present)
-      final posProfile = _getPosProfile();
-      if (posProfile != null) {
-        couriers = couriers.where((c) => (c['branch'] == null || c['branch']!.isEmpty) ? true : c['branch'] == posProfile).toList();
+      // Branch filter: keep only couriers whose branch matches this invoice's POS profile.
+      // Using the invoice's own profile (not the globally selected one) so that
+      // multi-profile users see couriers from the correct branch.
+      if (effectiveProfile != null) {
+        couriers = couriers.where((c) => (c['branch'] == null || c['branch']!.isEmpty) ? true : c['branch'] == effectiveProfile).toList();
       }
     } catch (_) {}
     loading = false;
@@ -1571,13 +1611,12 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                       if (firstName.isEmpty || lastName.isEmpty) return;
                                           setState(() => loading = true);
                                           try {
-                                            final posProfile = _getPosProfile();
                                             final created = await ref.read(kanbanProvider.notifier).createDeliveryParty(
                                               partyType: newPartyType,
                         firstName: firstName,
                         lastName: lastName,
                                               phone: phone,
-                                              posProfile: posProfile,
+                                              posProfile: effectiveProfile,
                                               deliveryPartner: isPartnerCourier ? selectedDeliveryPartner : null,
                                             );
                                             if (created != null) {

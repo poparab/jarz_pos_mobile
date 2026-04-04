@@ -4659,6 +4659,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hide password'**
   String get authHidePassword;
+
+  /// No description provided for @menuReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get menuReports;
+
+  /// No description provided for @reportsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get reportsTitle;
+
+  /// No description provided for @reportsFinalProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Final Products'**
+  String get reportsFinalProducts;
+
+  /// No description provided for @reportsFinalProductsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock count by warehouse for Medium & Large items'**
+  String get reportsFinalProductsDesc;
+
+  /// No description provided for @reportsMaterials.
+  ///
+  /// In en, this message translates to:
+  /// **'Materials & Consumables'**
+  String get reportsMaterials;
+
+  /// No description provided for @reportsMaterialsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw materials, sub assemblies, and consumables stock'**
+  String get reportsMaterialsDesc;
+
+  /// No description provided for @reportsRawMaterials.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw Materials'**
+  String get reportsRawMaterials;
+
+  /// No description provided for @reportsSubAssemblies.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub Assemblies'**
+  String get reportsSubAssemblies;
+
+  /// No description provided for @reportsConsumables.
+  ///
+  /// In en, this message translates to:
+  /// **'Consumables'**
+  String get reportsConsumables;
+
+  /// No description provided for @reportsItemName.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get reportsItemName;
+
+  /// No description provided for @reportsItemGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get reportsItemGroup;
+
+  /// No description provided for @reportsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get reportsTotal;
+
+  /// No description provided for @reportsNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available'**
+  String get reportsNoData;
+
+  /// No description provided for @reportsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get reportsRetry;
+
+  /// No description provided for @menuMasterOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Master Orders'**
+  String get menuMasterOrders;
+
+  /// No description provided for @masterOrdersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Master Orders'**
+  String get masterOrdersTitle;
+
+  /// No description provided for @masterOrdersSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by order ID, customer...'**
+  String get masterOrdersSearchHint;
+
+  /// No description provided for @masterOrdersNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders found'**
+  String get masterOrdersNoResults;
+
+  /// No description provided for @masterOrdersClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Filters'**
+  String get masterOrdersClearFilters;
+
+  /// No description provided for @masterOrdersResultCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} orders'**
+  String masterOrdersResultCount(int count);
+
+  /// No description provided for @masterOrdersFilterStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get masterOrdersFilterStatus;
+
+  /// No description provided for @masterOrdersFilterBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get masterOrdersFilterBranch;
+
+  /// No description provided for @masterOrdersFilterPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get masterOrdersFilterPayment;
+
+  /// No description provided for @masterOrdersFilterDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Range'**
+  String get masterOrdersFilterDate;
+
+  /// No description provided for @masterOrdersFilterDateFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get masterOrdersFilterDateFrom;
+
+  /// No description provided for @masterOrdersFilterDateTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get masterOrdersFilterDateTo;
+
+  /// No description provided for @masterOrdersOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get masterOrdersOutstanding;
+
+  /// No description provided for @masterOrdersCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'EGP'**
+  String get masterOrdersCurrency;
 }
 
 class _AppLocalizationsDelegate
