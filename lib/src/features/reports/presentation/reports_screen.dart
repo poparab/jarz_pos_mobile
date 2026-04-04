@@ -135,72 +135,91 @@ class _FinalProductsTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    final headerStyle = theme.textTheme.labelSmall?.copyWith(
+    final headerStyle = theme.textTheme.bodySmall?.copyWith(
       fontWeight: FontWeight.bold,
     );
-    final cellStyle = theme.textTheme.bodySmall;
+    final cellStyle = theme.textTheme.bodySmall?.copyWith(
+      fontWeight: FontWeight.w500,
+    );
     final totalStyle = theme.textTheme.bodySmall?.copyWith(
       fontWeight: FontWeight.bold,
     );
 
-    return Scrollbar(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(8),
+    return LayoutBuilder(builder: (context, constraints) {
+      final availableWidth = constraints.maxWidth - 16; // padding
+      final itemColWidth = availableWidth * 0.30;
+      final dataColWidth = (availableWidth * 0.70) / (warehouses.length + 1);
+
+      return Scrollbar(
         child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columnSpacing: 16,
-            horizontalMargin: 12,
-            headingRowHeight: 48,
-            dataRowMinHeight: 36,
-            dataRowMaxHeight: 48,
-            border: TableBorder.all(
-              color: theme.dividerColor,
-              width: 0.5,
-            ),
-            columns: [
-              DataColumn(
-                label: Text(l10n.reportsItemName, style: headerStyle),
+          padding: const EdgeInsets.all(8),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: availableWidth),
+            child: DataTable(
+              columnSpacing: 8,
+              horizontalMargin: 8,
+              headingRowHeight: 44,
+              dataRowMinHeight: 36,
+              dataRowMaxHeight: 48,
+              border: TableBorder.all(
+                color: theme.dividerColor,
+                width: 0.5,
               ),
-              ...warehouses.map(
-                (wh) => DataColumn(
-                  label: Text(_shortWarehouse(wh), style: headerStyle),
+              columns: [
+                DataColumn(
+                  label: SizedBox(
+                    width: itemColWidth,
+                    child: Text(l10n.reportsItemName, style: headerStyle),
+                  ),
+                ),
+                ...warehouses.map(
+                  (wh) => DataColumn(
+                    label: SizedBox(
+                      width: dataColWidth,
+                      child: Text(_shortWarehouse(wh), style: headerStyle,
+                          textAlign: TextAlign.end),
+                    ),
+                    numeric: true,
+                  ),
+                ),
+                DataColumn(
+                  label: SizedBox(
+                    width: dataColWidth,
+                    child: Text(l10n.reportsTotal, style: headerStyle,
+                        textAlign: TextAlign.end),
+                  ),
                   numeric: true,
                 ),
-              ),
-              DataColumn(
-                label: Text(l10n.reportsTotal, style: headerStyle),
-                numeric: true,
-              ),
-            ],
-            rows: items.map((item) {
-              final whQty = Map<String, dynamic>.from(
-                item['warehouse_qty'] as Map? ?? {},
-              );
-              final total = (item['total_qty'] as num?)?.toDouble() ?? 0;
+              ],
+              rows: items.map((item) {
+                final whQty = Map<String, dynamic>.from(
+                  item['warehouse_qty'] as Map? ?? {},
+                );
+                final total = (item['total_qty'] as num?)?.toDouble() ?? 0;
 
-              return DataRow(cells: [
-                DataCell(Text(
-                  item['item_name']?.toString() ?? '',
-                  style: cellStyle,
-                )),
-                ...warehouses.map((wh) {
-                  final qty = (whQty[wh] as num?)?.toDouble() ?? 0;
-                  return DataCell(Text(
-                    qty > 0 ? _formatQty(qty) : '-',
+                return DataRow(cells: [
+                  DataCell(Text(
+                    item['item_name']?.toString() ?? '',
                     style: cellStyle,
-                  ));
-                }),
-                DataCell(Text(
-                  _formatQty(total),
-                  style: totalStyle,
-                )),
-              ]);
-            }).toList(),
+                  )),
+                  ...warehouses.map((wh) {
+                    final qty = (whQty[wh] as num?)?.toDouble() ?? 0;
+                    return DataCell(Text(
+                      qty > 0 ? _formatQty(qty) : '-',
+                      style: cellStyle,
+                    ));
+                  }),
+                  DataCell(Text(
+                    _formatQty(total),
+                    style: totalStyle,
+                  )),
+                ]);
+              }).toList(),
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   String _formatQty(double qty) {
