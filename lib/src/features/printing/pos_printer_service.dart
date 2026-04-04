@@ -30,6 +30,7 @@ class PrintableInvoice {
   final String customer;
   final String? customerAddress;
   final String? customerPhone;
+  final String? territory;
   final DateTime? deliveryDateTime;
   final double total; // Grand total (ERPNext Sales Invoice grand_total) INCLUDING shipping income
   final double paid;
@@ -42,6 +43,7 @@ class PrintableInvoice {
     required this.customer,
     this.customerAddress,
     this.customerPhone,
+    this.territory,
     this.deliveryDateTime,
     required this.total,
     required this.paid,
@@ -435,7 +437,7 @@ class PosPrinterService extends ChangeNotifier {
       esc([0x0A]);
     }
   void feed(int n) => esc([0x1B, 0x64, n.clamp(0, 255)]);
-  const lineChars = 48; // Width for common 80mm thermal printers.
+  const lineChars = 42; // Safe width for 80/88mm thermal printers (Font A compatible).
   Future<void> hr() async { await text('-' * lineChars); }
   // Removed invoice date display; eliminate unused date helpers.
     String shortInv(String full) {
@@ -491,14 +493,12 @@ class PosPrinterService extends ChangeNotifier {
     // Use Font B globally (smaller)
     esc([0x1B, 0x4D, 0x01]);
     // HEADER ---------------------------------------------------------
-    // Centered logo (always centered). Logo pre-rendered for width 288px (scaled down 25%).
     if (_logoEscPos != null) {
       esc([0x1B,0x61,0x01]); // center
       b.add(_logoEscPos!);
       esc([0x1B,0x61,0x00]); // left
     }
     await text(_receiptHeader, bold: true, center: true);
-    feed(1);
     // Build two vertical columns of fields for 80mm (wider) printers
     // Left column logical order: Customer, Phone, Delivery
     // Right column: Invoice No, Invoice Date, Address (first line)
@@ -510,8 +510,8 @@ class PosPrinterService extends ChangeNotifier {
     .toList();
     // Column wrapping with independent line counts; each column keeps its own continuation lines.
     // Define max character widths assuming Font B monospaced-like width.
-    const leftWidthChars = 24;
-    const rightWidthChars = 24;
+    const leftWidthChars = 21;
+    const rightWidthChars = 21;
     // Build raw logical entries first.
     final leftEntries = <MapEntry<String,String>>[];
     leftEntries.add(MapEntry('Customer', inv.customer));
@@ -536,11 +536,15 @@ class PosPrinterService extends ChangeNotifier {
       final rVal = i < flatRight.length ? flatRight[i] : '';
       await _twoColRow(b, lLabel: '', lValue: lVal, rLabel: '', rValue: rVal);
     }
-    // Delivery full-width line (like address) if present
+    // Delivery full-width line if present
     if (inv.deliveryDateTime != null) {
       await text('Delivery: ${formatDeliveryRange(inv.deliveryDateTime!)}');
     }
-    // Print full address block left-aligned (raster for robustness with possible Unicode / wrapping).
+    // Territory on its own bold line
+    if ((inv.territory ?? '').isNotEmpty) {
+      await text(inv.territory!, bold: true);
+    }
+    // Address block left-aligned
     if (addressLines.isNotEmpty) {
       for (final line in addressLines) {
         await text(line);
@@ -550,7 +554,7 @@ class PosPrinterService extends ChangeNotifier {
 
     // BODY -----------------------------------------------------------
     // Column widths in characters (Font B monospace-ish). Names are wrapped, never truncated.
-    const nameW = 24;
+    const nameW = 18;
     const qtyW = 4;
     const rateW = 10;
     const amtW = 10;
@@ -649,8 +653,8 @@ class PosPrinterService extends ChangeNotifier {
 
   String _money(double v) => v.toStringAsFixed(2);
   String _labelVal(String l,String v) {
-    const ml = 28;
-    const totalW = 48;
+    const ml = 24;
+    const totalW = 42;
     final x = l.length > ml ? l.substring(0, ml) : l;
     final left = x.padRight(totalW - v.length);
     return '$left$v';
@@ -666,7 +670,7 @@ class PosPrinterService extends ChangeNotifier {
       final img = frame.image;
       // Render into a canvas as wide as an 80mm printer (576px) and center the scaled logo.
       const canvasW = 576;
-      const logoTargetW = 432; // keep margins while using wider paper
+      const logoTargetW = 200; // compact logo for thermal receipt
       final scale = logoTargetW / img.width;
       final targetH = (img.height * scale).round();
       final recorder = ui.PictureRecorder();
@@ -788,8 +792,8 @@ class PosPrinterService extends ChangeNotifier {
     final left = (lLabel.isNotEmpty ? '$lLabel: ' : '') + lValue;
     final right = (rLabel.isNotEmpty ? '$rLabel: ' : '') + rValue;
     final asciiOk = !RegExp(r'[^\x00-\x7F]').hasMatch(left + right);
-    const leftWidth = 24;
-    const rightWidth = 24;
+    const leftWidth = 21;
+    const rightWidth = 21;
     String pad(String s, int w){ return s.length > w ? s.substring(0,w) : s.padRight(w); }
     if (asciiOk) {
       final line = pad(left.trimRight(), leftWidth) + pad(right.trimRight(), rightWidth);

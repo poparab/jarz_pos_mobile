@@ -20,6 +20,7 @@ class PrintableInvoice {
   final String customer;
   final String? customerAddress;
   final String? customerPhone;
+  final String? territory;
   final DateTime? deliveryDateTime;
   final double total;
   final double paid;
@@ -32,6 +33,7 @@ class PrintableInvoice {
     required this.customer,
     this.customerAddress,
     this.customerPhone,
+    this.territory,
     this.deliveryDateTime,
     required this.total,
     required this.paid,

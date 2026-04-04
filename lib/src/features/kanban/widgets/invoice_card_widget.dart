@@ -190,6 +190,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       customer: enriched.customerName,
       customerAddress: enriched.address.isNotEmpty ? enriched.address : null,
       customerPhone: enriched.customerPhone,
+      territory: enriched.territory.isNotEmpty ? enriched.territory : null,
       deliveryDateTime: deliveryDT,
       total: enriched.total,
       paid: paid,
