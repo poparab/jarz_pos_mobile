@@ -63,6 +63,7 @@ class InvoiceCard {
   final String? subTerritory;
   final String? territoryDisplay;
   final String? subTerritoryDisplay;
+  final String? territoryNameAr;
   final bool hasSubTerritories;
   final String? deliveryTrip;
   final double? shippingOverride;
@@ -108,6 +109,7 @@ class InvoiceCard {
     this.subTerritory,
     this.territoryDisplay,
     this.subTerritoryDisplay,
+    this.territoryNameAr,
     this.hasSubTerritories = false,
     this.deliveryTrip,
     this.shippingOverride,
@@ -173,6 +175,7 @@ class InvoiceCard {
       subTerritory: json['sub_territory']?.toString(),
       territoryDisplay: json['territory_display']?.toString(),
       subTerritoryDisplay: json['sub_territory_display']?.toString(),
+      territoryNameAr: json['territory_name_ar']?.toString(),
       hasSubTerritories: [1, true, '1', 'true', 'True'].contains(json['has_sub_territories']),
       deliveryTrip: json['delivery_trip']?.toString(),
       shippingOverride: json['shipping_override'] != null
@@ -222,6 +225,7 @@ class InvoiceCard {
       'sub_territory': subTerritory,
       'territory_display': territoryDisplay,
       'sub_territory_display': subTerritoryDisplay,
+      'territory_name_ar': territoryNameAr,
       'has_sub_territories': hasSubTerritories,
       'delivery_trip': deliveryTrip,
       'shipping_override': shippingOverride,
@@ -269,6 +273,7 @@ class InvoiceCard {
   String? subTerritory,
   String? territoryDisplay,
   String? subTerritoryDisplay,
+  String? territoryNameAr,
   bool? hasSubTerritories,
   String? deliveryTrip,
   double? shippingOverride,
@@ -314,6 +319,7 @@ class InvoiceCard {
       subTerritory: subTerritory ?? this.subTerritory,
       territoryDisplay: territoryDisplay ?? this.territoryDisplay,
       subTerritoryDisplay: subTerritoryDisplay ?? this.subTerritoryDisplay,
+      territoryNameAr: territoryNameAr ?? this.territoryNameAr,
       hasSubTerritories: hasSubTerritories ?? this.hasSubTerritories,
       deliveryTrip: deliveryTrip ?? this.deliveryTrip,
       shippingOverride: shippingOverride ?? this.shippingOverride,

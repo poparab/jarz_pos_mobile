@@ -27,7 +27,7 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
   Set<String> get _territories {
     return widget.selectedInvoices.map((i) {
       final sub = i.subTerritoryDisplay ?? i.subTerritory;
-      final terr = i.territoryDisplay ?? i.territory;
+      final terr = i.territoryNameAr ?? i.territoryDisplay ?? i.territory;
       return (sub != null && sub.isNotEmpty) ? sub : terr;
     }).toSet();
   }

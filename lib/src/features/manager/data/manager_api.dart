@@ -163,6 +163,7 @@ class CustomShippingRequest {
   final String invoice;
   final String customerName;
   final String territory;
+  final String? territoryNameAr;
   final double originalAmount;
   final double requestedAmount;
   final String reason;
@@ -174,6 +175,7 @@ class CustomShippingRequest {
     required this.invoice,
     required this.customerName,
     required this.territory,
+    this.territoryNameAr,
     required this.originalAmount,
     required this.requestedAmount,
     required this.reason,
@@ -187,6 +189,7 @@ class CustomShippingRequest {
       invoice: (json['invoice'] ?? '').toString(),
       customerName: (json['customer_name'] ?? '').toString(),
       territory: (json['territory'] ?? '').toString(),
+      territoryNameAr: json['territory_name_ar']?.toString(),
       originalAmount: (json['original_amount'] as num?)?.toDouble() ?? 0,
       requestedAmount: (json['requested_amount'] as num?)?.toDouble() ?? 0,
       reason: (json['reason'] ?? '').toString(),

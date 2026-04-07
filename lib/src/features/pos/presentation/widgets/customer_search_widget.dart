@@ -181,7 +181,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  customer['territory'],
+                  customer['territory_name_ar']?.toString() ?? customer['territory_name']?.toString() ?? customer['territory'],
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w500,
@@ -781,7 +781,7 @@ class _QuickAddCustomerWidgetState
             child: SizedBox(
               width: 360,
               child: Text(
-                '${territory['territory_name'] ?? context.l10n.unknownTerritory}$deliveryInfo',
+                '${territory['territory_name_ar'] ?? territory['territory_name'] ?? context.l10n.unknownTerritory}$deliveryInfo',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

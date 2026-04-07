@@ -190,7 +190,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       customer: enriched.customerName,
       customerAddress: enriched.address.isNotEmpty ? enriched.address : null,
       customerPhone: enriched.customerPhone,
-      territory: enriched.territory.isNotEmpty ? enriched.territory : null,
+      territory: (enriched.territoryNameAr ?? '').isNotEmpty
+          ? enriched.territoryNameAr
+          : (enriched.territoryDisplay ?? '').isNotEmpty
+              ? enriched.territoryDisplay
+              : enriched.territory.isNotEmpty ? enriched.territory : null,
       deliveryDateTime: deliveryDT,
       total: enriched.total,
       paid: paid,
@@ -1569,7 +1573,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           context,
           preview,
           invoice: widget.invoice.name,
-          territory: widget.invoice.territory,
+          territory: widget.invoice.territoryNameAr ?? widget.invoice.territoryDisplay ?? widget.invoice.territory,
           orderFallback: widget.invoice.grandTotal,
           shippingFallback: widget.invoice.shippingExpenseDisplay.toDouble(),
         );
@@ -2034,7 +2038,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         context,
         preview,
         invoice: widget.invoice.name,
-        territory: widget.invoice.territory,
+        territory: widget.invoice.territoryNameAr ?? widget.invoice.territoryDisplay ?? widget.invoice.territory,
         orderFallback: widget.invoice.grandTotal, // use invoice total when preview omits
         shippingFallback: (widget.invoice.shippingExpenseDisplay).toDouble(),
       );

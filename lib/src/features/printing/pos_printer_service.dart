@@ -422,22 +422,27 @@ class PosPrinterService extends ChangeNotifier {
           .trim();
       return cleaned;
     }
-    Future<void> text(String s, {bool bold=false, bool center=false}) async {
-      if (hasArabic(s)) {
-        await _addRasterText(b, s, bold: bold, center: center);
+    Future<void> text(String s, {bool bold=false, bool center=false, bool big=false, String? fontFamily, double? fontSize}) async {
+      if (hasArabic(s) || fontFamily != null || fontSize != null) {
+        final fs = fontSize ?? (big ? 28.0 : 18.0);
+        await _addRasterText(b, s, bold: bold, center: center, fontSize: fs, fontFamily: fontFamily);
         return;
       }
       final printable = hasNonAscii(s) ? normalizePrintable(s) : s;
       if (printable.isEmpty) return;
       esc([0x1C, 0x2E]); // Ensure CJK mode stays cancelled
-      esc([0x1B, 0x4D, 0x01]); // Font B (smaller)
-      esc([0x1B,0x21,bold?0x20:0x00]);
+      esc([0x1B, 0x4D, 0x00]); // Font A (wider, fills paper width)
+      int mode = 0;
+      if (bold) mode |= 0x08;
+      if (big) mode |= 0x10; // double-height
+      esc([0x1B, 0x21, mode]);
       esc([0x1B,0x61, center?0x01:0x00]);
       b.add(latin1.encode(printable));
       esc([0x0A]);
+      if (big) esc([0x1B, 0x21, 0x00]); // reset mode after big text
     }
   void feed(int n) => esc([0x1B, 0x64, n.clamp(0, 255)]);
-  const lineChars = 42; // Safe width for 80/88mm thermal printers (Font A compatible).
+  const lineChars = 48; // Full width for 80mm thermal printers: 576 dots / 12 dots per Font A char = 48.
   Future<void> hr() async { await text('-' * lineChars); }
   // Removed invoice date display; eliminate unused date helpers.
     String shortInv(String full) {
@@ -488,17 +493,23 @@ class PosPrinterService extends ChangeNotifier {
     // Many thermal printers ship with CJK mode enabled by default, causing
     // ASCII bytes to be interpreted as double-byte CJK character codes → garbled output.
     esc([0x1C, 0x2E]);
+    // Set left margin to 0 (GS L nL nH) — eliminate any default left margin
+    esc([0x1D, 0x4C, 0x00, 0x00]);
+    // Set print area width to 576 dots = full 80mm printable width (GS W nL nH, 576 = 0x0240)
+    esc([0x1D, 0x57, 0x40, 0x02]);
+    // Set right-side character spacing to 0 (ESC SP n)
+    esc([0x1B, 0x20, 0x00]);
     // Select single-byte character code table: PC437 (ESC t 0)
     esc([0x1B, 0x74, 0x00]);
-    // Use Font B globally (smaller)
-    esc([0x1B, 0x4D, 0x01]);
+    // Use Font A globally (wider, fills paper width)
+    esc([0x1B, 0x4D, 0x00]);
     // HEADER ---------------------------------------------------------
     if (_logoEscPos != null) {
       esc([0x1B,0x61,0x01]); // center
       b.add(_logoEscPos!);
       esc([0x1B,0x61,0x00]); // left
     }
-    await text(_receiptHeader, bold: true, center: true);
+    await text(_receiptHeader, bold: true, center: true, fontFamily: 'DMSerifDisplay');
     // Build two vertical columns of fields for 80mm (wider) printers
     // Left column logical order: Customer, Phone, Delivery
     // Right column: Invoice No, Invoice Date, Address (first line)
@@ -509,9 +520,9 @@ class PosPrinterService extends ChangeNotifier {
     .where((e)=>e.isNotEmpty)
     .toList();
     // Column wrapping with independent line counts; each column keeps its own continuation lines.
-    // Define max character widths assuming Font B monospaced-like width.
-    const leftWidthChars = 21;
-    const rightWidthChars = 21;
+    // Define max character widths for Font A 48-char line width.
+    const leftWidthChars = 24;
+    const rightWidthChars = 24;
     // Build raw logical entries first.
     final leftEntries = <MapEntry<String,String>>[];
     leftEntries.add(MapEntry('Customer', inv.customer));
@@ -544,20 +555,21 @@ class PosPrinterService extends ChangeNotifier {
     if ((inv.territory ?? '').isNotEmpty) {
       await text(inv.territory!, bold: true);
     }
-    // Address block left-aligned
+    // Address block — slightly larger font for readability
     if (addressLines.isNotEmpty) {
       for (final line in addressLines) {
-        await text(line);
+        await text(line, fontSize: 22);
       }
     }
     await hr();
 
     // BODY -----------------------------------------------------------
-    // Column widths in characters (Font B monospace-ish). Names are wrapped, never truncated.
-    const nameW = 18;
+    // Column widths in characters (Font A). Names are wrapped, never truncated.
+    // Total = 48 chars to fill full 80mm paper width.
+    const nameW = 20;
     const qtyW = 4;
-    const rateW = 10;
-    const amtW = 10;
+    const rateW = 12;
+    const amtW = 12;
 
     List<String> wrapFixed(String s, int width) {
       if (s.isEmpty) return [''];
@@ -617,30 +629,38 @@ class PosPrinterService extends ChangeNotifier {
     }
     await hr();
     // Items
-    for (final it in inv.items) {
+    for (int idx = 0; idx < inv.items.length; idx++) {
+      final it = inv.items[idx];
       final rows = col4Rows(it.name, it.qty.toStringAsFixed(0), _money(it.rate), _money(it.amount));
       for (final line in rows) {
         await text(line);
       }
+      // Thin separator + small spacing between items (skip after last item)
+      if (idx < inv.items.length - 1) {
+        await text('.' * lineChars);
+        feed(1);
+      }
     }
-    // Keep item section compact; avoid extra divider before totals.
+    // Spacing before totals
     // Totals section: inv.total is authoritative grand total (already includes shipping income).
     // If shipping income > 0, show Subtotal = grand_total - shipping, then Shipping, then Total = grand_total.
     final grand = inv.total;
+    feed(2); // spacing before totals
     if (inv.shipping > 0 && inv.shipping <= grand) {
       final double subtotal = (grand - inv.shipping).clamp(0, grand);
       await text(_labelVal('Subtotal', _money(subtotal)));
       await text(_labelVal('Shipping', _money(inv.shipping)));
-      await text(_labelVal('Total', _money(grand)), bold:true);
+      feed(1);
+      await text(_labelVal('Total', _money(grand)), bold:true, big:true);
     } else {
-      await text(_labelVal('Total', _money(grand)), bold:true);
+      await text(_labelVal('Total', _money(grand)), bold:true, big:true);
     }
     final statusPaid = inv.outstanding <= 0.0001;
     await text(_labelVal('Status', statusPaid ? InvoiceStatus.paidUpper : InvoiceStatus.unpaidUpper));
     // Status is enough separation from footer; skip extra divider for compact receipt.
 
     // FOOTER ---------------------------------------------------------
-    await text(_receiptFooter, center:true);
+    await text(_receiptFooter, center:true, fontFamily: 'DMSerifDisplay');
     await text('Call us $_receiptPhone', center:true);
     await text(_receiptWebsite, center:true);
   // Add two cut guide lines so user can manually cut at the marked area
@@ -653,8 +673,8 @@ class PosPrinterService extends ChangeNotifier {
 
   String _money(double v) => v.toStringAsFixed(2);
   String _labelVal(String l,String v) {
-    const ml = 24;
-    const totalW = 42;
+    const ml = 30;
+    const totalW = 48;
     final x = l.length > ml ? l.substring(0, ml) : l;
     final left = x.padRight(totalW - v.length);
     return '$left$v';
@@ -723,24 +743,25 @@ class PosPrinterService extends ChangeNotifier {
     }
   }
 
-  Future<void> _addRasterText(BytesBuilder b, String s, {bool bold=false, bool center=false}) async {
+  Future<void> _addRasterText(BytesBuilder b, String s, {bool bold=false, bool center=false, double fontSize=18, String? fontFamily}) async {
     // 576px matches common 80mm ESC/POS printers.
     const targetW = 576;
     // Prepare text painter
   final hasArabic = RegExp(r'[\u0600-\u06FF]').hasMatch(s);
+    // Font selection: explicit fontFamily > Tajawal for Arabic > Inter for content
+    final effectiveFamily = fontFamily ?? (hasArabic ? 'Tajawal' : 'Inter');
+    final fallbacks = hasArabic
+        ? const ['Tajawal', 'Noto Naskh Arabic', 'Inter', 'Roboto']
+        : const ['Inter', 'Tajawal', 'Roboto'];
     final tp = TextPainter(
       text: TextSpan(
         text: s,
         style: TextStyle(
           color: const ui.Color(0xFF000000),
-          fontSize: 18, // smaller font
-          fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
-          fontFamilyFallback: const [
-            'Noto Naskh Arabic',
-            'Noto Sans Arabic',
-            'Noto Sans',
-            'Roboto',
-          ],
+          fontSize: fontSize,
+          fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+          fontFamily: effectiveFamily,
+          fontFamilyFallback: fallbacks,
         ),
       ),
   textDirection: hasArabic ? ui.TextDirection.rtl : ui.TextDirection.ltr,
@@ -754,7 +775,10 @@ class PosPrinterService extends ChangeNotifier {
     // white bg
     final bg = ui.Paint()..color = const ui.Color(0xFFFFFFFF);
     canvas.drawRect(ui.Rect.fromLTWH(0, 0, targetW.toDouble(), height.toDouble()), bg);
-    tp.paint(canvas, const ui.Offset(0, 0));
+    // Center horizontally: TextPainter.textAlign only affects multi-line wrapping,
+    // so we manually offset single-line text to center it on the raster image.
+    final paintX = center ? ((targetW - tp.width) / 2).clamp(0.0, targetW.toDouble()) : 0.0;
+    tp.paint(canvas, ui.Offset(paintX, 0));
     final picture = recorder.endRecording();
     final img = await picture.toImage(targetW, height);
     final bd = await img.toByteData(format: ui.ImageByteFormat.rawRgba);
@@ -792,13 +816,13 @@ class PosPrinterService extends ChangeNotifier {
     final left = (lLabel.isNotEmpty ? '$lLabel: ' : '') + lValue;
     final right = (rLabel.isNotEmpty ? '$rLabel: ' : '') + rValue;
     final asciiOk = !RegExp(r'[^\x00-\x7F]').hasMatch(left + right);
-    const leftWidth = 21;
-    const rightWidth = 21;
+    const leftWidth = 24;
+    const rightWidth = 24;
     String pad(String s, int w){ return s.length > w ? s.substring(0,w) : s.padRight(w); }
     if (asciiOk) {
       final line = pad(left.trimRight(), leftWidth) + pad(right.trimRight(), rightWidth);
       b.add(Uint8List.fromList([0x1C, 0x2E])); // Ensure CJK mode stays cancelled
-      b.add(Uint8List.fromList([0x1B, 0x4D, 0x01]));
+      b.add(Uint8List.fromList([0x1B, 0x4D, 0x00])); // Font A
       b.add(Uint8List.fromList([0x1B,0x21,0x00]));
       b.add(Uint8List.fromList([0x1B,0x61,0x00]));
       b.add(latin1.encode(line));

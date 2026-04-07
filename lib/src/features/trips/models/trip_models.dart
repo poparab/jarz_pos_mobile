@@ -69,6 +69,7 @@ class TripInvoice {
   final String? subTerritory;
   final String? territoryDisplay;
   final String? subTerritoryDisplay;
+  final String? territoryNameAr;
   final double grandTotal;
   final double shippingExpense;
   final String invoiceStatus;
@@ -90,6 +91,7 @@ class TripInvoice {
     this.subTerritory,
     this.territoryDisplay,
     this.subTerritoryDisplay,
+    this.territoryNameAr,
     this.grandTotal = 0,
     this.shippingExpense = 0,
     this.invoiceStatus = '',
@@ -123,6 +125,7 @@ class TripInvoice {
       subTerritory: json['sub_territory']?.toString(),
       territoryDisplay: json['territory_display']?.toString(),
       subTerritoryDisplay: json['sub_territory_display']?.toString(),
+      territoryNameAr: json['territory_name_ar']?.toString(),
       grandTotal: _toDouble(json['grand_total']),
       shippingExpense: _toDouble(json['shipping_expense']),
       invoiceStatus: (json['invoice_status'] ?? '').toString(),

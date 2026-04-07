@@ -263,7 +263,7 @@ class _PendingCustomShippingSection extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(context.l10n.settlementTerritoryLabel(item.territory)),
+                  Text(context.l10n.settlementTerritoryLabel(item.territoryNameAr ?? item.territory)),
                   const SizedBox(height: 4),
                   Text(context.l10n.managerReasonLabel(item.reason)),
                   const SizedBox(height: 8),

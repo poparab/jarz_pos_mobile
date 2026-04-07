@@ -1080,7 +1080,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             context,
             preview,
             invoice: invoiceId,
-            territory: inv?.territory,
+            territory: inv?.territoryNameAr ?? inv?.territoryDisplay ?? inv?.territory,
             orderFallback: inv?.grandTotal,
             shippingFallback: inv?.shippingExpenseDisplay,
           );

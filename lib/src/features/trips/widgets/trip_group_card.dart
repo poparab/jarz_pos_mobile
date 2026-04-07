@@ -174,7 +174,7 @@ class _TripGroupCardState extends State<TripGroupCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    inv.subTerritoryDisplay ?? inv.territoryDisplay ?? inv.subTerritory ?? inv.territory,
+                    inv.territoryNameAr ?? inv.subTerritoryDisplay ?? inv.territoryDisplay ?? inv.subTerritory ?? inv.territory,
                     style: TextStyle(fontSize: 10, color: Colors.grey[600]),
                   ),
                 ],

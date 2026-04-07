@@ -88,7 +88,7 @@ class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet>
                         itemBuilder: (context, index) {
                           final item = _filtered[index];
                           final code = (item['name'] ?? '').toString();
-                          final displayName = (item['territory_name'] ?? code).toString();
+                          final displayName = (item['territory_name_ar'] ?? item['territory_name'] ?? code).toString();
                           final expense = (item['delivery_expense'] ?? 0).toDouble();
                           final isSelected = code == widget.currentSelection;
 

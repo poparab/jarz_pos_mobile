@@ -18,7 +18,7 @@ class CartWidget extends ConsumerWidget {
     final l10n = context.l10n;
     final state = ref.watch(posNotifierProvider);
     final cartItems = state.cartItems;
-    final customerTerritory = state.selectedCustomer?['territory']?.toString();
+    final customerTerritory = state.selectedCustomer?['territory_name_ar']?.toString() ?? state.selectedCustomer?['territory_name']?.toString() ?? state.selectedCustomer?['territory']?.toString();
     final isPhone = ResponsiveUtils.isPhone(context);
     
     // Responsive padding
