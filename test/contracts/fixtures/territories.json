@@ -1,0 +1,303 @@
+[
+  {
+    "name": "All Territories",
+    "territory_name": "All Territories",
+    "is_group": 1,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EG6OCT",
+    "territory_name": "EG6OCT",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGABBASSIYA",
+    "territory_name": "EGABBASSIYA",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGAWGAZA",
+    "territory_name": "EGAWGAZA",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGBOLAK",
+    "territory_name": "EGBOLAK",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGDOKKI",
+    "territory_name": "EGDOKKI",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGDOWNTOWN",
+    "territory_name": "EGDOWNTOWN",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGFAYSAL",
+    "territory_name": "EGFAYSAL",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGGARDENCITY",
+    "territory_name": "EGGARDENCITY",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGGIZA",
+    "territory_name": "EGGIZA",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGHADAYEQ",
+    "territory_name": "EGHADAYEQ",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGHADAYEQAH",
+    "territory_name": "EGHADAYEQAH",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGHADAYEQOCT",
+    "territory_name": "EGHADAYEQOCT",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGHARAM",
+    "territory_name": "EGHARAM",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGIMBABA",
+    "territory_name": "EGIMBABA",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGISM",
+    "territory_name": "EGISM",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGKATAMYA",
+    "territory_name": "EGKATAMYA",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGMAADI",
+    "territory_name": "EGMAADI",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGMADINATY",
+    "territory_name": "EGMADINATY",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGMANIAL",
+    "territory_name": "EGMANIAL",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGMARG",
+    "territory_name": "EGMARG",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGMASRJD",
+    "territory_name": "EGMASRJD",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGMASROLD",
+    "territory_name": "EGMASROLD",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGMATARIYA",
+    "territory_name": "EGMATARIYA",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGMOHANDSEEN",
+    "territory_name": "EGMOHANDSEEN",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGMOQATTAM",
+    "territory_name": "EGMOQATTAM",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGNASRCITY",
+    "territory_name": "EGNASRCITY",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGOBOUR",
+    "territory_name": "EGOBOUR",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGOMRANIYA",
+    "territory_name": "EGOMRANIYA",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGREHAB",
+    "territory_name": "EGREHAB",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGRSHEROUK",
+    "territory_name": "EGRSHEROUK",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGSALAM",
+    "territory_name": "EGSALAM",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGSHAMS",
+    "territory_name": "EGSHAMS",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGSHOBRA",
+    "territory_name": "EGSHOBRA",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGSHOBRAKH",
+    "territory_name": "EGSHOBRAKH",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGTAGAMMO",
+    "territory_name": "EGTAGAMMO",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "Egypt",
+    "territory_name": "Egypt",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGZAMALEK",
+    "territory_name": "EGZAMALEK",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGZAWYA",
+    "territory_name": "EGZAWYA",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "EGZAYED",
+    "territory_name": "EGZAYED",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "Rest Of The World",
+    "territory_name": "Rest Of The World",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "اكتوبر 1",
+    "territory_name": "اكتوبر 1",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  },
+  {
+    "name": "اكتوبر 2",
+    "territory_name": "اكتوبر 2",
+    "is_group": 0,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0
+  }
+]

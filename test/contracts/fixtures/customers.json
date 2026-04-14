@@ -1,0 +1,122 @@
+[
+  {
+    "name": "ali TEST",
+    "customer_name": "ali TEST",
+    "mobile_no": "9444444777",
+    "customer_primary_address": null,
+    "customer_primary_contact": "ali TEST-ali TEST",
+    "territory": "EGHADAYEQAH",
+    "customer_group": null,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0,
+    "territory_name": "EGHADAYEQAH",
+    "territory_name_ar": "حدائق الاهرام"
+  },
+  {
+    "name": "test",
+    "customer_name": "test",
+    "mobile_no": "214525888",
+    "customer_primary_address": null,
+    "customer_primary_contact": "test-test",
+    "territory": "EGHADAYEQAH",
+    "customer_group": null,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0,
+    "territory_name": "EGHADAYEQAH",
+    "territory_name_ar": "حدائق الاهرام"
+  },
+  {
+    "name": "Test Customer 35332 [TEST-1773525004472]",
+    "customer_name": "Test Customer 35332 [TEST-1773525004472]",
+    "mobile_no": "01000035332",
+    "customer_primary_address": null,
+    "customer_primary_contact": "Test Customer 35332 [TEST-1773525004472]-Test Customer 35332 [TEST-1773525004472]",
+    "territory": null,
+    "customer_group": null
+  },
+  {
+    "name": "Test Customer 41280 [TEST-1773526193998]",
+    "customer_name": "Test Customer 41280 [TEST-1773526193998]",
+    "mobile_no": "01000041280",
+    "customer_primary_address": null,
+    "customer_primary_contact": "Test Customer 41280 [TEST-1773526193998]-Test Customer 41280 [TEST-1773526193998]",
+    "territory": null,
+    "customer_group": null
+  },
+  {
+    "name": "Test Customer 58061 [TEST-1773526944179]",
+    "customer_name": "Test Customer 58061 [TEST-1773526944179]",
+    "mobile_no": "01000058061",
+    "customer_primary_address": null,
+    "customer_primary_contact": "Test Customer 58061 [TEST-1773526944179]-Test Customer 58061 [TEST-1773526944179]",
+    "territory": null,
+    "customer_group": null
+  },
+  {
+    "name": "Test Customer 73591 [TEST-1773540038588]",
+    "customer_name": "Test Customer 73591 [TEST-1773540038588]",
+    "mobile_no": "01000073591",
+    "customer_primary_address": null,
+    "customer_primary_contact": "Test Customer 73591 [TEST-1773540038588]-Test Customer 73591 [TEST-1773540038588]",
+    "territory": null,
+    "customer_group": null
+  },
+  {
+    "name": "Test Customer 88198 [TEST-1773526798591]",
+    "customer_name": "Test Customer 88198 [TEST-1773526798591]",
+    "mobile_no": "01000088198",
+    "customer_primary_address": null,
+    "customer_primary_contact": "Test Customer 88198 [TEST-1773526798591]-Test Customer 88198 [TEST-1773526798591]",
+    "territory": null,
+    "customer_group": null
+  },
+  {
+    "name": "Test Customer 90321 [TEST-1773525365769]",
+    "customer_name": "Test Customer 90321 [TEST-1773525365769]",
+    "mobile_no": "01000090321",
+    "customer_primary_address": null,
+    "customer_primary_contact": "Test Customer 90321 [TEST-1773525365769]-Test Customer 90321 [TEST-1773525365769]",
+    "territory": null,
+    "customer_group": null
+  },
+  {
+    "name": "Test Customer 91176 [TEST-1773525878655]",
+    "customer_name": "Test Customer 91176 [TEST-1773525878655]",
+    "mobile_no": "01000091176",
+    "customer_primary_address": null,
+    "customer_primary_contact": "Test Customer 91176 [TEST-1773525878655]-Test Customer 91176 [TEST-1773525878655]",
+    "territory": null,
+    "customer_group": null
+  },
+  {
+    "name": "Test Customer 97298 [TEST-1773525565863]",
+    "customer_name": "Test Customer 97298 [TEST-1773525565863]",
+    "mobile_no": "01000097298",
+    "customer_primary_address": null,
+    "customer_primary_contact": "Test Customer 97298 [TEST-1773525565863]-Test Customer 97298 [TEST-1773525565863]",
+    "territory": null,
+    "customer_group": null
+  },
+  {
+    "name": "Test PriceFix",
+    "customer_name": "Test PriceFix",
+    "mobile_no": "01234567890",
+    "customer_primary_address": null,
+    "customer_primary_contact": "Test PriceFix-Test PriceFix",
+    "territory": null,
+    "customer_group": null
+  },
+  {
+    "name": "test test",
+    "customer_name": "test test",
+    "mobile_no": "+201154224887",
+    "customer_primary_address": null,
+    "customer_primary_contact": "test test-test test",
+    "territory": "EGZAYED",
+    "customer_group": null,
+    "delivery_income": 0.0,
+    "delivery_expense": 0.0,
+    "territory_name": "EGZAYED",
+    "territory_name_ar": "الشيخ زايد"
+  }
+]

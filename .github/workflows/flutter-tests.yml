@@ -1,0 +1,154 @@
+name: Flutter Tests
+
+on:
+  push:
+    branches: [main, develop, "feature/**", "fix/**"]
+  pull_request:
+    branches: [main, develop]
+
+# Cancel in-progress runs for the same branch on new pushes.
+concurrency:
+  group: flutter-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Unit + Contract tests ────────────────────────────────────────────────────
+  unit-and-contract:
+    name: Unit & Contract Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: jarz_pos
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.x"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run unit tests with coverage
+        run: flutter test --coverage --exclude-tags golden,stress
+        env:
+          # Contract tests: fixtures are loaded from disk (no network call needed)
+          CI: "true"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: jarz_pos/coverage/lcov.info
+          retention-days: 14
+
+  # ── Contract tests (separate step for clear reporting) ──────────────────────
+  contract:
+    name: API Contract Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: jarz_pos
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.x"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run contract tests
+        # Fixtures live in test/contracts/fixtures/ (committed to git).
+        # No network calls — pure deserialization checks.
+        run: flutter test test/contracts/
+
+  # ── Golden visual tests ──────────────────────────────────────────────────────
+  golden:
+    name: Golden Visual Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: jarz_pos
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.x"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run golden tests
+        run: flutter test test/goldens/
+
+      - name: Upload golden diffs on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: golden-failures
+          path: jarz_pos/test/goldens/failures/
+          retention-days: 7
+
+  # ── Lint ──────────────────────────────────────────────────────────────────────
+  lint:
+    name: Flutter Analyze
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: jarz_pos
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.x"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+
+  # ── Offline stress tests ─────────────────────────────────────────────────────
+  stress:
+    name: Offline Stress Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: jarz_pos
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.x"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run offline stress tests
+        run: flutter test test/stress/

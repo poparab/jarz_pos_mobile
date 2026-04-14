@@ -1,0 +1,15 @@
+{
+  "name": "TRIP-2025-001",
+  "trip_date": "2025-01-01",
+  "courier_party_type": "Employee",
+  "courier_party": "HR-EMP-00001",
+  "courier_display_name": "Test Courier",
+  "status": "Created",
+  "is_double_shipping": 0,
+  "double_shipping_territory": null,
+  "total_orders": 1,
+  "total_amount": 500.0,
+  "total_shipping_expense": 50.0,
+  "notes": null,
+  "invoices": []
+}

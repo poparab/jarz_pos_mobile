@@ -1,0 +1,18 @@
+{
+  "payment_sources": [
+    {
+      "id": "Cash - J",
+      "account": "Cash - J",
+      "label": "Nasr city Cash",
+      "category": "pos_profile",
+      "balance": 1000.0,
+      "pos_profile": "Nasr city"
+    }
+  ],
+  "reasons": [
+    {
+      "account": "Expenses - J",
+      "label": "Office Expenses"
+    }
+  ]
+}

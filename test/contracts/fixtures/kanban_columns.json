@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "columns": [
+    {
+      "id": "recieved",
+      "name": "Recieved",
+      "color": "#F5F5F5",
+      "order": 0
+    },
+    {
+      "id": "in_progress",
+      "name": "In Progress",
+      "color": "#F5F5F5",
+      "order": 1
+    },
+    {
+      "id": "ready",
+      "name": "Ready",
+      "color": "#F5F5F5",
+      "order": 2
+    },
+    {
+      "id": "out_for_delivery",
+      "name": "Out for Delivery",
+      "color": "#F5F5F5",
+      "order": 3
+    },
+    {
+      "id": "delivered",
+      "name": "Delivered",
+      "color": "#F5F5F5",
+      "order": 4
+    },
+    {
+      "id": "cancelled",
+      "name": "Cancelled",
+      "color": "#F5F5F5",
+      "order": 5
+    }
+  ]
+}

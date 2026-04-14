@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Nasr city",
+    "allow_delivery_partner": false
+  },
+  {
+    "name": "Ismalia",
+    "allow_delivery_partner": false
+  },
+  {
+    "name": "Dokki",
+    "allow_delivery_partner": false
+  },
+  {
+    "name": "Ahram Gardens",
+    "allow_delivery_partner": false
+  }
+]
