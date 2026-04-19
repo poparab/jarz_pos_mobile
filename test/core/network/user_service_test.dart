@@ -88,11 +88,13 @@ void main() {
     test('isLineManager', () {
       final r = UserRoles(user: 'u', roles: [RoleNames.jarzLineManager]);
       expect(r.isLineManager, isTrue);
+      expect(r.canAccessManagerDashboard, isTrue);
     });
 
     test('isModerator', () {
       final r = UserRoles(user: 'u', roles: [RoleNames.moderator]);
       expect(r.isModerator, isTrue);
+      expect(r.canAccessManagerDashboard, isFalse);
     });
 
     test('canMuteNotifications for managers', () {

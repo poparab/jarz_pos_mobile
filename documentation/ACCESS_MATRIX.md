@@ -1,6 +1,7 @@
 # Jarz POS — Access Matrix
 
 > Role-based access control reference for all app features.
+> Last verified: 2026-04-19 (224/224 API permission tests passed on staging)
 
 ---
 
@@ -12,10 +13,10 @@ The app has **four named roles**, each granting a distinct level of authority. T
 
 | # | Role | Constant | Who it is | Unique capabilities vs. tier below |
 |---|------|----------|-----------|--------------------------------------|
-| 1 | **High Management** | `isHighManagement` | Cross-branch executives / owners | Unrestricted access to **all** features and **all** POS profiles with no profile assignment requirement; bypasses every app-level restriction |
-| 2 | **JARZ Manager** | `isJarzManager` / `isManager` | Branch-level managers | Unlocks the Manager Dashboard, financial operations (cash/stock transfer, purchase invoices, manufacturing, inventory count), and expense approval; POS profile access still requires profile assignment |
-| 3 | **JARZ Line Manager** | `isLineManager` | Floor supervisors / shift leads | Can cancel and transfer orders, can skip the shift-opening flow; no access to financial operations or the Manager Dashboard |
-| 4 | **Moderator** | `isModerator` | Senior staff / support agents | Same POS/Kanban access as regular staff plus the ability to mute push notifications; cannot cancel orders or use any managerial feature |
+| 1 | **High Management** | `isHighManagement` | Cross-branch executives / owners (System Manager) | Unrestricted access to **all** features and **all** POS profiles with no profile assignment requirement; bypasses every app-level restriction |
+| 2 | **JARZ Manager** | `isJarzManager` / `isManager` | Branch-level managers | Unlocks the Manager Dashboard, financial operations (cash/stock transfer, purchase invoices, manufacturing, inventory count), reports, and expense approval; POS profile access still requires profile assignment |
+| 3 | **JARZ Line Manager** | `isLineManager` | Floor supervisors / shift leads | Can cancel and transfer orders, can skip the shift-opening flow, can view Master Orders and Manager Dashboard; no access to financial operations or reports |
+| 4 | **Moderator** | `isModerator` | Senior staff / support agents | Same POS/Kanban access as regular staff plus the ability to mute push notifications and view Master Orders; cannot cancel orders or use any managerial feature |
 | — | **Sales User (Staff)** | *(default)* | Regular sales staff | Standard POS operations only — create invoices, manage kanban, handle deliveries |
 
 #### Key Distinctions at a Glance
@@ -24,7 +25,10 @@ The app has **four named roles**, each granting a distinct level of authority. T
 |------------------------------|:---------:|:-------:|:------------:|:---------:|:-----:|
 | All POS profiles without assignment | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Manager Dashboard & financial ops | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Manager Dashboard (view only) | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Reports | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Approve expenses | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Master Orders (cross-branch view) | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Cancel / Transfer orders | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Mute push notifications | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Skip shift-opening flow | ✅ | ✅ | ✅ (opt-in) | ❌ | ❌ |
@@ -76,14 +80,20 @@ The POS profile a user can operate on is the first access gate — many features
 | Courier Balances | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Expenses | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Printers | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Manager Dashboard | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Master Orders** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Manager Dashboard | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Purchase Invoices | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Manufacturing | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Stock Transfer | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Cash Transfer | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Inventory Count | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Reports | ✅ | ✅ | ❌ | ❌ | ❌ |
 
-> **Note:** Manager Dashboard, Purchase, Manufacturing, Stock Transfer, Cash Transfer, and Inventory Count require `isJarzManager` or `isHighManagement`. High Management users always have access regardless of POS profile assignment.
+> **Master Orders** requires `hasElevatedAccess` = `isJarzManager || isLineManager || isModerator` (or `isHighManagement`).
+>
+> Manager Dashboard requires `canAccessManagerDashboard` = `isJarzManager || isLineManager` (or `isHighManagement`).
+>
+> Purchase, Manufacturing, Stock Transfer, Cash Transfer, Inventory Count, and Reports require `isJarzManager` or `isHighManagement`.
 
 ---
 
@@ -200,16 +210,69 @@ The POS profile a user can operate on is the first access gate — many features
 |------------|:---------:|:-------:|:------------:|:---------:|:-----:|
 | POS (create invoices) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Kanban (view & transition) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Trips & Delivery | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Expenses (create) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Printing | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Master Orders** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Mute Notifications | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Cancel / Transfer orders | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Manager Dashboard | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Manager Dashboard | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Cash Transfer | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Stock Transfer | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Purchase Invoices | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Manufacturing | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Inventory Count | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Reports** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Approve Expenses | ✅ | ✅ | ❌ | ❌ | ❌ |
 | All POS profiles (no assignment) | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Mute Notifications | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Trips & Delivery | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Expenses (create) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Printing | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+---
+
+## 5. Role Profiles & Module Profiles
+
+Reusable templates created on staging for assigning roles to new users:
+
+### Role Profiles
+
+| Role Profile | Roles Included |
+|-------------|---------------|
+| **Jarz POS Staff** | POS User, Sales User, Accounts User |
+| **Jarz POS Moderator** | POS User, Sales User, Accounts User, Moderator |
+| **Jarz POS Line Manager** | POS User, Sales User, Accounts User, Moderator, JARZ line manager |
+| **Jarz POS Manager** | POS User, Sales User, Accounts User, Moderator, JARZ line manager, JARZ Manager, POS Manager, Accounts Manager, Stock Manager, Manufacturing Manager, Purchase Manager, Stock User, Manufacturing User, Purchase User, Item Manager |
+
+### Module Profiles
+
+| Module Profile | Modules Allowed |
+|---------------|----------------|
+| **Jarz POS Staff Modules** | Selling, Stock, Accounts, Setup, jarz pos, Desk, Core |
+| **Jarz POS Manager Modules** | Selling, Stock, Accounts, Setup, jarz pos, Desk, Core, Manufacturing, Buying |
+
+### Assignment Guide
+
+| User Tier | Role Profile | Module Profile |
+|-----------|-------------|---------------|
+| Staff | Jarz POS Staff | Jarz POS Staff Modules |
+| Moderator | Jarz POS Moderator | Jarz POS Staff Modules |
+| Line Manager | Jarz POS Line Manager | Jarz POS Staff Modules |
+| Manager | Jarz POS Manager | Jarz POS Manager Modules |
+
+> After assigning the Role Profile and Module Profile, also assign the user to the correct POS Profile(s) via the **POS Profile User** child table on each POS Profile.
+
+---
+
+## 6. Backend Enforcement
+
+Backend API permission gates that were verified/fixed (commits `92798ac` and `f762838`):
+
+| API Module | Gate Function | Allowed Roles | What it protects |
+|-----------|--------------|--------------|-----------------|
+| `manager.py` | `_ensure_manager_dashboard_access()` | `ROLES.ADMIN` ∪ `{JARZ Manager}` | Dashboard summary, orders, states, branch update |
+| `manufacturing.py` | `_ensure_manager_access()` | `ROLES.MANUFACTURING` | BOM list, BOM details, work order submission |
+| `orders.py` | `_ensure_elevated_access()` | `JARZ Manager`, `JARZ line manager`, `Moderator`, `System Manager`, `Administrator` | Master Orders list |
+| `expenses.py` | (profile-based) | Any user with POS Profile | Expense bootstrap, month list |
+| `purchase.py` | `_ensure_purchase_access()` | `ROLES.PURCHASE` | Supplier list, PO submission |
+| `stock_transfer.py` | `_ensure_manager_access()` | `ROLES.MANAGER` | Transfer profiles, item search, submission |
+| `cash_transfer.py` | `_ensure_manager_access()` | `ROLES.MANAGER` | Account list, transfer submission |
+| `inventory.py` | `_ensure_stock_access()` | `ROLES.STOCK` | Warehouse list, stock reconciliation |
+| `reports.py` | `_ensure_manager_access()` | `ROLES.MANAGER` | All report endpoints |

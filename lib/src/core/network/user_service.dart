@@ -27,6 +27,7 @@ class UserRoles {
   bool get isJarzManager => roles.contains(RoleNames.jarzManager);
   bool get isManager => isJarzManager;
   bool get isLineManager => roles.contains(RoleNames.jarzLineManager);
+  bool get canAccessManagerDashboard => isJarzManager || isLineManager;
   bool get isModerator => roles.contains(RoleNames.moderator);
   bool get canMuteNotifications => isJarzManager || isLineManager || isModerator;
 

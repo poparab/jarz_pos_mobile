@@ -39,7 +39,7 @@ final pendingCustomShippingProvider = FutureProvider.autoDispose<List<CustomShip
 // Lightweight access check for Manager Dashboard visibility
 final managerAccessProvider = FutureProvider<bool>((ref) async {
   final roles = await ref.watch(userRolesFutureProvider.future);
-  if (!roles.isManager) {
+  if (!roles.canAccessManagerDashboard) {
     return false;
   }
   final api = ref.read(managerApiProvider);

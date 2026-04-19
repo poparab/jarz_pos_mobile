@@ -20,7 +20,7 @@ class AppDrawer extends ConsumerWidget {
     final isManager = ref.watch(isJarzManagerProvider);
     final isLineManager = ref.watch(isLineManagerProvider);
     final isModerator = ref.watch(isModeratorProvider);
-    final managerAccess = isManager
+    final managerAccess = (isManager || isLineManager)
         ? ref.watch(managerAccessProvider)
         : const AsyncValue<bool>.data(false);
     final requirePosShift = ref.watch(requirePosShiftProvider);
