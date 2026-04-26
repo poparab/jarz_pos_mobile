@@ -222,8 +222,9 @@ class PosNotifier extends StateNotifier<PosState> {
       }
     }
 
-    // Check stock limit
-    final stockQty = ((item['actual_qty'] ?? 0) as num).toDouble();
+    // Only enforce stock limits when the item payload includes stock metadata.
+    final rawStockQty = item['actual_qty'];
+    final stockQty = rawStockQty is num ? rawStockQty.toDouble() : double.infinity;
     final existingItemIndex = state.cartItems.indexWhere(
       (cartItem) => cartItem['item_code'] == item['name'],
     );
