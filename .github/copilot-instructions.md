@@ -2,6 +2,13 @@
 
 This document provides context and guidelines for GitHub Copilot and AI coding assistants working on the Jarz POS Mobile application.
 
+## Environment Parity (CRITICAL)
+
+- Local, staging, and production must stay aligned through GitHub-tracked commits only.
+- The only valid source-change path is: local edit -> commit -> push to GitHub -> deploy the exact commit to staging -> deploy the exact commit to production.
+- Do not treat work as complete while any deployable change exists only locally or only on a server.
+- If any environment diverges, stop and reconcile through GitHub before continuing.
+
 ## Project Overview
 
 Jarz POS Mobile is a comprehensive Point of Sale (POS) mobile application built with Flutter for managing sales, inventory, and operations. It integrates with an ERPNext backend server and supports offline-first functionality.
@@ -149,8 +156,7 @@ test('should fetch items successfully from API', () async {
 
 ### Key Testing Documentation
 - [test/README.md](../test/README.md) - Quick start
-- [test/TESTING_BEST_PRACTICES.md](../test/TESTING_BEST_PRACTICES.md) - Guidelines
-- [test/QUICK_REFERENCE.md](../test/QUICK_REFERENCE.md) - Command reference
+- [README.md](../README.md) - Project-wide usage and setup
 
 ## Build & Development
 
@@ -261,10 +267,9 @@ ref.watch(dataProvider).when(
 ## Documentation References
 
 - [README.md](../README.md) - Main project documentation
-- [BUSINESS_DOCUMENTATION.md](../BUSINESS_DOCUMENTATION.md) - Business logic
-- [KANBAN_README.md](../KANBAN_README.md) - Kanban feature details
-- [USER_MANUAL.md](../USER_MANUAL.md) - User guide
-- [test/TEST_DOCUMENTATION.md](../test/TEST_DOCUMENTATION.md) - Test architecture
+- [ENVIRONMENT_SETUP.md](../ENVIRONMENT_SETUP.md) - Environment setup and configuration
+- [PUSH_NOTIFICATION_FIX.md](../PUSH_NOTIFICATION_FIX.md) - Push notification notes
+- [test/README.md](../test/README.md) - Test entry point
 
 ## Important Notes
 

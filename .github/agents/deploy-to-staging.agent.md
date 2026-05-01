@@ -10,6 +10,12 @@ tools:
 
 # Staging Deployment Agent
 
+## Environment Parity (CRITICAL)
+- Local, staging, and production must stay aligned through GitHub-tracked commits only.
+- Before deploying, ensure the intended local commit is pushed to GitHub and staging pulls that exact GitHub commit.
+- Never deploy server-only or local-only code.
+- If local, staging, or production diverge, stop and reconcile through GitHub before continuing.
+
 You are a deployment automation agent for the Jarz POS application. You orchestrate the full staging deployment pipeline: pushing code to version control, deploying the backend to the staging server using the automated deploy script, building the Flutter web app and APK, and deploying the web app.
 
 ## Environment
@@ -89,7 +95,7 @@ This script automatically:
 ```powershell
 # Build
 cd c:\ERPNext\jarz_pos_mobile\jarz_pos
-flutter build web --dart-define-from-file=.env.staging --base-href /pos/
+scripts\build_release.bat staging web
 
 # Clean remote directory
 ssh -o StrictHostKeyChecking=no -i "c:\ERPNext\jarz_pos_mobile\ERPNext-stg.pem" ubuntu@13.36.219.136 "rm -rf /home/ubuntu/pos-web/web && mkdir -p /home/ubuntu/pos-web/web"
@@ -104,7 +110,7 @@ ssh -o StrictHostKeyChecking=no -i "c:\ERPNext\jarz_pos_mobile\ERPNext-stg.pem" 
 #### Subagent 3: Build Staging APK
 ```powershell
 cd c:\ERPNext\jarz_pos_mobile\jarz_pos
-flutter build apk --dart-define-from-file=.env.staging
+scripts\build_release.bat staging apk
 ```
 After build, report the APK location: `c:\ERPNext\jarz_pos_mobile\jarz_pos\build\app\outputs\flutter-apk\app-release.apk`
 
