@@ -304,13 +304,15 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     final canAddMore = _canAddMoreItems(groupName, item);
     final canRemove = selectedCount > 0;
     final isPhone = ResponsiveUtils.isPhone(context);
+    final itemName = _displayItemName(item);
+    final itemPrice = _asDouble(item['price']);
 
     // Extract stock information (should now be consistent with main grid)
-    final stockQty = (item['qty'] ?? item['actual_qty'] ?? 0).toDouble();
+    final stockQty = _asDouble(item['qty'] ?? item['actual_qty']);
     // Debug: Log the stock values being received
     if (kDebugMode) {
       debugPrint(
-        'Bundle item ${item['name']} - qty: ${item['qty']}, actual_qty: ${item['actual_qty']}, final stock: $stockQty',
+        'Bundle item $itemName - qty: ${item['qty']}, actual_qty: ${item['actual_qty']}, final stock: $stockQty',
       );
     }
     Color stockColor;
@@ -343,92 +345,19 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                   )
                 : null,
           ),
-          child: Stack(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Main content
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
+              Row(
                 children: [
-                  // Item name - bigger and centered
-                  Expanded(
-                    flex: 2,
-                    child: Center(
-                      child: Text(
-                        item['name'] ?? 'Unknown Item',
-                        style: TextStyle(
-                          fontSize: isPhone ? 10 : 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 4,
                     ),
-                  ),
-                  SizedBox(height: isPhone ? 2 : 4),
-                  // Price
-                  Text(
-                    '\$${(item['price'] ?? 0).toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: isPhone ? 10 : 11,
-                      color: Theme.of(context).colorScheme.secondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: isPhone ? 12 : 20), // Space for bottom controls
-                ],
-              ),
-
-              // Stock indicator in top-right
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: stockColor,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 2,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        stockQty <= 0 ? Icons.warning : Icons.inventory,
-                        size: 10,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        '${stockQty.toInt()}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Selection indicator in top-left if selected
-              if (selectedCount > 0)
-                Positioned(
-                  top: 4,
-                  left: 4,
-                  child: Container(
-                    padding: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(8),
+                      color: stockColor,
+                      borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.2),
@@ -440,10 +369,14 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check, size: 10, color: Colors.white),
+                        Icon(
+                          stockQty <= 0 ? Icons.warning : Icons.inventory,
+                          size: 10,
+                          color: Colors.white,
+                        ),
                         const SizedBox(width: 2),
                         Text(
-                          '$selectedCount',
+                          '${stockQty.toInt()}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 9,
@@ -453,84 +386,168 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                       ],
                     ),
                   ),
-                ),
-
-              // Quantity controls at bottom if selected
-              if (selectedCount > 0)
-                Positioned(
-                  bottom: 4,
-                  left: 4,
-                  right: 4,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.7),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (canRemove)
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () =>
-                                _removeItemFromSelection(item, groupName),
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.error,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.remove,
-                                size: 18,
-                                color: Colors.white,
-                              ),
-                            ),
+                  const Spacer(),
+                  if (selectedCount > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 2,
+                            offset: const Offset(0, 1),
                           ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.check, size: 10, color: Colors.white),
+                          const SizedBox(width: 2),
+                          Text(
                             '$selectedCount',
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 14,
+                              fontSize: 9,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                        if (canActuallyAdd)
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => _addItemToSelection(item, groupName),
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.add,
-                                size: 18,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
+                ],
+              ),
+              SizedBox(height: isPhone ? 8 : 10),
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        itemName,
+                        style: TextStyle(
+                          fontSize: isPhone ? 10 : 13,
+                          fontWeight: FontWeight.bold,
+                          color: isOutOfStock
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : Theme.of(context).colorScheme.onSurface,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: isPhone ? 4 : 6),
+                      Text(
+                        '\$${itemPrice.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: isPhone ? 10 : 11,
+                          color: isOutOfStock
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : Theme.of(context).colorScheme.secondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
+              SizedBox(
+                height: isPhone ? 32 : 36,
+                child: selectedCount > 0
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (canRemove)
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () =>
+                                    _removeItemFromSelection(item, groupName),
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.error,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.remove,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              child: Text(
+                                '$selectedCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            if (canActuallyAdd)
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => _addItemToSelection(item, groupName),
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.add,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  String _displayItemName(Map<String, dynamic> item) {
+    final value = item['name'];
+    if (value is String && value.trim().isNotEmpty) {
+      return value.trim();
+    }
+    return 'Unknown Item';
+  }
+
+  double _asDouble(dynamic value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    if (value is String) {
+      return double.tryParse(value) ?? 0;
+    }
+    return 0;
   }
 
   Widget _buildProgressIndicator(List<dynamic> itemGroups) {
@@ -665,16 +682,16 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
   // Helper method to check if more items can be added to a group
   bool _canAddMoreItems(String groupName, Map<String, dynamic> item) {
     final itemGroups = widget.bundle['item_groups'] as List<dynamic>? ?? [];
-    final group = itemGroups.firstWhere(
+    final group = itemGroups.cast<Map<String, dynamic>>().firstWhere(
       (g) => g['group_name'] == groupName,
-      orElse: () => {},
+      orElse: () => <String, dynamic>{},
     );
     final requiredQuantity = group['quantity'] as int? ?? 0;
     final selectedForGroup = selectedItems[groupName] ?? [];
     if (selectedForGroup.length >= requiredQuantity) return false;
 
     // Check stock limit: don't allow adding more than available inventory
-    final stockQty = (item['qty'] ?? item['actual_qty'] ?? 0).toDouble();
+    final stockQty = _asDouble(item['qty'] ?? item['actual_qty']);
     final selectedCount = _getSelectedCount(item, groupName);
     if (selectedCount >= stockQty) return false;
 
