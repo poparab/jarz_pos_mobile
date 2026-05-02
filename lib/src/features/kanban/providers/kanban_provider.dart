@@ -6,6 +6,7 @@ import '../models/kanban_models.dart';
 import '../services/kanban_service.dart';
 import '../services/notification_polling_service.dart';
 import '../../../core/network/dio_provider.dart'; // shared Dio instance
+import '../../../core/network/frappe_error_message.dart';
 import '../../../core/websocket/websocket_service.dart';
 import '../../../core/offline/offline_queue.dart';
 import '../../../core/connectivity/connectivity_service.dart';
@@ -74,6 +75,18 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
   final Ref _ref; // store ref for offline queue & connectivity
   bool _autoBranchesInitialized = false; // ensure we don't override user choice
   Timer? _loadInvoicesDebounce; // debounce rapid loadInvoices calls
+
+  String _formatActionError(
+    Object error, {
+    required String action,
+    String? fallback,
+  }) {
+    final message = extractFrappeErrorMessage(
+      error,
+      fallback: fallback ?? action,
+    );
+    return message == action ? action : '$action: $message';
+  }
 
   KanbanNotifier(this._kanbanService, Ref ref) : _ref = ref, super(KanbanState()) {
     _wsService = ref.read(webSocketServiceProvider);
@@ -277,7 +290,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       showDialog(
         context: ctx,
         builder: (c) {
-          final l10n = AppLocalizations.of(c)!;
+          final l10n = AppLocalizations.of(c);
           return AlertDialog(
             title: Text(l10n.websocketCollectCashTitle),
             content: Column(
@@ -452,7 +465,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Failed to load columns: $e',
+        error: _formatActionError(e, action: 'Failed to load columns'),
       );
     }
   }
@@ -496,7 +509,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Failed to load invoices: $e',
+        error: _formatActionError(e, action: 'Failed to load invoices'),
       );
     }
   }
@@ -572,7 +585,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
           }
           return;
         } catch (e) {
-          state = state.copyWith(error: 'Pickup order dispatch error: $e');
+          state = state.copyWith(
+            error: _formatActionError(e, action: 'Pickup order dispatch error'),
+          );
           return;
         }
       }
@@ -612,7 +627,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
             await loadInvoices();
             return;
           } catch (e) {
-            state = state.copyWith(error: 'Sales Partner unpaid dispatch failed: $e');
+            state = state.copyWith(
+              error: _formatActionError(e, action: 'Sales Partner unpaid dispatch failed'),
+            );
             return;
           }
         } else {
@@ -627,7 +644,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
             _optimisticMove(invoiceId, canonical);
             await loadInvoices();
           } catch (e) {
-            state = state.copyWith(error: 'Sales Partner paid dispatch error: $e');
+            state = state.copyWith(
+              error: _formatActionError(e, action: 'Sales Partner paid dispatch error'),
+            );
           }
           return;
         }
@@ -662,7 +681,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         }
       }
     } catch (e) {
-      state = prevState.copyWith(error: 'Error updating invoice: $e');
+      state = prevState.copyWith(
+        error: _formatActionError(e, action: 'Error updating invoice'),
+      );
     }
   }
 
@@ -712,7 +733,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       await loadInvoices();
       return result;
     } catch (e) {
-      state = state.copyWith(error: 'Cancellation failed: $e');
+      state = state.copyWith(
+        error: _formatActionError(e, action: 'Cancellation failed'),
+      );
       return null;
     } finally {
       final updatedTransitioning = Set<String>.from(state.transitioningInvoices);
@@ -786,7 +809,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       await loadInvoices();
       return result;
     } catch (e) {
-      state = state.copyWith(error: 'Payment failed: $e');
+      state = state.copyWith(
+        error: _formatActionError(e, action: 'Payment failed'),
+      );
       return null;
     }
   }
@@ -871,7 +896,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     } catch (e) {
       // Keep board visible but surface the error for UX; don't revert the optimistic move here
       state = prevState.copyWith(
-        error: 'Mark courier outstanding failed: $e',
+        error: _formatActionError(e, action: 'Mark courier outstanding failed'),
         transitioningInvoices: Set<String>.from(prevState.transitioningInvoices)..remove(invoiceId),
       );
       return null;
@@ -948,7 +973,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       return res;
     } catch (e) {
       state = prevState.copyWith(
-        error: 'Out For Delivery failed: $e',
+        error: _formatActionError(e, action: 'Out For Delivery failed'),
         transitioningInvoices: Set<String>.from(prevState.transitioningInvoices)..remove(invoiceId),
       );
       return null;
@@ -1007,8 +1032,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       );
       return res;
     } catch (e) {
-      state = state.copyWith(error: 'Create courier failed: $e');
-      return null;
+      throw Exception(_formatActionError(e, action: 'Create courier failed'));
     }
   }
 
@@ -1096,7 +1120,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     } catch (e) {
       debugPrint('Transfer invoice error: $e');
       // Set error state so UI can show it
-      state = state.copyWith(error: e.toString().replaceAll('Exception: ', ''));
+      state = state.copyWith(
+        error: _formatActionError(e, action: 'Transfer failed'),
+      );
       return false;
     }
   }
@@ -1119,7 +1145,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       return true;
     } catch (e) {
       debugPrint('Update delivery slot error: $e');
-      state = state.copyWith(error: e.toString().replaceAll('Exception: ', ''));
+      state = state.copyWith(
+        error: _formatActionError(e, action: 'Update delivery slot failed'),
+      );
       return false;
     }
   }
@@ -1141,7 +1169,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       return result;
     } catch (e) {
       debugPrint('Create payment receipt error: $e');
-      return null;
+      throw Exception(_formatActionError(e, action: 'Failed to create receipt'));
     }
   }
 
@@ -1175,7 +1203,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       );
     } catch (e) {
       debugPrint('Upload receipt image error: $e');
-      return null;
+      throw Exception(_formatActionError(e, action: 'Failed to upload image'));
     }
   }
 
@@ -1189,7 +1217,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       );
     } catch (e) {
       debugPrint('Confirm receipt error: $e');
-      return null;
+      throw Exception(_formatActionError(e, action: 'Failed to confirm receipt'));
     }
   }
 

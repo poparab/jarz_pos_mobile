@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/features/kanban/services/kanban_service.dart';
 import '../../../helpers/mock_services.dart';
@@ -34,6 +36,34 @@ void main() {
 
       final req = mockDio.requestLog.last;
       expect(req['queryParameters']['territory_name'], 'Main Territory');
+    });
+
+    test('getSubTerritories throws cleaned ERP message on bad response', () async {
+      mockDio.setError(
+        '/api/method/jarz_pos.api.territories.get_sub_territories',
+        createMockDioException(
+          path: '/api/method/jarz_pos.api.territories.get_sub_territories',
+          statusCode: 417,
+          type: DioExceptionType.badResponse,
+          message: 'DioException [bad response]: This exception was thrown because the response has a status code of 417.',
+          data: {
+            '_server_messages': jsonEncode([
+              jsonEncode({'message': 'Territory Sub A is disabled'})
+            ]),
+          },
+        ),
+      );
+
+      expect(
+        () => service.getSubTerritories('Main Territory'),
+        throwsA(
+          isA<Exception>().having(
+            (error) => error.toString(),
+            'message',
+            contains('Territory Sub A is disabled'),
+          ),
+        ),
+      );
     });
 
     test('setInvoiceSubTerritory posts invoice and sub-territory', () async {
@@ -77,6 +107,37 @@ void main() {
       final req = mockDio.requestLog.last;
       expect(req['data']['invoice_name'], 'SINV-11');
       expect(req['data']['amount'], 40);
+    });
+
+    test('createPaymentReceipt throws cleaned ERP message on bad response', () async {
+      mockDio.setError(
+        '/api/method/jarz_pos.api.payment_receipts.create_payment_receipt',
+        createMockDioException(
+          path: '/api/method/jarz_pos.api.payment_receipts.create_payment_receipt',
+          statusCode: 417,
+          type: DioExceptionType.badResponse,
+          message: 'DioException [bad response]: This exception was thrown because the response has a status code of 417.',
+          data: {
+            'message': 'POS Profile Nasr city is required to create payment receipt',
+          },
+        ),
+      );
+
+      expect(
+        () => service.createPaymentReceipt(
+          salesInvoice: 'SINV-11',
+          paymentMethod: 'Wallet',
+          amount: 40,
+          posProfile: 'Nasr city',
+        ),
+        throwsA(
+          isA<Exception>().having(
+            (error) => error.toString(),
+            'message',
+            contains('POS Profile Nasr city is required to create payment receipt'),
+          ),
+        ),
+      );
     });
 
     test('approve and reject custom shipping call expected endpoints', () async {

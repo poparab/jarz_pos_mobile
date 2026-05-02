@@ -23,6 +23,7 @@ import '../../printing/printer_status.dart';
 import '../../trips/providers/trip_provider.dart';
 import '../../trips/widgets/create_trip_dialog.dart';
 import '../../trips/widgets/trip_group_card.dart';
+import '../../../core/network/frappe_error_message.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/branch_filter_dialog.dart';
 import '../../../core/localization/localization_extensions.dart';
@@ -1035,7 +1036,13 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanMarkedSettleLater)));
           return; // handled fully; backend already moved to OFD
         } catch (e) {
-          messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettleLaterError('$e'))));
+          final errorMessage = extractFrappeErrorMessage(
+            e,
+            fallback: context.l10n.kanbanSettleLaterFailed,
+          );
+          messenger.showSnackBar(
+            SnackBar(content: Text(context.l10n.kanbanSettleLaterError(errorMessage))),
+          );
           // revert
           final fromCol = ref.read(kanbanProvider).columns.firstWhere(
             (c) => c.id == fromColumnId,
@@ -1130,7 +1137,13 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettlementConfirmed)));
           return; // handled: server already performed OFD
         } catch (e) {
-          messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettlementError('$e'))));
+          final errorMessage = extractFrappeErrorMessage(
+            e,
+            fallback: context.l10n.kanbanSettlementFailed,
+          );
+          messenger.showSnackBar(
+            SnackBar(content: Text(context.l10n.kanbanSettlementError(errorMessage))),
+          );
           // revert
           final fromCol = ref.read(kanbanProvider).columns.firstWhere(
             (c) => c.id == fromColumnId,
@@ -1166,8 +1179,12 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             await _showSettlementResultDialog(preview, inv);
           } catch (e) {
             if (!mounted) return;
+            final errorMessage = extractFrappeErrorMessage(
+              e,
+              fallback: context.l10n.kanbanSettlementFailed,
+            );
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(context.l10n.kanbanPreviewFailed('$e'))),
+              SnackBar(content: Text(context.l10n.kanbanPreviewFailed(errorMessage))),
             );
           }
         }
@@ -1626,8 +1643,12 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                             }
                                           } catch (e) {
                                             if (mounted) {
+                                              final errorMessage = extractFrappeErrorMessage(
+                                                e,
+                                                fallback: 'Create failed',
+                                              );
                                               ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text(context.l10n.kanbanCreateFailed('$e'))),
+                                                SnackBar(content: Text(context.l10n.kanbanCreateFailed(errorMessage))),
                                               );
                                             }
                                           } finally {

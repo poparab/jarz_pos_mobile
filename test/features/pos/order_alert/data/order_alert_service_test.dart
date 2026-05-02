@@ -113,7 +113,28 @@ void main() {
       dio.nextError = createMockDioException(statusCode: 500);
       expect(
         () => service.acknowledgeInvoice('X'),
-        throwsA(isA<DioException>()),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('throws cleaned ERP message on bad response', () async {
+      dio.nextError = createMockDioException(
+        statusCode: 417,
+        type: DioExceptionType.badResponse,
+        data: {
+          'message': 'Order is already accepted by another user',
+        },
+      );
+
+      expect(
+        () => service.acknowledgeInvoice('X'),
+        throwsA(
+          isA<Exception>().having(
+            (error) => error.toString(),
+            'message',
+            contains('Order is already accepted by another user'),
+          ),
+        ),
       );
     });
   });

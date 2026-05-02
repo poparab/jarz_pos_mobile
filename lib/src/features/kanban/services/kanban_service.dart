@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import "../models/kanban_models.dart";
 import "../models/kanban_filter_options.dart";
 import "../../../core/utils/logger.dart";
+import '../../../core/network/frappe_error_message.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/constants/business_constants.dart';
 
@@ -14,6 +15,14 @@ class KanbanService {
   final Logger _logger = Logger("KanbanService");
 
   KanbanService(this._dio);
+
+  String _friendlyMessage(dynamic payload, {required String fallback}) {
+    return extractFrappeErrorMessage(payload, fallback: fallback);
+  }
+
+  Exception _friendlyException(Object error, {required String fallback}) {
+    return mapFrappeError(error, fallback: fallback);
+  }
 
   Future<dynamic> rawPost(String path, Map<String, dynamic> data) async {
     final resp = await _dio.post(path, data: data);
@@ -631,10 +640,10 @@ class KanbanService {
       if (msg is Map && (msg['success'] == true)) {
         return Map<String, dynamic>.from(msg);
       }
-      throw Exception(msg is Map ? (msg['error'] ?? 'Failed to update customer address') : 'Failed to update customer address');
+      throw Exception(_friendlyMessage(msg, fallback: 'Failed to update customer address'));
     } catch (e) {
       _logger.error('Failed to update customer address', e);
-      rethrow;
+      throw _friendlyException(e, fallback: 'Failed to update customer address');
     }
   }
 
@@ -673,7 +682,7 @@ class KanbanService {
       if (msg is Map) {
         final success = msg['success'] == true;
         if (!success) {
-          final error = msg['error'] ?? 'Transfer failed';
+          final error = _friendlyMessage(msg, fallback: 'Transfer failed');
           _logger.error('Transfer failed: $error');
           throw Exception(error);
         }
@@ -684,7 +693,7 @@ class KanbanService {
       }
     } catch (e) {
       _logger.error('Failed to transfer invoice', e);
-      rethrow;
+      throw _friendlyException(e, fallback: 'Transfer failed');
     }
   }
 
@@ -717,7 +726,7 @@ class KanbanService {
       if (msg is Map) {
         final success = msg['success'] == true;
         if (!success) {
-          final error = msg['message'] ?? 'Failed to update delivery slot';
+          final error = _friendlyMessage(msg, fallback: 'Failed to update delivery slot');
           _logger.error('Update delivery slot failed: $error');
           throw Exception(error);
         }
@@ -728,7 +737,7 @@ class KanbanService {
       }
     } catch (e) {
       _logger.error('Failed to update delivery slot', e);
-      rethrow;
+      throw _friendlyException(e, fallback: 'Failed to update delivery slot');
     }
   }
 
@@ -753,7 +762,7 @@ class KanbanService {
       throw Exception('Failed to fetch payment receipts');
     } catch (e) {
       _logger.error('Failed to list payment receipts', e);
-      rethrow;
+      throw _friendlyException(e, fallback: 'Failed to fetch payment receipts');
     }
   }
 
@@ -780,10 +789,10 @@ class KanbanService {
         _logger.info('Payment receipt created: ${msg['receipt_name']}');
         return Map<String, dynamic>.from(msg);
       }
-      throw Exception(msg is Map ? msg['error'] ?? 'Failed to create receipt' : 'Failed to create receipt');
+      throw Exception(_friendlyMessage(msg, fallback: 'Failed to create receipt'));
     } catch (e) {
       _logger.error('Failed to create payment receipt', e);
-      rethrow;
+      throw _friendlyException(e, fallback: 'Failed to create receipt');
     }
   }
 
@@ -808,10 +817,10 @@ class KanbanService {
         _logger.info('Receipt image uploaded successfully');
         return Map<String, dynamic>.from(msg);
       }
-      throw Exception(msg is Map ? msg['error'] ?? 'Failed to upload image' : 'Failed to upload image');
+      throw Exception(_friendlyMessage(msg, fallback: 'Failed to upload image'));
     } catch (e) {
       _logger.error('Failed to upload receipt image', e);
-      rethrow;
+      throw _friendlyException(e, fallback: 'Failed to upload image');
     }
   }
 
@@ -832,10 +841,10 @@ class KanbanService {
         _logger.info('Receipt confirmed successfully');
         return Map<String, dynamic>.from(msg);
       }
-      throw Exception(msg is Map ? msg['error'] ?? 'Failed to confirm receipt' : 'Failed to confirm receipt');
+      throw Exception(_friendlyMessage(msg, fallback: 'Failed to confirm receipt'));
     } catch (e) {
       _logger.error('Failed to confirm receipt', e);
-      rethrow;
+      throw _friendlyException(e, fallback: 'Failed to confirm receipt');
     }
   }
 
@@ -871,10 +880,10 @@ class KanbanService {
       if (msg is Map && msg['success'] == true) {
         return List<Map<String, dynamic>>.from(msg['data'] ?? []);
       }
-      throw Exception(msg is Map ? msg['message'] ?? 'Failed' : 'Failed to fetch sub-territories');
+      throw Exception(_friendlyMessage(msg, fallback: 'Failed to fetch sub-territories'));
     } catch (e) {
       _logger.error('Failed to get sub-territories', e);
-      rethrow;
+      throw _friendlyException(e, fallback: 'Failed to fetch sub-territories');
     }
   }
 
@@ -890,10 +899,10 @@ class KanbanService {
       if (msg is Map && msg['success'] == true) {
         return Map<String, dynamic>.from(msg);
       }
-      throw Exception(msg is Map ? msg['message'] ?? 'Failed' : 'Failed to set sub-territory');
+      throw Exception(_friendlyMessage(msg, fallback: 'Failed to set sub-territory'));
     } catch (e) {
       _logger.error('Failed to set sub-territory', e);
-      rethrow;
+      throw _friendlyException(e, fallback: 'Failed to set sub-territory');
     }
   }
 

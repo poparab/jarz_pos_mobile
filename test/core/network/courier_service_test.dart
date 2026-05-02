@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/core/network/courier_service.dart';
 import 'package:jarz_pos/src/core/constants/api_endpoints.dart';
@@ -146,6 +148,42 @@ void main() {
         expect(req['data']['mode'], 'settle_later');
         expect(req['data']['recent_payment_seconds'], 60);
       });
+
+      test('throws cleaned ERP message instead of raw Dio text', () async {
+        mockDio.setError(
+          ApiEndpoints.generateSettlementPreview,
+          createMockDioException(
+            path: ApiEndpoints.generateSettlementPreview,
+            statusCode: 417,
+            type: DioExceptionType.badResponse,
+            message: 'DioException [bad response]: This exception was thrown because the response has a status code of 417.',
+            data: {
+              '_server_messages': jsonEncode([
+                jsonEncode({
+                  'message': '<strong>2.0</strong> units of <a href="/desk/item/Mango%20Kunafa%20Medium">Item Mango Kunafa Medium</a> needed in <a href="/desk/warehouse/Nasr%20city%20-%20J">Warehouse Nasr city - J</a> to complete this transaction.',
+                }),
+              ]),
+            },
+          ),
+        );
+
+        expect(
+          () => service.generateSettlementPreview(invoice: 'INV-001'),
+          throwsA(
+            isA<Exception>()
+                .having(
+                  (error) => error.toString(),
+                  'message',
+                  contains('2.0 units of Item Mango Kunafa Medium needed in Warehouse Nasr city - J to complete this transaction.'),
+                )
+                .having(
+                  (error) => error.toString(),
+                  'doesNotContainDioException',
+                  isNot(contains('DioException')),
+                ),
+          ),
+        );
+      });
     });
 
     // ── confirmSettlement ─────────────────────────────────────────────
@@ -225,6 +263,39 @@ void main() {
             mode: 'pay_now',
           ),
           throwsA(isA<Exception>()),
+        );
+      });
+
+      test('falls back to action-specific message when backend gives no details', () async {
+        mockDio.setError(
+          ApiEndpoints.confirmSettlement,
+          createMockDioException(
+            path: ApiEndpoints.confirmSettlement,
+            statusCode: 417,
+            type: DioExceptionType.badResponse,
+            message: 'DioException [bad response]: This exception was thrown because the response has a status code of 417.',
+          ),
+        );
+
+        expect(
+          () => service.confirmSettlement(
+            invoice: 'INV-001',
+            previewToken: 'tok',
+            mode: 'pay_now',
+          ),
+          throwsA(
+            isA<Exception>()
+                .having(
+                  (error) => error.toString(),
+                  'message',
+                  contains('Failed to confirm settlement'),
+                )
+                .having(
+                  (error) => error.toString(),
+                  'doesNotContainDioException',
+                  isNot(contains('DioException')),
+                ),
+          ),
         );
       });
     });

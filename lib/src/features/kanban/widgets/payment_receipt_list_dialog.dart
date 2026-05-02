@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/network/frappe_error_message.dart';
 import '../providers/kanban_provider.dart';
 
 class PaymentReceiptListDialog extends ConsumerStatefulWidget {
@@ -104,8 +105,12 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
       }
     } catch (e) {
       if (!mounted) return;
+      final errorMessage = extractFrappeErrorMessage(
+        e,
+        fallback: context.l10n.receiptUploadFailed,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.receiptUploadError(e.toString()))),
+        SnackBar(content: Text(context.l10n.receiptUploadError(errorMessage))),
       );
     }
   }
@@ -166,8 +171,12 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
       }
     } catch (e) {
       if (!mounted) return;
+      final errorMessage = extractFrappeErrorMessage(
+        e,
+        fallback: context.l10n.receiptConfirmFailed,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.receiptConfirmError(e.toString()))),
+        SnackBar(content: Text(context.l10n.receiptConfirmError(errorMessage))),
       );
     }
   }

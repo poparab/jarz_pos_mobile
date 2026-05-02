@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dio_provider.dart';
+import 'frappe_error_message.dart';
 import '../constants/api_endpoints.dart';
 import '../constants/business_constants.dart';
 
@@ -12,6 +13,39 @@ final courierServiceProvider = Provider<CourierService>((ref) {
 class CourierService {
   final Dio _dio;
   CourierService(this._dio);
+
+  Map<String, dynamic> _parseMethodResponse(
+    dynamic payload, {
+    required String fallback,
+  }) {
+    if (payload is Map && payload['message'] is Map) {
+      return _unwrapPayloadMap(
+        Map<String, dynamic>.from(payload['message'] as Map),
+        fallback: fallback,
+      );
+    }
+    if (payload is Map) {
+      return _unwrapPayloadMap(
+        Map<String, dynamic>.from(payload),
+        fallback: fallback,
+      );
+    }
+    throw Exception(fallback);
+  }
+
+  Map<String, dynamic> _unwrapPayloadMap(
+    Map<String, dynamic> payload, {
+    required String fallback,
+  }) {
+    final success = payload['success'];
+    final error = payload['error'];
+    if (success == false || (error != null && error.toString().trim().isNotEmpty)) {
+      throw Exception(
+        extractFrappeErrorMessage(error ?? payload, fallback: fallback),
+      );
+    }
+    return payload;
+  }
 
   Future<List<dynamic>> getBalances() async {
     final resp = await _dio.post(
@@ -32,20 +66,25 @@ class CourierService {
     String? partyType,
     String? party,
   }) async {
-    final resp = await _dio.post(
-      ApiEndpoints.getInvoiceSettlementPreview,
-      data: {
-        'invoice_name': invoice,
-        if (partyType != null) 'party_type': partyType,
-        if (party != null) 'party': party,
-      },
-    );
-    final payload = resp.data;
-    if (payload is Map && payload['message'] is Map) {
-      return Map<String, dynamic>.from(payload['message'] as Map);
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.getInvoiceSettlementPreview,
+        data: {
+          'invoice_name': invoice,
+          if (partyType != null) 'party_type': partyType,
+          if (party != null) 'party': party,
+        },
+      );
+      return _parseMethodResponse(
+        resp.data,
+        fallback: 'Failed to load settlement preview',
+      );
+    } catch (error) {
+      throw mapFrappeError(
+        error,
+        fallback: 'Failed to load settlement preview',
+      );
     }
-    if (payload is Map) return Map<String, dynamic>.from(payload);
-    throw Exception('Unexpected preview response');
   }
 
   // New two-step APIs
@@ -56,22 +95,27 @@ class CourierService {
     String mode = 'pay_now',
     int recentPaymentSeconds = 30,
   }) async {
-    final resp = await _dio.post(
-      ApiEndpoints.generateSettlementPreview,
-      data: {
-        'invoice': invoice,
-        if (partyType != null) 'party_type': partyType,
-        if (party != null) 'party': party,
-        'mode': mode,
-        'recent_payment_seconds': recentPaymentSeconds,
-      },
-    );
-    final payload = resp.data;
-    if (payload is Map && payload['message'] is Map) {
-      return Map<String, dynamic>.from(payload['message'] as Map);
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.generateSettlementPreview,
+        data: {
+          'invoice': invoice,
+          if (partyType != null) 'party_type': partyType,
+          if (party != null) 'party': party,
+          'mode': mode,
+          'recent_payment_seconds': recentPaymentSeconds,
+        },
+      );
+      return _parseMethodResponse(
+        resp.data,
+        fallback: 'Failed to load settlement preview',
+      );
+    } catch (error) {
+      throw mapFrappeError(
+        error,
+        fallback: 'Failed to load settlement preview',
+      );
     }
-    if (payload is Map) return Map<String, dynamic>.from(payload);
-    throw Exception('Unexpected generate preview response');
   }
 
   Future<Map<String, dynamic>> confirmSettlement({
@@ -82,28 +126,32 @@ class CourierService {
     String? partyType,
     String? party,
     String paymentMode = PaymentModes.cash,
-  String? courier,
+    String? courier,
   }) async {
-    final resp = await _dio.post(
-      ApiEndpoints.confirmSettlement,
-      data: {
-        'invoice': invoice,
-        'preview_token': previewToken,
-        'mode': mode,
-        if (posProfile != null) 'pos_profile': posProfile,
-        if (partyType != null) 'party_type': partyType,
-        if (party != null) 'party': party,
-        'payment_mode': paymentMode,
-    // Only send courier when non-empty; otherwise allow backend to derive from party
-    if (courier != null && courier.trim().isNotEmpty) 'courier': courier,
-      },
-    );
-    final payload = resp.data;
-    if (payload is Map && payload['message'] is Map) {
-      return Map<String, dynamic>.from(payload['message'] as Map);
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.confirmSettlement,
+        data: {
+          'invoice': invoice,
+          'preview_token': previewToken,
+          'mode': mode,
+          if (posProfile != null) 'pos_profile': posProfile,
+          if (partyType != null) 'party_type': partyType,
+          if (party != null) 'party': party,
+          'payment_mode': paymentMode,
+          if (courier != null && courier.trim().isNotEmpty) 'courier': courier,
+        },
+      );
+      return _parseMethodResponse(
+        resp.data,
+        fallback: 'Failed to confirm settlement',
+      );
+    } catch (error) {
+      throw mapFrappeError(
+        error,
+        fallback: 'Failed to confirm settlement',
+      );
     }
-    if (payload is Map) return Map<String, dynamic>.from(payload);
-    throw Exception('Unexpected confirm settlement response');
   }
 
   Future<Map<String, dynamic>> settleAllForParty({

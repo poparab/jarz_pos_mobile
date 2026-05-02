@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/dio_provider.dart';
+import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../domain/invoice_alert.dart';
 
@@ -40,10 +41,14 @@ class OrderAlertService {
   }
 
   Future<void> acknowledgeInvoice(String invoiceName) async {
-    await _dio.post(
-      ApiEndpoints.acknowledgeInvoice,
-      data: {'invoice_name': invoiceName},
-    );
+    try {
+      await _dio.post(
+        ApiEndpoints.acknowledgeInvoice,
+        data: {'invoice_name': invoiceName},
+      );
+    } catch (error) {
+      throw mapFrappeError(error, fallback: 'Failed to accept order');
+    }
   }
 
   Future<List<InvoiceAlert>> getPendingAlerts() async {

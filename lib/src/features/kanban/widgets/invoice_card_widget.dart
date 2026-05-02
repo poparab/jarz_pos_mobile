@@ -11,6 +11,7 @@ import '../../pos/data/repositories/pos_repository.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/constants/business_constants.dart';
 import '../../../core/network/courier_service.dart';
+import '../../../core/network/frappe_error_message.dart';
 import '../../../core/network/user_service.dart';
 import '../../manager/data/manager_api.dart';
 import 'settlement_preview_dialog.dart';
@@ -46,6 +47,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   late AnimationController _animationController;
   late Animation<double> _animation;
   bool _isAccepting = false; // Track acceptance state for optimistic UI
+
+  String _formatErrorMessage(Object error, {required String fallback}) {
+    return extractFrappeErrorMessage(error, fallback: fallback);
+  }
+
+  String _withActionPrefix(String action, Object error, {String? fallback}) {
+    final message = _formatErrorMessage(error, fallback: fallback ?? action);
+    return message == action ? action : '$action: $message';
+  }
 
   @override
   void initState() {
@@ -302,7 +312,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             children: [
               const Icon(Icons.error, color: Colors.white),
               const SizedBox(width: 8),
-              Expanded(child: Text(l10n.invoiceAcceptFailed(e.toString()))),
+              Expanded(
+                child: Text(
+                  l10n.invoiceAcceptFailed(
+                    _formatErrorMessage(e, fallback: 'Request failed'),
+                  ),
+                ),
+              ),
             ],
           ),
           backgroundColor: Colors.red[600],
@@ -1397,9 +1413,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             } catch (e) {
               // Don't block payment success, just log
               if (context.mounted) {
+                final errorMessage = _formatErrorMessage(
+                  e,
+                  fallback: 'Receipt creation failed',
+                );
                 messenger.showSnackBar(
                   SnackBar(
-                    content: Text(context.l10n.invoiceReceiptCreationFailed('$e')),
+                    content: Text(context.l10n.invoiceReceiptCreationFailed(errorMessage)),
                     duration: const Duration(seconds: 3),
                   ),
                 );
@@ -1413,8 +1433,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         );
       }
     } catch (e) {
+      final errorMessage = _formatErrorMessage(
+        e,
+        fallback: context.l10n.invoicePaymentFailed,
+      );
       messenger.showSnackBar(
-        SnackBar(content: Text(context.l10n.invoicePaymentError('$e'))),
+        SnackBar(content: Text(context.l10n.invoicePaymentError(errorMessage))),
       );
     }
   }
@@ -1476,10 +1500,22 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceCashCollectedOfd)));
             await notifier.refreshSingle(widget.invoice.name);
           } else {
-            messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceOfdFailed((raw['message'] ?? raw).toString()))));
+            final errorMessage = _formatErrorMessage(
+              raw['message'] ?? raw,
+              fallback: context.l10n.invoiceDeliveryFailed,
+            );
+            messenger.showSnackBar(
+              SnackBar(content: Text(context.l10n.invoiceOfdFailed(errorMessage))),
+            );
           }
         } catch (e) {
-          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceOfdError('$e'))));
+          final errorMessage = extractFrappeErrorMessage(
+            e,
+            fallback: context.l10n.invoiceDeliveryFailed,
+          );
+          messenger.showSnackBar(
+            SnackBar(content: Text(context.l10n.invoiceOfdError(errorMessage))),
+          );
         }
         return;
       } else if (isPaid) {
@@ -1487,7 +1523,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           await notifier.updateInvoiceState(widget.invoice.name, 'Out For Delivery');
           messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSentOfd)));
         } catch (e) {
-          messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceActionFailed('$e'))));
+          final errorMessage = extractFrappeErrorMessage(
+            e,
+            fallback: context.l10n.invoiceDeliveryFailed,
+          );
+          messenger.showSnackBar(
+            SnackBar(content: Text(context.l10n.invoiceActionFailed(errorMessage))),
+          );
         }
         return;
       }
@@ -1544,7 +1586,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettleLaterFailed)));
         }
       } catch (e) {
-        messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettleLaterError('$e'))));
+        final errorMessage = extractFrappeErrorMessage(
+          e,
+          fallback: context.l10n.invoiceSettleLaterFailed,
+        );
+        messenger.showSnackBar(
+          SnackBar(content: Text(context.l10n.invoiceSettleLaterError(errorMessage))),
+        );
       }
       return;
     }
@@ -1603,7 +1651,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementFailed)));
         }
       } catch (e) {
-        messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementError('$e'))));
+        final errorMessage = extractFrappeErrorMessage(
+          e,
+          fallback: context.l10n.invoiceSettlementFailed,
+        );
+        messenger.showSnackBar(
+          SnackBar(content: Text(context.l10n.invoiceSettlementError(errorMessage))),
+        );
       }
       return;
     }
@@ -1625,7 +1679,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceDeliveryFailed)));
       }
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceDeliveryError('$e'))));
+      final errorMessage = extractFrappeErrorMessage(
+        e,
+        fallback: context.l10n.invoiceDeliveryFailed,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text(context.l10n.invoiceDeliveryError(errorMessage))),
+      );
     }
   }
 
@@ -1918,8 +1978,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                             }
                                           } catch (e) {
                                             if (context.mounted) {
+                                              final errorMessage = _formatErrorMessage(
+                                                e,
+                                                fallback: 'Create failed',
+                                              );
                                               ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text(context.l10n.kanbanCreateFailed('$e'))),
+                                                SnackBar(content: Text(context.l10n.kanbanCreateFailed(errorMessage))),
                                               );
                                             }
                                           } finally {
@@ -2082,7 +2146,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementFailed)));
       }
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementError('$e'))));
+      final errorMessage = extractFrappeErrorMessage(
+        e,
+        fallback: context.l10n.invoiceSettlementFailed,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text(context.l10n.invoiceSettlementError(errorMessage))),
+      );
     }
   }
 
@@ -2217,8 +2287,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       }
     } catch (e) {
       if (context.mounted) {
+        final errorMessage = _withActionPrefix(
+          'Failed to load sub-territories',
+          e,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load sub-territories: $e')),
+          SnackBar(content: Text(errorMessage)),
         );
       }
     }
@@ -2249,8 +2323,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       }
     } catch (e) {
       if (context.mounted) {
+        final errorMessage = _formatErrorMessage(
+          e,
+          fallback: 'Request failed',
+        );
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.kanbanCustomShippingFailed(e.toString()))),
+          SnackBar(content: Text(context.l10n.kanbanCustomShippingFailed(errorMessage))),
         );
       }
     }
@@ -2475,13 +2553,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       }
     } catch (e) {
       messenger.clearSnackBars();
+      final errorMessage = _formatErrorMessage(
+        e,
+        fallback: context.l10n.invoiceAddressUpdateFailed,
+      );
       messenger.showSnackBar(
         SnackBar(
           content: Row(
             children: [
               const Icon(Icons.error, color: Colors.white),
               const SizedBox(width: 12),
-              Expanded(child: Text('Error: $e')),
+              Expanded(child: Text('Error: $errorMessage')),
             ],
           ),
           backgroundColor: Colors.red[600],
@@ -2848,13 +2930,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       }
     } catch (e) {
       messenger.clearSnackBars();
+      final errorMessage = _formatErrorMessage(
+        e,
+        fallback: context.l10n.invoiceTransferFailed,
+      );
       messenger.showSnackBar(
         SnackBar(
           content: Row(
             children: [
               const Icon(Icons.error, color: Colors.white),
               const SizedBox(width: 12),
-              Expanded(child: Text('Error: $e')),
+              Expanded(child: Text('Error: $errorMessage')),
             ],
           ),
           backgroundColor: Colors.red[600],
@@ -3142,13 +3228,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       }
     } catch (e) {
       messenger.clearSnackBars();
+      final errorMessage = _formatErrorMessage(
+        e,
+        fallback: context.l10n.invoiceDeliveryFailed,
+      );
       messenger.showSnackBar(
         SnackBar(
           content: Row(
             children: [
               const Icon(Icons.error, color: Colors.white),
               const SizedBox(width: 12),
-              Expanded(child: Text('Error: $e')),
+              Expanded(child: Text('Error: $errorMessage')),
             ],
           ),
           backgroundColor: Colors.red[600],
