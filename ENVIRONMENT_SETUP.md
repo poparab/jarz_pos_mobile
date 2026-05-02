@@ -30,8 +30,8 @@ flutter run --dart-define=ENV=prod -d <deviceId>
 ## Build APKs (optional, not required to run)
 
 ```powershell
-flutter build apk --dart-define=ENV=staging -t lib/main.dart
-flutter build apk --dart-define=ENV=prod -t lib/main.dart
+scripts\build_release.bat staging apk
+scripts\build_release.bat prod apk
 ```
 
 If you later add Android product flavors, append `--flavor staging|prod` accordingly.
@@ -44,8 +44,9 @@ flutter config --enable-web
 # Local web dev server using staging env
 flutter run -d chrome --dart-define=ENV=staging
 
-# Production bundle (outputs to build/web)
-flutter build web --release --dart-define=ENV=prod
+# Hardened release bundles (outputs to build/web)
+scripts\build_release.bat staging web
+scripts\build_release.bat prod web
 ```
 
 Deploy `build/web` to any static host (Nginx, S3+CloudFront, GitHub Pages, etc.).
@@ -53,5 +54,6 @@ Deploy `build/web` to any static host (Nginx, S3+CloudFront, GitHub Pages, etc.)
 ## Notes
 
 - The loader is at `lib/src/core/env/env.dart` and selects the file based on `ENV`.
+- Release builds should use `scripts/build_release.sh` or `scripts\build_release.bat` so both `ENV` and the matching `.env.*` file are passed together.
 - WebSocket settings come from the chosen `.env.*` file; override `SOCKET_IO_URL` if your Socket.IO server is on a separate port/domain.
 - Ensure ERPNext CORS allows your web origin for cookie-based sessions.

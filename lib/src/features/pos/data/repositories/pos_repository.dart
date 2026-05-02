@@ -12,6 +12,97 @@ class PosRepository {
 
   final Dio _dio;
 
+  bool _asBool(dynamic value) {
+    if (value is bool) {
+      return value;
+    }
+    if (value is num) {
+      return value != 0;
+    }
+
+    final normalized = value?.toString().trim().toLowerCase();
+    return normalized == '1' ||
+        normalized == 'true' ||
+        normalized == 'yes' ||
+        normalized == 'y';
+  }
+
+  bool _isExplicitlyDisabled(Map<String, dynamic> data) {
+    const disabledKeys = ['disabled', 'is_disabled', 'enabled'];
+
+    for (final key in disabledKeys) {
+      if (!data.containsKey(key)) {
+        continue;
+      }
+
+      final value = data[key];
+      if (key == 'enabled') {
+        return !_asBool(value);
+      }
+      return _asBool(value);
+    }
+
+    return false;
+  }
+
+  String _stringValue(Map<String, dynamic> data, String key) {
+    return (data[key] ?? '').toString().trim();
+  }
+
+  bool _hasUsableItemIdentity(Map<String, dynamic> item) {
+    return _stringValue(item, 'id').isNotEmpty &&
+        _stringValue(item, 'name').isNotEmpty;
+  }
+
+  bool _hasUsableBundleIdentity(Map<String, dynamic> bundle) {
+    return _stringValue(bundle, 'id').isNotEmpty &&
+        _stringValue(bundle, 'name').isNotEmpty;
+  }
+
+  List<Map<String, dynamic>> _normalizedBundleGroups(
+    Map<String, dynamic> bundle,
+  ) {
+    final rawGroups = bundle['item_groups'];
+    if (rawGroups is! List) {
+      return const [];
+    }
+
+    final normalizedGroups = <Map<String, dynamic>>[];
+    for (final rawGroup in rawGroups) {
+      if (rawGroup is! Map) {
+        continue;
+      }
+
+      final group = Map<String, dynamic>.from(rawGroup);
+      final rawItems = group['items'];
+      if (rawItems is! List) {
+        continue;
+      }
+
+      final validItems = <Map<String, dynamic>>[];
+      for (final rawItem in rawItems) {
+        if (rawItem is! Map) {
+          continue;
+        }
+
+        final item = Map<String, dynamic>.from(rawItem);
+        if (_isExplicitlyDisabled(item) || !_hasUsableItemIdentity(item)) {
+          continue;
+        }
+        validItems.add(item);
+      }
+
+      if (validItems.isEmpty) {
+        continue;
+      }
+
+      group['items'] = validItems;
+      normalizedGroups.add(group);
+    }
+
+    return normalizedGroups;
+  }
+
   Future<List<Map<String, dynamic>>> getPosProfiles() async {
     try {
       final response = await _dio.post(
@@ -57,15 +148,21 @@ class PosRepository {
 
       if (response.statusCode == 200 && response.data['message'] != null) {
         final List<dynamic> bundlesData = response.data['message'];
-        // Normalize free_shipping to bool for Dart side
-        return bundlesData.map<Map<String, dynamic>>((raw) {
-          final m = Map<String, dynamic>.from(raw as Map);
-          final fs = m['free_shipping'];
-          m['free_shipping'] = (fs is bool)
-              ? fs
-              : ((fs is num) ? (fs != 0) : (fs?.toString() == '1' || fs?.toString().toLowerCase() == 'true'));
-          return m;
-        }).toList();
+        return bundlesData.whereType<Map>().map((raw) {
+          final bundle = Map<String, dynamic>.from(raw);
+          if (_isExplicitlyDisabled(bundle) || !_hasUsableBundleIdentity(bundle)) {
+            return null;
+          }
+
+          final itemGroups = _normalizedBundleGroups(bundle);
+          if (itemGroups.isEmpty) {
+            return null;
+          }
+
+          bundle['free_shipping'] = _asBool(bundle['free_shipping']);
+          bundle['item_groups'] = itemGroups;
+          return bundle;
+        }).whereType<Map<String, dynamic>>().toList();
       }
       return [];
     } catch (e) {
@@ -118,7 +215,12 @@ class PosRepository {
 
         // Transform the item data to match our expected format
         List<Map<String, dynamic>> items = [];
-        for (Map<String, dynamic> item in itemsData) {
+        for (final rawItem in itemsData.whereType<Map>()) {
+          final item = Map<String, dynamic>.from(rawItem);
+          if (_isExplicitlyDisabled(item) || !_hasUsableItemIdentity(item)) {
+            continue;
+          }
+
           items.add({
             'name': item['id'],
             'item_name': item['name'],

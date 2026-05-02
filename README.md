@@ -51,6 +51,15 @@ flutter test
 flutter test --coverage
 ```
 
+### Run Real Browser E2E Tests
+```bash
+npm install
+npm run e2e:install
+npm run e2e:test:staging
+```
+
+See [Browser E2E README](e2e/README.md) for credentials, production-safe execution, and route coverage.
+
 For detailed testing information, see:
 - [Test README](test/README.md) - Quick start guide for running tests
 - [Test Documentation](test/TEST_DOCUMENTATION.md) - Comprehensive test suite documentation

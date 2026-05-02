@@ -51,6 +51,13 @@ ios/Runner/GoogleService-Info.plist
 
 # Local test credentials (never commit)
 .env.test.local
+.env.e2e.local
+
+# Browser E2E artifacts
+node_modules/
+playwright-report/
+test-results/
+blob-report/
 
 # Local one-off debug scripts (never commit)
 debug_*.py
