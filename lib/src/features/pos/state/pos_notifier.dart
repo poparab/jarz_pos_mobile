@@ -128,6 +128,37 @@ class PosNotifier extends StateNotifier<PosState> {
   final PosRepository _repository;
   bool _isPrefetchingSlots = false; // Guard against concurrent prefetch
 
+  Future<void> refreshCatalog({bool showLoading = false}) async {
+    final profileName = state.selectedProfile?['name']?.toString();
+    if (profileName == null || profileName.isEmpty) {
+      return;
+    }
+
+    state = state.copyWith(
+      isLoading: showLoading ? true : state.isLoading,
+      clearError: true,
+    );
+
+    try {
+      final futures = await Future.wait([
+        _repository.getItems(profileName),
+        _repository.getBundles(profileName),
+      ]);
+
+      state = state.copyWith(
+        items: futures[0],
+        bundles: futures[1],
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        error: e.toString(),
+        isLoading: false,
+        clearError: false,
+      );
+    }
+  }
+
   Future<void> loadProfiles() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {

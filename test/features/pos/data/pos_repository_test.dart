@@ -386,6 +386,53 @@ void main() {
         expect(result.single['item_groups'][1]['items'], hasLength(1));
       });
 
+      test('normalizes alternate bundle item field names for picker UI', () async {
+        final bundles = [
+          {
+            'id': 'BUNDLE-ALT',
+            'name': 'Jarz Signature Trio',
+            'item_groups': [
+              {
+                'group_name': 'Signature Drinks',
+                'quantity': 3,
+                'items': [
+                  {
+                    'item_code': 'ITEM-001',
+                    'item_name': 'Spanish Latte',
+                    'rate': 55.0,
+                    'actual_qty': 7,
+                  },
+                  {
+                    'item_code': 'ITEM-002',
+                    'item_name': 'Pistachio Latte',
+                    'rate': 60.0,
+                    'qty': 5,
+                  },
+                ],
+              },
+            ],
+          },
+        ];
+
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.pos.get_profile_bundles',
+          createSuccessResponse(data: bundles),
+        );
+
+        final result = await repository.getBundles('Main POS');
+        final items = result.single['item_groups'].single['items'] as List<dynamic>;
+
+        expect(items, hasLength(2));
+        expect(items.first['id'], equals('ITEM-001'));
+        expect(items.first['name'], equals('Spanish Latte'));
+        expect(items.first['price'], equals(55.0));
+        expect(items.first['actual_qty'], equals(7.0));
+        expect(items[1]['id'], equals('ITEM-002'));
+        expect(items[1]['name'], equals('Pistachio Latte'));
+        expect(items[1]['price'], equals(60.0));
+        expect(items[1]['qty'], equals(5.0));
+      });
+
       test('sends profile parameter correctly', () async {
         mockDio.setResponse(
           '/api/method/jarz_pos.api.pos.get_profile_bundles',

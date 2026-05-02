@@ -9,6 +9,7 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/websocket/websocket_service.dart';
 import '../../../../core/sync/offline_sync_service.dart';
+import '../../../../core/router.dart';
 import '../../state/courier_balances_provider.dart';
 
 // Merged system status: connectivity, realtime, sync, couriers, partner chip
@@ -38,7 +39,7 @@ class PosScreen extends ConsumerStatefulWidget {
 }
 
 class _PosScreenState extends ConsumerState<PosScreen>
-    with SingleTickerProviderStateMixin {
+  with SingleTickerProviderStateMixin, RouteAware, WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isProfileDialogOpen = false;
 
@@ -57,6 +58,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _hideController = AnimationController(
       vsync: this,
@@ -73,12 +75,44 @@ class _PosScreenState extends ConsumerState<PosScreen>
       final state = ref.read(posNotifierProvider);
       if (state.selectedProfile == null) {
         ref.read(posNotifierProvider.notifier).loadProfiles();
+      } else {
+        ref.read(posNotifierProvider.notifier).refreshCatalog();
       }
     });
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final modalRoute = ModalRoute.of(context);
+    if (modalRoute is PageRoute<dynamic>) {
+      routeObserver.subscribe(this, modalRoute);
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) {
+      return;
+    }
+
+    final route = ModalRoute.of(context);
+    if (route?.isCurrent ?? false) {
+      ref.read(posNotifierProvider.notifier).refreshCatalog();
+    }
+  }
+
+  @override
+  void didPopNext() {
+    ref.read(posNotifierProvider.notifier).refreshCatalog();
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    try {
+      routeObserver.unsubscribe(this);
+    } catch (_) {}
     _hideController.dispose();
     super.dispose();
   }
@@ -896,6 +930,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
         onPressed: () async {
           final messenger = ScaffoldMessenger.of(ctx);
           await offlineSyncService.forceSyncNow();
+          await r.read(posNotifierProvider.notifier).refreshCatalog();
           await r.read(courierBalancesProvider.notifier).load();
           messenger.showSnackBar(
             SnackBar(

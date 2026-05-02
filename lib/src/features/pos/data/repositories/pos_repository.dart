@@ -49,6 +49,83 @@ class PosRepository {
     return (data[key] ?? '').toString().trim();
   }
 
+  String _firstNonEmptyString(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final value = _stringValue(data, key);
+      if (value.isNotEmpty) {
+        return value;
+      }
+    }
+    return '';
+  }
+
+  double? _asDouble(dynamic value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+
+    if (value == null) {
+      return null;
+    }
+
+    return double.tryParse(value.toString().trim());
+  }
+
+  int? _asInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+
+    if (value is num) {
+      return value.toInt();
+    }
+
+    if (value == null) {
+      return null;
+    }
+
+    return int.tryParse(value.toString().trim()) ??
+        double.tryParse(value.toString().trim())?.toInt();
+  }
+
+  Map<String, dynamic>? _normalizedBundleItem(Map<String, dynamic> rawItem) {
+    if (_isExplicitlyDisabled(rawItem)) {
+      return null;
+    }
+
+    final item = Map<String, dynamic>.from(rawItem);
+    final itemId = _firstNonEmptyString(item, const ['id', 'item_code']);
+    final itemName = _firstNonEmptyString(
+      item,
+      const ['name', 'item_name', 'title'],
+    );
+
+    item['id'] = itemId;
+    item['name'] = itemName;
+
+    final price = _asDouble(item['price'] ?? item['rate'] ?? item['price_list_rate']);
+    if (price != null) {
+      item['price'] = price;
+    }
+
+    final stockQty = _asDouble(
+      item['qty'] ??
+          item['actual_qty'] ??
+          item['stock_qty'] ??
+          item['available_qty'],
+    );
+    if (stockQty != null) {
+      item['qty'] = stockQty;
+      item['actual_qty'] = stockQty;
+    }
+
+    if (!_hasUsableItemIdentity(item)) {
+      return null;
+    }
+
+    return item;
+  }
+
   bool _hasUsableItemIdentity(Map<String, dynamic> item) {
     return _stringValue(item, 'id').isNotEmpty &&
         _stringValue(item, 'name').isNotEmpty;
@@ -74,7 +151,21 @@ class PosRepository {
       }
 
       final group = Map<String, dynamic>.from(rawGroup);
-      final rawItems = group['items'];
+      final groupName = _firstNonEmptyString(
+        group,
+        const ['group_name', 'item_group', 'title'],
+      );
+      if (groupName.isEmpty) {
+        continue;
+      }
+
+      final rawQuantity = _asInt(group['quantity'] ?? group['required_quantity']);
+      if (rawQuantity != null && rawQuantity <= 0) {
+        continue;
+      }
+      final quantity = rawQuantity ?? 1;
+
+      final rawItems = group['items'] ?? group['bundle_items'];
       if (rawItems is! List) {
         continue;
       }
@@ -85,8 +176,8 @@ class PosRepository {
           continue;
         }
 
-        final item = Map<String, dynamic>.from(rawItem);
-        if (_isExplicitlyDisabled(item) || !_hasUsableItemIdentity(item)) {
+        final item = _normalizedBundleItem(Map<String, dynamic>.from(rawItem));
+        if (item == null) {
           continue;
         }
         validItems.add(item);
@@ -96,6 +187,8 @@ class PosRepository {
         continue;
       }
 
+      group['group_name'] = groupName;
+      group['quantity'] = quantity;
       group['items'] = validItems;
       normalizedGroups.add(group);
     }

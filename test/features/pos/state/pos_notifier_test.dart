@@ -13,6 +13,10 @@ class _FakePosRepository extends PosRepository {
   List<Map<String, dynamic>> bundlesResult = [];
   List<DeliverySlot> slotsResult = [];
   bool shouldThrow = false;
+  String? lastItemsProfile;
+  String? lastBundlesProfile;
+  int itemsCalls = 0;
+  int bundlesCalls = 0;
 
   @override
   Future<List<Map<String, dynamic>>> getPosProfiles() async {
@@ -22,12 +26,16 @@ class _FakePosRepository extends PosRepository {
 
   @override
   Future<List<Map<String, dynamic>>> getItems(String posProfile) async {
+    itemsCalls += 1;
+    lastItemsProfile = posProfile;
     if (shouldThrow) throw Exception('items error');
     return itemsResult;
   }
 
   @override
   Future<List<Map<String, dynamic>>> getBundles(String posProfile) async {
+    bundlesCalls += 1;
+    lastBundlesProfile = posProfile;
     if (shouldThrow) throw Exception('bundles error');
     return bundlesResult;
   }
@@ -330,6 +338,56 @@ void main() {
 
       expect(notifier.state.error, isNotNull);
       expect(notifier.state.isLoading, false);
+    });
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // PosNotifier – refreshCatalog
+  // ──────────────────────────────────────────────────────────────────────────
+  group('PosNotifier.refreshCatalog', () {
+    late _FakePosRepository repo;
+    late PosNotifier notifier;
+
+    setUp(() {
+      repo = _FakePosRepository();
+      notifier = PosNotifier(repo);
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': '6th of october'},
+        cartItems: const [
+          {'item_code': 'ITEM-1', 'quantity': 2, 'rate': 10.0},
+        ],
+        selectedCustomer: const {'name': 'CUST-1'},
+      );
+    });
+
+    test('reloads items and bundles for the current profile without clearing order context', () async {
+      repo.itemsResult = [
+        {'name': 'ITEM-1', 'actual_qty': 4.0},
+      ];
+      repo.bundlesResult = [
+        {'id': 'BUNDLE-1', 'name': 'Bundle 1'},
+      ];
+
+      await notifier.refreshCatalog();
+
+      expect(repo.itemsCalls, 1);
+      expect(repo.bundlesCalls, 1);
+      expect(repo.lastItemsProfile, '6th of october');
+      expect(repo.lastBundlesProfile, '6th of october');
+      expect(notifier.state.items, hasLength(1));
+      expect(notifier.state.bundles, hasLength(1));
+      expect(notifier.state.cartItems, hasLength(1));
+      expect(notifier.state.selectedCustomer?['name'], 'CUST-1');
+      expect(notifier.state.isLoading, isFalse);
+    });
+
+    test('does nothing when no profile is selected', () async {
+      notifier.state = PosState();
+
+      await notifier.refreshCatalog();
+
+      expect(repo.itemsCalls, 0);
+      expect(repo.bundlesCalls, 0);
     });
   });
 
