@@ -6,6 +6,27 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+fun secretValue(name: String): String? {
+    val envValue = providers.environmentVariable(name).orNull?.trim()
+    if (!envValue.isNullOrEmpty()) {
+        return envValue
+    }
+
+    val propertyValue = (findProperty(name) as String?)?.trim()
+    return propertyValue?.takeIf { it.isNotEmpty() }
+}
+
+val releaseKeystoreFile = secretValue("ANDROID_UPLOAD_KEYSTORE_PATH")
+    ?.let { file(it) }
+    ?.takeIf { it.exists() }
+val releaseKeyAlias = secretValue("ANDROID_UPLOAD_KEY_ALIAS")
+val releaseKeystorePassword = secretValue("ANDROID_UPLOAD_KEYSTORE_PASSWORD")
+val releaseKeyPassword = secretValue("ANDROID_UPLOAD_KEY_PASSWORD")
+val hasReleaseSigning = releaseKeystoreFile != null &&
+    !releaseKeyAlias.isNullOrEmpty() &&
+    !releaseKeystorePassword.isNullOrEmpty() &&
+    !releaseKeyPassword.isNullOrEmpty()
+
 android {
     namespace = "com.example.jarz_pos"
     compileSdk = flutter.compileSdkVersion
@@ -47,11 +68,25 @@ android {
         }
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = releaseKeystoreFile
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // CI injects the release keystore via secrets; local release builds still work with debug signing.
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 

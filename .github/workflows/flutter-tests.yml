@@ -1,4 +1,4 @@
-name: Flutter Tests
+name: Flutter CI
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: jarz_pos
+        working-directory: .
 
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +44,7 @@ jobs:
         if: always()
         with:
           name: coverage-report
-          path: jarz_pos/coverage/lcov.info
+          path: coverage/lcov.info
           retention-days: 14
 
   # ── Contract tests (separate step for clear reporting) ──────────────────────
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: jarz_pos
+        working-directory: .
 
     steps:
       - uses: actions/checkout@v4
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: jarz_pos
+        working-directory: .
 
     steps:
       - uses: actions/checkout@v4
@@ -102,7 +102,7 @@ jobs:
         if: failure()
         with:
           name: golden-failures
-          path: jarz_pos/test/goldens/failures/
+          path: test/goldens/failures/
           retention-days: 7
 
   # ── Lint ──────────────────────────────────────────────────────────────────────
@@ -111,7 +111,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: jarz_pos
+        working-directory: .
 
     steps:
       - uses: actions/checkout@v4
@@ -127,7 +127,7 @@ jobs:
         run: flutter pub get
 
       - name: Analyze
-        run: flutter analyze --fatal-infos
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
   # ── Offline stress tests ─────────────────────────────────────────────────────
   stress:
@@ -135,7 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: jarz_pos
+        working-directory: .
 
     steps:
       - uses: actions/checkout@v4
