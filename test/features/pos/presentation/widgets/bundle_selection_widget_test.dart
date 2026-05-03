@@ -56,5 +56,80 @@ void main() {
         expect(find.text('1/3'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'should keep duplicate same-name groups isolated by section key',
+      (tester) async {
+        Map<String, List<Map<String, dynamic>>>? submittedSelections;
+        final bundle = {
+          'name': 'Jarz Large Bundle',
+          'price': 640.0,
+          'item_groups': [
+            {
+              'group_name': 'Large',
+              'group_key': 'bundle-group-1',
+              'quantity': 1,
+              'items': [
+                {
+                  'id': 'blueberry-large',
+                  'name': 'Blueberry Large',
+                  'price': 160.0,
+                  'qty': 10,
+                },
+              ],
+            },
+            {
+              'group_name': 'Large',
+              'group_key': 'bundle-group-2',
+              'quantity': 1,
+              'items': [
+                {
+                  'id': 'pistachio-large',
+                  'name': 'Pistachio Large',
+                  'price': 170.0,
+                  'qty': 10,
+                },
+              ],
+            },
+          ],
+        };
+
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: BundleSelectionWidget(
+                bundle: bundle,
+                onCancel: () {},
+                isEditing: true,
+                onBundleSelected: (selections) {
+                  submittedSelections = selections;
+                },
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Blueberry Large').first);
+        await tester.pumpAndSettle();
+
+        await tester.scrollUntilVisible(
+          find.text('Pistachio Large'),
+          300,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.tap(find.text('Pistachio Large'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Update Bundle'));
+        await tester.pumpAndSettle();
+
+        expect(submittedSelections, isNotNull);
+        expect(submittedSelections!.keys, containsAll(['bundle-group-1', 'bundle-group-2']));
+        expect(submittedSelections!['bundle-group-1'], hasLength(1));
+        expect(submittedSelections!['bundle-group-2'], hasLength(1));
+      },
+    );
   });
 }

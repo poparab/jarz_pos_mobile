@@ -27,7 +27,7 @@ class BundleSelectionWidget extends ConsumerStatefulWidget {
 }
 
 class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
-  // Track selected items for each group: groupName -> List<selectedItems>
+  // Track selected items for each bundle section: groupKey -> List<selectedItems>
   Map<String, List<Map<String, dynamic>>> selectedItems = {};
 
   @override
@@ -40,20 +40,72 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     final itemGroups = widget.bundle['item_groups'] as List<dynamic>? ?? [];
 
     if (widget.initialSelections != null) {
-      // Use provided initial selections (for editing)
-      selectedItems = Map.from(widget.initialSelections!);
-      // Ensure all groups exist even if not in initial selections
-      for (final group in itemGroups) {
-        final groupName = group['group_name'] as String;
-        selectedItems.putIfAbsent(groupName, () => []);
+      final initialSelections = widget.initialSelections!;
+      final normalizedSelections = <String, List<Map<String, dynamic>>>{};
+      final usedLegacyGroupNames = <String>{};
+
+      for (var index = 0; index < itemGroups.length; index++) {
+        final group = Map<String, dynamic>.from(itemGroups[index] as Map);
+        final groupKey = _groupKey(group, index);
+        final groupName = _groupName(group);
+
+        if (initialSelections.containsKey(groupKey)) {
+          normalizedSelections[groupKey] = _cloneSelectionList(
+            initialSelections[groupKey],
+          );
+          continue;
+        }
+
+        if (!usedLegacyGroupNames.contains(groupName) &&
+            initialSelections.containsKey(groupName)) {
+          normalizedSelections[groupKey] = _cloneSelectionList(
+            initialSelections[groupName],
+          );
+          usedLegacyGroupNames.add(groupName);
+          continue;
+        }
+
+        normalizedSelections[groupKey] = [];
       }
+
+      selectedItems = normalizedSelections;
     } else {
-      // Initialize empty selections for each group
-      for (final group in itemGroups) {
-        final groupName = group['group_name'] as String;
-        selectedItems[groupName] = [];
+      for (var index = 0; index < itemGroups.length; index++) {
+        final group = Map<String, dynamic>.from(itemGroups[index] as Map);
+        selectedItems[_groupKey(group, index)] = [];
       }
     }
+  }
+
+  List<Map<String, dynamic>> _cloneSelectionList(
+    List<Map<String, dynamic>>? selections,
+  ) {
+    if (selections == null) {
+      return [];
+    }
+    return selections
+        .map<Map<String, dynamic>>((entry) => Map<String, dynamic>.from(entry))
+        .toList();
+  }
+
+  String _groupName(Map<String, dynamic> group) {
+    final value = (group['group_name'] ?? group['item_group'] ?? group['title'])
+        ?.toString()
+        .trim();
+    return (value == null || value.isEmpty) ? 'Group' : value;
+  }
+
+  String _groupKey(Map<String, dynamic> group, int fallbackIndex) {
+    final rawKey = (group['group_key'] ?? group['group_id'] ?? group['name'])
+        ?.toString()
+        .trim();
+    if (rawKey != null && rawKey.isNotEmpty) {
+      return rawKey;
+    }
+
+    final rawIndex = _asInt(group['group_index'] ?? group['idx']) ??
+        (fallbackIndex + 1);
+    return '${_groupName(group)}::$rawIndex';
   }
 
   @override
@@ -180,7 +232,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                     itemCount: itemGroups.length,
                     itemBuilder: (context, index) {
                       final group = itemGroups[index] as Map<String, dynamic>;
-                      return _buildItemGroupCard(group);
+                      return _buildItemGroupCard(group, index);
                     },
                   ),
           ),
@@ -192,11 +244,12 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     );
   }
 
-  Widget _buildItemGroupCard(Map<String, dynamic> group) {
-    final groupName = group['group_name'] as String;
+  Widget _buildItemGroupCard(Map<String, dynamic> group, int groupIndex) {
+    final groupName = _groupName(group);
+    final groupKey = _groupKey(group, groupIndex);
     final requiredQuantity = group['quantity'] as int;
     final availableItems = group['items'] as List<dynamic>? ?? [];
-    final selectedForGroup = selectedItems[groupName] ?? [];
+    final selectedForGroup = selectedItems[groupKey] ?? [];
     final isPhone = ResponsiveUtils.isPhone(context);
 
     return Card(
@@ -279,7 +332,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                 itemBuilder: (context, itemIndex) {
                   final item =
                       availableItems[itemIndex] as Map<String, dynamic>;
-                  return _buildItemCard(item, groupName);
+                  return _buildItemCard(item, groupKey, groupName, requiredQuantity);
                 },
               )
             else
@@ -299,9 +352,14 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     );
   }
 
-  Widget _buildItemCard(Map<String, dynamic> item, String groupName) {
-    final selectedCount = _getSelectedCount(item, groupName);
-    final canAddMore = _canAddMoreItems(groupName, item);
+  Widget _buildItemCard(
+    Map<String, dynamic> item,
+    String groupKey,
+    String groupName,
+    int requiredQuantity,
+  ) {
+    final selectedCount = _getSelectedCount(item, groupKey);
+    final canAddMore = _canAddMoreItems(groupKey, requiredQuantity, item);
     final canRemove = selectedCount > 0;
     final isPhone = ResponsiveUtils.isPhone(context);
     final itemName = _displayItemName(item);
@@ -331,7 +389,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
       elevation: 2,
       child: InkWell(
         onTap: canActuallyAdd
-            ? () => _addItemToSelection(item, groupName)
+            ? () => _addItemToSelection(item, groupKey, groupName)
             : null,
         borderRadius: BorderRadius.circular(8),
         child: Container(
@@ -476,7 +534,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                               GestureDetector(
                                 behavior: HitTestBehavior.opaque,
                                 onTap: () =>
-                                    _removeItemFromSelection(item, groupName),
+                                    _removeItemFromSelection(item, groupKey),
                                 child: Container(
                                   width: 32,
                                   height: 32,
@@ -505,7 +563,8 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                             if (canActuallyAdd)
                               GestureDetector(
                                 behavior: HitTestBehavior.opaque,
-                                onTap: () => _addItemToSelection(item, groupName),
+                                onTap: () =>
+                                    _addItemToSelection(item, groupKey, groupName),
                                 child: Container(
                                   width: 32,
                                   height: 32,
@@ -550,15 +609,32 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     return 0;
   }
 
+  int? _asInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    if (value == null) {
+      return null;
+    }
+    return int.tryParse(value.toString().trim()) ??
+        double.tryParse(value.toString().trim())?.toInt();
+  }
+
   Widget _buildProgressIndicator(List<dynamic> itemGroups) {
     final isPhone = ResponsiveUtils.isPhone(context);
     final totalGroups = itemGroups.length;
-    final completedGroups = itemGroups.where((group) {
-      final groupName = group['group_name'] as String;
+    var completedGroups = 0;
+    for (var index = 0; index < itemGroups.length; index++) {
+      final group = Map<String, dynamic>.from(itemGroups[index] as Map);
       final requiredQuantity = group['quantity'] as int;
-      final selectedForGroup = selectedItems[groupName] ?? [];
-      return selectedForGroup.length == requiredQuantity;
-    }).length;
+      final selectedForGroup = selectedItems[_groupKey(group, index)] ?? [];
+      if (selectedForGroup.length == requiredQuantity) {
+        completedGroups += 1;
+      }
+    }
 
     return Container(
       padding: EdgeInsets.all(isPhone ? 10 : 16),
@@ -628,28 +704,33 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     );
   }
 
-  void _addItemToSelection(Map<String, dynamic> item, String groupName) {
+  void _addItemToSelection(
+    Map<String, dynamic> item,
+    String groupKey,
+    String groupName,
+  ) {
     setState(() {
       // Only send essential fields to backend - exclude stock qty fields
       final cleanItem = {
         'id': item['id'],
         'name': item['name'],
         'price': item['price'],
+        'group_name': groupName,
       };
-      selectedItems[groupName] = [...(selectedItems[groupName] ?? []), cleanItem];
+      selectedItems[groupKey] = [...(selectedItems[groupKey] ?? []), cleanItem];
     });
   }
 
-  void _removeItemFromSelection(Map<String, dynamic> item, String groupName) {
+  void _removeItemFromSelection(Map<String, dynamic> item, String groupKey) {
     setState(() {
-      final currentList = selectedItems[groupName] ?? [];
+      final currentList = selectedItems[groupKey] ?? [];
       final itemIndex = currentList.indexWhere(
         (selected) => selected['id'] == item['id'],
       );
       if (itemIndex >= 0) {
         final newList = List<Map<String, dynamic>>.from(currentList);
         newList.removeAt(itemIndex);
-        selectedItems[groupName] = newList;
+        selectedItems[groupKey] = newList;
       }
     });
   }
@@ -657,10 +738,11 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
   bool _canAddToCart() {
     final itemGroups = widget.bundle['item_groups'] as List<dynamic>? ?? [];
 
-    for (final group in itemGroups) {
-      final groupName = group['group_name'] as String;
+    for (var index = 0; index < itemGroups.length; index++) {
+      final group = Map<String, dynamic>.from(itemGroups[index] as Map);
+      final groupKey = _groupKey(group, index);
       final requiredQuantity = group['quantity'] as int;
-      final selectedForGroup = selectedItems[groupName] ?? [];
+      final selectedForGroup = selectedItems[groupKey] ?? [];
 
       if (selectedForGroup.length < requiredQuantity) {
         return false;
@@ -671,8 +753,8 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
   }
 
   // Helper method to get selected count for an item in a group
-  int _getSelectedCount(Map<String, dynamic> item, String groupName) {
-    final selectedForGroup = selectedItems[groupName] ?? [];
+  int _getSelectedCount(Map<String, dynamic> item, String groupKey) {
+    final selectedForGroup = selectedItems[groupKey] ?? [];
     final itemId = item['id'] as String;
     return selectedForGroup
         .where((selected) => selected['id'] == itemId)
@@ -680,19 +762,17 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
   }
 
   // Helper method to check if more items can be added to a group
-  bool _canAddMoreItems(String groupName, Map<String, dynamic> item) {
-    final itemGroups = widget.bundle['item_groups'] as List<dynamic>? ?? [];
-    final group = itemGroups.cast<Map<String, dynamic>>().firstWhere(
-      (g) => g['group_name'] == groupName,
-      orElse: () => <String, dynamic>{},
-    );
-    final requiredQuantity = group['quantity'] as int? ?? 0;
-    final selectedForGroup = selectedItems[groupName] ?? [];
+  bool _canAddMoreItems(
+    String groupKey,
+    int requiredQuantity,
+    Map<String, dynamic> item,
+  ) {
+    final selectedForGroup = selectedItems[groupKey] ?? [];
     if (selectedForGroup.length >= requiredQuantity) return false;
 
     // Check stock limit: don't allow adding more than available inventory
     final stockQty = _asDouble(item['qty'] ?? item['actual_qty']);
-    final selectedCount = _getSelectedCount(item, groupName);
+    final selectedCount = _getSelectedCount(item, groupKey);
     if (selectedCount >= stockQty) return false;
 
     return true;

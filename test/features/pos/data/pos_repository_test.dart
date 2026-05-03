@@ -433,6 +433,46 @@ void main() {
         expect(items[1]['qty'], equals(5.0));
       });
 
+      test('assigns stable unique keys to duplicate same-name bundle groups', () async {
+        final bundles = [
+          {
+            'id': 'BUNDLE-DUP-GROUPS',
+            'name': 'Jarz Large Bundle',
+            'item_groups': [
+              {
+                'group_name': 'Large',
+                'quantity': 4,
+                'items': [
+                  {'id': 'ITEM-001', 'name': 'Blueberry Large', 'price': 160.0},
+                ],
+              },
+              {
+                'group_name': 'Large',
+                'quantity': 2,
+                'items': [
+                  {'id': 'ITEM-002', 'name': 'Pistachio Large', 'price': 170.0},
+                ],
+              },
+            ],
+          },
+        ];
+
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.pos.get_profile_bundles',
+          createSuccessResponse(data: bundles),
+        );
+
+        final result = await repository.getBundles('Main POS');
+        final groups = result.single['item_groups'] as List<dynamic>;
+
+        expect(groups, hasLength(2));
+        expect(groups[0]['group_name'], equals('Large'));
+        expect(groups[1]['group_name'], equals('Large'));
+        expect(groups[0]['group_key'], isNotEmpty);
+        expect(groups[1]['group_key'], isNotEmpty);
+        expect(groups[0]['group_key'], isNot(equals(groups[1]['group_key'])));
+      });
+
       test('sends profile parameter correctly', () async {
         mockDio.setResponse(
           '/api/method/jarz_pos.api.pos.get_profile_bundles',

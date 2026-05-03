@@ -136,6 +136,23 @@ class PosRepository {
         _stringValue(bundle, 'name').isNotEmpty;
   }
 
+  String _normalizedBundleGroupKey(
+    Map<String, dynamic> group,
+    String groupName,
+    int fallbackIndex,
+  ) {
+    final explicitKey = _firstNonEmptyString(
+      group,
+      const ['group_key', 'group_id', 'name'],
+    );
+    if (explicitKey.isNotEmpty) {
+      return explicitKey;
+    }
+
+    final rawIndex = _asInt(group['group_index'] ?? group['idx']) ?? fallbackIndex;
+    return '$groupName::$rawIndex';
+  }
+
   List<Map<String, dynamic>> _normalizedBundleGroups(
     Map<String, dynamic> bundle,
   ) {
@@ -145,6 +162,7 @@ class PosRepository {
     }
 
     final normalizedGroups = <Map<String, dynamic>>[];
+    var fallbackIndex = 1;
     for (final rawGroup in rawGroups) {
       if (rawGroup is! Map) {
         continue;
@@ -187,10 +205,16 @@ class PosRepository {
         continue;
       }
 
+      final groupKey = _normalizedBundleGroupKey(group, groupName, fallbackIndex);
+      final groupIndex = _asInt(group['group_index'] ?? group['idx']) ?? fallbackIndex;
+
       group['group_name'] = groupName;
+      group['group_key'] = groupKey;
+      group['group_index'] = groupIndex;
       group['quantity'] = quantity;
       group['items'] = validItems;
       normalizedGroups.add(group);
+      fallbackIndex += 1;
     }
 
     return normalizedGroups;

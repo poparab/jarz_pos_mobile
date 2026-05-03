@@ -710,6 +710,8 @@ class CartWidget extends ConsumerWidget {
     Map<String, dynamic> bundleDetails,
   ) {
     final l10n = context.l10n;
+    final bundleInfo = bundleDetails['bundle_info'] as Map<String, dynamic>?;
+    final groupLabels = _bundleGroupLabels(bundleInfo);
     final selectedItems =
         bundleDetails['selected_items']
             as Map<String, List<Map<String, dynamic>>>? ??
@@ -737,7 +739,11 @@ class CartWidget extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           ...selectedItems.entries.map((entry) {
-            final groupName = entry.key;
+            final groupName = _bundleGroupLabel(
+              entry.key,
+              entry.value,
+              groupLabels,
+            );
             final items = entry.value;
             // Group identical items by name and show count
             final counts = <String, int>{};
@@ -759,6 +765,66 @@ class CartWidget extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Map<String, String> _bundleGroupLabels(Map<String, dynamic>? bundleInfo) {
+    final labels = <String, String>{};
+    final itemGroups = bundleInfo?['item_groups'] as List<dynamic>? ?? const [];
+
+    for (var index = 0; index < itemGroups.length; index++) {
+      final group = Map<String, dynamic>.from(itemGroups[index] as Map);
+      final groupKey = _bundleGroupKey(group, index);
+      final label =
+          (group['group_name'] ?? group['item_group'] ?? group['title'])
+              ?.toString()
+              .trim();
+      if (label != null && label.isNotEmpty) {
+        labels[groupKey] = label;
+      }
+    }
+
+    return labels;
+  }
+
+  String _bundleGroupKey(Map<String, dynamic> group, int fallbackIndex) {
+    final rawKey =
+        (group['group_key'] ?? group['group_id'] ?? group['name'])
+            ?.toString()
+            .trim();
+    if (rawKey != null && rawKey.isNotEmpty) {
+      return rawKey;
+    }
+
+    final rawIndex = group['group_index'] ?? group['idx'] ?? (fallbackIndex + 1);
+    return '${_bundleLegacyGroupLabel((group['group_name'] ?? group['item_group'] ?? group['title'] ?? 'Group').toString())}::$rawIndex';
+  }
+
+  String _bundleGroupLabel(
+    String key,
+    List<Map<String, dynamic>> items,
+    Map<String, String> labels,
+  ) {
+    final resolvedLabel = labels[key];
+    if (resolvedLabel != null && resolvedLabel.isNotEmpty) {
+      return resolvedLabel;
+    }
+
+    if (items.isNotEmpty) {
+      final itemLabel = items.first['group_name']?.toString().trim();
+      if (itemLabel != null && itemLabel.isNotEmpty) {
+        return itemLabel;
+      }
+    }
+
+    return _bundleLegacyGroupLabel(key);
+  }
+
+  String _bundleLegacyGroupLabel(String key) {
+    final separatorIndex = key.lastIndexOf('::');
+    if (separatorIndex > 0) {
+      return key.substring(0, separatorIndex);
+    }
+    return key;
   }
 
   Future<String?> _promptSalesPartnerPayment(BuildContext context) async {
