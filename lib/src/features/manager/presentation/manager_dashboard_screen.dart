@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/manager_providers.dart';
 import '../data/manager_api.dart';
+import '../../../core/network/frappe_error_message.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 
@@ -423,11 +424,27 @@ class _ChangeBranchButton extends ConsumerWidget {
         if (picked == null || picked == current) return;
         try {
           await ref.read(managerApiProvider).updateInvoiceBranch(invoiceId: invoice.name, newBranch: picked);
-          // refresh list after branch change
+          final targetBranch = branches.firstWhere(
+            (branch) => branch.name == picked,
+            orElse: () => BranchBalance(
+              name: picked,
+              title: picked,
+              cashAccount: null,
+              balance: 0,
+            ),
+          );
+
+          // Refresh the current manager list so the moved invoice leaves stale filters.
           ref.invalidate(managerOrdersProvider);
-          messenger.showSnackBar(SnackBar(content: Text(l10n.managerBranchUpdated)));
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.invoiceTransferSuccess(targetBranch.title))),
+          );
         } catch (e) {
-          messenger.showSnackBar(SnackBar(content: Text(l10n.managerBranchUpdateFailed(e.toString()))));
+          final errorMessage = extractFrappeErrorMessage(
+            e,
+            fallback: l10n.invoiceTransferFailed,
+          );
+          messenger.showSnackBar(SnackBar(content: Text(errorMessage)));
         }
       },
     );

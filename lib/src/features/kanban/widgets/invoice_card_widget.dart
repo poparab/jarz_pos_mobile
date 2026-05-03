@@ -14,6 +14,7 @@ import '../../../core/network/courier_service.dart';
 import '../../../core/network/frappe_error_message.dart';
 import '../../../core/network/user_service.dart';
 import '../../manager/data/manager_api.dart';
+import '../../manager/state/manager_providers.dart';
 import 'settlement_preview_dialog.dart';
 import 'cancel_order_dialog.dart';
 import 'sub_territory_selection_sheet.dart';
@@ -2681,7 +2682,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     );
   }
 
-  // Transfer order to another POS profile
+  // Transfer order to another branch / Kanban profile.
   Future<void> _cancelOrder(BuildContext context) async {
     if (widget.invoice.hasPartialPayment) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2735,15 +2736,16 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     );
   }
 
-  // Transfer order to another POS profile
+  // Transfer order to another branch / Kanban profile.
   Future<void> _transferOrder(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final notifier = ref.read(kanbanProvider.notifier);
 
     try {
-      // Get current POS profile
-      final currentProfile = ref.read(posNotifierProvider).selectedProfile?['name'] as String?;
-      if (currentProfile == null) {
+      // Use the invoice's effective branch so submitted invoices follow custom_kanban_profile.
+      final selectedProfile = ref.read(posNotifierProvider).selectedProfile;
+      final currentBranch = widget.invoice.posProfile ?? selectedProfile?['name']?.toString();
+      if (currentBranch == null) {
         messenger.showSnackBar(
           SnackBar(
             content: Text(context.l10n.invoiceNoPosProfile),
@@ -2753,15 +2755,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         return;
       }
 
-      // Fetch available POS profiles (same logic as manager dashboard)
+      // Fetch available target branches (same source as manager dashboard).
       final managerApi = ref.read(managerApiProvider);
       final summary = await managerApi.getSummary();
       final branches = summary.branches;
 
       if (!context.mounted) return;
 
-      // Show dialog to select target POS profile (same pattern as manager dashboard)
-      String? selected = currentProfile;
+      // Show dialog to select the target branch.
+      String? selected = branches.any((branch) => branch.name == currentBranch)
+          ? currentBranch
+          : null;
       
       final picked = await showDialog<String>(
         context: context,
@@ -2856,7 +2860,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         },
       );
 
-      if (!context.mounted || picked == null || picked == currentProfile) return;
+      if (!context.mounted || picked == null || picked == currentBranch) return;
 
       // Show loading indicator
       messenger.clearSnackBars();
@@ -2888,8 +2892,21 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       if (!context.mounted) return;
 
       if (success) {
-        // Refresh the kanban board
+        final targetBranchTitle = branches
+            .firstWhere(
+              (branch) => branch.name == picked,
+              orElse: () => BranchBalance(
+                name: picked,
+                title: picked,
+                cashAccount: null,
+                balance: 0,
+              ),
+            )
+            .title;
+
+        // Refresh the active board and any cached manager order lists in this session.
         ref.invalidate(kanbanProvider);
+        ref.invalidate(managerOrdersProvider);
         
         messenger.showSnackBar(
           SnackBar(
@@ -2899,7 +2916,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    context.l10n.invoiceTransferSuccess(branches.firstWhere((b) => b.name == picked).title),
+                    context.l10n.invoiceTransferSuccess(targetBranchTitle),
                   ),
                 ),
               ],

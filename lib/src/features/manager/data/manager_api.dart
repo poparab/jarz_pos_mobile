@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
+import '../../../core/network/frappe_error_message.dart';
 import '../../../core/constants/api_endpoints.dart';
 
 final managerApiProvider = Provider<ManagerApi>((ref) {
@@ -47,13 +48,23 @@ class ManagerApi {
   }
 
   Future<void> updateInvoiceBranch({required String invoiceId, required String newBranch}) async {
-    final resp = await _dio.post(
-      ApiEndpoints.updateInvoiceBranch,
-      data: {'invoice_id': invoiceId, 'new_branch': newBranch},
-    );
-    final data = resp.data is String ? json.decode(resp.data) : resp.data;
-    if (!((data['message'] ?? data)['success'] == true)) {
-      throw Exception('Failed to update branch');
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.updateInvoiceBranch,
+        data: {'invoice_id': invoiceId, 'new_branch': newBranch},
+      );
+      final data = resp.data is String ? json.decode(resp.data) : resp.data;
+      final message = data is Map<String, dynamic> ? (data['message'] ?? data) : data;
+      if (!((message is Map<String, dynamic>) && message['success'] == true)) {
+        throw Exception(
+          extractFrappeErrorMessage(
+            message,
+            fallback: 'Failed to transfer branch',
+          ),
+        );
+      }
+    } on DioException catch (error) {
+      throw mapFrappeError(error, fallback: 'Failed to transfer branch');
     }
   }
 

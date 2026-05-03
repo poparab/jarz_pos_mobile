@@ -55,7 +55,7 @@ class InvoiceCard {
   final bool? requiresAcceptanceFlag; // optional flag directly from backend
   final String? paymentMethod; // new: Cash, Instapay, or Mobile Wallet
   final String? actualPaymentMethod; // actual payment method from Payment Entry when paid
-  final String? posProfile; // POS Profile for payment receipt tracking
+  final String? posProfile; // Effective Kanban branch: custom_kanban_profile first, then pos_profile
   final double outstandingAmount;
   final int? docstatusValue;
   final bool isReturn;
@@ -166,7 +166,7 @@ class InvoiceCard {
       requiresAcceptanceFlag: requiresAcceptanceFlag,
       paymentMethod: (json['payment_method'] ?? json['custom_payment_method'])?.toString(),
       actualPaymentMethod: json['actual_payment_method']?.toString(),
-      posProfile: (json['pos_profile'] ?? json['custom_kanban_profile'])?.toString(),
+      posProfile: (json['custom_kanban_profile'] ?? json['pos_profile'])?.toString(),
       outstandingAmount: (double.tryParse((json['outstanding_amount'] ?? json['outstandingAmount'] ?? 0).toString()) ?? 0.0),
       docstatusValue: json['docstatus_value'] is int
           ? json['docstatus_value'] as int

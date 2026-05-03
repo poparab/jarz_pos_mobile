@@ -192,12 +192,51 @@ void main() {
       dio.nextResponse = Response(
         requestOptions: RequestOptions(path: ApiEndpoints.updateInvoiceBranch),
         statusCode: 200,
-        data: {'message': {'success': false}},
+        data: {
+          'message': {
+            'success': false,
+            'error': 'Only submitted POS invoices can be reassigned',
+          },
+        },
       );
 
       expect(
         () => api.updateInvoiceBranch(invoiceId: 'INV-1', newBranch: 'B2'),
-        throwsA(isA<Exception>()),
+        throwsA(
+          isA<Exception>().having(
+            (error) => error.toString(),
+            'message',
+            contains('Only submitted POS invoices can be reassigned'),
+          ),
+        ),
+      );
+    });
+
+    test('throws backend reason from Dio response errors', () async {
+      final requestOptions = RequestOptions(path: ApiEndpoints.updateInvoiceBranch);
+      dio.nextError = DioException(
+        requestOptions: requestOptions,
+        response: Response(
+          requestOptions: requestOptions,
+          statusCode: 417,
+          data: {
+            'message': {
+              'error': 'Not allowed to change POS Profile after submission from Dokki to Nasr city',
+            },
+          },
+        ),
+        type: DioExceptionType.badResponse,
+      );
+
+      expect(
+        () => api.updateInvoiceBranch(invoiceId: 'INV-1', newBranch: 'B2'),
+        throwsA(
+          isA<Exception>().having(
+            (error) => error.toString(),
+            'message',
+            contains('Not allowed to change POS Profile after submission from Dokki to Nasr city'),
+          ),
+        ),
       );
     });
   });

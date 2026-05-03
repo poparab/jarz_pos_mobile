@@ -115,6 +115,15 @@ void main() {
       expect(card.isPickup, isTrue);
     });
 
+    test('prefers custom kanban profile over submitted pos profile', () {
+      final card = buildCard(overrides: {
+        'pos_profile': 'Dokki',
+        'custom_kanban_profile': 'Nasr city',
+      });
+
+      expect(card.posProfile, 'Nasr city');
+    });
+
     test('delivery helpers parse future slot windows', () {
       final card = buildCard(overrides: {
         'delivery_date': '2099-06-01',
