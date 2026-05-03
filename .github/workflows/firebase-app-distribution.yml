@@ -5,16 +5,8 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      build_name:
-        description: Optional semantic version override, for example 1.0.0
-        required: false
-        type: string
-      build_number:
-        description: Optional numeric build number override
-        required: false
-        type: string
       release_notes:
-        description: Optional production release notes
+        description: Optional production release notes appended to the generated release metadata
         required: false
         type: string
 
@@ -37,6 +29,8 @@ jobs:
     steps:
       - name: Checkout source revision
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -75,29 +69,55 @@ jobs:
         id: meta
         shell: bash
         env:
+          SOURCE_EVENT: ${{ github.event_name }}
           SOURCE_BRANCH: ${{ github.ref_name }}
           SOURCE_SHA: ${{ github.sha }}
+          SOURCE_ACTOR: ${{ github.actor }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
-          version_line="$(grep '^version:' pubspec.yaml | head -n 1 | awk '{print $2}')"
-          build_name="${version_line%%+*}"
-          build_number="${GITHUB_RUN_NUMBER}"
-          artifact_name="jarz-pos-staging-v${build_name}+${build_number}.apk"
           release_notes_file="$RUNNER_TEMP/staging-release-notes.txt"
-          short_sha="${SOURCE_SHA::7}"
+          manifest_file="$RUNNER_TEMP/staging-release-metadata.json"
 
-          {
-            echo "Channel: staging"
-            echo "Environment: staging"
-            echo "Version: ${build_name}+${build_number}"
-            echo "Source branch: ${SOURCE_BRANCH}"
-            echo "Source commit: ${short_sha}"
-            echo "Triggered by push to main."
-          } > "$release_notes_file"
+          while IFS='=' read -r key value; do
+            case "$key" in
+              BUILD_NAME) build_name="$value" ;;
+              BUILD_NUMBER) build_number="$value" ;;
+              VERSION) version="$value" ;;
+              ARTIFACT_NAME) artifact_name="$value" ;;
+              ARTIFACT_UPLOAD_NAME) artifact_upload_name="$value" ;;
+              METADATA_ARTIFACT_NAME) metadata_artifact_name="$value" ;;
+              RELEASE_ID) release_id="$value" ;;
+              SHORT_SHA) short_sha="$value" ;;
+              GENERATED_AT_UTC) generated_at_utc="$value" ;;
+            esac
+          done < <(
+            dart run tool/release_metadata.dart \
+              --channel staging \
+              --event "$SOURCE_EVENT" \
+              --branch "$SOURCE_BRANCH" \
+              --sha "$SOURCE_SHA" \
+              --actor "$SOURCE_ACTOR" \
+              --run-id "$RUN_ID" \
+              --run-number "$RUN_NUMBER" \
+              --run-attempt "$RUN_ATTEMPT" \
+              --release-notes-file "$release_notes_file" \
+              --manifest-file "$manifest_file" \
+              --format env
+          )
 
           echo "build_name=$build_name" >> "$GITHUB_OUTPUT"
           echo "build_number=$build_number" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+          echo "artifact_upload_name=$artifact_upload_name" >> "$GITHUB_OUTPUT"
+          echo "metadata_artifact_name=$metadata_artifact_name" >> "$GITHUB_OUTPUT"
+          echo "release_id=$release_id" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+          echo "generated_at_utc=$generated_at_utc" >> "$GITHUB_OUTPUT"
           echo "release_notes_file=$release_notes_file" >> "$GITHUB_OUTPUT"
+          echo "manifest_file=$manifest_file" >> "$GITHUB_OUTPUT"
 
       - name: Build staging APK
         env:
@@ -124,9 +144,35 @@ jobs:
       - name: Upload staging artifact
         uses: actions/upload-artifact@v4
         with:
-          name: staging-release-apk
+          name: ${{ steps.meta.outputs.artifact_upload_name }}
           path: ${{ steps.artifact.outputs.artifact_path }}
           retention-days: 14
+
+      - name: Upload staging metadata artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.metadata_artifact_name }}
+          path: |
+            ${{ steps.meta.outputs.manifest_file }}
+            ${{ steps.meta.outputs.release_notes_file }}
+          retention-days: 14
+
+      - name: Write staging release summary
+        shell: bash
+        run: |
+          {
+            echo "## Staging Release"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Release ID | ${{ steps.meta.outputs.release_id }} |"
+            echo "| Version | ${{ steps.meta.outputs.version }} |"
+            echo "| APK file | ${{ steps.meta.outputs.artifact_name }} |"
+            echo "| APK artifact | ${{ steps.meta.outputs.artifact_upload_name }} |"
+            echo "| Metadata artifact | ${{ steps.meta.outputs.metadata_artifact_name }} |"
+            echo "| Commit | ${{ steps.meta.outputs.short_sha }} |"
+            echo "| Generated (UTC) | ${{ steps.meta.outputs.generated_at_utc }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Distribute staging APK
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -145,6 +191,8 @@ jobs:
     steps:
       - name: Checkout source revision
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -190,32 +238,57 @@ jobs:
         id: meta
         shell: bash
         env:
-          INPUT_BUILD_NAME: ${{ inputs.build_name }}
-          INPUT_BUILD_NUMBER: ${{ inputs.build_number }}
+          SOURCE_EVENT: ${{ github.event_name }}
+          SOURCE_BRANCH: ${{ github.ref_name }}
+          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_ACTOR: ${{ github.actor }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
           INPUT_RELEASE_NOTES: ${{ inputs.release_notes }}
         run: |
-          version_line="$(grep '^version:' pubspec.yaml | head -n 1 | awk '{print $2}')"
-          default_build_name="${version_line%%+*}"
-          build_name="${INPUT_BUILD_NAME:-$default_build_name}"
-          build_number="${INPUT_BUILD_NUMBER:-$GITHUB_RUN_NUMBER}"
-          artifact_name="jarz-pos-production-v${build_name}+${build_number}.apk"
           release_notes_file="$RUNNER_TEMP/production-release-notes.txt"
+          manifest_file="$RUNNER_TEMP/production-release-metadata.json"
 
-          {
-            echo "Channel: production"
-            echo "Environment: prod"
-            echo "Version: ${build_name}+${build_number}"
-            echo "Triggered manually by: ${GITHUB_ACTOR}"
-            if [[ -n "$INPUT_RELEASE_NOTES" ]]; then
-              echo
-              echo "$INPUT_RELEASE_NOTES"
-            fi
-          } > "$release_notes_file"
+          while IFS='=' read -r key value; do
+            case "$key" in
+              BUILD_NAME) build_name="$value" ;;
+              BUILD_NUMBER) build_number="$value" ;;
+              VERSION) version="$value" ;;
+              ARTIFACT_NAME) artifact_name="$value" ;;
+              ARTIFACT_UPLOAD_NAME) artifact_upload_name="$value" ;;
+              METADATA_ARTIFACT_NAME) metadata_artifact_name="$value" ;;
+              RELEASE_ID) release_id="$value" ;;
+              SHORT_SHA) short_sha="$value" ;;
+              GENERATED_AT_UTC) generated_at_utc="$value" ;;
+            esac
+          done < <(
+            dart run tool/release_metadata.dart \
+              --channel production \
+              --event "$SOURCE_EVENT" \
+              --branch "$SOURCE_BRANCH" \
+              --sha "$SOURCE_SHA" \
+              --actor "$SOURCE_ACTOR" \
+              --run-id "$RUN_ID" \
+              --run-number "$RUN_NUMBER" \
+              --run-attempt "$RUN_ATTEMPT" \
+              --release-notes "$INPUT_RELEASE_NOTES" \
+              --release-notes-file "$release_notes_file" \
+              --manifest-file "$manifest_file" \
+              --format env
+          )
 
           echo "build_name=$build_name" >> "$GITHUB_OUTPUT"
           echo "build_number=$build_number" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+          echo "artifact_upload_name=$artifact_upload_name" >> "$GITHUB_OUTPUT"
+          echo "metadata_artifact_name=$metadata_artifact_name" >> "$GITHUB_OUTPUT"
+          echo "release_id=$release_id" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+          echo "generated_at_utc=$generated_at_utc" >> "$GITHUB_OUTPUT"
           echo "release_notes_file=$release_notes_file" >> "$GITHUB_OUTPUT"
+          echo "manifest_file=$manifest_file" >> "$GITHUB_OUTPUT"
 
       - name: Build production APK
         env:
@@ -242,9 +315,35 @@ jobs:
       - name: Upload production artifact
         uses: actions/upload-artifact@v4
         with:
-          name: production-release-apk
+          name: ${{ steps.meta.outputs.artifact_upload_name }}
           path: ${{ steps.artifact.outputs.artifact_path }}
           retention-days: 14
+
+      - name: Upload production metadata artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.metadata_artifact_name }}
+          path: |
+            ${{ steps.meta.outputs.manifest_file }}
+            ${{ steps.meta.outputs.release_notes_file }}
+          retention-days: 14
+
+      - name: Write production release summary
+        shell: bash
+        run: |
+          {
+            echo "## Production Release"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Release ID | ${{ steps.meta.outputs.release_id }} |"
+            echo "| Version | ${{ steps.meta.outputs.version }} |"
+            echo "| APK file | ${{ steps.meta.outputs.artifact_name }} |"
+            echo "| APK artifact | ${{ steps.meta.outputs.artifact_upload_name }} |"
+            echo "| Metadata artifact | ${{ steps.meta.outputs.metadata_artifact_name }} |"
+            echo "| Commit | ${{ steps.meta.outputs.short_sha }} |"
+            echo "| Generated (UTC) | ${{ steps.meta.outputs.generated_at_utc }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Distribute production APK
         uses: wzieba/Firebase-Distribution-Github-Action@v1
