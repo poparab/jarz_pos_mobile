@@ -21,6 +21,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FLUTTER_VERSION: "3.35.1"
+
 concurrency:
   group: firebase-distribution-${{ github.event_name }}-${{ github.ref_name }}
   cancel-in-progress: true
@@ -44,7 +47,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.x'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
@@ -152,7 +155,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.x'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
