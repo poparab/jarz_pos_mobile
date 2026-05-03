@@ -1,18 +1,15 @@
 import "package:flutter/foundation.dart";
 import "package:intl/intl.dart";
 
+import "../debug/app_error_reporter.dart";
+
 /// Log level enum
-enum LogLevel {
-  debug,
-  info,
-  warning,
-  error,
-}
+enum LogLevel { debug, info, warning, error }
 
 /// A simple logging utility class for the Jarz POS application.
 class Logger {
   static final DateFormat _dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-  
+
   /// The tag/category for this logger instance
   final String tag;
 
@@ -43,6 +40,22 @@ class Logger {
     if (stackTrace != null) {
       _log(LogLevel.error, "Stack trace: $stackTrace");
     }
+
+    if (error != null) {
+      AppErrorReporter.instance.capture(
+        source: "Logger:$tag",
+        error: error,
+        stackTrace: stackTrace,
+        summary: message,
+      );
+      return;
+    }
+
+    AppErrorReporter.instance.recordMessage(
+      source: "Logger:$tag",
+      message: message,
+      stackTrace: stackTrace,
+    );
   }
 
   /// Internal logging method

@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:jarz_pos/l10n/app_localizations.dart';
+import 'debug/app_error_console.dart';
 import 'localization/localization_extensions.dart';
 import 'localization/locale_notifier.dart';
 import 'router.dart';
@@ -22,7 +23,7 @@ class JarzPosApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final locale = ref.watch(localeNotifierProvider);
-    
+
     // Initialize services
     ref.watch(webSocketServiceProvider);
     ref.watch(offlineSyncServiceProvider);
@@ -60,10 +61,7 @@ class JarzPosApp extends ConsumerWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          elevation: 1,
-        ),
+        appBarTheme: const AppBarTheme(centerTitle: true, elevation: 1),
         cardTheme: const CardThemeData(
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -83,16 +81,18 @@ class JarzPosApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
         final routed = child ?? const SizedBox.shrink();
-        return OrderAlertOverlay(
-          child: GestureDetector(
-            onTap: () {
-              final currentScope = FocusScope.of(context);
-              if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
-                FocusManager.instance.primaryFocus?.unfocus();
-              }
-            },
-            behavior: HitTestBehavior.opaque,
-            child: LoadingOverlay(child: routed),
+        return AppErrorConsole(
+          child: OrderAlertOverlay(
+            child: GestureDetector(
+              onTap: () {
+                final currentScope = FocusScope.of(context);
+                if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                }
+              },
+              behavior: HitTestBehavior.opaque,
+              child: LoadingOverlay(child: routed),
+            ),
           ),
         );
       },

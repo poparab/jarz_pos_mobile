@@ -129,6 +129,9 @@ jobs:
           flutter build apk --release \
             --flavor staging \
             --dart-define=ENV=staging \
+            --dart-define=SENTRY_ENVIRONMENT=staging \
+            --dart-define=SENTRY_RELEASE=${{ steps.meta.outputs.release_id }} \
+            --dart-define=SENTRY_DIST=${{ steps.meta.outputs.build_number }} \
             --dart-define-from-file=.env.staging \
             --build-name="${{ steps.meta.outputs.build_name }}" \
             --build-number="${{ steps.meta.outputs.build_number }}"
@@ -156,6 +159,28 @@ jobs:
             ${{ steps.meta.outputs.manifest_file }}
             ${{ steps.meta.outputs.release_notes_file }}
           retention-days: 14
+
+      - name: Register staging Sentry release
+        shell: bash
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG_SLUG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT_FLUTTER }}
+          RELEASE_ID: ${{ steps.meta.outputs.release_id }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_ORG" ] || [ -z "$SENTRY_PROJECT" ]; then
+            echo "Skipping Sentry release registration; missing Sentry secrets."
+            exit 0
+          fi
+
+          npm install --global @sentry/cli
+
+          if ! sentry-cli releases info "$RELEASE_ID" >/dev/null 2>&1; then
+            sentry-cli releases new -p "$SENTRY_PROJECT" "$RELEASE_ID"
+          fi
+          sentry-cli releases set-commits "$RELEASE_ID" --auto
+          sentry-cli releases finalize "$RELEASE_ID"
+          sentry-cli releases deploys "$RELEASE_ID" new -e staging
 
       - name: Write staging release summary
         shell: bash
@@ -300,6 +325,9 @@ jobs:
           flutter build apk --release \
             --flavor production \
             --dart-define=ENV=prod \
+            --dart-define=SENTRY_ENVIRONMENT=production \
+            --dart-define=SENTRY_RELEASE=${{ steps.meta.outputs.release_id }} \
+            --dart-define=SENTRY_DIST=${{ steps.meta.outputs.build_number }} \
             --dart-define-from-file=.env.prod \
             --build-name="${{ steps.meta.outputs.build_name }}" \
             --build-number="${{ steps.meta.outputs.build_number }}"
@@ -327,6 +355,28 @@ jobs:
             ${{ steps.meta.outputs.manifest_file }}
             ${{ steps.meta.outputs.release_notes_file }}
           retention-days: 14
+
+      - name: Register production Sentry release
+        shell: bash
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG_SLUG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT_FLUTTER }}
+          RELEASE_ID: ${{ steps.meta.outputs.release_id }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_ORG" ] || [ -z "$SENTRY_PROJECT" ]; then
+            echo "Skipping Sentry release registration; missing Sentry secrets."
+            exit 0
+          fi
+
+          npm install --global @sentry/cli
+
+          if ! sentry-cli releases info "$RELEASE_ID" >/dev/null 2>&1; then
+            sentry-cli releases new -p "$SENTRY_PROJECT" "$RELEASE_ID"
+          fi
+          sentry-cli releases set-commits "$RELEASE_ID" --auto
+          sentry-cli releases finalize "$RELEASE_ID"
+          sentry-cli releases deploys "$RELEASE_ID" new -e production
 
       - name: Write production release summary
         shell: bash

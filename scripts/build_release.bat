@@ -13,18 +13,25 @@ if /I "%ENV_INPUT%"=="staging" (
   set "ENV_DEFINE=staging"
   set "ENV_FILE=.env.staging"
   set "FLAVOR=staging"
+  set "SENTRY_ENVIRONMENT=staging"
 ) else if /I "%ENV_INPUT%"=="prod" (
   set "ENV_DEFINE=prod"
   set "ENV_FILE=.env.prod"
   set "FLAVOR=production"
+  set "SENTRY_ENVIRONMENT=production"
 ) else if /I "%ENV_INPUT%"=="production" (
   set "ENV_DEFINE=prod"
   set "ENV_FILE=.env.prod"
   set "FLAVOR=production"
+  set "SENTRY_ENVIRONMENT=production"
 ) else (
   echo Unsupported environment: %ENV_INPUT%
   goto :usage_fail
 )
+
+set "SENTRY_ARGS=--dart-define=SENTRY_ENVIRONMENT=%SENTRY_ENVIRONMENT%"
+if defined SENTRY_RELEASE set "SENTRY_ARGS=%SENTRY_ARGS% --dart-define=SENTRY_RELEASE=%SENTRY_RELEASE%"
+if defined SENTRY_DIST set "SENTRY_ARGS=%SENTRY_ARGS% --dart-define=SENTRY_DIST=%SENTRY_DIST%"
 
 if /I "%TARGET%"=="web" goto :build_web
 if /I "%TARGET%"=="apk" goto :build_apk
@@ -35,12 +42,12 @@ goto :usage_fail
 
 :build_web
 echo [build_release] Building web for %ENV_DEFINE% using %ENV_FILE%
-call flutter build web --release --dart-define=ENV=%ENV_DEFINE% --dart-define-from-file=%ENV_FILE% --base-href /pos/
+call flutter build web --release --dart-define=ENV=%ENV_DEFINE% %SENTRY_ARGS% --dart-define-from-file=%ENV_FILE% --base-href /pos/
 goto :eof
 
 :build_apk
 echo [build_release] Building APK for %ENV_DEFINE% using %ENV_FILE%
-call flutter build apk --release --flavor %FLAVOR% --dart-define=ENV=%ENV_DEFINE% --dart-define-from-file=%ENV_FILE%
+call flutter build apk --release --flavor %FLAVOR% --dart-define=ENV=%ENV_DEFINE% %SENTRY_ARGS% --dart-define-from-file=%ENV_FILE%
 if exist "build\app\outputs\flutter-apk\app-%FLAVOR%-release.apk" (
   copy /Y "build\app\outputs\flutter-apk\app-%FLAVOR%-release.apk" "build\app\outputs\flutter-apk\jarz-pos-%FLAVOR%-release.apk" >nul
   echo [build_release] Named APK copied to build\app\outputs\flutter-apk\jarz-pos-%FLAVOR%-release.apk
