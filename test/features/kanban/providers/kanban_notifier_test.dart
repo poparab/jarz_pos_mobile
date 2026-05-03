@@ -242,6 +242,8 @@ class _PosNotifierStub extends PosNotifier {
 }
 
 Future<void> _flushMicrotasks() => Future<void>.delayed(Duration.zero);
+Future<void> _waitForInvoiceReloadDebounce() =>
+    Future<void>.delayed(const Duration(milliseconds: 600));
 
 void main() {
   group('KanbanNotifier', () {
@@ -289,7 +291,7 @@ void main() {
       await _flushMicrotasks();
 
       notifier.updateFilters(const KanbanFilters(searchTerm: 'bob'));
-      await _flushMicrotasks();
+      await _waitForInvoiceReloadDebounce();
 
       expect(service.lastFilters?['searchTerm'], 'bob');
     });
@@ -301,11 +303,11 @@ void main() {
       await _flushMicrotasks();
 
       notifier.setSelectedBranches({'Main'});
-      await _flushMicrotasks();
+      await _waitForInvoiceReloadDebounce();
       expect(service.lastFilters?['branches'], equals(['Main']));
 
       notifier.toggleBranch('Branch-2');
-      await _flushMicrotasks();
+      await _waitForInvoiceReloadDebounce();
       final selected = container.read(kanbanProvider).selectedBranches;
       expect(selected, containsAll({'Main', 'Branch-2'}));
       expect(service.lastFilters?['branches'], containsAll(['Main', 'Branch-2']));

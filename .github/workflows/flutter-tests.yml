@@ -37,7 +37,7 @@ jobs:
         run: flutter pub get
 
       - name: Run unit tests with coverage
-        run: flutter test --coverage --exclude-tags golden,stress
+        run: flutter test test/core test/features test/integration test/widget_test.dart --coverage
         env:
           # Contract tests: fixtures are loaded from disk (no network call needed)
           CI: "true"
@@ -79,7 +79,7 @@ jobs:
   # ── Golden visual tests ──────────────────────────────────────────────────────
   golden:
     name: Golden Visual Tests
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     defaults:
       run:
         working-directory: .

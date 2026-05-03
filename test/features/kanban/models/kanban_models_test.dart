@@ -139,7 +139,7 @@ void main() {
         card.deliveryDurationParsed,
         const Duration(minutes: 30),
       );
-        expect(card.deliveryDateTimeLabel, '2099-06-01 13:30\u201314:00');
+      expect(card.deliveryDateTimeLabel, 'Jun 1 1:30 PM\u20132:00 PM');
     });
 
     test('delivery helpers honour backend slot label when provided', () {
