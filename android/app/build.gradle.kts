@@ -31,6 +31,22 @@ android {
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "environment"
+
+    productFlavors {
+        create("staging") {
+            dimension = "environment"
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+            manifestPlaceholders["appLabel"] = "Jarz POS Staging"
+        }
+
+        create("production") {
+            dimension = "environment"
+            manifestPlaceholders["appLabel"] = "Jarz POS"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.

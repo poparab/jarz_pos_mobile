@@ -26,10 +26,12 @@ case "${environment,,}" in
   staging)
     env_define="staging"
     env_file=".env.staging"
+    flavor="staging"
     ;;
   prod|production)
     env_define="prod"
     env_file=".env.prod"
+    flavor="production"
     ;;
   *)
     echo "Unsupported environment: $environment" >&2
@@ -49,8 +51,16 @@ build_web() {
 build_apk() {
   echo "[build_release] Building APK for $env_define using $env_file"
   flutter build apk --release \
+    --flavor "$flavor" \
     --dart-define="ENV=$env_define" \
     --dart-define-from-file="$env_file"
+
+  local built_apk="build/app/outputs/flutter-apk/app-$flavor-release.apk"
+  local named_apk="build/app/outputs/flutter-apk/jarz-pos-$flavor-release.apk"
+  if [ -f "$built_apk" ]; then
+    cp "$built_apk" "$named_apk"
+    echo "[build_release] Named APK copied to $named_apk"
+  fi
 }
 
 case "${target,,}" in

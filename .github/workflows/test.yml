@@ -75,13 +75,13 @@ jobs:
         run: flutter pub get
 
       - name: Build APK
-        run: flutter build apk --debug --dart-define=ENV=staging
+        run: flutter build apk --debug --flavor staging --dart-define=ENV=staging
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v3
         with:
-          name: app-debug
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: app-staging-debug
+          path: build/app/outputs/flutter-apk/app-staging-debug.apk
 
   build-ios:
     needs: test

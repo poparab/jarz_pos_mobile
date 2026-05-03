@@ -12,12 +12,15 @@ set "TARGET=%~2"
 if /I "%ENV_INPUT%"=="staging" (
   set "ENV_DEFINE=staging"
   set "ENV_FILE=.env.staging"
+  set "FLAVOR=staging"
 ) else if /I "%ENV_INPUT%"=="prod" (
   set "ENV_DEFINE=prod"
   set "ENV_FILE=.env.prod"
+  set "FLAVOR=production"
 ) else if /I "%ENV_INPUT%"=="production" (
   set "ENV_DEFINE=prod"
   set "ENV_FILE=.env.prod"
+  set "FLAVOR=production"
 ) else (
   echo Unsupported environment: %ENV_INPUT%
   goto :usage_fail
@@ -37,7 +40,11 @@ goto :eof
 
 :build_apk
 echo [build_release] Building APK for %ENV_DEFINE% using %ENV_FILE%
-call flutter build apk --release --dart-define=ENV=%ENV_DEFINE% --dart-define-from-file=%ENV_FILE%
+call flutter build apk --release --flavor %FLAVOR% --dart-define=ENV=%ENV_DEFINE% --dart-define-from-file=%ENV_FILE%
+if exist "build\app\outputs\flutter-apk\app-%FLAVOR%-release.apk" (
+  copy /Y "build\app\outputs\flutter-apk\app-%FLAVOR%-release.apk" "build\app\outputs\flutter-apk\jarz-pos-%FLAVOR%-release.apk" >nul
+  echo [build_release] Named APK copied to build\app\outputs\flutter-apk\jarz-pos-%FLAVOR%-release.apk
+)
 goto :eof
 
 :build_all

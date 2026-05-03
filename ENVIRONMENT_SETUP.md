@@ -21,10 +21,10 @@ If no `ENV` is provided, the app falls back to `.env` (legacy) or `.env.local` v
 flutter run --dart-define=ENV=local -d <deviceId>
 
 # Staging
-flutter run --dart-define=ENV=staging -d <deviceId>
+flutter run --flavor staging --dart-define=ENV=staging -d <deviceId>
 
 # Production
-flutter run --dart-define=ENV=prod -d <deviceId>
+flutter run --flavor production --dart-define=ENV=prod -d <deviceId>
 ```
 
 ## Build APKs (optional, not required to run)
@@ -34,7 +34,15 @@ scripts\build_release.bat staging apk
 scripts\build_release.bat prod apk
 ```
 
-If you later add Android product flavors, append `--flavor staging|prod` accordingly.
+Android APK builds now use product flavors so both apps can be installed on one device:
+
+- `staging` → package `com.example.jarz_pos.staging`, launcher name `Jarz POS Staging`
+- `production` → package `com.example.jarz_pos`, launcher name `Jarz POS`
+
+Named APK copies are written to:
+
+- `build/app/outputs/flutter-apk/jarz-pos-staging-release.apk`
+- `build/app/outputs/flutter-apk/jarz-pos-production-release.apk`
 
 ## Flutter Web
 
