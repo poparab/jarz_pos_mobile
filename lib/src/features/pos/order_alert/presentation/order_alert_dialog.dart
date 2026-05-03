@@ -23,21 +23,24 @@ class OrderAlertDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint('🔔 📱 OrderAlertDialog.build() called');
-    
+
     final state = ref.watch(orderAlertControllerProvider);
     final alert = state.active;
-    
+
     debugPrint('🔔 📱 OrderAlertDialog: alert=${alert?.invoiceId}');
-    
+
     if (alert == null) {
       debugPrint('🔔 📱 OrderAlertDialog: alert is NULL - returning SizedBox.shrink()');
       return const SizedBox.shrink();
     }
 
     debugPrint('🔔 📱 OrderAlertDialog: Rendering AlertDialog for ${alert.invoiceId}');
-    
+
     final theme = Theme.of(context);
     final items = alert.items.take(8).toList();
+    final posProfile = alert.posProfile.trim().isEmpty
+        ? 'Not specified'
+        : alert.posProfile.trim();
 
     return AlertDialog(
       backgroundColor: Colors.white, // Explicitly set background
@@ -69,6 +72,8 @@ class OrderAlertDialog extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildField(theme, 'Customer', alert.customerName ?? 'Walk-in'),
+            const SizedBox(height: 8),
+            _buildField(theme, 'POS Profile', posProfile),
             const SizedBox(height: 8),
             _buildField(theme, 'Total', 'PHP ${alert.displayTotal}'),
             if (alert.deliveryDate != null || alert.deliveryTime != null) ...[

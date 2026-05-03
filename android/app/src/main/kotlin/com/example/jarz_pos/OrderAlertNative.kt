@@ -16,11 +16,13 @@ import android.os.Build
 import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import org.json.JSONArray
 import kotlin.jvm.Volatile
 
 object OrderAlertNative {
     private const val DEFAULT_NOTIFICATION_ID = 4010
     private const val SHIFT_NOTIFICATION_ID = 4020
+    private const val MAX_EXPANDED_ITEM_LINES = 4
     const val CHANNEL_ID = "jarz_order_alerts"
     private const val SHIFT_CHANNEL_ID = "jarz_shift_updates"
 
@@ -121,25 +123,20 @@ object OrderAlertNative {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        val title = data["customer_name"].takeUnless { it.isNullOrBlank() } ?: context.getString(android.R.string.dialog_alert_title)
-        val total = data["grand_total"].takeUnless { it.isNullOrBlank() } ?: ""
-        val body = buildString {
-            if (total.isNotEmpty()) {
-                append("Total: ").append(total)
-            }
-            data["item_summary"].takeUnless { it.isNullOrBlank() }?.let {
-                if (isNotEmpty()) append(" • ")
-                append(it)
-            }
-        }
+        val notificationContent = buildOrderNotificationContent(data)
+        val expandedText = notificationContent.expandedLines.joinToString("\n")
+        val expandedStyle = NotificationCompat.BigTextStyle()
+            .setBigContentTitle(notificationContent.title)
+            .bigText(expandedText)
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_warning)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setContentTitle(title)
-            .setContentText(body)
+            .setContentTitle(notificationContent.title)
+            .setContentText(notificationContent.body)
+            .setStyle(expandedStyle)
             .setOngoing(true)
             .setAutoCancel(false)
             .setFullScreenIntent(pendingIntent, true)
@@ -311,4 +308,136 @@ object OrderAlertNative {
 
         return Uri.parse("content://settings/system/notification_sound")
     }
+
+    private fun buildOrderNotificationContent(data: Map<String, String>): OrderNotificationContent {
+        val customerName = firstNonBlank(data["customer_name"], data["customer"])
+        val branchDisplay = firstNonBlank(data["branch_display"], data["pos_profile"])
+        val totalDisplay = firstNonBlank(data["total_display"], data["grand_total"])
+        val itemSummary = firstNonBlank(data["item_summary"])
+        val itemCount = data["item_count"]?.trim()?.toIntOrNull()?.takeIf { it > 0 }
+        val itemLines = parseItemLines(data["items"])
+
+        val title = customerName?.let { "New order: $it" } ?: "New order received"
+
+        val bodyParts = mutableListOf<String>()
+        branchDisplay?.let { bodyParts.add("Branch: $it") }
+        totalDisplay?.let { bodyParts.add("Total: $it") }
+        buildCollapsedItemsText(itemCount, itemLines, itemSummary)?.let { bodyParts.add(it) }
+
+        val expandedLines = mutableListOf<String>()
+        branchDisplay?.let { expandedLines.add("Branch: $it") }
+        totalDisplay?.let { expandedLines.add("Total: $it") }
+
+        if (itemLines.isNotEmpty()) {
+            val displayedCount = minOf(itemLines.size, MAX_EXPANDED_ITEM_LINES)
+            itemLines.take(displayedCount).forEach { expandedLines.add(it) }
+
+            val totalItems = maxOf(itemCount ?: 0, itemLines.size)
+            val remainingItems = totalItems - displayedCount
+            if (remainingItems > 0) {
+                val suffix = if (remainingItems == 1) "item" else "items"
+                expandedLines.add("+$remainingItems more $suffix")
+            }
+        } else if (itemSummary != null && itemCount != null) {
+            expandedLines.add("Items ($itemCount): $itemSummary")
+        } else if (itemSummary != null) {
+            expandedLines.add("Items: $itemSummary")
+        } else if (itemCount != null) {
+            val suffix = if (itemCount == 1) "item" else "items"
+            expandedLines.add("Items: $itemCount $suffix")
+        } else {
+            expandedLines.add("Items: Not provided")
+        }
+
+        val body = bodyParts.joinToString(" | ").ifBlank { "Tap to review order" }
+        return OrderNotificationContent(title = title, body = body, expandedLines = expandedLines)
+    }
+
+    private fun buildCollapsedItemsText(
+        itemCount: Int?,
+        itemLines: List<String>,
+        itemSummary: String?,
+    ): String? {
+        val itemText = when {
+            itemCount != null -> {
+                val suffix = if (itemCount == 1) "item" else "items"
+                "$itemCount $suffix"
+            }
+            itemLines.size > 1 -> "${itemLines.size} items"
+            itemLines.size == 1 -> itemLines.first()
+            itemSummary != null -> itemSummary
+            else -> null
+        } ?: return null
+
+        return "Items: $itemText"
+    }
+
+    private fun parseItemLines(rawItems: String?): List<String> {
+        if (rawItems.isNullOrBlank()) {
+            return emptyList()
+        }
+
+        return try {
+            val items = JSONArray(rawItems)
+            val lines = mutableListOf<String>()
+            for (index in 0 until items.length()) {
+                val itemObject = items.optJSONObject(index)
+                if (itemObject != null) {
+                    val name = firstNonBlank(
+                        itemObject.optString("item_name"),
+                        itemObject.optString("item_code"),
+                        itemObject.optString("name"),
+                    )
+                    val quantity = formatQuantity(itemObject.opt("qty") ?: itemObject.opt("quantity"))
+                    val line = when {
+                        name != null && quantity != null -> "$quantity x $name"
+                        name != null -> name
+                        else -> null
+                    }
+                    if (line != null) {
+                        lines.add(line)
+                    }
+                    continue
+                }
+
+                val textValue = items.optString(index).trim()
+                if (textValue.isNotEmpty()) {
+                    lines.add(textValue)
+                }
+            }
+            lines
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+
+    private fun formatQuantity(value: Any?): String? {
+        val numericValue = when (value) {
+            is Number -> value.toDouble()
+            else -> value?.toString()?.trim()?.toDoubleOrNull()
+        } ?: return null
+
+        val longValue = numericValue.toLong()
+        return if (numericValue == longValue.toDouble()) {
+            longValue.toString()
+        } else {
+            numericValue.toString().trimEnd('0').trimEnd('.')
+        }
+    }
+
+    private fun firstNonBlank(vararg values: String?): String? {
+        values.forEach { value ->
+            val normalized = value?.trim()
+            if (!normalized.isNullOrEmpty()) {
+                return normalized
+            }
+        }
+        return null
+    }
+
+    private data class OrderNotificationContent(
+        val title: String,
+        val body: String,
+        val expandedLines: List<String>,
+    )
 }
