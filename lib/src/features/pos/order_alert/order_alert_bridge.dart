@@ -63,16 +63,6 @@ class OrderAlertBridge {
       _logger.error('Failed processing websocket shift event', error, StackTrace.current);
     });
 
-    // Listen for authentication transitions
-    _ref.listen<bool>(currentAuthStateProvider, (previous, next) {
-      _logger.info("🔐 Auth state changed: previous=$previous next=$next");
-      if (next) {
-        unawaited(_onAuthenticated());
-      } else {
-        unawaited(_onLoggedOut());
-      }
-    }, fireImmediately: true);
-
     _posStateSub = _ref.listen<PosState>(posNotifierProvider, (previous, next) {
       final prevProfile = previous?.selectedProfile?['name']?.toString();
       final nextProfile = next.selectedProfile?['name']?.toString();
@@ -128,8 +118,23 @@ class OrderAlertBridge {
         _logger.warning("⚠️ Browser notification permission denied");
       }
     }
+
+    // Attach the auth listener only after FCM is fully wired so the
+    // immediate callback does not race token fetch before messaging is ready.
+    _listenToAuthState();
     
     _logger.info("✅ OrderAlertBridge initialization complete");
+  }
+
+  void _listenToAuthState() {
+    _ref.listen<bool>(currentAuthStateProvider, (previous, next) {
+      _logger.info("🔐 Auth state changed: previous=$previous next=$next");
+      if (next) {
+        unawaited(_onAuthenticated());
+      } else {
+        unawaited(_onLoggedOut());
+      }
+    }, fireImmediately: true);
   }
 
   void dispose() {
@@ -146,7 +151,11 @@ class OrderAlertBridge {
   Future<void> _onAuthenticated() async {
     _logger.info("🔐 User authenticated - registering device and syncing alerts");
     if (!kIsWeb) {
-      await _registerToken(await FirebaseMessaging.instance.getToken());
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token == null || token.isEmpty) {
+        _logger.warning('FCM token not ready during auth setup; waiting for token refresh callback');
+      }
+      await _registerToken(token);
     }
     await _ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts();
     
