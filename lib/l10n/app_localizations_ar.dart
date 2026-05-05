@@ -772,7 +772,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get posCheckoutButton => 'إتمام الطلب';
 
   @override
-  String get posAmendmentDraftButton => 'إرسال التعديل غير متاح حالياً';
+  String get posAmendmentDraftButton => 'إرسال التعديل';
 
   @override
   String get posOperationalInfoTitle => 'معلومات تشغيلية';
@@ -2108,11 +2108,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get posAmendmentDraftMessage =>
-      'راجع وعدل العناصر هنا، لكن الإرسال سيبقى معطلاً حتى يتم تفعيل مسار الاستبدال داخل النظام.';
+      'راجع التغييرات بعناية ثم أرسل التعديل لاستبدال الفاتورة الأصلية.';
 
   @override
   String get posAmendmentCheckoutBlocked =>
-      'إرسال تعديل الفاتورة غير مفعّل بعد. راجع المسودة الآن وأكمل التعديل عندما تتوفر خطوة الاستبدال داخل النظام.';
+      'إرسال التعديل غير متاح لهذه المسودة. ارجع إلى الطلب وافتح التعديل مرة أخرى.';
 
   @override
   String get invoiceDeliveryFailed => 'فشل إجراء التوصيل';

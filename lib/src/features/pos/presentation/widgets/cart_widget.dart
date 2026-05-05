@@ -18,6 +18,9 @@ class CartWidget extends ConsumerWidget {
     final l10n = context.l10n;
     final state = ref.watch(posNotifierProvider);
     final cartItems = state.cartItems;
+    final hasAmendmentSource =
+        !state.isAmendmentDraft ||
+        ((state.amendmentSourceInvoiceId ?? '').trim().isNotEmpty);
     final customerTerritory = state.selectedCustomer?['territory_name_ar']?.toString() ?? state.selectedCustomer?['territory_name']?.toString() ?? state.selectedCustomer?['territory']?.toString();
     final isPhone = ResponsiveUtils.isPhone(context);
     
@@ -165,7 +168,9 @@ class CartWidget extends ConsumerWidget {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      l10n.posAmendmentDraftMessage,
+                                      hasAmendmentSource
+                                          ? l10n.posAmendmentDraftMessage
+                                          : l10n.posAmendmentCheckoutBlocked,
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                             color: Theme.of(context).colorScheme.onSecondaryContainer,
                                           ),
@@ -346,7 +351,9 @@ class CartWidget extends ConsumerWidget {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: state.isLoading ? null : () => _handleCheckout(context, ref),
+                          onPressed: state.isLoading || !hasAmendmentSource
+                              ? null
+                              : () => _handleCheckout(context, ref),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: state.isAmendmentDraft
                                 ? Theme.of(context).colorScheme.secondaryContainer

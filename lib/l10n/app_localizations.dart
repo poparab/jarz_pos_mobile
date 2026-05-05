@@ -1427,7 +1427,7 @@ abstract class AppLocalizations {
   /// No description provided for @posAmendmentDraftButton.
   ///
   /// In en, this message translates to:
-  /// **'Amendment submit unavailable'**
+  /// **'Submit Amendment'**
   String get posAmendmentDraftButton;
 
   /// No description provided for @posOperationalInfoTitle.
@@ -3721,13 +3721,13 @@ abstract class AppLocalizations {
   /// No description provided for @posAmendmentDraftMessage.
   ///
   /// In en, this message translates to:
-  /// **'Review and stage item changes here. Submission stays disabled until the ERP replacement workflow is released.'**
+  /// **'Review the changes carefully, then submit to replace the original invoice.'**
   String get posAmendmentDraftMessage;
 
   /// No description provided for @posAmendmentCheckoutBlocked.
   ///
   /// In en, this message translates to:
-  /// **'Invoice amendment submission is not enabled yet. Review the draft now and complete the amendment once the ERP replacement step is available.'**
+  /// **'Amendment submission is unavailable for this draft. Return to the order and reopen the amendment.'**
   String get posAmendmentCheckoutBlocked;
 
   /// No description provided for @invoiceDeliveryFailed.
