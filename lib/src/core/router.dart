@@ -135,7 +135,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.pos,
         name: 'pos',
-        builder: (context, state) => const PosScreen(),
+        builder: (context, state) {
+          final extra = state.extra;
+          final launchData = extra is Map ? Map<String, dynamic>.from(extra) : null;
+          return PosScreen(launchData: launchData);
+        },
       ),
       GoRoute(
         path: AppRoutes.selectProfile,

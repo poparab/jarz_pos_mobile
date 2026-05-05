@@ -20,6 +20,8 @@ class PosState {
   final String? error;
   // When true, this order is for pickup (no delivery fee or slot required)
   final bool isPickup;
+  final bool isAmendmentDraft;
+  final String? amendmentSourceInvoiceId;
 
   PosState({
     this.profiles = const [],
@@ -34,6 +36,8 @@ class PosState {
     this.isLoading = false,
     this.error,
     this.isPickup = false,
+    this.isAmendmentDraft = false,
+    this.amendmentSourceInvoiceId,
   });
 
   PosState copyWith({
@@ -54,6 +58,9 @@ class PosState {
     bool clearDeliverySlots = false,
     List<DeliverySlot>? deliverySlots,
     bool? isPickup,
+    bool? isAmendmentDraft,
+    String? amendmentSourceInvoiceId,
+    bool clearAmendmentSourceInvoiceId = false,
   }) {
     return PosState(
       profiles: profiles ?? this.profiles,
@@ -76,6 +83,10 @@ class PosState {
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
       isPickup: isPickup ?? this.isPickup,
+      isAmendmentDraft: isAmendmentDraft ?? this.isAmendmentDraft,
+      amendmentSourceInvoiceId: clearAmendmentSourceInvoiceId
+          ? null
+          : (amendmentSourceInvoiceId ?? this.amendmentSourceInvoiceId),
     );
   }
 
@@ -472,11 +483,218 @@ class PosNotifier extends StateNotifier<PosState> {
     }
   }
 
+  bool _coerceBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    final normalized = value?.toString().trim().toLowerCase();
+    return normalized == '1' || normalized == 'true' || normalized == 'yes' || normalized == 'y';
+  }
+
+  Duration? _parseDeliveryDuration(dynamic rawDuration) {
+    if (rawDuration == null) return null;
+    if (rawDuration is num) {
+      return Duration(seconds: rawDuration.toInt());
+    }
+    final value = rawDuration.toString().trim();
+    if (value.isEmpty) return null;
+    if (!value.contains(':')) {
+      final seconds = int.tryParse(value);
+      return seconds == null ? null : Duration(seconds: seconds);
+    }
+    final parts = value.split(':');
+    if (parts.length < 2) return null;
+    final hours = int.tryParse(parts[0]) ?? 0;
+    final minutes = int.tryParse(parts[1]) ?? 0;
+    final seconds = parts.length > 2 ? int.tryParse(parts[2]) ?? 0 : 0;
+    return Duration(hours: hours, minutes: minutes, seconds: seconds);
+  }
+
+  List<Map<String, dynamic>> _buildAmendmentCartItems(dynamic rawItems) {
+    if (rawItems is! List) return const [];
+
+    return rawItems
+        .whereType<Map>()
+        .map((rawItem) {
+          final item = Map<String, dynamic>.from(rawItem);
+          final itemCode = item['item_code']?.toString() ?? '';
+          final itemName = item['item_name']?.toString() ?? itemCode;
+          final rate = item['rate'] is num
+              ? (item['rate'] as num).toDouble()
+              : double.tryParse(item['rate']?.toString() ?? '') ?? 0.0;
+          final rawQty = item['qty'];
+          final quantity = rawQty is num
+              ? rawQty.round()
+              : int.tryParse(rawQty?.toString() ?? '') ?? 1;
+
+          return {
+            'item_code': itemCode,
+            'item_name': itemName,
+            'rate': rate,
+            'quantity': quantity < 1 ? 1 : quantity,
+            'type': 'item',
+          };
+        })
+        .where((item) => (item['item_code']?.toString() ?? '').isNotEmpty)
+        .toList();
+  }
+
+  Map<String, dynamic>? _buildAmendmentCustomer(Map<String, dynamic> invoiceData) {
+    final customer = invoiceData['customer']?.toString().trim() ?? '';
+    if (customer.isEmpty) return null;
+
+    return {
+      'name': customer,
+      'customer_name': invoiceData['customer_name']?.toString() ?? customer,
+      'territory': invoiceData['territory']?.toString() ?? '',
+      'territory_name': invoiceData['territory_display']?.toString() ?? invoiceData['territory']?.toString() ?? '',
+      'territory_name_ar': invoiceData['territory_name_ar']?.toString() ?? '',
+      'delivery_income': invoiceData['shipping_income'] is num
+          ? (invoiceData['shipping_income'] as num).toDouble()
+          : double.tryParse(invoiceData['shipping_income']?.toString() ?? '') ?? 0.0,
+      'delivery_expense': invoiceData['shipping_expense'] is num
+          ? (invoiceData['shipping_expense'] as num).toDouble()
+          : double.tryParse(invoiceData['shipping_expense']?.toString() ?? '') ?? 0.0,
+      'mobile_no': invoiceData['customer_phone']?.toString() ?? '',
+    };
+  }
+
+  DeliverySlot? _buildAmendmentDeliverySlot(Map<String, dynamic> invoiceData) {
+    final deliveryDate = invoiceData['delivery_date']?.toString().trim() ?? '';
+    final deliveryTime = invoiceData['delivery_time_from']?.toString().trim() ?? '';
+    if (deliveryDate.isEmpty || deliveryTime.isEmpty) {
+      return null;
+    }
+
+    final normalizedTime = deliveryTime.length == 5 ? '$deliveryTime:00' : deliveryTime;
+    final label = (invoiceData['delivery_slot_label']?.toString().trim().isNotEmpty ?? false)
+        ? invoiceData['delivery_slot_label'].toString().trim()
+        : '$deliveryDate $deliveryTime';
+
+    try {
+      final start = DateTime.parse('${deliveryDate}T$normalizedTime');
+      final duration = _parseDeliveryDuration(invoiceData['delivery_duration']);
+      final end = duration == null ? start : start.add(duration);
+      return DeliverySlot(
+        date: deliveryDate,
+        time: deliveryTime,
+        datetime: start.toIso8601String(),
+        endDatetime: end.toIso8601String(),
+        label: label,
+        dayLabel: deliveryDate,
+        timeLabel: label,
+      );
+    } catch (_) {
+      final fallbackDateTime = '$deliveryDate $deliveryTime';
+      return DeliverySlot(
+        date: deliveryDate,
+        time: deliveryTime,
+        datetime: fallbackDateTime,
+        endDatetime: fallbackDateTime,
+        label: label,
+        dayLabel: deliveryDate,
+        timeLabel: label,
+      );
+    }
+  }
+
+  Future<void> startAmendmentDraft(Map<String, dynamic> invoiceData) async {
+    final invoiceId = invoiceData['name']?.toString().trim() ?? '';
+    final posProfileName = (invoiceData['pos_profile'] ?? invoiceData['custom_kanban_profile'])
+            ?.toString()
+            .trim() ??
+        '';
+    if (invoiceId.isEmpty || posProfileName.isEmpty) {
+      state = state.copyWith(
+        error: 'Missing invoice amendment draft data',
+        clearError: false,
+        isLoading: false,
+        isAmendmentDraft: false,
+        clearAmendmentSourceInvoiceId: true,
+      );
+      return;
+    }
+
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      cartItems: const [],
+      clearSelectedCustomer: true,
+      clearSelectedDeliverySlot: true,
+      clearSelectedSalesPartner: true,
+      clearDeliverySlots: true,
+      isPickup: false,
+      isAmendmentDraft: false,
+      clearAmendmentSourceInvoiceId: true,
+    );
+
+    try {
+      final profiles = state.profiles.isNotEmpty ? state.profiles : await _repository.getPosProfiles();
+
+      Map<String, dynamic>? selectedProfile;
+      for (final profile in profiles) {
+        if ((profile['name']?.toString() ?? '').trim() == posProfileName) {
+          selectedProfile = profile;
+          break;
+        }
+      }
+      selectedProfile ??= {
+        'name': posProfileName,
+        'title': posProfileName,
+      };
+
+      final futures = await Future.wait([
+        _repository.getItems(posProfileName),
+        _repository.getBundles(posProfileName),
+      ]);
+
+      final customer = _buildAmendmentCustomer(invoiceData);
+      final deliverySlot = _buildAmendmentDeliverySlot(invoiceData);
+      final salesPartnerName = invoiceData['sales_partner']?.toString().trim() ?? '';
+      final isPickup = _coerceBool(invoiceData['is_pickup']);
+
+      state = state.copyWith(
+        profiles: profiles,
+        selectedProfile: selectedProfile,
+        items: futures[0],
+        bundles: futures[1],
+        cartItems: _buildAmendmentCartItems(invoiceData['items']),
+        selectedCustomer: customer,
+        clearSelectedCustomer: customer == null,
+        selectedDeliverySlot: isPickup ? null : deliverySlot,
+        clearSelectedDeliverySlot: isPickup || deliverySlot == null,
+        selectedSalesPartner: salesPartnerName.isEmpty ? null : {'name': salesPartnerName},
+        clearSelectedSalesPartner: salesPartnerName.isEmpty,
+        deliverySlots: !isPickup && deliverySlot != null ? [deliverySlot] : const [],
+        clearDeliverySlots: isPickup || deliverySlot == null,
+        isPickup: isPickup,
+        isLoading: false,
+        isAmendmentDraft: true,
+        amendmentSourceInvoiceId: invoiceId,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        error: e.toString(),
+        isLoading: false,
+        clearError: false,
+        isAmendmentDraft: false,
+        clearAmendmentSourceInvoiceId: true,
+      );
+    }
+  }
+
   Future<void> checkout({
     String? paymentType, 
     String? overridePosProfileName, 
     String? paymentMethod,
   }) async {
+    if (state.isAmendmentDraft) {
+      state = state.copyWith(
+        error: 'Invoice amendment submission is not enabled yet',
+        clearError: false,
+      );
+      return;
+    }
+
     if (state.cartItems.isEmpty) {
       state = state.copyWith(error: 'Cart is empty', clearError: false);
       return;
@@ -568,7 +786,11 @@ class PosNotifier extends StateNotifier<PosState> {
       clearSelectedCustomer: true,
       clearSelectedDeliverySlot: true,
       clearSelectedSalesPartner: true,
+      clearDeliverySlots: true,
       isLoading: false,
+      isPickup: false,
+      isAmendmentDraft: false,
+      clearAmendmentSourceInvoiceId: true,
     );
   }
 

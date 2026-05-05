@@ -772,6 +772,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get posCheckoutButton => 'إتمام الطلب';
 
   @override
+  String get posAmendmentDraftButton => 'إرسال التعديل غير متاح حالياً';
+
+  @override
   String get posOperationalInfoTitle => 'معلومات تشغيلية';
 
   @override
@@ -1305,6 +1308,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invoiceMoreOptions => 'خيارات إضافية';
+
+  @override
+  String get invoiceEditInvoice => 'تعديل الفاتورة';
+
+  @override
+  String get invoiceEditInvoiceFailed =>
+      'تعذر فتح مسودة تعديل الفاتورة. حاول مرة أخرى.';
+
+  @override
+  String get invoiceAmendmentUnavailable =>
+      'تعديل الفاتورة غير متاح لهذا الطلب.';
 
   @override
   String get invoiceEditCustomerAddress => 'تعديل عنوان العميل';
@@ -2088,6 +2102,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invoiceUpdated => 'تم التحديث';
+
+  @override
+  String get posAmendmentDraftTitle => 'مسودة تعديل الفاتورة';
+
+  @override
+  String get posAmendmentDraftMessage =>
+      'راجع وعدل العناصر هنا، لكن الإرسال سيبقى معطلاً حتى يتم تفعيل مسار الاستبدال داخل النظام.';
+
+  @override
+  String get posAmendmentCheckoutBlocked =>
+      'إرسال تعديل الفاتورة غير مفعّل بعد. راجع المسودة الآن وأكمل التعديل عندما تتوفر خطوة الاستبدال داخل النظام.';
 
   @override
   String get invoiceDeliveryFailed => 'فشل إجراء التوصيل';

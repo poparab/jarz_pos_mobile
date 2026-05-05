@@ -2,12 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/kanban_models.dart';
 import '../providers/kanban_provider.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../pos/domain/models/delivery_slot.dart';
 import '../../pos/data/repositories/pos_repository.dart';
+import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/constants/business_constants.dart';
 import '../../../core/network/courier_service.dart';
@@ -518,6 +520,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               await _transferOrder(context);
             } else if (value == 'change_delivery_slot') {
               await _changeDeliverySlot(context);
+            } else if (value == 'edit_invoice') {
+              await _openAmendmentDraft(context);
             } else if (value == 'cancel_order') {
               await _cancelOrder(context);
             } else if (value == 'request_custom_shipping') {
@@ -543,6 +547,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                     const Icon(Icons.schedule, size: 18),
                     const SizedBox(width: 8),
                     Text(l10n.invoiceChangeDeliverySlot),
+                  ],
+                ),
+              ),
+            if (widget.invoice.canAmend)
+              PopupMenuItem(
+                value: 'edit_invoice',
+                child: Row(
+                  children: [
+                    const Icon(Icons.edit_note, size: 18),
+                    const SizedBox(width: 8),
+                    Text(l10n.invoiceEditInvoice),
                   ],
                 ),
               ),
@@ -2332,6 +2347,48 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           SnackBar(content: Text(context.l10n.kanbanCustomShippingFailed(errorMessage))),
         );
       }
+    }
+  }
+
+  Future<void> _openAmendmentDraft(BuildContext context) async {
+    try {
+      final details = await ref.read(invoiceDetailsProvider(widget.invoice.id).future);
+      if (!context.mounted) return;
+
+      if (details == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.invoiceEditInvoiceFailed)),
+        );
+        return;
+      }
+
+      if (!details.canAmend) {
+        final message = (details.amendmentBlockReason ?? '').trim().isNotEmpty
+            ? details.amendmentBlockReason!
+            : context.l10n.invoiceAmendmentUnavailable;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+        return;
+      }
+
+      context.push(
+        AppRoutes.pos,
+        extra: {
+          'mode': 'amendment_draft',
+          'invoice': details.toJson(),
+        },
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      final message = _withActionPrefix(
+        context.l10n.invoiceEditInvoiceFailed,
+        e,
+        fallback: context.l10n.invoiceEditInvoiceFailed,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
     }
   }
 

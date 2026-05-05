@@ -134,6 +134,48 @@ class CartWidget extends ConsumerWidget {
                   child: Column(
                     children: [
                       // Customer info
+                      if (state.isAmendmentDraft)
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(isPhone ? 10 : 12),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.edit_note,
+                                color: Theme.of(context).colorScheme.onSecondaryContainer,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.posAmendmentDraftTitle,
+                                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                            color: Theme.of(context).colorScheme.onSecondaryContainer,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      l10n.posAmendmentDraftMessage,
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            color: Theme.of(context).colorScheme.onSecondaryContainer,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       if (state.selectedCustomer != null)
                         Container(
                           padding: EdgeInsets.all(isPhone ? 10 : 12),
@@ -306,8 +348,12 @@ class CartWidget extends ConsumerWidget {
                         child: ElevatedButton(
                           onPressed: state.isLoading ? null : () => _handleCheckout(context, ref),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                            backgroundColor: state.isAmendmentDraft
+                                ? Theme.of(context).colorScheme.secondaryContainer
+                                : Theme.of(context).colorScheme.primary,
+                            foregroundColor: state.isAmendmentDraft
+                                ? Theme.of(context).colorScheme.onSecondaryContainer
+                                : Theme.of(context).colorScheme.onPrimary,
                             padding: EdgeInsets.symmetric(vertical: isPhone ? 12 : 14),
                           ),
                           child: state.isLoading
@@ -317,7 +363,9 @@ class CartWidget extends ConsumerWidget {
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : Text(
-                                  l10n.posCheckoutButton,
+                                  state.isAmendmentDraft
+                                      ? l10n.posAmendmentDraftButton
+                                      : l10n.posCheckoutButton,
                                   style: TextStyle(fontSize: isPhone ? 14 : 15, fontWeight: FontWeight.bold),
                                 ),
                         ),
@@ -639,6 +687,16 @@ class CartWidget extends ConsumerWidget {
   Future<void> _handleCheckout(BuildContext context, WidgetRef ref) async {
     final state = ref.read(posNotifierProvider);
     final l10n = context.l10n;
+
+    if (state.isAmendmentDraft) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.posAmendmentCheckoutBlocked),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
 
     // Validate delivery slot is selected
     if (!state.isPickup && state.selectedDeliverySlot == null) {

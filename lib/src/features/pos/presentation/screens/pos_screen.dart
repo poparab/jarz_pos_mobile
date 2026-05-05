@@ -32,7 +32,9 @@ import '../../../shift/presentation/widgets/shift_status_banner.dart';
 // Removed unused direct service import (service accessed through provider)
 
 class PosScreen extends ConsumerStatefulWidget {
-  const PosScreen({super.key});
+  final Map<String, dynamic>? launchData;
+
+  const PosScreen({super.key, this.launchData});
 
   @override
   ConsumerState<PosScreen> createState() => _PosScreenState();
@@ -55,6 +57,15 @@ class _PosScreenState extends ConsumerState<PosScreen>
   // Accumulated px in one direction before triggering hide/show
   static const _scrollThreshold = 30.0;
 
+  Map<String, dynamic>? _amendmentInvoiceData() {
+    final launchData = widget.launchData;
+    final invoiceData = launchData?['invoice'];
+    if (launchData?['mode']?.toString() != 'amendment_draft' || invoiceData is! Map) {
+      return null;
+    }
+    return Map<String, dynamic>.from(invoiceData);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -72,7 +83,16 @@ class _PosScreenState extends ConsumerState<PosScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Authentication assumed handled by route guard; proceed to load profiles.
 
+      final amendmentInvoiceData = _amendmentInvoiceData();
+      if (amendmentInvoiceData != null) {
+        ref.read(posNotifierProvider.notifier).startAmendmentDraft(amendmentInvoiceData);
+        return;
+      }
+
       final state = ref.read(posNotifierProvider);
+      if (state.isAmendmentDraft) {
+        ref.read(posNotifierProvider.notifier).startNewInvoice();
+      }
       if (state.selectedProfile == null) {
         ref.read(posNotifierProvider.notifier).loadProfiles();
       } else {
@@ -185,6 +205,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
     if (state.selectedProfile == null) {
       if (state.isLoading) {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
+      if (state.error != null && state.profiles.isEmpty) {
+        return Scaffold(body: _buildError(context, state.error!));
       }
       // Auto-select if only one profile available
       if (state.profiles.length == 1) {
@@ -329,6 +352,8 @@ class _PosScreenState extends ConsumerState<PosScreen>
                         // Main content
                         if (matchedActiveShift != null)
                           ShiftStatusBanner(shift: matchedActiveShift),
+                        if (state.isAmendmentDraft)
+                          _buildAmendmentDraftBanner(context, state),
                         Expanded(
                           child: state.isLoading
                               ? const Center(child: CircularProgressIndicator())
@@ -392,6 +417,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
         child: Column(
           children: [
             if (matchedActiveShift != null) ShiftStatusBanner(shift: matchedActiveShift),
+            if (state.isAmendmentDraft) _buildAmendmentDraftBanner(context, state),
             Expanded(
               child: state.isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -401,6 +427,61 @@ class _PosScreenState extends ConsumerState<PosScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAmendmentDraftBanner(BuildContext context, PosState state) {
+    final theme = Theme.of(context);
+    final invoiceId = (state.amendmentSourceInvoiceId ?? '').trim();
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.edit_note,
+            color: theme.colorScheme.onSecondaryContainer,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.l10n.posAmendmentDraftTitle,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.onSecondaryContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (invoiceId.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    '#$invoiceId',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSecondaryContainer.withValues(alpha: 0.8),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 4),
+                Text(
+                  context.l10n.posAmendmentDraftMessage,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSecondaryContainer,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

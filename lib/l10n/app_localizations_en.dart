@@ -768,6 +768,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get posCheckoutButton => 'Checkout';
 
   @override
+  String get posAmendmentDraftButton => 'Amendment submit unavailable';
+
+  @override
   String get posOperationalInfoTitle => 'Operational Info';
 
   @override
@@ -1304,6 +1307,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invoiceMoreOptions => 'More Options';
+
+  @override
+  String get invoiceEditInvoice => 'Edit Invoice';
+
+  @override
+  String get invoiceEditInvoiceFailed =>
+      'Could not open the invoice draft. Please try again.';
+
+  @override
+  String get invoiceAmendmentUnavailable =>
+      'Invoice amendment is not available for this order.';
 
   @override
   String get invoiceEditCustomerAddress => 'Edit Customer Address';
@@ -2088,6 +2102,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invoiceUpdated => 'Updated';
+
+  @override
+  String get posAmendmentDraftTitle => 'Invoice amendment draft';
+
+  @override
+  String get posAmendmentDraftMessage =>
+      'Review and stage item changes here. Submission stays disabled until the ERP replacement workflow is released.';
+
+  @override
+  String get posAmendmentCheckoutBlocked =>
+      'Invoice amendment submission is not enabled yet. Review the draft now and complete the amendment once the ERP replacement step is available.';
 
   @override
   String get invoiceDeliveryFailed => 'Delivery action failed';

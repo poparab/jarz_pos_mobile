@@ -1424,6 +1424,12 @@ abstract class AppLocalizations {
   /// **'Checkout'**
   String get posCheckoutButton;
 
+  /// No description provided for @posAmendmentDraftButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Amendment submit unavailable'**
+  String get posAmendmentDraftButton;
+
   /// No description provided for @posOperationalInfoTitle.
   ///
   /// In en, this message translates to:
@@ -2333,6 +2339,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More Options'**
   String get invoiceMoreOptions;
+
+  /// No description provided for @invoiceEditInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Invoice'**
+  String get invoiceEditInvoice;
+
+  /// No description provided for @invoiceEditInvoiceFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the invoice draft. Please try again.'**
+  String get invoiceEditInvoiceFailed;
+
+  /// No description provided for @invoiceAmendmentUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice amendment is not available for this order.'**
+  String get invoiceAmendmentUnavailable;
 
   /// No description provided for @invoiceEditCustomerAddress.
   ///
@@ -3687,6 +3711,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Updated'**
   String get invoiceUpdated;
+
+  /// No description provided for @posAmendmentDraftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice amendment draft'**
+  String get posAmendmentDraftTitle;
+
+  /// No description provided for @posAmendmentDraftMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and stage item changes here. Submission stays disabled until the ERP replacement workflow is released.'**
+  String get posAmendmentDraftMessage;
+
+  /// No description provided for @posAmendmentCheckoutBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice amendment submission is not enabled yet. Review the draft now and complete the amendment once the ERP replacement step is available.'**
+  String get posAmendmentCheckoutBlocked;
 
   /// No description provided for @invoiceDeliveryFailed.
   ///

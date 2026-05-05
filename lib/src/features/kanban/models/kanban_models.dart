@@ -68,6 +68,9 @@ class InvoiceCard {
   final String? deliveryTrip;
   final double? shippingOverride;
   final String? shippingOverrideStatus;
+  final bool? canAmendFlag;
+  final String? amendmentBlockCode;
+  final String? amendmentBlockReason;
 
   InvoiceCard({
     required this.id,
@@ -114,11 +117,16 @@ class InvoiceCard {
     this.deliveryTrip,
     this.shippingOverride,
     this.shippingOverrideStatus,
+    this.canAmendFlag,
+    this.amendmentBlockCode,
+    this.amendmentBlockReason,
   });
 
   factory InvoiceCard.fromJson(Map<String, dynamic> json) {
     bool? requiresAcceptanceFlag;
+    bool? canAmendFlag;
     final rawRequiresAcceptance = json['requires_acceptance'];
+    final rawCanAmend = json['can_amend'];
     if (rawRequiresAcceptance is bool) {
       requiresAcceptanceFlag = rawRequiresAcceptance;
     } else if (rawRequiresAcceptance is num) {
@@ -127,6 +135,17 @@ class InvoiceCard {
       final normalized = rawRequiresAcceptance.trim().toLowerCase();
       if (normalized.isNotEmpty) {
         requiresAcceptanceFlag = ['1', 'true', 'yes', 'y'].contains(normalized);
+      }
+    }
+
+    if (rawCanAmend is bool) {
+      canAmendFlag = rawCanAmend;
+    } else if (rawCanAmend is num) {
+      canAmendFlag = rawCanAmend != 0;
+    } else if (rawCanAmend is String) {
+      final normalized = rawCanAmend.trim().toLowerCase();
+      if (normalized.isNotEmpty) {
+        canAmendFlag = ['1', 'true', 'yes', 'y'].contains(normalized);
       }
     }
 
@@ -182,6 +201,9 @@ class InvoiceCard {
           ? (json['shipping_override'] as num).toDouble()
           : null,
       shippingOverrideStatus: json['shipping_override_status']?.toString(),
+      canAmendFlag: canAmendFlag,
+      amendmentBlockCode: json['amendment_block_code']?.toString(),
+      amendmentBlockReason: json['amendment_block_reason']?.toString(),
     );
   }
 
@@ -230,6 +252,9 @@ class InvoiceCard {
       'delivery_trip': deliveryTrip,
       'shipping_override': shippingOverride,
       'shipping_override_status': shippingOverrideStatus,
+      'can_amend': canAmendFlag,
+      'amendment_block_code': amendmentBlockCode,
+      'amendment_block_reason': amendmentBlockReason,
     };
   }
 
@@ -278,6 +303,9 @@ class InvoiceCard {
   String? deliveryTrip,
   double? shippingOverride,
   String? shippingOverrideStatus,
+  bool? canAmendFlag,
+  String? amendmentBlockCode,
+  String? amendmentBlockReason,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -324,6 +352,9 @@ class InvoiceCard {
       deliveryTrip: deliveryTrip ?? this.deliveryTrip,
       shippingOverride: shippingOverride ?? this.shippingOverride,
       shippingOverrideStatus: shippingOverrideStatus ?? this.shippingOverrideStatus,
+      canAmendFlag: canAmendFlag ?? this.canAmendFlag,
+      amendmentBlockCode: amendmentBlockCode ?? this.amendmentBlockCode,
+      amendmentBlockReason: amendmentBlockReason ?? this.amendmentBlockReason,
     );
   }
 
@@ -382,6 +413,24 @@ class InvoiceCard {
       }
     }
     return true;
+  }
+
+  bool get canAmend {
+    if (canAmendFlag != null) {
+      return canAmendFlag!;
+    }
+    if (hasUnsettledCourierTxn || !isFullyUnpaid || isReturn) {
+      return false;
+    }
+    if ((deliveryTrip ?? '').trim().isNotEmpty) {
+      return false;
+    }
+    if ((docstatusValue ?? 1) != 1) {
+      return false;
+    }
+    final normalized = status.trim().toLowerCase();
+    return const {'received', 'recieved', 'in progress', 'ready', 'preparing'}
+        .contains(normalized);
   }
 
   // Derived delivery helpers
