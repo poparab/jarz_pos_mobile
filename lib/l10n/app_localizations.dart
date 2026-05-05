@@ -3712,6 +3712,48 @@ abstract class AppLocalizations {
   /// **'Updated'**
   String get invoiceUpdated;
 
+  /// No description provided for @customerShippingAddressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Shipping Address'**
+  String get customerShippingAddressTitle;
+
+  /// No description provided for @customerShippingAddressSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a saved shipping address or add a new one for this customer.'**
+  String get customerShippingAddressSubtitle;
+
+  /// No description provided for @customerShippingAddressSavedTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Addresses'**
+  String get customerShippingAddressSavedTab;
+
+  /// No description provided for @customerShippingAddressNewTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Address'**
+  String get customerShippingAddressNewTab;
+
+  /// No description provided for @customerShippingAddressEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved shipping addresses yet.'**
+  String get customerShippingAddressEmpty;
+
+  /// No description provided for @customerShippingAddressSelectRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a shipping address or add a new one.'**
+  String get customerShippingAddressSelectRequired;
+
+  /// No description provided for @customerShippingAddressLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load shipping addresses.'**
+  String get customerShippingAddressLoadFailed;
+
   /// No description provided for @posAmendmentDraftTitle.
   ///
   /// In en, this message translates to:

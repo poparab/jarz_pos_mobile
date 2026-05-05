@@ -2103,6 +2103,30 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get invoiceUpdated => 'تم التحديث';
 
+    @override
+    String get customerShippingAddressTitle => 'اختر عنوان الشحن';
+
+    @override
+    String get customerShippingAddressSubtitle =>
+      'اختر عنوان شحن محفوظًا أو أضف عنوانًا جديدًا لهذا العميل.';
+
+    @override
+    String get customerShippingAddressSavedTab => 'العناوين المحفوظة';
+
+    @override
+    String get customerShippingAddressNewTab => 'إضافة عنوان جديد';
+
+    @override
+    String get customerShippingAddressEmpty =>
+      'لا توجد عناوين شحن محفوظة بعد.';
+
+    @override
+    String get customerShippingAddressSelectRequired =>
+      'اختر عنوان شحن أو أضف عنوانًا جديدًا.';
+
+    @override
+    String get customerShippingAddressLoadFailed => 'فشل تحميل عناوين الشحن.';
+
   @override
   String get posAmendmentDraftTitle => 'مسودة تعديل الفاتورة';
 

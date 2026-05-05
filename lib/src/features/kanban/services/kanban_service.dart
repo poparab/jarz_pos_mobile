@@ -647,6 +647,62 @@ class KanbanService {
     }
   }
 
+  Future<Map<String, dynamic>> getCustomerShippingAddresses({
+    required String customer,
+    String? invoice,
+  }) async {
+    try {
+      _logger.info('Fetching shipping addresses for $customer (invoice: $invoice)');
+      final resp = await _dio.post(
+        ApiEndpoints.getCustomerShippingAddresses,
+        data: {
+          'customer': customer,
+          if (invoice != null && invoice.isNotEmpty) 'invoice': invoice,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(_friendlyMessage(msg, fallback: 'Failed to load shipping addresses'));
+    } catch (e) {
+      _logger.error('Failed to load shipping addresses', e);
+      throw _friendlyException(e, fallback: 'Failed to load shipping addresses');
+    }
+  }
+
+  Future<Map<String, dynamic>> saveCustomerShippingAddress({
+    required String customer,
+    required String phone,
+    String? invoice,
+    String? addressName,
+    String? address,
+  }) async {
+    try {
+      _logger.info('Saving shipping address for $customer (invoice: $invoice)');
+      final resp = await _dio.post(
+        ApiEndpoints.saveCustomerShippingAddress,
+        data: {
+          'customer': customer,
+          'phone': phone,
+          if (invoice != null && invoice.isNotEmpty) 'invoice': invoice,
+          if (addressName != null && addressName.isNotEmpty)
+            'address_name': addressName,
+          if (address != null && address.isNotEmpty) 'address': address,
+          'set_as_primary': 1,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && (msg['success'] == true)) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(_friendlyMessage(msg, fallback: 'Failed to save shipping address'));
+    } catch (e) {
+      _logger.error('Failed to save shipping address', e);
+      throw _friendlyException(e, fallback: 'Failed to save shipping address');
+    }
+  }
+
   /// Transfer invoice to a different POS profile
   Future<void> transferInvoice({
     required String invoiceId,

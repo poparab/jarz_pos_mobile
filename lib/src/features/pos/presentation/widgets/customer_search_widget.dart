@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/timing_config.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/widgets/customer_shipping_address_dialog.dart';
 import '../../data/repositories/pos_repository.dart';
 import '../../state/pos_notifier.dart';
 // providers file not present; we use repository providers directly
@@ -73,6 +74,111 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
     });
   }
 
+  Map<String, dynamic> _mergeCustomerAddressBook(
+    Map<String, dynamic> customer,
+    Map<String, dynamic> addressBook,
+  ) {
+    final addresses = (addressBook['addresses'] as List? ?? const [])
+        .whereType<Map>()
+        .map((address) => Map<String, dynamic>.from(address))
+        .toList();
+    final selectedAddress = addressBook['selected_address'] is Map
+        ? Map<String, dynamic>.from(addressBook['selected_address'] as Map)
+        : <String, dynamic>{};
+    final selectedPhone =
+        selectedAddress['phone']?.toString().trim().isNotEmpty == true
+            ? selectedAddress['phone'].toString().trim()
+            : (addressBook['default_phone']?.toString().trim() ??
+                customer['mobile_no']?.toString().trim() ??
+                '');
+
+    return {
+      ...customer,
+      'shipping_addresses': addresses,
+      'selected_shipping_address_name':
+          addressBook['selected_address_name']?.toString().trim() ?? '',
+      'selected_shipping_address':
+          selectedAddress['full_address']?.toString().trim() ?? '',
+      'selected_shipping_phone': selectedPhone,
+      if (selectedPhone.isNotEmpty) 'mobile_no': selectedPhone,
+    };
+  }
+
+  Future<void> _selectCustomerWithShippingAddress(
+    Map<String, dynamic> customer, {
+    bool forcePicker = false,
+  }) async {
+    final customerName = customer['name']?.toString().trim() ?? '';
+    if (customerName.isEmpty) {
+      return;
+    }
+
+    final repository = ref.read(posRepositoryProvider);
+    Map<String, dynamic> addressBook;
+    try {
+      addressBook = await repository.getCustomerShippingAddresses(
+        customer: customerName,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.customerShippingAddressLoadFailed)),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+
+    final addresses = (addressBook['addresses'] as List? ?? const [])
+        .whereType<Map>()
+        .map((address) => Map<String, dynamic>.from(address))
+        .toList();
+
+    if (forcePicker || addresses.length > 1 || addresses.isEmpty) {
+      final selection = await CustomerShippingAddressDialog.show(
+        context,
+        customerName: customer['customer_name']?.toString() ?? customerName,
+        addresses: addresses,
+        initialSelectedAddressName:
+            addressBook['selected_address_name']?.toString() ?? '',
+        initialPhone: addressBook['default_phone']?.toString() ??
+            customer['mobile_no']?.toString() ??
+            '',
+      );
+      if (selection == null || !mounted) {
+        return;
+      }
+
+      try {
+        final saveResult = await repository.saveCustomerShippingAddress(
+          customer: customerName,
+          phone: selection['phone']?.toString() ?? '',
+          addressName: selection['address_name']?.toString(),
+          address: selection['address']?.toString(),
+        );
+        addressBook = saveResult['address_book'] is Map
+            ? Map<String, dynamic>.from(saveResult['address_book'] as Map)
+            : addressBook;
+      } catch (_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.invoiceAddressUpdateFailed)),
+        );
+        return;
+      }
+    }
+
+    if (!mounted) return;
+    ref
+        .read(posNotifierProvider.notifier)
+        .selectCustomer(_mergeCustomerAddressBook(customer, addressBook));
+    _controller.clear();
+    _focusNode.unfocus();
+    setState(() {
+      _currentQuery = '';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -98,6 +204,21 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
                 ),
                 const SizedBox(width: 8),
                 Expanded(child: _buildSelectedCustomer(selectedCustomer)),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.location_on),
+                  onPressed: () => _selectCustomerWithShippingAddress(
+                    selectedCustomer,
+                    forcePicker: true,
+                  ),
+                  tooltip: l10n.customerShippingAddressTitle,
+                  color: Theme.of(context).colorScheme.primary,
+                  style: IconButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                    padding: const EdgeInsets.all(8),
+                  ),
+                ),
                 const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -169,6 +290,25 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
             customer['mobile_no'],
             style: Theme.of(context).textTheme.bodySmall,
             overflow: TextOverflow.ellipsis,
+          ),
+        if ((customer['selected_shipping_address'] ?? '').toString().isNotEmpty)
+          Row(
+            children: [
+              Icon(
+                Icons.location_on,
+                size: 14,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  customer['selected_shipping_address'].toString(),
+                  style: Theme.of(context).textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
+              ),
+            ],
           ),
         if (customer['territory'] != null)
           Row(
@@ -264,12 +404,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
         if (customer['_isQuickAdd'] == true) {
           _showQuickAddCustomerDialog(customer['searchQuery'] ?? '');
         } else {
-          ref.read(posNotifierProvider.notifier).selectCustomer(customer);
-          _controller.clear();
-          _focusNode.unfocus();
-          setState(() {
-            _currentQuery = '';
-          });
+          _selectCustomerWithShippingAddress(Map<String, dynamic>.from(customer));
         }
       },
       fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
@@ -512,12 +647,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
             initialQuery: initialQuery,
             onCustomerCreated: (customer) {
               Navigator.pop(context);
-              ref.read(posNotifierProvider.notifier).selectCustomer(customer);
-              _controller.clear();
-              _focusNode.unfocus();
-              setState(() {
-                _currentQuery = '';
-              });
+              _selectCustomerWithShippingAddress(customer);
             },
           ),
         ),

@@ -35,6 +35,10 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.customer.create_customer';
   static const updateDefaultAddress =
       '/api/method/jarz_pos.api.customer.update_default_address';
+  static const getCustomerShippingAddresses =
+      '/api/method/jarz_pos.api.customer.get_customer_shipping_addresses';
+  static const saveCustomerShippingAddress =
+      '/api/method/jarz_pos.api.customer.save_customer_shipping_address';
 
   // ── Invoices ──────────────────────────────────────────────────────────
   static const createPosInvoice =

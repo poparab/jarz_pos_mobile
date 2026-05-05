@@ -713,6 +713,11 @@ class PosNotifier extends StateNotifier<PosState> {
     final customer = invoiceData['customer']?.toString().trim() ?? '';
     if (customer.isEmpty) return null;
 
+    final selectedShippingAddressName =
+        invoiceData['shipping_address_name']?.toString().trim() ?? '';
+    final selectedShippingAddress =
+        invoiceData['full_address']?.toString().trim() ?? '';
+
     return {
       'name': customer,
       'customer_name': invoiceData['customer_name']?.toString() ?? customer,
@@ -726,6 +731,8 @@ class PosNotifier extends StateNotifier<PosState> {
           ? (invoiceData['shipping_expense'] as num).toDouble()
           : double.tryParse(invoiceData['shipping_expense']?.toString() ?? '') ?? 0.0,
       'mobile_no': invoiceData['customer_phone']?.toString() ?? '',
+      'selected_shipping_address_name': selectedShippingAddressName,
+      'selected_shipping_address': selectedShippingAddress,
     };
   }
 

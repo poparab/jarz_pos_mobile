@@ -27,6 +27,7 @@ import '../../printing/pos_printer_service.dart'
 import '../../pos/order_alert/data/order_alert_service.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/widgets/customer_shipping_address_dialog.dart';
 // Invoice card widget displaying a Sales Invoice within the Kanban board.
 
 class InvoiceCardWidget extends ConsumerStatefulWidget {
@@ -2394,155 +2395,42 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
   /// Edit customer address dialog
   Future<void> _editCustomerAddress(BuildContext context) async {
-    final addressController = TextEditingController(text: widget.invoice.address);
-    final phoneController = TextEditingController(text: widget.invoice.customerPhone ?? '');
-    
-    final result = await showDialog<Map<String, String>>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.edit_location, color: Colors.blue),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                context.l10n.invoiceEditAddress,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-          ],
-        ),
-        content: SizedBox(
-          width: ResponsiveUtils.getDialogWidth(context, small: 320, medium: 420, large: 500),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Customer name (read-only)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.person, size: 20, color: Colors.grey),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              context.l10n.invoiceCustomerLabel,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            Text(
-                              widget.invoice.customerName,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Phone number
-                TextField(
-                  controller: phoneController,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.invoicePhoneNumber,
-                    prefixIcon: const Icon(Icons.phone),
-                    border: const OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 16),
-                
-                // Address
-                TextField(
-                  controller: addressController,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.invoiceDeliveryAddressLabel,
-                    prefixIcon: const Icon(Icons.location_on),
-                    border: const OutlineInputBorder(),
-                    helperText: context.l10n.invoiceAddressHelper,
-                  ),
-                  maxLines: 3,
-                  textCapitalization: TextCapitalization.words,
-                ),
-                const SizedBox(height: 12),
-                
-                // Info message
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue[200]!),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.info_outline, size: 18, color: Colors.blue[700]),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          context.l10n.invoiceAddressUpdateInfo,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.blue[900],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(context.l10n.commonCancel),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              final newAddress = addressController.text.trim();
-              final newPhone = phoneController.text.trim();
-              
-              if (newAddress.isEmpty) {
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  SnackBar(content: Text(context.l10n.invoiceAddressEmpty)),
-                );
-                return;
-              }
-              
-              Navigator.pop(ctx, {
-                'address': newAddress,
-                'phone': newPhone,
-              });
-            },
-            icon: const Icon(Icons.save),
-            label: Text(context.l10n.commonSave),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[600],
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ],
-      ),
+    final service = ref.read(kanbanServiceProvider);
+    Map<String, dynamic> addressBook;
+    try {
+      addressBook = await service.getCustomerShippingAddresses(
+        customer: widget.invoice.customer,
+        invoice: widget.invoice.name,
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      final errorMessage = _formatErrorMessage(
+        e,
+        fallback: context.l10n.customerShippingAddressLoadFailed,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+      return;
+    }
+
+    if (!context.mounted) return;
+
+    final addresses = (addressBook['addresses'] as List? ?? const [])
+        .whereType<Map>()
+        .map((address) => Map<String, dynamic>.from(address))
+        .toList();
+
+    final result = await CustomerShippingAddressDialog.show(
+      context,
+      customerName: widget.invoice.customerName,
+      addresses: addresses,
+      initialSelectedAddressName:
+          addressBook['selected_address_name']?.toString() ?? '',
+      initialPhone: addressBook['default_phone']?.toString() ??
+          widget.invoice.customerPhone ??
+          '',
+      title: context.l10n.invoiceEditAddress,
     );
 
     if (result == null || !context.mounted) return;
@@ -2567,48 +2455,30 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     );
 
     try {
-      final notifier = ref.read(kanbanProvider.notifier);
-      final success = await notifier.updateCustomerAddress(
+      await service.saveCustomerShippingAddress(
         customer: widget.invoice.customer,
-        address: result['address']!,
-        phone: result['phone']!,
+        phone: result['phone'] ?? '',
         invoice: widget.invoice.name,
+        addressName: result['address_name'],
+        address: result['address'],
       );
 
       messenger.clearSnackBars();
-      
-      if (success) {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 12),
-                Text(context.l10n.invoiceAddressUpdated),
-              ],
-            ),
-            backgroundColor: Colors.green[600],
-            duration: const Duration(seconds: 3),
+      messenger.showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 12),
+              Text(context.l10n.invoiceAddressUpdated),
+            ],
           ),
-        );
-        
-        // Refresh the invoice to show updated address
-        await notifier.refreshSingle(widget.invoice.name);
-      } else {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error, color: Colors.white),
-                const SizedBox(width: 12),
-                Text(context.l10n.invoiceAddressUpdateFailed),
-              ],
-            ),
-            backgroundColor: Colors.red[600],
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
+          backgroundColor: Colors.green[600],
+          duration: const Duration(seconds: 3),
+        ),
+      );
+
+      await ref.read(kanbanProvider.notifier).refreshSingle(widget.invoice.name);
     } catch (e) {
       messenger.clearSnackBars();
       final errorMessage = _formatErrorMessage(

@@ -394,6 +394,58 @@ class PosRepository {
     }
   }
 
+  Future<Map<String, dynamic>> getCustomerShippingAddresses({
+    required String customer,
+    String? invoice,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.getCustomerShippingAddresses,
+        data: {
+          'customer': customer,
+          if (invoice != null && invoice.isNotEmpty) 'invoice': invoice,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data['message'] != null) {
+        return Map<String, dynamic>.from(response.data['message'] as Map);
+      }
+      throw ApiException('Failed to fetch customer shipping addresses');
+    } catch (e) {
+      throw ApiException('Failed to fetch customer shipping addresses');
+    }
+  }
+
+  Future<Map<String, dynamic>> saveCustomerShippingAddress({
+    required String customer,
+    required String phone,
+    String? invoice,
+    String? addressName,
+    String? address,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.saveCustomerShippingAddress,
+        data: {
+          'customer': customer,
+          'phone': phone,
+          if (invoice != null && invoice.isNotEmpty) 'invoice': invoice,
+          if (addressName != null && addressName.isNotEmpty)
+            'address_name': addressName,
+          if (address != null && address.isNotEmpty) 'address': address,
+          'set_as_primary': 1,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data['message'] != null) {
+        return Map<String, dynamic>.from(response.data['message'] as Map);
+      }
+      throw ApiException('Failed to save customer shipping address');
+    } catch (e) {
+      throw ApiException('Failed to save customer shipping address');
+    }
+  }
+
   Future<Map<String, dynamic>> createCustomer({
     required String customerName,
     required String mobileNumber,
@@ -665,6 +717,12 @@ class PosRepository {
       'customer_name': customer?['name'] ?? 'Walking Customer',
       'pos_profile_name': posProfile,
     };
+
+    final shippingAddressName =
+        customer?['selected_shipping_address_name']?.toString().trim() ?? '';
+    if (shippingAddressName.isNotEmpty) {
+      requestData['shipping_address_name'] = shippingAddressName;
+    }
 
     final partnerActive = salesPartner != null && salesPartner.isNotEmpty;
     if (!partnerActive &&
