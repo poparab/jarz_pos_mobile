@@ -219,9 +219,15 @@ class PosPrinterService extends ChangeNotifier {
   }
 
   String _normalizeOrDefault(String? value, String fallback) {
-    final v = (value ?? '').trim();
+    final v = (value ?? '')
+        .replaceAll(RegExp(r'[\u0000-\u001F\u007F]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
     return v.isNotEmpty ? v : fallback;
   }
+
+  @visibleForTesting
+  Future<Uint8List> buildReceiptBytesForTest(PrintableInvoice inv) => _buildReceipt(inv);
 
   Future<void> _loadReceiptConfig() async {
     if (_receiptConfigLoaded || _dio == null) return;
@@ -452,7 +458,7 @@ class PosPrinterService extends ChangeNotifier {
       if (cleaned.length <= 5) return cleaned;
       return cleaned.substring(cleaned.length - 5);
     }
-    String _amPm(DateTime t) {
+    String amPm(DateTime t) {
       final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
       final m = t.minute.toString().padLeft(2, '0');
       final p = t.hour < 12 ? 'AM' : 'PM';
@@ -462,7 +468,7 @@ class PosPrinterService extends ChangeNotifier {
       final end = start.add(slot);
       final day = start.day.toString().padLeft(2,'0');
       final month = start.month.toString().padLeft(2,'0');
-      return '$day-$month from ${_amPm(start)} to ${_amPm(end)}';
+      return '$day-$month from ${amPm(start)} to ${amPm(end)}';
     }
     List<String> wrapColumn(String label, String value, int maxWidth) {
       final prefix = label.isNotEmpty ? '$label: ' : '';
@@ -660,7 +666,9 @@ class PosPrinterService extends ChangeNotifier {
     // Status is enough separation from footer; skip extra divider for compact receipt.
 
     // FOOTER ---------------------------------------------------------
-    await text(_receiptFooter, center:true, fontFamily: 'DMSerifDisplay');
+    // Plain ASCII footers are safer as native ESC/POS text here; some printers
+    // corrupt the trailing footer block when it is forced through raster text.
+    await text(_receiptFooter, center:true, bold:true);
     await text('Call us $_receiptPhone', center:true);
     await text(_receiptWebsite, center:true);
   // Add two cut guide lines so user can manually cut at the marked area

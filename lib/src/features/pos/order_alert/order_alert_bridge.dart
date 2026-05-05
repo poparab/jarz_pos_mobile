@@ -41,6 +41,9 @@ class OrderAlertBridge {
   String? _currentToken;
   String? _pendingToken;
   bool _profilesPrefetchRequested = false;
+  bool _isRegisteringToken = false;
+  String? _queuedTokenRegistration;
+  bool _queuedTokenRegistrationForce = false;
 
   Future<void> _initialise() async {
     if (_hasInit) return;
@@ -336,6 +339,15 @@ class OrderAlertBridge {
       return;
     }
 
+    if (_isRegisteringToken) {
+      _queuedTokenRegistration = token;
+      _queuedTokenRegistrationForce = _queuedTokenRegistrationForce || force;
+      _logger.debug('Token registration already in flight; queued latest request');
+      return;
+    }
+
+    _isRegisteringToken = true;
+
     try {
       final profiles = await _waitForPosProfiles();
       if (profiles == null || profiles.isEmpty) {
@@ -386,6 +398,18 @@ class OrderAlertBridge {
       _logger.error('Failed to register FCM token', error, stackTrace);
       await _ref.read(orderAlertControllerProvider.notifier).resetTokenCache();
       _pendingToken = token;
+    } finally {
+      _isRegisteringToken = false;
+
+      final queuedToken = _queuedTokenRegistration;
+      final queuedForce = _queuedTokenRegistrationForce;
+      _queuedTokenRegistration = null;
+      _queuedTokenRegistrationForce = false;
+
+      if (queuedToken != null && queuedToken.isNotEmpty) {
+        _logger.debug('Running queued token registration after in-flight request completed');
+        unawaited(_registerToken(queuedToken, force: queuedForce));
+      }
     }
   }
 
