@@ -2103,28 +2103,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get invoiceUpdated => 'Updated';
 
-    @override
-    String get customerShippingAddressTitle => 'Choose Shipping Address';
+  @override
+  String get customerShippingAddressTitle => 'Choose Shipping Address';
 
-    @override
-    String get customerShippingAddressSubtitle =>
+  @override
+  String get customerShippingAddressSubtitle =>
       'Select a saved shipping address or add a new one for this customer.';
 
-    @override
-    String get customerShippingAddressSavedTab => 'Saved Addresses';
+  @override
+  String get customerShippingAddressSavedTab => 'Saved Addresses';
 
-    @override
-    String get customerShippingAddressNewTab => 'Add New Address';
+  @override
+  String get customerShippingAddressNewTab => 'Add New Address';
 
-    @override
-    String get customerShippingAddressEmpty => 'No saved shipping addresses yet.';
+  @override
+  String get customerShippingAddressEmpty => 'No saved shipping addresses yet.';
 
-    @override
-    String get customerShippingAddressSelectRequired =>
+  @override
+  String get customerShippingAddressSelectRequired =>
       'Choose a shipping address or add a new one.';
 
-    @override
-    String get customerShippingAddressLoadFailed =>
+  @override
+  String get customerShippingAddressLoadFailed =>
       'Failed to load shipping addresses.';
 
   @override
