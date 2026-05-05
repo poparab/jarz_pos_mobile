@@ -359,6 +359,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     int requiredQuantity,
   ) {
     final selectedCount = _getSelectedCount(item, groupKey);
+    final selectedAcrossBundle = _getSelectedCountAcrossBundle(item);
     final canAddMore = _canAddMoreItems(groupKey, requiredQuantity, item);
     final canRemove = selectedCount > 0;
     final isPhone = ResponsiveUtils.isPhone(context);
@@ -367,22 +368,23 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
 
     // Extract stock information (should now be consistent with main grid)
     final stockQty = _asDouble(item['qty'] ?? item['actual_qty']);
+    final remainingStock = (stockQty - selectedAcrossBundle).clamp(0, double.infinity);
     // Debug: Log the stock values being received
     if (kDebugMode) {
       debugPrint(
-        'Bundle item $itemName - qty: ${item['qty']}, actual_qty: ${item['actual_qty']}, final stock: $stockQty',
+        'Bundle item $itemName - qty: ${item['qty']}, actual_qty: ${item['actual_qty']}, final stock: $stockQty, selectedAcrossBundle: $selectedAcrossBundle',
       );
     }
     Color stockColor;
-    if (stockQty <= 0) {
+    if (remainingStock <= 0) {
       stockColor = Colors.red;
-    } else if (stockQty <= 20) {
+    } else if (remainingStock <= 20) {
       stockColor = Colors.orange;
     } else {
       stockColor = Colors.green;
     }
 
-    final isOutOfStock = stockQty <= 0;
+    final isOutOfStock = remainingStock <= 0;
     final canActuallyAdd = canAddMore && !isOutOfStock;
 
     return Card(
@@ -428,13 +430,13 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          stockQty <= 0 ? Icons.warning : Icons.inventory,
+                          remainingStock <= 0 ? Icons.warning : Icons.inventory,
                           size: 10,
                           color: Colors.white,
                         ),
                         const SizedBox(width: 2),
                         Text(
-                          '${stockQty.toInt()}',
+                          '${remainingStock.toInt()}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 9,
@@ -755,10 +757,26 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
   // Helper method to get selected count for an item in a group
   int _getSelectedCount(Map<String, dynamic> item, String groupKey) {
     final selectedForGroup = selectedItems[groupKey] ?? [];
-    final itemId = item['id'] as String;
+    final itemId = item['id']?.toString();
+    if (itemId == null || itemId.isEmpty) {
+      return 0;
+    }
     return selectedForGroup
         .where((selected) => selected['id'] == itemId)
         .length;
+  }
+
+  int _getSelectedCountAcrossBundle(Map<String, dynamic> item) {
+    final itemId = item['id']?.toString();
+    if (itemId == null || itemId.isEmpty) {
+      return 0;
+    }
+
+    var totalSelected = 0;
+    for (final selections in selectedItems.values) {
+      totalSelected += selections.where((selected) => selected['id'] == itemId).length;
+    }
+    return totalSelected;
   }
 
   // Helper method to check if more items can be added to a group
@@ -772,7 +790,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
 
     // Check stock limit: don't allow adding more than available inventory
     final stockQty = _asDouble(item['qty'] ?? item['actual_qty']);
-    final selectedCount = _getSelectedCount(item, groupKey);
+    final selectedCount = _getSelectedCountAcrossBundle(item);
     if (selectedCount >= stockQty) return false;
 
     return true;

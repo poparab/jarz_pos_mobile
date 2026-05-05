@@ -131,5 +131,78 @@ void main() {
         expect(submittedSelections!['bundle-group-2'], hasLength(1));
       },
     );
+
+    testWidgets(
+      'should block selecting the same item in a later group when earlier groups already consumed its full stock',
+      (tester) async {
+        final bundle = {
+          'name': 'Jarz Large Bundle',
+          'price': 960.0,
+          'item_groups': [
+            {
+              'group_name': 'Large x5',
+              'group_key': 'bundle-group-1',
+              'quantity': 5,
+              'items': [
+                {
+                  'id': 'blueberry-large',
+                  'name': 'Blueberry Large',
+                  'price': 160.0,
+                  'qty': 5,
+                },
+              ],
+            },
+            {
+              'group_name': 'Large x1',
+              'group_key': 'bundle-group-2',
+              'quantity': 1,
+              'items': [
+                {
+                  'id': 'blueberry-large',
+                  'name': 'Blueberry Large',
+                  'price': 160.0,
+                  'qty': 5,
+                },
+              ],
+            },
+          ],
+        };
+
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: BundleSelectionWidget(
+                bundle: bundle,
+                onCancel: () {},
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        final blueberryCards = find.text('Blueberry Large');
+        for (var index = 0; index < 5; index++) {
+          await tester.tap(blueberryCards.first);
+          await tester.pumpAndSettle();
+        }
+
+        expect(find.text('5/5'), findsOneWidget);
+
+        await tester.scrollUntilVisible(
+          find.text('Large x1'),
+          300,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('0/1'), findsOneWidget);
+
+        await tester.tap(find.text('Blueberry Large').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('0/1'), findsOneWidget);
+      },
+    );
   });
 }
