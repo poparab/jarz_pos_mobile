@@ -15,8 +15,11 @@ class _FakePosRepository extends PosRepository {
   bool shouldThrow = false;
   String? lastItemsProfile;
   String? lastBundlesProfile;
+  String? lastAmendmentSourceInvoiceId;
   int itemsCalls = 0;
   int bundlesCalls = 0;
+  int createInvoiceCalls = 0;
+  int submitInvoiceAmendmentCalls = 0;
 
   @override
   Future<List<Map<String, dynamic>>> getPosProfiles() async {
@@ -43,6 +46,41 @@ class _FakePosRepository extends PosRepository {
   @override
   Future<List<DeliverySlot>> getDeliverySlots(String posProfile) async {
     return slotsResult;
+  }
+
+  @override
+  Future<Map<String, dynamic>> createInvoice({
+    required String posProfile,
+    required List<Map<String, dynamic>> items,
+    Map<String, dynamic>? customer,
+    String? requiredDeliveryDatetime,
+    String? deliveryEndDatetime,
+    String? salesPartner,
+    String? paymentType,
+    bool isPickup = false,
+    String? paymentMethod,
+  }) async {
+    createInvoiceCalls += 1;
+    return {'invoice_name': 'INV-NEW-001'};
+  }
+
+  @override
+  Future<Map<String, dynamic>> submitInvoiceAmendment({
+    required String sourceInvoiceId,
+    required String posProfile,
+    required List<Map<String, dynamic>> items,
+    Map<String, dynamic>? customer,
+    String? requiredDeliveryDatetime,
+    String? deliveryEndDatetime,
+    String? salesPartner,
+    String? paymentType,
+    bool isPickup = false,
+    String? paymentMethod,
+    String? idempotencyKey,
+  }) async {
+    submitInvoiceAmendmentCalls += 1;
+    lastAmendmentSourceInvoiceId = sourceInvoiceId;
+    return {'replacement_invoice_id': 'INV-AMD-001'};
   }
 }
 
@@ -572,6 +610,110 @@ void main() {
 
       notifier.setSalesPartner(null);
       expect(notifier.state.selectedSalesPartner, isNull);
+    });
+  });
+
+  group('PosNotifier amendment flow', () {
+    late _FakePosRepository repository;
+    late PosNotifier notifier;
+
+    setUp(() {
+      repository = _FakePosRepository();
+      notifier = PosNotifier(repository);
+      repository.profilesResult = const [
+        {'name': 'Main POS'},
+      ];
+      repository.bundlesResult = [
+        {
+          'id': 'BDL-1',
+          'name': 'Meal Deal',
+          'price': 120.0,
+          'item_groups': [
+            {
+              'group_name': 'Main',
+              'group_key': 'main',
+              'quantity': 1,
+              'items': [
+                {'id': 'ITEM-BURGER', 'name': 'Burger', 'item_name': 'Burger'},
+              ],
+            },
+            {
+              'group_name': 'Side',
+              'group_key': 'side',
+              'quantity': 1,
+              'items': [
+                {'id': 'ITEM-FRIES', 'name': 'Fries', 'item_name': 'Fries'},
+              ],
+            },
+          ],
+        },
+      ];
+    });
+
+    test('startAmendmentDraft rebuilds bundle cart items from invoice rows', () async {
+      await notifier.startAmendmentDraft({
+        'name': 'INV-AMD-10',
+        'pos_profile': 'Main POS',
+        'items': [
+          {
+            'item_code': 'BUNDLE-PARENT',
+            'item_name': 'Meal Deal',
+            'qty': 2,
+            'rate': 0,
+            'amount': 0,
+            'price_list_rate': 120,
+            'is_bundle_parent': 1,
+            'bundle_code': 'BDL-1',
+          },
+          {
+            'item_code': 'ITEM-BURGER',
+            'item_name': 'Burger',
+            'qty': 2,
+            'rate': 60,
+            'amount': 120,
+            'is_bundle_child': 1,
+            'parent_bundle': 'BDL-1',
+          },
+          {
+            'item_code': 'ITEM-FRIES',
+            'item_name': 'Fries',
+            'qty': 2,
+            'rate': 0,
+            'amount': 0,
+            'is_bundle_child': 1,
+            'parent_bundle': 'BDL-1',
+          },
+        ],
+      });
+
+      expect(notifier.state.cartItems, hasLength(1));
+      final bundleItem = notifier.state.cartItems.first;
+      expect(bundleItem['type'], 'bundle');
+      expect(bundleItem['quantity'], 2);
+      expect(bundleItem['rate'], 120.0);
+      expect(bundleItem['bundle_details']['bundle_id'], 'BDL-1');
+      expect(bundleItem['bundle_details']['selected_items']['main'].first['id'], 'ITEM-BURGER');
+      expect(bundleItem['bundle_details']['selected_items']['side'].first['id'], 'ITEM-FRIES');
+    });
+
+    test('checkout uses amendment endpoint when amendment draft is active', () async {
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': 'Main POS'},
+        cartItems: const [
+          {'item_code': 'ITEM-001', 'item_name': 'Item 1', 'rate': 10.0, 'quantity': 1, 'type': 'item'},
+        ],
+        isPickup: true,
+        isAmendmentDraft: true,
+        amendmentSourceInvoiceId: 'INV-ORIG-001',
+      );
+
+      await notifier.checkout();
+
+      expect(repository.submitInvoiceAmendmentCalls, 1);
+      expect(repository.createInvoiceCalls, 0);
+      expect(repository.lastAmendmentSourceInvoiceId, 'INV-ORIG-001');
+      expect(notifier.state.isAmendmentDraft, isFalse);
+      expect(notifier.state.amendmentSourceInvoiceId, isNull);
     });
   });
 }

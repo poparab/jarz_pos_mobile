@@ -497,7 +497,7 @@ class InvoiceCard {
         dateStr = "${months[d.month - 1]} ${d.day}";
       }
     }
-    String _amPm(DateTime t) {
+    String amPmLabel(DateTime t) {
       final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
       final m = t.minute.toString().padLeft(2, '0');
       final p = t.hour < 12 ? 'AM' : 'PM';
@@ -506,9 +506,9 @@ class InvoiceCard {
     final dur = deliveryDurationParsed;
     if (dur != null && dur.inMinutes > 0) {
       final end = d.add(dur);
-      return "$dateStr ${_amPm(d)}\u2013${_amPm(end)}";
+      return "$dateStr ${amPmLabel(d)}\u2013${amPmLabel(end)}";
     }
-    return "$dateStr ${_amPm(d)}";
+    return "$dateStr ${amPmLabel(d)}";
   }
 
   String get postingDateHumanized {
@@ -543,6 +543,13 @@ class InvoiceItem {
   final double qty;
   final double rate;
   final double amount;
+  final double? priceListRate;
+  final double? discountPercentage;
+  final double? discountAmount;
+  final bool isBundleParent;
+  final bool isBundleChild;
+  final String? bundleCode;
+  final String? parentBundle;
 
   InvoiceItem({
     required this.itemCode,
@@ -550,6 +557,13 @@ class InvoiceItem {
     required this.qty,
     required this.rate,
     required this.amount,
+    this.priceListRate,
+    this.discountPercentage,
+    this.discountAmount,
+    this.isBundleParent = false,
+    this.isBundleChild = false,
+    this.bundleCode,
+    this.parentBundle,
   });
 
   factory InvoiceItem.fromJson(Map<String, dynamic> json) {
@@ -559,6 +573,19 @@ class InvoiceItem {
       qty: (json['qty'] ?? 0).toDouble(),
       rate: (json['rate'] ?? 0).toDouble(),
       amount: (json['amount'] ?? 0).toDouble(),
+      priceListRate: json['price_list_rate'] != null
+          ? (json['price_list_rate'] as num).toDouble()
+          : null,
+      discountPercentage: json['discount_percentage'] != null
+          ? (json['discount_percentage'] as num).toDouble()
+          : null,
+      discountAmount: json['discount_amount'] != null
+          ? (json['discount_amount'] as num).toDouble()
+          : null,
+      isBundleParent: [1, true, '1', 'true', 'True'].contains(json['is_bundle_parent']),
+      isBundleChild: [1, true, '1', 'true', 'True'].contains(json['is_bundle_child']),
+      bundleCode: json['bundle_code']?.toString(),
+      parentBundle: json['parent_bundle']?.toString(),
     );
   }
 
@@ -569,6 +596,13 @@ class InvoiceItem {
       'qty': qty,
       'rate': rate,
       'amount': amount,
+      'price_list_rate': priceListRate,
+      'discount_percentage': discountPercentage,
+      'discount_amount': discountAmount,
+      'is_bundle_parent': isBundleParent,
+      'is_bundle_child': isBundleChild,
+      'bundle_code': bundleCode,
+      'parent_bundle': parentBundle,
     };
   }
 

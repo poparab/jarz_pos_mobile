@@ -688,16 +688,6 @@ class CartWidget extends ConsumerWidget {
     final state = ref.read(posNotifierProvider);
     final l10n = context.l10n;
 
-    if (state.isAmendmentDraft) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.posAmendmentCheckoutBlocked),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-      return;
-    }
-
     // Validate delivery slot is selected
     if (!state.isPickup && state.selectedDeliverySlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -37,6 +37,25 @@ void main() {
       expect(item.quantity, 2);
     });
 
+    test('fromJson preserves bundle and discount metadata', () {
+      final item = InvoiceItem.fromJson({
+        'item_code': 'BUNDLE-001',
+        'item_name': 'Meal Deal',
+        'qty': 1,
+        'rate': 0,
+        'amount': 0,
+        'price_list_rate': 120,
+        'discount_percentage': 100,
+        'is_bundle_parent': 1,
+        'bundle_code': 'BDL-1',
+      });
+
+      expect(item.priceListRate, 120);
+      expect(item.discountPercentage, 100);
+      expect(item.isBundleParent, isTrue);
+      expect(item.bundleCode, 'BDL-1');
+    });
+
     test('toJson mirrors original data', () {
       final item = InvoiceItem(
         itemCode: 'ITEM-002',
@@ -44,6 +63,10 @@ void main() {
         qty: 1.5,
         rate: 10,
         amount: 15,
+        priceListRate: 12,
+        discountAmount: 2,
+        isBundleChild: true,
+        parentBundle: 'BDL-1',
       );
       expect(item.toJson(), {
         'item_code': 'ITEM-002',
@@ -51,6 +74,13 @@ void main() {
         'qty': 1.5,
         'rate': 10,
         'amount': 15,
+        'price_list_rate': 12,
+        'discount_percentage': null,
+        'discount_amount': 2,
+        'is_bundle_parent': false,
+        'is_bundle_child': true,
+        'bundle_code': null,
+        'parent_bundle': 'BDL-1',
       });
     });
   });

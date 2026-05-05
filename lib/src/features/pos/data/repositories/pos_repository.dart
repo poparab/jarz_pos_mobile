@@ -499,110 +499,17 @@ class PosRepository {
     String? paymentMethod, // 'Cash' | 'Instapay' | 'Mobile Wallet'
   }) async {
     try {
-      // Convert cart items to backend format (preserve discount fields if present)
-      List<Map<String, dynamic>> cartItems = items.map((item) {
-        final isBundle = item['type'] == 'bundle';
-        final base = <String, dynamic>{
-          'item_code': isBundle ? item['bundle_details']['bundle_id'] : item['item_code'],
-          'qty': item['quantity'],
-          'rate': item['rate'],
-          'is_bundle': isBundle,
-        };
-        if (isBundle) {
-          final rawSelections = item['bundle_details']?['selected_items']
-              as Map<String, dynamic>?;
-          if (rawSelections != null) {
-            final normalizedSelections = <String, List<Map<String, dynamic>>>{};
-            rawSelections.forEach((groupName, entries) {
-              final entryList = (entries as List)
-                  .map<Map<String, dynamic>>(
-                    (entry) => Map<String, dynamic>.from(
-                      entry as Map,
-                    ),
-                  )
-                  .toList();
-              final key = groupName.toString();
-              normalizedSelections[key] = entryList;
-            });
-            base['selected_items'] = normalizedSelections;
-          }
-        }
-        // Optional discount metadata
-        if (item.containsKey('price_list_rate')) {
-          base['price_list_rate'] = item['price_list_rate'];
-        }
-        if (item.containsKey('discount_amount')) {
-          base['discount_amount'] = item['discount_amount'];
-        }
-        if (item.containsKey('discount_percentage')) {
-          base['discount_percentage'] = item['discount_percentage'];
-        }
-        return base;
-      }).toList();
-
-      if (kDebugMode) {
-        debugPrint('📦 CART ITEMS BEING SENT TO BACKEND:');
-        for (int i = 0; i < cartItems.length; i++) {
-          final item = cartItems[i];
-          final isBundle = item['is_bundle'] == true;
-          debugPrint(
-            '   Item ${i + 1}: ${item['item_code']} - Qty: ${item['qty']}, Rate: ${item['rate']}, Bundle: $isBundle',
-          );
-        }
-      }
-
-  // Prepare request data
-  Map<String, dynamic> requestData = {
-        'cart_json': jsonEncode(cartItems),
-        'customer_name': customer?['name'] ?? 'Walking Customer',
-        'pos_profile_name': posProfile,
-      };
-
-      // Add delivery charges if customer has delivery income (but NOT when sales partner is selected)
-      final bool partnerActive = salesPartner != null && salesPartner.isNotEmpty;
-      if (!partnerActive &&
-          customer != null &&
-          customer['delivery_income'] != null &&
-          customer['delivery_income'] > 0) {
-        requestData['delivery_charges_json'] = jsonEncode([
-          {
-            'charge_type': 'Delivery',
-            'amount': customer['delivery_income'],
-            'description':
-                'Delivery charge for ${customer['territory'] ?? 'Unknown Territory'}',
-          },
-        ]);
-      }
-
-      // Add required delivery datetime if provided
-      if (requiredDeliveryDatetime != null &&
-          requiredDeliveryDatetime.isNotEmpty) {
-        requestData['required_delivery_datetime'] = requiredDeliveryDatetime;
-      }
-
-      // Add delivery end datetime for correct duration calculation
-      if (deliveryEndDatetime != null && deliveryEndDatetime.isNotEmpty) {
-        requestData['delivery_end_datetime'] = deliveryEndDatetime;
-      }
-
-      // Pickup flag: informs backend to suppress shipping logic and mark invoice as pickup
-      if (isPickup) {
-        requestData['pickup'] = 1;
-      }
-
-      if (salesPartner != null && salesPartner.isNotEmpty) {
-        requestData['sales_partner'] = salesPartner;
-      }
-
-      // Optional advisory flag for backend – lets server record intended payment channel
-      if (paymentType != null && paymentType.isNotEmpty) {
-        requestData['payment_type'] = paymentType; // values: 'cash' | 'online'
-      }
-
-      // Payment method field (Cash, Instapay, Mobile Wallet)
-      if (paymentMethod != null && paymentMethod.isNotEmpty) {
-        requestData['payment_method'] = paymentMethod;
-      }
+      final requestData = _buildInvoiceRequestData(
+        posProfile: posProfile,
+        items: items,
+        customer: customer,
+        requiredDeliveryDatetime: requiredDeliveryDatetime,
+        deliveryEndDatetime: deliveryEndDatetime,
+        salesPartner: salesPartner,
+        paymentType: paymentType,
+        isPickup: isPickup,
+        paymentMethod: paymentMethod,
+      );
 
       if (kDebugMode) {
         debugPrint('🚀 SENDING REQUEST TO BACKEND:');
@@ -633,6 +540,166 @@ class PosRepository {
       }
       throw Exception('Failed to create invoice: $e');
     }
+  }
+
+  Future<Map<String, dynamic>> submitInvoiceAmendment({
+    required String sourceInvoiceId,
+    required String posProfile,
+    required List<Map<String, dynamic>> items,
+    Map<String, dynamic>? customer,
+    String? requiredDeliveryDatetime,
+    String? deliveryEndDatetime,
+    String? salesPartner,
+    String? paymentType,
+    bool isPickup = false,
+    String? paymentMethod,
+    String? idempotencyKey,
+  }) async {
+    try {
+      final requestData = _buildInvoiceRequestData(
+        posProfile: posProfile,
+        items: items,
+        customer: customer,
+        requiredDeliveryDatetime: requiredDeliveryDatetime,
+        deliveryEndDatetime: deliveryEndDatetime,
+        salesPartner: salesPartner,
+        paymentType: paymentType,
+        isPickup: isPickup,
+        paymentMethod: paymentMethod,
+      );
+      requestData['invoice_id'] = sourceInvoiceId;
+      if (idempotencyKey != null && idempotencyKey.isNotEmpty) {
+        requestData['idempotency_key'] = idempotencyKey;
+      }
+
+      if (kDebugMode) {
+        debugPrint('🔁 SENDING AMENDMENT REQUEST TO BACKEND:');
+        debugPrint('   Endpoint: ${ApiEndpoints.submitInvoiceAmendment}');
+        debugPrint('   Source Invoice: $sourceInvoiceId');
+        debugPrint('   Cart JSON: ${requestData['cart_json']}');
+      }
+
+      final response = await _dio.post(
+        ApiEndpoints.submitInvoiceAmendment,
+        data: requestData,
+      );
+
+      if (response.statusCode == 200) {
+        return response.data['message'];
+      }
+      throw Exception('Failed to submit invoice amendment');
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ INVOICE AMENDMENT ERROR: $e');
+      }
+      throw Exception('Failed to submit invoice amendment: $e');
+    }
+  }
+
+  List<Map<String, dynamic>> _buildCartRequestItems(
+    List<Map<String, dynamic>> items,
+  ) {
+    return items.map((item) {
+      final isBundle = item['type'] == 'bundle';
+      final base = <String, dynamic>{
+        'item_code': isBundle ? item['bundle_details']['bundle_id'] : item['item_code'],
+        'qty': item['quantity'],
+        'rate': item['rate'],
+        'is_bundle': isBundle,
+      };
+      if (isBundle) {
+        final rawSelections = item['bundle_details']?['selected_items']
+            as Map<String, dynamic>?;
+        if (rawSelections != null) {
+          final normalizedSelections = <String, List<Map<String, dynamic>>>{};
+          rawSelections.forEach((groupName, entries) {
+            final entryList = (entries as List)
+                .map<Map<String, dynamic>>(
+                  (entry) => Map<String, dynamic>.from(entry as Map),
+                )
+                .toList();
+            normalizedSelections[groupName.toString()] = entryList;
+          });
+          base['selected_items'] = normalizedSelections;
+        }
+      }
+      if (item.containsKey('price_list_rate')) {
+        base['price_list_rate'] = item['price_list_rate'];
+      }
+      if (item.containsKey('discount_amount')) {
+        base['discount_amount'] = item['discount_amount'];
+      }
+      if (item.containsKey('discount_percentage')) {
+        base['discount_percentage'] = item['discount_percentage'];
+      }
+      return base;
+    }).toList();
+  }
+
+  Map<String, dynamic> _buildInvoiceRequestData({
+    required String posProfile,
+    required List<Map<String, dynamic>> items,
+    Map<String, dynamic>? customer,
+    String? requiredDeliveryDatetime,
+    String? deliveryEndDatetime,
+    String? salesPartner,
+    String? paymentType,
+    bool isPickup = false,
+    String? paymentMethod,
+  }) {
+    final cartItems = _buildCartRequestItems(items);
+
+    if (kDebugMode) {
+      debugPrint('📦 CART ITEMS BEING SENT TO BACKEND:');
+      for (int i = 0; i < cartItems.length; i++) {
+        final item = cartItems[i];
+        final isBundle = item['is_bundle'] == true;
+        debugPrint(
+          '   Item ${i + 1}: ${item['item_code']} - Qty: ${item['qty']}, Rate: ${item['rate']}, Bundle: $isBundle',
+        );
+      }
+    }
+
+    final requestData = <String, dynamic>{
+      'cart_json': jsonEncode(cartItems),
+      'customer_name': customer?['name'] ?? 'Walking Customer',
+      'pos_profile_name': posProfile,
+    };
+
+    final partnerActive = salesPartner != null && salesPartner.isNotEmpty;
+    if (!partnerActive &&
+        customer != null &&
+        customer['delivery_income'] != null &&
+        customer['delivery_income'] > 0) {
+      requestData['delivery_charges_json'] = jsonEncode([
+        {
+          'charge_type': 'Delivery',
+          'amount': customer['delivery_income'],
+          'description':
+              'Delivery charge for ${customer['territory'] ?? 'Unknown Territory'}',
+        },
+      ]);
+    }
+
+    if (requiredDeliveryDatetime != null && requiredDeliveryDatetime.isNotEmpty) {
+      requestData['required_delivery_datetime'] = requiredDeliveryDatetime;
+    }
+    if (deliveryEndDatetime != null && deliveryEndDatetime.isNotEmpty) {
+      requestData['delivery_end_datetime'] = deliveryEndDatetime;
+    }
+    if (isPickup) {
+      requestData['pickup'] = 1;
+    }
+    if (salesPartner != null && salesPartner.isNotEmpty) {
+      requestData['sales_partner'] = salesPartner;
+    }
+    if (paymentType != null && paymentType.isNotEmpty) {
+      requestData['payment_type'] = paymentType;
+    }
+    if (paymentMethod != null && paymentMethod.isNotEmpty) {
+      requestData['payment_method'] = paymentMethod;
+    }
+    return requestData;
   }
 
   Future<List<DeliverySlot>> getDeliverySlots(String posProfile) async {

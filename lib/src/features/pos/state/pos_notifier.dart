@@ -490,6 +490,141 @@ class PosNotifier extends StateNotifier<PosState> {
     return normalized == '1' || normalized == 'true' || normalized == 'yes' || normalized == 'y';
   }
 
+  double _coerceDouble(dynamic value, {double fallback = 0.0}) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  int _coerceInt(dynamic value, {int fallback = 0}) {
+    if (value is num) return value.round();
+    return int.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  bool _isBundleParentInvoiceItem(Map<String, dynamic> item) {
+    return _coerceBool(item['is_bundle_parent']) ||
+        (item['bundle_code']?.toString().trim().isNotEmpty ?? false);
+  }
+
+  bool _isBundleChildInvoiceItem(Map<String, dynamic> item) {
+    return _coerceBool(item['is_bundle_child']) ||
+        (item['parent_bundle']?.toString().trim().isNotEmpty ?? false);
+  }
+
+  Map<String, dynamic>? _findBundleInfoForInvoiceItem(
+    Map<String, dynamic> parentItem,
+    List<Map<String, dynamic>> bundles,
+  ) {
+    final bundleCode = parentItem['bundle_code']?.toString().trim() ?? '';
+    final parentItemCode = parentItem['item_code']?.toString().trim() ?? '';
+
+    for (final bundle in bundles) {
+      final bundleId = bundle['id']?.toString().trim() ?? '';
+      final bundleName = bundle['name']?.toString().trim() ?? '';
+      final erpnextItem = bundle['erpnext_item']?.toString().trim() ?? '';
+      if (bundleCode.isNotEmpty && (bundleId == bundleCode || bundleName == bundleCode)) {
+        return bundle;
+      }
+      if (parentItemCode.isNotEmpty && erpnextItem.isNotEmpty && erpnextItem == parentItemCode) {
+        return bundle;
+      }
+    }
+    return null;
+  }
+
+  Map<String, List<Map<String, dynamic>>> _reconstructBundleSelections(
+    List<Map<String, dynamic>> childItems,
+    Map<String, dynamic> bundleInfo,
+    int bundleQuantity,
+  ) {
+    final selections = <String, List<Map<String, dynamic>>>{};
+    final rawGroups = bundleInfo['item_groups'] as List<dynamic>? ?? const [];
+
+    for (final childItem in childItems) {
+      final itemCode = childItem['item_code']?.toString().trim() ?? '';
+      if (itemCode.isEmpty) continue;
+
+      Map<String, dynamic>? matchedGroup;
+      Map<String, dynamic>? matchedItem;
+      for (final rawGroup in rawGroups.whereType<Map>()) {
+        final group = Map<String, dynamic>.from(rawGroup);
+        final rawItems = group['items'] as List<dynamic>? ?? const [];
+        for (final rawItem in rawItems.whereType<Map>()) {
+          final candidate = Map<String, dynamic>.from(rawItem);
+          final candidateId = candidate['id']?.toString().trim() ?? '';
+          final candidateName = candidate['name']?.toString().trim() ?? '';
+          if (candidateId == itemCode || candidateName == itemCode) {
+            matchedGroup = group;
+            matchedItem = candidate;
+            break;
+          }
+        }
+        if (matchedItem != null) break;
+      }
+
+      final groupKey = (matchedGroup?['group_key'] ??
+              matchedGroup?['group_id'] ??
+              matchedGroup?['name'] ??
+              matchedGroup?['group_name'] ??
+              'group')
+          .toString();
+      final template = matchedItem != null
+          ? Map<String, dynamic>.from(matchedItem)
+          : {
+              'id': itemCode,
+              'name': childItem['item_name']?.toString() ?? itemCode,
+              'item_name': childItem['item_name']?.toString() ?? itemCode,
+              'price': _coerceDouble(
+                childItem['price_list_rate'] ?? childItem['rate'],
+              ),
+            };
+
+      final totalQuantity = _coerceInt(childItem['qty'], fallback: 1);
+      final perBundleQuantity = bundleQuantity > 0
+          ? (totalQuantity / bundleQuantity).round().clamp(1, totalQuantity)
+          : totalQuantity.clamp(1, totalQuantity);
+
+      for (var index = 0; index < perBundleQuantity; index++) {
+        selections.putIfAbsent(groupKey, () => []).add(Map<String, dynamic>.from(template));
+      }
+    }
+
+    return selections;
+  }
+
+  Map<String, dynamic>? _buildAmendmentBundleCartItem(
+    Map<String, dynamic> parentItem,
+    List<Map<String, dynamic>> childItems,
+    List<Map<String, dynamic>> bundles,
+  ) {
+    final bundleInfo = _findBundleInfoForInvoiceItem(parentItem, bundles);
+    if (bundleInfo == null) {
+      return null;
+    }
+
+    final bundleQuantity = _coerceInt(parentItem['qty'], fallback: 1).clamp(1, 9999);
+    final bundleRate = _coerceDouble(
+      parentItem['price_list_rate'] ?? parentItem['rate'] ?? bundleInfo['price'],
+      fallback: _coerceDouble(bundleInfo['price']),
+    );
+    final bundleId = bundleInfo['id']?.toString() ??
+        parentItem['bundle_code']?.toString() ??
+        parentItem['item_code']?.toString() ??
+        '';
+
+    return {
+      'item_code': bundleId,
+      'item_name': parentItem['item_name']?.toString() ?? bundleInfo['name']?.toString() ?? bundleId,
+      'rate': bundleRate,
+      'quantity': bundleQuantity,
+      'type': 'bundle',
+      'bundle_details': {
+        'bundle_id': bundleId,
+        'selected_items': _reconstructBundleSelections(childItems, bundleInfo, bundleQuantity),
+        'bundle_info': bundleInfo,
+      },
+    };
+  }
+
   Duration? _parseDeliveryDuration(dynamic rawDuration) {
     if (rawDuration == null) return null;
     if (rawDuration is num) {
@@ -509,33 +644,69 @@ class PosNotifier extends StateNotifier<PosState> {
     return Duration(hours: hours, minutes: minutes, seconds: seconds);
   }
 
-  List<Map<String, dynamic>> _buildAmendmentCartItems(dynamic rawItems) {
+  List<Map<String, dynamic>> _buildAmendmentCartItems(
+    dynamic rawItems,
+    List<Map<String, dynamic>> bundles,
+  ) {
     if (rawItems is! List) return const [];
 
-    return rawItems
+    final invoiceItems = rawItems
         .whereType<Map>()
-        .map((rawItem) {
-          final item = Map<String, dynamic>.from(rawItem);
-          final itemCode = item['item_code']?.toString() ?? '';
-          final itemName = item['item_name']?.toString() ?? itemCode;
-          final rate = item['rate'] is num
-              ? (item['rate'] as num).toDouble()
-              : double.tryParse(item['rate']?.toString() ?? '') ?? 0.0;
-          final rawQty = item['qty'];
-          final quantity = rawQty is num
-              ? rawQty.round()
-              : int.tryParse(rawQty?.toString() ?? '') ?? 1;
-
-          return {
-            'item_code': itemCode,
-            'item_name': itemName,
-            'rate': rate,
-            'quantity': quantity < 1 ? 1 : quantity,
-            'type': 'item',
-          };
-        })
-        .where((item) => (item['item_code']?.toString() ?? '').isNotEmpty)
+        .map((rawItem) => Map<String, dynamic>.from(rawItem))
         .toList();
+    final consumedBundleChildren = <int>{};
+    final cartItems = <Map<String, dynamic>>[];
+
+    for (var index = 0; index < invoiceItems.length; index++) {
+      if (consumedBundleChildren.contains(index)) {
+        continue;
+      }
+
+      final item = invoiceItems[index];
+      if (_isBundleChildInvoiceItem(item)) {
+        continue;
+      }
+
+      if (_isBundleParentInvoiceItem(item)) {
+        final bundleCode = item['bundle_code']?.toString().trim() ?? '';
+        final childItems = <Map<String, dynamic>>[];
+        for (var childIndex = 0; childIndex < invoiceItems.length; childIndex++) {
+          if (childIndex == index) continue;
+          final childItem = invoiceItems[childIndex];
+          if (!_isBundleChildInvoiceItem(childItem)) continue;
+          final parentBundle = childItem['parent_bundle']?.toString().trim() ?? '';
+          if (bundleCode.isNotEmpty && parentBundle == bundleCode) {
+            childItems.add(childItem);
+            consumedBundleChildren.add(childIndex);
+          }
+        }
+
+        final bundleCartItem = _buildAmendmentBundleCartItem(item, childItems, bundles);
+        if (bundleCartItem != null) {
+          cartItems.add(bundleCartItem);
+          continue;
+        }
+      }
+
+      final itemCode = item['item_code']?.toString() ?? '';
+      if (itemCode.isEmpty) {
+        continue;
+      }
+      final quantity = _coerceInt(item['qty'], fallback: 1);
+      cartItems.add({
+        'item_code': itemCode,
+        'item_name': item['item_name']?.toString() ?? itemCode,
+        'rate': _coerceDouble(item['rate']),
+        'quantity': quantity < 1 ? 1 : quantity,
+        'type': 'item',
+        if (item.containsKey('price_list_rate')) 'price_list_rate': _coerceDouble(item['price_list_rate']),
+        if (item.containsKey('discount_amount')) 'discount_amount': _coerceDouble(item['discount_amount']),
+        if (item.containsKey('discount_percentage'))
+          'discount_percentage': _coerceDouble(item['discount_percentage']),
+      });
+    }
+
+    return cartItems;
   }
 
   Map<String, dynamic>? _buildAmendmentCustomer(Map<String, dynamic> invoiceData) {
@@ -651,13 +822,14 @@ class PosNotifier extends StateNotifier<PosState> {
       final deliverySlot = _buildAmendmentDeliverySlot(invoiceData);
       final salesPartnerName = invoiceData['sales_partner']?.toString().trim() ?? '';
       final isPickup = _coerceBool(invoiceData['is_pickup']);
+      final bundleCatalog = futures[1];
 
       state = state.copyWith(
         profiles: profiles,
         selectedProfile: selectedProfile,
         items: futures[0],
-        bundles: futures[1],
-        cartItems: _buildAmendmentCartItems(invoiceData['items']),
+        bundles: bundleCatalog,
+        cartItems: _buildAmendmentCartItems(invoiceData['items'], bundleCatalog),
         selectedCustomer: customer,
         clearSelectedCustomer: customer == null,
         selectedDeliverySlot: isPickup ? null : deliverySlot,
@@ -687,14 +859,6 @@ class PosNotifier extends StateNotifier<PosState> {
     String? overridePosProfileName, 
     String? paymentMethod,
   }) async {
-    if (state.isAmendmentDraft) {
-      state = state.copyWith(
-        error: 'Invoice amendment submission is not enabled yet',
-        clearError: false,
-      );
-      return;
-    }
-
     if (state.cartItems.isEmpty) {
       state = state.copyWith(error: 'Cart is empty', clearError: false);
       return;
@@ -725,20 +889,33 @@ class PosNotifier extends StateNotifier<PosState> {
 
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      // Always create invoice without printing; printing moved to Kanban / separate action
-      final invoice = await _repository.createInvoice(
-        posProfile: (overridePosProfileName != null && overridePosProfileName.isNotEmpty)
-            ? overridePosProfileName
-            : state.selectedProfile!['name'],
-        items: state.cartItems,
-        customer: state.selectedCustomer,
-        requiredDeliveryDatetime: state.isPickup ? null : state.selectedDeliverySlot?.datetime,
-        deliveryEndDatetime: state.isPickup ? null : state.selectedDeliverySlot?.endDatetime,
-        isPickup: state.isPickup,
-        salesPartner: state.selectedSalesPartner?['name'],
-        paymentType: paymentType,
-        paymentMethod: paymentMethod,
-      );
+      final effectivePosProfile = (overridePosProfileName != null && overridePosProfileName.isNotEmpty)
+          ? overridePosProfileName
+          : state.selectedProfile!['name'];
+      final invoice = state.isAmendmentDraft
+          ? await _repository.submitInvoiceAmendment(
+              sourceInvoiceId: state.amendmentSourceInvoiceId ?? '',
+              posProfile: effectivePosProfile,
+              items: state.cartItems,
+              customer: state.selectedCustomer,
+              requiredDeliveryDatetime: state.isPickup ? null : state.selectedDeliverySlot?.datetime,
+              deliveryEndDatetime: state.isPickup ? null : state.selectedDeliverySlot?.endDatetime,
+              isPickup: state.isPickup,
+              salesPartner: state.selectedSalesPartner?['name'],
+              paymentType: paymentType,
+              paymentMethod: paymentMethod,
+            )
+          : await _repository.createInvoice(
+              posProfile: effectivePosProfile,
+              items: state.cartItems,
+              customer: state.selectedCustomer,
+              requiredDeliveryDatetime: state.isPickup ? null : state.selectedDeliverySlot?.datetime,
+              deliveryEndDatetime: state.isPickup ? null : state.selectedDeliverySlot?.endDatetime,
+              isPickup: state.isPickup,
+              salesPartner: state.selectedSalesPartner?['name'],
+              paymentType: paymentType,
+              paymentMethod: paymentMethod,
+            );
 
       if (kDebugMode) {
         debugPrint('✅ CHECKOUT SUCCESS (no auto-print):');
@@ -756,6 +933,8 @@ class PosNotifier extends StateNotifier<PosState> {
         clearSelectedSalesPartner: true,
         isPickup: false,
         isLoading: false,
+        isAmendmentDraft: false,
+        clearAmendmentSourceInvoiceId: true,
       );
 
   // TODO (Wallet/InstaPay Reference Capture):

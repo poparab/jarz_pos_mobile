@@ -134,6 +134,32 @@ void main() {
       });
     });
 
+    group('Amendment Invoices', () {
+      test('submitInvoiceAmendment - routes payload to amendment endpoint', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manager.submit_invoice_amendment',
+          createSuccessResponse(data: {
+            'replacement_invoice_id': 'INV-AMD-001',
+          }),
+        );
+
+        final result = await repository.submitInvoiceAmendment(
+          sourceInvoiceId: 'INV-ORIG-001',
+          posProfile: 'Main POS',
+          items: [
+            {'item_code': 'ITEM-001', 'quantity': 1, 'rate': 50.0},
+          ],
+          isPickup: true,
+        );
+
+        expect(result['replacement_invoice_id'], equals('INV-AMD-001'));
+        final request = mockDio.requestLog.last;
+        expect(request['path'], equals('/api/method/jarz_pos.api.manager.submit_invoice_amendment'));
+        expect(request['data']['invoice_id'], equals('INV-ORIG-001'));
+        expect(request['data']['pickup'], equals(1));
+      });
+    });
+
     group('Payment Type - Cash vs Online', () {
       test('createInvoice - supports cash payment type indicator', () async {
         mockDio.setResponse(
