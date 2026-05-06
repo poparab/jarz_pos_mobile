@@ -95,6 +95,13 @@ Summary head:
 - `addresses_created: 0`
 - `addresses_deleted: 46`
 
+### Production apply pass 4
+
+Summary head:
+
+- `addresses_created: 0`
+- `addresses_deleted: 45`
+
 ### Final dry run at end of this session
 
 Summary head:
@@ -110,12 +117,12 @@ Summary head:
 - Woo customers: `5266`
 - resolved ERP customers: `5155`
 - unresolved Woo customers: `6`
-- exact customer matches: `5110`
-- deviated customer matches: `45`
-- customers missing at least one union Woo address: `45`
-- customers with extra unique ERP addresses: `45`
-- total missing union Woo addresses: `45`
-- total extra unique ERP addresses: `45`
+- exact customer matches: `5111`
+- deviated customer matches: `44`
+- customers missing at least one union Woo address: `44`
+- customers with extra unique ERP addresses: `44`
+- total missing union Woo addresses: `44`
+- total extra unique ERP addresses: `44`
 - duplicate row surplus: `0`
 
 ### Per-Woo audit after the latest cleanup passes
@@ -159,11 +166,12 @@ Production verification passed after the cleanup work:
 - site accessibility returned `HTTP 200`
 - custom apps were installed correctly
 - all critical verification checks passed
+- production verification also passed after the final apply pass and immediate audit rerun
 
 ## Conclusion
 
 The production cleanup execution itself was successful and stable.
 
-The remaining `45` canonical address mismatches should be treated as live-source drift still present at the end of the run, not as a replay of the staging operational failures.
+The remaining `44` canonical address mismatches should be treated as live-source drift still present at the end of the run, not as a replay of the staging operational failures.
 
 The next production pass should be done in a quieter window or with Woo customer updates effectively frozen during the run, then the same canonical audit should be rerun immediately afterward.
