@@ -45,6 +45,9 @@ class OrderAlertBridge {
   String? _queuedTokenRegistration;
   bool _queuedTokenRegistrationForce = false;
 
+  bool get _shouldSuppressFcmNativeEffects =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
   Future<void> _initialise() async {
     if (_hasInit) return;
     _hasInit = true;
@@ -84,9 +87,9 @@ class OrderAlertBridge {
     if (!kIsWeb) {
       _logger.info("📱 Setting up FCM listeners...");
       _onMessageSub = FirebaseMessaging.onMessage.listen(_handleRemoteMessage);
-      _onOpenedSub = FirebaseMessaging.onMessageOpenedApp.listen(
-        _handleRemoteMessage,
-      );
+      _onOpenedSub = FirebaseMessaging.onMessageOpenedApp.listen((message) {
+        _handleRemoteMessage(message, openedApp: true);
+      });
 
       // Process initial launch intent and background messages
       final launchPayload = await OrderAlertNativeChannel.consumeLaunchPayload();
@@ -191,7 +194,12 @@ class OrderAlertBridge {
           'requires=${alert.requiresAcceptance} '
           'acceptance=${alert.acceptanceStatus}'
         );
-        unawaited(_queueAlert(alert));
+        unawaited(
+          _queueAlert(
+            alert,
+            triggerNativeEffects: !_shouldSuppressFcmNativeEffects && !openedApp,
+          ),
+        );
         // Don't sync immediately - give the server time to update
         // The websocket event will also trigger and sync if needed
         Future.delayed(const Duration(seconds: 2), () {
@@ -225,7 +233,12 @@ class OrderAlertBridge {
   void _handleLaunchPayload(Map<String, String> payload) {
     final type = payload['type'];
     if (type == 'new_invoice') {
-      unawaited(_queueAlert(InvoiceAlert.fromFcmData(payload)));
+      unawaited(
+        _queueAlert(
+          InvoiceAlert.fromFcmData(payload),
+          triggerNativeEffects: false,
+        ),
+      );
       unawaited(
         _ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts(),
       );
@@ -243,13 +256,20 @@ class OrderAlertBridge {
     }
   }
 
-  Future<void> _queueAlert(InvoiceAlert alert) async {
+  Future<void> _queueAlert(
+    InvoiceAlert alert, {
+    bool triggerNativeEffects = true,
+  }) async {
     if (!alert.requiresAcceptance) {
       return;
     }
     await _ref
         .read(orderAlertControllerProvider.notifier)
-        .enqueueAlert(alert, fromNotification: true);
+        .enqueueAlert(
+          alert,
+          fromNotification: true,
+          triggerNativeEffects: triggerNativeEffects,
+        );
   }
 
   void _handleRealtimeInvoice(Map<String, dynamic> payload) {

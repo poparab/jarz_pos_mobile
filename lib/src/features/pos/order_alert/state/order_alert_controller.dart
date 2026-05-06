@@ -41,6 +41,7 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
   Future<void> enqueueAlert(
     InvoiceAlert alert, {
     bool fromNotification = false,
+    bool triggerNativeEffects = true,
   }) async {
     _logger.info(
       "enqueueAlert CALLED: invoice=${alert.invoiceId} "
@@ -102,6 +103,10 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       active: newActive,
       clearError: true,
     );
+
+    if (!triggerNativeEffects) {
+      return;
+    }
 
     // Check global mute state
     final globalMute = await getGlobalMuteState();

@@ -145,6 +145,15 @@ void main() {
       await controller.enqueueAlert(_alert('INV-Y'));
       expect(controller.state.error, isNull);
     });
+
+    test('updates queue without native effects when suppressed', () async {
+      final alert = _alert('INV-1');
+      await controller.enqueueAlert(alert, triggerNativeEffects: false);
+
+      expect(controller.state.queue, hasLength(1));
+      expect(controller.state.active?.invoiceId, 'INV-1');
+      expect(nativeChannelCalls, isEmpty);
+    });
   });
 
   // ── hasInvoice ────────────────────────────────────────────────────────
