@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'printer_status.dart';
@@ -10,7 +9,18 @@ class PrintableInvoiceItem {
   final double qty;
   final double rate;
   final double amount;
-  PrintableInvoiceItem({required this.name, required this.qty, required this.rate}) : amount = qty * rate;
+  final bool showPricing;
+  final int indentLevel;
+  final bool bold;
+  PrintableInvoiceItem({
+    required this.name,
+    required this.qty,
+    required this.rate,
+    double? amount,
+    this.showPricing = true,
+    this.indentLevel = 0,
+    this.bold = false,
+  }) : amount = amount ?? qty * rate;
 }
 
 /// Data class for a printable invoice (shared across mobile & web).

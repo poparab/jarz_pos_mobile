@@ -22,6 +22,7 @@ import 'cancel_order_dialog.dart';
 import 'sub_territory_selection_sheet.dart';
 import 'custom_shipping_request_dialog.dart';
 import '../../printing/pos_printer_provider.dart';
+import '../../printing/printable_invoice_mapper.dart';
 import '../../printing/pos_printer_service.dart'
     if (dart.library.html) '../../printing/pos_printer_service_web.dart';
 import '../../pos/order_alert/data/order_alert_service.dart';
@@ -172,60 +173,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
   Future<PrintableInvoice> _buildPrintableInvoice(BuildContext context) async {
     final l10n = context.l10n;
-    InvoiceCard enriched = widget.invoice;
+    InvoiceCard? details;
     try {
-      final details = await ref.read(invoiceDetailsProvider(widget.invoice.id).future);
-      if (details != null) {
-        enriched = details;
-      }
+      details = await ref.read(invoiceDetailsProvider(widget.invoice.id).future);
     } catch (_) {}
-
-    final items = enriched.items.isNotEmpty
-        ? enriched.items
-            .map((e) => PrintableInvoiceItem(name: e.itemName, qty: e.qty, rate: e.rate))
-            .toList()
-        : [
-            PrintableInvoiceItem(
-              name: l10n.invoiceItemsCount(enriched.itemsCount),
-              qty: 1,
-              rate: enriched.netTotal,
-            )
-          ];
-
-    final isPaid = (enriched.docStatus?.toLowerCase() == InvoiceStatus.paidLower) ||
-        (enriched.effectiveStatus.toLowerCase() == InvoiceStatus.paidLower);
-    final paid = isPaid ? enriched.total : 0.0;
-    final outstanding = ((enriched.total - paid).clamp(0.0, enriched.total)).toDouble();
-    final deliveryDT = enriched.deliveryStartDateTime ?? _parseDelivery(enriched.requiredDeliveryDate);
-
-    return PrintableInvoice(
-      id: enriched.name,
-      date: DateTime.now(),
-      customer: enriched.customerName,
-      customerAddress: enriched.address.isNotEmpty ? enriched.address : null,
-      customerPhone: enriched.customerPhone,
-      territory: (enriched.territoryNameAr ?? '').isNotEmpty
-          ? enriched.territoryNameAr
-          : (enriched.territoryDisplay ?? '').isNotEmpty
-              ? enriched.territoryDisplay
-              : enriched.territory.isNotEmpty ? enriched.territory : null,
-      deliveryDateTime: deliveryDT,
-      total: enriched.total,
-      paid: paid,
-      outstanding: outstanding,
-      shipping: enriched.isPickup ? 0.0 : enriched.shippingIncome,
-      items: items,
+    return buildPrintableInvoiceFromCards(
+      source: widget.invoice,
+      details: details,
+      fallbackItemLabel: l10n.invoiceItemsCount(details?.itemsCount ?? widget.invoice.itemsCount),
     );
-  }
-
-  DateTime? _parseDelivery(String? text) {
-    if (text == null || text.trim().isEmpty) return null;
-    try {
-      // Accept common formats like '2025-01-31 14:20' or ISO
-      return DateTime.tryParse(text);
-    } catch (_) {
-      return null;
-    }
   }
 
   Future<void> _acceptOrder(BuildContext context) async {
@@ -1949,7 +1905,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                   )
                                 else
                                   DropdownButtonFormField<String>(
-                                    value: selectedDeliveryPartner,
+                                    initialValue: selectedDeliveryPartner,
                                     decoration: const InputDecoration(labelText: 'Delivery Partner'),
                                     items: deliveryPartners.map((dp) => DropdownMenuItem(
                                       value: dp['name'],

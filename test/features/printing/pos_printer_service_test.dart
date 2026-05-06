@@ -7,7 +7,7 @@ import 'package:jarz_pos/src/features/printing/pos_printer_service.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('PosPrinterService footer rendering', () {
+  group('PosPrinterService receipt rendering', () {
     test('should emit default ascii footer as plain text bytes', () async {
       final service = PosPrinterService(autoInit: false);
       final invoice = PrintableInvoice(
@@ -33,6 +33,34 @@ void main() {
         _containsSequence(bytes, latin1.encode('Thank you for Your Order')),
         isTrue,
       );
+    });
+
+    test('should render compact child bundle lines in preview output', () async {
+      final service = PosPrinterService(autoInit: false);
+      final invoice = PrintableInvoice(
+        id: 'ACC-SINV-TEST-15723',
+        date: DateTime(2026, 5, 5, 13, 0),
+        customer: 'Moaz Mohamed',
+        customerAddress: 'زهراء المعادي, Maadi - المعادي',
+        customerPhone: '01023743348',
+        total: 720,
+        paid: 0,
+        outstanding: 720,
+        shipping: 60,
+        items: [
+          PrintableInvoiceItem(name: 'Chocolate Hazelnut Medium', qty: 1, rate: 120, amount: 120),
+          PrintableInvoiceItem(name: 'Jarz Sweet Six', qty: 1, rate: 600, amount: 600, bold: true),
+          PrintableInvoiceItem(name: 'Blueberry Medium', qty: 3, rate: 100, amount: 300, showPricing: false, indentLevel: 1),
+          PrintableInvoiceItem(name: 'Lotus Medium', qty: 2, rate: 100, amount: 200, showPricing: false, indentLevel: 1),
+          PrintableInvoiceItem(name: 'Redvelvet Medium', qty: 1, rate: 100, amount: 100, showPricing: false, indentLevel: 1),
+        ],
+      );
+
+      final preview = await service.buildReceiptPreview(invoice);
+
+      expect(preview, contains('- Blueberry Medium x3'));
+      expect(preview, isNot(contains('- Blueberry Medium x3 @')));
+      expect(preview, contains('Jarz Sweet Six x1 @ 600.00 = 600.00'));
     });
   });
 }

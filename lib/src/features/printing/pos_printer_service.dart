@@ -21,7 +21,18 @@ class PrintableInvoiceItem {
   final double qty;
   final double rate;
   final double amount;
-  PrintableInvoiceItem({required this.name, required this.qty, required this.rate}) : amount = qty * rate;
+  final bool showPricing;
+  final int indentLevel;
+  final bool bold;
+  PrintableInvoiceItem({
+    required this.name,
+    required this.qty,
+    required this.rate,
+    double? amount,
+    this.showPricing = true,
+    this.indentLevel = 0,
+    this.bold = false,
+  }) : amount = amount ?? qty * rate;
 }
 
 class PrintableInvoice {
@@ -270,7 +281,13 @@ class PosPrinterService extends ChangeNotifier {
     sb.writeln('');
 
     for (final item in inv.items) {
-      sb.writeln('${item.name} x${item.qty.toStringAsFixed(0)} @ ${_money(item.rate)} = ${_money(item.amount)}');
+      if (item.showPricing) {
+        sb.writeln(
+          '${_compactItemLabel(item)} x${_qtyLabel(item.qty)} @ ${_money(item.rate)} = ${_money(item.amount)}',
+        );
+      } else {
+        sb.writeln(_compactItemLabel(item, includeQty: true));
+      }
     }
     sb.writeln('');
 
@@ -521,7 +538,7 @@ class PosPrinterService extends ChangeNotifier {
     // Right column: Invoice No, Invoice Date, Address (first line)
   // Address now printed fully after the two-column section (left aligned), so we don't include it in columns.
   final addressLines = (inv.customerAddress ?? '')
-    .split('\n')
+    .split(RegExp(r'[\n,]+'))
     .map((e)=>e.trim())
     .where((e)=>e.isNotEmpty)
     .toList();
@@ -564,7 +581,7 @@ class PosPrinterService extends ChangeNotifier {
     // Address block — slightly larger font for readability
     if (addressLines.isNotEmpty) {
       for (final line in addressLines) {
-        await text(line, fontSize: 22);
+        await text(line, fontSize: 20);
       }
     }
     await hr();
@@ -572,9 +589,9 @@ class PosPrinterService extends ChangeNotifier {
     // BODY -----------------------------------------------------------
     // Column widths in characters (Font A). Names are wrapped, never truncated.
     // Total = 48 chars to fill full 80mm paper width.
-    const nameW = 20;
+    const nameW = 24;
     const qtyW = 4;
-    const rateW = 12;
+    const rateW = 8;
     const amtW = 12;
 
     List<String> wrapFixed(String s, int width) {
@@ -637,14 +654,22 @@ class PosPrinterService extends ChangeNotifier {
     // Items
     for (int idx = 0; idx < inv.items.length; idx++) {
       final it = inv.items[idx];
-      final rows = col4Rows(it.name, it.qty.toStringAsFixed(0), _money(it.rate), _money(it.amount));
-      for (final line in rows) {
-        await text(line);
+      if (!it.showPricing) {
+        final lines = wrapFixed(_compactItemLabel(it, includeQty: true), lineChars);
+        for (final line in lines) {
+          await text(line, bold: it.bold);
+        }
+        continue;
       }
-      // Thin separator + small spacing between items (skip after last item)
-      if (idx < inv.items.length - 1) {
-        await text('.' * lineChars);
-        feed(1);
+
+      final rows = col4Rows(
+        _compactItemLabel(it),
+        _qtyLabel(it.qty),
+        _money(it.rate),
+        _money(it.amount),
+      );
+      for (final line in rows) {
+        await text(line, bold: it.bold);
       }
     }
     // Spacing before totals
@@ -680,6 +705,23 @@ class PosPrinterService extends ChangeNotifier {
   }
 
   String _money(double v) => v.toStringAsFixed(2);
+  String _qtyLabel(double qty) {
+    if ((qty - qty.round()).abs() < 0.0001) {
+      return qty.round().toString();
+    }
+    return qty
+        .toStringAsFixed(2)
+        .replaceFirst(RegExp(r'0+$'), '')
+        .replaceFirst(RegExp(r'\.$'), '');
+  }
+
+  String _compactItemLabel(PrintableInvoiceItem item, {bool includeQty = false}) {
+    final indent = '  ' * item.indentLevel;
+    final bullet = item.indentLevel > 0 ? '- ' : '';
+    final qtySuffix = includeQty && item.qty > 1.0001 ? ' x${_qtyLabel(item.qty)}' : '';
+    return '$indent$bullet${item.name}$qtySuffix'.trimRight();
+  }
+
   String _labelVal(String l,String v) {
     const ml = 30;
     const totalW = 48;
