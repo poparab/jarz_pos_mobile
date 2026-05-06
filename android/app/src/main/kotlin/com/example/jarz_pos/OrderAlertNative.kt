@@ -35,6 +35,11 @@ object OrderAlertNative {
     @Volatile
     private var selectedAlarmUri: String? = null
 
+    fun prepareNotificationChannels(context: Context) {
+        ensureChannel(context)
+        ensureShiftChannel(context)
+    }
+
     fun startAlarm(context: Context) {
         synchronized(this) {
             if (mediaPlayer?.isPlaying == true) {
@@ -141,6 +146,7 @@ object OrderAlertNative {
             .setAutoCancel(false)
             .setFullScreenIntent(pendingIntent, true)
             .setContentIntent(pendingIntent)
+            .setSilent(true)
             .setShowWhen(true)
 
         NotificationManagerCompat.from(context).notify(notificationId, builder.build())
@@ -221,7 +227,22 @@ object OrderAlertNative {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val existing = manager.getNotificationChannel(CHANNEL_ID)
-            if (existing == null) {
+            val requiresRefresh =
+                existing == null ||
+                existing.importance < NotificationManager.IMPORTANCE_HIGH ||
+                existing.sound == null
+
+            if (requiresRefresh && existing != null) {
+                manager.deleteNotificationChannel(CHANNEL_ID)
+            }
+
+            if (requiresRefresh) {
+                val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                val soundAttributes = AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
+
                 val channel = NotificationChannel(
                     CHANNEL_ID,
                     "Order Alerts",
@@ -230,8 +251,7 @@ object OrderAlertNative {
                 channel.description = "Urgent alerts for new POS orders"
                 channel.setBypassDnd(true)
                 channel.enableVibration(true)
-                // Notification sound intentionally null; alarm playback is handled separately
-                channel.setSound(null, null)
+                channel.setSound(soundUri, soundAttributes)
                 manager.createNotificationChannel(channel)
             }
         }

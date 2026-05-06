@@ -12,6 +12,7 @@ class OrderAlertChannel : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         appContext = binding.applicationContext
+        OrderAlertNative.prepareNotificationChannels(appContext)
         channel = MethodChannel(binding.binaryMessenger, "order_alert_native")
         channel.setMethodCallHandler(this)
         pendingLaunchPayload?.let { payload ->
