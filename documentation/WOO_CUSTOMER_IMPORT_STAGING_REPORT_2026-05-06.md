@@ -2,161 +2,225 @@
 
 Date: 2026-05-06
 
-## Scope Implemented
+## Final Status
 
-This staging cycle implemented the first hardening slice for customer and address import behavior, aligned with the current business rules:
+The staging customer cleanup is converged and verified.
 
-- ERPNext is the canonical source of truth after import.
-- WooCommerce remains an upstream source only.
-- Phone is treated as the practical merge key for customer identity.
+- Canonical ERP customer and address state now matches the current Woo customer data for every safely resolvable customer.
+- The remaining blockers are limited to 5 Woo customers that the cleanup intentionally refuses to merge unsafely.
+- Staging health verification passed after the final cleanup rerun.
+
+## Business Rules Applied
+
+- ERPNext is the canonical system after import.
+- WooCommerce is an upstream source only.
+- Exact `woo_customer_id` is the first identity key.
+- Unique normalized phone is the approved merge key when exact Woo ID does not resolve safely.
+- Email-only and username-only conflicts must block instead of force-merging.
 - Address dedupe is allowed only inside the same customer boundary.
 - Cross-customer address reuse is forbidden.
-- Wrong or stale imported addresses are intended to be removed during the later cleanup phase.
+- Cleanup correctness is judged by the canonical grouped audit, not by per-Woo record comparisons after approved phone merges.
 
-## Custom App Changes Deployed
+## Final Deployed Code
 
 ### jarz_woocommerce_integration
 
-Commit deployed to staging:
+Final cleanup commit deployed to staging:
 
-- `e76f170` Harden Woo customer identity and address import
+- `3c5a618` Fix source-address normalization during cleanup
 
-Implemented behavior:
+Important cleanup checkpoints reached during this staging cycle:
 
-- bulk customer sync now passes `woo_customer_id` into `_ensure_customer(...)`
-- automated customer import no longer reuses existing ERP customers by display name
-- customer identity resolution now prefers:
-  1. exact `woo_customer_id`
-  2. phone match
-  3. username match when the Woo ID does not conflict
-  4. email match when the Woo ID does not conflict
-  5. create new ERP customer
-- same-phone customers continue to merge to the same ERP customer, matching the current decision that phone is the key
-- inbound address matching now uses a full normalized payload instead of `address_type + address_line1` only
-- full-address comparison now includes:
-  - line1
-  - line2
-  - city
-  - state
-  - postcode
-  - country
-- billing and shipping are treated as the same address only when the full normalized payload matches
-- line2-only inbound addresses are now treated as valid source addresses
-- imported addresses are matched only inside the same customer boundary
+- `45cd3b9`
+- `cccb7d8`
+- `1a19d05`
+- `3c5a618`
+
+Final staging installed version:
+
+- `jarz_woocommerce_integration 0.0.1 main (3c5a618)`
+
+Implemented cleanup behavior now in use:
+
+- one-time cleanup service in `jarz_woocommerce_integration/services/customer_cleanup.py`
+- CLI wrapper in `jarz_woocommerce_integration/cli.py`
+- page-window execution support for controlled reruns
+- full desired-state computation across all Woo customers even when applying one page window at a time
+- explicit DB reconnect after long Woo fetches before SQL work resumes
+- source-address signature normalization aligned with persisted ERP fallback semantics, including `city="Unknown"` and default country resolution
 
 ### jarz_pos
 
-Commit deployed to staging:
+Final staging installed version:
 
-- `1843096` Stabilize customer shipping address selection
+- `jarz_pos 0.0.1 main (f570185)`
 
-Implemented behavior:
+## Runner Method That Worked Reliably
 
-- customer address lists are deduped for picker use
-- canonical shipping choices stay tied to the same customer only
-- duplicate legacy address names can resolve back to the canonical customer-owned address
-- saving a customer shipping address now reuses a matching existing customer address instead of blindly inserting another duplicate row
+The reliable staging execution method was file-based and container-local:
 
-## Local Validation
+1. Create local helper runners under `artifacts/2026-05-06/`.
+2. Copy the runner to the staging host with `scp`.
+3. Copy the runner into `erp-backend-1` with `docker cp`.
+4. Execute the runner inside the backend container with env vars controlling the batch window and write output to stdout or a temp file.
+5. Remove the temp files from both the host and the container after each run.
 
-### Woo-focused local tests
+This worked consistently for:
 
-Executed inside local v16 backend container:
+- `customer_cleanup_batch_runner.py`
+- `staging_customer_audit_runner.py`
+- `staging_customer_canonical_audit_runner.py`
+- `inspect_customer_cleanup_case.py`
 
-- `TestCustomerWooIdRuntime.test_ensure_customer_backfills_canonical_woo_customer_id_on_email_match`
-- `TestCustomerWooIdRuntime.test_ensure_customer_uses_phone_as_primary_merge_key`
-- `TestCustomerWooIdRuntime.test_ensure_customer_does_not_reuse_email_match_with_conflicting_woo_id`
-- `TestCustomerBulkSync`
-- `TestCustomerAddressCanonicalization`
+This approach is the one to repeat on production. It avoided repeated quoting failures from long inline `bench execute` and nested PowerShell or SSH command strings.
 
-Result:
+## Validation Performed
 
-- `8 tests passed`
+### Local focused tests
 
-### jarz_pos local tests
+Executed after the final normalization fix:
 
-Executed inside local v16 backend container:
-
-- `jarz_pos.tests.test_customer_address_utils`
-
-Result:
-
-- `6 tests passed`
-
-## Staging Deployment Verification
-
-### Deployed heads on staging
-
-- `jarz_pos`: `184309649985851aacc731d5277ea9ae7a1efc9e`
-- `jarz_woocommerce_integration`: `e76f1705aaa8c901f76e056c1242720fc8b07406`
-
-### Installed app versions on staging
-
-- `frappe 16.13.0`
-- `erpnext 16.12.0`
-- `hrms 16.4.7`
-- `jarz_pos 0.0.1 main (1843096)`
-- `jarz_woocommerce_integration 0.0.1 main (e76f170)`
-
-### Focused staging backend tests
-
-Executed inside `erp-backend-1` on staging:
-
-- targeted Woo identity tests
-- targeted Woo bulk-sync and address canonicalization tests
-- `jarz_pos.tests.test_customer_address_utils`
+- `python -m unittest jarz_woocommerce_integration.tests.test_customer_cleanup`
+- `python -m unittest jarz_woocommerce_integration.tests.test_customer_bulk_sync`
 
 Result:
 
-- `14 tests passed`
+- passed with no failures
 
-### Live staging smoke check
+### Staging deployment verification
 
-- `GET https://erpstg.orderjarz.com/api/method/ping`
-- result: `200`
-- body: `{\"message\":\"pong\"}`
+Final deployed heads on staging:
 
-## What This Fixes Now
+- `jarz_pos`: `f570185f9511e883c13f4906e764f528cd94dd20`
+- `jarz_woocommerce_integration`: `3c5a61832c562fa511a116d5ac9319b95488c48d`
 
-- new inbound Woo customer imports are less likely to merge by weak name heuristics
-- same-phone customer records continue to converge to one ERP customer as requested
-- same-address detection is stricter and no longer collapses rows just because `address_1` matches
-- line2-only source addresses are no longer silently dropped
-- customer-facing address picker behavior is more stable and less duplicate-prone
-- saving shipping addresses in `jarz_pos` now prefers reuse of the correct customer-owned address
+Live staging checks after final cleanup:
 
-## What This Does Not Fix Yet
+- `GET https://erpstg.orderjarz.com/api/method/ping` returned `200`
+- staging verify script passed all critical checks
+- all required containers were healthy
+- both custom apps were installed
 
-- historical cleanup and backfill of all existing production customer/address drift has not been run yet
-- no production data repair has been executed yet
-- no dedicated alias model exists yet for tracking multiple Woo customer IDs that may collapse into one ERP customer by phone
-- stale and wrong imported addresses have not yet been hard-deleted in production
-- conflict queue and recurring drift audit automation are still pending follow-up work
+## Metrics
 
-## Production Gate Assessment
+### Initial baseline before cleanup
 
-Current status:
+- Woo customers: `5049`
+- ERP customers: `4481`
+- exact Woo-ID unique matches: `4051`
+- phone-merge unique matches: `117`
+- unresolved Woo customers: `881`
+- deviated per-Woo address matches: `3899`
+- duplicate canonical Woo-ID groups already present in ERP: `3` (`3357`, `3437`, `3753`)
 
-- code hardening implemented
-- local validation passed
-- staging deployment passed
-- staging focused tests passed
-- staging HTTP smoke passed
+### Intermediate state before final normalization fix
 
-Recommendation before production:
+After cleanup logic hardening but before fixing source-address normalization, the remaining canonical drift was still large:
 
-1. Keep this as a hardening release first.
-2. Do not treat it as the full cleanup release yet.
-3. Before production backfill or cleanup, prepare the next slice for:
-   - audit command/report automation
-   - safe classification of duplicate and contaminated customer/address graphs
-   - hard-delete rules for wrong imported addresses
-   - optional manual review handling for non-phone identity conflicts
+- resolved total: `5044`
+- unresolved total: `5`
+- exact canonical customer matches: `2776`
+- deviated canonical customer matches: `2165`
+- total missing union Woo addresses: `2319`
+- total extra unique ERP addresses: `2228`
+- total duplicate row surplus: `113`
 
-## Summary
+Root cause identified from the concrete staging case `AMR` / Woo `11`:
 
-The implemented staging slice is successful.
+- Woo billing and shipping payloads could arrive with blank `city` and blank `country`
+- ERP persisted those same addresses with fallback values such as `city="Unknown"` and `country="Egypt"`
+- cleanup compared raw blank source values to the stored fallback values, so those rows never converged and were repeatedly treated as missing or extra
 
-It hardens future Woo-to-ERP customer and address imports, tightens same-customer address reuse, preserves the current business rule that phone is the merge key, and reduces the risk of duplicate or wrongly collapsed addresses.
+### Final state after `3c5a618` and full apply rerun
 
-It is a valid base for the next phase: audit-driven cleanup and repair of the existing deviated data before any production cleanup wave.
+Authoritative full apply rerun summary:
+
+- `addresses_created: 0`
+- `addresses_deleted: 180`
+- `addresses_disabled: 0`
+
+Canonical grouped audit after the final rerun:
+
+- resolved ERP customers: `4941`
+- unresolved Woo customers: `5`
+- exact customer matches: `4941`
+- deviated customer matches: `0`
+- customers missing at least one union Woo address: `0`
+- customers with extra unique ERP addresses: `0`
+- customers with duplicate ERP address rows: `0`
+- total missing union Woo addresses: `0`
+- total extra unique ERP addresses: `0`
+- total duplicate row surplus: `0`
+
+Per-Woo audit after the final rerun:
+
+- exact Woo-ID unique matches: `4928`
+- phone-merge unique matches: `116`
+- resolved total: `5044`
+- unresolved total: `5`
+- exact address matches: `4370`
+- deviated address matches: `197`
+- customers missing at least one current Woo address: `0`
+- customers with extra unique ERP addresses: `197`
+- total missing current Woo addresses: `0`
+- total extra unique ERP addresses: `208`
+
+## Interpreting the Final Per-Woo Deviation Count
+
+The remaining `197` per-Woo address deviations are not cleanup failures.
+
+They are expected cases where multiple Woo customer IDs safely merge to one ERP customer by phone, so a single Woo customer is being compared against the full union of addresses now owned by the merged ERP customer.
+
+Evidence:
+
+- the canonical grouped audit is fully clean
+- the top remaining per-Woo deviation samples are predominantly `phone_merge` cases with `missing_count = 0` and only `extra_unique_count > 0`
+- there are `0` shared active address rows across multiple ERP customers
+
+Production cleanup sign-off should therefore use the canonical grouped audit as the correctness gate.
+
+## What Worked Automatically
+
+- exact Woo-ID resolution
+- safe phone-based customer merges
+- full desired-state preservation across merged Woo identities
+- retirement of stale or duplicated customer address rows within the same customer boundary
+- removal of extra ERP customer-address links not present in the unioned Woo state
+- full cleanup convergence after aligning source signature normalization with persisted ERP fallback values
+- preservation of the safety rule that unsafe identity conflicts must stay blocked
+
+## What Did Not Auto-Resolve
+
+The cleanup intentionally left 5 Woo customers unresolved because forcing them through would be unsafe:
+
+- `187`: username conflict without safe email match
+- `885`: email and username conflict without phone
+- `3357`: duplicate canonical Woo ID already stamped across multiple ERP customers
+- `3437`: duplicate canonical Woo ID already stamped across multiple ERP customers
+- `3753`: duplicate canonical Woo ID already stamped across multiple ERP customers
+
+These are the manual-resolution cases to review before or during the production wave. The cleanup rules should not be loosened to make these auto-pass.
+
+## Production Reuse Steps
+
+1. Deploy the same cleanup code path to production from GitHub. Do not run a server-only hotfix.
+2. Reuse the same file-based runner method from `artifacts/2026-05-06/`.
+3. Run the full apply with the same effective parameters used in the successful staging rerun:
+  - `START_PAGE=1`
+  - `MAX_PAGES=51`
+  - `PER_PAGE=100`
+  - `COMMIT_EVERY=200`
+  - `DRY_RUN=0`
+  - `HARD_DELETE_ORPHANS=1`
+  - `SAMPLE_LIMIT=10`
+4. Rerun both audits immediately after apply:
+  - per-Woo audit for unresolved and phone-merge review
+  - canonical grouped audit as the actual correctness gate
+5. Stop production sign-off if the canonical grouped audit is not zeroed.
+6. Resolve the blocked identity cases manually instead of weakening the cleanup rules.
+
+## Conclusion
+
+The staging cleanup is successful, reproducible, and now documented with the exact method that worked.
+
+Production should reuse the final code on `3c5a618`, the same file-based runner approach, and the canonical grouped audit as the go or no-go decision point.
