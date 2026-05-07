@@ -110,7 +110,7 @@ class ReceiptCanvasRenderer {
       String text,
       double maxWidth, {
       bool bold = false,
-      double fontSize = 12.0,
+      double fontSize = 22.0,
       String? fontFamily,
       TextAlign align = TextAlign.start,
     }) {
@@ -167,7 +167,7 @@ class ReceiptCanvasRenderer {
 
     // ── Section 3: Brand header ──────────────────────────────────────────────
     placeTp(
-      tp(header, _receiptW - 2 * _padX, bold: true, fontSize: 24, fontFamily: 'DMSerifDisplay', align: TextAlign.center),
+      tp(header, _receiptW - 2 * _padX, bold: true, fontSize: 40, fontFamily: 'DMSerifDisplay', align: TextAlign.center),
       _padX,
     );
 
@@ -200,7 +200,7 @@ class ReceiptCanvasRenderer {
     }
 
     // Left column: Delivery Address
-    addLeft(tp('Delivery Address', _colW, bold: true, fontSize: 13));
+    addLeft(tp('Delivery Address', _colW, bold: true, fontSize: 24));
     if (inv.customer.isNotEmpty) addLeft(tp(inv.customer, _colW, fontSize: 12));
     if ((inv.customerAddress ?? '').isNotEmpty) {
       addLeft(tp(inv.customerAddress!, _colW, fontSize: 12));
@@ -257,11 +257,11 @@ class ReceiptCanvasRenderer {
     // ── Section 6: Items table ────────────────────────────────────────────────
     // Header row
     final headerRowY = y;
-    final snHdr = tp('S.No', _tSnoW, bold: true, fontSize: 11, align: TextAlign.center);
-    final prodHdr = tp('Product', _tProdW, bold: true, fontSize: 11);
-    final qtyHdr = tp('Quantity', _tQtyW, bold: true, fontSize: 11, align: TextAlign.center);
-    final unitHdr = tp('Unit\nprice', _tUnitW, bold: true, fontSize: 11, align: TextAlign.center);
-    final amtHdr = tp('Total\nprice', _tAmtW, bold: true, fontSize: 11, align: TextAlign.center);
+    final snHdr = tp('S.No', _tSnoW, bold: true, fontSize: 20, align: TextAlign.center);
+    final prodHdr = tp('Product', _tProdW, bold: true, fontSize: 20);
+    final qtyHdr = tp('Quantity', _tQtyW, bold: true, fontSize: 20, align: TextAlign.center);
+    final unitHdr = tp('Unit\nprice', _tUnitW, bold: true, fontSize: 20, align: TextAlign.center);
+    final amtHdr = tp('Total\nprice', _tAmtW, bold: true, fontSize: 20, align: TextAlign.center);
     final hdrH = [snHdr, prodHdr, qtyHdr, unitHdr, amtHdr].fold<double>(0, (m, t) => t.height > m ? t.height : m) + _lineGap;
 
     placeCenter(snHdr, _tSnoX, _tSnoW, advance: false);
@@ -294,7 +294,7 @@ class ReceiptCanvasRenderer {
       final nameTp = tp(item.name, _tProdW, bold: item.bold, fontSize: 12);
       TextPainter? descTp;
       if ((item.description ?? '').isNotEmpty) {
-        descTp = tp(item.description!, _tProdW, fontSize: 10);
+        descTp = tp(item.description!, _tProdW, fontSize: 18);
       }
       final prodColH = nameTp.height + (descTp != null ? (descTp.height + 1) : 0);
 
@@ -330,15 +330,15 @@ class ReceiptCanvasRenderer {
     if (inv.shipping > 0 && inv.shipping <= grand) {
       final subtotal = (grand - inv.shipping).clamp(0.0, grand);
       _addTotalRow(ops, y, totalsLabelX, totalsLabelW, totalsValX, totalsValW, 'Subtotal', _fmtAmt(subtotal), tp, placeRight);
-      y += _tpHeight(tp('Subtotal', totalsLabelW, fontSize: 12)) + _lineGap;
+      y += _tpHeight(tp('Subtotal', totalsLabelW, fontSize: 22)) + _lineGap;
       _addTotalRow(ops, y, totalsLabelX, totalsLabelW, totalsValX, totalsValW, 'Shipping', _fmtAmt(inv.shipping), tp, placeRight);
-      y += _tpHeight(tp('Shipping', totalsLabelW, fontSize: 12)) + _lineGap;
+      y += _tpHeight(tp('Shipping', totalsLabelW, fontSize: 22)) + _lineGap;
       gap(_lineGap);
     }
 
     // Grand total (larger, bold)
-    final totalLabelTp = tp('Total', totalsLabelW, bold: true, fontSize: 16);
-    final totalValTp = tp(_fmtAmt(grand), totalsValW, bold: true, fontSize: 16, align: TextAlign.right);
+    final totalLabelTp = tp('Total', totalsLabelW, bold: true, fontSize: 30);
+    final totalValTp = tp(_fmtAmt(grand), totalsValW, bold: true, fontSize: 30, align: TextAlign.right);
     ops.add(_TpOp(tp: totalLabelTp, x: totalsLabelX, y: y));
     ops.add(_TpOp(tp: totalValTp, x: (totalsValX + totalsValW - totalValTp.width).clamp(totalsValX, totalsValX + totalsValW), y: y));
     y += totalLabelTp.height + _lineGap;
@@ -399,7 +399,7 @@ class ReceiptCanvasRenderer {
             text: label,
             style: const TextStyle(
               color: ui.Color(0xFF000000),
-              fontSize: 12,
+              fontSize: 22,
               fontWeight: FontWeight.w700,
               fontFamily: 'Inter',
               fontFamilyFallback: ['Tajawal', 'Roboto'],
@@ -410,7 +410,7 @@ class ReceiptCanvasRenderer {
             text: value,
             style: const TextStyle(
               color: ui.Color(0xFF000000),
-              fontSize: 12,
+              fontSize: 22,
               fontWeight: FontWeight.w400,
               fontFamily: 'Inter',
               fontFamilyFallback: ['Tajawal', 'Roboto'],
@@ -439,8 +439,8 @@ class ReceiptCanvasRenderer {
     TextPainter Function(String, double, {bool bold, double fontSize, String? fontFamily, TextAlign align}) mkTp,
     void Function(TextPainter, double, double, {bool advance}) placeRight,
   ) {
-    final lTp = mkTp(label, labelW, fontSize: 12);
-    final vTp = mkTp(value, valW, fontSize: 12, align: TextAlign.right);
+    final lTp = mkTp(label, labelW, fontSize: 22);
+    final vTp = mkTp(value, valW, fontSize: 22, align: TextAlign.right);
     ops.add(_TpOp(tp: lTp, x: labelX, y: rowY));
     ops.add(_TpOp(tp: vTp, x: (valX + valW - vTp.width).clamp(valX, valX + valW), y: rowY));
   }
