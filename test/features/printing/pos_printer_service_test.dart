@@ -14,16 +14,16 @@ void main() {
         id: 'ACC-SINV-TEST-15703',
         date: DateTime(2026, 5, 5, 19, 0),
         customer: 'Abdalla Ayman',
-        customerAddress: '6, 2 الدور الاول شقة 18 Magd elmstafa building',
-        customerPhone: '+201091653779',
+        customerAddress: '6 October, Building 18, First Floor, Flat 2',
+        customerPhone: '01000000000',
         territory: '6 October',
         deliveryDateTime: DateTime(2026, 5, 5, 19, 0),
-        total: 380,
-        paid: 380,
+        total: 120,
+        paid: 120,
         outstanding: 0,
-        shipping: 60,
+        shipping: 0,
         items: [
-          PrintableInvoiceItem(name: 'Hibiscus Kunafa Large', qty: 2, rate: 160),
+          PrintableInvoiceItem(name: 'Connection Test', qty: 1, rate: 120),
         ],
       );
 
@@ -32,6 +32,40 @@ void main() {
       expect(
         _containsSequence(bytes, latin1.encode('Thank you for Your Order')),
         isTrue,
+      );
+    });
+
+    test('should fully rasterize receipts when invoice contains Arabic text', () async {
+      // Arrange
+      final service = PosPrinterService(autoInit: false);
+      final invoice = PrintableInvoice(
+        id: 'ACC-SINV-TEST-15754',
+        date: DateTime(2026, 5, 6, 14, 30),
+        customer: 'Manal Mahmoud Issa',
+        customerAddress: 'حدائق أكتوبر بداية كمباوند كاميوا عماره 14',
+        customerPhone: '01064260665',
+        territory: 'حدائق أكتوبر - Hadayek October',
+        deliveryDateTime: DateTime(2026, 5, 6, 14, 30),
+        total: 415,
+        paid: 415,
+        outstanding: 0,
+        shipping: 55,
+        items: [
+          PrintableInvoiceItem(name: 'Pistachio Medium', qty: 1, rate: 120),
+        ],
+      );
+
+      // Act
+      final bytes = await service.buildReceiptBytesForTest(invoice);
+
+      // Assert
+      expect(
+        _containsSequence(bytes, latin1.encode('Thank you for Your Order')),
+        isFalse,
+      );
+      expect(
+        _countSequence(bytes, [0x1D, 0x76, 0x30, 0x00]),
+        greaterThan(8),
       );
     });
 
@@ -115,4 +149,26 @@ bool _containsSequence(Uint8List bytes, List<int> sequence) {
   }
 
   return false;
+}
+
+int _countSequence(Uint8List bytes, List<int> sequence) {
+  if (sequence.isEmpty || sequence.length > bytes.length) {
+    return 0;
+  }
+
+  var count = 0;
+  for (var start = 0; start <= bytes.length - sequence.length; start++) {
+    var matched = true;
+    for (var offset = 0; offset < sequence.length; offset++) {
+      if (bytes[start + offset] != sequence[offset]) {
+        matched = false;
+        break;
+      }
+    }
+    if (matched) {
+      count++;
+    }
+  }
+
+  return count;
 }
