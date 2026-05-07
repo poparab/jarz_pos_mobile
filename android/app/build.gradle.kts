@@ -100,6 +100,8 @@ flutter {
 }
 
 dependencies {
+    project.findProject(":flutter_native_splash")?.let { add("implementation", it) }
+    project.findProject(":integration_test")?.let { add("implementation", it) }
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-messaging")
 }

@@ -377,13 +377,13 @@ abstract class AppLocalizations {
   /// No description provided for @inventoryCountConfirmAllBeforeSubmit.
   ///
   /// In en, this message translates to:
-  /// **'Count every loaded item before submitting ({remaining} remaining)'**
+  /// **'Please confirm all items before submitting ({remaining} remaining)'**
   String inventoryCountConfirmAllBeforeSubmit(int remaining);
 
   /// No description provided for @inventoryCountConfirmAtLeastOne.
   ///
   /// In en, this message translates to:
-  /// **'Count at least one item before submitting'**
+  /// **'Confirm at least one item before submitting'**
   String get inventoryCountConfirmAtLeastOne;
 
   /// No description provided for @inventoryCountSubmitted.
@@ -419,13 +419,13 @@ abstract class AppLocalizations {
   /// No description provided for @inventoryCountEnforceAll.
   ///
   /// In en, this message translates to:
-  /// **'Full warehouse count'**
+  /// **'Enforce all'**
   String get inventoryCountEnforceAll;
 
   /// No description provided for @inventoryCountConfirmedProgress.
   ///
   /// In en, this message translates to:
-  /// **'Counted {confirmed} / {total}'**
+  /// **'Confirmed {confirmed} / {total}'**
   String inventoryCountConfirmedProgress(int confirmed, int total);
 
   /// No description provided for @inventoryCountClearAllEnteredData.

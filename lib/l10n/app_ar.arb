@@ -81,7 +81,7 @@
   "postingDateConfirmationDates": "تواريخ الترحيل:",
   "menuInventoryCount": "جرد المخزون",
   "inventoryCountOfflineUsingCache": "غير متصل: سيتم استخدام البيانات المخزنة",
-  "inventoryCountConfirmAllBeforeSubmit": "يجب عد كل الأصناف المحملة قبل الإرسال ({remaining} متبقي)",
+  "inventoryCountConfirmAllBeforeSubmit": "يرجى تأكيد جميع الأصناف قبل الإرسال ({remaining} متبقي)",
   "@inventoryCountConfirmAllBeforeSubmit": {
     "placeholders": {
       "remaining": {
@@ -89,7 +89,7 @@
       }
     }
   },
-  "inventoryCountConfirmAtLeastOne": "عدّ صنفًا واحدًا على الأقل قبل الإرسال",
+  "inventoryCountConfirmAtLeastOne": "أكد صنفًا واحدًا على الأقل قبل الإرسال",
   "inventoryCountSubmitted": "تم الإرسال: {result}",
   "@inventoryCountSubmitted": {
     "placeholders": {
@@ -100,8 +100,8 @@
   "inventoryCountUncategorized": "غير مصنف",
   "inventoryCountManagerAccessRequired": "هذه الشاشة متاحة للمدير فقط",
   "inventoryCountSelectWarehouse": "اختر المخزن",
-  "inventoryCountEnforceAll": "جرد كامل للمخزن",
-  "inventoryCountConfirmedProgress": "تم عد {confirmed} / {total}",
+  "inventoryCountEnforceAll": "إلزام تأكيد الكل",
+  "inventoryCountConfirmedProgress": "تم تأكيد {confirmed} / {total}",
   "@inventoryCountConfirmedProgress": {
     "placeholders": {
       "confirmed": {

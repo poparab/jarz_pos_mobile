@@ -81,7 +81,7 @@
   "postingDateConfirmationDates": "Posting dates:",
   "menuInventoryCount": "Inventory Count",
   "inventoryCountOfflineUsingCache": "Offline using cached data",
-  "inventoryCountConfirmAllBeforeSubmit": "Count every loaded item before submitting ({remaining} remaining)",
+  "inventoryCountConfirmAllBeforeSubmit": "Please confirm all items before submitting ({remaining} remaining)",
   "@inventoryCountConfirmAllBeforeSubmit": {
     "placeholders": {
       "remaining": {
@@ -89,7 +89,7 @@
       }
     }
   },
-  "inventoryCountConfirmAtLeastOne": "Count at least one item before submitting",
+  "inventoryCountConfirmAtLeastOne": "Confirm at least one item before submitting",
   "inventoryCountSubmitted": "Submitted: {result}",
   "@inventoryCountSubmitted": {
     "placeholders": {
@@ -100,8 +100,8 @@
   "inventoryCountUncategorized": "Uncategorized",
   "inventoryCountManagerAccessRequired": "Manager access required",
   "inventoryCountSelectWarehouse": "Select Warehouse",
-  "inventoryCountEnforceAll": "Full warehouse count",
-  "inventoryCountConfirmedProgress": "Counted {confirmed} / {total}",
+  "inventoryCountEnforceAll": "Enforce all",
+  "inventoryCountConfirmedProgress": "Confirmed {confirmed} / {total}",
   "@inventoryCountConfirmedProgress": {
     "placeholders": {
       "confirmed": {

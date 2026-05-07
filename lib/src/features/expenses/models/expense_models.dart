@@ -2,10 +2,36 @@ import 'dart:convert';
 
 import 'package:intl/intl.dart';
 
+String _localizedExpenseLabel({
+  required String languageCode,
+  required String fallbackLabel,
+  String? englishLabel,
+  String? arabicLabel,
+}) {
+  final fallback = fallbackLabel.trim();
+  final english = englishLabel?.trim() ?? '';
+  final arabic = arabicLabel?.trim() ?? '';
+  final isArabic = languageCode.toLowerCase().startsWith('ar');
+
+  if (isArabic) {
+    if (arabic.isNotEmpty) return arabic;
+    if (fallback.isNotEmpty) return fallback;
+    if (english.isNotEmpty) return english;
+    return fallbackLabel;
+  }
+
+  if (english.isNotEmpty) return english;
+  if (fallback.isNotEmpty) return fallback;
+  if (arabic.isNotEmpty) return arabic;
+  return fallbackLabel;
+}
+
 class ExpensePaymentSource {
   final String id;
   final String account;
   final String label;
+  final String? labelEn;
+  final String? labelAr;
   final String category;
   final double balance;
   final String? posProfile;
@@ -14,6 +40,8 @@ class ExpensePaymentSource {
     required this.id,
     required this.account,
     required this.label,
+    this.labelEn,
+    this.labelAr,
     required this.category,
     required this.balance,
     this.posProfile,
@@ -26,6 +54,15 @@ class ExpensePaymentSource {
 
   String get displayBalance => NumberFormat.currency(symbol: '').format(balance);
 
+  String localizedLabel(String languageCode) {
+    return _localizedExpenseLabel(
+      languageCode: languageCode,
+      fallbackLabel: label,
+      englishLabel: labelEn,
+      arabicLabel: labelAr,
+    );
+  }
+
   factory ExpensePaymentSource.fromJson(Map<String, dynamic> json) {
     double parseBalance(dynamic value) {
       if (value == null) return 0;
@@ -37,6 +74,8 @@ class ExpensePaymentSource {
       id: (json['id'] ?? json['account'] ?? '').toString(),
       account: (json['account'] ?? '').toString(),
       label: (json['label'] ?? '').toString(),
+      labelEn: json['label_en']?.toString(),
+      labelAr: json['label_ar']?.toString(),
       category: (json['category'] ?? 'account').toString(),
       balance: parseBalance(json['balance']),
       posProfile: json['pos_profile']?.toString(),
@@ -48,6 +87,8 @@ class ExpensePaymentSource {
       'id': id,
       'account': account,
       'label': label,
+      'label_en': labelEn,
+      'label_ar': labelAr,
       'category': category,
       'balance': balance,
       'pos_profile': posProfile,
@@ -58,17 +99,40 @@ class ExpensePaymentSource {
 class ExpenseReason {
   final String account;
   final String label;
+  final String? labelEn;
+  final String? labelAr;
 
-  const ExpenseReason({required this.account, required this.label});
+  const ExpenseReason({
+    required this.account,
+    required this.label,
+    this.labelEn,
+    this.labelAr,
+  });
+
+  String localizedLabel(String languageCode) {
+    return _localizedExpenseLabel(
+      languageCode: languageCode,
+      fallbackLabel: label,
+      englishLabel: labelEn,
+      arabicLabel: labelAr,
+    );
+  }
 
   factory ExpenseReason.fromJson(Map<String, dynamic> json) {
     return ExpenseReason(
       account: (json['account'] ?? '').toString(),
       label: (json['label'] ?? '').toString(),
+      labelEn: json['label_en']?.toString(),
+      labelAr: json['label_ar']?.toString(),
     );
   }
 
-  Map<String, dynamic> toJson() => {'account': account, 'label': label};
+  Map<String, dynamic> toJson() => {
+        'account': account,
+        'label': label,
+        'label_en': labelEn,
+        'label_ar': labelAr,
+      };
 }
 
 class ExpenseTimelineEvent {
@@ -106,8 +170,12 @@ class ExpenseRecord {
   final String? currency;
   final String reasonAccount;
   final String reasonLabel;
+  final String? reasonLabelEn;
+  final String? reasonLabelAr;
   final String payingAccount;
   final String paymentLabel;
+  final String? paymentLabelEn;
+  final String? paymentLabelAr;
   final String? paymentSourceType;
   final String? posProfile;
   final bool requiresApproval;
@@ -133,8 +201,12 @@ class ExpenseRecord {
     required this.currency,
     required this.reasonAccount,
     required this.reasonLabel,
+    this.reasonLabelEn,
+    this.reasonLabelAr,
     required this.payingAccount,
     required this.paymentLabel,
+    this.paymentLabelEn,
+    this.paymentLabelAr,
     required this.paymentSourceType,
     required this.posProfile,
     required this.requiresApproval,
@@ -150,6 +222,24 @@ class ExpenseRecord {
     required this.modifiedOn,
     required this.timeline,
   });
+
+  String localizedReasonLabel(String languageCode) {
+    return _localizedExpenseLabel(
+      languageCode: languageCode,
+      fallbackLabel: reasonLabel,
+      englishLabel: reasonLabelEn,
+      arabicLabel: reasonLabelAr,
+    );
+  }
+
+  String localizedPaymentLabel(String languageCode) {
+    return _localizedExpenseLabel(
+      languageCode: languageCode,
+      fallbackLabel: paymentLabel,
+      englishLabel: paymentLabelEn,
+      arabicLabel: paymentLabelAr,
+    );
+  }
 
   factory ExpenseRecord.fromJson(Map<String, dynamic> json) {
     DateTime? parseDate(dynamic value) {
@@ -190,8 +280,12 @@ class ExpenseRecord {
       currency: json['currency']?.toString(),
       reasonAccount: (json['reason_account'] ?? '').toString(),
       reasonLabel: (json['reason_label'] ?? '').toString(),
+      reasonLabelEn: json['reason_label_en']?.toString(),
+      reasonLabelAr: json['reason_label_ar']?.toString(),
       payingAccount: (json['paying_account'] ?? '').toString(),
       paymentLabel: (json['payment_label'] ?? '').toString(),
+      paymentLabelEn: json['payment_label_en']?.toString(),
+      paymentLabelAr: json['payment_label_ar']?.toString(),
       paymentSourceType: json['payment_source_type']?.toString(),
       posProfile: json['pos_profile']?.toString(),
       requiresApproval: json['requires_approval'] == true || json['requires_approval'] == 1 || json['requires_approval'] == '1',

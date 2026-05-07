@@ -164,12 +164,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String inventoryCountConfirmAllBeforeSubmit(int remaining) {
-    return 'Count every loaded item before submitting ($remaining remaining)';
+    return 'Please confirm all items before submitting ($remaining remaining)';
   }
 
   @override
   String get inventoryCountConfirmAtLeastOne =>
-      'Count at least one item before submitting';
+      'Confirm at least one item before submitting';
 
   @override
   String inventoryCountSubmitted(Object result) {
@@ -189,11 +189,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inventoryCountSelectWarehouse => 'Select Warehouse';
 
   @override
-  String get inventoryCountEnforceAll => 'Full warehouse count';
+  String get inventoryCountEnforceAll => 'Enforce all';
 
   @override
   String inventoryCountConfirmedProgress(int confirmed, int total) {
-    return 'Counted $confirmed / $total';
+    return 'Confirmed $confirmed / $total';
   }
 
   @override

@@ -165,12 +165,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String inventoryCountConfirmAllBeforeSubmit(int remaining) {
-    return 'يجب عد كل الأصناف المحملة قبل الإرسال ($remaining متبقي)';
+    return 'يرجى تأكيد جميع الأصناف قبل الإرسال ($remaining متبقي)';
   }
 
   @override
   String get inventoryCountConfirmAtLeastOne =>
-      'عدّ صنفًا واحدًا على الأقل قبل الإرسال';
+      'أكد صنفًا واحدًا على الأقل قبل الإرسال';
 
   @override
   String inventoryCountSubmitted(Object result) {
@@ -191,11 +191,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get inventoryCountSelectWarehouse => 'اختر المخزن';
 
   @override
-  String get inventoryCountEnforceAll => 'جرد كامل للمخزن';
+  String get inventoryCountEnforceAll => 'إلزام تأكيد الكل';
 
   @override
   String inventoryCountConfirmedProgress(int confirmed, int total) {
-    return 'تم عد $confirmed / $total';
+    return 'تم تأكيد $confirmed / $total';
   }
 
   @override
