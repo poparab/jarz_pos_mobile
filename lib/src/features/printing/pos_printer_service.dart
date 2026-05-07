@@ -121,6 +121,7 @@ class PosPrinterService extends ChangeNotifier {
   final _scanController = StreamController<List<ScanResult>>.broadcast();
   Stream<List<ScanResult>> get scanStream => _scanController.stream;
   bool _isScanning = false;
+  Future<void> _printQueue = Future<void>.value();
   bool get isScanning => _isScanning;
 
   Future<void> startScan({Duration timeout = BluetoothTimeouts.defaultScan}) async {
@@ -412,199 +413,46 @@ class PosPrinterService extends ChangeNotifier {
 
   Future<PrintResult> printInvoice(PrintableInvoice inv) async {
     if (!isConnected && !isClassicConnected) return PrintResult.disconnected;
-    try {
-      await _loadReceiptConfig();
-      final bytes = await _buildReceipt(inv);
-      if (isConnected) {
-        const bleChunk = 96;
-        for (int o = 0; o < bytes.length; o += bleChunk) {
-          final part = bytes.sublist(o, (o + bleChunk).clamp(0, bytes.length));
-          await _writeChar!.write(part, withoutResponse: true);
-          await Future.delayed(const Duration(milliseconds: 30));
-        }
-      } else if (isClassicConnected) {
-        // Classic SPP printers are more sensitive to raster-heavy receipts than BLE printers.
-        const classicChunk = 48;
-        for (int o = 0; o < bytes.length; o += classicChunk) {
-          final part = bytes.sublist(o, (o + classicChunk).clamp(0, bytes.length));
-          final ok = await ClassicPrinterChannel.instance.write(part);
-          if (!ok) {
-            throw Exception('Classic printer write failed');
+    return _enqueuePrintJob(() async {
+      try {
+        await _loadReceiptConfig();
+        final bytes = await _buildReceipt(inv);
+        if (isConnected) {
+          const bleChunk = 96;
+          for (int o = 0; o < bytes.length; o += bleChunk) {
+            final part = bytes.sublist(o, (o + bleChunk).clamp(0, bytes.length));
+            await _writeChar!.write(part, withoutResponse: true);
+            await Future.delayed(const Duration(milliseconds: 30));
           }
-          await Future.delayed(const Duration(milliseconds: 35));
+        } else if (isClassicConnected) {
+          final rasterBlockCount = _countByteSequence(bytes, const [0x1D, 0x76, 0x30, 0x00]);
+          final hasRaster = rasterBlockCount > 0;
+          final chunkSize = hasRaster ? 192 : 256;
+          final chunkDelayMs = hasRaster ? 18 : 8;
+          final tailDelayMs = hasRaster
+              ? (900 + (rasterBlockCount * 140)).clamp(900, 2400)
+              : 250;
+          final ok = await ClassicPrinterChannel.instance.writeJob(
+            bytes,
+            chunkSize: chunkSize,
+            chunkDelayMs: chunkDelayMs,
+            tailDelayMs: tailDelayMs,
+          );
+          if (!ok) {
+            throw Exception('Classic printer write job failed');
+          }
         }
+        _setError(null);
+        return PrintResult.success;
+      } catch (e) {
+        debugPrint('[PosPrinterService] print error: $e');
+        _setError('Print failed: $e');
+        return PrintResult.failed;
       }
-      _setError(null);
-      return PrintResult.success;
-    } catch (e) { debugPrint('[PosPrinterService] print error: $e'); _setError('Print failed: $e'); return PrintResult.failed; }
-  }
-
-  bool _shouldUseFullyRasterizedReceipt(PrintableInvoice inv) {
-    final candidates = <String>[
-      _receiptHeader,
-      _receiptFooter,
-      inv.customer,
-      inv.customerAddress ?? '',
-      inv.customerPhone ?? '',
-      inv.territory ?? '',
-      ...inv.items.map((item) => item.name),
-    ];
-
-    return candidates.any((value) => RegExp(r'[\u0600-\u06FF]').hasMatch(value));
-  }
-
-  Future<Uint8List> _buildFullyRasterizedReceipt(PrintableInvoice inv) async {
-    final b = BytesBuilder();
-    void esc(List<int> c) => b.add(Uint8List.fromList(c));
-    void feed(int n) => esc([0x1B, 0x64, n.clamp(0, 255)]);
-
-    String shortInv(String full) {
-      if (full.length <= 5) return full;
-      final cleaned = full.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
-      if (cleaned.length <= 5) return cleaned;
-      return cleaned.substring(cleaned.length - 5);
-    }
-
-    String amPm(DateTime t) {
-      final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
-      final m = t.minute.toString().padLeft(2, '0');
-      final p = t.hour < 12 ? 'AM' : 'PM';
-      return '$h:$m $p';
-    }
-
-    String formatDeliveryRange(DateTime start, {Duration slot = const Duration(hours: 1)}) {
-      final end = start.add(slot);
-      final day = start.day.toString().padLeft(2, '0');
-      final month = start.month.toString().padLeft(2, '0');
-      return '$day-$month from ${amPm(start)} to ${amPm(end)}';
-    }
-
-    final addressLines = (inv.customerAddress ?? '')
-        .split(RegExp(r'[\n,]+'))
-        .map((line) => line.trim())
-        .where((line) => line.isNotEmpty)
-        .toList();
-
-    Future<void> addLine(
-      String s, {
-      bool bold = false,
-      bool center = false,
-      double fontSize = 18,
-      String? fontFamily,
-    }) async {
-      final line = s.replaceFirst(RegExp(r'\s+$'), '');
-      if (line.trim().isEmpty) return;
-      await _addRasterText(
-        b,
-        line,
-        bold: bold,
-        center: center,
-        fontSize: fontSize,
-        fontFamily: fontFamily,
-      );
-    }
-
-    Future<void> addSection(
-      String label,
-      List<String> values, {
-      bool boldValue = false,
-      double valueFontSize = 18,
-    }) async {
-      final cleanValues = values
-          .map((value) => value.trim())
-          .where((value) => value.isNotEmpty)
-          .toList();
-      if (cleanValues.isEmpty) return;
-
-      await addLine(label, bold: true);
-      for (final value in cleanValues) {
-        await addLine(value, bold: boldValue, fontSize: valueFontSize);
-      }
-    }
-
-    esc([0x1B, 0x40]);
-    esc([0x1C, 0x2E]);
-    esc([0x1D, 0x4C, 0x00, 0x00]);
-    esc([0x1D, 0x57, 0x40, 0x02]);
-    esc([0x1B, 0x20, 0x00]);
-    esc([0x1B, 0x74, 0x00]);
-    esc([0x1B, 0x4D, 0x00]);
-
-    if (_logoEscPos != null) {
-      esc([0x1B, 0x61, 0x01]);
-      b.add(_logoEscPos!);
-      esc([0x1B, 0x61, 0x00]);
-    }
-
-    await addLine(
-      _receiptHeader,
-      bold: true,
-      center: true,
-      fontSize: 28,
-      fontFamily: 'DMSerifDisplay',
-    );
-    feed(1);
-
-    await addSection('Customer', [inv.customer]);
-    if ((inv.customerPhone ?? '').isNotEmpty) {
-      await addSection('Phone', [inv.customerPhone!]);
-    }
-    await addSection('Inv No', [shortInv(inv.id)]);
-    if (inv.deliveryDateTime != null) {
-      await addSection('Delivery', [formatDeliveryRange(inv.deliveryDateTime!)]);
-    }
-    await addSection('Address', addressLines, valueFontSize: 20);
-    if ((inv.territory ?? '').isNotEmpty) {
-      await addSection('Territory', [inv.territory!], boldValue: true);
-    }
-
-    await addLine('-' * 32);
-    await addLine('Items', bold: true);
-    await addLine('-' * 32);
-
-    for (final item in inv.items) {
-      await addLine(
-        _compactItemLabel(item, includeQty: !item.showPricing),
-        bold: item.bold,
-      );
-      if (item.showPricing) {
-        await addLine(
-          'Qty ${_qtyLabel(item.qty)}   Rate ${_money(item.rate)}   Amt ${_money(item.amount)}',
-          fontSize: 16,
-        );
-      }
-    }
-
-    feed(1);
-
-    final grand = inv.total;
-    if (inv.shipping > 0 && inv.shipping <= grand) {
-      final subtotal = (grand - inv.shipping).clamp(0.0, grand).toDouble();
-      await addLine('Subtotal ${_money(subtotal)}');
-      await addLine('Shipping ${_money(inv.shipping)}');
-    }
-    await addLine('Total ${_money(grand)}', bold: true, fontSize: 24);
-    final statusPaid = inv.outstanding <= 0.0001;
-    await addLine(
-      'Status ${statusPaid ? InvoiceStatus.paidUpper : InvoiceStatus.unpaidUpper}',
-      bold: true,
-    );
-
-    await addLine('-' * 32);
-    await addLine(_receiptFooter, center: true, bold: true);
-    await addLine('Call us $_receiptPhone', center: true);
-    await addLine(_receiptWebsite, center: true);
-    await addLine('-' * 32);
-    feed(3);
-    esc([0x1D, 0x56, 0x42, 0x00]);
-    return b.toBytes();
+    });
   }
 
   Future<Uint8List> _buildReceipt(PrintableInvoice inv) async {
-    if (_shouldUseFullyRasterizedReceipt(inv)) {
-      return _buildFullyRasterizedReceipt(inv);
-    }
-
     final b = BytesBuilder();
     void esc(List<int> c) => b.add(Uint8List.fromList(c));
     bool hasArabic(String s) => RegExp(r'[\u0600-\u06FF]').hasMatch(s);
@@ -899,6 +747,39 @@ class PosPrinterService extends ChangeNotifier {
     final x = l.length > ml ? l.substring(0, ml) : l;
     final left = x.padRight(totalW - v.length);
     return '$left$v';
+  }
+
+  Future<T> _enqueuePrintJob<T>(Future<T> Function() job) {
+    final completer = Completer<T>();
+    _printQueue = _printQueue.then((_) async {
+      try {
+        completer.complete(await job());
+      } catch (e, stackTrace) {
+        completer.completeError(e, stackTrace);
+      }
+    });
+    return completer.future;
+  }
+
+  int _countByteSequence(Uint8List bytes, List<int> sequence) {
+    if (sequence.isEmpty || sequence.length > bytes.length) {
+      return 0;
+    }
+
+    var count = 0;
+    for (var start = 0; start <= bytes.length - sequence.length; start++) {
+      var matched = true;
+      for (var offset = 0; offset < sequence.length; offset++) {
+        if (bytes[start + offset] != sequence[offset]) {
+          matched = false;
+          break;
+        }
+      }
+      if (matched) {
+        count++;
+      }
+    }
+    return count;
   }
 
   // Removed legacy _kv and _wrap helpers (now unused after two-column redesign).

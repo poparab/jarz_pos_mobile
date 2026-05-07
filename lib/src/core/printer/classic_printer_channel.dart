@@ -37,6 +37,21 @@ class ClassicPrinterChannel {
     final ok = await _channel.invokeMethod<bool>('write', {'data': data});
     return ok == true;
   }
+
+  Future<bool> writeJob(
+    Uint8List data, {
+    int chunkSize = 192,
+    int chunkDelayMs = 18,
+    int tailDelayMs = 1200,
+  }) async {
+    final ok = await _channel.invokeMethod<bool>('writeJob', {
+      'data': data,
+      'chunkSize': chunkSize,
+      'chunkDelayMs': chunkDelayMs,
+      'tailDelayMs': tailDelayMs,
+    });
+    return ok == true;
+  }
 }
 
 class ClassicBondedDevice {

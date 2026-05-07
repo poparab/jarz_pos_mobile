@@ -35,7 +35,7 @@ void main() {
       );
     });
 
-    test('should fully rasterize receipts when invoice contains Arabic text', () async {
+    test('should preserve structure when receipt contains Arabic text', () async {
       // Arrange
       final service = PosPrinterService(autoInit: false);
       final invoice = PrintableInvoice(
@@ -61,11 +61,15 @@ void main() {
       // Assert
       expect(
         _containsSequence(bytes, latin1.encode('Thank you for Your Order')),
-        isFalse,
+        isTrue,
       );
       expect(
         _countSequence(bytes, [0x1D, 0x76, 0x30, 0x00]),
-        greaterThan(8),
+        greaterThan(0),
+      );
+      expect(
+        _countSequence(bytes, [0x1D, 0x76, 0x30, 0x00]),
+        lessThan(10),
       );
     });
 
