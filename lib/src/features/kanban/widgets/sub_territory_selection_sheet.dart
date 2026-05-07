@@ -84,7 +84,7 @@ class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet>
                     : ListView.separated(
                         controller: scrollController,
                         itemCount: _filtered.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        separatorBuilder: (context, index) => const Divider(height: 1),
                         itemBuilder: (context, index) {
                           final item = _filtered[index];
                           final code = (item['name'] ?? '').toString();

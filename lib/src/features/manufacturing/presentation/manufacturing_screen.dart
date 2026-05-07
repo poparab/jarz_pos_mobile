@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
+import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../manager/state/manager_providers.dart';
 import '../data/manufacturing_service.dart';
 
@@ -29,6 +30,9 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final positiveLines = lines.where((l) => l.itemQty > 0).toList(growable: false);
+    final blockedLines = positiveLines.where((l) => l.hasKnownInventoryShortage).toList(growable: false);
+    final canSubmitAll = positiveLines.isNotEmpty && blockedLines.isEmpty;
     final allowed = ref.watch(managerAccessProvider).maybeWhen(data: (v) => v, orElse: () => false);
     if (!allowed) {
       return Scaffold(
@@ -85,13 +89,27 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                       const SizedBox(width: 8),
                       Text(l10n.manufacturingWorkOrdersTitle(lines.length), style: Theme.of(context).textTheme.titleMedium),
                       const Spacer(),
-                      ElevatedButton.icon(
-                        onPressed: lines.isEmpty || !lines.any((l) => l.itemQty > 0) ? null : _submitAll,
-                        icon: const Icon(Icons.send),
-                        label: Text(l10n.manufacturingSubmitAll),
-                      ),
+                      if (canSubmitAll)
+                        ElevatedButton.icon(
+                          onPressed: _submitAll,
+                          icon: const Icon(Icons.send),
+                          label: Text(l10n.manufacturingSubmitAll),
+                        )
+                      else
+                        Tooltip(
+                          message: _submitAllDisabledReason(positiveLines, blockedLines),
+                          child: ElevatedButton.icon(
+                            onPressed: null,
+                            icon: const Icon(Icons.send),
+                            label: Text(l10n.manufacturingSubmitAll),
+                          ),
+                        ),
                     ],
                   ),
+                  if (blockedLines.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    _buildBlockedLinesBanner(blockedLines),
+                  ],
                   const SizedBox(height: 8),
                   Expanded(
                     child: lines.isEmpty
@@ -163,11 +181,19 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
 
   Widget _buildLineCard(_MfgLine line, int index) {
     final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
+    final shortages = line.shortagesForCurrentQty();
+    final hasShortage = shortages.isNotEmpty;
+    final canSubmit = line.itemQty > 0 && !hasShortage;
     final dt = line.scheduledAt;
     final dateLabel = '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
     final timeLabel = '${dt.hour % 12 == 0 ? 12 : dt.hour % 12}:${dt.minute.toString().padLeft(2, '0')} ${dt.hour < 12 ? 'AM' : 'PM'}';
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey.shade300)),
+      color: hasShortage ? colorScheme.errorContainer : null,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: hasShortage ? colorScheme.error : Colors.grey.shade300),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -181,11 +207,21 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
-                TextButton.icon(
-                  onPressed: line.itemQty > 0 ? () => _submitSingle(line) : null,
-                  icon: const Icon(Icons.playlist_add_check),
-                  label: Text(l10n.commonSubmit),
-                ),
+                if (canSubmit)
+                  TextButton.icon(
+                    onPressed: () => _submitSingle(line),
+                    icon: const Icon(Icons.playlist_add_check),
+                    label: Text(l10n.commonSubmit),
+                  )
+                else
+                  Tooltip(
+                    message: _lineSubmitDisabledReason(line),
+                    child: TextButton.icon(
+                      onPressed: null,
+                      icon: const Icon(Icons.playlist_add_check),
+                      label: Text(l10n.commonSubmit),
+                    ),
+                  ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () {
@@ -300,6 +336,10 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                 ),
               ],
             ),
+            if (hasShortage) ...[
+              const SizedBox(height: 10),
+              _buildLineInventoryWarning(shortages),
+            ],
             const SizedBox(height: 10),
             // Components collapsible
             ExpansionTile(
@@ -311,6 +351,165 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
             )
           ],
         ),
+      ),
+    );
+  }
+
+  String _formatItemLabel(String itemName, String itemCode) {
+    return context.l10n.commonNameWithCode(itemName, itemCode);
+  }
+
+  String _lineSubmitDisabledReason(_MfgLine line) {
+    final l10n = context.l10n;
+    if (line.itemQty <= 0) {
+      return l10n.manufacturingQuantityMustBePositive;
+    }
+
+    final shortages = line.shortagesForCurrentQty();
+    if (shortages.isEmpty) {
+      return '';
+    }
+
+    return [
+      l10n.manufacturingSubmissionBlocked,
+      l10n.manufacturingLineShortageSummary(
+        shortages.map((s) => _formatItemLabel(s.itemName, s.itemCode)).join(', '),
+        _formatItemLabel(line.itemName, line.itemCode),
+      ),
+    ].join('\n');
+  }
+
+  String _submitAllDisabledReason(List<_MfgLine> positiveLines, List<_MfgLine> blockedLines) {
+    final l10n = context.l10n;
+    if (positiveLines.isEmpty) {
+      return l10n.manufacturingNothingToSubmit;
+    }
+
+    if (blockedLines.isEmpty) {
+      return '';
+    }
+
+    return [
+      l10n.manufacturingSubmissionBlocked,
+      for (final line in blockedLines)
+        l10n.manufacturingLineShortageSummary(
+          line.shortagesForCurrentQty().map((s) => _formatItemLabel(s.itemName, s.itemCode)).join(', '),
+          _formatItemLabel(line.itemName, line.itemCode),
+        ),
+    ].join('\n');
+  }
+
+  Widget _buildBlockedLinesBanner(List<_MfgLine> blockedLines) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = context.l10n;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.error),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: colorScheme.error),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.manufacturingInsufficientInventory,
+                  style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(l10n.manufacturingSubmissionBlocked),
+          const SizedBox(height: 8),
+          for (final line in blockedLines)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                l10n.manufacturingLineShortageSummary(
+                  line.shortagesForCurrentQty().map((s) => _formatItemLabel(s.itemName, s.itemCode)).join(', '),
+                  _formatItemLabel(line.itemName, line.itemCode),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLineInventoryWarning(List<_ComponentShortage> shortages) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = context.l10n;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.error),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.error_outline, color: colorScheme.error),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.manufacturingInsufficientInventory,
+                  style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(l10n.manufacturingSubmissionBlocked),
+          const SizedBox(height: 8),
+          for (final shortage in shortages)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: colorScheme.error),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _formatItemLabel(shortage.itemName, shortage.itemCode),
+                    style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 4,
+                    children: [
+                      Text(l10n.manufacturingComponentRequired(shortage.requiredQty.toStringAsFixed(3), shortage.uom)),
+                      Text(l10n.manufacturingComponentAvailable(shortage.availableQty.toStringAsFixed(3), shortage.uom)),
+                      Text(
+                        l10n.manufacturingComponentMissing(shortage.missingQty.toStringAsFixed(3), shortage.uom),
+                        style: textTheme.bodySmall?.copyWith(color: colorScheme.error, fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -344,11 +543,17 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context, rootNavigator: true);
     final l10n = context.l10n;
+    final positiveLines = lines.where((l) => l.itemQty > 0).toList(growable: false);
+    final blockedLines = positiveLines.where((l) => l.hasKnownInventoryShortage).toList(growable: false);
+
+    if (blockedLines.isNotEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(_submitAllDisabledReason(positiveLines, blockedLines))));
+      return;
+    }
 
     // Build payload lines (skip zero/negative quantities)
     final payload = [
-      for (final l in lines)
-        if (l.itemQty > 0)
+      for (final l in positiveLines)
           {
             'item_code': l.itemCode,
             'bom_name': l.bomName,
@@ -358,6 +563,14 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
     ];
     if (payload.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.manufacturingNothingToSubmit)));
+      return;
+    }
+
+    final confirmedPostingDate = await confirmPostingDatesBeforeSubmit(
+      context,
+      dates: positiveLines.map((line) => line.scheduledAt),
+    );
+    if (!confirmedPostingDate || !mounted) {
       return;
     }
 
@@ -425,10 +638,23 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
       return;
     }
 
+    if (l.hasKnownInventoryShortage) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_lineSubmitDisabledReason(l))));
+      return;
+    }
+
     final service = ref.read(manufacturingServiceProvider);
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context, rootNavigator: true);
     final l10n = context.l10n;
+
+    final confirmedPostingDate = await confirmPostingDatesBeforeSubmit(
+      context,
+      dates: [l.scheduledAt],
+    );
+    if (!confirmedPostingDate || !mounted) {
+      return;
+    }
 
     // Show progress dialog (do not await)
     _showProgress(l10n.manufacturingSubmittingSingleWorkOrder);
@@ -520,17 +746,50 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
   Widget _buildComponents(_MfgLine line) {
     final l10n = context.l10n;
     final comps = line.componentsForCurrentQty();
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final shortagesByItemCode = {
+      for (final shortage in line.shortagesForCurrentQty()) shortage.itemCode: shortage,
+    };
+
     return Column(
       children: [
         for (final c in comps)
-          ListTile(
-            dense: true,
-            visualDensity: VisualDensity.compact,
-            title: Text(l10n.commonNameWithCode(c.itemName, c.itemCode)),
-            subtitle: c.availableQty != null
-                ? Text(l10n.manufacturingComponentAvailable(c.availableQty!.toStringAsFixed(3), c.uom))
-                : null,
-            trailing: Text('${c.totalQty.toStringAsFixed(3)} ${c.uom}'),
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: shortagesByItemCode.containsKey(c.itemCode) ? colorScheme.errorContainer : null,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: shortagesByItemCode.containsKey(c.itemCode) ? colorScheme.error : Colors.transparent,
+              ),
+            ),
+            child: ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              leading: shortagesByItemCode.containsKey(c.itemCode)
+                  ? Icon(Icons.warning_amber_rounded, color: colorScheme.error)
+                  : null,
+              title: Text(l10n.commonNameWithCode(c.itemName, c.itemCode)),
+              subtitle: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (c.availableQty != null)
+                    Text(l10n.manufacturingComponentAvailable(c.availableQty!.toStringAsFixed(3), c.uom)),
+                  if (shortagesByItemCode.containsKey(c.itemCode))
+                    Text(
+                      l10n.manufacturingComponentMissing(
+                        shortagesByItemCode[c.itemCode]!.missingQty.toStringAsFixed(3),
+                        c.uom,
+                      ),
+                      style: textTheme.bodySmall?.copyWith(color: colorScheme.error, fontWeight: FontWeight.w700),
+                    ),
+                ],
+              ),
+              trailing: Text(l10n.manufacturingComponentRequired(c.totalQty.toStringAsFixed(3), c.uom)),
+            ),
           ),
       ],
     );
@@ -619,16 +878,35 @@ class _MfgLine {
   void incQty({double step = 1}) => setItemQty(itemQty + step);
   void decQty({double step = 1}) => setItemQty((itemQty - step).clamp(0, double.infinity));
 
+  bool get hasKnownInventoryShortage => shortagesForCurrentQty().isNotEmpty;
+
   List<_ComponentWithTotal> componentsForCurrentQty() {
     // per-BOM comp qty * bomCount
     return components
-    .map((c) => _ComponentWithTotal(
+        .map((c) => _ComponentWithTotal(
               itemCode: c.itemCode,
               itemName: c.itemName,
               uom: c.uom,
-      totalQty: c.qtyPerBom * bomCount,
-      availableQty: c.availableQty,
+              totalQty: c.qtyPerBom * bomCount,
+              availableQty: c.availableQty,
             ))
+        .toList();
+  }
+
+  List<_ComponentShortage> shortagesForCurrentQty() {
+    const epsilon = 0.000001;
+    return componentsForCurrentQty()
+        .where((c) => c.availableQty != null && (c.totalQty - c.availableQty!) > epsilon)
+        .map(
+          (c) => _ComponentShortage(
+            itemCode: c.itemCode,
+            itemName: c.itemName,
+            uom: c.uom,
+            requiredQty: c.totalQty,
+            availableQty: c.availableQty ?? 0,
+            missingQty: c.totalQty - (c.availableQty ?? 0),
+          ),
+        )
         .toList();
   }
 }
@@ -693,4 +971,22 @@ class _ComponentWithTotal {
   final double? availableQty;
 
   _ComponentWithTotal({required this.itemCode, required this.itemName, required this.uom, required this.totalQty, this.availableQty});
+}
+
+class _ComponentShortage {
+  final String itemCode;
+  final String itemName;
+  final String uom;
+  final double requiredQty;
+  final double availableQty;
+  final double missingQty;
+
+  _ComponentShortage({
+    required this.itemCode,
+    required this.itemName,
+    required this.uom,
+    required this.requiredQty,
+    required this.availableQty,
+    required this.missingQty,
+  });
 }

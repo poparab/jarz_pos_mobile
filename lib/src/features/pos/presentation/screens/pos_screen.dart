@@ -849,13 +849,13 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
         stream: Stream.periodic(const Duration(seconds: 1)),
         builder: (c, snap) {
           final now = DateTime.now();
-          final _h = now.hour % 12 == 0 ? 12 : now.hour % 12;
-          final _m = now.minute.toString().padLeft(2, '0');
-          final _p = now.hour < 12 ? 'AM' : 'PM';
+          final hour = now.hour % 12 == 0 ? 12 : now.hour % 12;
+          final minute = now.minute.toString().padLeft(2, '0');
+          final period = now.hour < 12 ? 'AM' : 'PM';
           return _statusChip(
             ctx,
             icon: Icons.schedule,
-            label: '$_h:$_m $_p',
+            label: '$hour:$minute $period',
             color: Colors.teal,
           );
         },

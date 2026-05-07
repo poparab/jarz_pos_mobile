@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 /// Full-cycle POS E2E test with backend verification.
 ///
 /// Flow:

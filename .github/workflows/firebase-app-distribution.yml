@@ -3,6 +3,18 @@ name: Firebase App Distribution
 on:
   push:
     branches: [main]
+    paths:
+      - 'android/**'
+      - 'assets/**'
+      - 'lib/**'
+      - 'l10n.yaml'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.env.prod'
+      - '.env.staging'
+      - 'scripts/build_release.bat'
+      - 'scripts/build_release.sh'
+      - 'tool/release_metadata.dart'
   workflow_dispatch:
     inputs:
       release_notes:
@@ -37,6 +49,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -44,6 +57,14 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+
+      - name: Restore pub cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
 
       - name: Install dependencies
         run: flutter pub get
@@ -149,6 +170,7 @@ jobs:
         with:
           name: ${{ steps.meta.outputs.artifact_upload_name }}
           path: ${{ steps.artifact.outputs.artifact_path }}
+          compression-level: 0
           retention-days: 14
 
       - name: Upload staging metadata artifact
@@ -224,6 +246,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -231,6 +254,14 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+
+      - name: Restore pub cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
 
       - name: Install dependencies
         run: flutter pub get
@@ -345,6 +376,7 @@ jobs:
         with:
           name: ${{ steps.meta.outputs.artifact_upload_name }}
           path: ${{ steps.artifact.outputs.artifact_path }}
+          compression-level: 0
           retention-days: 14
 
       - name: Upload production metadata artifact

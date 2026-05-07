@@ -22,7 +22,6 @@ import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/core/router.dart';
 import 'package:jarz_pos/src/features/auth/data/auth_repository.dart';
 import 'package:jarz_pos/src/features/auth/presentation/login_screen.dart';
-import 'package:jarz_pos/src/features/auth/state/login_notifier.dart';
 import 'package:jarz_pos/src/features/pos/presentation/screens/pos_home_screen.dart';
 
 import '../helpers/mock_services.dart';

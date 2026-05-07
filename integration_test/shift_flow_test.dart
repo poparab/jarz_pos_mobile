@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 /// E2E: Shift lifecycle against the staging server.
 ///
 /// Validates: get payment methods → start shift → active shift check →

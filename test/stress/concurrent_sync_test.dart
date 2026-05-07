@@ -9,8 +9,6 @@
 //
 // Real production sync should use atomic "claim" operations (e.g. mark as
 // 'in-flight' before processing). This test catches regressions in that logic.
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/mock_services.dart';

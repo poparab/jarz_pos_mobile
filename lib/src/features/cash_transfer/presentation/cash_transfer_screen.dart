@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
+import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../manager/state/manager_providers.dart';
 import '../data/cash_transfer_service.dart';
 
@@ -331,7 +332,16 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
     final l10n = context.l10n;
     try {
       final amt = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
-      final dateStr = postingDate == null ? null : DateFormat('yyyy-MM-dd').format(postingDate!);
+      final resolvedPostingDate = resolvePostingDateOrToday(postingDate);
+      final confirmedPostingDate = await confirmPostingDatesBeforeSubmit(
+        context,
+        dates: [resolvedPostingDate],
+      );
+      if (!confirmedPostingDate || !mounted) {
+        return;
+      }
+
+      final dateStr = formatPostingDateForApi(resolvedPostingDate);
       final res = await service.submitCashTransfer(
         fromAccount: fromAccount!,
         toAccount: toAccount!,

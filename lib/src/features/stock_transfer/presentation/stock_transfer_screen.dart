@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
+import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../manager/state/manager_providers.dart';
 import '../data/stock_transfer_service.dart';
 
@@ -413,7 +414,16 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
     final l10n = context.l10n;
     try {
       final payload = [for (final l in lines) if (((l['qty'] as num?)?.toDouble() ?? 0) > 0) {'item_code': l['item_code'], 'qty': (l['qty'] as num).toDouble()}];
-      final String? postingDateStr = postingDate == null ? null : DateFormat('yyyy-MM-dd').format(postingDate!);
+      final resolvedPostingDate = resolvePostingDateOrToday(postingDate);
+      final confirmedPostingDate = await confirmPostingDatesBeforeSubmit(
+        context,
+        dates: [resolvedPostingDate],
+      );
+      if (!confirmedPostingDate || !mounted) {
+        return;
+      }
+
+      final postingDateStr = formatPostingDateForApi(resolvedPostingDate);
       final res = await service.submitTransfer(
         sourceWarehouse: sourceWarehouse!,
         targetWarehouse: targetWarehouse!,

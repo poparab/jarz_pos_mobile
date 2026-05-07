@@ -1600,7 +1600,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                   )
                                 else
                                   DropdownButtonFormField<String>(
-                                    value: selectedDeliveryPartner,
+                                    initialValue: selectedDeliveryPartner,
                                     decoration: const InputDecoration(labelText: 'Delivery Partner'),
                                     items: deliveryPartners.map((dp) => DropdownMenuItem(
                                       value: dp['name'],

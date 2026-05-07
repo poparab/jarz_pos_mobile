@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, no_leading_underscores_for_local_identifiers
+
 /// E2E: Extended coverage Part 2 – Customer creation, delivery slots, SP unpaid OFD.
 ///
 /// Split from extended_coverage_test.dart to run in a fresh app process.

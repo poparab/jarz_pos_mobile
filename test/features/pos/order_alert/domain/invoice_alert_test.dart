@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/features/pos/order_alert/domain/invoice_alert.dart';
 

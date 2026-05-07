@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 /// E2E accounting round-trip verification tests.
 ///
 /// Verifies that invoice creation, payment, and state transitions

@@ -1,4 +1,4 @@
-/// Models for the Delivery Trip feature.
+// Models for the Delivery Trip feature.
 
 class DeliveryTrip {
   final String name;

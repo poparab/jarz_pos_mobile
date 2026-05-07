@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, no_leading_underscores_for_local_identifiers
+
 /// E2E: Extended coverage – Payment methods, multi-item, cancel.
 ///
 /// Complements multi_case_lifecycle_test.dart by covering:

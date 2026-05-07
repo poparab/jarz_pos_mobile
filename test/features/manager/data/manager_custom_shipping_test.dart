@@ -1,3 +1,5 @@
+// ignore_for_file: overridden_fields
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/core/constants/api_endpoints.dart';

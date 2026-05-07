@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 /// Snapshot Updater — fetches live responses from staging and writes them
 /// as JSON fixture files that the contract tests read.
 ///

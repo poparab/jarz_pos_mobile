@@ -66,7 +66,7 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
     }
 
     // Different user owns the active shift on THIS profile → blocking message.
-    final hasBlockingOpenShift = hasActiveShiftForProfile && !activeShift!.isCurrentUser;
+    final hasBlockingOpenShift = hasActiveShiftForProfile && !activeShift.isCurrentUser;
 
     if (posProfile == null && !posState.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

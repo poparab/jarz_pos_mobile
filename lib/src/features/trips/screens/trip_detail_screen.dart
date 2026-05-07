@@ -355,27 +355,27 @@ class _TripInvoiceCardState extends State<_TripInvoiceCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Contact info
-        if (inv.customerPhone != null && inv.customerPhone!.isNotEmpty)
-          _infoTile(Icons.phone, inv.customerPhone!, onTap: () {
-            final cleaned = inv.customerPhone!.replaceAll(RegExp(r'[^\d+]'), '');
+        if (inv.customerPhone.isNotEmpty)
+          _infoTile(Icons.phone, inv.customerPhone, onTap: () {
+            final cleaned = inv.customerPhone.replaceAll(RegExp(r'[^\d+]'), '');
             launchUrl(Uri.parse('tel:$cleaned'));
           }),
-        if (inv.address != null && inv.address!.isNotEmpty)
-          _infoTile(Icons.location_on, inv.address!),
+        if (inv.address.isNotEmpty)
+          _infoTile(Icons.location_on, inv.address),
 
         // Delivery slot
-        if (inv.deliverySlotLabel != null && inv.deliverySlotLabel!.isNotEmpty) ...[
+        if (inv.deliverySlotLabel.isNotEmpty) ...[
           const SizedBox(height: 4),
-          _infoTile(Icons.schedule, inv.deliverySlotLabel!),
+          _infoTile(Icons.schedule, inv.deliverySlotLabel),
         ],
-        if (inv.deliveryDate != null && inv.deliveryDate!.isNotEmpty)
-          _infoTile(Icons.calendar_today, inv.deliveryDate!),
+        if (inv.deliveryDate.isNotEmpty)
+          _infoTile(Icons.calendar_today, inv.deliveryDate),
 
         // Payment info
         const SizedBox(height: 6),
         Row(
           children: [
-            _labelValue('Payment', inv.paymentMethod ?? 'N/A'),
+            _labelValue('Payment', inv.paymentMethod),
             const SizedBox(width: 16),
             _labelValue('Outstanding', '\$${inv.outstandingAmount.toStringAsFixed(2)}'),
           ],

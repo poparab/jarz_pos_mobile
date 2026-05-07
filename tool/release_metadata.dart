@@ -32,10 +32,10 @@ void main(List<String> args) {
   final environment = channel == 'staging' ? 'staging' : 'prod';
   final version = '${versionInfo.buildName}+$buildNumber';
   final artifactName = 'jarz-pos-$channel-v$version-$shortSha.apk';
-    final artifactUploadName =
-      '${channel}-release-v${versionInfo.buildName}-b$buildNumber-${_attemptLabel(runAttempt)}';
-    final metadataArtifactName =
-      '${channel}-release-metadata-v${versionInfo.buildName}-b$buildNumber-${_attemptLabel(runAttempt)}';
+  final artifactUploadName =
+      '$channel-release-v${versionInfo.buildName}-b$buildNumber-${_attemptLabel(runAttempt)}';
+  final metadataArtifactName =
+      '$channel-release-metadata-v${versionInfo.buildName}-b$buildNumber-${_attemptLabel(runAttempt)}';
   final releaseId = '$channel-v$version-$shortSha';
 
   final metadata = <String, Object?>{

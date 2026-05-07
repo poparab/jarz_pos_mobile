@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, no_leading_underscores_for_local_identifiers
+
 /// E2E: Financial deep-verification — exhaustive JE/PE/GL/CT/SPT/Stock/DN checks.
 ///
 /// Runs focused scenarios specifically to verify financial accuracy:
