@@ -9,6 +9,7 @@ param(
     [int]$PollSeconds = 10,
     [int]$RunDiscoveryGraceSeconds = 60,
     [switch]$SkipIfNoRun,
+    [switch]$ForceTrigger,
     [string]$MobileRepoPath
 )
 
@@ -188,21 +189,32 @@ Write-Info "Watching Firebase distribution for $($config.SummaryLabel)"
 Write-Info "Commit: $CommitSha"
 Write-Host ''
 
+$run = $null
 if ($config.TriggerWorkflow) {
-    Write-Step 'Triggering Firebase App Distribution workflow...'
-    $workflowArgs = @('workflow', 'run', $workflowName, '--ref', 'main')
-    if ($ReleaseNotes) {
-        $workflowArgs += @('-f', "release_notes=$ReleaseNotes")
+    if (-not $ForceTrigger) {
+        $run = Find-WorkflowRun -EventName $config.EventName -HeadSha $CommitSha
+        if ($run) {
+            Write-Info "Reusing existing workflow run $($run.databaseId) for this commit"
+            Write-Info "Run URL: $($run.url)"
+            Write-Host ''
+        }
     }
 
-    Invoke-Gh -Arguments $workflowArgs | Out-Null
-    Write-Info 'Workflow dispatch submitted'
-    Write-Host ''
+    if (-not $run) {
+        Write-Step 'Triggering Firebase App Distribution workflow...'
+        $workflowArgs = @('workflow', 'run', $workflowName, '--ref', 'main')
+        if ($ReleaseNotes) {
+            $workflowArgs += @('-f', "release_notes=$ReleaseNotes")
+        }
+
+        Invoke-Gh -Arguments $workflowArgs | Out-Null
+        Write-Info 'Workflow dispatch submitted'
+        Write-Host ''
+    }
 }
 
 $deadline = (Get-Date).AddMinutes($TimeoutMinutes)
 $discoveryDeadline = (Get-Date).AddSeconds($RunDiscoveryGraceSeconds)
-$run = $null
 
 Write-Step 'Waiting for matching GitHub Actions run...'
 while (-not $run) {
