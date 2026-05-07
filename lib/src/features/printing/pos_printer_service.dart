@@ -16,6 +16,8 @@ import '../../core/constants/api_endpoints.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'printer_compatibility.dart';
 import 'printer_status.dart';
+import 'receipt/receipt_canvas_renderer.dart'
+    if (dart.library.html) 'receipt/receipt_canvas_renderer_stub.dart';
 
 class PrintableInvoiceItem {
   final String name;
@@ -25,6 +27,8 @@ class PrintableInvoiceItem {
   final bool showPricing;
   final int indentLevel;
   final bool bold;
+  // Optional sub-line shown below the item name (e.g. "Size : Large")
+  final String? description;
   PrintableInvoiceItem({
     required this.name,
     required this.qty,
@@ -33,6 +37,7 @@ class PrintableInvoiceItem {
     this.showPricing = true,
     this.indentLevel = 0,
     this.bold = false,
+    this.description,
   }) : amount = amount ?? qty * rate;
 }
 
@@ -51,6 +56,12 @@ class PrintableInvoice {
   final double
   shipping; // Shipping income component (single source of truth from Sales Invoice); do NOT add again to total
   final List<PrintableInvoiceItem> items;
+  // New fields for bitmap receipt renderer
+  final String? orderNo;              // Short order number shown on receipt (WooCommerce ID or last-5 of invoice)
+  final String? paymentMethod;        // Cash / Instapay / Mobile Wallet
+  final String? orderDate;            // Posting date formatted as DD/MM/YYYY
+  final String? deliveryTimeRange;    // e.g. "22:00 - 23:30"
+  final String? deliveryDateFormatted; // e.g. "Wednesday, May 06, 2026"
   PrintableInvoice({
     required this.id,
     required this.date,
@@ -64,6 +75,11 @@ class PrintableInvoice {
     required this.outstanding,
     this.shipping = 0.0,
     required this.items,
+    this.orderNo,
+    this.paymentMethod,
+    this.orderDate,
+    this.deliveryTimeRange,
+    this.deliveryDateFormatted,
   });
 }
 
@@ -109,6 +125,12 @@ class PosPrinterService extends ChangeNotifier {
   }
 
   String? get lastErrorMessage => _lastError;
+
+  bool get useBitmapReceipt => (_prefsBox?.get(HiveKeys.useBitmapReceipt) ?? true) as bool;
+  Future<void> setUseBitmapReceipt(bool value) async {
+    await _prefsBox?.put(HiveKeys.useBitmapReceipt, value);
+    notifyListeners();
+  }
   PrinterCompatibilitySettings get compatibilitySettings =>
       _compatibilitySettings;
   void _setError(String? msg) {
@@ -608,7 +630,13 @@ class PosPrinterService extends ChangeNotifier {
     return _enqueuePrintJob(() async {
       try {
         await _loadReceiptConfig();
-        final bytes = await _buildReceipt(inv);
+        final useBitmap = (_prefsBox?.get(HiveKeys.useBitmapReceipt) ?? true) as bool;
+        final Uint8List bytes;
+        if (useBitmap) {
+          bytes = await _buildReceiptBitmapV2(inv);
+        } else {
+          bytes = await _buildReceipt(inv);
+        }
         if (isConnected) {
           final bleChunk = _compatibilitySettings.bleChunkSize;
           final bleChunkDelay = _compatibilitySettings.bleChunkDelayMs;
@@ -653,6 +681,24 @@ class PosPrinterService extends ChangeNotifier {
         return PrintResult.failed;
       }
     });
+  }
+
+  /// Build receipt using the new canvas-based bitmap renderer (Approach C).
+  /// Falls back to legacy [_buildReceipt] on error.
+  Future<Uint8List> _buildReceiptBitmapV2(PrintableInvoice inv) async {
+    try {
+      return await ReceiptCanvasRenderer.render(
+        inv: inv,
+        header: _receiptHeader,
+        footer: _receiptFooter,
+        phone: _receiptPhone,
+        website: _receiptWebsite,
+        printLogo: _compatibilitySettings.printLogo,
+      );
+    } catch (e) {
+      debugPrint('[PosPrinterService] _buildReceiptBitmapV2 error: $e — falling back to V1');
+      return _buildReceipt(inv);
+    }
   }
 
   Future<Uint8List> _buildReceipt(PrintableInvoice inv) async {

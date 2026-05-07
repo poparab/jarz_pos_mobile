@@ -136,6 +136,7 @@ class _PrinterSelectionScreenState
   Future<void> _showCompatibilitySettings() async {
     final printer = ref.read(posPrinterServiceProvider);
     var draft = printer.compatibilitySettings;
+    bool useBitmapDraft = printer.useBitmapReceipt;
     final rasterWidthController = TextEditingController(
       text: draft.rasterWidthPx.toString(),
     );
@@ -219,6 +220,16 @@ class _PrinterSelectionScreenState
                         style: Theme.of(ctx).textTheme.bodySmall,
                       ),
                       const SizedBox(height: 16),
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Use new bitmap receipt'),
+                        subtitle: const Text('Renders the full receipt as an image (recommended — fixes Arabic, missing data, and gibberish)'),
+                        value: useBitmapDraft,
+                        onChanged: (value) => setModalState(
+                          () => useBitmapDraft = value,
+                        ),
+                      ),
+                      const Divider(),
                       SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
                         title: Text(l10n.printerPrintLogo),
@@ -336,6 +347,7 @@ class _PrinterSelectionScreenState
                               await printer.updateCompatibilitySettings(
                                 updated,
                               );
+                              await printer.setUseBitmapReceipt(useBitmapDraft);
                               if (!mounted) return;
                               Navigator.of(ctx).pop();
                               ScaffoldMessenger.of(context).showSnackBar(

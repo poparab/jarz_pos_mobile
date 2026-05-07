@@ -23,6 +23,8 @@ abstract final class HiveKeys {
   static const lastPrinterType = 'last_printer_type';
   static const printerCompatibilitySettings = 'printer_compatibility_settings';
   static const preferredLocale = 'preferred_locale';
+  // Bitmap receipt renderer (Approach C). true = new canvas renderer; false = legacy ESC/POS text path.
+  static const useBitmapReceipt = 'printer_use_bitmap_receipt';
 }
 
 // ── SharedPreferences keys ──────────────────────────────────────────────

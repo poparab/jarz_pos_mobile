@@ -33,7 +33,7 @@ PrintableInvoice buildPrintableInvoiceFromCards({
 
   return PrintableInvoice(
     id: effective.name,
-    date: now ?? DateTime.now(),
+    date: _parsePostingDate(effective.postingDate) ?? (now ?? DateTime.now()),
     customer: effective.customerName,
     customerAddress: effective.address.isNotEmpty ? effective.address : null,
     customerPhone: _trimToNull(effective.customerPhone),
@@ -45,6 +45,11 @@ PrintableInvoice buildPrintableInvoiceFromCards({
     outstanding: outstanding,
     shipping: effective.isPickup ? 0.0 : effective.shippingIncome,
     items: items,
+    orderNo: _resolveOrderNo(effective),
+    paymentMethod: _trimToNull(effective.paymentMethod ?? effective.actualPaymentMethod),
+    orderDate: _formatPostingDate(effective.postingDate),
+    deliveryTimeRange: _buildDeliveryTimeRange(effective),
+    deliveryDateFormatted: _buildDeliveryDateFormatted(effective),
   );
 }
 
@@ -229,4 +234,50 @@ String _normalizeComparable(String value) {
   return value
       .toLowerCase()
       .replaceAll(RegExp(r'[^a-z0-9\u0600-\u06FF]+'), '');
+}
+
+// ── New helpers for bitmap receipt fields ─────────────────────────────────────
+
+String? _resolveOrderNo(InvoiceCard card) {
+  final short = _trimToNull(card.invoiceIdShort);
+  if (short != null) return short;
+  // Fallback: last 5 alphanumeric chars of invoice name
+  final cleaned = card.name.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
+  if (cleaned.length <= 5) return _trimToNull(cleaned);
+  return cleaned.substring(cleaned.length - 5);
+}
+
+DateTime? _parsePostingDate(String? s) {
+  if (s == null || s.isEmpty) return null;
+  return DateTime.tryParse(s);
+}
+
+String? _formatPostingDate(String? s) {
+  final d = _parsePostingDate(s);
+  if (d == null) return null;
+  final day = d.day.toString().padLeft(2, '0');
+  final month = d.month.toString().padLeft(2, '0');
+  return '$day/$month/${d.year}';
+}
+
+String? _buildDeliveryTimeRange(InvoiceCard card) {
+  final start = card.deliveryStartDateTime;
+  if (start == null) return null;
+  final dur = card.deliveryDurationParsed;
+  final startStr = '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}';
+  if (dur == null || dur.inMinutes == 0) return startStr;
+  final end = start.add(dur);
+  final endStr = '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}';
+  return '$startStr - $endStr';
+}
+
+String? _buildDeliveryDateFormatted(InvoiceCard card) {
+  final start = card.deliveryStartDateTime;
+  if (start == null) return null;
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  final dayName = days[start.weekday - 1];
+  final monthName = months[start.month - 1];
+  final dateNum = start.day.toString().padLeft(2, '0');
+  return '$dayName, $monthName $dateNum, ${start.year}';
 }
