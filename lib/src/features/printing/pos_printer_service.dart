@@ -76,6 +76,8 @@ class PosPrinterService extends ChangeNotifier {
   static const String _defaultReceiptFooter = 'Thank you for Your Order';
   static const String _defaultReceiptPhone = '01061332266';
   static const String _defaultReceiptWebsite = 'www.orderjarz.com';
+  static const int _compatibleRasterWidth = 384;
+  static const int _compatibleLogoWidth = 288;
 
   String _receiptHeader = _defaultReceiptHeader;
   String _receiptFooter = _defaultReceiptFooter;
@@ -578,15 +580,15 @@ class PosPrinterService extends ChangeNotifier {
     if (inv.deliveryDateTime != null) {
       await text('Delivery: ${formatDeliveryRange(inv.deliveryDateTime!)}');
     }
-    // Territory on its own bold line
-    if ((inv.territory ?? '').isNotEmpty) {
-      await text(inv.territory!, bold: true);
-    }
     // Address block — slightly larger font for readability
     if (addressLines.isNotEmpty) {
       for (final line in addressLines) {
         await text(line, fontSize: 20);
       }
+    }
+    // Territory prints after the address block in the paper samples.
+    if ((inv.territory ?? '').isNotEmpty) {
+      await text(inv.territory!, bold: true);
     }
     await hr();
 
@@ -742,9 +744,9 @@ class PosPrinterService extends ChangeNotifier {
       final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
       final frame = await codec.getNextFrame();
       final img = frame.image;
-      // Render into a canvas as wide as an 80mm printer (576px) and center the scaled logo.
-      const canvasW = 576;
-      const logoTargetW = 200; // compact logo for thermal receipt
+      // Use a conservative raster width that works across 58mm and 80mm ESC/POS firmware.
+      const canvasW = _compatibleRasterWidth;
+      const logoTargetW = _compatibleLogoWidth;
       final scale = logoTargetW / img.width;
       final targetH = (img.height * scale).round();
       final recorder = ui.PictureRecorder();
@@ -798,8 +800,8 @@ class PosPrinterService extends ChangeNotifier {
   }
 
   Future<void> _addRasterText(BytesBuilder b, String s, {bool bold=false, bool center=false, double fontSize=18, String? fontFamily}) async {
-    // 576px matches common 80mm ESC/POS printers.
-    const targetW = 576;
+    // 384px is broadly supported across 58mm and 80mm ESC/POS printers.
+    const targetW = _compatibleRasterWidth;
     // Prepare text painter
   final hasArabic = RegExp(r'[\u0600-\u06FF]').hasMatch(s);
     // Font selection: explicit fontFamily > Tajawal for Arabic > Inter for content

@@ -35,6 +35,37 @@ void main() {
       );
     });
 
+    test('should use the compatibility raster width for image text blocks', () async {
+      final service = PosPrinterService(autoInit: false);
+      final invoice = PrintableInvoice(
+        id: 'ACC-SINV-TEST-15754',
+        date: DateTime(2026, 5, 6, 14, 30),
+        customer: 'Manal Mahmoud Issa',
+        customerAddress: 'حدائق أكتوبر بداية كمباوند كاميوا عماره 14',
+        customerPhone: '01064260665',
+        territory: 'حدائق أكتوبر - Hadayek October',
+        deliveryDateTime: DateTime(2026, 5, 6, 14, 30),
+        total: 415,
+        paid: 415,
+        outstanding: 0,
+        shipping: 55,
+        items: [
+          PrintableInvoiceItem(name: 'Pistachio Medium', qty: 1, rate: 120),
+        ],
+      );
+
+      final bytes = await service.buildReceiptBytesForTest(invoice);
+
+      expect(
+        _containsSequence(bytes, [0x1D, 0x76, 0x30, 0x00, 0x30, 0x00]),
+        isTrue,
+      );
+      expect(
+        _containsSequence(bytes, [0x1D, 0x76, 0x30, 0x00, 0x48, 0x00]),
+        isFalse,
+      );
+    });
+
     test('should render compact child bundle lines in preview output', () async {
       final service = PosPrinterService(autoInit: false);
       final invoice = PrintableInvoice(
