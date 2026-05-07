@@ -44,18 +44,16 @@ class ReceiptCanvasRenderer {
     int threshold = 200,
   }) async {
     ui.Image? logo;
-    if (printLogo) {
-      try {
-        final data = await rootBundle.load('assets/images/logo.png');
-        final codec = await ui.instantiateImageCodec(
-          data.buffer.asUint8List(),
-          targetWidth: (_receiptW * 0.5).toInt(),
-        );
-        final frame = await codec.getNextFrame();
-        logo = frame.image;
-      } catch (e) {
-        debugPrint('[ReceiptCanvasRenderer] logo load failed: $e');
-      }
+    try {
+      final data = await rootBundle.load('assets/images/logo.png');
+      final codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(),
+        targetWidth: (_receiptW * 0.5).toInt(),
+      );
+      final frame = await codec.getNextFrame();
+      logo = frame.image;
+    } catch (e) {
+      debugPrint('[ReceiptCanvasRenderer] logo load failed: $e');
     }
     try {
       return await _buildBytes(
@@ -165,15 +163,17 @@ class ReceiptCanvasRenderer {
       y += drawH + 4;
     }
 
-    // ── Section 3: Brand header ──────────────────────────────────────────────
-    placeTp(
-      tp(header, _receiptW - 2 * _padX, bold: true, fontSize: 40, fontFamily: 'DMSerifDisplay', align: TextAlign.center),
-      _padX,
-    );
+    // ── Section 3: Brand header (text fallback — only shown when logo failed to load)
+    if (logo == null && header.isNotEmpty) {
+      placeTp(
+        tp(header, _receiptW - 2 * _padX, bold: true, fontSize: 40, fontFamily: 'DMSerifDisplay', align: TextAlign.center),
+        _padX,
+      );
+    }
 
     // ── Section 4: Website ───────────────────────────────────────────────────
     if (website.isNotEmpty) {
-      placeTp(tp(website, _receiptW - 2 * _padX, fontSize: 12, align: TextAlign.center), _padX);
+      placeTp(tp(website, _receiptW - 2 * _padX, fontSize: 20, align: TextAlign.center), _padX);
     }
     gap(_sectionGap);
     hline();
@@ -200,25 +200,25 @@ class ReceiptCanvasRenderer {
     }
 
     // Left column: Delivery Address
-    addLeft(tp('Delivery Address', _colW, bold: true, fontSize: 24));
-    if (inv.customer.isNotEmpty) addLeft(tp(inv.customer, _colW, fontSize: 12));
+    addLeft(tp('Delivery Address', _colW, bold: true, fontSize: 36));
+    if (inv.customer.isNotEmpty) addLeft(tp(inv.customer, _colW, fontSize: 18));
     if ((inv.customerAddress ?? '').isNotEmpty) {
-      addLeft(tp(inv.customerAddress!, _colW, fontSize: 12));
+      addLeft(tp(inv.customerAddress!, _colW, fontSize: 18));
     }
     if ((inv.customerPhone ?? '').isNotEmpty) {
-      addLeft(tp(inv.customerPhone!, _colW, fontSize: 12));
+      addLeft(tp(inv.customerPhone!, _colW, fontSize: 18));
     }
     if ((inv.deliveryDateFormatted ?? '').isNotEmpty) {
-      addLeft(tp('Delivery Date:', _colW, bold: true, fontSize: 12));
-      addLeft(tp(inv.deliveryDateFormatted!, _colW, fontSize: 12));
+      addLeft(tp('Delivery Date:', _colW, bold: true, fontSize: 18));
+      addLeft(tp(inv.deliveryDateFormatted!, _colW, fontSize: 18));
     } else if (inv.deliveryDateTime != null) {
       // Fallback: format the delivery datetime
       final dt = inv.deliveryDateTime!;
       const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
       const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
       final formatted = '${days[dt.weekday - 1]}, ${months[dt.month - 1]} ${dt.day.toString().padLeft(2, '0')}, ${dt.year}';
-      addLeft(tp('Delivery Date:', _colW, bold: true, fontSize: 12));
-      addLeft(tp(formatted, _colW, fontSize: 12));
+      addLeft(tp('Delivery Date:', _colW, bold: true, fontSize: 18));
+      addLeft(tp(formatted, _colW, fontSize: 18));
     }
 
     // Right column: Order details
@@ -281,26 +281,26 @@ class ReceiptCanvasRenderer {
         // Bundle child row: full-width name, no pricing columns
         final indent = '  ' * item.indentLevel;
         final bullet = item.indentLevel > 0 ? '- ' : '';
-        final nameTp = tp('$indent$bullet${item.name}', _receiptW - 2 * _padX, bold: item.bold, fontSize: 12);
+        final nameTp = tp('$indent$bullet${item.name}', _receiptW - 2 * _padX, bold: item.bold, fontSize: 20);
         ops.add(_TpOp(tp: nameTp, x: _padX, y: rowY));
         y = rowY + nameTp.height + _lineGap;
         continue;
       }
 
       sno++;
-      final snoTp = tp('$sno', _tSnoW, fontSize: 12, align: TextAlign.center);
+      final snoTp = tp('$sno', _tSnoW, fontSize: 20, align: TextAlign.center);
 
       // Product name (may wrap) + optional description sub-line
-      final nameTp = tp(item.name, _tProdW, bold: item.bold, fontSize: 12);
+      final nameTp = tp(item.name, _tProdW, bold: item.bold, fontSize: 20);
       TextPainter? descTp;
       if ((item.description ?? '').isNotEmpty) {
-        descTp = tp(item.description!, _tProdW, fontSize: 18);
+        descTp = tp(item.description!, _tProdW, fontSize: 20);
       }
       final prodColH = nameTp.height + (descTp != null ? (descTp.height + 1) : 0);
 
-      final qtyTp = tp(_fmtQty(item.qty), _tQtyW, fontSize: 12, align: TextAlign.center);
-      final unitTp = tp(_fmtAmt(item.rate), _tUnitW, fontSize: 12, align: TextAlign.right);
-      final amtTp = tp(_fmtAmt(item.amount), _tAmtW, fontSize: 12, align: TextAlign.right);
+      final qtyTp = tp(_fmtQty(item.qty), _tQtyW, fontSize: 20, align: TextAlign.center);
+      final unitTp = tp(_fmtAmt(item.rate), _tUnitW, fontSize: 20, align: TextAlign.right);
+      final amtTp = tp(_fmtAmt(item.amount), _tAmtW, fontSize: 20, align: TextAlign.right);
 
       final rowH = [snoTp, qtyTp, unitTp, amtTp].fold<double>(prodColH, (m, t) => t.height > m ? t.height : m) + _lineGap;
 
@@ -345,7 +345,7 @@ class ReceiptCanvasRenderer {
 
     // Status
     final isPaid = inv.outstanding <= 0.0001;
-    final statusTp = tp(isPaid ? 'Status: PAID' : 'Status: UNPAID', _receiptW - 2 * _padX, fontSize: 12);
+    final statusTp = tp(isPaid ? 'Status: PAID' : 'Status: UNPAID', _receiptW - 2 * _padX, fontSize: 20);
     ops.add(_TpOp(tp: statusTp, x: totalsLabelX, y: y));
     y += statusTp.height + _sectionGap;
 
@@ -353,13 +353,13 @@ class ReceiptCanvasRenderer {
     hline();
     gap(_lineGap);
     if (footer.isNotEmpty) {
-      placeTp(tp(footer, _receiptW - 2 * _padX, bold: true, fontSize: 12, align: TextAlign.center), _padX);
+      placeTp(tp(footer, _receiptW - 2 * _padX, bold: true, fontSize: 20, align: TextAlign.center), _padX);
     }
     if (phone.isNotEmpty) {
-      placeTp(tp('Call us $phone', _receiptW - 2 * _padX, fontSize: 12, align: TextAlign.center), _padX);
+      placeTp(tp('Call us $phone', _receiptW - 2 * _padX, fontSize: 20, align: TextAlign.center), _padX);
     }
     if (website.isNotEmpty) {
-      placeTp(tp(website, _receiptW - 2 * _padX, fontSize: 12, align: TextAlign.center), _padX);
+      placeTp(tp(website, _receiptW - 2 * _padX, fontSize: 20, align: TextAlign.center), _padX);
     }
     gap(24); // bottom padding before cut
 
