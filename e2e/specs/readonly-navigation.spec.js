@@ -10,7 +10,7 @@ function waitForApiResponse(page, pathFragment, expectedStatus) {
 }
 
 test.describe('Authenticated route access', () => {
-  test('loads Sales Kanban data after the required shift flow', async ({ page }) => {
+  test('loads Sales Kanban data after the required shift flow @staff @phase1', async ({ page }) => {
     await loginThroughUi(page);
     await startShiftIfRequired(page);
 
@@ -30,7 +30,7 @@ test.describe('Authenticated route access', () => {
     expect(page.url()).not.toContain('/login');
   });
 
-  test('loads Manager Dashboard data when manager credentials are configured', async ({ page }) => {
+  test('loads Manager Dashboard data when manager credentials are configured @manager @phase3', async ({ page }) => {
     test.skip(
       !process.env.E2E_MANAGER_USER || !process.env.E2E_MANAGER_PASSWORD,
       'Set E2E_MANAGER_USER and E2E_MANAGER_PASSWORD to run the manager route smoke test.',
@@ -66,7 +66,7 @@ test.describe('Authenticated route access', () => {
     expect(page.url()).not.toContain('/login');
   });
 
-  test('blocks staff access to the Manager Dashboard when opened directly', async ({ page }) => {
+  test('blocks staff access to the Manager Dashboard when opened directly @staff @phase1 @phase3', async ({ page }) => {
     await loginThroughUi(page);
     await startShiftIfRequired(page);
 
@@ -83,7 +83,7 @@ test.describe('Authenticated route access', () => {
     expect(JSON.stringify(await response.json())).toMatch(/Manager Dashboard access required/i);
   });
 
-  test('blocks staff access to Purchase when opened directly', async ({ page }) => {
+  test('blocks staff access to Purchase when opened directly @staff @phase1 @phase3', async ({ page }) => {
     await loginThroughUi(page);
     await startShiftIfRequired(page);
 

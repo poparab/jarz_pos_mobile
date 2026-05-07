@@ -2638,10 +2638,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         return;
       }
 
-      // Fetch available target branches (same source as manager dashboard).
+      // Fetch available target branches from the dedicated lightweight endpoint.
       final managerApi = ref.read(managerApiProvider);
-      final summary = await managerApi.getSummary();
-      final branches = summary.branches;
+      final branches = await managerApi.getTransferTargetBranches();
 
       if (!context.mounted) return;
 
@@ -2778,11 +2777,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         final targetBranchTitle = branches
             .firstWhere(
               (branch) => branch.name == picked,
-              orElse: () => BranchBalance(
+              orElse: () => TransferTargetBranch(
                 name: picked,
                 title: picked,
-                cashAccount: null,
-                balance: 0,
               ),
             )
             .title;

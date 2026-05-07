@@ -18,6 +18,11 @@ const managerOnlyEndpoints = [
     deniedPattern: /Managers only/i,
   },
   {
+    name: 'stock transfer branches',
+    path: '/api/method/jarz_pos.api.transfer.list_pos_profiles',
+    deniedPattern: /Managers only/i,
+  },
+  {
     name: 'final products report',
     path: '/api/method/jarz_pos.api.reports.get_final_products_report',
     deniedPattern: /Only JARZ Manager can access reports/i,
@@ -44,7 +49,7 @@ async function createAuthenticatedContext(baseURL, userEnv, passwordEnv) {
 }
 
 test.describe('Permission enforcement API', () => {
-  test('staff is denied manager-only endpoints', async ({}, testInfo) => {
+  test('staff is denied manager-only endpoints @staff @phase3', async ({}, testInfo) => {
     const apiContext = await createAuthenticatedContext(
       testInfo.project.use.baseURL,
       'E2E_USER',
@@ -62,7 +67,7 @@ test.describe('Permission enforcement API', () => {
     }
   });
 
-  test('manager can access manager-only endpoints', async ({}, testInfo) => {
+  test('manager can access manager-only endpoints @manager @phase3', async ({}, testInfo) => {
     test.skip(
       !process.env.E2E_MANAGER_USER || !process.env.E2E_MANAGER_PASSWORD,
       'Set E2E_MANAGER_USER and E2E_MANAGER_PASSWORD to run manager-only API checks.',

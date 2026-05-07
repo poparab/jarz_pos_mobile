@@ -13,6 +13,7 @@ module.exports = defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: [
     ['list'],
+    ['json', { outputFile: 'test-results/staff-playwright-results.json' }],
     ['html', { open: 'never' }],
   ],
   use: {

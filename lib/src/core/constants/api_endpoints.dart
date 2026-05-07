@@ -151,6 +151,8 @@ abstract final class ApiEndpoints {
   // ── Manager ───────────────────────────────────────────────────────────
   static const getManagerDashboardSummary =
       '/api/method/jarz_pos.api.manager.get_manager_dashboard_summary';
+  static const getManagerTransferTargetBranches =
+      '/api/method/jarz_pos.api.manager.get_transfer_target_branches';
   static const getManagerOrders =
       '/api/method/jarz_pos.api.manager.get_manager_orders';
   static const getManagerStates =

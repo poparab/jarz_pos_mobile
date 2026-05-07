@@ -272,6 +272,9 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
 
     final isConfirmed = status == 'Confirmed';
     final hasImage = receiptImageUrl != null && receiptImageUrl.isNotEmpty;
+    final canConfirm = receipt['can_confirm'] == true ||
+      receipt['can_confirm'] == 1 ||
+      receipt['can_confirm'] == '1';
 
     // Build full image URL: prepend ERP base URL if path is relative
     String? fullImageUrl;
@@ -355,7 +358,7 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
                     ),
                   ),
                   const SizedBox(width: 12),
-                  if (!isConfirmed)
+                  if (!isConfirmed && canConfirm)
                     ElevatedButton.icon(
                       onPressed: () => _confirmReceipt(receiptName),
                       icon: const Icon(Icons.check, size: 16),

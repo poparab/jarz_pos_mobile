@@ -413,19 +413,23 @@ class PosPrinterService extends ChangeNotifier {
     try {
       await _loadReceiptConfig();
       final bytes = await _buildReceipt(inv);
-      // Use conservative chunking to avoid buffer overrun artifacts (especially with Arabic raster lines).
-      const chunk = 96;
       if (isConnected) {
-        for (int o = 0; o < bytes.length; o += chunk) {
-          final part = bytes.sublist(o, (o + chunk).clamp(0, bytes.length));
+        const bleChunk = 96;
+        for (int o = 0; o < bytes.length; o += bleChunk) {
+          final part = bytes.sublist(o, (o + bleChunk).clamp(0, bytes.length));
           await _writeChar!.write(part, withoutResponse: true);
           await Future.delayed(const Duration(milliseconds: 30));
         }
       } else if (isClassicConnected) {
-        for (int o = 0; o < bytes.length; o += chunk) {
-          final part = bytes.sublist(o, (o + chunk).clamp(0, bytes.length));
-          await ClassicPrinterChannel.instance.write(part);
-          await Future.delayed(const Duration(milliseconds: 25));
+        // Classic SPP printers are more sensitive to raster-heavy receipts than BLE printers.
+        const classicChunk = 48;
+        for (int o = 0; o < bytes.length; o += classicChunk) {
+          final part = bytes.sublist(o, (o + classicChunk).clamp(0, bytes.length));
+          final ok = await ClassicPrinterChannel.instance.write(part);
+          if (!ok) {
+            throw Exception('Classic printer write failed');
+          }
+          await Future.delayed(const Duration(milliseconds: 35));
         }
       }
       _setError(null);

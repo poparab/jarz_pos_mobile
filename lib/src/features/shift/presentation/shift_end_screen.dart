@@ -176,13 +176,24 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
               ),
             ),
 
-          // ── End Shift button ──
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: shiftState.isLoading ? null : () => _handleEndShift(summary),
-              child: Text(l10n.shiftEndButton),
-            ),
+          // ── Navigation + End Shift actions ──
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: shiftState.isLoading ? null : () => context.go(AppRoutes.pos),
+                  icon: const Icon(Icons.arrow_back),
+                  label: Text(l10n.shiftBackToPos),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: shiftState.isLoading ? null : () => _handleEndShift(summary),
+                  child: Text(l10n.shiftEndButton),
+                ),
+              ),
+            ],
           ),
         ],
       ),

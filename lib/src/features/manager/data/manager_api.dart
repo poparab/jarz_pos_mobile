@@ -24,6 +24,45 @@ class ManagerApi {
     return DashboardSummary.fromJson(data['message'] ?? data);
   }
 
+  Future<List<TransferTargetBranch>> getTransferTargetBranches() async {
+    try {
+      final resp = await _dio.get(ApiEndpoints.getManagerTransferTargetBranches);
+      final data = resp.data is String ? json.decode(resp.data) : resp.data;
+      final payload = data is Map<String, dynamic> ? (data['message'] ?? data) : data;
+
+      if (payload is Map<String, dynamic> && payload['success'] == false) {
+        throw Exception(
+          extractFrappeErrorMessage(
+            payload,
+            fallback: 'Failed to load transfer branches',
+          ),
+        );
+      }
+
+      final rawBranches = payload is List<dynamic>
+          ? payload
+          : payload is Map<String, dynamic>
+              ? ((payload['branches'] ?? payload['data']) as List<dynamic>? ??
+                  const <dynamic>[])
+              : const <dynamic>[];
+
+      return rawBranches
+          .whereType<Map>()
+          .map(
+            (entry) => TransferTargetBranch.fromJson(
+              Map<String, dynamic>.from(entry),
+            ),
+          )
+          .where((branch) => branch.name.isNotEmpty)
+          .toList();
+    } on DioException catch (error) {
+      throw mapFrappeError(
+        error,
+        fallback: 'Failed to load transfer branches',
+      );
+    }
+  }
+
   Future<List<ManagerInvoice>> getOrders({String? branch, String? state, int limit = 200}) async {
     final resp = await _dio.get(
       ApiEndpoints.getManagerOrders,
@@ -116,6 +155,19 @@ class DashboardSummary {
             .map((e) => BranchBalance.fromJson(e as Map<String, dynamic>))
             .toList(),
         totalBalance: (json['total_balance'] as num?)?.toDouble() ?? 0.0,
+      );
+}
+
+class TransferTargetBranch {
+  final String name;
+  final String title;
+
+  const TransferTargetBranch({required this.name, required this.title});
+
+  factory TransferTargetBranch.fromJson(Map<String, dynamic> json) =>
+      TransferTargetBranch(
+        name: (json['name'] ?? '').toString(),
+        title: (json['title'] ?? json['name'] ?? '').toString(),
       );
 }
 

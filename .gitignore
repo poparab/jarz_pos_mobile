@@ -59,6 +59,7 @@ node_modules/
 playwright-report/
 test-results/
 blob-report/
+artifacts/e2e/staff/latest/
 
 # Local one-off debug scripts (never commit)
 debug_*.py

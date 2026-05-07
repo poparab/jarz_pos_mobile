@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 const { assertHasSessionCookie, loginThroughUi } = require('../support/auth');
 
 test.describe('Browser auth smoke', () => {
-  test('logs in through the real web UI and establishes a session', async ({ page }) => {
+  test('logs in through the real web UI and establishes a session @staff @phase1', async ({ page }) => {
     await loginThroughUi(page);
 
     await assertHasSessionCookie(page);

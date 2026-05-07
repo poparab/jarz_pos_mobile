@@ -4,7 +4,15 @@ const dotenv = require('dotenv');
 
 const repoRoot = path.resolve(__dirname, '..', '..');
 
-for (const fileName of ['.env.e2e.local', '.env.e2e']) {
+const envAliases = {
+  E2E_MANAGER_PASSWORD: 'STAGING_PASSWORD',
+  E2E_MANAGER_USER: 'STAGING_USER',
+  E2E_PASSWORD: 'STAGING_PASSWORD',
+  E2E_POS_PROFILE: 'STAGING_POS_PROFILE',
+  E2E_USER: 'STAGING_USER',
+};
+
+for (const fileName of ['.env.e2e.local', '.env.e2e', '.env.test.local']) {
   const fullPath = path.join(repoRoot, fileName);
   if (fs.existsSync(fullPath)) {
     dotenv.config({ path: fullPath, override: false });
@@ -39,19 +47,33 @@ function baseUrlFor(environmentName) {
   return defaultBaseUrls[normalized];
 }
 
+function envValue(name) {
+  const directValue = process.env[name];
+  if (directValue) {
+    return directValue;
+  }
+
+  const alias = envAliases[name];
+  if (!alias) {
+    return '';
+  }
+
+  return process.env[alias] || '';
+}
+
 function requireEnv(name) {
-  const value = process.env[name];
+  const value = envValue(name);
   if (!value) {
     throw new Error(
       `Missing required environment variable ${name}. ` +
-        'Copy .env.e2e.example to .env.e2e.local and fill in credentials before running browser E2E tests.',
+        'Copy .env.e2e.example to .env.e2e.local or provide the matching STAGING_* aliases before running browser E2E tests.',
     );
   }
   return value;
 }
 
 function optionalEnv(name, fallback = '') {
-  return process.env[name] || fallback;
+  return envValue(name) || fallback;
 }
 
 module.exports = {

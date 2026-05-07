@@ -7,7 +7,9 @@
     "e2e:test": "playwright test",
     "e2e:test:headed": "playwright test --headed",
     "e2e:test:staging": "playwright test --project=staging-chromium",
+    "e2e:test:staging:staff": "playwright test --project=staging-chromium --grep @staff",
     "e2e:test:prod": "playwright test --project=production-chromium",
+    "e2e:report:staff": "node e2e/scripts/generate_staff_report.js",
     "e2e:test:ui": "playwright test --ui"
   },
   "devDependencies": {
