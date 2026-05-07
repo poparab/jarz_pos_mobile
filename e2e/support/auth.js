@@ -20,14 +20,15 @@ async function enableFlutterAccessibilityIfPresent(page) {
 
   if ((await semanticsPlaceholder.count()) > 0) {
     await semanticsPlaceholder.evaluate((node) => {
-      node.dispatchEvent(
-        new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-        }),
-      );
+      node.focus();
+      node.click();
     });
+    await page
+      .waitForFunction(
+        () => document.querySelectorAll('flt-semantics').length > 0,
+        { timeout: 10_000 },
+      )
+      .catch(() => {});
     return;
   }
 
@@ -66,21 +67,167 @@ async function assertHasSessionCookie(page) {
     .toBeTruthy();
 }
 
+const CANVAS_LOGIN_TARGETS = {
+  username: { xRatio: 0.140625, yRatio: 0.4583333333 },
+  password: { xRatio: 0.140625, yRatio: 0.5416666667 },
+  submit: { xRatio: 0.5, yRatio: 0.6305555556 },
+};
+
+const SHIFT_START_TARGET = { xRatio: 0.5, yRatio: 0.9555555556 };
+
+async function clickCanvasTarget(page, target) {
+  const viewport = page.viewportSize() || { width: 1280, height: 720 };
+  const x = Math.round(viewport.width * target.xRatio);
+  const y = Math.round(viewport.height * target.yRatio);
+
+  await page.mouse.click(x, y);
+}
+
+async function setFocusedFlutterInputValue(page, value) {
+  const editor = page.locator('flt-text-editing-host input.flt-text-editing').last();
+  await editor.waitFor({ state: 'attached', timeout: 5_000 });
+  await editor.evaluate((input, nextValue) => {
+    input.focus();
+    input.value = nextValue;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }, value);
+}
+
+async function focusCanvasFieldAndSetValue(page, target, value) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await clickCanvasTarget(page, target);
+    await page.waitForTimeout(300);
+
+    const hasEditor = await page
+      .waitForFunction(
+        () => document.querySelectorAll('flt-text-editing-host input.flt-text-editing').length > 0,
+        { timeout: 1_500 },
+      )
+      .then(() => true)
+      .catch(() => false);
+
+    if (!hasEditor) {
+      await page.waitForTimeout(500);
+      continue;
+    }
+
+    await setFocusedFlutterInputValue(page, value);
+    return;
+  }
+
+  throw new Error('Unable to focus Flutter canvas input');
+}
+
+async function hasAccessibleLoginFields(page) {
+  const labeledUsername = page.getByRole('textbox', { name: /username/i }).first();
+  const hasLabeledUsername = await labeledUsername
+    .isVisible({ timeout: 1_500 })
+    .catch(() => false);
+
+  if (hasLabeledUsername) {
+    return true;
+  }
+
+  const genericTextboxes = page.locator('input, textarea, [role="textbox"]');
+  return (await genericTextboxes.count()) >= 2;
+}
+
+async function resolveTextbox(page, labelPattern, fallbackIndex) {
+  const labeledTextbox = page.getByRole('textbox', { name: labelPattern }).first();
+  const hasLabeledTextbox = await labeledTextbox.isVisible({ timeout: 3_000 }).catch(
+    () => false,
+  );
+
+  if (hasLabeledTextbox) {
+    return labeledTextbox;
+  }
+
+  const genericTextbox = page
+    .locator('input, textarea, [role="textbox"]')
+    .nth(fallbackIndex);
+  await expect(genericTextbox).toBeVisible();
+  return genericTextbox;
+}
+
+async function clickLoginAction(page) {
+  const candidates = [
+    page.getByRole('button', { name: /^login$/i }).first(),
+    page.locator('button').filter({ hasText: /^login$/i }).first(),
+    page.getByText(/^login$/i).last(),
+  ];
+
+  for (const locator of candidates) {
+    const isVisible = await locator.isVisible({ timeout: 3_000 }).catch(() => false);
+    if (!isVisible) {
+      continue;
+    }
+
+    await locator.click({ force: true });
+    return;
+  }
+
+  await page.keyboard.press('Enter');
+}
+
+async function loginThroughCanvas(page, user, password) {
+  await focusCanvasFieldAndSetValue(page, CANVAS_LOGIN_TARGETS.username, user);
+
+  await focusCanvasFieldAndSetValue(page, CANVAS_LOGIN_TARGETS.password, password);
+
+  await page.waitForTimeout(300);
+  await clickCanvasTarget(page, CANVAS_LOGIN_TARGETS.submit);
+}
+
+async function tryCanvasLogin(page, user, password) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      await loginThroughCanvas(page, user, password);
+      return true;
+    } catch {
+      if (attempt === 1) {
+        return false;
+      }
+
+      await page.goto('/pos/#/login');
+      await waitForFlutterBoot(page);
+      await page.waitForTimeout(4_000);
+    }
+  }
+
+  return false;
+}
+
 async function loginThroughUi(page, options = {}) {
   const userEnv = options.userEnv || 'E2E_USER';
   const passwordEnv = options.passwordEnv || 'E2E_PASSWORD';
+  const user = requireEnv(userEnv);
+  const password = requireEnv(passwordEnv);
 
   await page.goto('/pos/#/login');
   await waitForFlutterBoot(page);
-  await enableFlutterAccessibilityIfPresent(page);
-  await page.waitForTimeout(1_000);
-  await expect(page.getByRole('textbox', { name: /username/i })).toBeVisible();
+  await page.waitForTimeout(4_000);
 
-  await page.getByRole('textbox', { name: /username/i }).fill(requireEnv(userEnv));
-  await page.getByRole('textbox', { name: /password/i }).fill(requireEnv(passwordEnv));
-  await page.getByRole('button', { name: /^login$/i }).click();
+  if (await tryCanvasLogin(page, user, password)) {
+    await maybeChooseLoginMode(page);
+  } else {
+    await page.goto('/pos/#/login');
+    await waitForFlutterBoot(page);
+    await enableFlutterAccessibilityIfPresent(page);
+    await page.waitForTimeout(1_000);
 
-  await maybeChooseLoginMode(page);
+    if (!(await hasAccessibleLoginFields(page))) {
+      throw new Error('Unable to access Flutter login fields through either canvas or semantics');
+    }
+
+    const usernameTextbox = await resolveTextbox(page, /username/i, 0);
+    const passwordTextbox = await resolveTextbox(page, /password/i, 1);
+
+    await usernameTextbox.fill(user);
+    await passwordTextbox.fill(password);
+    await clickLoginAction(page);
+    await maybeChooseLoginMode(page);
+  }
 
   await page.waitForURL((url) => !url.hash.endsWith('/login'), {
     timeout: 30_000,
@@ -89,7 +236,20 @@ async function loginThroughUi(page, options = {}) {
   await assertHasSessionCookie(page);
 }
 
+async function startShiftIfRequired(page) {
+  if (!page.url().includes('/shift/start')) {
+    return;
+  }
+
+  await page.waitForTimeout(1_000);
+  await clickCanvasTarget(page, SHIFT_START_TARGET);
+  await page.waitForURL((url) => !url.hash.endsWith('/shift/start'), {
+    timeout: 30_000,
+  });
+}
+
 module.exports = {
   assertHasSessionCookie,
   loginThroughUi,
+  startShiftIfRequired,
 };
