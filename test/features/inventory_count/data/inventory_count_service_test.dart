@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/features/inventory_count/data/inventory_count_service.dart';
 import '../../../helpers/mock_services.dart';
@@ -18,7 +20,7 @@ void main() {
           {'name': 'Main Warehouse', 'company': 'Test Company'},
           {'name': 'Branch Warehouse', 'company': 'Test Company'},
         ];
-        
+
         mockDio.setResponse(
           '/api/method/jarz_pos.api.inventory_count.list_warehouses',
           {'message': warehouses},
@@ -72,7 +74,7 @@ void main() {
           {'item_code': 'ITEM-001', 'item_name': 'Product A', 'stock_qty': 10},
           {'item_code': 'ITEM-002', 'item_name': 'Product B', 'stock_qty': 5},
         ];
-        
+
         mockDio.setResponse(
           '/api/method/jarz_pos.api.inventory_count.list_items_for_count',
           {'message': items},
@@ -133,13 +135,26 @@ void main() {
     });
 
     group('submitReconciliation', () {
+      Map<String, dynamic> decodeSubmitPayload() {
+        final requests = mockDio.requestLog;
+        expect(requests, hasLength(1));
+        expect(
+          requests.single['path'],
+          equals('/api/method/jarz_pos.api.inventory_count.submit_reconciliation'),
+        );
+        expect(requests.single['data'], isA<String>());
+        return Map<String, dynamic>.from(
+          jsonDecode(requests.single['data'] as String) as Map,
+        );
+      }
+
       test('submits reconciliation with required parameters', () async {
         final response = {
           'name': 'SR-001',
           'status': 'Submitted',
           'difference_amount': 100.0,
         };
-        
+
         mockDio.setResponse(
           '/api/method/jarz_pos.api.inventory_count.submit_reconciliation',
           {'message': response},
@@ -158,14 +173,19 @@ void main() {
         expect(result['status'], equals('Submitted'));
       });
 
-      test('sends all parameters correctly', () async {
+      test('encodes posting date, enforce flag, and lines into JSON payload', () async {
         mockDio.setResponse(
           '/api/method/jarz_pos.api.inventory_count.submit_reconciliation',
           {'message': {}},
         );
 
         final lines = [
-          {'item_code': 'ITEM-001', 'counted_qty': 10},
+          {
+            'item_code': 'ITEM-001',
+            'counted_qty': 10,
+            'uom': 'Box',
+            'valuation_rate': 12.5,
+          },
         ];
 
         await service.submitReconciliation(
@@ -175,14 +195,22 @@ void main() {
           enforceAll: false,
         );
 
-        final requests = mockDio.requestLog;
-        expect(requests, hasLength(1));
-        // Note: The actual data is JSON encoded, so we can't directly access it
-        // Just verify the request was made
-        expect(requests.first['method'], equals('POST'));
+        final payload = decodeSubmitPayload();
+        final payloadLines = (payload['lines'] as List)
+            .map((line) => Map<String, dynamic>.from(line as Map))
+            .toList();
+
+        expect(payload['warehouse'], equals('Main Warehouse'));
+        expect(payload['posting_date'], equals('2025-05-01'));
+        expect(payload['enforce_all'], equals(0));
+        expect(payloadLines, hasLength(1));
+        expect(payloadLines.single['item_code'], equals('ITEM-001'));
+        expect(payloadLines.single['counted_qty'], equals(10));
+        expect(payloadLines.single['uom'], equals('Box'));
+        expect(payloadLines.single['valuation_rate'], equals(12.5));
       });
 
-      test('converts enforceAll boolean to integer', () async {
+      test('encodes enforceAll true as integer 1', () async {
         mockDio.setResponse(
           '/api/method/jarz_pos.api.inventory_count.submit_reconciliation',
           {'message': {}},
@@ -190,16 +218,18 @@ void main() {
 
         await service.submitReconciliation(
           warehouse: 'Main',
-          lines: [],
+          lines: [
+            {'item_code': 'ITEM-001', 'counted_qty': 2},
+          ],
           enforceAll: true,
         );
 
-        final requests = mockDio.requestLog;
-        expect(requests, hasLength(1));
-        // The actual validation would require inspecting the JSON data
+        final payload = decodeSubmitPayload();
+
+        expect(payload['enforce_all'], equals(1));
       });
 
-      test('defaults enforceAll to true', () async {
+      test('defaults enforceAll to 1', () async {
         mockDio.setResponse(
           '/api/method/jarz_pos.api.inventory_count.submit_reconciliation',
           {'message': {}},
@@ -210,13 +240,14 @@ void main() {
           lines: [],
         );
 
-        final requests = mockDio.requestLog;
-        expect(requests, hasLength(1));
+        final payload = decodeSubmitPayload();
+
+        expect(payload['enforce_all'], equals(1));
       });
 
       test('handles direct map response', () async {
         final response = {'name': 'SR-002'};
-        
+
         mockDio.setResponse(
           '/api/method/jarz_pos.api.inventory_count.submit_reconciliation',
           response,
@@ -256,8 +287,9 @@ void main() {
           lines: [],
         );
 
-        final requests = mockDio.requestLog;
-        expect(requests, hasLength(1));
+        final payload = decodeSubmitPayload();
+
+        expect(payload.containsKey('posting_date'), isFalse);
       });
     });
   });

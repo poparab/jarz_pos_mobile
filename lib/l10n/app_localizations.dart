@@ -338,6 +338,30 @@ abstract class AppLocalizations {
   /// **'Failed: {error}'**
   String cashTransferFailed(Object error);
 
+  /// No description provided for @postingDateConfirmationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm posting date'**
+  String get postingDateConfirmationTitle;
+
+  /// No description provided for @postingDateConfirmationMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please confirm the posting date before submitting.'**
+  String get postingDateConfirmationMessage;
+
+  /// No description provided for @postingDateConfirmationDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting date: {date}'**
+  String postingDateConfirmationDate(Object date);
+
+  /// No description provided for @postingDateConfirmationDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting dates:'**
+  String get postingDateConfirmationDates;
+
   /// No description provided for @menuInventoryCount.
   ///
   /// In en, this message translates to:
@@ -353,13 +377,13 @@ abstract class AppLocalizations {
   /// No description provided for @inventoryCountConfirmAllBeforeSubmit.
   ///
   /// In en, this message translates to:
-  /// **'Please confirm all items before submitting ({remaining} remaining)'**
+  /// **'Count every loaded item before submitting ({remaining} remaining)'**
   String inventoryCountConfirmAllBeforeSubmit(int remaining);
 
   /// No description provided for @inventoryCountConfirmAtLeastOne.
   ///
   /// In en, this message translates to:
-  /// **'Confirm at least one item before submitting'**
+  /// **'Count at least one item before submitting'**
   String get inventoryCountConfirmAtLeastOne;
 
   /// No description provided for @inventoryCountSubmitted.
@@ -395,13 +419,13 @@ abstract class AppLocalizations {
   /// No description provided for @inventoryCountEnforceAll.
   ///
   /// In en, this message translates to:
-  /// **'Enforce all'**
+  /// **'Full warehouse count'**
   String get inventoryCountEnforceAll;
 
   /// No description provided for @inventoryCountConfirmedProgress.
   ///
   /// In en, this message translates to:
-  /// **'Confirmed {confirmed} / {total}'**
+  /// **'Counted {confirmed} / {total}'**
   String inventoryCountConfirmedProgress(int confirmed, int total);
 
   /// No description provided for @inventoryCountClearAllEnteredData.
@@ -457,6 +481,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Submit Count'**
   String get inventoryCountSubmitCount;
+
+  /// No description provided for @inventoryCountSetupStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup'**
+  String get inventoryCountSetupStep;
+
+  /// No description provided for @inventoryCountBlindEntryStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Blind entry'**
+  String get inventoryCountBlindEntryStep;
+
+  /// No description provided for @inventoryCountReviewStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Review discrepancies'**
+  String get inventoryCountReviewStep;
+
+  /// No description provided for @inventoryCountSpotCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Spot count'**
+  String get inventoryCountSpotCount;
+
+  /// No description provided for @inventoryCountSpotCountDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit only the items you counted.'**
+  String get inventoryCountSpotCountDescription;
+
+  /// No description provided for @inventoryCountFullWarehouseCountDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Count every loaded item before final submit.'**
+  String get inventoryCountFullWarehouseCountDescription;
+
+  /// No description provided for @inventoryCountWarehouseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse'**
+  String get inventoryCountWarehouseLabel;
+
+  /// No description provided for @inventoryCountPostingDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting date'**
+  String get inventoryCountPostingDateLabel;
+
+  /// No description provided for @inventoryCountCountModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Count mode'**
+  String get inventoryCountCountModeLabel;
+
+  /// No description provided for @inventoryCountContinueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue count'**
+  String get inventoryCountContinueCount;
+
+  /// No description provided for @inventoryCountStartCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Start count'**
+  String get inventoryCountStartCount;
+
+  /// No description provided for @inventoryCountBackToSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to setup'**
+  String get inventoryCountBackToSetup;
+
+  /// No description provided for @inventoryCountReviewButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Review discrepancies'**
+  String get inventoryCountReviewButton;
+
+  /// No description provided for @inventoryCountBackToCounting.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to counting'**
+  String get inventoryCountBackToCounting;
+
+  /// No description provided for @inventoryCountFilteredItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{visible} of {total} items'**
+  String inventoryCountFilteredItems(int visible, int total);
+
+  /// No description provided for @inventoryCountCountedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted'**
+  String get inventoryCountCountedStatus;
+
+  /// No description provided for @inventoryCountPendingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get inventoryCountPendingStatus;
+
+  /// No description provided for @inventoryCountClearEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear entry'**
+  String get inventoryCountClearEntry;
+
+  /// No description provided for @inventoryCountSummaryCountedItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted items'**
+  String get inventoryCountSummaryCountedItems;
+
+  /// No description provided for @inventoryCountSummaryChangedItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed items'**
+  String get inventoryCountSummaryChangedItems;
+
+  /// No description provided for @inventoryCountSummaryMissingItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing items'**
+  String get inventoryCountSummaryMissingItems;
+
+  /// No description provided for @inventoryCountReviewDiscrepancies.
+  ///
+  /// In en, this message translates to:
+  /// **'Discrepancies'**
+  String get inventoryCountReviewDiscrepancies;
+
+  /// No description provided for @inventoryCountReviewNoCountedItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No counted items yet.'**
+  String get inventoryCountReviewNoCountedItems;
+
+  /// No description provided for @inventoryCountReviewNoDiscrepancies.
+  ///
+  /// In en, this message translates to:
+  /// **'No discrepancies found yet.'**
+  String get inventoryCountReviewNoDiscrepancies;
+
+  /// No description provided for @inventoryCountReviewUnchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Unchanged counted items'**
+  String get inventoryCountReviewUnchanged;
+
+  /// No description provided for @inventoryCountReviewMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing items'**
+  String get inventoryCountReviewMissing;
+
+  /// No description provided for @inventoryCountCountedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted: {amount} {uom}'**
+  String inventoryCountCountedAmount(Object amount, Object uom);
+
+  /// No description provided for @inventoryCountStockEquivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock equivalent: {amount} {uom}'**
+  String inventoryCountStockEquivalent(Object amount, Object uom);
+
+  /// No description provided for @inventoryCountMissingItemNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Not counted yet'**
+  String get inventoryCountMissingItemNote;
+
+  /// No description provided for @inventoryCountBatchTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch tracked'**
+  String get inventoryCountBatchTracked;
+
+  /// No description provided for @inventoryCountSerialTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial tracked'**
+  String get inventoryCountSerialTracked;
 
   /// No description provided for @menuEndShift.
   ///
@@ -2559,6 +2769,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Available: {quantity} {uom}'**
   String manufacturingComponentAvailable(Object quantity, Object uom);
+
+  /// No description provided for @manufacturingInsufficientInventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient inventory'**
+  String get manufacturingInsufficientInventory;
+
+  /// No description provided for @manufacturingSubmissionBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Submission blocked until shortages are resolved.'**
+  String get manufacturingSubmissionBlocked;
+
+  /// No description provided for @manufacturingLineShortageSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{item}: {components}'**
+  String manufacturingLineShortageSummary(Object components, Object item);
+
+  /// No description provided for @manufacturingComponentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required: {quantity} {uom}'**
+  String manufacturingComponentRequired(Object quantity, Object uom);
+
+  /// No description provided for @manufacturingComponentMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing: {quantity} {uom}'**
+  String manufacturingComponentMissing(Object quantity, Object uom);
 
   /// No description provided for @stockTransferTitle.
   ///

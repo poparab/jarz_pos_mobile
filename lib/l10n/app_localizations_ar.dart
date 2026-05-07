@@ -142,6 +142,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get postingDateConfirmationTitle => 'تأكيد تاريخ الترحيل';
+
+  @override
+  String get postingDateConfirmationMessage =>
+      'يرجى تأكيد تاريخ الترحيل قبل الإرسال.';
+
+  @override
+  String postingDateConfirmationDate(Object date) {
+    return 'تاريخ الترحيل: $date';
+  }
+
+  @override
+  String get postingDateConfirmationDates => 'تواريخ الترحيل:';
+
+  @override
   String get menuInventoryCount => 'جرد المخزون';
 
   @override
@@ -150,12 +165,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String inventoryCountConfirmAllBeforeSubmit(int remaining) {
-    return 'يرجى تأكيد جميع الأصناف قبل الإرسال ($remaining متبقي)';
+    return 'يجب عد كل الأصناف المحملة قبل الإرسال ($remaining متبقي)';
   }
 
   @override
   String get inventoryCountConfirmAtLeastOne =>
-      'أكد صنفًا واحدًا على الأقل قبل الإرسال';
+      'عدّ صنفًا واحدًا على الأقل قبل الإرسال';
 
   @override
   String inventoryCountSubmitted(Object result) {
@@ -176,11 +191,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get inventoryCountSelectWarehouse => 'اختر المخزن';
 
   @override
-  String get inventoryCountEnforceAll => 'إلزام تأكيد الكل';
+  String get inventoryCountEnforceAll => 'جرد كامل للمخزن';
 
   @override
   String inventoryCountConfirmedProgress(int confirmed, int total) {
-    return 'تم تأكيد $confirmed / $total';
+    return 'تم عد $confirmed / $total';
   }
 
   @override
@@ -214,6 +229,107 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get inventoryCountSubmitCount => 'إرسال الجرد';
+
+  @override
+  String get inventoryCountSetupStep => 'الإعداد';
+
+  @override
+  String get inventoryCountBlindEntryStep => 'إدخال الكميات';
+
+  @override
+  String get inventoryCountReviewStep => 'مراجعة الفروقات';
+
+  @override
+  String get inventoryCountSpotCount => 'جرد جزئي';
+
+  @override
+  String get inventoryCountSpotCountDescription =>
+      'أرسل فقط الأصناف التي قمت بعدّها.';
+
+  @override
+  String get inventoryCountFullWarehouseCountDescription =>
+      'يجب عد كل الأصناف المحملة قبل الإرسال النهائي.';
+
+  @override
+  String get inventoryCountWarehouseLabel => 'المخزن';
+
+  @override
+  String get inventoryCountPostingDateLabel => 'تاريخ الترحيل';
+
+  @override
+  String get inventoryCountCountModeLabel => 'نوع الجرد';
+
+  @override
+  String get inventoryCountContinueCount => 'متابعة الجرد';
+
+  @override
+  String get inventoryCountStartCount => 'بدء الجرد';
+
+  @override
+  String get inventoryCountBackToSetup => 'العودة إلى الإعداد';
+
+  @override
+  String get inventoryCountReviewButton => 'مراجعة الفروقات';
+
+  @override
+  String get inventoryCountBackToCounting => 'العودة إلى العد';
+
+  @override
+  String inventoryCountFilteredItems(int visible, int total) {
+    return '$visible من $total صنف';
+  }
+
+  @override
+  String get inventoryCountCountedStatus => 'تم العد';
+
+  @override
+  String get inventoryCountPendingStatus => 'قيد الانتظار';
+
+  @override
+  String get inventoryCountClearEntry => 'مسح الإدخال';
+
+  @override
+  String get inventoryCountSummaryCountedItems => 'الأصناف المعدودة';
+
+  @override
+  String get inventoryCountSummaryChangedItems => 'الأصناف المتغيرة';
+
+  @override
+  String get inventoryCountSummaryMissingItems => 'الأصناف غير المعدودة';
+
+  @override
+  String get inventoryCountReviewDiscrepancies => 'الفروقات';
+
+  @override
+  String get inventoryCountReviewNoCountedItems => 'لم يتم عد أي صنف بعد.';
+
+  @override
+  String get inventoryCountReviewNoDiscrepancies => 'لا توجد فروقات حتى الآن.';
+
+  @override
+  String get inventoryCountReviewUnchanged => 'الأصناف المعدودة بدون فرق';
+
+  @override
+  String get inventoryCountReviewMissing => 'الأصناف غير المعدودة';
+
+  @override
+  String inventoryCountCountedAmount(Object amount, Object uom) {
+    return 'المعدود: $amount $uom';
+  }
+
+  @override
+  String inventoryCountStockEquivalent(Object amount, Object uom) {
+    return 'المعادِل بالمخزون: $amount $uom';
+  }
+
+  @override
+  String get inventoryCountMissingItemNote => 'لم يتم عد هذا الصنف بعد';
+
+  @override
+  String get inventoryCountBatchTracked => 'يتتبع بالدفعات';
+
+  @override
+  String get inventoryCountSerialTracked => 'يتتبع بالأرقام التسلسلية';
 
   @override
   String get menuEndShift => 'إنهاء الشيفت';
@@ -1445,6 +1561,28 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String manufacturingComponentAvailable(Object quantity, Object uom) {
     return 'المتوفر: $quantity $uom';
+  }
+
+  @override
+  String get manufacturingInsufficientInventory => 'المخزون غير كافٍ';
+
+  @override
+  String get manufacturingSubmissionBlocked =>
+      'تم إيقاف الإرسال حتى يتم حل العجز.';
+
+  @override
+  String manufacturingLineShortageSummary(Object components, Object item) {
+    return '$item: $components';
+  }
+
+  @override
+  String manufacturingComponentRequired(Object quantity, Object uom) {
+    return 'المطلوب: $quantity $uom';
+  }
+
+  @override
+  String manufacturingComponentMissing(Object quantity, Object uom) {
+    return 'العجز: $quantity $uom';
   }
 
   @override

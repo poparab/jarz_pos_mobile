@@ -70,9 +70,18 @@
       "error": {}
     }
   },
+  "postingDateConfirmationTitle": "Confirm posting date",
+  "postingDateConfirmationMessage": "Please confirm the posting date before submitting.",
+  "postingDateConfirmationDate": "Posting date: {date}",
+  "@postingDateConfirmationDate": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "postingDateConfirmationDates": "Posting dates:",
   "menuInventoryCount": "Inventory Count",
   "inventoryCountOfflineUsingCache": "Offline using cached data",
-  "inventoryCountConfirmAllBeforeSubmit": "Please confirm all items before submitting ({remaining} remaining)",
+  "inventoryCountConfirmAllBeforeSubmit": "Count every loaded item before submitting ({remaining} remaining)",
   "@inventoryCountConfirmAllBeforeSubmit": {
     "placeholders": {
       "remaining": {
@@ -80,7 +89,7 @@
       }
     }
   },
-  "inventoryCountConfirmAtLeastOne": "Confirm at least one item before submitting",
+  "inventoryCountConfirmAtLeastOne": "Count at least one item before submitting",
   "inventoryCountSubmitted": "Submitted: {result}",
   "@inventoryCountSubmitted": {
     "placeholders": {
@@ -91,8 +100,8 @@
   "inventoryCountUncategorized": "Uncategorized",
   "inventoryCountManagerAccessRequired": "Manager access required",
   "inventoryCountSelectWarehouse": "Select Warehouse",
-  "inventoryCountEnforceAll": "Enforce all",
-  "inventoryCountConfirmedProgress": "Confirmed {confirmed} / {total}",
+  "inventoryCountEnforceAll": "Full warehouse count",
+  "inventoryCountConfirmedProgress": "Counted {confirmed} / {total}",
   "@inventoryCountConfirmedProgress": {
     "placeholders": {
       "confirmed": {
@@ -124,6 +133,59 @@
   },
   "inventoryCountDeltaLabel": "Delta: ",
   "inventoryCountSubmitCount": "Submit Count",
+  "inventoryCountSetupStep": "Setup",
+  "inventoryCountBlindEntryStep": "Blind entry",
+  "inventoryCountReviewStep": "Review discrepancies",
+  "inventoryCountSpotCount": "Spot count",
+  "inventoryCountSpotCountDescription": "Submit only the items you counted.",
+  "inventoryCountFullWarehouseCountDescription": "Count every loaded item before final submit.",
+  "inventoryCountWarehouseLabel": "Warehouse",
+  "inventoryCountPostingDateLabel": "Posting date",
+  "inventoryCountCountModeLabel": "Count mode",
+  "inventoryCountContinueCount": "Continue count",
+  "inventoryCountStartCount": "Start count",
+  "inventoryCountBackToSetup": "Back to setup",
+  "inventoryCountReviewButton": "Review discrepancies",
+  "inventoryCountBackToCounting": "Back to counting",
+  "inventoryCountFilteredItems": "{visible} of {total} items",
+  "@inventoryCountFilteredItems": {
+    "placeholders": {
+      "visible": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "inventoryCountCountedStatus": "Counted",
+  "inventoryCountPendingStatus": "Pending",
+  "inventoryCountClearEntry": "Clear entry",
+  "inventoryCountSummaryCountedItems": "Counted items",
+  "inventoryCountSummaryChangedItems": "Changed items",
+  "inventoryCountSummaryMissingItems": "Missing items",
+  "inventoryCountReviewDiscrepancies": "Discrepancies",
+  "inventoryCountReviewNoCountedItems": "No counted items yet.",
+  "inventoryCountReviewNoDiscrepancies": "No discrepancies found yet.",
+  "inventoryCountReviewUnchanged": "Unchanged counted items",
+  "inventoryCountReviewMissing": "Missing items",
+  "inventoryCountCountedAmount": "Counted: {amount} {uom}",
+  "@inventoryCountCountedAmount": {
+    "placeholders": {
+      "amount": {},
+      "uom": {}
+    }
+  },
+  "inventoryCountStockEquivalent": "Stock equivalent: {amount} {uom}",
+  "@inventoryCountStockEquivalent": {
+    "placeholders": {
+      "amount": {},
+      "uom": {}
+    }
+  },
+  "inventoryCountMissingItemNote": "Not counted yet",
+  "inventoryCountBatchTracked": "Batch tracked",
+  "inventoryCountSerialTracked": "Serial tracked",
   "menuEndShift": "End Shift",
   "menuHome": "Home",
   "menuSettings": "Settings",
@@ -674,6 +736,11 @@
   "manufacturingRecentWorkOrderTitle": "{name} • {status}",
   "manufacturingRecentWorkOrderSubtitle": "{item} • {quantity} • {bom}",
   "manufacturingComponentAvailable": "Available: {quantity} {uom}",
+  "manufacturingInsufficientInventory": "Insufficient inventory",
+  "manufacturingSubmissionBlocked": "Submission blocked until shortages are resolved.",
+  "manufacturingLineShortageSummary": "{item}: {components}",
+  "manufacturingComponentRequired": "Required: {quantity} {uom}",
+  "manufacturingComponentMissing": "Missing: {quantity} {uom}",
   "stockTransferTitle": "Stock Transfer",
   "stockTransferManagersOnly": "Managers only",
   "stockTransferLinesTitle": "Transfer Lines ({count})",

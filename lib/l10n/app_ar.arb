@@ -70,9 +70,18 @@
       "error": {}
     }
   },
+  "postingDateConfirmationTitle": "تأكيد تاريخ الترحيل",
+  "postingDateConfirmationMessage": "يرجى تأكيد تاريخ الترحيل قبل الإرسال.",
+  "postingDateConfirmationDate": "تاريخ الترحيل: {date}",
+  "@postingDateConfirmationDate": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "postingDateConfirmationDates": "تواريخ الترحيل:",
   "menuInventoryCount": "جرد المخزون",
   "inventoryCountOfflineUsingCache": "غير متصل: سيتم استخدام البيانات المخزنة",
-  "inventoryCountConfirmAllBeforeSubmit": "يرجى تأكيد جميع الأصناف قبل الإرسال ({remaining} متبقي)",
+  "inventoryCountConfirmAllBeforeSubmit": "يجب عد كل الأصناف المحملة قبل الإرسال ({remaining} متبقي)",
   "@inventoryCountConfirmAllBeforeSubmit": {
     "placeholders": {
       "remaining": {
@@ -80,7 +89,7 @@
       }
     }
   },
-  "inventoryCountConfirmAtLeastOne": "أكد صنفًا واحدًا على الأقل قبل الإرسال",
+  "inventoryCountConfirmAtLeastOne": "عدّ صنفًا واحدًا على الأقل قبل الإرسال",
   "inventoryCountSubmitted": "تم الإرسال: {result}",
   "@inventoryCountSubmitted": {
     "placeholders": {
@@ -91,8 +100,8 @@
   "inventoryCountUncategorized": "غير مصنف",
   "inventoryCountManagerAccessRequired": "هذه الشاشة متاحة للمدير فقط",
   "inventoryCountSelectWarehouse": "اختر المخزن",
-  "inventoryCountEnforceAll": "إلزام تأكيد الكل",
-  "inventoryCountConfirmedProgress": "تم تأكيد {confirmed} / {total}",
+  "inventoryCountEnforceAll": "جرد كامل للمخزن",
+  "inventoryCountConfirmedProgress": "تم عد {confirmed} / {total}",
   "@inventoryCountConfirmedProgress": {
     "placeholders": {
       "confirmed": {
@@ -124,6 +133,59 @@
   },
   "inventoryCountDeltaLabel": "الفرق: ",
   "inventoryCountSubmitCount": "إرسال الجرد",
+  "inventoryCountSetupStep": "الإعداد",
+  "inventoryCountBlindEntryStep": "إدخال الكميات",
+  "inventoryCountReviewStep": "مراجعة الفروقات",
+  "inventoryCountSpotCount": "جرد جزئي",
+  "inventoryCountSpotCountDescription": "أرسل فقط الأصناف التي قمت بعدّها.",
+  "inventoryCountFullWarehouseCountDescription": "يجب عد كل الأصناف المحملة قبل الإرسال النهائي.",
+  "inventoryCountWarehouseLabel": "المخزن",
+  "inventoryCountPostingDateLabel": "تاريخ الترحيل",
+  "inventoryCountCountModeLabel": "نوع الجرد",
+  "inventoryCountContinueCount": "متابعة الجرد",
+  "inventoryCountStartCount": "بدء الجرد",
+  "inventoryCountBackToSetup": "العودة إلى الإعداد",
+  "inventoryCountReviewButton": "مراجعة الفروقات",
+  "inventoryCountBackToCounting": "العودة إلى العد",
+  "inventoryCountFilteredItems": "{visible} من {total} صنف",
+  "@inventoryCountFilteredItems": {
+    "placeholders": {
+      "visible": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "inventoryCountCountedStatus": "تم العد",
+  "inventoryCountPendingStatus": "قيد الانتظار",
+  "inventoryCountClearEntry": "مسح الإدخال",
+  "inventoryCountSummaryCountedItems": "الأصناف المعدودة",
+  "inventoryCountSummaryChangedItems": "الأصناف المتغيرة",
+  "inventoryCountSummaryMissingItems": "الأصناف غير المعدودة",
+  "inventoryCountReviewDiscrepancies": "الفروقات",
+  "inventoryCountReviewNoCountedItems": "لم يتم عد أي صنف بعد.",
+  "inventoryCountReviewNoDiscrepancies": "لا توجد فروقات حتى الآن.",
+  "inventoryCountReviewUnchanged": "الأصناف المعدودة بدون فرق",
+  "inventoryCountReviewMissing": "الأصناف غير المعدودة",
+  "inventoryCountCountedAmount": "المعدود: {amount} {uom}",
+  "@inventoryCountCountedAmount": {
+    "placeholders": {
+      "amount": {},
+      "uom": {}
+    }
+  },
+  "inventoryCountStockEquivalent": "المعادِل بالمخزون: {amount} {uom}",
+  "@inventoryCountStockEquivalent": {
+    "placeholders": {
+      "amount": {},
+      "uom": {}
+    }
+  },
+  "inventoryCountMissingItemNote": "لم يتم عد هذا الصنف بعد",
+  "inventoryCountBatchTracked": "يتتبع بالدفعات",
+  "inventoryCountSerialTracked": "يتتبع بالأرقام التسلسلية",
   "menuEndShift": "إنهاء الشيفت",
   "menuHome": "الرئيسية",
   "menuSettings": "الإعدادات",
@@ -674,6 +736,11 @@
   "manufacturingRecentWorkOrderTitle": "{name} • {status}",
   "manufacturingRecentWorkOrderSubtitle": "{item} • {quantity} • {bom}",
   "manufacturingComponentAvailable": "المتوفر: {quantity} {uom}",
+  "manufacturingInsufficientInventory": "المخزون غير كافٍ",
+  "manufacturingSubmissionBlocked": "تم إيقاف الإرسال حتى يتم حل العجز.",
+  "manufacturingLineShortageSummary": "{item}: {components}",
+  "manufacturingComponentRequired": "المطلوب: {quantity} {uom}",
+  "manufacturingComponentMissing": "العجز: {quantity} {uom}",
   "stockTransferTitle": "تحويل مخزون",
   "stockTransferManagersOnly": "للمدراء فقط",
   "stockTransferLinesTitle": "بنود التحويل ({count})",

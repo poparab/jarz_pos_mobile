@@ -142,6 +142,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get postingDateConfirmationTitle => 'Confirm posting date';
+
+  @override
+  String get postingDateConfirmationMessage =>
+      'Please confirm the posting date before submitting.';
+
+  @override
+  String postingDateConfirmationDate(Object date) {
+    return 'Posting date: $date';
+  }
+
+  @override
+  String get postingDateConfirmationDates => 'Posting dates:';
+
+  @override
   String get menuInventoryCount => 'Inventory Count';
 
   @override
@@ -149,12 +164,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String inventoryCountConfirmAllBeforeSubmit(int remaining) {
-    return 'Please confirm all items before submitting ($remaining remaining)';
+    return 'Count every loaded item before submitting ($remaining remaining)';
   }
 
   @override
   String get inventoryCountConfirmAtLeastOne =>
-      'Confirm at least one item before submitting';
+      'Count at least one item before submitting';
 
   @override
   String inventoryCountSubmitted(Object result) {
@@ -174,11 +189,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inventoryCountSelectWarehouse => 'Select Warehouse';
 
   @override
-  String get inventoryCountEnforceAll => 'Enforce all';
+  String get inventoryCountEnforceAll => 'Full warehouse count';
 
   @override
   String inventoryCountConfirmedProgress(int confirmed, int total) {
-    return 'Confirmed $confirmed / $total';
+    return 'Counted $confirmed / $total';
   }
 
   @override
@@ -211,6 +226,108 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inventoryCountSubmitCount => 'Submit Count';
+
+  @override
+  String get inventoryCountSetupStep => 'Setup';
+
+  @override
+  String get inventoryCountBlindEntryStep => 'Blind entry';
+
+  @override
+  String get inventoryCountReviewStep => 'Review discrepancies';
+
+  @override
+  String get inventoryCountSpotCount => 'Spot count';
+
+  @override
+  String get inventoryCountSpotCountDescription =>
+      'Submit only the items you counted.';
+
+  @override
+  String get inventoryCountFullWarehouseCountDescription =>
+      'Count every loaded item before final submit.';
+
+  @override
+  String get inventoryCountWarehouseLabel => 'Warehouse';
+
+  @override
+  String get inventoryCountPostingDateLabel => 'Posting date';
+
+  @override
+  String get inventoryCountCountModeLabel => 'Count mode';
+
+  @override
+  String get inventoryCountContinueCount => 'Continue count';
+
+  @override
+  String get inventoryCountStartCount => 'Start count';
+
+  @override
+  String get inventoryCountBackToSetup => 'Back to setup';
+
+  @override
+  String get inventoryCountReviewButton => 'Review discrepancies';
+
+  @override
+  String get inventoryCountBackToCounting => 'Back to counting';
+
+  @override
+  String inventoryCountFilteredItems(int visible, int total) {
+    return '$visible of $total items';
+  }
+
+  @override
+  String get inventoryCountCountedStatus => 'Counted';
+
+  @override
+  String get inventoryCountPendingStatus => 'Pending';
+
+  @override
+  String get inventoryCountClearEntry => 'Clear entry';
+
+  @override
+  String get inventoryCountSummaryCountedItems => 'Counted items';
+
+  @override
+  String get inventoryCountSummaryChangedItems => 'Changed items';
+
+  @override
+  String get inventoryCountSummaryMissingItems => 'Missing items';
+
+  @override
+  String get inventoryCountReviewDiscrepancies => 'Discrepancies';
+
+  @override
+  String get inventoryCountReviewNoCountedItems => 'No counted items yet.';
+
+  @override
+  String get inventoryCountReviewNoDiscrepancies =>
+      'No discrepancies found yet.';
+
+  @override
+  String get inventoryCountReviewUnchanged => 'Unchanged counted items';
+
+  @override
+  String get inventoryCountReviewMissing => 'Missing items';
+
+  @override
+  String inventoryCountCountedAmount(Object amount, Object uom) {
+    return 'Counted: $amount $uom';
+  }
+
+  @override
+  String inventoryCountStockEquivalent(Object amount, Object uom) {
+    return 'Stock equivalent: $amount $uom';
+  }
+
+  @override
+  String get inventoryCountMissingItemNote => 'Not counted yet';
+
+  @override
+  String get inventoryCountBatchTracked => 'Batch tracked';
+
+  @override
+  String get inventoryCountSerialTracked => 'Serial tracked';
 
   @override
   String get menuEndShift => 'End Shift';
@@ -1443,6 +1560,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String manufacturingComponentAvailable(Object quantity, Object uom) {
     return 'Available: $quantity $uom';
+  }
+
+  @override
+  String get manufacturingInsufficientInventory => 'Insufficient inventory';
+
+  @override
+  String get manufacturingSubmissionBlocked =>
+      'Submission blocked until shortages are resolved.';
+
+  @override
+  String manufacturingLineShortageSummary(Object components, Object item) {
+    return '$item: $components';
+  }
+
+  @override
+  String manufacturingComponentRequired(Object quantity, Object uom) {
+    return 'Required: $quantity $uom';
+  }
+
+  @override
+  String manufacturingComponentMissing(Object quantity, Object uom) {
+    return 'Missing: $quantity $uom';
   }
 
   @override
