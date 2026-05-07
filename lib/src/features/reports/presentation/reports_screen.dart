@@ -131,6 +131,105 @@ class _FinalProductsTable extends StatelessWidget {
     return dashIdx > 0 ? warehouse.substring(0, dashIdx) : warehouse;
   }
 
+  double _resolveItemColumnWidth({
+    required double tableWidth,
+    required int metricColumnCount,
+  }) {
+    if (metricColumnCount == 0) return tableWidth;
+
+    final preferredWidth = tableWidth * 0.38;
+    final compactWidth = tableWidth * 0.24;
+    final maxWidthWhileKeepingMetricsReadable =
+        tableWidth - (metricColumnCount * 44.0);
+
+    if (maxWidthWhileKeepingMetricsReadable >= preferredWidth) {
+      return preferredWidth;
+    }
+
+    return maxWidthWhileKeepingMetricsReadable > compactWidth
+        ? maxWidthWhileKeepingMetricsReadable
+        : compactWidth;
+  }
+
+  Widget _buildHeaderCell({
+    required String text,
+    required double width,
+    required TextStyle? style,
+    TextAlign textAlign = TextAlign.start,
+  }) {
+    return SizedBox(
+      width: width,
+      child: Tooltip(
+        message: text,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+          child: Text(
+            text,
+            style: style,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: textAlign,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextCell({
+    required String text,
+    required double width,
+    required TextStyle? style,
+  }) {
+    return SizedBox(
+      width: width,
+      child: Tooltip(
+        message: text,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              text,
+              style: style,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNumericCell({
+    required String text,
+    required double width,
+    required TextStyle? style,
+    String? tooltip,
+  }) {
+    return SizedBox(
+      width: width,
+      child: Tooltip(
+        message: tooltip ?? text,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Text(
+                text,
+                style: style,
+                maxLines: 1,
+                textAlign: TextAlign.end,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -146,76 +245,94 @@ class _FinalProductsTable extends StatelessWidget {
     );
 
     return LayoutBuilder(builder: (context, constraints) {
-      final availableWidth = constraints.maxWidth - 16; // padding
-      final itemColWidth = availableWidth * 0.30;
-      final dataColWidth = (availableWidth * 0.70) / (warehouses.length + 1);
+      final viewportWidth = constraints.maxWidth.isFinite
+          ? constraints.maxWidth
+          : MediaQuery.sizeOf(context).width;
+      final rawTableWidth = viewportWidth - 16;
+      final tableWidth = rawTableWidth > 240 ? rawTableWidth : 240.0;
+      final metricColumnCount = warehouses.length + 1;
+      final itemColWidth = _resolveItemColumnWidth(
+        tableWidth: tableWidth,
+        metricColumnCount: metricColumnCount,
+      );
+      final dataColWidth = metricColumnCount == 0
+          ? 0.0
+          : (tableWidth - itemColWidth) / metricColumnCount;
 
-      return Scrollbar(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(8),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minWidth: availableWidth),
-            child: DataTable(
-              columnSpacing: 8,
-              horizontalMargin: 8,
-              headingRowHeight: 44,
-              dataRowMinHeight: 36,
-              dataRowMaxHeight: 48,
-              border: TableBorder.all(
-                color: theme.dividerColor,
-                width: 0.5,
+      return Padding(
+        padding: const EdgeInsets.all(8),
+        child: SizedBox(
+          width: tableWidth,
+          child: DataTable(
+            columnSpacing: 0,
+            horizontalMargin: 0,
+            headingRowHeight: 48,
+            dataRowMinHeight: 40,
+            dataRowMaxHeight: 48,
+            border: TableBorder.all(
+              color: theme.dividerColor,
+              width: 0.5,
+            ),
+            columns: [
+              DataColumn(
+                label: _buildHeaderCell(
+                  text: l10n.reportsItemName,
+                  width: itemColWidth,
+                  style: headerStyle,
+                ),
               ),
-              columns: [
-                DataColumn(
-                  label: SizedBox(
-                    width: itemColWidth,
-                    child: Text(l10n.reportsItemName, style: headerStyle),
-                  ),
-                ),
-                ...warehouses.map(
-                  (wh) => DataColumn(
-                    label: SizedBox(
-                      width: dataColWidth,
-                      child: Text(_shortWarehouse(wh), style: headerStyle,
-                          textAlign: TextAlign.end),
-                    ),
-                    numeric: true,
-                  ),
-                ),
-                DataColumn(
-                  label: SizedBox(
+              ...warehouses.map(
+                (wh) => DataColumn(
+                  label: _buildHeaderCell(
+                    text: _shortWarehouse(wh),
                     width: dataColWidth,
-                    child: Text(l10n.reportsTotal, style: headerStyle,
-                        textAlign: TextAlign.end),
+                    style: headerStyle,
+                    textAlign: TextAlign.end,
                   ),
                   numeric: true,
                 ),
-              ],
-              rows: items.map((item) {
-                final whQty = Map<String, dynamic>.from(
-                  item['warehouse_qty'] as Map? ?? {},
-                );
-                final total = (item['total_qty'] as num?)?.toDouble() ?? 0;
+              ),
+              DataColumn(
+                label: _buildHeaderCell(
+                  text: l10n.reportsTotal,
+                  width: dataColWidth,
+                  style: headerStyle,
+                  textAlign: TextAlign.end,
+                ),
+                numeric: true,
+              ),
+            ],
+            rows: items.map((item) {
+              final whQty = Map<String, dynamic>.from(
+                item['warehouse_qty'] as Map? ?? {},
+              );
+              final total = (item['total_qty'] as num?)?.toDouble() ?? 0;
+              final itemName = item['item_name']?.toString() ?? '';
 
-                return DataRow(cells: [
-                  DataCell(Text(
-                    item['item_name']?.toString() ?? '',
+              return DataRow(cells: [
+                DataCell(_buildTextCell(
+                  text: itemName,
+                  width: itemColWidth,
+                  style: cellStyle,
+                )),
+                ...warehouses.map((wh) {
+                  final qty = (whQty[wh] as num?)?.toDouble() ?? 0;
+                  final formattedQty = qty > 0 ? _formatQty(qty) : '-';
+                  return DataCell(_buildNumericCell(
+                    text: formattedQty,
+                    width: dataColWidth,
                     style: cellStyle,
-                  )),
-                  ...warehouses.map((wh) {
-                    final qty = (whQty[wh] as num?)?.toDouble() ?? 0;
-                    return DataCell(Text(
-                      qty > 0 ? _formatQty(qty) : '-',
-                      style: cellStyle,
-                    ));
-                  }),
-                  DataCell(Text(
-                    _formatQty(total),
-                    style: totalStyle,
-                  )),
-                ]);
-              }).toList(),
-            ),
+                    tooltip: '${_shortWarehouse(wh)}: $formattedQty',
+                  ));
+                }),
+                DataCell(_buildNumericCell(
+                  text: _formatQty(total),
+                  width: dataColWidth,
+                  style: totalStyle,
+                  tooltip: '${l10n.reportsTotal}: ${_formatQty(total)}',
+                )),
+              ]);
+            }).toList(),
           ),
         ),
       );
