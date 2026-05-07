@@ -1844,6 +1844,36 @@ abstract class AppLocalizations {
   /// **'Select Printer'**
   String get printerSelectTitle;
 
+  /// No description provided for @printerCompatibilityTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer compatibility settings'**
+  String get printerCompatibilityTooltip;
+
+  /// No description provided for @printerCompatibilityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Compatibility'**
+  String get printerCompatibilityTitle;
+
+  /// No description provided for @printerCompatibilitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Safe defaults keep normal receipts as text and only use raster output where it is needed.'**
+  String get printerCompatibilitySubtitle;
+
+  /// No description provided for @printerCompatibilitySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer compatibility settings saved'**
+  String get printerCompatibilitySaved;
+
+  /// No description provided for @printerCompatibilityReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset defaults'**
+  String get printerCompatibilityReset;
+
   /// No description provided for @printerDiagnosticsTitle.
   ///
   /// In en, this message translates to:
@@ -2011,6 +2041,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Paired Classic Devices'**
   String get printerClassicDevices;
+
+  /// No description provided for @printerPaperSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper size'**
+  String get printerPaperSizeLabel;
+
+  /// No description provided for @printerPaper58mm.
+  ///
+  /// In en, this message translates to:
+  /// **'58 mm'**
+  String get printerPaper58mm;
+
+  /// No description provided for @printerPaper80mm.
+  ///
+  /// In en, this message translates to:
+  /// **'80 mm'**
+  String get printerPaper80mm;
+
+  /// No description provided for @printerPrintLogo.
+  ///
+  /// In en, this message translates to:
+  /// **'Print logo'**
+  String get printerPrintLogo;
+
+  /// No description provided for @printerPrintLogoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable this first if the printer prints gibberish near the top of the receipt.'**
+  String get printerPrintLogoHint;
+
+  /// No description provided for @printerRasterizeArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Rasterize Arabic text'**
+  String get printerRasterizeArabic;
+
+  /// No description provided for @printerRasterizeArabicHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed for printers that cannot print Arabic natively.'**
+  String get printerRasterizeArabicHint;
+
+  /// No description provided for @printerRasterizeStyledText.
+  ///
+  /// In en, this message translates to:
+  /// **'Rasterize styled ASCII text'**
+  String get printerRasterizeStyledText;
+
+  /// No description provided for @printerRasterizeStyledTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable this only if your printer handles bitmap text reliably.'**
+  String get printerRasterizeStyledTextHint;
+
+  /// No description provided for @printerRasterWidthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Raster width (px)'**
+  String get printerRasterWidthLabel;
+
+  /// No description provided for @printerCodeTableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Code table'**
+  String get printerCodeTableLabel;
+
+  /// No description provided for @printerBleChunkSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'BLE chunk size'**
+  String get printerBleChunkSizeLabel;
+
+  /// No description provided for @printerBleChunkDelayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'BLE chunk delay (ms)'**
+  String get printerBleChunkDelayLabel;
+
+  /// No description provided for @printerClassicChunkSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic chunk size'**
+  String get printerClassicChunkSizeLabel;
+
+  /// No description provided for @printerClassicChunkDelayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic chunk delay (ms)'**
+  String get printerClassicChunkDelayLabel;
+
+  /// No description provided for @printerClassicTailDelayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic tail delay (ms)'**
+  String get printerClassicTailDelayLabel;
 
   /// No description provided for @printerRefreshClassicTooltip.
   ///

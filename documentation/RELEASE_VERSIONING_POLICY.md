@@ -4,7 +4,7 @@
 
 - Semantic version source: `pubspec.yaml` `version:` field before the `+`
 - Build number source: `git rev-list --count --first-parent <commit>` for the exact commit being built
-- Release channel source: the workflow job itself (`staging` on push to `main`, `production` on manual dispatch from `main`)
+- Release channel source: the workflow job itself (`staging` and `production` on push to `main`; production can also be run manually from `main`)
 
 This means the same commit produces the same app version on both channels:
 
@@ -18,9 +18,9 @@ Only the channel, Firebase target, and APK filename prefix differ.
 
 1. Bump the semantic version only in `pubspec.yaml` and only through a git commit.
 2. Do not override semantic version or build number from GitHub Actions.
-3. Treat production as a promotion of a commit already validated on staging.
+3. Treat production as a release built from `main` using the same commit-derived versioning as staging.
 4. Trigger production only from `main`.
-5. Use the manual production `release_notes` input only for human notes, not for version control.
+5. Use the optional manual production `release_notes` input only for human notes, not for version control.
 
 ## Naming Policy
 
@@ -60,12 +60,11 @@ This gives one clean audit trail per release without relying on Firebase naming 
 
 1. Update `pubspec.yaml` when you want a new semantic release line such as `1.0.0` to `1.1.0`.
 2. Commit and push that change through GitHub.
-3. The staging workflow on `main` builds and distributes the staging APK automatically.
-4. Validate staging on the exact commit you want to promote.
-5. Run the manual production workflow from that same `main` commit.
-6. Add optional human release notes in the workflow input if needed.
+3. Every push to `main` builds and distributes both the staging and production APKs automatically.
+4. Validate staging and production artifacts for the exact commit that was pushed.
+5. Optionally rerun the manual production workflow from that same `main` commit when you need custom human release notes.
 
-Because the build number comes from the commit history instead of the workflow run number, staging and production stay aligned for the same commit.
+Because the build number comes from the commit history instead of the workflow run number, staging and production stay aligned for the same commit while still producing a new installable APK on every new commit.
 
 ## Files That Enforce This Policy
 

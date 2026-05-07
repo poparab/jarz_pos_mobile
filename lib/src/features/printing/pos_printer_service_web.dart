@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'printer_compatibility.dart';
 import 'printer_status.dart';
 
 /// Data class for a printable invoice item (shared across mobile & web).
@@ -60,6 +61,9 @@ class PrintableInvoice {
 class PosPrinterService extends ChangeNotifier {
   PosPrinterService({Dio? dio, bool autoInit = true});
 
+  final PrinterCompatibilitySettings compatibilitySettings =
+      PrinterCompatibilitySettings();
+
   // Status always disconnected on web
   PrinterUnifiedStatus get unifiedStatus => PrinterUnifiedStatus.disconnected;
   String? get lastErrorMessage => 'Printing is not available on web';
@@ -87,6 +91,8 @@ class PosPrinterService extends ChangeNotifier {
   Future<void> disconnect() async {}
   Future<void> disconnectClassic() async {}
   Future<void> forgetPrinter() async {}
+  Future<void> updateCompatibilitySettings(PrinterCompatibilitySettings settings) async {}
+  Future<void> resetCompatibilitySettings() async {}
 
   // Permissions
   Future<Map<String, dynamic>> permissionStatuses() async => {};

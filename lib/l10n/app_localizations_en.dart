@@ -997,6 +997,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get printerSelectTitle => 'Select Printer';
 
   @override
+  String get printerCompatibilityTooltip => 'Printer compatibility settings';
+
+  @override
+  String get printerCompatibilityTitle => 'Compatibility';
+
+  @override
+  String get printerCompatibilitySubtitle =>
+      'Safe defaults keep normal receipts as text and only use raster output where it is needed.';
+
+  @override
+  String get printerCompatibilitySaved =>
+      'Printer compatibility settings saved';
+
+  @override
+  String get printerCompatibilityReset => 'Reset defaults';
+
+  @override
   String get printerDiagnosticsTitle => 'Diagnostics';
 
   @override
@@ -1091,6 +1108,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get printerClassicDevices => 'Paired Classic Devices';
+
+  @override
+  String get printerPaperSizeLabel => 'Paper size';
+
+  @override
+  String get printerPaper58mm => '58 mm';
+
+  @override
+  String get printerPaper80mm => '80 mm';
+
+  @override
+  String get printerPrintLogo => 'Print logo';
+
+  @override
+  String get printerPrintLogoHint =>
+      'Disable this first if the printer prints gibberish near the top of the receipt.';
+
+  @override
+  String get printerRasterizeArabic => 'Rasterize Arabic text';
+
+  @override
+  String get printerRasterizeArabicHint =>
+      'Needed for printers that cannot print Arabic natively.';
+
+  @override
+  String get printerRasterizeStyledText => 'Rasterize styled ASCII text';
+
+  @override
+  String get printerRasterizeStyledTextHint =>
+      'Enable this only if your printer handles bitmap text reliably.';
+
+  @override
+  String get printerRasterWidthLabel => 'Raster width (px)';
+
+  @override
+  String get printerCodeTableLabel => 'Code table';
+
+  @override
+  String get printerBleChunkSizeLabel => 'BLE chunk size';
+
+  @override
+  String get printerBleChunkDelayLabel => 'BLE chunk delay (ms)';
+
+  @override
+  String get printerClassicChunkSizeLabel => 'Classic chunk size';
+
+  @override
+  String get printerClassicChunkDelayLabel => 'Classic chunk delay (ms)';
+
+  @override
+  String get printerClassicTailDelayLabel => 'Classic tail delay (ms)';
 
   @override
   String get printerRefreshClassicTooltip => 'Refresh Classic List';

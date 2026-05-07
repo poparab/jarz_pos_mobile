@@ -14,6 +14,7 @@ import '../../core/constants/storage_keys.dart';
 import '../../core/constants/business_constants.dart';
 import '../../core/constants/api_endpoints.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'printer_compatibility.dart';
 import 'printer_status.dart';
 
 class PrintableInvoiceItem {
@@ -43,10 +44,12 @@ class PrintableInvoice {
   final String? customerPhone;
   final String? territory;
   final DateTime? deliveryDateTime;
-  final double total; // Grand total (ERPNext Sales Invoice grand_total) INCLUDING shipping income
+  final double
+  total; // Grand total (ERPNext Sales Invoice grand_total) INCLUDING shipping income
   final double paid;
   final double outstanding;
-  final double shipping; // Shipping income component (single source of truth from Sales Invoice); do NOT add again to total
+  final double
+  shipping; // Shipping income component (single source of truth from Sales Invoice); do NOT add again to total
   final List<PrintableInvoiceItem> items;
   PrintableInvoice({
     required this.id,
@@ -76,8 +79,6 @@ class PosPrinterService extends ChangeNotifier {
   static const String _defaultReceiptFooter = 'Thank you for Your Order';
   static const String _defaultReceiptPhone = '01061332266';
   static const String _defaultReceiptWebsite = 'www.orderjarz.com';
-  static const int _compatibleRasterWidth = 384;
-  static const int _compatibleLogoWidth = 288;
 
   String _receiptHeader = _defaultReceiptHeader;
   String _receiptFooter = _defaultReceiptFooter;
@@ -88,11 +89,16 @@ class PosPrinterService extends ChangeNotifier {
 
   static const _prefsBoxName = HiveBoxes.printerPrefs;
   static const _lastPrinterKey = HiveKeys.lastPrinterId;
-  static const _lastPrinterTypeKey = HiveKeys.lastPrinterType; // 'ble' | 'classic'
+  static const _lastPrinterTypeKey =
+      HiveKeys.lastPrinterType; // 'ble' | 'classic'
+  static const _compatibilitySettingsKey =
+      HiveKeys.printerCompatibilitySettings;
 
   Box? _prefsBox;
   bool _connecting = false;
   String? _lastError; // human-readable error for UI
+  PrinterCompatibilitySettings _compatibilitySettings =
+      PrinterCompatibilitySettings.defaults();
 
   PrinterUnifiedStatus get unifiedStatus {
     if (_connecting) return PrinterUnifiedStatus.connecting;
@@ -101,8 +107,14 @@ class PosPrinterService extends ChangeNotifier {
     if (_lastError != null) return PrinterUnifiedStatus.error;
     return PrinterUnifiedStatus.disconnected;
   }
+
   String? get lastErrorMessage => _lastError;
-  void _setError(String? msg) { _lastError = msg; notifyListeners(); }
+  PrinterCompatibilitySettings get compatibilitySettings =>
+      _compatibilitySettings;
+  void _setError(String? msg) {
+    _lastError = msg;
+    notifyListeners();
+  }
 
   // BLE state
   BluetoothDevice? _device;
@@ -124,8 +136,14 @@ class PosPrinterService extends ChangeNotifier {
   Future<void> _printQueue = Future<void>.value();
   bool get isScanning => _isScanning;
 
-  Future<void> startScan({Duration timeout = BluetoothTimeouts.defaultScan}) async {
-    if (_isScanning) { try { await FlutterBluePlus.stopScan(); } catch (_) {} }
+  Future<void> startScan({
+    Duration timeout = BluetoothTimeouts.defaultScan,
+  }) async {
+    if (_isScanning) {
+      try {
+        await FlutterBluePlus.stopScan();
+      } catch (_) {}
+    }
     await _ensurePermissions();
     final adapter = await FlutterBluePlus.adapterState.first;
     if (adapter != BluetoothAdapterState.on) {
@@ -143,16 +161,23 @@ class PosPrinterService extends ChangeNotifier {
     sub = FlutterBluePlus.scanResults.listen((r) {
       _scanController.add(List.unmodifiable(r));
       if (r.isNotEmpty) {
-        debugPrint('[PosPrinterService] First BLE device(s) after ${DateTime.now().difference(startedAt).inMilliseconds}ms');
+        debugPrint(
+          '[PosPrinterService] First BLE device(s) after ${DateTime.now().difference(startedAt).inMilliseconds}ms',
+        );
       }
     });
     try {
-      await FlutterBluePlus.startScan(timeout: timeout, androidUsesFineLocation: true);
+      await FlutterBluePlus.startScan(
+        timeout: timeout,
+        androidUsesFineLocation: true,
+      );
       await Future.delayed(timeout + const Duration(milliseconds: 200));
     } catch (e) {
       debugPrint('[PosPrinterService] startScan error: $e');
     } finally {
-      try { await FlutterBluePlus.stopScan(); } catch (_) {}
+      try {
+        await FlutterBluePlus.stopScan();
+      } catch (_) {}
       await sub.cancel();
       _isScanning = false;
       // Attempt silent reconnect if nothing appeared
@@ -176,7 +201,10 @@ class PosPrinterService extends ChangeNotifier {
       bool changed = list.length != _classicBonded.length;
       if (!changed) {
         for (int i = 0; i < list.length; i++) {
-          if (list[i].mac != _classicBonded[i].mac) { changed = true; break; }
+          if (list[i].mac != _classicBonded[i].mac) {
+            changed = true;
+            break;
+          }
         }
       }
       if (changed) {
@@ -190,15 +218,37 @@ class PosPrinterService extends ChangeNotifier {
     }
   }
 
-  Future<void> stopScan() async { if (_isScanning) { try { await FlutterBluePlus.stopScan(); } catch (_) {} _isScanning = false; } }
-
-  Future<bool> connectLastSaved() async {
-    final id = lastPrinterId; if (id == null) return false;
-    if (lastPrinterType == 'classic') { return _attemptClassicReconnect(id).then((_) => isClassicConnected); }
-    try { final dev = BluetoothDevice.fromId(id); return await connect(dev); } catch (_) { return false; }
+  Future<void> stopScan() async {
+    if (_isScanning) {
+      try {
+        await FlutterBluePlus.stopScan();
+      } catch (_) {}
+      _isScanning = false;
+    }
   }
 
-  Future<bool> connectById(String id) async { try { final dev = BluetoothDevice.fromId(id); return await connect(dev); } catch (_) { return false; } }
+  Future<bool> connectLastSaved() async {
+    final id = lastPrinterId;
+    if (id == null) return false;
+    if (lastPrinterType == 'classic') {
+      return _attemptClassicReconnect(id).then((_) => isClassicConnected);
+    }
+    try {
+      final dev = BluetoothDevice.fromId(id);
+      return await connect(dev);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> connectById(String id) async {
+    try {
+      final dev = BluetoothDevice.fromId(id);
+      return await connect(dev);
+    } catch (_) {
+      return false;
+    }
+  }
 
   Future<Map<String, PermissionStatus>> permissionStatuses() async => {
     'scan': await Permission.bluetoothScan.status,
@@ -207,10 +257,16 @@ class PosPrinterService extends ChangeNotifier {
   };
 
   Future<void> _ensurePermissions() async {
-    if (defaultTargetPlatform != TargetPlatform.android) return;
+    if (defaultTargetPlatform != TargetPlatform.android) {
+      return;
+    }
     final req = <Permission>[];
-    if (await Permission.bluetoothScan.status.isDenied) req.add(Permission.bluetoothScan);
-    if (await Permission.bluetoothConnect.status.isDenied) req.add(Permission.bluetoothConnect);
+    if (await Permission.bluetoothScan.status.isDenied) {
+      req.add(Permission.bluetoothScan);
+    }
+    if (await Permission.bluetoothConnect.status.isDenied) {
+      req.add(Permission.bluetoothConnect);
+    }
     if (await Permission.location.status.isDenied) req.add(Permission.location);
     if (req.isNotEmpty) await req.request();
   }
@@ -218,10 +274,16 @@ class PosPrinterService extends ChangeNotifier {
   Future<void> _init() async {
     try {
       _prefsBox = await Hive.openBox(_prefsBoxName);
+      await _loadCompatibilitySettings();
       await _loadReceiptConfig();
       // Prepare logo bytes in background (ignore errors)
-      try { _logoEscPos = await _prepareLogoEscPos(); } catch (e) { debugPrint('[PosPrinterService] Logo prepare failed: $e'); }
-      final id = lastPrinterId; final type = lastPrinterType;
+      try {
+        _logoEscPos = await _prepareLogoEscPos();
+      } catch (e) {
+        debugPrint('[PosPrinterService] Logo prepare failed: $e');
+      }
+      final id = lastPrinterId;
+      final type = lastPrinterType;
       if (id != null && id.isNotEmpty) {
         if (type == 'ble') {
           unawaited(_attemptReconnect(BluetoothDevice.fromId(id)));
@@ -230,6 +292,51 @@ class PosPrinterService extends ChangeNotifier {
         }
       }
     } catch (_) {}
+  }
+
+  Future<void> _loadCompatibilitySettings() async {
+    try {
+      final raw = _prefsBox?.get(_compatibilitySettingsKey);
+      if (raw is String && raw.trim().isNotEmpty) {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) {
+          _compatibilitySettings = PrinterCompatibilitySettings.fromJson(
+            Map<String, dynamic>.from(decoded),
+          );
+        }
+      } else if (raw is Map) {
+        _compatibilitySettings = PrinterCompatibilitySettings.fromJson(
+          Map<String, dynamic>.from(raw),
+        );
+      }
+    } catch (e) {
+      debugPrint('[PosPrinterService] Compatibility settings load failed: $e');
+      _compatibilitySettings = PrinterCompatibilitySettings.defaults();
+    }
+  }
+
+  Future<void> updateCompatibilitySettings(
+    PrinterCompatibilitySettings settings,
+  ) async {
+    _compatibilitySettings = settings.normalized();
+    try {
+      await _prefsBox?.put(
+        _compatibilitySettingsKey,
+        jsonEncode(_compatibilitySettings.toJson()),
+      );
+    } catch (_) {}
+
+    try {
+      _logoEscPos = await _prepareLogoEscPos();
+    } catch (e) {
+      debugPrint('[PosPrinterService] Compatibility logo refresh failed: $e');
+      _logoEscPos = null;
+    }
+    notifyListeners();
+  }
+
+  Future<void> resetCompatibilitySettings() async {
+    await updateCompatibilitySettings(PrinterCompatibilitySettings.defaults());
   }
 
   String _normalizeOrDefault(String? value, String fallback) {
@@ -241,7 +348,8 @@ class PosPrinterService extends ChangeNotifier {
   }
 
   @visibleForTesting
-  Future<Uint8List> buildReceiptBytesForTest(PrintableInvoice inv) => _buildReceipt(inv);
+  Future<Uint8List> buildReceiptBytesForTest(PrintableInvoice inv) =>
+      _buildReceipt(inv);
 
   Future<void> _loadReceiptConfig() async {
     if (_receiptConfigLoaded || _dio == null) return;
@@ -250,14 +358,28 @@ class PosPrinterService extends ChangeNotifier {
       final message = resp.data['message'];
       if (message is Map) {
         final data = Map<String, dynamic>.from(message);
-        _receiptHeader = _normalizeOrDefault(data['header']?.toString(), _defaultReceiptHeader);
-        _receiptFooter = _normalizeOrDefault(data['footer']?.toString(), _defaultReceiptFooter);
-        _receiptPhone = _normalizeOrDefault(data['phone']?.toString(), _defaultReceiptPhone);
-        _receiptWebsite = _normalizeOrDefault(data['website']?.toString(), _defaultReceiptWebsite);
+        _receiptHeader = _normalizeOrDefault(
+          data['header']?.toString(),
+          _defaultReceiptHeader,
+        );
+        _receiptFooter = _normalizeOrDefault(
+          data['footer']?.toString(),
+          _defaultReceiptFooter,
+        );
+        _receiptPhone = _normalizeOrDefault(
+          data['phone']?.toString(),
+          _defaultReceiptPhone,
+        );
+        _receiptWebsite = _normalizeOrDefault(
+          data['website']?.toString(),
+          _defaultReceiptWebsite,
+        );
         _receiptLogo = (data['logo']?.toString() ?? '').trim();
       }
     } catch (e) {
-      debugPrint('[PosPrinterService] Receipt config fetch failed, using defaults: $e');
+      debugPrint(
+        '[PosPrinterService] Receipt config fetch failed, using defaults: $e',
+      );
     } finally {
       _receiptConfigLoaded = true;
     }
@@ -301,7 +423,9 @@ class PosPrinterService extends ChangeNotifier {
       sb.writeln('Shipping: ${_money(inv.shipping)}');
     }
     sb.writeln('Total: ${_money(grand)}');
-    sb.writeln('Status: ${isPaid ? InvoiceStatus.paidUpper : InvoiceStatus.unpaidUpper}');
+    sb.writeln(
+      'Status: ${isPaid ? InvoiceStatus.paidUpper : InvoiceStatus.unpaidUpper}',
+    );
     sb.writeln('');
     sb.writeln(_receiptFooter);
     sb.writeln('Call us $_receiptPhone');
@@ -313,30 +437,62 @@ class PosPrinterService extends ChangeNotifier {
     return sb.toString().trimRight();
   }
 
-  Future<void> _attemptReconnect(BluetoothDevice device) async { final ok = await connect(device); if (!ok) { try { await _prefsBox?.delete(_lastPrinterKey); await _prefsBox?.delete(_lastPrinterTypeKey);} catch (_) {} } }
+  Future<void> _attemptReconnect(BluetoothDevice device) async {
+    final ok = await connect(device);
+    if (!ok) {
+      try {
+        await _prefsBox?.delete(_lastPrinterKey);
+        await _prefsBox?.delete(_lastPrinterTypeKey);
+      } catch (_) {}
+    }
+  }
+
   Future<void> _attemptClassicReconnect(String addr) async {
     try {
       final bonded = await ClassicPrinterChannel.instance.getBondedDevices();
-      final found = bonded.firstWhere((d) => d.mac == addr, orElse: () => throw 'nf');
+      final found = bonded.firstWhere(
+        (d) => d.mac == addr,
+        orElse: () => throw 'nf',
+      );
       final ok = await connectClassic(found, save: false);
-      if (!ok) { try { await _prefsBox?.delete(_lastPrinterKey); await _prefsBox?.delete(_lastPrinterTypeKey);} catch (_) {} }
+      if (!ok) {
+        try {
+          await _prefsBox?.delete(_lastPrinterKey);
+          await _prefsBox?.delete(_lastPrinterTypeKey);
+        } catch (_) {}
+      }
     } catch (_) {}
   }
 
   Future<bool> connect(BluetoothDevice device) async {
-    if (_connecting) return false; _connecting = true;
+    if (_connecting) return false;
+    _connecting = true;
     try {
       _device = device;
-      await device.connect(autoConnect: false, license: License.free).timeout(BluetoothTimeouts.connect, onTimeout: () => device.disconnect());
+      await device
+          .connect(autoConnect: false, license: License.free)
+          .timeout(
+            BluetoothTimeouts.connect,
+            onTimeout: () => device.disconnect(),
+          );
       await _discoverWriteCharacteristic(device);
       if (_writeChar != null) {
-        try { await _prefsBox?.put(_lastPrinterKey, device.remoteId.str); await _prefsBox?.put(_lastPrinterTypeKey, 'ble'); } catch (_) {}
+        try {
+          await _prefsBox?.put(_lastPrinterKey, device.remoteId.str);
+          await _prefsBox?.put(_lastPrinterTypeKey, 'ble');
+        } catch (_) {}
         _setError(null);
-        notifyListeners(); return true;
+        notifyListeners();
+        return true;
       }
       _setError('BLE printer write characteristic not found');
       return false;
-    } catch (e) { _setError('BLE connect failed: $e'); return false; } finally { _connecting = false; }
+    } catch (e) {
+      _setError('BLE connect failed: $e');
+      return false;
+    } finally {
+      _connecting = false;
+    }
   }
 
   bool get isConnected => _device != null && _writeChar != null;
@@ -347,12 +503,22 @@ class PosPrinterService extends ChangeNotifier {
   String? get lastPrinterType => _prefsBox?.get(_lastPrinterTypeKey) as String?;
 
   Future<void> forgetPrinter() async {
-    try { await _prefsBox?.delete(_lastPrinterKey); await _prefsBox?.delete(_lastPrinterTypeKey);} catch (_) {}
-    _device = null; _writeChar = null; await disconnectClassic(); notifyListeners();
+    try {
+      await _prefsBox?.delete(_lastPrinterKey);
+      await _prefsBox?.delete(_lastPrinterTypeKey);
+    } catch (_) {}
+    _device = null;
+    _writeChar = null;
+    await disconnectClassic();
+    notifyListeners();
   }
 
-  Future<bool> connectClassic(ClassicBondedDevice dev, {bool save = true}) async {
-    if (_connecting) return false; _connecting = true;
+  Future<bool> connectClassic(
+    ClassicBondedDevice dev, {
+    bool save = true,
+  }) async {
+    if (_connecting) return false;
+    _connecting = true;
     try {
       // Retry with exponential backoff up to 3 attempts
       const maxAttempts = 3;
@@ -367,19 +533,42 @@ class PosPrinterService extends ChangeNotifier {
           _setError('Classic connect error: $e');
         }
         if (!ok) {
-          final delay = Duration(milliseconds: 200 * (1 << (attempt - 1))); // 200,400,800
+          final delay = Duration(
+            milliseconds: 200 * (1 << (attempt - 1)),
+          ); // 200,400,800
           await Future.delayed(delay);
         }
       }
-      if (!ok) { _setError('Failed to connect classic printer after $attempt attempts'); return false; }
+      if (!ok) {
+        _setError('Failed to connect classic printer after $attempt attempts');
+        return false;
+      }
       _classicDevice = dev;
       _classicConnected = true;
-      if (save) { try { await _prefsBox?.put(_lastPrinterKey, dev.mac); await _prefsBox?.put(_lastPrinterTypeKey, 'classic'); } catch (_) {} }
+      if (save) {
+        try {
+          await _prefsBox?.put(_lastPrinterKey, dev.mac);
+          await _prefsBox?.put(_lastPrinterTypeKey, 'classic');
+        } catch (_) {}
+      }
       _setError(null);
-      notifyListeners(); return true;
-    } catch (e) { debugPrint('[PosPrinterService] Classic connect error: $e'); return false; } finally { _connecting = false; }
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('[PosPrinterService] Classic connect error: $e');
+      return false;
+    } finally {
+      _connecting = false;
+    }
   }
-  Future<void> disconnectClassic() async { try { await ClassicPrinterChannel.instance.disconnect(); } catch (_) {} _classicConnected = false; _classicDevice = null; }
+
+  Future<void> disconnectClassic() async {
+    try {
+      await ClassicPrinterChannel.instance.disconnect();
+    } catch (_) {}
+    _classicConnected = false;
+    _classicDevice = null;
+  }
 
   Future<PrintResult> testPrint() async {
     if (!isConnected && !isClassicConnected) return PrintResult.disconnected;
@@ -406,7 +595,10 @@ class PosPrinterService extends ChangeNotifier {
     for (final s in services) {
       for (final c in s.characteristics) {
         final p = c.properties;
-        if ((p.write || p.writeWithoutResponse) && p.notify) { _writeChar = c; return; }
+        if ((p.write || p.writeWithoutResponse) && p.notify) {
+          _writeChar = c;
+          return;
+        }
       }
     }
   }
@@ -418,19 +610,30 @@ class PosPrinterService extends ChangeNotifier {
         await _loadReceiptConfig();
         final bytes = await _buildReceipt(inv);
         if (isConnected) {
-          const bleChunk = 96;
+          final bleChunk = _compatibilitySettings.bleChunkSize;
+          final bleChunkDelay = _compatibilitySettings.bleChunkDelayMs;
           for (int o = 0; o < bytes.length; o += bleChunk) {
-            final part = bytes.sublist(o, (o + bleChunk).clamp(0, bytes.length));
+            final part = bytes.sublist(
+              o,
+              (o + bleChunk).clamp(0, bytes.length),
+            );
             await _writeChar!.write(part, withoutResponse: true);
-            await Future.delayed(const Duration(milliseconds: 30));
+            if (bleChunkDelay > 0) {
+              await Future.delayed(Duration(milliseconds: bleChunkDelay));
+            }
           }
         } else if (isClassicConnected) {
-          final rasterBlockCount = _countByteSequence(bytes, const [0x1D, 0x76, 0x30, 0x00]);
+          final rasterBlockCount = _countByteSequence(bytes, const [
+            0x1D,
+            0x76,
+            0x30,
+            0x00,
+          ]);
           final hasRaster = rasterBlockCount > 0;
-          final chunkSize = hasRaster ? 192 : 256;
-          final chunkDelayMs = hasRaster ? 18 : 8;
+          final chunkSize = _compatibilitySettings.classicChunkSize;
+          final chunkDelayMs = _compatibilitySettings.classicChunkDelayMs;
           final tailDelayMs = hasRaster
-              ? (900 + (rasterBlockCount * 140)).clamp(900, 2400)
+              ? _compatibilitySettings.classicTailDelayMs
               : 250;
           final ok = await ClassicPrinterChannel.instance.writeJob(
             bytes,
@@ -454,23 +657,33 @@ class PosPrinterService extends ChangeNotifier {
 
   Future<Uint8List> _buildReceipt(PrintableInvoice inv) async {
     final b = BytesBuilder();
+    final compat = _compatibilitySettings;
     void esc(List<int> c) => b.add(Uint8List.fromList(c));
-    bool hasArabic(String s) => RegExp(r'[\u0600-\u06FF]').hasMatch(s);
-    bool hasNonAscii(String s) => RegExp(r'[^\x00-\x7F]').hasMatch(s);
-    String normalizePrintable(String s) {
-      final cleaned = s
-          .replaceAll(RegExp(r'[^\x20-\x7E]'), ' ')
-          .replaceAll(RegExp(r'\s+'), ' ')
-          .trim();
-      return cleaned;
-    }
-    Future<void> text(String s, {bool bold=false, bool center=false, bool big=false, String? fontFamily, double? fontSize}) async {
-      if (hasArabic(s) || fontFamily != null || fontSize != null) {
+    Future<void> text(
+      String s, {
+      bool bold = false,
+      bool center = false,
+      bool big = false,
+      String? fontFamily,
+      double? fontSize,
+    }) async {
+      if (compat.shouldRasterizeText(
+        s,
+        fontFamily: fontFamily,
+        fontSize: fontSize,
+      )) {
         final fs = fontSize ?? (big ? 28.0 : 18.0);
-        await _addRasterText(b, s, bold: bold, center: center, fontSize: fs, fontFamily: fontFamily);
+        await _addRasterText(
+          b,
+          s,
+          bold: bold,
+          center: center,
+          fontSize: fs,
+          fontFamily: fontFamily,
+        );
         return;
       }
-      final printable = hasNonAscii(s) ? normalizePrintable(s) : s;
+      final printable = _normalizeEscPosText(s);
       if (printable.isEmpty) return;
       esc([0x1C, 0x2E]); // Ensure CJK mode stays cancelled
       esc([0x1B, 0x4D, 0x00]); // Font A (wider, fills paper width)
@@ -478,15 +691,19 @@ class PosPrinterService extends ChangeNotifier {
       if (bold) mode |= 0x08;
       if (big) mode |= 0x10; // double-height
       esc([0x1B, 0x21, mode]);
-      esc([0x1B,0x61, center?0x01:0x00]);
+      esc([0x1B, 0x61, center ? 0x01 : 0x00]);
       b.add(latin1.encode(printable));
       esc([0x0A]);
       if (big) esc([0x1B, 0x21, 0x00]); // reset mode after big text
     }
-  void feed(int n) => esc([0x1B, 0x64, n.clamp(0, 255)]);
-  const lineChars = 48; // Full width for 80mm thermal printers: 576 dots / 12 dots per Font A char = 48.
-  Future<void> hr() async { await text('-' * lineChars); }
-  // Removed invoice date display; eliminate unused date helpers.
+
+    void feed(int n) => esc([0x1B, 0x64, n.clamp(0, 255)]);
+    final lineChars = compat.lineChars;
+    Future<void> hr() async {
+      await text('-' * lineChars);
+    }
+
+    // Removed invoice date display; eliminate unused date helpers.
     String shortInv(String full) {
       if (full.length <= 5) return full;
       // Keep only last 5 digits/characters; strip non-alphanumerics at end if any
@@ -494,18 +711,24 @@ class PosPrinterService extends ChangeNotifier {
       if (cleaned.length <= 5) return cleaned;
       return cleaned.substring(cleaned.length - 5);
     }
+
     String amPm(DateTime t) {
       final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
       final m = t.minute.toString().padLeft(2, '0');
       final p = t.hour < 12 ? 'AM' : 'PM';
       return '$h:$m $p';
     }
-    String formatDeliveryRange(DateTime start, {Duration slot = const Duration(hours: 1)}) {
+
+    String formatDeliveryRange(
+      DateTime start, {
+      Duration slot = const Duration(hours: 1),
+    }) {
       final end = start.add(slot);
-      final day = start.day.toString().padLeft(2,'0');
-      final month = start.month.toString().padLeft(2,'0');
+      final day = start.day.toString().padLeft(2, '0');
+      final month = start.month.toString().padLeft(2, '0');
       return '$day-$month from ${amPm(start)} to ${amPm(end)}';
     }
+
     List<String> wrapColumn(String label, String value, int maxWidth) {
       final prefix = label.isNotEmpty ? '$label: ' : '';
       final full = (prefix + value).trim();
@@ -520,7 +743,7 @@ class PosPrinterService extends ChangeNotifier {
         }
         if (cur.length + 1 + w.length > maxWidth) {
           lines.add(cur.toString());
-            cur = StringBuffer(w);
+          cur = StringBuffer(w);
         } else {
           cur.write(' ');
           cur.write(w);
@@ -529,6 +752,7 @@ class PosPrinterService extends ChangeNotifier {
       if (cur.isNotEmpty) lines.add(cur.toString());
       return lines;
     }
+
     // Reset printer to a known state to avoid stray characters or misalignment
     esc([0x1B, 0x40]);
     // Cancel Chinese/Kanji double-byte character mode (FS .)
@@ -537,54 +761,75 @@ class PosPrinterService extends ChangeNotifier {
     esc([0x1C, 0x2E]);
     // Set left margin to 0 (GS L nL nH) — eliminate any default left margin
     esc([0x1D, 0x4C, 0x00, 0x00]);
-    // Set print area width to 576 dots = full 80mm printable width (GS W nL nH, 576 = 0x0240)
-    esc([0x1D, 0x57, 0x40, 0x02]);
+    // Set print area width from the selected paper size.
+    esc([
+      0x1D,
+      0x57,
+      compat.paperWidthDots & 0xFF,
+      (compat.paperWidthDots >> 8) & 0xFF,
+    ]);
     // Set right-side character spacing to 0 (ESC SP n)
     esc([0x1B, 0x20, 0x00]);
-    // Select single-byte character code table: PC437 (ESC t 0)
-    esc([0x1B, 0x74, 0x00]);
+    // Select single-byte character code table.
+    esc([0x1B, 0x74, compat.codeTable]);
     // Use Font A globally (wider, fills paper width)
     esc([0x1B, 0x4D, 0x00]);
     // HEADER ---------------------------------------------------------
     if (_logoEscPos != null) {
-      esc([0x1B,0x61,0x01]); // center
+      esc([0x1B, 0x61, 0x01]); // center
       b.add(_logoEscPos!);
-      esc([0x1B,0x61,0x00]); // left
+      esc([0x1B, 0x61, 0x00]); // left
     }
-    await text(_receiptHeader, bold: true, center: true, fontFamily: 'DMSerifDisplay');
+    await text(
+      _receiptHeader,
+      bold: true,
+      center: true,
+      fontFamily: 'DMSerifDisplay',
+      big: true,
+    );
     // Build two vertical columns of fields for 80mm (wider) printers
     // Left column logical order: Customer, Phone, Delivery
     // Right column: Invoice No, Invoice Date, Address (first line)
-  // Address now printed fully after the two-column section (left aligned), so we don't include it in columns.
-  final addressLines = (inv.customerAddress ?? '')
-    .split(RegExp(r'[\n,]+'))
-    .map((e)=>e.trim())
-    .where((e)=>e.isNotEmpty)
-    .toList();
+    // Address now printed fully after the two-column section (left aligned), so we don't include it in columns.
+    final addressLines = (inv.customerAddress ?? '')
+        .split(RegExp(r'[\n,]+'))
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
     // Column wrapping with independent line counts; each column keeps its own continuation lines.
     // Define max character widths for Font A 48-char line width.
     const leftWidthChars = 24;
     const rightWidthChars = 24;
     // Build raw logical entries first.
-    final leftEntries = <MapEntry<String,String>>[];
+    final leftEntries = <MapEntry<String, String>>[];
     leftEntries.add(MapEntry('Customer', inv.customer));
     if ((inv.customerPhone ?? '').isNotEmpty) {
       leftEntries.add(MapEntry('Phone', inv.customerPhone!));
     }
     // Delivery time will be rendered as its own full-width line after the columns, so omit from columns.
-    final rightEntries = <MapEntry<String,String>>[];
+    final rightEntries = <MapEntry<String, String>>[];
     rightEntries.add(MapEntry('Inv No', shortInv(inv.id)));
     final leftLines = <List<String>>[];
-    for (final e in leftEntries) { leftLines.add(wrapColumn(e.key, e.value, leftWidthChars)); }
+    for (final e in leftEntries) {
+      leftLines.add(wrapColumn(e.key, e.value, leftWidthChars));
+    }
     final rightLines = <List<String>>[];
-    for (final e in rightEntries) { rightLines.add(wrapColumn(e.key, e.value, rightWidthChars)); }
+    for (final e in rightEntries) {
+      rightLines.add(wrapColumn(e.key, e.value, rightWidthChars));
+    }
     int visualRows = 0;
     final flatLeft = <String>[];
-    for (final segs in leftLines) { flatLeft.addAll(segs); }
+    for (final segs in leftLines) {
+      flatLeft.addAll(segs);
+    }
     final flatRight = <String>[];
-    for (final segs in rightLines) { flatRight.addAll(segs); }
-    visualRows = flatLeft.length > flatRight.length ? flatLeft.length : flatRight.length;
-    for (int i=0;i<visualRows;i++) {
+    for (final segs in rightLines) {
+      flatRight.addAll(segs);
+    }
+    visualRows = flatLeft.length > flatRight.length
+        ? flatLeft.length
+        : flatRight.length;
+    for (int i = 0; i < visualRows; i++) {
       final lVal = i < flatLeft.length ? flatLeft[i] : '';
       final rVal = i < flatRight.length ? flatRight[i] : '';
       await _twoColRow(b, lLabel: '', lValue: lVal, rLabel: '', rValue: rVal);
@@ -674,7 +919,10 @@ class PosPrinterService extends ChangeNotifier {
     for (int idx = 0; idx < inv.items.length; idx++) {
       final it = inv.items[idx];
       if (!it.showPricing) {
-        final lines = wrapFixed(_compactItemLabel(it, includeQty: true), lineChars);
+        final lines = wrapFixed(
+          _compactItemLabel(it, includeQty: true),
+          lineChars,
+        );
         for (final line in lines) {
           await text(line, bold: it.bold);
         }
@@ -701,29 +949,41 @@ class PosPrinterService extends ChangeNotifier {
       await text(_labelVal('Subtotal', _money(subtotal)));
       await text(_labelVal('Shipping', _money(inv.shipping)));
       feed(1);
-      await text(_labelVal('Total', _money(grand)), bold:true, big:true);
+      await text(_labelVal('Total', _money(grand)), bold: true, big: true);
     } else {
-      await text(_labelVal('Total', _money(grand)), bold:true, big:true);
+      await text(_labelVal('Total', _money(grand)), bold: true, big: true);
     }
     final statusPaid = inv.outstanding <= 0.0001;
-    await text(_labelVal('Status', statusPaid ? InvoiceStatus.paidUpper : InvoiceStatus.unpaidUpper));
+    await text(
+      _labelVal(
+        'Status',
+        statusPaid ? InvoiceStatus.paidUpper : InvoiceStatus.unpaidUpper,
+      ),
+    );
     // Status is enough separation from footer; skip extra divider for compact receipt.
 
     // FOOTER ---------------------------------------------------------
     // Plain ASCII footers are safer as native ESC/POS text here; some printers
     // corrupt the trailing footer block when it is forced through raster text.
-    await text(_receiptFooter, center:true, bold:true);
-    await text('Call us $_receiptPhone', center:true);
-    await text(_receiptWebsite, center:true);
-  // Add two cut guide lines so user can manually cut at the marked area
-  // Single guide line and a short feed keeps output compact while preserving cut space.
-  await hr();
-  feed(3);
-    esc([0x1D,0x56,0x42,0x00]); // cut
+    await text(_receiptFooter, center: true, bold: true);
+    await text('Call us $_receiptPhone', center: true);
+    await text(_receiptWebsite, center: true);
+    // Add two cut guide lines so user can manually cut at the marked area
+    // Single guide line and a short feed keeps output compact while preserving cut space.
+    await hr();
+    feed(3);
+    esc([0x1D, 0x56, 0x42, 0x00]); // cut
     return b.toBytes();
   }
 
   String _money(double v) => v.toStringAsFixed(2);
+  String _normalizeEscPosText(String s) {
+    return s
+        .replaceAll(RegExp(r'[^\x20-\x7E]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
   String _qtyLabel(double qty) {
     if ((qty - qty.round()).abs() < 0.0001) {
       return qty.round().toString();
@@ -734,14 +994,19 @@ class PosPrinterService extends ChangeNotifier {
         .replaceFirst(RegExp(r'\.$'), '');
   }
 
-  String _compactItemLabel(PrintableInvoiceItem item, {bool includeQty = false}) {
+  String _compactItemLabel(
+    PrintableInvoiceItem item, {
+    bool includeQty = false,
+  }) {
     final indent = '  ' * item.indentLevel;
     final bullet = item.indentLevel > 0 ? '- ' : '';
-    final qtySuffix = includeQty && item.qty > 1.0001 ? ' x${_qtyLabel(item.qty)}' : '';
+    final qtySuffix = includeQty && item.qty > 1.0001
+        ? ' x${_qtyLabel(item.qty)}'
+        : '';
     return '$indent$bullet${item.name}$qtySuffix'.trimRight();
   }
 
-  String _labelVal(String l,String v) {
+  String _labelVal(String l, String v) {
     const ml = 30;
     const totalW = 48;
     final x = l.length > ml ? l.substring(0, ml) : l;
@@ -786,13 +1051,15 @@ class PosPrinterService extends ChangeNotifier {
 
   Future<Uint8List?> _prepareLogoEscPos() async {
     try {
+      if (!_compatibilitySettings.printLogo) {
+        return null;
+      }
       final data = await rootBundle.load('assets/images/logo.png');
       final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
       final frame = await codec.getNextFrame();
       final img = frame.image;
-      // Use a conservative raster width that works across 58mm and 80mm ESC/POS firmware.
-      const canvasW = _compatibleRasterWidth;
-      const logoTargetW = _compatibleLogoWidth;
+      final canvasW = _compatibilitySettings.effectiveRasterWidthPx;
+      final logoTargetW = _compatibilitySettings.effectiveLogoWidthPx;
       final scale = logoTargetW / img.width;
       final targetH = (img.height * scale).round();
       final recorder = ui.PictureRecorder();
@@ -800,35 +1067,51 @@ class PosPrinterService extends ChangeNotifier {
       final paint = ui.Paint();
       // White background to avoid black where logo has transparency
       final bg = ui.Paint()..color = const ui.Color(0xFFFFFFFF);
-      canvas.drawRect(ui.Rect.fromLTWH(0, 0, canvasW.toDouble(), targetH.toDouble()), bg);
+      canvas.drawRect(
+        ui.Rect.fromLTWH(0, 0, canvasW.toDouble(), targetH.toDouble()),
+        bg,
+      );
       // Center horizontally on the wider canvas
-      final padLeft = ((canvasW - logoTargetW) / 2).clamp(0, canvasW.toDouble()).toDouble();
+      final padLeft = ((canvasW - logoTargetW) / 2)
+          .clamp(0, canvasW.toDouble())
+          .toDouble();
       canvas.translate(padLeft, 0.0);
       canvas.scale(scale);
-      canvas.drawImage(img, const ui.Offset(0,0), paint);
+      canvas.drawImage(img, const ui.Offset(0, 0), paint);
       final picture = recorder.endRecording();
       final resized = await picture.toImage(canvasW, targetH);
-      final byteData = await resized.toByteData(format: ui.ImageByteFormat.rawRgba);
+      final byteData = await resized.toByteData(
+        format: ui.ImageByteFormat.rawRgba,
+      );
       if (byteData == null) return null;
       final rgba = byteData.buffer.asUint8List();
       // Convert to 1bpp monochrome (threshold)
       final bytesPerRow = (canvasW + 7) >> 3;
       final out = Uint8List(bytesPerRow * targetH);
       int o = 0;
-      for (int y=0; y<targetH; y++) {
-        int bit = 0; int cur = 0;
-        for (int x=0; x<canvasW; x++) {
-          final idx = (y*canvasW + x) * 4;
+      for (int y = 0; y < targetH; y++) {
+        int bit = 0;
+        int cur = 0;
+        for (int x = 0; x < canvasW; x++) {
+          final idx = (y * canvasW + x) * 4;
           final r = rgba[idx];
-          final g = rgba[idx+1];
-          final b = rgba[idx+2];
-          final lum = (0.299*r + 0.587*g + 0.114*b).round();
-          final black = lum < 200; // slightly higher threshold to keep background white
+          final g = rgba[idx + 1];
+          final b = rgba[idx + 2];
+          final lum = (0.299 * r + 0.587 * g + 0.114 * b).round();
+          final black =
+              lum < 200; // slightly higher threshold to keep background white
           cur = (cur << 1) | (black ? 1 : 0);
           bit++;
-          if (bit == 8) { out[o++] = cur; bit = 0; cur = 0; }
+          if (bit == 8) {
+            out[o++] = cur;
+            bit = 0;
+            cur = 0;
+          }
         }
-        if (bit != 0) { cur <<= (8-bit); out[o++] = cur; }
+        if (bit != 0) {
+          cur <<= (8 - bit);
+          out[o++] = cur;
+        }
       }
       // ESC/POS raster format: GS v 0 m xL xH yL yH data
       final xL = bytesPerRow & 0xFF;
@@ -837,7 +1120,9 @@ class PosPrinterService extends ChangeNotifier {
       final yH = (targetH >> 8) & 0xFF;
       final hdr = Uint8List.fromList([0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH]);
       final bb = BytesBuilder();
-      bb.add(hdr); bb.add(out); bb.add([0x0A]);
+      bb.add(hdr);
+      bb.add(out);
+      bb.add([0x0A]);
       return bb.toBytes();
     } catch (e) {
       debugPrint('[PosPrinterService] _prepareLogoEscPos error: $e');
@@ -845,11 +1130,17 @@ class PosPrinterService extends ChangeNotifier {
     }
   }
 
-  Future<void> _addRasterText(BytesBuilder b, String s, {bool bold=false, bool center=false, double fontSize=18, String? fontFamily}) async {
-    // 384px is broadly supported across 58mm and 80mm ESC/POS printers.
-    const targetW = _compatibleRasterWidth;
+  Future<void> _addRasterText(
+    BytesBuilder b,
+    String s, {
+    bool bold = false,
+    bool center = false,
+    double fontSize = 18,
+    String? fontFamily,
+  }) async {
+    final targetW = _compatibilitySettings.effectiveRasterWidthPx;
     // Prepare text painter
-  final hasArabic = RegExp(r'[\u0600-\u06FF]').hasMatch(s);
+    final hasArabic = RegExp(r'[\u0600-\u06FF]').hasMatch(s);
     // Font selection: explicit fontFamily > Tajawal for Arabic > Inter for content
     final effectiveFamily = fontFamily ?? (hasArabic ? 'Tajawal' : 'Inter');
     final fallbacks = hasArabic
@@ -866,7 +1157,7 @@ class PosPrinterService extends ChangeNotifier {
           fontFamilyFallback: fallbacks,
         ),
       ),
-  textDirection: hasArabic ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+      textDirection: hasArabic ? ui.TextDirection.rtl : ui.TextDirection.ltr,
       textAlign: center ? TextAlign.center : TextAlign.start,
       maxLines: 4,
     );
@@ -876,10 +1167,15 @@ class PosPrinterService extends ChangeNotifier {
     final canvas = ui.Canvas(recorder);
     // white bg
     final bg = ui.Paint()..color = const ui.Color(0xFFFFFFFF);
-    canvas.drawRect(ui.Rect.fromLTWH(0, 0, targetW.toDouble(), height.toDouble()), bg);
+    canvas.drawRect(
+      ui.Rect.fromLTWH(0, 0, targetW.toDouble(), height.toDouble()),
+      bg,
+    );
     // Center horizontally: TextPainter.textAlign only affects multi-line wrapping,
     // so we manually offset single-line text to center it on the raster image.
-    final paintX = center ? ((targetW - tp.width) / 2).clamp(0.0, targetW.toDouble()) : 0.0;
+    final paintX = center
+        ? ((targetW - tp.width) / 2).clamp(0.0, targetW.toDouble())
+        : 0.0;
     tp.paint(canvas, ui.Offset(paintX, 0));
     final picture = recorder.endRecording();
     final img = await picture.toImage(targetW, height);
@@ -889,20 +1185,28 @@ class PosPrinterService extends ChangeNotifier {
     final bytesPerRow = (targetW + 7) >> 3;
     final out = Uint8List(bytesPerRow * height);
     int o = 0;
-    for (int y=0; y<height; y++) {
-      int bit = 0; int cur = 0;
-      for (int x=0; x<targetW; x++) {
-        final idx = (y*targetW + x) * 4;
+    for (int y = 0; y < height; y++) {
+      int bit = 0;
+      int cur = 0;
+      for (int x = 0; x < targetW; x++) {
+        final idx = (y * targetW + x) * 4;
         final r = rgba[idx];
-        final g = rgba[idx+1];
-        final b2 = rgba[idx+2];
-        final lum = (0.299*r + 0.587*g + 0.114*b2).round();
+        final g = rgba[idx + 1];
+        final b2 = rgba[idx + 2];
+        final lum = (0.299 * r + 0.587 * g + 0.114 * b2).round();
         final black = lum < 200;
         cur = (cur << 1) | (black ? 1 : 0);
         bit++;
-        if (bit == 8) { out[o++] = cur; bit = 0; cur = 0; }
+        if (bit == 8) {
+          out[o++] = cur;
+          bit = 0;
+          cur = 0;
+        }
       }
-      if (bit != 0) { cur <<= (8-bit); out[o++] = cur; }
+      if (bit != 0) {
+        cur <<= (8 - bit);
+        out[o++] = cur;
+      }
     }
     final xL = bytesPerRow & 0xFF;
     final xH = (bytesPerRow >> 8) & 0xFF;
@@ -913,30 +1217,54 @@ class PosPrinterService extends ChangeNotifier {
     b.add(out);
     b.add([0x0A]);
   }
-  Future<void> _twoColRow(BytesBuilder b, {required String lLabel, required String lValue, required String rLabel, required String rValue}) async {
+
+  Future<void> _twoColRow(
+    BytesBuilder b, {
+    required String lLabel,
+    required String lValue,
+    required String rLabel,
+    required String rValue,
+  }) async {
     // Here labels are already integrated into value lines (we passed empty labels in wrapped mode). Keep backwards compatibility.
     final left = (lLabel.isNotEmpty ? '$lLabel: ' : '') + lValue;
     final right = (rLabel.isNotEmpty ? '$rLabel: ' : '') + rValue;
-    final asciiOk = !RegExp(r'[^\x00-\x7F]').hasMatch(left + right);
+    final combined = left + right;
+    final hasNonAscii = RegExp(r'[^\x00-\x7F]').hasMatch(combined);
+    final needsSanitization = RegExp(r'[^\x20-\x7E]').hasMatch(combined);
     const leftWidth = 24;
     const rightWidth = 24;
-    String pad(String s, int w){ return s.length > w ? s.substring(0,w) : s.padRight(w); }
-    if (asciiOk) {
-      final line = pad(left.trimRight(), leftWidth) + pad(right.trimRight(), rightWidth);
-      b.add(Uint8List.fromList([0x1C, 0x2E])); // Ensure CJK mode stays cancelled
+    String pad(String s, int w) {
+      return s.length > w ? s.substring(0, w) : s.padRight(w);
+    }
+
+    if (!hasNonAscii || !_compatibilitySettings.rasterizeArabicText) {
+      final line =
+          pad(
+            (needsSanitization ? _normalizeEscPosText(left) : left).trimRight(),
+            leftWidth,
+          ) +
+          pad(
+            (needsSanitization ? _normalizeEscPosText(right) : right)
+                .trimRight(),
+            rightWidth,
+          );
+      b.add(
+        Uint8List.fromList([0x1C, 0x2E]),
+      ); // Ensure CJK mode stays cancelled
       b.add(Uint8List.fromList([0x1B, 0x4D, 0x00])); // Font A
-      b.add(Uint8List.fromList([0x1B,0x21,0x00]));
-      b.add(Uint8List.fromList([0x1B,0x61,0x00]));
+      b.add(Uint8List.fromList([0x1B, 0x21, 0x00]));
+      b.add(Uint8List.fromList([0x1B, 0x61, 0x00]));
       b.add(latin1.encode(line));
       b.add([0x0A]);
     } else {
       // Fallback to raster for mixed or non-ASCII content.
       final separator = '   ';
-      final line = left.isEmpty ? right : (right.isEmpty ? left : left + separator + right);
-      await _addRasterText(b, line, bold:false, center:false);
+      final line = left.isEmpty
+          ? right
+          : (right.isEmpty ? left : left + separator + right);
+      await _addRasterText(b, line, bold: false, center: false);
     }
   }
 }
 
 enum PrintResult { success, disconnected, failed }
-

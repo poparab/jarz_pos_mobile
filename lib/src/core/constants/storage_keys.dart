@@ -21,6 +21,7 @@ abstract final class HiveBoxes {
 abstract final class HiveKeys {
   static const lastPrinterId = 'last_printer_id';
   static const lastPrinterType = 'last_printer_type';
+  static const printerCompatibilitySettings = 'printer_compatibility_settings';
   static const preferredLocale = 'preferred_locale';
 }
 

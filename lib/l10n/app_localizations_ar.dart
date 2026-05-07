@@ -999,6 +999,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get printerSelectTitle => 'اختيار الطابعة';
 
   @override
+  String get printerCompatibilityTooltip => 'إعدادات توافق الطابعة';
+
+  @override
+  String get printerCompatibilityTitle => 'التوافق';
+
+  @override
+  String get printerCompatibilitySubtitle =>
+      'الإعدادات الآمنة تُبقي الإيصالات العادية كنص وتستخدم الرسم النقطي فقط عند الحاجة.';
+
+  @override
+  String get printerCompatibilitySaved => 'تم حفظ إعدادات توافق الطابعة';
+
+  @override
+  String get printerCompatibilityReset => 'استعادة الإعدادات الافتراضية';
+
+  @override
   String get printerDiagnosticsTitle => 'التشخيص';
 
   @override
@@ -1093,6 +1109,57 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get printerClassicDevices => 'أجهزة Classic المقترنة';
+
+  @override
+  String get printerPaperSizeLabel => 'مقاس الورق';
+
+  @override
+  String get printerPaper58mm => '58 مم';
+
+  @override
+  String get printerPaper80mm => '80 مم';
+
+  @override
+  String get printerPrintLogo => 'طباعة الشعار';
+
+  @override
+  String get printerPrintLogoHint =>
+      'عطّل هذا أولًا إذا ظهرت رموز غير مفهومة أعلى الإيصال.';
+
+  @override
+  String get printerRasterizeArabic => 'تحويل النص العربي إلى صورة';
+
+  @override
+  String get printerRasterizeArabicHint =>
+      'مطلوب للطابعات التي لا تدعم العربية مباشرة.';
+
+  @override
+  String get printerRasterizeStyledText => 'تحويل النص المنسق إلى صورة';
+
+  @override
+  String get printerRasterizeStyledTextHint =>
+      'فعّل هذا فقط إذا كانت الطابعة تدعم النص النقطي بثبات.';
+
+  @override
+  String get printerRasterWidthLabel => 'عرض الصورة النقطية (بكسل)';
+
+  @override
+  String get printerCodeTableLabel => 'جدول الترميز';
+
+  @override
+  String get printerBleChunkSizeLabel => 'حجم حزمة BLE';
+
+  @override
+  String get printerBleChunkDelayLabel => 'مهلة حزمة BLE (مللي ثانية)';
+
+  @override
+  String get printerClassicChunkSizeLabel => 'حجم حزمة Classic';
+
+  @override
+  String get printerClassicChunkDelayLabel => 'مهلة حزمة Classic (مللي ثانية)';
+
+  @override
+  String get printerClassicTailDelayLabel => 'مهلة نهاية Classic (مللي ثانية)';
 
   @override
   String get printerRefreshClassicTooltip => 'تحديث قائمة Classic';
