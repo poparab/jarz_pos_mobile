@@ -22,6 +22,7 @@ class ExpenseFiltersBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final languageCode = Localizations.localeOf(context).languageCode;
     if (paymentSources.isEmpty) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -69,7 +70,7 @@ class ExpenseFiltersBar extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsetsDirectional.only(end: 8),
                   child: FilterChip(
-                    label: Text(source.label),
+                    label: Text(source.localizedLabel(languageCode)),
                     avatar: Icon(_iconForCategory(source.category), size: 18),
                     selected: activeFilters.contains(source.id),
                     onSelected: (_) => onToggle(source.id),

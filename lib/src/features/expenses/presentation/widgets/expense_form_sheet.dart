@@ -51,6 +51,7 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final languageCode = Localizations.localeOf(context).languageCode;
     final dateLabel = DateFormat('MMMM d, yyyy').format(_selectedDate);
     final submitLabel = widget.isManager ? 'Record expense' : 'Submit for approval';
     final hasOptions = widget.reasons.isNotEmpty && widget.paymentSources.isNotEmpty;
@@ -124,7 +125,7 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
                 items: widget.reasons
                     .map((reason) => DropdownMenuItem(
                           value: reason,
-                          child: Text(reason.label),
+                      child: Text(reason.localizedLabel(languageCode)),
                         ))
                     .toList(),
                 onChanged: (value) => setState(() => _selectedReason = value),
@@ -139,10 +140,13 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
                 key: ValueKey<String?>(_selectedSource?.account ?? _selectedSource?.label),
                 initialValue: _selectedSource,
                 items: widget.paymentSources
-                    .map((source) => DropdownMenuItem(
-                          value: source,
-                          child: Text('${source.label}${_extraLabel(source)}'),
-                        ))
+                    .map((source) {
+                      final sourceLabel = source.localizedLabel(languageCode);
+                      return DropdownMenuItem(
+                        value: source,
+                        child: Text('$sourceLabel${_extraLabel(source)}'),
+                      );
+                    })
                     .toList(),
                 onChanged: (value) => setState(() => _selectedSource = value),
                 decoration: const InputDecoration(

@@ -18,8 +18,11 @@ class ExpenseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final languageCode = Localizations.localeOf(context).languageCode;
     final dateFormat = DateFormat('MMM d, yyyy');
     final amountFormat = NumberFormat.currency(symbol: expense.currency ?? '', decimalDigits: 2);
+    final reasonLabel = expense.localizedReasonLabel(languageCode);
+    final paymentLabel = expense.localizedPaymentLabel(languageCode);
 
     final statusColor = _statusColor(expense, Theme.of(context));
     final statusIcon = _statusIcon(expense);
@@ -40,7 +43,7 @@ class ExpenseCard extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                expense.reasonLabel,
+                reasonLabel,
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
@@ -52,7 +55,7 @@ class ExpenseCard extends StatelessWidget {
           children: [
             const SizedBox(height: 4),
             Text(
-              'Pay from ${expense.paymentLabel}',
+              'Pay from $paymentLabel',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 4),
