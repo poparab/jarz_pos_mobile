@@ -154,9 +154,9 @@ class ReceiptCanvasRenderer {
 
     // ── Section 2: Logo ──────────────────────────────────────────────────────
     if (logo != null) {
-      const maxLogoH = 80.0;
+      const maxLogoH = 130.0;
       final scale = maxLogoH / logo.height;
-      final drawW = (logo.width * scale).clamp(0.0, _receiptW * 0.6);
+      final drawW = (logo.width * scale).clamp(0.0, _receiptW * 0.75);
       final drawH = (logo.height * scale).clamp(0.0, maxLogoH);
       final logoX = (_receiptW - drawW) / 2;
       ops.add(_ImageOp(image: logo, x: logoX, y: y, w: drawW, h: drawH));
@@ -171,10 +171,7 @@ class ReceiptCanvasRenderer {
       );
     }
 
-    // ── Section 4: Website ───────────────────────────────────────────────────
-    if (website.isNotEmpty) {
-      placeTp(tp(website, _receiptW - 2 * _padX, fontSize: 20, align: TextAlign.center), _padX);
-    }
+    // ── Section 4: Website (removed from header — shown in footer only) ───────────
     gap(_sectionGap);
     hline();
     gap(_sectionGap);
@@ -200,25 +197,25 @@ class ReceiptCanvasRenderer {
     }
 
     // Left column: Delivery Address
-    addLeft(tp('Delivery Address', _colW, bold: true, fontSize: 36));
-    if (inv.customer.isNotEmpty) addLeft(tp(inv.customer, _colW, fontSize: 18));
+    addLeft(tp('Delivery Address', _colW, bold: true, fontSize: 30));
+    if (inv.customer.isNotEmpty) addLeft(tp(inv.customer, _colW, fontSize: 24));
     if ((inv.customerAddress ?? '').isNotEmpty) {
-      addLeft(tp(inv.customerAddress!, _colW, fontSize: 18));
+      addLeft(tp(inv.customerAddress!, _colW, fontSize: 24));
     }
     if ((inv.customerPhone ?? '').isNotEmpty) {
-      addLeft(tp(inv.customerPhone!, _colW, fontSize: 18));
+      addLeft(tp(inv.customerPhone!, _colW, fontSize: 24));
     }
     if ((inv.deliveryDateFormatted ?? '').isNotEmpty) {
-      addLeft(tp('Delivery Date:', _colW, bold: true, fontSize: 18));
-      addLeft(tp(inv.deliveryDateFormatted!, _colW, fontSize: 18));
+      addLeft(tp('Delivery Date:', _colW, bold: true, fontSize: 24));
+      addLeft(tp(inv.deliveryDateFormatted!, _colW, fontSize: 24));
     } else if (inv.deliveryDateTime != null) {
       // Fallback: format the delivery datetime
       final dt = inv.deliveryDateTime!;
       const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
       const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
       final formatted = '${days[dt.weekday - 1]}, ${months[dt.month - 1]} ${dt.day.toString().padLeft(2, '0')}, ${dt.year}';
-      addLeft(tp('Delivery Date:', _colW, bold: true, fontSize: 18));
-      addLeft(tp(formatted, _colW, fontSize: 18));
+      addLeft(tp('Delivery Date:', _colW, bold: true, fontSize: 24));
+      addLeft(tp(formatted, _colW, fontSize: 24));
     }
 
     // Right column: Order details
@@ -353,13 +350,13 @@ class ReceiptCanvasRenderer {
     hline();
     gap(_lineGap);
     if (footer.isNotEmpty) {
-      placeTp(tp(footer, _receiptW - 2 * _padX, bold: true, fontSize: 20, align: TextAlign.center), _padX);
+      placeCenter(tp(footer, _receiptW, bold: true, fontSize: 20, align: TextAlign.center), 0, _receiptW);
     }
     if (phone.isNotEmpty) {
-      placeTp(tp('Call us $phone', _receiptW - 2 * _padX, fontSize: 20, align: TextAlign.center), _padX);
+      placeCenter(tp('Call us $phone', _receiptW, fontSize: 20, align: TextAlign.center), 0, _receiptW);
     }
     if (website.isNotEmpty) {
-      placeTp(tp(website, _receiptW - 2 * _padX, fontSize: 20, align: TextAlign.center), _padX);
+      placeCenter(tp(website, _receiptW, fontSize: 20, align: TextAlign.center), 0, _receiptW);
     }
     gap(24); // bottom padding before cut
 
