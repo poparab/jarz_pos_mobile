@@ -624,7 +624,7 @@ class _TerritoryDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     if (territories.isEmpty) return const SizedBox.shrink();
     return DropdownButtonFormField<String>(
-      value: territories.any((t) => t['name']?.toString() == value) ? value : null,
+      initialValue: territories.any((t) => t['name']?.toString() == value) ? value : null,
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
