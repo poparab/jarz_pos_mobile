@@ -129,6 +129,28 @@ Future<void> _enterItemCount(
   await tester.pumpAndSettle();
 }
 
+Future<void> _submitItemCount(
+  WidgetTester tester, {
+  required String itemCode,
+}) async {
+  final submitLabel = find.descendant(
+    of: find.byKey(ValueKey(itemCode)),
+    matching: find.text('Submit'),
+  );
+  final submitButton = find.ancestor(
+    of: submitLabel,
+    matching: find.byWidgetPredicate((widget) => widget is ButtonStyleButton),
+  );
+  await tester.tap(submitButton);
+  await tester.pumpAndSettle();
+}
+
+Finder _progressText(String value) {
+  return find.byWidgetPredicate(
+    (widget) => widget is Text && (widget.data?.contains(value) ?? false),
+  );
+}
+
 Future<void> _openReview(WidgetTester tester) async {
   await tester.tap(find.byIcon(Icons.visibility_outlined));
   await tester.pumpAndSettle();
@@ -228,15 +250,19 @@ void main() {
           quantity: '9',
         );
 
-        expect(find.text('Counted 1 / 2'), findsOneWidget);
+        expect(_progressText('0 / 2'), findsOneWidget);
+
+        await _submitItemCount(
+          tester,
+          itemCode: 'ITEM-001',
+        );
+
+        expect(_progressText('1 / 2'), findsOneWidget);
 
         await _openReview(tester);
 
         expect(find.text('Back to counting'), findsOneWidget);
-        expect(
-          find.text('Count every loaded item before submitting (1 remaining)'),
-          findsOneWidget,
-        );
+        expect(find.textContaining('Missing items'), findsWidgets);
 
         final submitButton = _buttonForIcon(tester, Icons.save_outlined);
         expect(submitButton.onPressed, isNull);
@@ -280,6 +306,10 @@ void main() {
           tester,
           itemCode: 'ITEM-001',
           quantity: '9',
+        );
+        await _submitItemCount(
+          tester,
+          itemCode: 'ITEM-001',
         );
         await _openReview(tester);
 
@@ -342,10 +372,18 @@ void main() {
           itemCode: 'ITEM-001',
           quantity: '9',
         );
+        await _submitItemCount(
+          tester,
+          itemCode: 'ITEM-001',
+        );
         await _enterItemCount(
           tester,
           itemCode: 'ITEM-002',
           quantity: '4',
+        );
+        await _submitItemCount(
+          tester,
+          itemCode: 'ITEM-002',
         );
         await _openReview(tester);
 
@@ -367,13 +405,13 @@ void main() {
         );
         expect(find.text('Submitted: SR-TEST'), findsOneWidget);
         expect(find.text('Start count'), findsOneWidget);
-        expect(find.text('Counted 0 / 2'), findsOneWidget);
+        expect(_progressText('0 / 2'), findsOneWidget);
         expect(find.text('Back to counting'), findsNothing);
 
         await _startCount(tester);
 
         expect(service.requestedWarehouses, hasLength(2));
-        expect(find.text('Counted 0 / 2'), findsOneWidget);
+        expect(_progressText('0 / 2'), findsOneWidget);
         expect(find.text('Back to setup'), findsOneWidget);
         expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
         expect(find.text('Counted'), findsNothing);

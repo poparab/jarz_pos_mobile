@@ -210,7 +210,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     return options.isNotEmpty ? options.first : null;
   }
 
-  void _updateItemCount(Map<String, dynamic> item, String rawValue) {
+  void _submitItemCount(Map<String, dynamic> item, String rawValue) {
     final itemCode = item['item_code'] as String?;
     if (itemCode == null) {
       return;
@@ -218,7 +218,6 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     final trimmed = rawValue.trim();
     final wasCounted = _confirmed.contains(itemCode);
     if (trimmed.isEmpty) {
-      _clearItemEntry(itemCode, refreshUi: wasCounted);
       return;
     }
     final parsed = double.tryParse(trimmed);
@@ -228,26 +227,6 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     final selectedUom = _selectedUomForItem(item);
     _counts[itemCode] = {
       'qty': _sanitizeQty(parsed),
-      if (selectedUom != null) 'uom': selectedUom,
-    };
-    _confirmed.add(itemCode);
-    _saveCache();
-    if (mounted && !wasCounted) {
-      setState(() {});
-    }
-  }
-
-  void _adjustItemCount(Map<String, dynamic> item, double delta) {
-    final itemCode = item['item_code'] as String?;
-    if (itemCode == null) {
-      return;
-    }
-    final currentQty = _confirmed.contains(itemCode) ? _qtyForItem(itemCode) : 0.0;
-    final nextQty = _sanitizeQty(currentQty + delta);
-    final selectedUom = _selectedUomForItem(item);
-    final wasCounted = _confirmed.contains(itemCode);
-    _counts[itemCode] = {
-      'qty': nextQty,
       if (selectedUom != null) 'uom': selectedUom,
     };
     _confirmed.add(itemCode);
@@ -849,9 +828,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                       selectedUom: _selectedUomForItem(item),
                       uomOptions: _uomOptionsForItem(item),
                       isCounted: _confirmed.contains(itemCode),
-                      onQuantityChanged: (value) => _updateItemCount(item, value),
-                      onDecrement: () => _adjustItemCount(item, -1),
-                      onIncrement: () => _adjustItemCount(item, 1),
+                      onSubmitQuantity: (value) => _submitItemCount(item, value),
                       onUomChanged: (value) => _updateItemUom(item, value),
                       onClear: () => _clearItemEntry(itemCode),
                     ),
@@ -1254,9 +1231,7 @@ class _BlindEntryRow extends StatefulWidget {
     required this.selectedUom,
     required this.uomOptions,
     required this.isCounted,
-    required this.onQuantityChanged,
-    required this.onDecrement,
-    required this.onIncrement,
+    required this.onSubmitQuantity,
     required this.onUomChanged,
     required this.onClear,
   });
@@ -1267,9 +1242,7 @@ class _BlindEntryRow extends StatefulWidget {
   final String? selectedUom;
   final List<String> uomOptions;
   final bool isCounted;
-  final ValueChanged<String> onQuantityChanged;
-  final VoidCallback onDecrement;
-  final VoidCallback onIncrement;
+  final ValueChanged<String> onSubmitQuantity;
   final ValueChanged<String?> onUomChanged;
   final VoidCallback onClear;
 
@@ -1279,6 +1252,7 @@ class _BlindEntryRow extends StatefulWidget {
 
 class _BlindEntryRowState extends State<_BlindEntryRow> {
   late final TextEditingController _controller;
+  bool _hasLocalDraft = false;
 
   @override
   void initState() {
@@ -1290,17 +1264,21 @@ class _BlindEntryRowState extends State<_BlindEntryRow> {
   void didUpdateWidget(covariant _BlindEntryRow oldWidget) {
     super.didUpdateWidget(oldWidget);
     final nextText = _textFor(widget.quantity);
-    final currentParsed = double.tryParse(_controller.text);
-    final sameNumericValue = currentParsed != null &&
-        widget.quantity != null &&
-        (currentParsed - widget.quantity!).abs() < 1e-9;
-    if (_controller.text == nextText || sameNumericValue) {
+    final quantityChanged = widget.quantity != oldWidget.quantity;
+    if (_hasLocalDraft && !quantityChanged) {
+      return;
+    }
+    if (_controller.text == nextText) {
+      if (quantityChanged) {
+        _hasLocalDraft = false;
+      }
       return;
     }
     _controller.value = TextEditingValue(
       text: nextText,
       selection: TextSelection.collapsed(offset: nextText.length),
     );
+    _hasLocalDraft = false;
   }
 
   @override
@@ -1317,13 +1295,47 @@ class _BlindEntryRowState extends State<_BlindEntryRow> {
     return text.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 
+  bool get _canSubmit => _controller.text.trim().isNotEmpty;
+
+  bool get _hasPendingChanges => _controller.text.trim() != _textFor(widget.quantity);
+
+  void _setLocalText(String text) {
+    _controller.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+    setState(() => _hasLocalDraft = true);
+  }
+
+  void _adjustLocalCount(double delta) {
+    final current = double.tryParse(_controller.text) ?? 0.0;
+    final next = (current + delta).clamp(0.0, double.infinity);
+    _setLocalText(_textFor(next));
+  }
+
+  void _submitCurrentValue() {
+    final trimmed = _controller.text.trim();
+    if (trimmed.isEmpty) {
+      return;
+    }
+    widget.onSubmitQuantity(trimmed);
+    setState(() => _hasLocalDraft = false);
+  }
+
+  void _clearCurrentValue() {
+    _controller.clear();
+    setState(() => _hasLocalDraft = false);
+    widget.onClear();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final statusColor = widget.isCounted
+    final isCommitted = widget.isCounted && !_hasPendingChanges;
+    final statusColor = isCommitted
         ? Theme.of(context).colorScheme.primaryContainer
         : Theme.of(context).colorScheme.surfaceContainerHighest;
-    final statusText = widget.isCounted
+    final statusText = isCommitted
         ? l10n.inventoryCountCountedStatus
         : l10n.inventoryCountPendingStatus;
 
@@ -1362,16 +1374,7 @@ class _BlindEntryRowState extends State<_BlindEntryRow> {
                 IconButton(
                   tooltip: l10n.inventoryCountDecrease,
                   icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: () {
-                    final current = double.tryParse(_controller.text) ?? 0.0;
-                    final next = current - 1 < 0 ? 0.0 : current - 1;
-                    final nextText = _textFor(next);
-                    _controller.value = TextEditingValue(
-                      text: nextText,
-                      selection: TextSelection.collapsed(offset: nextText.length),
-                    );
-                    widget.onDecrement();
-                  },
+                  onPressed: () => _adjustLocalCount(-1),
                 ),
                 SizedBox(
                   width: 140,
@@ -1382,22 +1385,14 @@ class _BlindEntryRowState extends State<_BlindEntryRow> {
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
                     ],
                     decoration: InputDecoration(labelText: l10n.inventoryCountCount),
-                    onChanged: widget.onQuantityChanged,
+                    onChanged: (_) => setState(() => _hasLocalDraft = true),
+                    onSubmitted: (_) => _submitCurrentValue(),
                   ),
                 ),
                 IconButton(
                   tooltip: l10n.inventoryCountIncrease,
                   icon: const Icon(Icons.add_circle_outline),
-                  onPressed: () {
-                    final current = double.tryParse(_controller.text) ?? 0.0;
-                    final next = current + 1;
-                    final nextText = _textFor(next);
-                    _controller.value = TextEditingValue(
-                      text: nextText,
-                      selection: TextSelection.collapsed(offset: nextText.length),
-                    );
-                    widget.onIncrement();
-                  },
+                  onPressed: () => _adjustLocalCount(1),
                 ),
                 SizedBox(
                   width: 180,
@@ -1416,8 +1411,13 @@ class _BlindEntryRowState extends State<_BlindEntryRow> {
                     onChanged: widget.uomOptions.length <= 1 ? null : widget.onUomChanged,
                   ),
                 ),
+                FilledButton.icon(
+                  onPressed: _canSubmit ? _submitCurrentValue : null,
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: Text(l10n.commonSubmit),
+                ),
                 TextButton.icon(
-                  onPressed: widget.onClear,
+                  onPressed: _clearCurrentValue,
                   icon: const Icon(Icons.clear),
                   label: Text(l10n.inventoryCountClearEntry),
                 ),
