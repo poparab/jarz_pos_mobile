@@ -205,18 +205,6 @@ class ReceiptCanvasRenderer {
     if ((inv.customerPhone ?? '').isNotEmpty) {
       addLeft(tp(inv.customerPhone!, _colW, fontSize: 24));
     }
-    if ((inv.deliveryDateFormatted ?? '').isNotEmpty) {
-      addLeft(tp('Delivery Date:', _colW, bold: true, fontSize: 24));
-      addLeft(tp(inv.deliveryDateFormatted!, _colW, fontSize: 24));
-    } else if (inv.deliveryDateTime != null) {
-      // Fallback: format the delivery datetime
-      final dt = inv.deliveryDateTime!;
-      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-      final formatted = '${days[dt.weekday - 1]}, ${months[dt.month - 1]} ${dt.day.toString().padLeft(2, '0')}, ${dt.year}';
-      addLeft(tp('Delivery Date:', _colW, bold: true, fontSize: 24));
-      addLeft(tp(formatted, _colW, fontSize: 24));
-    }
 
     // Right column: Order details
     if ((inv.orderNo ?? '').isNotEmpty) {
@@ -227,6 +215,15 @@ class ReceiptCanvasRenderer {
     }
     if ((inv.paymentMethod ?? '').isNotEmpty) {
       addRight(_richTp('Payment method: ', inv.paymentMethod!, _colW));
+    }
+    if ((inv.deliveryDateFormatted ?? '').isNotEmpty) {
+      addRight(_richTp('Delivery Date: ', inv.deliveryDateFormatted!, _colW));
+    } else if (inv.deliveryDateTime != null) {
+      final dt = inv.deliveryDateTime!;
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      final formatted = '${days[dt.weekday - 1]}, ${months[dt.month - 1]} ${dt.day.toString().padLeft(2, '0')}, ${dt.year}';
+      addRight(_richTp('Delivery Date: ', formatted, _colW));
     }
     if ((inv.deliveryTimeRange ?? '').isNotEmpty) {
       addRight(_richTp('Delivery Time: ', inv.deliveryTimeRange!, _colW));
@@ -275,12 +272,15 @@ class ReceiptCanvasRenderer {
     for (final item in inv.items) {
       final rowY = y;
       if (!item.showPricing) {
-        // Bundle child row: full-width name, no pricing columns
+        // Bundle child row: name in product column + qty in qty column
         final indent = '  ' * item.indentLevel;
         final bullet = item.indentLevel > 0 ? '- ' : '';
-        final nameTp = tp('$indent$bullet${item.name}', _receiptW - 2 * _padX, bold: item.bold, fontSize: 20);
-        ops.add(_TpOp(tp: nameTp, x: _padX, y: rowY));
-        y = rowY + nameTp.height + _lineGap;
+        final nameTp = tp('$indent$bullet${item.name}', _tProdW, bold: item.bold, fontSize: 20);
+        final qtyTp = tp(_fmtQty(item.qty), _tQtyW, fontSize: 20, align: TextAlign.center);
+        final rowH = (nameTp.height > qtyTp.height ? nameTp.height : qtyTp.height) + _lineGap;
+        ops.add(_TpOp(tp: nameTp, x: _tProdX, y: rowY));
+        placeCenter(qtyTp, _tQtyX, _tQtyW, advance: false);
+        y = rowY + rowH;
         continue;
       }
 
@@ -333,17 +333,17 @@ class ReceiptCanvasRenderer {
       gap(_lineGap);
     }
 
-    // Grand total (larger, bold)
+    // Grand total (larger, bold) — value spans from label to right edge, never wraps
     final totalLabelTp = tp('Total', totalsLabelW, bold: true, fontSize: 30);
-    final totalValTp = tp(_fmtAmt(grand), totalsValW, bold: true, fontSize: 30, align: TextAlign.right);
+    final totalValTp = tp(_fmtAmt(grand), _receiptW - totalsLabelX - _padX, bold: true, fontSize: 30, align: TextAlign.right);
     ops.add(_TpOp(tp: totalLabelTp, x: totalsLabelX, y: y));
-    ops.add(_TpOp(tp: totalValTp, x: (totalsValX + totalsValW - totalValTp.width).clamp(totalsValX, totalsValX + totalsValW), y: y));
+    ops.add(_TpOp(tp: totalValTp, x: _receiptW - _padX - totalValTp.width, y: y));
     y += totalLabelTp.height + _lineGap;
 
-    // Status
+    // Status — left-aligned
     final isPaid = inv.outstanding <= 0.0001;
-    final statusTp = tp(isPaid ? 'Status: PAID' : 'Status: UNPAID', _receiptW - 2 * _padX, fontSize: 20);
-    ops.add(_TpOp(tp: statusTp, x: totalsLabelX, y: y));
+    final statusTp = tp(isPaid ? 'Status: PAID' : 'Status: UNPAID', totalsLabelW * 2, fontSize: 20);
+    ops.add(_TpOp(tp: statusTp, x: _padX, y: y));
     y += statusTp.height + _sectionGap;
 
     // ── Section 8: Footer ─────────────────────────────────────────────────────

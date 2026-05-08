@@ -260,15 +260,21 @@ String? _formatPostingDate(String? s) {
   return '$day/$month/${d.year}';
 }
 
+String _to12h(DateTime dt) {
+  final h = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+  final m = dt.minute.toString().padLeft(2, '0');
+  final period = dt.hour < 12 ? 'AM' : 'PM';
+  return '$h:$m $period';
+}
+
 String? _buildDeliveryTimeRange(InvoiceCard card) {
   final start = card.deliveryStartDateTime;
   if (start == null) return null;
   final dur = card.deliveryDurationParsed;
-  final startStr = '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}';
+  final startStr = _to12h(start);
   if (dur == null || dur.inMinutes == 0) return startStr;
   final end = start.add(dur);
-  final endStr = '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}';
-  return '$startStr - $endStr';
+  return '$startStr - ${_to12h(end)}';
 }
 
 String? _buildDeliveryDateFormatted(InvoiceCard card) {

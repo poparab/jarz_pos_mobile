@@ -7,14 +7,18 @@ import "../../../core/utils/logger.dart";
 import '../../../core/network/frappe_error_message.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/constants/business_constants.dart';
+import '../../../core/repositories/customer_address_repository.dart';
 
 /// Service for interacting with Kanban-related API endpoints
 class KanbanService {
   // Replaced ApiClient with shared Dio (has SessionInterceptor -> cookies)
   final Dio _dio;
   final Logger _logger = Logger("KanbanService");
+  late final CustomerAddressRepository _addressRepo;
 
-  KanbanService(this._dio);
+  KanbanService(this._dio) {
+    _addressRepo = CustomerAddressRepository(_dio);
+  }
 
   String _friendlyMessage(dynamic payload, {required String fallback}) {
     return extractFrappeErrorMessage(payload, fallback: fallback);
@@ -702,6 +706,40 @@ class KanbanService {
       throw _friendlyException(e, fallback: 'Failed to save shipping address');
     }
   }
+
+  Future<Map<String, dynamic>> updateCustomerShippingAddress({
+    required String customer,
+    required String addressName,
+    String? addressLine1,
+    String? addressLine2,
+    String? city,
+    String? phone,
+    String? pincode,
+  }) =>
+      _addressRepo.updateAddress(
+        customer: customer,
+        addressName: addressName,
+        addressLine1: addressLine1,
+        addressLine2: addressLine2,
+        city: city,
+        phone: phone,
+        pincode: pincode,
+      );
+
+  Future<Map<String, dynamic>> deleteCustomerShippingAddress({
+    required String customer,
+    required String addressName,
+  }) =>
+      _addressRepo.deleteAddress(customer: customer, addressName: addressName);
+
+  Future<Map<String, dynamic>> changeInvoiceShippingAddress({
+    required String invoiceName,
+    required String addressName,
+  }) =>
+      _addressRepo.changeInvoiceShippingAddress(
+        invoiceName: invoiceName,
+        addressName: addressName,
+      );
 
   /// Transfer invoice to a different POS profile
   Future<void> transferInvoice({

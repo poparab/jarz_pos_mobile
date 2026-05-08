@@ -2335,6 +2335,48 @@ class AppLocalizationsEn extends AppLocalizations {
       'Failed to load shipping addresses.';
 
   @override
+  String get customerShippingAddressEditTab => 'Edit Address';
+
+  @override
+  String get customerShippingAddressEditTitle => 'Edit Shipping Address';
+
+  @override
+  String get customerShippingAddressDeleteConfirm =>
+      'Delete this address? This cannot be undone.';
+
+  @override
+  String get customerShippingAddressDeleteSuccess => 'Address deleted.';
+
+  @override
+  String get customerShippingAddressDeleteFailed => 'Failed to delete address.';
+
+  @override
+  String get customerShippingAddressUpdateSuccess => 'Address updated.';
+
+  @override
+  String get customerShippingAddressUpdateFailed => 'Failed to update address.';
+
+  @override
+  String get customerShippingAddressLine1Label => 'Address Line 1';
+
+  @override
+  String get customerShippingAddressLine2Label => 'Address Line 2 (optional)';
+
+  @override
+  String get customerShippingAddressTerritoryLabel => 'Territory';
+
+  @override
+  String get customerShippingAddressPincodeLabel => 'Postal Code (optional)';
+
+  @override
+  String get customerShippingAddressTerritoryRequired =>
+      'Please select a territory.';
+
+  @override
+  String get customerShippingAddressLine1Required =>
+      'Address line 1 is required.';
+
+  @override
   String get posAmendmentDraftTitle => 'Invoice amendment draft';
 
   @override
@@ -2394,6 +2436,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invoiceAddressUpdated => 'Customer address updated successfully';
+
+  @override
+  String invoiceAddressUpdatedWithShipping(
+    Object oldExpense,
+    Object newExpense,
+  ) {
+    return 'Address updated. Shipping: $oldExpense → $newExpense EGP';
+  }
 
   @override
   String get invoiceAddressUpdateFailed => 'Failed to update address';

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/timing_config.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/widgets/customer_shipping_address_dialog.dart';
+import '../../../../core/repositories/customer_address_repository.dart';
 import '../../data/repositories/pos_repository.dart';
 import '../../state/pos_notifier.dart';
 // providers file not present; we use repository providers directly
@@ -114,11 +115,16 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
     }
 
     final repository = ref.read(posRepositoryProvider);
+    final addressRepo = ref.read(customerAddressRepositoryProvider);
     Map<String, dynamic> addressBook;
+    List<Map<String, dynamic>> territories;
     try {
-      addressBook = await repository.getCustomerShippingAddresses(
-        customer: customerName,
-      );
+      final results = await Future.wait([
+        repository.getCustomerShippingAddresses(customer: customerName),
+        addressRepo.getTerritories(),
+      ]);
+      addressBook = results[0] as Map<String, dynamic>;
+      territories = (results[1] as List).cast<Map<String, dynamic>>();
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -138,12 +144,15 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
       final selection = await CustomerShippingAddressDialog.show(
         context,
         customerName: customer['customer_name']?.toString() ?? customerName,
+        customer: customerName,
         addresses: addresses,
+        territories: territories,
         initialSelectedAddressName:
             addressBook['selected_address_name']?.toString() ?? '',
         initialPhone: addressBook['default_phone']?.toString() ??
             customer['mobile_no']?.toString() ??
             '',
+        repository: addressRepo,
       );
       if (selection == null || !mounted) {
         return;

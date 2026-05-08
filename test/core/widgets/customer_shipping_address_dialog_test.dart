@@ -1,7 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
+import 'package:jarz_pos/src/core/repositories/customer_address_repository.dart';
 import 'package:jarz_pos/src/core/widgets/customer_shipping_address_dialog.dart';
 
 Future<void> _pumpHost(WidgetTester tester, Future<Map<String, String>?>? Function() openDialog) async {
@@ -40,6 +42,9 @@ void main() {
         dialogFuture = CustomerShippingAddressDialog.show(
           tester.element(find.text('open')),
           customerName: 'Jane Doe',
+          customer: 'jane-doe',
+          territories: const [],
+          repository: CustomerAddressRepository(Dio()),
           addresses: const [
             {
               'name': 'ADDR-1',
@@ -81,6 +86,9 @@ void main() {
         dialogFuture = CustomerShippingAddressDialog.show(
           tester.element(find.text('open')),
           customerName: 'Jane Doe',
+          customer: 'jane-doe',
+          territories: const [],
+          repository: CustomerAddressRepository(Dio()),
           addresses: const [],
           initialSelectedAddressName: '',
           initialPhone: '01001',

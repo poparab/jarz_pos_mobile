@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/business_constants.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../auth/state/login_notifier.dart';
 import '../models/shift_models.dart';
 import '../state/shift_notifier.dart';
 
@@ -425,10 +426,9 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
 
     if (!mounted) return;
     if (result != null) {
-      ref.invalidate(activeShiftProvider);
-      setState(() {
-        _endResult = result;
-      });
+      await ref.read(loginNotifierProvider.notifier).logout();
+      if (!mounted) return;
+      context.go(AppRoutes.login);
     }
   }
 }

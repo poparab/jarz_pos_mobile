@@ -29,6 +29,7 @@ import '../../pos/order_alert/data/order_alert_service.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/customer_shipping_address_dialog.dart';
+import '../../../core/repositories/customer_address_repository.dart';
 // Invoice card widget displaying a Sales Invoice within the Kanban board.
 
 class InvoiceCardWidget extends ConsumerStatefulWidget {
@@ -2352,12 +2353,20 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   /// Edit customer address dialog
   Future<void> _editCustomerAddress(BuildContext context) async {
     final service = ref.read(kanbanServiceProvider);
+    final addressRepo = ref.read(customerAddressRepositoryProvider);
+
     Map<String, dynamic> addressBook;
+    List<Map<String, dynamic>> territories;
     try {
-      addressBook = await service.getCustomerShippingAddresses(
-        customer: widget.invoice.customer,
-        invoice: widget.invoice.name,
-      );
+      final results = await Future.wait([
+        service.getCustomerShippingAddresses(
+          customer: widget.invoice.customer,
+          invoice: widget.invoice.name,
+        ),
+        addressRepo.getTerritories(),
+      ]);
+      addressBook = results[0] as Map<String, dynamic>;
+      territories = (results[1] as List).cast<Map<String, dynamic>>();
     } catch (e) {
       if (!context.mounted) return;
       final errorMessage = _formatErrorMessage(
@@ -2380,12 +2389,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final result = await CustomerShippingAddressDialog.show(
       context,
       customerName: widget.invoice.customerName,
+      customer: widget.invoice.customer,
       addresses: addresses,
+      territories: territories,
       initialSelectedAddressName:
           addressBook['selected_address_name']?.toString() ?? '',
       initialPhone: addressBook['default_phone']?.toString() ??
           widget.invoice.customerPhone ??
           '',
+      repository: addressRepo,
       title: context.l10n.invoiceEditAddress,
     );
 
@@ -2411,7 +2423,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     );
 
     try {
-      await service.saveCustomerShippingAddress(
+      // Step 1: Save/link the address (or create new) on the customer.
+      final saveResult = await service.saveCustomerShippingAddress(
         customer: widget.invoice.customer,
         phone: result['phone'] ?? '',
         invoice: widget.invoice.name,
@@ -2419,20 +2432,98 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         address: result['address'],
       );
 
-      messenger.clearSnackBars();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Text(context.l10n.invoiceAddressUpdated),
-            ],
+      // Step 2: If we have a resolved address_name, recompute shipping on the
+      // submitted invoice (territory change detection + expense update).
+      final resolvedAddressName =
+          (saveResult['address_name'] ?? result['address_name'])?.toString();
+
+      if (resolvedAddressName != null && resolvedAddressName.isNotEmpty) {
+        try {
+          final changeResult = await service.changeInvoiceShippingAddress(
+            invoiceName: widget.invoice.name,
+            addressName: resolvedAddressName,
+          );
+
+          messenger.clearSnackBars();
+
+          final territoryChanged = changeResult['territory_changed'] == true;
+          if (territoryChanged) {
+            final oldExpense =
+                (changeResult['old_expense'] ?? 0).toString();
+            final newExpense =
+                (changeResult['new_expense'] ?? 0).toString();
+            messenger.showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        context.l10n.invoiceAddressUpdatedWithShipping(
+                          oldExpense,
+                          newExpense,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.green[700],
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          } else {
+            messenger.showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Text(context.l10n.invoiceAddressUpdated),
+                  ],
+                ),
+                backgroundColor: Colors.green[600],
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        } catch (changeError) {
+          // changeInvoiceShippingAddress failed (e.g. mutation blocked).
+          messenger.clearSnackBars();
+          final errMsg = _formatErrorMessage(
+            changeError,
+            fallback: context.l10n.invoiceAddressUpdateFailed,
+          );
+          messenger.showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(errMsg)),
+                ],
+              ),
+              backgroundColor: Colors.red[600],
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
+      } else {
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Text(context.l10n.invoiceAddressUpdated),
+              ],
+            ),
+            backgroundColor: Colors.green[600],
+            duration: const Duration(seconds: 3),
           ),
-          backgroundColor: Colors.green[600],
-          duration: const Duration(seconds: 3),
-        ),
-      );
+        );
+      }
 
       await ref.read(kanbanProvider.notifier).refreshSingle(widget.invoice.name);
     } catch (e) {

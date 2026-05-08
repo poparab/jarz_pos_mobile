@@ -2332,6 +2332,46 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerShippingAddressLoadFailed => 'فشل تحميل عناوين الشحن.';
 
   @override
+  String get customerShippingAddressEditTab => 'تعديل العنوان';
+
+  @override
+  String get customerShippingAddressEditTitle => 'تعديل عنوان الشحن';
+
+  @override
+  String get customerShippingAddressDeleteConfirm =>
+      'حذف هذا العنوان؟ لا يمكن التراجع عن هذا.';
+
+  @override
+  String get customerShippingAddressDeleteSuccess => 'تم حذف العنوان.';
+
+  @override
+  String get customerShippingAddressDeleteFailed => 'فشل حذف العنوان.';
+
+  @override
+  String get customerShippingAddressUpdateSuccess => 'تم تحديث العنوان.';
+
+  @override
+  String get customerShippingAddressUpdateFailed => 'فشل تحديث العنوان.';
+
+  @override
+  String get customerShippingAddressLine1Label => 'سطر العنوان 1';
+
+  @override
+  String get customerShippingAddressLine2Label => 'سطر العنوان 2 (اختياري)';
+
+  @override
+  String get customerShippingAddressTerritoryLabel => 'المنطقة';
+
+  @override
+  String get customerShippingAddressPincodeLabel => 'الرمز البريدي (اختياري)';
+
+  @override
+  String get customerShippingAddressTerritoryRequired => 'يرجى اختيار المنطقة.';
+
+  @override
+  String get customerShippingAddressLine1Required => 'سطر العنوان 1 مطلوب.';
+
+  @override
   String get posAmendmentDraftTitle => 'مسودة تعديل الفاتورة';
 
   @override
@@ -2391,6 +2431,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invoiceAddressUpdated => 'تم تحديث عنوان العميل بنجاح';
+
+  @override
+  String invoiceAddressUpdatedWithShipping(
+    Object oldExpense,
+    Object newExpense,
+  ) {
+    return 'تم تحديث العنوان. الشحن: $oldExpense ← $newExpense ج.م';
+  }
 
   @override
   String get invoiceAddressUpdateFailed => 'فشل تحديث العنوان';

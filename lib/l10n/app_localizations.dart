@@ -4120,6 +4120,84 @@ abstract class AppLocalizations {
   /// **'Failed to load shipping addresses.'**
   String get customerShippingAddressLoadFailed;
 
+  /// No description provided for @customerShippingAddressEditTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Address'**
+  String get customerShippingAddressEditTab;
+
+  /// No description provided for @customerShippingAddressEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Shipping Address'**
+  String get customerShippingAddressEditTitle;
+
+  /// No description provided for @customerShippingAddressDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this address? This cannot be undone.'**
+  String get customerShippingAddressDeleteConfirm;
+
+  /// No description provided for @customerShippingAddressDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Address deleted.'**
+  String get customerShippingAddressDeleteSuccess;
+
+  /// No description provided for @customerShippingAddressDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete address.'**
+  String get customerShippingAddressDeleteFailed;
+
+  /// No description provided for @customerShippingAddressUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Address updated.'**
+  String get customerShippingAddressUpdateSuccess;
+
+  /// No description provided for @customerShippingAddressUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update address.'**
+  String get customerShippingAddressUpdateFailed;
+
+  /// No description provided for @customerShippingAddressLine1Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Address Line 1'**
+  String get customerShippingAddressLine1Label;
+
+  /// No description provided for @customerShippingAddressLine2Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Address Line 2 (optional)'**
+  String get customerShippingAddressLine2Label;
+
+  /// No description provided for @customerShippingAddressTerritoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Territory'**
+  String get customerShippingAddressTerritoryLabel;
+
+  /// No description provided for @customerShippingAddressPincodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Postal Code (optional)'**
+  String get customerShippingAddressPincodeLabel;
+
+  /// No description provided for @customerShippingAddressTerritoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a territory.'**
+  String get customerShippingAddressTerritoryRequired;
+
+  /// No description provided for @customerShippingAddressLine1Required.
+  ///
+  /// In en, this message translates to:
+  /// **'Address line 1 is required.'**
+  String get customerShippingAddressLine1Required;
+
   /// No description provided for @posAmendmentDraftTitle.
   ///
   /// In en, this message translates to:
@@ -4227,6 +4305,15 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Customer address updated successfully'**
   String get invoiceAddressUpdated;
+
+  /// No description provided for @invoiceAddressUpdatedWithShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'Address updated. Shipping: {oldExpense} → {newExpense} EGP'**
+  String invoiceAddressUpdatedWithShipping(
+    Object oldExpense,
+    Object newExpense,
+  );
 
   /// No description provided for @invoiceAddressUpdateFailed.
   ///
