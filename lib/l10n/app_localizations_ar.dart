@@ -888,6 +888,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get posCheckoutButton => 'إتمام الطلب';
 
   @override
+  String get posTerritoryMismatchTitle => 'عدم تطابق الفرع';
+
+  @override
+  String get posTerritoryMismatchBody => 'منطقة العميل مرتبطة بفرع POS مختلف.';
+
+  @override
+  String posTerritoryMismatchUseSelected(String profile) {
+    return 'الاستمرار بالفرع المحدد: $profile';
+  }
+
+  @override
+  String posTerritoryMismatchUseTerritory(String profile) {
+    return 'التحويل لفرع المنطقة: $profile';
+  }
+
+  @override
+  String posTerritoryMismatchNoTerritory(String profile) {
+    return 'لا يوجد فرع مرتبط بالمنطقة — الاستمرار بالفرع المحدد: $profile';
+  }
+
+  @override
+  String get posTerritoryMismatchCancel => 'إلغاء';
+
+  @override
+  String get posTerritoryMismatchConfirm => 'متابعة';
+
+  @override
   String get posAmendmentDraftButton => 'إرسال التعديل';
 
   @override

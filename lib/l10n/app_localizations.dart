@@ -1634,6 +1634,48 @@ abstract class AppLocalizations {
   /// **'Checkout'**
   String get posCheckoutButton;
 
+  /// No description provided for @posTerritoryMismatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Mismatch'**
+  String get posTerritoryMismatchTitle;
+
+  /// No description provided for @posTerritoryMismatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The customer\'\'s territory is mapped to a different POS profile.'**
+  String get posTerritoryMismatchBody;
+
+  /// No description provided for @posTerritoryMismatchUseSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep selected: {profile}'**
+  String posTerritoryMismatchUseSelected(String profile);
+
+  /// No description provided for @posTerritoryMismatchUseTerritory.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to territory profile: {profile}'**
+  String posTerritoryMismatchUseTerritory(String profile);
+
+  /// No description provided for @posTerritoryMismatchNoTerritory.
+  ///
+  /// In en, this message translates to:
+  /// **'No territory profile assigned - keep selected: {profile}'**
+  String posTerritoryMismatchNoTerritory(String profile);
+
+  /// No description provided for @posTerritoryMismatchCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get posTerritoryMismatchCancel;
+
+  /// No description provided for @posTerritoryMismatchConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Proceed'**
+  String get posTerritoryMismatchConfirm;
+
   /// No description provided for @posAmendmentDraftButton.
   ///
   /// In en, this message translates to:

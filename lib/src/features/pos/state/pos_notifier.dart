@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 
+import '../data/models/draft_cart.dart';
 import '../data/models/pos_cart_item.dart';
+import '../data/repositories/draft_cart_repository.dart';
 import '../data/repositories/pos_repository.dart';
 import '../domain/models/delivery_slot.dart';
 
@@ -22,6 +27,14 @@ class PosState {
   final bool isPickup;
   final bool isAmendmentDraft;
   final String? amendmentSourceInvoiceId;
+  // ── Draft (multi-cart) state ───────────────────────────────────────
+  /// All persisted draft carts (summaries only, sorted newest-first).
+  final List<DraftCartSummary> drafts;
+  /// The draft id currently loaded into the active cart, or null for an
+  /// unsaved "new" cart.
+  final String? currentDraftId;
+  /// True when the active cart has changes not yet persisted to Hive.
+  final bool draftDirty;
 
   PosState({
     this.profiles = const [],
@@ -38,6 +51,9 @@ class PosState {
     this.isPickup = false,
     this.isAmendmentDraft = false,
     this.amendmentSourceInvoiceId,
+    this.drafts = const [],
+    this.currentDraftId,
+    this.draftDirty = false,
   });
 
   PosState copyWith({
@@ -61,6 +77,11 @@ class PosState {
     bool? isAmendmentDraft,
     String? amendmentSourceInvoiceId,
     bool clearAmendmentSourceInvoiceId = false,
+    // Draft fields
+    List<DraftCartSummary>? drafts,
+    String? currentDraftId,
+    bool clearCurrentDraftId = false,
+    bool? draftDirty,
   }) {
     return PosState(
       profiles: profiles ?? this.profiles,
@@ -87,6 +108,9 @@ class PosState {
       amendmentSourceInvoiceId: clearAmendmentSourceInvoiceId
           ? null
           : (amendmentSourceInvoiceId ?? this.amendmentSourceInvoiceId),
+      drafts: drafts ?? this.drafts,
+      currentDraftId: clearCurrentDraftId ? null : (currentDraftId ?? this.currentDraftId),
+      draftDirty: draftDirty ?? this.draftDirty,
     );
   }
 
@@ -134,10 +158,182 @@ class PosState {
 }
 
 class PosNotifier extends StateNotifier<PosState> {
-  PosNotifier(this._repository) : super(PosState());
+  PosNotifier(this._repository, this._draftRepo) : super(PosState()) {
+    _hydrateLocalDrafts();
+  }
 
   final PosRepository _repository;
+  final DraftCartRepository _draftRepo;
   bool _isPrefetchingSlots = false; // Guard against concurrent prefetch
+
+  // ── Draft auto-save debounce ──────────────────────────────────────────
+  static const _kAutoSaveDebounce = Duration(milliseconds: 400);
+  Timer? _autoSaveTimer;
+
+  @override
+  void dispose() {
+    _autoSaveTimer?.cancel();
+    super.dispose();
+  }
+
+  // ── Draft: hydration from Hive ────────────────────────────────────────
+  Future<void> _hydrateLocalDrafts() async {
+    try {
+      final drafts = await _draftRepo.loadAll();
+      state = state.copyWith(
+        drafts: drafts.map(DraftCartSummary.from).toList(),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ PosNotifier: failed to hydrate drafts: $e');
+      }
+    }
+  }
+
+  // ── Draft: trigger debounced auto-save ───────────────────────────────
+  /// Schedule an auto-save of the current cart.
+  /// No-op when in amendment mode or cart is empty & no id yet.
+  void _autoSaveDebounced() {
+    if (state.isAmendmentDraft) return;
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = Timer(_kAutoSaveDebounce, _persistCurrentCart);
+  }
+
+  Future<void> _persistCurrentCart() async {
+    if (state.isAmendmentDraft) return;
+    final cartItems = state.cartItems;
+    // Don't create a draft for a completely empty cart with no id yet.
+    if (cartItems.isEmpty && state.currentDraftId == null) return;
+
+    final now = DateTime.now();
+    final id = state.currentDraftId ?? const Uuid().v4();
+    final label = DraftCart.buildLabel(
+      customer: state.selectedCustomer,
+      cartItems: cartItems,
+      at: now,
+    );
+    final draft = DraftCart(
+      id: id,
+      label: label,
+      cartItems: List<Map<String, dynamic>>.from(cartItems),
+      customer: state.selectedCustomer,
+      salesPartner: state.selectedSalesPartner,
+      isPickup: state.isPickup,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    try {
+      await _draftRepo.upsert(draft);
+      final allDrafts = await _draftRepo.loadAll();
+      state = state.copyWith(
+        currentDraftId: id,
+        drafts: allDrafts.map(DraftCartSummary.from).toList(),
+        draftDirty: false,
+      );
+    } on DraftLimitReachedException {
+      // Surface to the caller via a state error so the UI can show a snackbar.
+      state = state.copyWith(
+        error: 'draft_limit_reached',
+        clearError: false,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ PosNotifier: auto-save failed: $e');
+      }
+    }
+  }
+
+  // ── Draft: public API ─────────────────────────────────────────────────
+
+  /// Switch the active cart to a new empty cart (unsaved).
+  /// Auto-saves the current cart first if there are unsaved changes.
+  void newDraft() {
+    if (state.draftDirty) {
+      _autoSaveTimer?.cancel();
+      _persistCurrentCart();
+    }
+    state = state.copyWith(
+      cartItems: const [],
+      clearSelectedCustomer: true,
+      clearSelectedDeliverySlot: true,
+      clearSelectedSalesPartner: true,
+      clearDeliverySlots: true,
+      isPickup: false,
+      clearCurrentDraftId: true,
+      draftDirty: false,
+      isAmendmentDraft: false,
+      clearAmendmentSourceInvoiceId: true,
+    );
+  }
+
+  /// Load a saved draft by [id] into the active cart.
+  /// Auto-saves the current cart first if there are unsaved changes.
+  Future<void> switchDraft(String id) async {
+    if (state.currentDraftId == id) return;
+    // Persist current cart before switching away
+    if (state.draftDirty) {
+      _autoSaveTimer?.cancel();
+      await _persistCurrentCart();
+    }
+    try {
+      final allDrafts = await _draftRepo.loadAll();
+      final target = allDrafts.cast<DraftCart?>().firstWhere(
+        (d) => d?.id == id,
+        orElse: () => null,
+      );
+      if (target == null) return;
+      state = state.copyWith(
+        cartItems: List<Map<String, dynamic>>.from(target.cartItems),
+        selectedCustomer: target.customer,
+        clearSelectedCustomer: target.customer == null,
+        selectedSalesPartner: target.salesPartner,
+        clearSelectedSalesPartner: target.salesPartner == null,
+        isPickup: target.isPickup,
+        // Delivery slot is intentionally cleared on load; must be re-picked at checkout.
+        clearSelectedDeliverySlot: true,
+        clearDeliverySlots: true,
+        currentDraftId: id,
+        draftDirty: false,
+        isAmendmentDraft: false,
+        clearAmendmentSourceInvoiceId: true,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ PosNotifier: switchDraft failed: $e');
+      }
+    }
+  }
+
+  /// Delete a draft by [id].
+  /// If it is the currently active draft, switches to a new empty cart.
+  Future<void> deleteDraft(String id) async {
+    try {
+      await _draftRepo.delete(id);
+      final allDrafts = await _draftRepo.loadAll();
+      final wasActive = state.currentDraftId == id;
+      state = state.copyWith(
+        drafts: allDrafts.map(DraftCartSummary.from).toList(),
+        clearCurrentDraftId: wasActive,
+      );
+      if (wasActive) {
+        state = state.copyWith(
+          cartItems: const [],
+          clearSelectedCustomer: true,
+          clearSelectedDeliverySlot: true,
+          clearSelectedSalesPartner: true,
+          clearDeliverySlots: true,
+          isPickup: false,
+          draftDirty: false,
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ PosNotifier: deleteDraft failed: $e');
+      }
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────
 
   Future<void> refreshCatalog({bool showLoading = false}) async {
     final profileName = state.selectedProfile?['name']?.toString();
@@ -315,7 +511,8 @@ class PosNotifier extends StateNotifier<PosState> {
       }
     }
 
-    state = state.copyWith(cartItems: updatedCart);
+    state = state.copyWith(cartItems: updatedCart, draftDirty: true);
+    _autoSaveDebounced();
     return true;
   }
 
@@ -347,7 +544,8 @@ class PosNotifier extends StateNotifier<PosState> {
     }
 
     final updatedCart = [...state.cartItems, bundleCartItem];
-    state = state.copyWith(cartItems: updatedCart);
+    state = state.copyWith(cartItems: updatedCart, draftDirty: true);
+    _autoSaveDebounced();
   }
 
   void updateBundleInCart(
@@ -359,7 +557,8 @@ class PosNotifier extends StateNotifier<PosState> {
 
     if (bundleItem['type'] == 'bundle') {
       bundleItem['bundle_details']['selected_items'] = newSelectedItems;
-      state = state.copyWith(cartItems: updatedCart);
+      state = state.copyWith(cartItems: updatedCart, draftDirty: true);
+      _autoSaveDebounced();
     }
   }
 
@@ -388,19 +587,22 @@ class PosNotifier extends StateNotifier<PosState> {
 
     final updatedCart = List<Map<String, dynamic>>.from(state.cartItems);
     updatedCart[index] = {...updatedCart[index], 'quantity': cappedQuantity};
-    state = state.copyWith(cartItems: updatedCart);
+    state = state.copyWith(cartItems: updatedCart, draftDirty: true);
+    _autoSaveDebounced();
   }
 
   void removeFromCart(int index) {
     final updatedCart = List<Map<String, dynamic>>.from(state.cartItems);
     updatedCart.removeAt(index);
-    state = state.copyWith(cartItems: updatedCart);
+    state = state.copyWith(cartItems: updatedCart, draftDirty: true);
+    _autoSaveDebounced();
   }
 
   void selectCustomer(Map<String, dynamic> customer) {
     // Simply select the customer without adding shipping to cart
     // Shipping will be handled separately in the UI total calculation
-    state = state.copyWith(selectedCustomer: customer);
+    state = state.copyWith(selectedCustomer: customer, draftDirty: true);
+    _autoSaveDebounced();
     // Trigger background prefetch of delivery slots (only if profile selected & not already cached)
     if (state.selectedProfile != null && state.deliverySlots.isEmpty) {
       _prefetchDeliverySlots();
@@ -416,15 +618,18 @@ class PosNotifier extends StateNotifier<PosState> {
     state = state.copyWith(
       isPickup: value,
       clearSelectedDeliverySlot: value,
+      draftDirty: true,
     );
+    _autoSaveDebounced();
   }
 
   void setSalesPartner(Map<String, dynamic>? partner) {
     if (partner == null) {
-      state = state.copyWith(clearSelectedSalesPartner: true);
+      state = state.copyWith(clearSelectedSalesPartner: true, draftDirty: true);
     } else {
-      state = state.copyWith(selectedSalesPartner: partner);
+      state = state.copyWith(selectedSalesPartner: partner, draftDirty: true);
     }
+    _autoSaveDebounced();
   }
 
   void unselectCustomer() {
@@ -439,7 +644,8 @@ class PosNotifier extends StateNotifier<PosState> {
     }
 
     // Simply clear the customer - no need to modify cart since shipping is not in cart anymore
-    state = state.copyWith(clearSelectedCustomer: true);
+    state = state.copyWith(clearSelectedCustomer: true, draftDirty: true);
+    _autoSaveDebounced();
 
     if (kDebugMode) {
       debugPrint(
@@ -450,7 +656,8 @@ class PosNotifier extends StateNotifier<PosState> {
 
   void clearCart() {
     // Simply clear the cart - shipping is handled separately, not as cart items
-    state = state.copyWith(cartItems: []);
+    state = state.copyWith(cartItems: [], draftDirty: true);
+    _autoSaveDebounced();
   }
 
   Future<void> _prefetchDeliverySlots() async {
@@ -865,6 +1072,7 @@ class PosNotifier extends StateNotifier<PosState> {
     String? paymentType, 
     String? overridePosProfileName, 
     String? paymentMethod,
+    bool posProfileOverride = false,
   }) async {
     if (state.cartItems.isEmpty) {
       state = state.copyWith(error: 'Cart is empty', clearError: false);
@@ -911,6 +1119,7 @@ class PosNotifier extends StateNotifier<PosState> {
               salesPartner: state.selectedSalesPartner?['name'],
               paymentType: paymentType,
               paymentMethod: paymentMethod,
+              posProfileOverride: posProfileOverride,
             )
           : await _repository.createInvoice(
               posProfile: effectivePosProfile,
@@ -922,6 +1131,7 @@ class PosNotifier extends StateNotifier<PosState> {
               salesPartner: state.selectedSalesPartner?['name'],
               paymentType: paymentType,
               paymentMethod: paymentMethod,
+              posProfileOverride: posProfileOverride,
             );
 
       if (kDebugMode) {
@@ -931,6 +1141,20 @@ class PosNotifier extends StateNotifier<PosState> {
       }
 
   // No modal overlay; rely on inline progress UI
+
+      // Delete the draft that was just checked out.
+      final completedDraftId = state.currentDraftId;
+      if (completedDraftId != null) {
+        try {
+          await _draftRepo.delete(completedDraftId);
+        } catch (_) {}
+      }
+      // Refresh drafts list from Hive.
+      List<DraftCartSummary> remainingDrafts = state.drafts;
+      try {
+        final allDrafts = await _draftRepo.loadAll();
+        remainingDrafts = allDrafts.map(DraftCartSummary.from).toList();
+      } catch (_) {}
 
       // Reset invoice context (cart, customer, delivery slot, sales partner) for a fresh start.
       state = state.copyWith(
@@ -942,6 +1166,9 @@ class PosNotifier extends StateNotifier<PosState> {
         isLoading: false,
         isAmendmentDraft: false,
         clearAmendmentSourceInvoiceId: true,
+        clearCurrentDraftId: true,
+        draftDirty: false,
+        drafts: remainingDrafts,
       );
 
   // TODO (Wallet/InstaPay Reference Capture):
@@ -977,6 +1204,8 @@ class PosNotifier extends StateNotifier<PosState> {
       isPickup: false,
       isAmendmentDraft: false,
       clearAmendmentSourceInvoiceId: true,
+      clearCurrentDraftId: true,
+      draftDirty: false,
     );
   }
 
@@ -1002,13 +1231,21 @@ class PosNotifier extends StateNotifier<PosState> {
       if (item.discountPercentage != null) 'discount_percentage': item.discountPercentage,
     };
     final updated = [...state.cartItems, cartEntry];
-    state = state.copyWith(cartItems: updated);
+    state = state.copyWith(cartItems: updated, draftDirty: true);
+    _autoSaveDebounced();
   }
+
+  /// Fetches the POS profile mapped to [customerName]'s territory.
+  /// Returns `null` when the customer has no territory, the territory has no
+  /// profile, or on any network/server error.
+  Future<String?> getTerritoryPosProfile(String customerName) =>
+      _repository.getTerritoryPosProfile(customerName);
 }
 
 final posNotifierProvider = StateNotifierProvider<PosNotifier, PosState>((ref) {
   final repository = ref.watch(posRepositoryProvider);
-  return PosNotifier(repository);
+  final draftRepo = ref.watch(draftCartRepositoryProvider);
+  return PosNotifier(repository, draftRepo);
 });
 
 // Territories provider for dropdown selection

@@ -5,6 +5,7 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../state/pos_notifier.dart';
 import '../dialogs/payment_method_dialog.dart';
+import '../dialogs/territory_profile_mismatch_dialog.dart';
 import 'bundle_selection_widget.dart';
 import 'delivery_slot_selection.dart';
 import '../../../../core/constants/business_constants.dart';
@@ -726,15 +727,18 @@ class CartWidget extends ConsumerWidget {
       }
     }
 
-    // Use the already selected profile, no branch selection dialog
-    String? overridePosProfileName = state.selectedProfile?['name']?.toString();
+    // Territory → POS profile preflight
+    if (!context.mounted) return;
+    final profileResolution = await _resolveProfileForCheckout(context, ref, state);
+    if (profileResolution == null) return; // user cancelled
 
     await ref
         .read(posNotifierProvider.notifier)
         .checkout(
-          paymentType: paymentType, 
-          overridePosProfileName: overridePosProfileName,
+          paymentType: paymentType,
+          overridePosProfileName: profileResolution.profileName,
           paymentMethod: paymentMethod,
+          posProfileOverride: profileResolution.override,
         );
     final updatedState = ref.read(posNotifierProvider);
 
@@ -930,6 +934,60 @@ class CartWidget extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Determines which POS profile to use for checkout, prompting the user if
+  /// the selected profile doesn't match the customer's territory profile.
+  ///
+  /// Returns `null` when the user cancels, or a record with the chosen profile
+  /// name and whether `pos_profile_override` should be sent.
+  Future<({String profileName, bool override})?> _resolveProfileForCheckout(
+    BuildContext context,
+    WidgetRef ref,
+    PosState state,
+  ) async {
+    final selectedProfileName =
+        state.selectedProfile?['name']?.toString() ?? '';
+    if (selectedProfileName.isEmpty) return null;
+
+    final customer = state.selectedCustomer;
+    final customerName = customer?['name']?.toString() ?? '';
+    final isWalkingCustomer =
+        customerName.isEmpty || customerName == 'Walking Customer';
+
+    if (isWalkingCustomer) {
+      // No territory → show dialog with only the "keep selected" option
+      if (!context.mounted) return null;
+      final choice = await TerritoryProfileMismatchDialog.show(
+        context,
+        selectedProfile: selectedProfileName,
+        territoryProfile: null,
+      );
+      if (choice == null) return null;
+      return (profileName: choice.profileName, override: choice.override);
+    }
+
+    // Fetch the POS profile mapped to the customer's territory (null = none)
+    final territoryProfile = await ref
+        .read(posNotifierProvider.notifier)
+        .getTerritoryPosProfile(customerName);
+
+    // Profiles match → proceed silently, no override needed
+    if (territoryProfile != null &&
+        territoryProfile.isNotEmpty &&
+        territoryProfile == selectedProfileName) {
+      return (profileName: selectedProfileName, override: false);
+    }
+
+    // Mismatch (or no territory mapping) → ask the user
+    if (!context.mounted) return null;
+    final choice = await TerritoryProfileMismatchDialog.show(
+      context,
+      selectedProfile: selectedProfileName,
+      territoryProfile: territoryProfile,
+    );
+    if (choice == null) return null;
+    return (profileName: choice.profileName, override: choice.override);
   }
 
   void _editBundle(

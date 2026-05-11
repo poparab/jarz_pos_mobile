@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
+import 'package:jarz_pos/src/features/pos/data/repositories/draft_cart_repository.dart';
 import 'package:jarz_pos/src/features/pos/data/repositories/pos_repository.dart';
 import 'package:jarz_pos/src/features/pos/presentation/widgets/cart_widget.dart';
 import 'package:jarz_pos/src/features/pos/state/pos_notifier.dart';
@@ -22,7 +23,7 @@ class _DummyPosRepository extends PosRepository {
 }
 
 class _PosNotifierStub extends PosNotifier {
-  _PosNotifierStub(PosState initialState) : super(_DummyPosRepository()) {
+  _PosNotifierStub(PosState initialState) : super(_DummyPosRepository(), DraftCartRepository()) {
     state = initialState;
   }
 }

@@ -539,6 +539,25 @@ class PosRepository {
     }
   }
 
+  /// Returns the POS Profile mapped to [customerName]'s territory, or null.
+  ///
+  /// Response fields: `customer`, `territory`, `territory_pos_profile`
+  Future<String?> getTerritoryPosProfile(String customerName) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.getTerritoryPosProfile,
+        data: {'customer': customerName},
+      );
+      if (response.statusCode == 200 && response.data['message'] != null) {
+        final msg = response.data['message'] as Map<String, dynamic>;
+        return msg['territory_pos_profile'] as String?;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<Map<String, dynamic>> createInvoice({
     required String posProfile,
     required List<Map<String, dynamic>> items,
@@ -549,6 +568,7 @@ class PosRepository {
     String? paymentType, // 'cash' | 'online' (optional, advisory)
     bool isPickup = false,
     String? paymentMethod, // 'Cash' | 'Instapay' | 'Mobile Wallet'
+    bool posProfileOverride = false,
   }) async {
     try {
       final requestData = _buildInvoiceRequestData(
@@ -606,6 +626,7 @@ class PosRepository {
     bool isPickup = false,
     String? paymentMethod,
     String? idempotencyKey,
+    bool posProfileOverride = false,
   }) async {
     try {
       final requestData = _buildInvoiceRequestData(
@@ -618,6 +639,7 @@ class PosRepository {
         paymentType: paymentType,
         isPickup: isPickup,
         paymentMethod: paymentMethod,
+        posProfileOverride: posProfileOverride,
       );
       requestData['invoice_id'] = sourceInvoiceId;
       if (idempotencyKey != null && idempotencyKey.isNotEmpty) {
@@ -698,6 +720,7 @@ class PosRepository {
     String? paymentType,
     bool isPickup = false,
     String? paymentMethod,
+    bool posProfileOverride = false,
   }) {
     final cartItems = _buildCartRequestItems(items);
 
@@ -747,6 +770,9 @@ class PosRepository {
     }
     if (isPickup) {
       requestData['pickup'] = 1;
+    }
+    if (posProfileOverride) {
+      requestData['pos_profile_override'] = 1;
     }
     if (salesPartner != null && salesPartner.isNotEmpty) {
       requestData['sales_partner'] = salesPartner;

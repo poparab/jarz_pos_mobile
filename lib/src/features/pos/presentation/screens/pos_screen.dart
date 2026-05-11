@@ -16,6 +16,7 @@ import '../../state/courier_balances_provider.dart';
 // Removed unused system status imports (connectivity, sync, websocket) to satisfy analyzer.
 import '../../state/pos_notifier.dart';
 import '../widgets/customer_search_widget.dart';
+import '../widgets/draft_tabs_bar.dart';
 import '../widgets/sales_partner_selector.dart';
 import '../widgets/item_grid_widget.dart';
 import '../widgets/cart_widget.dart';
@@ -526,6 +527,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
               child: customerSearch,
             ),
           ),
+          const DraftTabsBar(),
           Expanded(child: ItemGridWidget(hideAnimation: _hideAnim)),
         ],
       );
@@ -533,7 +535,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
 
     // Tablet: side-by-side
     final itemsPanel = Column(
-      children: [customerSearch, const Expanded(child: ItemGridWidget())],
+      children: [customerSearch, const DraftTabsBar(), const Expanded(child: ItemGridWidget())],
     );
     final flexRatio = ResponsiveUtils.getCartFlexRatio(context);
     return Row(
@@ -964,6 +966,22 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
     final actionButtons = <Widget>[
       printerChip,
       SizedBox(width: isPhone ? 4 : 12),
+      // Draft count badge
+      Consumer(builder: (c, ref2, _) {
+        final draftCount = ref2.watch(posNotifierProvider.select((s) => s.drafts.length));
+        if (draftCount == 0) return const SizedBox.shrink();
+        return Padding(
+          padding: EdgeInsetsDirectional.only(end: isPhone ? 4 : 8),
+          child: Badge(
+            label: Text('$draftCount'),
+            child: Icon(
+              Icons.layers,
+              size: isPhone ? 20 : 24,
+              color: theme.colorScheme.onPrimary,
+            ),
+          ),
+        );
+      }),
       IconButton(
         icon: Icon(Icons.view_kanban, color: theme.colorScheme.onPrimary, size: isPhone ? 20 : 24),
         tooltip: l10n.menuSalesKanban,

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jarz_pos/src/features/pos/data/repositories/draft_cart_repository.dart';
 import 'package:jarz_pos/src/features/pos/domain/models/delivery_slot.dart';
 import 'package:jarz_pos/src/features/pos/state/pos_notifier.dart';
 import 'package:jarz_pos/src/features/pos/data/repositories/pos_repository.dart';
@@ -59,6 +60,7 @@ class _FakePosRepository extends PosRepository {
     String? paymentType,
     bool isPickup = false,
     String? paymentMethod,
+    bool posProfileOverride = false,
   }) async {
     createInvoiceCalls += 1;
     return {'invoice_name': 'INV-NEW-001'};
@@ -77,11 +79,15 @@ class _FakePosRepository extends PosRepository {
     bool isPickup = false,
     String? paymentMethod,
     String? idempotencyKey,
+    bool posProfileOverride = false,
   }) async {
     submitInvoiceAmendmentCalls += 1;
     lastAmendmentSourceInvoiceId = sourceInvoiceId;
     return {'replacement_invoice_id': 'INV-AMD-001'};
   }
+
+  @override
+  Future<String?> getTerritoryPosProfile(String customerName) async => null;
 }
 
 DeliverySlot _makeSlot({String label = 'Morning'}) => DeliverySlot(
@@ -300,7 +306,7 @@ void main() {
 
     setUp(() {
       repo = _FakePosRepository();
-      notifier = PosNotifier(repo);
+      notifier = PosNotifier(repo, DraftCartRepository());
     });
 
     test('auto-selects when only one profile returned', () async {
@@ -343,7 +349,7 @@ void main() {
 
     setUp(() {
       repo = _FakePosRepository();
-      notifier = PosNotifier(repo);
+      notifier = PosNotifier(repo, DraftCartRepository());
     });
 
     test('loads items and bundles for selected profile', () async {
@@ -388,7 +394,7 @@ void main() {
 
     setUp(() {
       repo = _FakePosRepository();
-      notifier = PosNotifier(repo);
+      notifier = PosNotifier(repo, DraftCartRepository());
       notifier.state = notifier.state.copyWith(
         selectedProfile: const {'name': '6th of october'},
         cartItems: const [
@@ -436,7 +442,7 @@ void main() {
     late PosNotifier notifier;
 
     setUp(() {
-      notifier = PosNotifier(_FakePosRepository());
+      notifier = PosNotifier(_FakePosRepository(), DraftCartRepository());
     });
 
     test('addToCart inserts new items and increments existing quantity', () {
@@ -561,7 +567,7 @@ void main() {
     late PosNotifier notifier;
 
     setUp(() {
-      notifier = PosNotifier(_FakePosRepository());
+      notifier = PosNotifier(_FakePosRepository(), DraftCartRepository());
     });
 
     test('selectCustomer sets customer on state', () {
@@ -619,7 +625,7 @@ void main() {
 
     setUp(() {
       repository = _FakePosRepository();
-      notifier = PosNotifier(repository);
+      notifier = PosNotifier(repository, DraftCartRepository());
       repository.profilesResult = const [
         {'name': 'Main POS'},
       ];

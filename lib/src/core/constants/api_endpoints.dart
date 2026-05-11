@@ -25,6 +25,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.pos.get_sales_partners';
   static const isPosProfileOpen =
       '/api/method/jarz_pos.api.pos.is_pos_profile_open';
+  static const getTerritoryPosProfile =
+      '/api/method/jarz_pos.api.pos.get_territory_pos_profile';
 
   // ── Customer ──────────────────────────────────────────────────────────
   static const getTerritories =

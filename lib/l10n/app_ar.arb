@@ -404,6 +404,22 @@
   "posDeliveryLabel": "التوصيل:",
   "posTotalLabel": "الإجمالي:",
   "posCheckoutButton": "إتمام الطلب",
+  "posTerritoryMismatchTitle": "عدم تطابق الفرع",
+  "posTerritoryMismatchBody": "منطقة العميل مرتبطة بفرع POS مختلف.",
+  "posTerritoryMismatchUseSelected": "الاستمرار بالفرع المحدد: {profile}",
+  "@posTerritoryMismatchUseSelected": {
+    "placeholders": { "profile": { "type": "String" } }
+  },
+  "posTerritoryMismatchUseTerritory": "التحويل لفرع المنطقة: {profile}",
+  "@posTerritoryMismatchUseTerritory": {
+    "placeholders": { "profile": { "type": "String" } }
+  },
+  "posTerritoryMismatchNoTerritory": "لا يوجد فرع مرتبط بالمنطقة — الاستمرار بالفرع المحدد: {profile}",
+  "@posTerritoryMismatchNoTerritory": {
+    "placeholders": { "profile": { "type": "String" } }
+  },
+  "posTerritoryMismatchCancel": "إلغاء",
+  "posTerritoryMismatchConfirm": "متابعة",
   "posAmendmentDraftButton": "إرسال التعديل",
   "posOperationalInfoTitle": "معلومات تشغيلية",
   "posDeliveryExpenseLabel": "تكلفة التوصيل:",

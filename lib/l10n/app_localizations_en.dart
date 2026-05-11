@@ -885,6 +885,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get posCheckoutButton => 'Checkout';
 
   @override
+  String get posTerritoryMismatchTitle => 'Profile Mismatch';
+
+  @override
+  String get posTerritoryMismatchBody =>
+      'The customer\'s territory is mapped to a different POS profile.';
+
+  @override
+  String posTerritoryMismatchUseSelected(String profile) {
+    return 'Keep selected: $profile';
+  }
+
+  @override
+  String posTerritoryMismatchUseTerritory(String profile) {
+    return 'Switch to territory profile: $profile';
+  }
+
+  @override
+  String posTerritoryMismatchNoTerritory(String profile) {
+    return 'No territory profile assigned - keep selected: $profile';
+  }
+
+  @override
+  String get posTerritoryMismatchCancel => 'Cancel';
+
+  @override
+  String get posTerritoryMismatchConfirm => 'Proceed';
+
+  @override
   String get posAmendmentDraftButton => 'Submit Amendment';
 
   @override

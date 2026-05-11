@@ -11,6 +11,7 @@ import 'package:jarz_pos/src/features/kanban/models/kanban_models.dart';
 import 'package:jarz_pos/src/features/kanban/providers/kanban_provider.dart';
 import 'package:jarz_pos/src/features/kanban/services/kanban_service.dart';
 import 'package:jarz_pos/src/features/kanban/services/notification_polling_service.dart';
+import 'package:jarz_pos/src/features/pos/data/repositories/draft_cart_repository.dart';
 import 'package:jarz_pos/src/features/pos/data/repositories/pos_repository.dart';
 import 'package:jarz_pos/src/features/pos/state/pos_notifier.dart';
 
@@ -231,7 +232,7 @@ class _DummyPosRepository extends PosRepository {
 }
 
 class _PosNotifierStub extends PosNotifier {
-  _PosNotifierStub() : super(_DummyPosRepository()) {
+  _PosNotifierStub() : super(_DummyPosRepository(), DraftCartRepository()) {
     state = state.copyWith(
       profiles: const [
         {'name': 'Main'},

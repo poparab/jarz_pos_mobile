@@ -404,6 +404,22 @@
   "posDeliveryLabel": "Delivery:",
   "posTotalLabel": "Total:",
   "posCheckoutButton": "Checkout",
+  "posTerritoryMismatchTitle": "Profile Mismatch",
+  "posTerritoryMismatchBody": "The customer''s territory is mapped to a different POS profile.",
+  "posTerritoryMismatchUseSelected": "Keep selected: {profile}",
+  "@posTerritoryMismatchUseSelected": {
+    "placeholders": { "profile": { "type": "String" } }
+  },
+  "posTerritoryMismatchUseTerritory": "Switch to territory profile: {profile}",
+  "@posTerritoryMismatchUseTerritory": {
+    "placeholders": { "profile": { "type": "String" } }
+  },
+  "posTerritoryMismatchNoTerritory": "No territory profile assigned - keep selected: {profile}",
+  "@posTerritoryMismatchNoTerritory": {
+    "placeholders": { "profile": { "type": "String" } }
+  },
+  "posTerritoryMismatchCancel": "Cancel",
+  "posTerritoryMismatchConfirm": "Proceed",
   "posAmendmentDraftButton": "Submit Amendment",
   "posOperationalInfoTitle": "Operational Info",
   "posDeliveryExpenseLabel": "Delivery Expense:",

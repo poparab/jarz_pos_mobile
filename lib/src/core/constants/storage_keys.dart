@@ -15,6 +15,7 @@ abstract final class HiveBoxes {
   static const printerPrefs = 'pos_printer_prefs';
   static const inventoryCount = 'inventory_count';
   static const appSettings = 'app_settings';
+  static const draftCarts = 'draft_carts';
 }
 
 // ── Hive keys (within their boxes) ──────────────────────────────────────
