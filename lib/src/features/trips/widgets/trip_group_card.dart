@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../kanban/models/kanban_models.dart';
 import '../../kanban/widgets/invoice_card_widget.dart';
@@ -35,6 +36,8 @@ class _TripGroupCardState extends State<TripGroupCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 2,
@@ -68,7 +71,7 @@ class _TripGroupCardState extends State<TripGroupCard> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${widget.courierDisplayName} · ${widget.invoices.length} orders',
+                          '${widget.courierDisplayName} · ${l10n.tripsOrdersCount(widget.invoices.length)}',
                           style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                         ),
                       ],
@@ -83,14 +86,14 @@ class _TripGroupCardState extends State<TripGroupCard> {
                         border: Border.all(color: Colors.amber[700]!),
                       ),
                       child: Text(
-                        '2× Ship',
+                        '2×',
                         style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber[800]),
                       ),
                     ),
                     const SizedBox(width: 6),
                   ],
                   Text(
-                    '\$${_totalAmount.toStringAsFixed(2)}',
+                    formatCurrency(context, _totalAmount),
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.green),
                   ),
                   const SizedBox(width: 4),
@@ -181,7 +184,7 @@ class _TripGroupCardState extends State<TripGroupCard> {
               ),
             ),
             Text(
-              '\$${inv.grandTotal.toStringAsFixed(2)}',
+              formatCurrency(context, inv.grandTotal),
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.green),
             ),
             const SizedBox(width: 4),

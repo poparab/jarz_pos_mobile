@@ -219,7 +219,63 @@
   "commonSubmit": "Submit",
   "commonClose": "Close",
   "commonRetry": "Retry",
+  "commonCustomerLabel": "Customer",
+  "commonPosProfileLabel": "POS Profile",
+  "commonTotalLabel": "Total",
+  "commonAmountLabel": "Amount",
+  "commonDateLabel": "Date",
+  "commonCourierLabel": "Courier",
+  "commonDeliveryLabel": "Delivery",
+  "commonItemsLabel": "Items",
+  "commonItemLabel": "Item",
+  "commonNotesLabel": "Notes",
+  "commonPaymentLabel": "Payment",
+  "commonOutstandingLabel": "Outstanding",
+  "commonUploadedByLabel": "Uploaded by",
+  "commonReasonLabel": "Reason",
+  "commonNotSpecified": "Not specified",
+  "commonWalkIn": "Walk-in",
+  "commonScheduled": "Scheduled",
+  "commonDelete": "Delete",
+  "commonNew": "New",
+  "commonPreview": "Preview",
+  "commonByUser": "by {user}",
+  "@commonByUser": {
+    "placeholders": {
+      "user": {}
+    }
+  },
   "commonQtyWithUom": "Qty ({uom})",
+  "orderAlertTitle": "New Order: {invoiceId}",
+  "@orderAlertTitle": {
+    "placeholders": {
+      "invoiceId": {}
+    }
+  },
+  "orderAlertNoLineItems": "No line items",
+  "orderAlertMoreItems": "+{count} more item(s)",
+  "@orderAlertMoreItems": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "orderAlertMuteAlarm": "Mute Alarm",
+  "orderAlertUnmuteAlarm": "Unmute Alarm",
+  "orderAlertAccepting": "Accepting...",
+  "orderAlertAcceptOrder": "Accept Order",
+  "posDraftDeleteTitle": "Delete Draft",
+  "posDraftDeleteBody": "Delete \"{label}\"? This cannot be undone.",
+  "@posDraftDeleteBody": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "posDraftLimitReached": "Draft limit reached ({max} max). Delete a draft to create a new one.",
+  "@posDraftLimitReached": {
+    "placeholders": {
+      "max": {}
+    }
+  },
   "expensesTitle": "Expenses",
   "expensesRefreshTooltip": "Refresh",
   "expensesNewExpense": "New Expense",
@@ -244,6 +300,8 @@
   "expensesAmountHint": "Enter amount",
   "expensesAmountInvalid": "Enter a valid amount",
   "expensesDateLabel": "Expense date",
+  "expensesReasonRequired": "Select a reason",
+  "expensesPaymentSourceRequired": "Select a payment source",
   "expensesRemarksLabel": "Remarks (optional)",
   "expensesSubmitManager": "Record expense",
   "expensesSubmitStaff": "Submit for approval",
@@ -333,6 +391,9 @@
       "shift": {}
     }
   },
+  "shiftUnexpectedStartResponse": "Unexpected server response while starting the shift.",
+  "shiftUnexpectedSummaryResponse": "Unexpected server response while loading the shift summary.",
+  "shiftUnexpectedEndResponse": "Unexpected server response while ending the shift.",
   "shiftOutflows": "Outflows: {amount}",
   "@shiftOutflows": {
     "placeholders": {
@@ -823,8 +884,10 @@
 
   "paymentMethodSelectTitle": "Select Payment Method",
   "paymentMethodCash": "Cash",
+  "paymentMethodCard": "Card",
   "paymentMethodInstapay": "Instapay",
   "paymentMethodMobileWallet": "Mobile Wallet",
+  "paymentMethodSettleLater": "Settle Later",
 
   "checkoutTotal": "Total:",
   "checkoutPay": "Pay",
@@ -1097,6 +1160,11 @@
   "tripsSameTerritory": "Same territory: {territory}",
   "@tripsSameTerritory": { "placeholders": { "territory": {} } },
   "tripsSelectCourier": "Select Courier",
+  "tripsNoTrips": "No trips",
+  "tripsOrdersCount": "{count} orders",
+  "@tripsOrdersCount": { "placeholders": { "count": {} } },
+  "tripsDoubleShippingLabel": "Double Shipping",
+  "tripsNotesLabel": "Notes",
   "tripsMarkTripAsDeliveredTitle": "Mark Trip as Delivered",
   "tripsMarkTripAsDeliveredContent": "Mark \"{tripName}\" with {count} orders as delivered?",
   "@tripsMarkTripAsDeliveredContent": { "placeholders": { "tripName": {}, "count": {} } },
@@ -1118,6 +1186,16 @@
   "@tripsSubTerritoryRequired": { "placeholders": { "invoices": {} } },
   "tripsInvoicesCount": "Invoices ({count})",
   "@tripsInvoicesCount": { "placeholders": { "count": {} } },
+  "subTerritorySelectTitle": "Select Sub-territory",
+  "subTerritoryForTerritory": "for {territory}",
+  "@subTerritoryForTerritory": { "placeholders": { "territory": {} } },
+  "subTerritoryNoResults": "No sub-territories found",
+  "subTerritoryLoadFailed": "Failed to load sub-territories",
+  "customShippingBadgePending": "Custom shipping pending",
+  "customShippingBadgeApproved": "Custom shipping approved",
+  "customShippingBadgeAmount": "Custom shipping {amount}",
+  "@customShippingBadgeAmount": { "placeholders": { "amount": {} } },
+  "customShippingBadgeRejected": "Custom shipping rejected",
 
   "receiptSelectImageSource": "Select Image Source",
   "receiptCamera": "Camera",
@@ -1133,11 +1211,30 @@
   "receiptConfirmError": "Error confirming receipt: {error}",
   "@receiptConfirmError": { "placeholders": { "error": {} } },
   "receiptAllProfiles": "All Profiles",
+  "receiptFilterByPosProfile": "Filter by POS Profile",
   "receiptNoReceiptsFound": "No payment receipts found",
   "receiptUploadImageButton": "Upload Receipt Image",
   "receiptPreviewTitle": "Receipt Preview",
   "receiptPreviewButton": "Preview Receipt",
   "commonPrint": "Print",
+
+  "statusCreated": "Created",
+  "statusOutForDelivery": "Out for Delivery",
+  "statusCompleted": "Completed",
+  "statusDelivered": "Delivered",
+  "statusReturn": "Return",
+  "statusReturnedToSender": "Returned to Sender",
+  "statusPaid": "Paid",
+  "statusUnpaid": "Unpaid",
+  "statusOverdue": "Overdue",
+  "statusCancelled": "Cancelled",
+  "statusConfirmed": "Confirmed",
+  "statusUnconfirmed": "Unconfirmed",
+  "statusPending": "Pending",
+  "statusPendingApproval": "Pending Approval",
+  "statusApproved": "Approved",
+  "statusRejected": "Rejected",
+  "statusDraft": "Draft",
 
   "kanbanNoInvoices": "No invoices",
   "kanbanTripCreatedSuccess": "Delivery trip created successfully",
@@ -1146,6 +1243,13 @@
   "kanbanDeliveryPartnerCourier": "Delivery Partner Courier",
   "kanbanDeliveryPartnerCourierSubtitle": "This courier belongs to a delivery partner",
   "kanbanRequestCustomShipping": "Request Custom Shipping",
+  "customShippingCurrentShipping": "Current Shipping",
+  "customShippingRequestedAmount": "Requested Amount",
+  "customShippingReasonHint": "Why custom shipping is needed...",
+  "customShippingAmountRequired": "Amount is required",
+  "customShippingAmountInvalid": "Enter a valid positive amount",
+  "customShippingReasonRequired": "Please provide a reason (min 10 characters)",
+  "customShippingSubmitRequest": "Submit Request",
   "kanbanCustomShippingSubmitted": "Custom shipping request submitted",
   "kanbanCustomShippingFailed": "Failed to submit request: {error}",
   "@kanbanCustomShippingFailed": { "placeholders": { "error": {} } },
@@ -1176,6 +1280,11 @@
   "managerCustomShippingRejected": "Custom shipping rejected",
   "managerRejectFailed": "Reject failed: {error}",
   "@managerRejectFailed": { "placeholders": { "error": {} } },
+  "managerRejectReasonHint": "Optional rejection reason",
+  "managerPendingCustomShippingLoadFailed": "Failed to load pending custom shipping requests",
+  "managerTransferBranchesLoadFailed": "Failed to load transfer branches",
+  "managerApproveDefaultError": "Unable to approve the request.",
+  "managerRejectDefaultError": "Unable to reject the request.",
 
   "purchaseNoInvoicesYet": "No purchase invoices yet",
   "purchaseReorderFromSupplier": "Reorder from same supplier",
@@ -1197,6 +1306,8 @@
   "settingsCustomAlarmSoundSet": "Custom alarm sound set: {title}",
   "@settingsCustomAlarmSoundSet": { "placeholders": { "title": {} } },
   "settingsNoFileSelected": "No file selected",
+  "settingsBrowseCustomSoundFile": "Browse Custom Sound File",
+  "settingsCustomSoundTitle": "Custom Sound",
 
   "itemGridStockLimitReached": "Stock limit reached. Only {stockQty} available.",
   "@itemGridStockLimitReached": { "placeholders": { "stockQty": {} } },
@@ -1204,6 +1315,8 @@
   "menuDeliveryTrips": "Delivery Trips",
   "authLoginTitle": "Login",
   "printingPrintersTitle": "Printers",
+  "printingUseBitmapReceipt": "Use new bitmap receipt",
+  "printingUseBitmapReceiptHint": "Renders the full receipt as an image and helps with Arabic, missing data, and gibberish issues.",
   "kanbanOrdersSelectedCount": "{count} orders selected",
   "@kanbanOrdersSelectedCount": {
     "placeholders": {
@@ -1242,6 +1355,10 @@
   "authPasswordLabel": "Password",
   "authShowPassword": "Show password",
   "authHidePassword": "Hide password",
+  "authInvalidCredentials": "Invalid credentials",
+  "authCannotReachServer": "Cannot reach server. Check Wi-Fi/VPN and backend URL, then try again.",
+  "authConnectionFailed": "Connection failed. Please verify network and server availability.",
+  "authLoginFailed": "Login failed. Please try again.",
 
   "menuReports": "Reports",
   "reportsTitle": "Reports",

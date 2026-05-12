@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../core/localization/localized_display_mappers.dart';
+import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/network/frappe_error_message.dart';
 import '../providers/kanban_provider.dart';
@@ -47,6 +49,8 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
 
   Future<void> _uploadImage(String receiptName) async {
     try {
+      final l10n = context.l10n;
+
       // Show source selection
       final source = await showDialog<ImageSource>(
         context: context,
@@ -84,7 +88,7 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       messenger.showSnackBar(
-        SnackBar(content: Text(context.l10n.receiptUploading)),
+        SnackBar(content: Text(l10n.receiptUploading)),
       );
 
       final result = await ref.read(kanbanProvider.notifier).uploadReceiptImage(
@@ -93,24 +97,27 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
         filename: image.name,
       );
 
+      if (!mounted) return;
+
       if (result != null && result['success'] == true) {
         messenger.showSnackBar(
-          SnackBar(content: Text(context.l10n.receiptUploadedSuccess)),
+          SnackBar(content: Text(l10n.receiptUploadedSuccess)),
         );
         await _loadData(); // Refresh list
       } else {
         messenger.showSnackBar(
-          SnackBar(content: Text(context.l10n.receiptUploadFailed)),
+          SnackBar(content: Text(l10n.receiptUploadFailed)),
         );
       }
     } catch (e) {
       if (!mounted) return;
+      final l10n = context.l10n;
       final errorMessage = extractFrappeErrorMessage(
         e,
-        fallback: context.l10n.receiptUploadFailed,
+        fallback: l10n.receiptUploadFailed,
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.receiptUploadError(errorMessage))),
+        SnackBar(content: Text(l10n.receiptUploadError(errorMessage))),
       );
     }
   }
@@ -150,33 +157,37 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
 
   Future<void> _confirmReceipt(String receiptName) async {
     try {
+      final l10n = context.l10n;
       final messenger = ScaffoldMessenger.of(context);
       messenger.showSnackBar(
-        SnackBar(content: Text(context.l10n.receiptConfirming)),
+        SnackBar(content: Text(l10n.receiptConfirming)),
       );
 
       final result = await ref.read(kanbanProvider.notifier).confirmReceipt(
         receiptName: receiptName,
       );
 
+      if (!mounted) return;
+
       if (result != null && result['success'] == true) {
         messenger.showSnackBar(
-          SnackBar(content: Text(context.l10n.receiptConfirmedSuccess)),
+          SnackBar(content: Text(l10n.receiptConfirmedSuccess)),
         );
         await _loadData(); // Refresh list
       } else {
         messenger.showSnackBar(
-          SnackBar(content: Text(context.l10n.receiptConfirmFailed)),
+          SnackBar(content: Text(l10n.receiptConfirmFailed)),
         );
       }
     } catch (e) {
       if (!mounted) return;
+      final l10n = context.l10n;
       final errorMessage = extractFrappeErrorMessage(
         e,
-        fallback: context.l10n.receiptConfirmFailed,
+        fallback: l10n.receiptConfirmFailed,
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.receiptConfirmError(errorMessage))),
+        SnackBar(content: Text(l10n.receiptConfirmError(errorMessage))),
       );
     }
   }
@@ -195,8 +206,8 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Payment Receipts',
+                Text(
+                  context.l10n.kanbanPaymentReceipts,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
@@ -211,8 +222,8 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
             if (posProfiles.isNotEmpty)
               DropdownButtonFormField<String>(
                 initialValue: selectedPosProfile,
-                decoration: const InputDecoration(
-                  labelText: 'Filter by POS Profile',
+                decoration: InputDecoration(
+                  labelText: context.l10n.receiptFilterByPosProfile,
                   border: OutlineInputBorder(),
                 ),
                 items: [
@@ -261,13 +272,13 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
 
   Widget _buildReceiptCard(Map<String, dynamic> receipt) {
     final receiptName = receipt['name'] as String;
-    final salesInvoice = receipt['sales_invoice'] as String? ?? 'N/A';
-    final paymentMethod = receipt['payment_method'] as String? ?? 'N/A';
+    final salesInvoice = receipt['sales_invoice'] as String? ?? context.l10n.commonNotSpecified;
+    final paymentMethod = receipt['payment_method'] as String? ?? context.l10n.commonNotSpecified;
     final amount = receipt['amount'] as num? ?? 0;
     final status = receipt['status'] as String? ?? 'Unconfirmed';
-    final posProfile = receipt['pos_profile'] as String? ?? 'N/A';
+    final posProfile = receipt['pos_profile'] as String? ?? context.l10n.commonNotSpecified;
     final receiptImageUrl = receipt['receipt_image_url'] as String?;
-    final customerName = receipt['customer_name'] as String? ?? 'N/A';
+    final customerName = receipt['customer_name'] as String? ?? context.l10n.commonNotSpecified;
     final uploadedBy = receipt['uploaded_by'] as String?;
 
     final isConfirmed = status == 'Confirmed';
@@ -314,7 +325,7 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    status,
+                    localizedStatusLabel(context, status),
                     style: TextStyle(
                       color: isConfirmed ? Colors.green[900] : Colors.orange[900],
                       fontSize: 12,
@@ -327,12 +338,12 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
             const SizedBox(height: 8),
 
             // Invoice details
-            Text('Customer: $customerName', style: const TextStyle(fontSize: 14)),
-            Text('Amount: ${amount.toStringAsFixed(2)} EGP', style: const TextStyle(fontSize: 14)),
-            Text('Payment: $paymentMethod', style: const TextStyle(fontSize: 14)),
-            Text('POS Profile: $posProfile', style: const TextStyle(fontSize: 14)),
+            Text('${context.l10n.commonCustomerLabel}: $customerName', style: const TextStyle(fontSize: 14)),
+            Text('${context.l10n.commonAmountLabel}: ${formatCurrency(context, amount.toDouble())}', style: const TextStyle(fontSize: 14)),
+            Text('${context.l10n.commonPaymentLabel}: ${localizedPaymentMethodLabel(context, paymentMethod)}', style: const TextStyle(fontSize: 14)),
+            Text('${context.l10n.commonPosProfileLabel}: $posProfile', style: const TextStyle(fontSize: 14)),
             if (uploadedBy != null)
-              Text('Uploaded by: $uploadedBy', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              Text('${context.l10n.commonUploadedByLabel}: $uploadedBy', style: const TextStyle(fontSize: 12, color: Colors.grey)),
             const SizedBox(height: 8),
 
             // Receipt image thumbnail or upload button

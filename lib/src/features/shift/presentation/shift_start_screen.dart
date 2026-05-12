@@ -15,6 +15,29 @@ String _shiftOwnerLabel(ShiftEntry shift) {
   return 'Unknown user';
 }
 
+String _normalizeShiftError(String error) {
+  return error.replaceFirst(RegExp(r'^Exception:\s*'), '').trim();
+}
+
+String _localizedShiftError(BuildContext context, String error) {
+  final l10n = context.l10n;
+  final message = _normalizeShiftError(error);
+
+  switch (message) {
+    case 'Unexpected start shift response':
+      return l10n.shiftUnexpectedStartResponse;
+    case 'Unexpected shift summary response':
+      return l10n.shiftUnexpectedSummaryResponse;
+    case 'Unexpected end shift response':
+      return l10n.shiftUnexpectedEndResponse;
+    default:
+      if (message.isEmpty) {
+        return l10n.commonError;
+      }
+      return l10n.commonErrorWithDetails(message);
+  }
+}
+
 class ShiftStartScreen extends ConsumerStatefulWidget {
   const ShiftStartScreen({super.key});
 
@@ -211,7 +234,7 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Text(
-                        shiftState.error!,
+                        _localizedShiftError(context, shiftState.error!),
                         style: TextStyle(color: Theme.of(context).colorScheme.error),
                       ),
                     ),

@@ -319,7 +319,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                       // Preview button
                                       IconButton(
                                         icon: const Icon(Icons.play_arrow),
-                                        tooltip: 'Preview',
+                                        tooltip: context.l10n.commonPreview,
                                         onPressed: () async {
                                           final service = ref.read(alarmSoundServiceProvider);
                                           await service.previewSound(sound.uri);
@@ -364,7 +364,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.folder_open),
-                          label: const Text('Browse Custom Sound File'),
+                          label: Text(context.l10n.settingsBrowseCustomSoundFile),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             side: BorderSide(
@@ -404,9 +404,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                   }
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('No file selected'),
-                                      duration: Duration(seconds: 2),
+                                    SnackBar(
+                                      content: Text(context.l10n.settingsNoFileSelected),
+                                      duration: const Duration(seconds: 2),
                                     ),
                                   );
                                 }
@@ -455,7 +455,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Custom Sound:',
+                                      '${context.l10n.settingsCustomSoundTitle}:',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -473,7 +473,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                               ),
                               IconButton(
                                 icon: const Icon(Icons.play_arrow),
-                                tooltip: 'Preview',
+                                tooltip: context.l10n.commonPreview,
                                 onPressed: () async {
                                   final service = ref.read(alarmSoundServiceProvider);
                                   await service.previewSound(selectedSound.uri);

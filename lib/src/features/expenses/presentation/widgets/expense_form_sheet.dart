@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_formatters.dart';
 import '../../models/expense_models.dart';
 import '../../state/expenses_notifier.dart';
 
@@ -51,9 +53,10 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final l10n = context.l10n;
     final languageCode = Localizations.localeOf(context).languageCode;
-    final dateLabel = DateFormat('MMMM d, yyyy').format(_selectedDate);
-    final submitLabel = widget.isManager ? 'Record expense' : 'Submit for approval';
+    final dateLabel = formatDate(context, _selectedDate, pattern: 'MMMM d, yyyy');
+    final submitLabel = widget.isManager ? l10n.expensesSubmitManager : l10n.expensesSubmitStaff;
     final hasOptions = widget.reasons.isNotEmpty && widget.paymentSources.isNotEmpty;
 
     return Padding(
@@ -70,7 +73,7 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'New Expense',
+                    l10n.expensesNewExpense,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   IconButton(
@@ -83,15 +86,15 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
               TextFormField(
                 controller: _amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: 'Amount',
-                  prefixIcon: Icon(Icons.attach_money),
+                decoration: InputDecoration(
+                  labelText: l10n.expensesAmountLabel,
+                  prefixIcon: const Icon(Icons.attach_money),
                 ),
                 validator: (value) {
                   final trimmed = value?.trim() ?? '';
                   final amount = double.tryParse(trimmed);
                   if (amount == null || amount <= 0) {
-                    return 'Enter a valid amount';
+                    return l10n.expensesAmountInvalid;
                   }
                   return null;
                 },
@@ -110,10 +113,10 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
                   }
                 },
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Expense date',
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.calendar_today),
+                  decoration: InputDecoration(
+                    labelText: l10n.expensesDateLabel,
+                    border: const OutlineInputBorder(),
+                    suffixIcon: const Icon(Icons.calendar_today),
                   ),
                   child: Text(dateLabel),
                 ),
@@ -129,11 +132,11 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
                         ))
                     .toList(),
                 onChanged: (value) => setState(() => _selectedReason = value),
-                decoration: const InputDecoration(
-                  labelText: 'Reason (Indirect expense account)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.expensesReasonLabel,
+                  border: const OutlineInputBorder(),
                 ),
-                validator: (value) => value == null ? 'Select a reason' : null,
+                validator: (value) => value == null ? l10n.expensesReasonRequired : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<ExpensePaymentSource>(
@@ -149,19 +152,19 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
                     })
                     .toList(),
                 onChanged: (value) => setState(() => _selectedSource = value),
-                decoration: const InputDecoration(
-                  labelText: 'Pay from',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.expensesPayFromLabel,
+                  border: const OutlineInputBorder(),
                 ),
-                validator: (value) => value == null ? 'Select a payment source' : null,
+                validator: (value) => value == null ? l10n.expensesPaymentSourceRequired : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _remarksController,
                 maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Remarks (optional)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.expensesRemarksLabel,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 24),
@@ -178,7 +181,7 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(
-                    'Expenses cannot be created until a reason and payment source are available.',
+                    l10n.expensesNoOptions,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.redAccent),
                   ),
                 ),

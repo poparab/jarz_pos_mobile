@@ -6,6 +6,50 @@ import '../../../core/network/frappe_error_message.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 
+String _normalizedManagerError(Object error) {
+  final extracted = extractFrappeErrorMessage(error, fallback: '').trim();
+  final message = extracted.isNotEmpty ? extracted : error.toString().trim();
+  return message.replaceFirst(RegExp(r'^Exception:\s*'), '').trim();
+}
+
+String _localizedManagerErrorDetail(BuildContext context, Object error) {
+  final l10n = context.l10n;
+  final message = _normalizedManagerError(error);
+
+  switch (message) {
+    case 'Failed to load transfer branches':
+      return l10n.managerTransferBranchesLoadFailed;
+    case 'Failed to transfer branch':
+      return l10n.invoiceTransferFailed;
+    case 'Failed to fetch pending custom shipping requests':
+      return l10n.managerPendingCustomShippingLoadFailed;
+    default:
+      return message.isEmpty ? l10n.commonError : message;
+  }
+}
+
+String _localizedManagerApproveError(BuildContext context, Object error) {
+  final l10n = context.l10n;
+  final message = _normalizedManagerError(error);
+
+  if (message == 'Failed to approve') {
+    return l10n.managerApproveDefaultError;
+  }
+
+  return l10n.managerApproveFailed(_localizedManagerErrorDetail(context, error));
+}
+
+String _localizedManagerRejectError(BuildContext context, Object error) {
+  final l10n = context.l10n;
+  final message = _normalizedManagerError(error);
+
+  if (message == 'Failed to reject') {
+    return l10n.managerRejectDefaultError;
+  }
+
+  return l10n.managerRejectFailed(_localizedManagerErrorDetail(context, error));
+}
+
 class ManagerDashboardScreen extends ConsumerWidget {
   const ManagerDashboardScreen({super.key});
 
@@ -295,44 +339,52 @@ class _PendingCustomShippingSection extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     try {
       await ref.read(managerApiProvider).approveCustomShipping(item.name);
+      if (!context.mounted) return;
       ref.invalidate(pendingCustomShippingProvider);
       ref.invalidate(managerOrdersProvider);
       messenger.showSnackBar(SnackBar(content: Text(context.l10n.managerCustomShippingApproved)));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(context.l10n.managerApproveFailed(e.toString()))));
+      if (!context.mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(_localizedManagerApproveError(context, e))));
     }
   }
 
   Future<void> _reject(BuildContext context, WidgetRef ref, CustomShippingRequest item) async {
+    final messenger = ScaffoldMessenger.of(context);
     final reasonController = TextEditingController();
     final reason = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.managerRejectCustomShippingTitle),
-        content: TextField(
-          controller: reasonController,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'Reason',
-            hintText: 'Optional rejection reason',
+      builder: (ctx) {
+        final l10n = ctx.l10n;
+
+        return AlertDialog(
+          title: Text(l10n.managerRejectCustomShippingTitle),
+          content: TextField(
+            controller: reasonController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              labelText: l10n.commonReasonLabel,
+              hintText: l10n.managerRejectReasonHint,
+            ),
           ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(context.l10n.commonCancel)),
-          FilledButton(onPressed: () => Navigator.of(ctx).pop(reasonController.text.trim()), child: Text(context.l10n.managerReject)),
-        ],
-      ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(l10n.commonCancel)),
+            FilledButton(onPressed: () => Navigator.of(ctx).pop(reasonController.text.trim()), child: Text(l10n.managerReject)),
+          ],
+        );
+      },
     );
     if (reason == null) return;
 
-    final messenger = ScaffoldMessenger.of(context);
     try {
       await ref.read(managerApiProvider).rejectCustomShipping(item.name, reason: reason);
+      if (!context.mounted) return;
       ref.invalidate(pendingCustomShippingProvider);
       ref.invalidate(managerOrdersProvider);
       messenger.showSnackBar(SnackBar(content: Text(context.l10n.managerCustomShippingRejected)));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(context.l10n.managerRejectFailed(e.toString()))));
+      if (!context.mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(_localizedManagerRejectError(context, e))));
     }
   }
 }
@@ -440,10 +492,8 @@ class _ChangeBranchButton extends ConsumerWidget {
             SnackBar(content: Text(l10n.invoiceTransferSuccess(targetBranch.title))),
           );
         } catch (e) {
-          final errorMessage = extractFrappeErrorMessage(
-            e,
-            fallback: l10n.invoiceTransferFailed,
-          );
+          if (!context.mounted) return;
+          final errorMessage = _localizedManagerErrorDetail(context, e);
           messenger.showSnackBar(SnackBar(content: Text(errorMessage)));
         }
       },
@@ -458,11 +508,12 @@ class _ErrorTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final message = _localizedManagerErrorDetail(context, error);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Text(l10n.commonErrorWithDetails(error.toString())),
+          Text(message == l10n.commonError ? message : l10n.commonErrorWithDetails(message)),
           const SizedBox(height: 8),
           OutlinedButton(onPressed: onRetry, child: Text(l10n.commonRetry)),
         ],

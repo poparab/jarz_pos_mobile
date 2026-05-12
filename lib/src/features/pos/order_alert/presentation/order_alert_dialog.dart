@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../domain/invoice_alert.dart';
 import '../state/order_alert_controller.dart';
 
@@ -37,9 +38,10 @@ class OrderAlertDialog extends ConsumerWidget {
     debugPrint('🔔 📱 OrderAlertDialog: Rendering AlertDialog for ${alert.invoiceId}');
 
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final items = alert.items.take(8).toList();
     final posProfile = alert.posProfile.trim().isEmpty
-        ? 'Not specified'
+      ? l10n.commonNotSpecified
         : alert.posProfile.trim();
 
     return AlertDialog(
@@ -55,7 +57,7 @@ class OrderAlertDialog extends ConsumerWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'New Order: ${alert.invoiceId}',
+              l10n.orderAlertTitle(alert.invoiceId),
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -71,20 +73,20 @@ class OrderAlertDialog extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildField(theme, 'Customer', alert.customerName ?? 'Walk-in'),
+            _buildField(theme, l10n.commonCustomerLabel, alert.customerName ?? l10n.commonWalkIn),
             const SizedBox(height: 8),
-            _buildField(theme, 'POS Profile', posProfile),
+            _buildField(theme, l10n.commonPosProfileLabel, posProfile),
             const SizedBox(height: 8),
-            _buildField(theme, 'Total', 'PHP ${alert.displayTotal}'),
+            _buildField(theme, l10n.commonTotalLabel, alert.displayTotal),
             if (alert.deliveryDate != null || alert.deliveryTime != null) ...[
               const SizedBox(height: 8),
-              _buildField(theme, 'Delivery', _formatDelivery(alert)),
+              _buildField(theme, l10n.commonDeliveryLabel, _formatDelivery(alert, l10n.commonScheduled)),
             ],
             const SizedBox(height: 12),
-            Text('Items', style: theme.textTheme.titleMedium),
+            Text(l10n.commonItemsLabel, style: theme.textTheme.titleMedium),
             const SizedBox(height: 4),
             if (items.isEmpty)
-              Text('No line items', style: theme.textTheme.bodySmall)
+              Text(l10n.orderAlertNoLineItems, style: theme.textTheme.bodySmall)
             else ...[
               SizedBox(
                 height: items.length > 4 ? 160 : items.length * 32.0,
@@ -99,7 +101,7 @@ class OrderAlertDialog extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            item.itemName ?? item.itemCode ?? 'Item',
+                            item.itemName ?? item.itemCode ?? l10n.commonItemLabel,
                             style: theme.textTheme.bodyMedium,
                           ),
                         ),
@@ -116,7 +118,7 @@ class OrderAlertDialog extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
-                    '+${alert.items.length - items.length} more item(s)',
+                    l10n.orderAlertMoreItems(alert.items.length - items.length),
                     style: theme.textTheme.bodySmall,
                   ),
                 ),
@@ -151,7 +153,7 @@ class OrderAlertDialog extends ConsumerWidget {
                 ? Icons.volume_up_outlined
                 : Icons.volume_off_outlined,
           ),
-          label: Text(isMuted ? 'Unmute Alarm' : 'Mute Alarm'),
+          label: Text(isMuted ? l10n.orderAlertUnmuteAlarm : l10n.orderAlertMuteAlarm),
         ),
       FilledButton.icon(
         onPressed: isAcknowledging ? null : (onAccept ?? () {}),
@@ -162,7 +164,7 @@ class OrderAlertDialog extends ConsumerWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : const Icon(Icons.check_circle_outline),
-        label: Text(isAcknowledging ? 'Accepting…' : 'Accept Order'),
+        label: Text(isAcknowledging ? l10n.orderAlertAccepting : l10n.orderAlertAcceptOrder),
       ),
     ],
   );
@@ -183,11 +185,11 @@ class OrderAlertDialog extends ConsumerWidget {
     );
   }
 
-  String _formatDelivery(InvoiceAlert alert) {
+  String _formatDelivery(InvoiceAlert alert, String scheduledLabel) {
     final date = alert.deliveryDate ?? '';
     final time = alert.deliveryTime ?? '';
     if (date.isEmpty && time.isEmpty) {
-      return 'Scheduled';
+      return scheduledLabel;
     }
     if (date.isEmpty) return time;
     if (time.isEmpty) return date;

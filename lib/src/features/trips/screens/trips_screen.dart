@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/localized_display_mappers.dart';
+import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../models/trip_models.dart';
@@ -76,6 +78,8 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
   }
 
   Widget _buildTripList(List<DeliveryTrip> trips) {
+    final l10n = context.l10n;
+
     if (trips.isEmpty) {
       return Center(
         child: Column(
@@ -83,7 +87,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
           children: [
             Icon(Icons.local_shipping_outlined, size: 48, color: Colors.grey[400]),
             const SizedBox(height: 8),
-            Text('No trips', style: TextStyle(color: Colors.grey[500])),
+            Text(l10n.tripsNoTrips, style: TextStyle(color: Colors.grey[500])),
           ],
         ),
       );
@@ -100,6 +104,8 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
   }
 
   Widget _buildTripCard(DeliveryTrip trip) {
+    final l10n = context.l10n;
+
     final statusColor = switch (trip.status) {
       'Created' => Colors.blue,
       'Out for Delivery' => Colors.orange,
@@ -140,7 +146,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      trip.status,
+                      localizedStatusLabel(context, trip.status),
                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
                     ),
                   ),
@@ -151,13 +157,13 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(trip.courierDisplayName, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
-                  Text(trip.tripDate, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                  Text(formatDateString(context, trip.tripDate), style: TextStyle(fontSize: 12, color: Colors.grey[500])),
                 ],
               ),
               const SizedBox(height: 6),
               Row(
                 children: [
-                  Text('${trip.totalOrders} orders', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  Text(l10n.tripsOrdersCount(trip.totalOrders), style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                   const Spacer(),
                   if (trip.isDoubleShipping) ...[
                     Container(
@@ -172,7 +178,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                     const SizedBox(width: 8),
                   ],
                   Text(
-                    '\$${trip.totalAmount.toStringAsFixed(2)}',
+                    formatCurrency(context, trip.totalAmount),
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.green),
                   ),
                 ],

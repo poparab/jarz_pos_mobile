@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/localization/localized_display_mappers.dart';
+import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../models/trip_models.dart';
 import '../providers/trip_provider.dart';
@@ -63,6 +65,8 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
   }
 
   Widget _buildHeader(DeliveryTrip trip) {
+    final l10n = context.l10n;
+
     final statusColor = switch (trip.status) {
       'Created' => Colors.blue,
       'Out for Delivery' => Colors.orange,
@@ -91,16 +95,16 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
                     color: statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(trip.status, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: statusColor)),
+                  child: Text(localizedStatusLabel(context, trip.status), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: statusColor)),
                 ),
               ],
             ),
             const Divider(height: 20),
-            _detailRow('Courier', trip.courierDisplayName),
-            _detailRow('Date', trip.tripDate),
-            _detailRow('Orders', trip.totalOrders.toString()),
-            _detailRow('Total Amount', '\$${trip.totalAmount.toStringAsFixed(2)}'),
-            _detailRow('Shipping Expense', '\$${trip.totalShippingExpense.toStringAsFixed(2)}'),
+            _detailRow(l10n.commonCourierLabel, trip.courierDisplayName),
+            _detailRow(l10n.commonDateLabel, formatDateString(context, trip.tripDate)),
+            _detailRow(l10n.tripsOrdersLabel, formatCount(context, trip.totalOrders)),
+            _detailRow(l10n.tripsTotalAmount, formatCurrency(context, trip.totalAmount)),
+            _detailRow(l10n.tripsTotalShipping, formatCurrency(context, trip.totalShippingExpense)),
             if (trip.isDoubleShipping) ...[
               const SizedBox(height: 6),
               Container(
@@ -116,7 +120,9 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
                     Icon(Icons.double_arrow, size: 14, color: Colors.amber[800]),
                     const SizedBox(width: 4),
                     Text(
-                      'Double Shipping — ${trip.doubleShippingTerritory ?? 'Same territory'}',
+                      trip.doubleShippingTerritory?.isNotEmpty == true
+                          ? '${l10n.tripsDoubleShippingLabel} — ${trip.doubleShippingTerritory}'
+                          : l10n.tripsDoubleShippingLabel,
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.amber[800]),
                     ),
                   ],
@@ -125,7 +131,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
             ],
             if (trip.notes != null && trip.notes!.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text('Notes: ${trip.notes}', style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic)),
+              Text('${l10n.tripsNotesLabel}: ${trip.notes}', style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic)),
             ],
           ],
         ),
@@ -150,7 +156,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Invoices (${trip.invoices.length})', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(context.l10n.tripsInvoicesCount(trip.invoices.length), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         ...trip.invoices.map((inv) => _TripInvoiceCard(invoice: inv)),
       ],
@@ -324,10 +330,10 @@ class _TripInvoiceCardState extends State<_TripInvoiceCard> {
                 children: [
                   Text(inv.invoice, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(width: 6),
-                  _statusBadge(inv.invoiceStatus, _statusColor),
+                  _statusBadge(localizedStatusLabel(context, inv.invoiceStatus), _statusColor),
                   if (inv.isPaid) ...[
                     const SizedBox(width: 4),
-                    _statusBadge('Paid', Colors.green),
+                    _statusBadge(context.l10n.statusPaid, Colors.green),
                   ],
                 ],
               ),
@@ -340,9 +346,9 @@ class _TripInvoiceCardState extends State<_TripInvoiceCard> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text('\$${inv.grandTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+            Text(formatCurrency(context, inv.grandTotal), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
             if (inv.shippingExpense > 0)
-              Text('Ship: \$${inv.shippingExpense.toStringAsFixed(2)}', style: TextStyle(fontSize: 10, color: Colors.grey[500])),
+              Text('${context.l10n.invoiceShippingExpenseShort} ${formatCurrency(context, inv.shippingExpense)}', style: TextStyle(fontSize: 10, color: Colors.grey[500])),
             Icon(_expanded ? Icons.expand_less : Icons.expand_more, size: 18, color: Colors.grey),
           ],
         ),
@@ -369,22 +375,22 @@ class _TripInvoiceCardState extends State<_TripInvoiceCard> {
           _infoTile(Icons.schedule, inv.deliverySlotLabel),
         ],
         if (inv.deliveryDate.isNotEmpty)
-          _infoTile(Icons.calendar_today, inv.deliveryDate),
+          _infoTile(Icons.calendar_today, formatDateString(context, inv.deliveryDate)),
 
         // Payment info
         const SizedBox(height: 6),
         Row(
           children: [
-            _labelValue('Payment', inv.paymentMethod),
+            _labelValue(context.l10n.commonPaymentLabel, localizedPaymentMethodLabel(context, inv.paymentMethod)),
             const SizedBox(width: 16),
-            _labelValue('Outstanding', '\$${inv.outstandingAmount.toStringAsFixed(2)}'),
+            _labelValue(context.l10n.commonOutstandingLabel, formatCurrency(context, inv.outstandingAmount)),
           ],
         ),
 
         // Items table
         if (inv.items.isNotEmpty) ...[
           const SizedBox(height: 10),
-          const Text('Items', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(context.l10n.commonItemsLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Container(
             decoration: BoxDecoration(
@@ -400,12 +406,12 @@ class _TripInvoiceCardState extends State<_TripInvoiceCard> {
                     color: Colors.grey[100],
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
                   ),
-                  child: const Row(
+                    child: Row(
                     children: [
-                      Expanded(flex: 4, child: Text('Item', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600))),
-                      Expanded(flex: 1, child: Text('Qty', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600), textAlign: TextAlign.center)),
-                      Expanded(flex: 2, child: Text('Rate', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600), textAlign: TextAlign.right)),
-                      Expanded(flex: 2, child: Text('Amount', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600), textAlign: TextAlign.right)),
+                        Expanded(flex: 4, child: Text(context.l10n.commonItemLabel, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600))),
+                        Expanded(flex: 1, child: Text(context.l10n.commonQtyLabel, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600), textAlign: TextAlign.center)),
+                        Expanded(flex: 2, child: Text(context.l10n.commonRateLabel, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600), textAlign: TextAlign.right)),
+                        Expanded(flex: 2, child: Text(context.l10n.commonAmountLabel, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600), textAlign: TextAlign.right)),
                     ],
                   ),
                 ),
@@ -416,8 +422,8 @@ class _TripInvoiceCardState extends State<_TripInvoiceCard> {
                     children: [
                       Expanded(flex: 4, child: Text(item.itemName, style: const TextStyle(fontSize: 10), overflow: TextOverflow.ellipsis)),
                       Expanded(flex: 1, child: Text(item.qty.toStringAsFixed(0), style: const TextStyle(fontSize: 10), textAlign: TextAlign.center)),
-                      Expanded(flex: 2, child: Text('\$${item.rate.toStringAsFixed(2)}', style: const TextStyle(fontSize: 10), textAlign: TextAlign.right)),
-                      Expanded(flex: 2, child: Text('\$${item.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 10), textAlign: TextAlign.right)),
+                      Expanded(flex: 2, child: Text(formatCurrency(context, item.rate), style: const TextStyle(fontSize: 10), textAlign: TextAlign.right)),
+                      Expanded(flex: 2, child: Text(formatCurrency(context, item.amount), style: const TextStyle(fontSize: 10), textAlign: TextAlign.right)),
                     ],
                   ),
                 )),

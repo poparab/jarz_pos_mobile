@@ -9,6 +9,29 @@ import '../../auth/state/login_notifier.dart';
 import '../models/shift_models.dart';
 import '../state/shift_notifier.dart';
 
+String _normalizeShiftError(String error) {
+  return error.replaceFirst(RegExp(r'^Exception:\s*'), '').trim();
+}
+
+String _localizedShiftError(BuildContext context, String error) {
+  final l10n = context.l10n;
+  final message = _normalizeShiftError(error);
+
+  switch (message) {
+    case 'Unexpected start shift response':
+      return l10n.shiftUnexpectedStartResponse;
+    case 'Unexpected shift summary response':
+      return l10n.shiftUnexpectedSummaryResponse;
+    case 'Unexpected end shift response':
+      return l10n.shiftUnexpectedEndResponse;
+    default:
+      if (message.isEmpty) {
+        return l10n.commonError;
+      }
+      return l10n.commonErrorWithDetails(message);
+  }
+}
+
 class ShiftEndScreen extends ConsumerStatefulWidget {
   const ShiftEndScreen({super.key});
 
@@ -49,7 +72,9 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
       appBar: AppBar(title: Text(l10n.shiftEndTitle)),
       body: activeShiftAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(l10n.shiftLoadActiveFailed(e.toString()))),
+        error: (e, _) => Center(
+          child: Text(l10n.shiftLoadActiveFailed(_normalizeShiftError(e.toString()))),
+        ),
         data: (activeShift) {
           if (activeShift == null) {
             return Center(
@@ -72,6 +97,12 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                return Center(
+                  child: Text(_localizedShiftError(context, snapshot.error.toString())),
+                );
               }
 
               final summary = snapshot.data;
@@ -172,7 +203,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Text(
-                shiftState.error!,
+                _localizedShiftError(context, shiftState.error!),
                 style: TextStyle(color: theme.colorScheme.error),
               ),
             ),

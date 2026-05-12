@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../data/repositories/draft_cart_repository.dart';
 import '../../data/models/draft_cart.dart';
 import '../../state/pos_notifier.dart';
@@ -15,6 +16,7 @@ class DraftTabsBar extends ConsumerWidget {
     final drafts = ref.watch(posNotifierProvider.select((s) => s.drafts));
     final currentDraftId = ref.watch(posNotifierProvider.select((s) => s.currentDraftId));
     final draftDirty = ref.watch(posNotifierProvider.select((s) => s.draftDirty));
+    final l10n = context.l10n;
 
     if (drafts.isEmpty && currentDraftId == null) {
       // No drafts yet — nothing to show until the first item is added.
@@ -43,7 +45,7 @@ class DraftTabsBar extends ConsumerWidget {
                     ? colorScheme.onPrimaryContainer
                     : colorScheme.onSurface,
               ),
-              label: const Text('New'),
+                    label: Text(l10n.commonNew),
               backgroundColor: currentDraftId == null
                   ? colorScheme.primaryContainer
                   : colorScheme.surface,
@@ -56,9 +58,7 @@ class DraftTabsBar extends ConsumerWidget {
                 if (drafts.length >= kDraftCartLimit) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                        'Draft limit reached ($kDraftCartLimit max). Delete a draft to create a new one.',
-                      ),
+                      content: Text(l10n.posDraftLimitReached(kDraftCartLimit)),
                       duration: const Duration(seconds: 3),
                     ),
                   );
@@ -121,19 +121,19 @@ class DraftTabsBar extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Draft'),
-        content: Text('Delete "${draft.label}"? This cannot be undone.'),
+        title: Text(context.l10n.posDraftDeleteTitle),
+        content: Text(context.l10n.posDraftDeleteBody(draft.label)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(ctx).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(context.l10n.commonDelete),
           ),
         ],
       ),

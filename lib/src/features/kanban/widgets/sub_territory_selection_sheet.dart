@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/localized_formatters.dart';
+
 /// Bottom sheet for selecting a sub-territory for an invoice.
 class SubTerritorySelectionSheet extends StatefulWidget {
   final String territory;
@@ -31,6 +34,8 @@ class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.5,
       minChildSize: 0.3,
@@ -55,19 +60,19 @@ class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet>
               ),
               const SizedBox(height: 12),
               Text(
-                'Select Sub-territory',
+                l10n.subTerritorySelectTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Text(
-                'for ${widget.territory}',
+                l10n.subTerritoryForTerritory(widget.territory),
                 style: TextStyle(fontSize: 13, color: Colors.grey[600]),
               ),
               const SizedBox(height: 12),
               // Search field
               TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search...',
+                  hintText: '${l10n.kanbanFilterSearch}...',
                   prefixIcon: const Icon(Icons.search, size: 20),
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -79,7 +84,7 @@ class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet>
               Expanded(
                 child: _filtered.isEmpty
                     ? Center(
-                        child: Text('No sub-territories found', style: TextStyle(color: Colors.grey[500])),
+                        child: Text(l10n.subTerritoryNoResults, style: TextStyle(color: Colors.grey[500])),
                       )
                     : ListView.separated(
                         controller: scrollController,
@@ -109,7 +114,7 @@ class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet>
                             ),
                             trailing: expense > 0
                                 ? Text(
-                                    '\$${expense.toStringAsFixed(2)}',
+                                    formatCurrency(context, expense),
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,

@@ -222,8 +222,8 @@ class _PrinterSelectionScreenState
                       const SizedBox(height: 16),
                       SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('Use new bitmap receipt'),
-                        subtitle: const Text('Renders the full receipt as an image (recommended — fixes Arabic, missing data, and gibberish)'),
+                        title: Text(l10n.printingUseBitmapReceipt),
+                        subtitle: Text(l10n.printingUseBitmapReceiptHint),
                         value: useBitmapDraft,
                         onChanged: (value) => setModalState(
                           () => useBitmapDraft = value,

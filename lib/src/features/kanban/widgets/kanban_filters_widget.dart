@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/kanban_models.dart';
 import '../../../core/constants/business_constants.dart';
+import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localization_extensions.dart';
 
 class KanbanFiltersWidget extends StatefulWidget {
@@ -132,7 +133,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
                         label: Text(
                           (_currentFilters.status?.isEmpty ?? true)
                               ? context.l10n.kanbanFilterAllStatuses
-                              : _currentFilters.status!,
+                              : localizedStatusLabel(context, _currentFilters.status),
                         ),
                         selected: _currentFilters.status?.isNotEmpty == true,
                         onSelected: (_) => _showStatusPicker(context),
@@ -214,7 +215,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
 
     if (_currentFilters.searchTerm.isNotEmpty) {
       chips.add(
-        _buildRemovableChip('Search: ${_currentFilters.searchTerm}', () {
+        _buildRemovableChip('${context.l10n.kanbanFilterSearch}: ${_currentFilters.searchTerm}', () {
           setState(() {
             _currentFilters = _currentFilters.copyWith(searchTerm: '');
           });
@@ -225,7 +226,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
 
     if (_currentFilters.customer?.isNotEmpty == true) {
       chips.add(
-        _buildRemovableChip('Customer: ${_currentFilters.customer}', () {
+        _buildRemovableChip('${context.l10n.commonCustomerLabel}: ${_currentFilters.customer}', () {
           setState(() {
             _currentFilters = _currentFilters.copyWith(customer: null);
           });
@@ -236,7 +237,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
 
     if (_currentFilters.status?.isNotEmpty == true) {
       chips.add(
-        _buildRemovableChip('Status: ${_currentFilters.status}', () {
+        _buildRemovableChip('${context.l10n.kanbanFilterStatusTitle}: ${localizedStatusLabel(context, _currentFilters.status)}', () {
           setState(() {
             _currentFilters = _currentFilters.copyWith(status: null);
           });
@@ -356,7 +357,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
                   ),
                   ...statuses.map(
                     (status) => RadioListTile<String?>(
-                      title: Text(status),
+                      title: Text(localizedStatusLabel(context, status)),
                       value: status,
                       dense: true,
                     ),

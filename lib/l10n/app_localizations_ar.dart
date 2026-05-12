@@ -445,8 +445,111 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonRetry => 'إعادة المحاولة';
 
   @override
+  String get commonCustomerLabel => 'العميل';
+
+  @override
+  String get commonPosProfileLabel => 'ملف نقطة البيع';
+
+  @override
+  String get commonTotalLabel => 'الإجمالي';
+
+  @override
+  String get commonAmountLabel => 'المبلغ';
+
+  @override
+  String get commonDateLabel => 'التاريخ';
+
+  @override
+  String get commonCourierLabel => 'الساعي';
+
+  @override
+  String get commonDeliveryLabel => 'التوصيل';
+
+  @override
+  String get commonItemsLabel => 'الأصناف';
+
+  @override
+  String get commonItemLabel => 'صنف';
+
+  @override
+  String get commonNotesLabel => 'ملاحظات';
+
+  @override
+  String get commonPaymentLabel => 'الدفع';
+
+  @override
+  String get commonOutstandingLabel => 'المتبقي';
+
+  @override
+  String get commonUploadedByLabel => 'تم الرفع بواسطة';
+
+  @override
+  String get commonReasonLabel => 'السبب';
+
+  @override
+  String get commonNotSpecified => 'غير محدد';
+
+  @override
+  String get commonWalkIn => 'عميل مباشر';
+
+  @override
+  String get commonScheduled => 'مجدول';
+
+  @override
+  String get commonDelete => 'حذف';
+
+  @override
+  String get commonNew => 'جديد';
+
+  @override
+  String get commonPreview => 'معاينة';
+
+  @override
+  String commonByUser(Object user) {
+    return 'بواسطة $user';
+  }
+
+  @override
   String commonQtyWithUom(Object uom) {
     return 'الكمية ($uom)';
+  }
+
+  @override
+  String orderAlertTitle(Object invoiceId) {
+    return 'طلب جديد: $invoiceId';
+  }
+
+  @override
+  String get orderAlertNoLineItems => 'لا توجد بنود';
+
+  @override
+  String orderAlertMoreItems(Object count) {
+    return '+$count صنف إضافي';
+  }
+
+  @override
+  String get orderAlertMuteAlarm => 'كتم التنبيه';
+
+  @override
+  String get orderAlertUnmuteAlarm => 'إلغاء كتم التنبيه';
+
+  @override
+  String get orderAlertAccepting => 'جارٍ القبول...';
+
+  @override
+  String get orderAlertAcceptOrder => 'قبول الطلب';
+
+  @override
+  String get posDraftDeleteTitle => 'حذف المسودة';
+
+  @override
+  String posDraftDeleteBody(Object label) {
+    return 'هل تريد حذف \"$label\"؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String posDraftLimitReached(Object max) {
+    return 'تم الوصول إلى الحد الأقصى للمسودات ($max). احذف مسودة لإنشاء مسودة جديدة.';
   }
 
   @override
@@ -526,6 +629,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get expensesDateLabel => 'تاريخ المصروف';
+
+  @override
+  String get expensesReasonRequired => 'اختر سببًا';
+
+  @override
+  String get expensesPaymentSourceRequired => 'اختر مصدر الدفع';
 
   @override
   String get expensesRemarksLabel => 'ملاحظات (اختياري)';
@@ -731,6 +840,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String shiftLabel(Object shift) {
     return 'الشيفت: $shift';
   }
+
+  @override
+  String get shiftUnexpectedStartResponse =>
+      'استجابة غير متوقعة من الخادم أثناء بدء الشيفت.';
+
+  @override
+  String get shiftUnexpectedSummaryResponse =>
+      'استجابة غير متوقعة من الخادم أثناء تحميل ملخص الشيفت.';
+
+  @override
+  String get shiftUnexpectedEndResponse =>
+      'استجابة غير متوقعة من الخادم أثناء إنهاء الشيفت.';
 
   @override
   String shiftOutflows(Object amount) {
@@ -1817,10 +1938,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paymentMethodCash => 'نقدي';
 
   @override
+  String get paymentMethodCard => 'بطاقة';
+
+  @override
   String get paymentMethodInstapay => 'إنستاباي';
 
   @override
   String get paymentMethodMobileWallet => 'محفظة إلكترونية';
+
+  @override
+  String get paymentMethodSettleLater => 'سداد لاحق';
 
   @override
   String get checkoutTotal => 'الإجمالي:';
@@ -2603,6 +2730,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tripsSelectCourier => 'اختر الساعي';
 
   @override
+  String get tripsNoTrips => 'لا توجد رحلات';
+
+  @override
+  String tripsOrdersCount(Object count) {
+    return '$count طلب';
+  }
+
+  @override
+  String get tripsDoubleShippingLabel => 'شحن مضاعف';
+
+  @override
+  String get tripsNotesLabel => 'ملاحظات';
+
+  @override
   String get tripsMarkTripAsDeliveredTitle => 'تعليم الرحلة كمسلمة';
 
   @override
@@ -2659,6 +2800,34 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get subTerritorySelectTitle => 'اختر المنطقة الفرعية';
+
+  @override
+  String subTerritoryForTerritory(Object territory) {
+    return 'لـ $territory';
+  }
+
+  @override
+  String get subTerritoryNoResults => 'لم يتم العثور على مناطق فرعية';
+
+  @override
+  String get subTerritoryLoadFailed => 'تعذر تحميل المناطق الفرعية';
+
+  @override
+  String get customShippingBadgePending => 'الشحن المخصص قيد الانتظار';
+
+  @override
+  String get customShippingBadgeApproved => 'تمت الموافقة على الشحن المخصص';
+
+  @override
+  String customShippingBadgeAmount(Object amount) {
+    return 'شحن مخصص $amount';
+  }
+
+  @override
+  String get customShippingBadgeRejected => 'تم رفض الشحن المخصص';
+
+  @override
   String get receiptSelectImageSource => 'اختر مصدر الصورة';
 
   @override
@@ -2699,6 +2868,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get receiptAllProfiles => 'جميع الملفات الشخصية';
 
   @override
+  String get receiptFilterByPosProfile => 'تصفية حسب ملف نقطة البيع';
+
+  @override
   String get receiptNoReceiptsFound => 'لا توجد إيصالات دفع';
 
   @override
@@ -2712,6 +2884,57 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get commonPrint => 'طباعة';
+
+  @override
+  String get statusCreated => 'تم الإنشاء';
+
+  @override
+  String get statusOutForDelivery => 'خارج للتوصيل';
+
+  @override
+  String get statusCompleted => 'مكتمل';
+
+  @override
+  String get statusDelivered => 'تم التسليم';
+
+  @override
+  String get statusReturn => 'مرتجع';
+
+  @override
+  String get statusReturnedToSender => 'تم الإرجاع إلى المرسل';
+
+  @override
+  String get statusPaid => 'مدفوع';
+
+  @override
+  String get statusUnpaid => 'غير مدفوع';
+
+  @override
+  String get statusOverdue => 'متأخر';
+
+  @override
+  String get statusCancelled => 'ملغي';
+
+  @override
+  String get statusConfirmed => 'مؤكد';
+
+  @override
+  String get statusUnconfirmed => 'غير مؤكد';
+
+  @override
+  String get statusPending => 'قيد الانتظار';
+
+  @override
+  String get statusPendingApproval => 'قيد الاعتماد';
+
+  @override
+  String get statusApproved => 'معتمد';
+
+  @override
+  String get statusRejected => 'مرفوض';
+
+  @override
+  String get statusDraft => 'مسودة';
 
   @override
   String get kanbanNoInvoices => 'لا توجد فواتير';
@@ -2733,6 +2956,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get kanbanRequestCustomShipping => 'طلب شحن مخصص';
+
+  @override
+  String get customShippingCurrentShipping => 'الشحن الحالي';
+
+  @override
+  String get customShippingRequestedAmount => 'المبلغ المطلوب';
+
+  @override
+  String get customShippingReasonHint => 'لماذا تحتاج إلى شحن مخصص...';
+
+  @override
+  String get customShippingAmountRequired => 'المبلغ مطلوب';
+
+  @override
+  String get customShippingAmountInvalid => 'أدخل مبلغًا موجبًا صحيحًا';
+
+  @override
+  String get customShippingReasonRequired =>
+      'يرجى كتابة سبب واضح (10 أحرف على الأقل)';
+
+  @override
+  String get customShippingSubmitRequest => 'إرسال الطلب';
 
   @override
   String get kanbanCustomShippingSubmitted => 'تم تقديم طلب الشحن المخصص';
@@ -2815,6 +3060,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get managerRejectReasonHint => 'سبب الرفض (اختياري)';
+
+  @override
+  String get managerPendingCustomShippingLoadFailed =>
+      'فشل تحميل طلبات الشحن المخصص المعلقة';
+
+  @override
+  String get managerTransferBranchesLoadFailed => 'فشل تحميل فروع التحويل';
+
+  @override
+  String get managerApproveDefaultError => 'تعذر اعتماد الطلب.';
+
+  @override
+  String get managerRejectDefaultError => 'تعذر رفض الطلب.';
+
+  @override
   String get purchaseNoInvoicesYet => 'لا توجد فواتير شراء بعد';
 
   @override
@@ -2866,6 +3127,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsNoFileSelected => 'لم يتم اختيار ملف';
 
   @override
+  String get settingsBrowseCustomSoundFile => 'استعراض ملف صوت مخصص';
+
+  @override
+  String get settingsCustomSoundTitle => 'الصوت المخصص';
+
+  @override
   String itemGridStockLimitReached(Object stockQty) {
     return 'تم الوصول لحد المخزون. المتوفر $stockQty فقط.';
   }
@@ -2878,6 +3145,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get printingPrintersTitle => 'الطابعات';
+
+  @override
+  String get printingUseBitmapReceipt => 'استخدام الإيصال النقطي الجديد';
+
+  @override
+  String get printingUseBitmapReceiptHint =>
+      'يعرض الإيصال الكامل كصورة ويساعد في حل مشاكل العربية والبيانات الناقصة والنص غير المقروء.';
 
   @override
   String kanbanOrdersSelectedCount(int count) {
@@ -2974,6 +3248,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authHidePassword => 'إخفاء كلمة المرور';
+
+  @override
+  String get authInvalidCredentials => 'بيانات الاعتماد غير صحيحة';
+
+  @override
+  String get authCannotReachServer =>
+      'تعذر الوصول إلى الخادم. تحقق من شبكة Wi-Fi أو الـ VPN وعنوان الخادم ثم حاول مرة أخرى.';
+
+  @override
+  String get authConnectionFailed =>
+      'فشل الاتصال. يرجى التحقق من الشبكة وتوفر الخادم.';
+
+  @override
+  String get authLoginFailed => 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.';
 
   @override
   String get menuReports => 'التقارير';

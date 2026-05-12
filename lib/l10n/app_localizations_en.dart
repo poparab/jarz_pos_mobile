@@ -443,8 +443,111 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonRetry => 'Retry';
 
   @override
+  String get commonCustomerLabel => 'Customer';
+
+  @override
+  String get commonPosProfileLabel => 'POS Profile';
+
+  @override
+  String get commonTotalLabel => 'Total';
+
+  @override
+  String get commonAmountLabel => 'Amount';
+
+  @override
+  String get commonDateLabel => 'Date';
+
+  @override
+  String get commonCourierLabel => 'Courier';
+
+  @override
+  String get commonDeliveryLabel => 'Delivery';
+
+  @override
+  String get commonItemsLabel => 'Items';
+
+  @override
+  String get commonItemLabel => 'Item';
+
+  @override
+  String get commonNotesLabel => 'Notes';
+
+  @override
+  String get commonPaymentLabel => 'Payment';
+
+  @override
+  String get commonOutstandingLabel => 'Outstanding';
+
+  @override
+  String get commonUploadedByLabel => 'Uploaded by';
+
+  @override
+  String get commonReasonLabel => 'Reason';
+
+  @override
+  String get commonNotSpecified => 'Not specified';
+
+  @override
+  String get commonWalkIn => 'Walk-in';
+
+  @override
+  String get commonScheduled => 'Scheduled';
+
+  @override
+  String get commonDelete => 'Delete';
+
+  @override
+  String get commonNew => 'New';
+
+  @override
+  String get commonPreview => 'Preview';
+
+  @override
+  String commonByUser(Object user) {
+    return 'by $user';
+  }
+
+  @override
   String commonQtyWithUom(Object uom) {
     return 'Qty ($uom)';
+  }
+
+  @override
+  String orderAlertTitle(Object invoiceId) {
+    return 'New Order: $invoiceId';
+  }
+
+  @override
+  String get orderAlertNoLineItems => 'No line items';
+
+  @override
+  String orderAlertMoreItems(Object count) {
+    return '+$count more item(s)';
+  }
+
+  @override
+  String get orderAlertMuteAlarm => 'Mute Alarm';
+
+  @override
+  String get orderAlertUnmuteAlarm => 'Unmute Alarm';
+
+  @override
+  String get orderAlertAccepting => 'Accepting...';
+
+  @override
+  String get orderAlertAcceptOrder => 'Accept Order';
+
+  @override
+  String get posDraftDeleteTitle => 'Delete Draft';
+
+  @override
+  String posDraftDeleteBody(Object label) {
+    return 'Delete \"$label\"? This cannot be undone.';
+  }
+
+  @override
+  String posDraftLimitReached(Object max) {
+    return 'Draft limit reached ($max max). Delete a draft to create a new one.';
   }
 
   @override
@@ -524,6 +627,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get expensesDateLabel => 'Expense date';
+
+  @override
+  String get expensesReasonRequired => 'Select a reason';
+
+  @override
+  String get expensesPaymentSourceRequired => 'Select a payment source';
 
   @override
   String get expensesRemarksLabel => 'Remarks (optional)';
@@ -727,6 +836,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String shiftLabel(Object shift) {
     return 'Shift: $shift';
   }
+
+  @override
+  String get shiftUnexpectedStartResponse =>
+      'Unexpected server response while starting the shift.';
+
+  @override
+  String get shiftUnexpectedSummaryResponse =>
+      'Unexpected server response while loading the shift summary.';
+
+  @override
+  String get shiftUnexpectedEndResponse =>
+      'Unexpected server response while ending the shift.';
 
   @override
   String shiftOutflows(Object amount) {
@@ -1816,10 +1937,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentMethodCash => 'Cash';
 
   @override
+  String get paymentMethodCard => 'Card';
+
+  @override
   String get paymentMethodInstapay => 'Instapay';
 
   @override
   String get paymentMethodMobileWallet => 'Mobile Wallet';
+
+  @override
+  String get paymentMethodSettleLater => 'Settle Later';
 
   @override
   String get checkoutTotal => 'Total:';
@@ -2610,6 +2737,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tripsSelectCourier => 'Select Courier';
 
   @override
+  String get tripsNoTrips => 'No trips';
+
+  @override
+  String tripsOrdersCount(Object count) {
+    return '$count orders';
+  }
+
+  @override
+  String get tripsDoubleShippingLabel => 'Double Shipping';
+
+  @override
+  String get tripsNotesLabel => 'Notes';
+
+  @override
   String get tripsMarkTripAsDeliveredTitle => 'Mark Trip as Delivered';
 
   @override
@@ -2666,6 +2807,34 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get subTerritorySelectTitle => 'Select Sub-territory';
+
+  @override
+  String subTerritoryForTerritory(Object territory) {
+    return 'for $territory';
+  }
+
+  @override
+  String get subTerritoryNoResults => 'No sub-territories found';
+
+  @override
+  String get subTerritoryLoadFailed => 'Failed to load sub-territories';
+
+  @override
+  String get customShippingBadgePending => 'Custom shipping pending';
+
+  @override
+  String get customShippingBadgeApproved => 'Custom shipping approved';
+
+  @override
+  String customShippingBadgeAmount(Object amount) {
+    return 'Custom shipping $amount';
+  }
+
+  @override
+  String get customShippingBadgeRejected => 'Custom shipping rejected';
+
+  @override
   String get receiptSelectImageSource => 'Select Image Source';
 
   @override
@@ -2706,6 +2875,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiptAllProfiles => 'All Profiles';
 
   @override
+  String get receiptFilterByPosProfile => 'Filter by POS Profile';
+
+  @override
   String get receiptNoReceiptsFound => 'No payment receipts found';
 
   @override
@@ -2719,6 +2891,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonPrint => 'Print';
+
+  @override
+  String get statusCreated => 'Created';
+
+  @override
+  String get statusOutForDelivery => 'Out for Delivery';
+
+  @override
+  String get statusCompleted => 'Completed';
+
+  @override
+  String get statusDelivered => 'Delivered';
+
+  @override
+  String get statusReturn => 'Return';
+
+  @override
+  String get statusReturnedToSender => 'Returned to Sender';
+
+  @override
+  String get statusPaid => 'Paid';
+
+  @override
+  String get statusUnpaid => 'Unpaid';
+
+  @override
+  String get statusOverdue => 'Overdue';
+
+  @override
+  String get statusCancelled => 'Cancelled';
+
+  @override
+  String get statusConfirmed => 'Confirmed';
+
+  @override
+  String get statusUnconfirmed => 'Unconfirmed';
+
+  @override
+  String get statusPending => 'Pending';
+
+  @override
+  String get statusPendingApproval => 'Pending Approval';
+
+  @override
+  String get statusApproved => 'Approved';
+
+  @override
+  String get statusRejected => 'Rejected';
+
+  @override
+  String get statusDraft => 'Draft';
 
   @override
   String get kanbanNoInvoices => 'No invoices';
@@ -2740,6 +2963,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kanbanRequestCustomShipping => 'Request Custom Shipping';
+
+  @override
+  String get customShippingCurrentShipping => 'Current Shipping';
+
+  @override
+  String get customShippingRequestedAmount => 'Requested Amount';
+
+  @override
+  String get customShippingReasonHint => 'Why custom shipping is needed...';
+
+  @override
+  String get customShippingAmountRequired => 'Amount is required';
+
+  @override
+  String get customShippingAmountInvalid => 'Enter a valid positive amount';
+
+  @override
+  String get customShippingReasonRequired =>
+      'Please provide a reason (min 10 characters)';
+
+  @override
+  String get customShippingSubmitRequest => 'Submit Request';
 
   @override
   String get kanbanCustomShippingSubmitted =>
@@ -2826,6 +3071,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get managerRejectReasonHint => 'Optional rejection reason';
+
+  @override
+  String get managerPendingCustomShippingLoadFailed =>
+      'Failed to load pending custom shipping requests';
+
+  @override
+  String get managerTransferBranchesLoadFailed =>
+      'Failed to load transfer branches';
+
+  @override
+  String get managerApproveDefaultError => 'Unable to approve the request.';
+
+  @override
+  String get managerRejectDefaultError => 'Unable to reject the request.';
+
+  @override
   String get purchaseNoInvoicesYet => 'No purchase invoices yet';
 
   @override
@@ -2877,6 +3139,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsNoFileSelected => 'No file selected';
 
   @override
+  String get settingsBrowseCustomSoundFile => 'Browse Custom Sound File';
+
+  @override
+  String get settingsCustomSoundTitle => 'Custom Sound';
+
+  @override
   String itemGridStockLimitReached(Object stockQty) {
     return 'Stock limit reached. Only $stockQty available.';
   }
@@ -2889,6 +3157,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get printingPrintersTitle => 'Printers';
+
+  @override
+  String get printingUseBitmapReceipt => 'Use new bitmap receipt';
+
+  @override
+  String get printingUseBitmapReceiptHint =>
+      'Renders the full receipt as an image and helps with Arabic, missing data, and gibberish issues.';
 
   @override
   String kanbanOrdersSelectedCount(int count) {
@@ -2986,6 +3261,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authHidePassword => 'Hide password';
+
+  @override
+  String get authInvalidCredentials => 'Invalid credentials';
+
+  @override
+  String get authCannotReachServer =>
+      'Cannot reach server. Check Wi-Fi/VPN and backend URL, then try again.';
+
+  @override
+  String get authConnectionFailed =>
+      'Connection failed. Please verify network and server availability.';
+
+  @override
+  String get authLoginFailed => 'Login failed. Please try again.';
 
   @override
   String get menuReports => 'Reports';

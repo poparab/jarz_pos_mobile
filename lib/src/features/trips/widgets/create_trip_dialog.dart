@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/localized_display_mappers.dart';
+import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../kanban/models/kanban_models.dart';
 import '../../kanban/providers/kanban_provider.dart';
@@ -58,12 +60,14 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AlertDialog(
       title: Row(
         children: [
-          Icon(Icons.local_shipping, color: Colors.indigo),
-          SizedBox(width: 8),
-          Text(context.l10n.tripsCreateTripTitle, style: TextStyle(fontSize: 16)),
+          const Icon(Icons.local_shipping, color: Colors.indigo),
+          const SizedBox(width: 8),
+          Text(l10n.tripsCreateTripTitle, style: const TextStyle(fontSize: 16)),
         ],
       ),
       content: SizedBox(
@@ -84,18 +88,18 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text(context.l10n.tripsOrdersLabel, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                      Text(l10n.tripsOrdersLabel, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
                       Text('${widget.selectedInvoices.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
                     ]),
                     const SizedBox(height: 4),
                     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text(context.l10n.tripsTotalAmount, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
-                      Text('\$${_totalAmount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                      Text(l10n.tripsTotalAmount, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                      Text(formatCurrency(context, _totalAmount), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
                     ]),
                     const SizedBox(height: 4),
                     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text(context.l10n.tripsTotalShipping, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
-                      Text('\$${_totalShipping.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange[700])),
+                      Text(l10n.tripsTotalShipping, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                      Text(formatCurrency(context, _totalShipping), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange[700])),
                     ]),
                     if (_allSameTerritory) ...[
                       const SizedBox(height: 6),
@@ -122,7 +126,7 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
               const SizedBox(height: 16),
 
               // Courier selection
-              Text(context.l10n.tripsSelectCourier, style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(l10n.tripsSelectCourier, style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               if (_couriers.isEmpty)
                 const Center(child: CircularProgressIndicator(strokeWidth: 2))
@@ -152,7 +156,7 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
                           ),
                         ),
                         title: Text(label, style: const TextStyle(fontSize: 13)),
-                        subtitle: Text(partyType, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                        subtitle: Text(localizedPartyTypeLabel(context, partyType), style: TextStyle(fontSize: 11, color: Colors.grey[500])),
                         onTap: () => setState(() {
                           _selectedPartyType = partyType;
                           _selectedParty = party;
@@ -168,14 +172,14 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: Text(context.l10n.commonCancel),
+          child: Text(l10n.commonCancel),
         ),
         ElevatedButton(
           onPressed: _isLoading || _selectedParty == null ? null : _createTrip,
           style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
           child: _isLoading
               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : Text(context.l10n.tripsCreateTripButton, style: const TextStyle(color: Colors.white)),
+              : Text(l10n.tripsCreateTripButton, style: const TextStyle(color: Colors.white)),
         ),
       ],
     );

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/localized_formatters.dart';
+
 /// Dialog for requesting custom shipping expense on an invoice.
 class CustomShippingRequestDialog extends StatefulWidget {
   final String invoiceName;
@@ -29,12 +32,14 @@ class _CustomShippingRequestDialogState extends State<CustomShippingRequestDialo
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AlertDialog(
       title: Row(
         children: [
           const Icon(Icons.local_shipping, color: Colors.deepOrange),
           const SizedBox(width: 8),
-          const Expanded(child: Text('Request Custom Shipping', style: TextStyle(fontSize: 16))),
+          Expanded(child: Text(l10n.kanbanRequestCustomShipping, style: const TextStyle(fontSize: 16))),
         ],
       ),
       content: SizedBox(
@@ -55,9 +60,9 @@ class _CustomShippingRequestDialogState extends State<CustomShippingRequestDialo
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Current Shipping', style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                    Text(l10n.customShippingCurrentShipping, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
                     Text(
-                      '\$${widget.currentShippingExpense.toStringAsFixed(2)}',
+                      formatCurrency(context, widget.currentShippingExpense),
                       style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.deepOrange),
                     ),
                   ],
@@ -69,15 +74,14 @@ class _CustomShippingRequestDialogState extends State<CustomShippingRequestDialo
                 controller: _amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
-                  labelText: 'Requested Amount',
-                  prefixText: '\$ ',
+                  labelText: l10n.customShippingRequestedAmount,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   isDense: true,
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Amount is required';
+                  if (value == null || value.isEmpty) return l10n.customShippingAmountRequired;
                   final parsed = double.tryParse(value);
-                  if (parsed == null || parsed <= 0) return 'Enter a valid positive amount';
+                  if (parsed == null || parsed <= 0) return l10n.customShippingAmountInvalid;
                   return null;
                 },
               ),
@@ -87,14 +91,14 @@ class _CustomShippingRequestDialogState extends State<CustomShippingRequestDialo
                 controller: _reasonController,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  labelText: 'Reason',
-                  hintText: 'Why custom shipping is needed...',
+                  labelText: l10n.commonReasonLabel,
+                  hintText: l10n.customShippingReasonHint,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   isDense: true,
                 ),
                 validator: (value) {
                   if (value == null || value.trim().length < 10) {
-                    return 'Please provide a reason (min 10 characters)';
+                    return l10n.customShippingReasonRequired;
                   }
                   return null;
                 },
@@ -106,7 +110,7 @@ class _CustomShippingRequestDialogState extends State<CustomShippingRequestDialo
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         ElevatedButton(
           onPressed: () {
@@ -118,7 +122,7 @@ class _CustomShippingRequestDialogState extends State<CustomShippingRequestDialo
             }
           },
           style: ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange),
-          child: const Text('Submit Request', style: TextStyle(color: Colors.white)),
+          child: Text(l10n.customShippingSubmitRequest, style: const TextStyle(color: Colors.white)),
         ),
       ],
     );

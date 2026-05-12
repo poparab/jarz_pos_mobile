@@ -866,11 +866,197 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get commonRetry;
 
+  /// No description provided for @commonCustomerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get commonCustomerLabel;
+
+  /// No description provided for @commonPosProfileLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'POS Profile'**
+  String get commonPosProfileLabel;
+
+  /// No description provided for @commonTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get commonTotalLabel;
+
+  /// No description provided for @commonAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get commonAmountLabel;
+
+  /// No description provided for @commonDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get commonDateLabel;
+
+  /// No description provided for @commonCourierLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier'**
+  String get commonCourierLabel;
+
+  /// No description provided for @commonDeliveryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get commonDeliveryLabel;
+
+  /// No description provided for @commonItemsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get commonItemsLabel;
+
+  /// No description provided for @commonItemLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get commonItemLabel;
+
+  /// No description provided for @commonNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get commonNotesLabel;
+
+  /// No description provided for @commonPaymentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get commonPaymentLabel;
+
+  /// No description provided for @commonOutstandingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get commonOutstandingLabel;
+
+  /// No description provided for @commonUploadedByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded by'**
+  String get commonUploadedByLabel;
+
+  /// No description provided for @commonReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get commonReasonLabel;
+
+  /// No description provided for @commonNotSpecified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not specified'**
+  String get commonNotSpecified;
+
+  /// No description provided for @commonWalkIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk-in'**
+  String get commonWalkIn;
+
+  /// No description provided for @commonScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get commonScheduled;
+
+  /// No description provided for @commonDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get commonDelete;
+
+  /// No description provided for @commonNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get commonNew;
+
+  /// No description provided for @commonPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get commonPreview;
+
+  /// No description provided for @commonByUser.
+  ///
+  /// In en, this message translates to:
+  /// **'by {user}'**
+  String commonByUser(Object user);
+
   /// No description provided for @commonQtyWithUom.
   ///
   /// In en, this message translates to:
   /// **'Qty ({uom})'**
   String commonQtyWithUom(Object uom);
+
+  /// No description provided for @orderAlertTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New Order: {invoiceId}'**
+  String orderAlertTitle(Object invoiceId);
+
+  /// No description provided for @orderAlertNoLineItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No line items'**
+  String get orderAlertNoLineItems;
+
+  /// No description provided for @orderAlertMoreItems.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more item(s)'**
+  String orderAlertMoreItems(Object count);
+
+  /// No description provided for @orderAlertMuteAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute Alarm'**
+  String get orderAlertMuteAlarm;
+
+  /// No description provided for @orderAlertUnmuteAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute Alarm'**
+  String get orderAlertUnmuteAlarm;
+
+  /// No description provided for @orderAlertAccepting.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepting...'**
+  String get orderAlertAccepting;
+
+  /// No description provided for @orderAlertAcceptOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept Order'**
+  String get orderAlertAcceptOrder;
+
+  /// No description provided for @posDraftDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Draft'**
+  String get posDraftDeleteTitle;
+
+  /// No description provided for @posDraftDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{label}\"? This cannot be undone.'**
+  String posDraftDeleteBody(Object label);
+
+  /// No description provided for @posDraftLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft limit reached ({max} max). Delete a draft to create a new one.'**
+  String posDraftLimitReached(Object max);
 
   /// No description provided for @expensesTitle.
   ///
@@ -1015,6 +1201,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expense date'**
   String get expensesDateLabel;
+
+  /// No description provided for @expensesReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a reason'**
+  String get expensesReasonRequired;
+
+  /// No description provided for @expensesPaymentSourceRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a payment source'**
+  String get expensesPaymentSourceRequired;
 
   /// No description provided for @expensesRemarksLabel.
   ///
@@ -1369,6 +1567,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shift: {shift}'**
   String shiftLabel(Object shift);
+
+  /// No description provided for @shiftUnexpectedStartResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected server response while starting the shift.'**
+  String get shiftUnexpectedStartResponse;
+
+  /// No description provided for @shiftUnexpectedSummaryResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected server response while loading the shift summary.'**
+  String get shiftUnexpectedSummaryResponse;
+
+  /// No description provided for @shiftUnexpectedEndResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected server response while ending the shift.'**
+  String get shiftUnexpectedEndResponse;
 
   /// No description provided for @shiftOutflows.
   ///
@@ -3190,6 +3406,12 @@ abstract class AppLocalizations {
   /// **'Cash'**
   String get paymentMethodCash;
 
+  /// No description provided for @paymentMethodCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get paymentMethodCard;
+
   /// No description provided for @paymentMethodInstapay.
   ///
   /// In en, this message translates to:
@@ -3201,6 +3423,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mobile Wallet'**
   String get paymentMethodMobileWallet;
+
+  /// No description provided for @paymentMethodSettleLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle Later'**
+  String get paymentMethodSettleLater;
 
   /// No description provided for @checkoutTotal.
   ///
@@ -4585,6 +4813,30 @@ abstract class AppLocalizations {
   /// **'Select Courier'**
   String get tripsSelectCourier;
 
+  /// No description provided for @tripsNoTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'No trips'**
+  String get tripsNoTrips;
+
+  /// No description provided for @tripsOrdersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} orders'**
+  String tripsOrdersCount(Object count);
+
+  /// No description provided for @tripsDoubleShippingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Double Shipping'**
+  String get tripsDoubleShippingLabel;
+
+  /// No description provided for @tripsNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get tripsNotesLabel;
+
   /// No description provided for @tripsMarkTripAsDeliveredTitle.
   ///
   /// In en, this message translates to:
@@ -4669,6 +4921,54 @@ abstract class AppLocalizations {
   /// **'Invoices ({count})'**
   String tripsInvoicesCount(Object count);
 
+  /// No description provided for @subTerritorySelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Sub-territory'**
+  String get subTerritorySelectTitle;
+
+  /// No description provided for @subTerritoryForTerritory.
+  ///
+  /// In en, this message translates to:
+  /// **'for {territory}'**
+  String subTerritoryForTerritory(Object territory);
+
+  /// No description provided for @subTerritoryNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No sub-territories found'**
+  String get subTerritoryNoResults;
+
+  /// No description provided for @subTerritoryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load sub-territories'**
+  String get subTerritoryLoadFailed;
+
+  /// No description provided for @customShippingBadgePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom shipping pending'**
+  String get customShippingBadgePending;
+
+  /// No description provided for @customShippingBadgeApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom shipping approved'**
+  String get customShippingBadgeApproved;
+
+  /// No description provided for @customShippingBadgeAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom shipping {amount}'**
+  String customShippingBadgeAmount(Object amount);
+
+  /// No description provided for @customShippingBadgeRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom shipping rejected'**
+  String get customShippingBadgeRejected;
+
   /// No description provided for @receiptSelectImageSource.
   ///
   /// In en, this message translates to:
@@ -4741,6 +5041,12 @@ abstract class AppLocalizations {
   /// **'All Profiles'**
   String get receiptAllProfiles;
 
+  /// No description provided for @receiptFilterByPosProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by POS Profile'**
+  String get receiptFilterByPosProfile;
+
   /// No description provided for @receiptNoReceiptsFound.
   ///
   /// In en, this message translates to:
@@ -4770,6 +5076,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Print'**
   String get commonPrint;
+
+  /// No description provided for @statusCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get statusCreated;
+
+  /// No description provided for @statusOutForDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Out for Delivery'**
+  String get statusOutForDelivery;
+
+  /// No description provided for @statusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get statusCompleted;
+
+  /// No description provided for @statusDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get statusDelivered;
+
+  /// No description provided for @statusReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Return'**
+  String get statusReturn;
+
+  /// No description provided for @statusReturnedToSender.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned to Sender'**
+  String get statusReturnedToSender;
+
+  /// No description provided for @statusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get statusPaid;
+
+  /// No description provided for @statusUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get statusUnpaid;
+
+  /// No description provided for @statusOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get statusOverdue;
+
+  /// No description provided for @statusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get statusCancelled;
+
+  /// No description provided for @statusConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get statusConfirmed;
+
+  /// No description provided for @statusUnconfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unconfirmed'**
+  String get statusUnconfirmed;
+
+  /// No description provided for @statusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get statusPending;
+
+  /// No description provided for @statusPendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Approval'**
+  String get statusPendingApproval;
+
+  /// No description provided for @statusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get statusApproved;
+
+  /// No description provided for @statusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get statusRejected;
+
+  /// No description provided for @statusDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get statusDraft;
 
   /// No description provided for @kanbanNoInvoices.
   ///
@@ -4806,6 +5214,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Request Custom Shipping'**
   String get kanbanRequestCustomShipping;
+
+  /// No description provided for @customShippingCurrentShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Shipping'**
+  String get customShippingCurrentShipping;
+
+  /// No description provided for @customShippingRequestedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested Amount'**
+  String get customShippingRequestedAmount;
+
+  /// No description provided for @customShippingReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why custom shipping is needed...'**
+  String get customShippingReasonHint;
+
+  /// No description provided for @customShippingAmountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount is required'**
+  String get customShippingAmountRequired;
+
+  /// No description provided for @customShippingAmountInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid positive amount'**
+  String get customShippingAmountInvalid;
+
+  /// No description provided for @customShippingReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide a reason (min 10 characters)'**
+  String get customShippingReasonRequired;
+
+  /// No description provided for @customShippingSubmitRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Request'**
+  String get customShippingSubmitRequest;
 
   /// No description provided for @kanbanCustomShippingSubmitted.
   ///
@@ -4939,6 +5389,36 @@ abstract class AppLocalizations {
   /// **'Reject failed: {error}'**
   String managerRejectFailed(Object error);
 
+  /// No description provided for @managerRejectReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional rejection reason'**
+  String get managerRejectReasonHint;
+
+  /// No description provided for @managerPendingCustomShippingLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load pending custom shipping requests'**
+  String get managerPendingCustomShippingLoadFailed;
+
+  /// No description provided for @managerTransferBranchesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load transfer branches'**
+  String get managerTransferBranchesLoadFailed;
+
+  /// No description provided for @managerApproveDefaultError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to approve the request.'**
+  String get managerApproveDefaultError;
+
+  /// No description provided for @managerRejectDefaultError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to reject the request.'**
+  String get managerRejectDefaultError;
+
   /// No description provided for @purchaseNoInvoicesYet.
   ///
   /// In en, this message translates to:
@@ -5029,6 +5509,18 @@ abstract class AppLocalizations {
   /// **'No file selected'**
   String get settingsNoFileSelected;
 
+  /// No description provided for @settingsBrowseCustomSoundFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Custom Sound File'**
+  String get settingsBrowseCustomSoundFile;
+
+  /// No description provided for @settingsCustomSoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Sound'**
+  String get settingsCustomSoundTitle;
+
   /// No description provided for @itemGridStockLimitReached.
   ///
   /// In en, this message translates to:
@@ -5052,6 +5544,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Printers'**
   String get printingPrintersTitle;
+
+  /// No description provided for @printingUseBitmapReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Use new bitmap receipt'**
+  String get printingUseBitmapReceipt;
+
+  /// No description provided for @printingUseBitmapReceiptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Renders the full receipt as an image and helps with Arabic, missing data, and gibberish issues.'**
+  String get printingUseBitmapReceiptHint;
 
   /// No description provided for @kanbanOrdersSelectedCount.
   ///
@@ -5238,6 +5742,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hide password'**
   String get authHidePassword;
+
+  /// No description provided for @authInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid credentials'**
+  String get authInvalidCredentials;
+
+  /// No description provided for @authCannotReachServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot reach server. Check Wi-Fi/VPN and backend URL, then try again.'**
+  String get authCannotReachServer;
+
+  /// No description provided for @authConnectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed. Please verify network and server availability.'**
+  String get authConnectionFailed;
+
+  /// No description provided for @authLoginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Login failed. Please try again.'**
+  String get authLoginFailed;
 
   /// No description provided for @menuReports.
   ///

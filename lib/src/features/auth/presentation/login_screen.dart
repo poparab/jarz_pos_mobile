@@ -19,6 +19,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   late final TextEditingController _passwordController;
   bool _isPasswordObscured = true;
 
+  String _normalizeErrorText(Object error) {
+    return error.toString().replaceFirst(RegExp(r'^Exception:\s*'), '').trim();
+  }
+
+  String _localizedLoginError(Object error) {
+    final l10n = context.l10n;
+    final message = _normalizeErrorText(error);
+
+    switch (message) {
+      case 'Invalid credentials':
+        return l10n.authInvalidCredentials;
+      case 'Cannot reach server. Check Wi-Fi/VPN and backend URL, then try again.':
+        return l10n.authCannotReachServer;
+      case 'Connection failed. Please verify network and server availability.':
+        return l10n.authConnectionFailed;
+      case 'Login failed. Please try again.':
+        return l10n.authLoginFailed;
+      default:
+        if (message.isEmpty) {
+          return l10n.authLoginFailed;
+        }
+        return l10n.commonErrorWithDetails(message);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -103,7 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             if (state.hasError) ...[
               const SizedBox(height: 16),
               Text(
-                state.error.toString(),
+                _localizedLoginError(state.error!),
                 style: const TextStyle(color: Colors.red),
               ),
             ],

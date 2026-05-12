@@ -27,6 +27,8 @@ import '../../printing/pos_printer_service.dart'
     if (dart.library.html) '../../printing/pos_printer_service_web.dart';
 import '../../pos/order_alert/data/order_alert_service.dart';
 import '../../../core/utils/responsive_utils.dart';
+import '../../../core/localization/localized_display_mappers.dart';
+import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/customer_shipping_address_dialog.dart';
 import '../../../core/repositories/customer_address_repository.dart';
@@ -276,7 +278,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               Expanded(
                 child: Text(
                   l10n.invoiceAcceptFailed(
-                    _formatErrorMessage(e, fallback: 'Request failed'),
+                    _formatErrorMessage(e, fallback: l10n.commonError),
                   ),
                 ),
               ),
@@ -814,7 +816,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                               ),
                             ),
                             Text(
-                              '\$${widget.invoice.total.toStringAsFixed(2)}',
+                              formatCurrency(context, widget.invoice.total),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -836,7 +838,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '\$${widget.invoice.shippingExpenseDisplay.toStringAsFixed(2)}',
+                                    formatCurrency(context, widget.invoice.shippingExpenseDisplay),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
@@ -873,7 +875,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            widget.invoice.effectiveStatus,
+                            localizedStatusLabel(context, widget.invoice.effectiveStatus),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
@@ -940,7 +942,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                               Text(
                                 widget.invoice.subTerritory != null && widget.invoice.subTerritory!.isNotEmpty
                                     ? (widget.invoice.subTerritoryDisplay ?? widget.invoice.subTerritory!)
-                                    : 'Select Sub-territory',
+                                    : context.l10n.subTerritorySelectTitle,
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
@@ -1062,7 +1064,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           Expanded(
             flex: 2,
             child: Text(
-              '\$${item.amount.toStringAsFixed(2)}',
+              formatCurrency(context, item.amount),
               textAlign: TextAlign.end,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             ),
@@ -1079,7 +1081,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(context.l10n.invoiceNetTotal, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-          Text('\$${widget.invoice.netTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+          Text(formatCurrency(context, widget.invoice.netTotal), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
         ],
       ),
       const SizedBox(height: 4),
@@ -1090,7 +1092,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(context.l10n.invoiceShippingIncome, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-            Text('\$${widget.invoice.shippingIncomeDisplay.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+            Text(formatCurrency(context, widget.invoice.shippingIncomeDisplay), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
           ],
         ),
       );
@@ -1100,7 +1102,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(context.l10n.invoiceShippingExpense, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-            Text('\$${widget.invoice.shippingExpenseDisplay.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+            Text(formatCurrency(context, widget.invoice.shippingExpenseDisplay), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
           ],
         ),
       );
@@ -1111,7 +1113,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(context.l10n.invoiceGrandTotal, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-          Text('\$${widget.invoice.total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green)),
+          Text(formatCurrency(context, widget.invoice.total), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green)),
         ],
       ),
     ]);
@@ -1378,7 +1380,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 } else {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(context.l10n.invoiceReceiptReturnedWarning(receiptResult?['message']?.toString() ?? 'unknown error')),
+                      content: Text(context.l10n.invoiceReceiptReturnedWarning(receiptResult?['message']?.toString() ?? context.l10n.commonError)),
                       duration: const Duration(seconds: 3),
                     ),
                   );
@@ -1389,7 +1391,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               if (context.mounted) {
                 final errorMessage = _formatErrorMessage(
                   e,
-                  fallback: 'Receipt creation failed',
+                  fallback: context.l10n.commonError,
                 );
                 messenger.showSnackBar(
                   SnackBar(
@@ -1954,7 +1956,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                             if (context.mounted) {
                                               final errorMessage = _formatErrorMessage(
                                                 e,
-                                                fallback: 'Create failed',
+                                                fallback: context.l10n.commonError,
                                               );
                                               ScaffoldMessenger.of(context).showSnackBar(
                                                 SnackBar(content: Text(context.l10n.kanbanCreateFailed(errorMessage))),
@@ -2170,7 +2172,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           Icon(icon, size: 10, color: textColor),
           const SizedBox(width: 4),
           Text(
-            paymentMethod,
+            localizedPaymentMethodLabel(context, paymentMethod),
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
@@ -2193,19 +2195,21 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         bgColor = Colors.orange[50]!;
         textColor = Colors.orange[800]!;
         icon = Icons.hourglass_top;
-        label = 'Custom \$ Pending';
+        label = context.l10n.customShippingBadgePending;
         break;
       case 'Approved':
         bgColor = Colors.green[50]!;
         textColor = Colors.green[700]!;
         icon = Icons.check_circle;
-        label = amount != null ? 'Custom \$${amount.toStringAsFixed(2)}' : 'Custom \$ Approved';
+        label = amount != null
+            ? context.l10n.customShippingBadgeAmount(formatCurrency(context, amount))
+            : context.l10n.customShippingBadgeApproved;
         break;
       case 'Rejected':
         bgColor = Colors.red[50]!;
         textColor = Colors.red[700]!;
         icon = Icons.cancel;
-        label = 'Custom \$ Rejected';
+        label = context.l10n.customShippingBadgeRejected;
         break;
       default:
         return const SizedBox.shrink();
@@ -2262,7 +2266,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     } catch (e) {
       if (context.mounted) {
         final errorMessage = _withActionPrefix(
-          'Failed to load sub-territories',
+          context.l10n.subTerritoryLoadFailed,
           e,
         );
         ScaffoldMessenger.of(context).showSnackBar(
@@ -2299,7 +2303,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       if (context.mounted) {
         final errorMessage = _formatErrorMessage(
           e,
-          fallback: 'Request failed',
+          fallback: context.l10n.commonError,
         );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.l10n.kanbanCustomShippingFailed(errorMessage))),
@@ -2762,7 +2766,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Customer: ${widget.invoice.customerName}',
+                            '${context.l10n.commonCustomerLabel}: ${widget.invoice.customerName}',
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
@@ -2918,17 +2922,22 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       }
     } catch (e) {
       messenger.clearSnackBars();
-      final errorMessage = _formatErrorMessage(
+      final rawErrorMessage = _formatErrorMessage(
         e,
         fallback: context.l10n.invoiceTransferFailed,
       );
+      final errorMessage = switch (rawErrorMessage) {
+        'Failed to load transfer branches' => context.l10n.managerTransferBranchesLoadFailed,
+        'Failed to transfer branch' => context.l10n.invoiceTransferFailed,
+        _ => rawErrorMessage,
+      };
       messenger.showSnackBar(
         SnackBar(
           content: Row(
             children: [
               const Icon(Icons.error, color: Colors.white),
               const SizedBox(width: 12),
-              Expanded(child: Text('Error: $errorMessage')),
+              Expanded(child: Text(context.l10n.commonErrorWithDetails(errorMessage))),
             ],
           ),
           backgroundColor: Colors.red[600],
