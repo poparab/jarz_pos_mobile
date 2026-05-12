@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jarz_pos/src/features/pos/data/models/draft_cart.dart';
 import 'package:jarz_pos/src/features/pos/data/repositories/draft_cart_repository.dart';
 import 'package:jarz_pos/src/features/pos/domain/models/delivery_slot.dart';
 import 'package:jarz_pos/src/features/pos/state/pos_notifier.dart';
@@ -88,6 +89,18 @@ class _FakePosRepository extends PosRepository {
 
   @override
   Future<String?> getTerritoryPosProfile(String customerName) async => null;
+}
+
+/// Fake DraftCartRepository that skips Hive initialisation in unit tests.
+class _FakeDraftCartRepository extends DraftCartRepository {
+  @override
+  Future<void> upsert(draft) async {}
+  @override
+  Future<List<DraftCart>> loadAll() async => [];
+  @override
+  Future<void> delete(String id) async {}
+  @override
+  Future<void> clearAll() async {}
 }
 
 DeliverySlot _makeSlot({String label = 'Morning'}) => DeliverySlot(
@@ -306,7 +319,7 @@ void main() {
 
     setUp(() {
       repo = _FakePosRepository();
-      notifier = PosNotifier(repo, DraftCartRepository());
+      notifier = PosNotifier(repo, _FakeDraftCartRepository());
     });
 
     test('auto-selects when only one profile returned', () async {
@@ -349,7 +362,7 @@ void main() {
 
     setUp(() {
       repo = _FakePosRepository();
-      notifier = PosNotifier(repo, DraftCartRepository());
+      notifier = PosNotifier(repo, _FakeDraftCartRepository());
     });
 
     test('loads items and bundles for selected profile', () async {
@@ -394,7 +407,7 @@ void main() {
 
     setUp(() {
       repo = _FakePosRepository();
-      notifier = PosNotifier(repo, DraftCartRepository());
+      notifier = PosNotifier(repo, _FakeDraftCartRepository());
       notifier.state = notifier.state.copyWith(
         selectedProfile: const {'name': '6th of october'},
         cartItems: const [
@@ -442,7 +455,7 @@ void main() {
     late PosNotifier notifier;
 
     setUp(() {
-      notifier = PosNotifier(_FakePosRepository(), DraftCartRepository());
+      notifier = PosNotifier(_FakePosRepository(), _FakeDraftCartRepository());
     });
 
     test('addToCart inserts new items and increments existing quantity', () {
@@ -567,7 +580,7 @@ void main() {
     late PosNotifier notifier;
 
     setUp(() {
-      notifier = PosNotifier(_FakePosRepository(), DraftCartRepository());
+      notifier = PosNotifier(_FakePosRepository(), _FakeDraftCartRepository());
     });
 
     test('selectCustomer sets customer on state', () {
@@ -625,7 +638,7 @@ void main() {
 
     setUp(() {
       repository = _FakePosRepository();
-      notifier = PosNotifier(repository, DraftCartRepository());
+      notifier = PosNotifier(repository, _FakeDraftCartRepository());
       repository.profilesResult = const [
         {'name': 'Main POS'},
       ];
@@ -700,6 +713,117 @@ void main() {
       expect(bundleItem['bundle_details']['bundle_id'], 'BDL-1');
       expect(bundleItem['bundle_details']['selected_items']['main'].first['id'], 'ITEM-BURGER');
       expect(bundleItem['bundle_details']['selected_items']['side'].first['id'], 'ITEM-FRIES');
+    });
+
+    test('bundle rate uses catalog price when price_list_rate is zero', () async {
+      // Production shape: parent item has price_list_rate=0 and rate=0;
+      // the bundle price must come from bundleInfo['price'] = 120.
+      await notifier.startAmendmentDraft({
+        'name': 'INV-AMD-11',
+        'pos_profile': 'Main POS',
+        'items': [
+          {
+            'item_code': 'BUNDLE-PARENT',
+            'item_name': 'Meal Deal',
+            'qty': 1,
+            'rate': 0,
+            'amount': 0,
+            'price_list_rate': 0, // ← production reality: parent item standalone rate
+            'is_bundle_parent': 1,
+            'bundle_code': 'BDL-1',
+          },
+          {
+            'item_code': 'ITEM-BURGER',
+            'item_name': 'Burger',
+            'qty': 1,
+            'rate': 70,
+            'is_bundle_child': 1,
+            'parent_bundle': 'BDL-1',
+          },
+          {
+            'item_code': 'ITEM-FRIES',
+            'item_name': 'Fries',
+            'qty': 1,
+            'rate': 50,
+            'is_bundle_child': 1,
+            'parent_bundle': 'BDL-1',
+          },
+        ],
+      });
+
+      expect(notifier.state.cartItems, hasLength(1));
+      final bundleItem = notifier.state.cartItems.first;
+      expect(bundleItem['type'], 'bundle');
+      // Must be 120.0 from the catalog, not 0.0 from price_list_rate.
+      expect(bundleItem['rate'], 120.0);
+    });
+
+    test('bundle catalog miss emits sentinel and checkout blocks submission', () async {
+      // No matching bundle in the catalog → should produce a catalog-miss
+      // sentinel, not a silent zero-priced regular item.
+      repository.bundlesResult = []; // empty catalog
+
+      await notifier.startAmendmentDraft({
+        'name': 'INV-AMD-12',
+        'pos_profile': 'Main POS',
+        'items': [
+          {
+            'item_code': 'BUNDLE-PARENT',
+            'item_name': 'Meal Deal',
+            'qty': 1,
+            'rate': 0,
+            'price_list_rate': 0,
+            'is_bundle_parent': 1,
+            'bundle_code': 'BDL-1',
+          },
+          {
+            'item_code': 'ITEM-BURGER',
+            'item_name': 'Burger',
+            'qty': 1,
+            'rate': 70,
+            'is_bundle_child': 1,
+            'parent_bundle': 'BDL-1',
+          },
+        ],
+      });
+
+      // Cart should have one sentinel item (not empty, not a child item).
+      expect(notifier.state.cartItems, hasLength(1));
+      final sentinel = notifier.state.cartItems.first;
+      expect(sentinel['type'], 'bundle');
+      expect(sentinel['_bundle_catalog_miss'], true);
+      expect(sentinel['rate'], 0.0);
+
+      // Attempting checkout must be blocked with an error.
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': 'Main POS'},
+        isAmendmentDraft: true,
+        amendmentSourceInvoiceId: 'INV-AMD-12',
+      );
+      await notifier.checkout();
+
+      expect(notifier.state.error, isNotNull);
+      expect(notifier.state.error, contains('could not be priced'));
+      expect(repository.submitInvoiceAmendmentCalls, 0);
+    });
+
+    test('free-shipping invoice sets delivery_income to zero in customer map', () async {
+      await notifier.startAmendmentDraft({
+        'name': 'INV-AMD-13',
+        'pos_profile': 'Main POS',
+        'customer': 'CUST-001',
+        'customer_name': 'Test Customer',
+        'territory': 'Cairo',
+        'shipping_income': 25.0, // territory default — should be ignored
+        'shipping_expense': 10.0,
+        'was_free_shipping': true, // backend signals this invoice was free-shipped
+        'items': [],
+      });
+
+      final customer = notifier.state.selectedCustomer;
+      expect(customer, isNotNull);
+      expect(customer!['delivery_income'], 0.0);
+      expect(customer['was_free_shipping'], true);
     });
 
     test('checkout uses amendment endpoint when amendment draft is active', () async {

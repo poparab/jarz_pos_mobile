@@ -642,6 +642,11 @@ class PosRepository {
         posProfileOverride: posProfileOverride,
       );
       requestData['invoice_id'] = sourceInvoiceId;
+      // Propagate free-shipping suppression so the backend doesn't re-add
+      // the territory shipping tax row on the replacement invoice.
+      if (customer?['was_free_shipping'] == true) {
+        requestData['suppress_shipping_income'] = 1;
+      }
       if (idempotencyKey != null && idempotencyKey.isNotEmpty) {
         requestData['idempotency_key'] = idempotencyKey;
       }

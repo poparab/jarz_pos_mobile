@@ -809,10 +809,17 @@ class PosNotifier extends StateNotifier<PosState> {
     }
 
     final bundleQuantity = _coerceInt(parentItem['qty'], fallback: 1).clamp(1, 9999);
-    final bundleRate = _coerceDouble(
-      parentItem['price_list_rate'] ?? parentItem['rate'] ?? bundleInfo['price'],
-      fallback: _coerceDouble(bundleInfo['price']),
-    );
+    // Prefer the catalog bundle price (always authoritative).
+    // Only fall back to invoice-stored rates when the catalog has no price and
+    // the stored rate is strictly positive — Dart's ?? does not catch numeric 0.
+    final catalogPrice = _coerceDouble(bundleInfo['price']);
+    final invoicePriceListRate = _coerceDouble(parentItem['price_list_rate']);
+    final invoiceRate = _coerceDouble(parentItem['rate']);
+    final bundleRate = catalogPrice > 0
+        ? catalogPrice
+        : invoicePriceListRate > 0
+            ? invoicePriceListRate
+            : invoiceRate;
     final bundleId = bundleInfo['id']?.toString() ??
         parentItem['bundle_code']?.toString() ??
         parentItem['item_code']?.toString() ??
@@ -877,6 +884,7 @@ class PosNotifier extends StateNotifier<PosState> {
       if (_isBundleParentInvoiceItem(item)) {
         final bundleCode = item['bundle_code']?.toString().trim() ?? '';
         final childItems = <Map<String, dynamic>>[];
+        final candidateChildIndices = <int>[];
         for (var childIndex = 0; childIndex < invoiceItems.length; childIndex++) {
           if (childIndex == index) continue;
           final childItem = invoiceItems[childIndex];
@@ -884,15 +892,35 @@ class PosNotifier extends StateNotifier<PosState> {
           final parentBundle = childItem['parent_bundle']?.toString().trim() ?? '';
           if (bundleCode.isNotEmpty && parentBundle == bundleCode) {
             childItems.add(childItem);
-            consumedBundleChildren.add(childIndex);
+            candidateChildIndices.add(childIndex);
           }
         }
 
         final bundleCartItem = _buildAmendmentBundleCartItem(item, childItems, bundles);
         if (bundleCartItem != null) {
+          // Only consume child indices after a confirmed successful build.
+          consumedBundleChildren.addAll(candidateChildIndices);
           cartItems.add(bundleCartItem);
           continue;
         }
+        // Bundle catalog miss: consume children (they are always skipped anyway)
+        // and add a sentinel so checkout validation can block a silent
+        // zero-priced submission rather than letting it reach the backend.
+        consumedBundleChildren.addAll(candidateChildIndices);
+        cartItems.add({
+          'item_code': bundleCode.isNotEmpty ? bundleCode : (item['item_code']?.toString() ?? ''),
+          'item_name': item['item_name']?.toString() ?? 'Unknown Bundle',
+          'rate': 0.0,
+          'quantity': _coerceInt(item['qty'], fallback: 1).clamp(1, 9999),
+          'type': 'bundle',
+          '_bundle_catalog_miss': true,
+          'bundle_details': {
+            'bundle_id': bundleCode.isNotEmpty ? bundleCode : (item['item_code']?.toString() ?? ''),
+            'selected_items': <String, List<Map<String, dynamic>>>{},
+            'bundle_info': <String, dynamic>{},
+          },
+        });
+        continue;
       }
 
       final itemCode = item['item_code']?.toString() ?? '';
@@ -925,18 +953,24 @@ class PosNotifier extends StateNotifier<PosState> {
     final selectedShippingAddress =
         invoiceData['full_address']?.toString().trim() ?? '';
 
+    final wasFreeShipping = _coerceBool(invoiceData['was_free_shipping']);
     return {
       'name': customer,
       'customer_name': invoiceData['customer_name']?.toString() ?? customer,
       'territory': invoiceData['territory']?.toString() ?? '',
       'territory_name': invoiceData['territory_display']?.toString() ?? invoiceData['territory']?.toString() ?? '',
       'territory_name_ar': invoiceData['territory_name_ar']?.toString() ?? '',
-      'delivery_income': invoiceData['shipping_income'] is num
-          ? (invoiceData['shipping_income'] as num).toDouble()
-          : double.tryParse(invoiceData['shipping_income']?.toString() ?? '') ?? 0.0,
+      // Gate delivery_income to zero when the source invoice had free shipping;
+      // otherwise returning the territory default would re-charge on resubmit.
+      'delivery_income': wasFreeShipping
+          ? 0.0
+          : invoiceData['shipping_income'] is num
+              ? (invoiceData['shipping_income'] as num).toDouble()
+              : double.tryParse(invoiceData['shipping_income']?.toString() ?? '') ?? 0.0,
       'delivery_expense': invoiceData['shipping_expense'] is num
           ? (invoiceData['shipping_expense'] as num).toDouble()
           : double.tryParse(invoiceData['shipping_expense']?.toString() ?? '') ?? 0.0,
+      'was_free_shipping': wasFreeShipping,
       'mobile_no': invoiceData['customer_phone']?.toString() ?? '',
       'selected_shipping_address_name': selectedShippingAddressName,
       'selected_shipping_address': selectedShippingAddress,
@@ -1082,6 +1116,30 @@ class PosNotifier extends StateNotifier<PosState> {
     if (state.selectedProfile == null && (overridePosProfileName == null || overridePosProfileName.isEmpty)) {
       state = state.copyWith(error: 'No profile selected', clearError: false);
       return;
+    }
+
+    // For amendment drafts, block submission if any bundle has no price.
+    // This catches both catalog-miss sentinels and unexpected zero-rate reloads
+    // before they silently overwrite the original invoice with a lower amount.
+    if (state.isAmendmentDraft) {
+      for (final cartItem in state.cartItems) {
+        if (cartItem['type'] == 'bundle') {
+          final isMiss = cartItem['_bundle_catalog_miss'] == true;
+          final hasNoPrice = _coerceDouble(cartItem['rate']) <= 0;
+          if (isMiss || hasNoPrice) {
+            final name = cartItem['item_name']?.toString() ??
+                cartItem['item_code']?.toString() ??
+                'bundle';
+            state = state.copyWith(
+              error: 'Cannot submit amendment: "$name" could not be priced. '
+                  'Please close and reopen the order to refresh.',
+              clearError: false,
+              isLoading: false,
+            );
+            return;
+          }
+        }
+      }
     }
 
     if (kDebugMode) {
