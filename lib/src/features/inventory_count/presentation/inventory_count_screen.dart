@@ -16,6 +16,18 @@ import '../data/inventory_count_service.dart';
 
 enum _InventoryCountStep { setup, blindEntry, review }
 
+final RegExp _inventoryCountQuantityPattern = RegExp(r'^\d*\.?\d*$');
+
+String _normalizeInventoryCountQuantity(String value) => value.replaceAll(',', '.');
+
+final TextInputFormatter _inventoryCountQuantityFormatter = TextInputFormatter.withFunction((oldValue, newValue) {
+  final normalizedText = _normalizeInventoryCountQuantity(newValue.text);
+  if (normalizedText.isEmpty || _inventoryCountQuantityPattern.hasMatch(normalizedText)) {
+    return newValue.copyWith(text: normalizedText);
+  }
+  return oldValue;
+});
+
 class InventoryCountScreen extends ConsumerStatefulWidget {
   const InventoryCountScreen({super.key});
 
@@ -215,7 +227,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     if (itemCode == null) {
       return;
     }
-    final trimmed = rawValue.trim();
+    final trimmed = _normalizeInventoryCountQuantity(rawValue.trim());
     final wasCounted = _confirmed.contains(itemCode);
     if (trimmed.isEmpty) {
       return;
@@ -1295,7 +1307,10 @@ class _BlindEntryRowState extends State<_BlindEntryRow> {
     return text.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 
-  bool get _canSubmit => _controller.text.trim().isNotEmpty;
+  bool get _canSubmit {
+    final trimmed = _normalizeInventoryCountQuantity(_controller.text.trim());
+    return trimmed.isNotEmpty && double.tryParse(trimmed) != null;
+  }
 
   bool get _hasPendingChanges => _controller.text.trim() != _textFor(widget.quantity);
 
@@ -1308,14 +1323,14 @@ class _BlindEntryRowState extends State<_BlindEntryRow> {
   }
 
   void _adjustLocalCount(double delta) {
-    final current = double.tryParse(_controller.text) ?? 0.0;
+    final current = double.tryParse(_normalizeInventoryCountQuantity(_controller.text)) ?? 0.0;
     final next = (current + delta).clamp(0.0, double.infinity);
     _setLocalText(_textFor(next));
   }
 
   void _submitCurrentValue() {
-    final trimmed = _controller.text.trim();
-    if (trimmed.isEmpty) {
+    final trimmed = _normalizeInventoryCountQuantity(_controller.text.trim());
+    if (trimmed.isEmpty || double.tryParse(trimmed) == null) {
       return;
     }
     widget.onSubmitQuantity(trimmed);
@@ -1381,9 +1396,7 @@ class _BlindEntryRowState extends State<_BlindEntryRow> {
                   child: TextField(
                     controller: _controller,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-                    ],
+                    inputFormatters: [_inventoryCountQuantityFormatter],
                     decoration: InputDecoration(labelText: l10n.inventoryCountCount),
                     onChanged: (_) => setState(() => _hasLocalDraft = true),
                     onSubmitted: (_) => _submitCurrentValue(),

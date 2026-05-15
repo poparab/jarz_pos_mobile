@@ -145,6 +145,20 @@ Future<void> _submitItemCount(
   await tester.pumpAndSettle();
 }
 
+Future<void> _tapQuantityButton(
+  WidgetTester tester, {
+  required String itemCode,
+  required IconData icon,
+}) async {
+  await tester.tap(
+    find.descendant(
+      of: find.byKey(ValueKey(itemCode)),
+      matching: find.byIcon(icon),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
 Finder _progressText(String value) {
   return find.byWidgetPredicate(
     (widget) => widget is Text && (widget.data?.contains(value) ?? false),
@@ -267,6 +281,67 @@ void main() {
         final submitButton = _buttonForIcon(tester, Icons.save_outlined);
         expect(submitButton.onPressed, isNull);
         expect(service.submitCalled, isFalse);
+      },
+    );
+
+    testWidgets(
+      'accepts typed decimal quantities and keeps stepper buttons working',
+      (tester) async {
+        final service = _FakeInventoryCountService(
+          warehouses: const [
+            {'name': 'Main Warehouse', 'company': 'Jarz'},
+          ],
+          items: const [
+            {
+              'item_code': 'ITEM-001',
+              'item_name': 'Blueberry Box',
+              'current_qty': 10,
+              'stock_uom': 'Box',
+              'valuation_rate': 12.5,
+            },
+          ],
+        );
+
+        await _pumpInventoryCountScreen(tester, service);
+
+        await _selectWarehouse(tester, 'Main Warehouse');
+        await _startCount(tester);
+
+        await _enterItemCount(
+          tester,
+          itemCode: 'ITEM-001',
+          quantity: '0.5',
+        );
+
+        expect(find.text('0.5'), findsOneWidget);
+
+        await _tapQuantityButton(
+          tester,
+          itemCode: 'ITEM-001',
+          icon: Icons.add_circle_outline,
+        );
+        expect(find.text('1.5'), findsOneWidget);
+
+        await _tapQuantityButton(
+          tester,
+          itemCode: 'ITEM-001',
+          icon: Icons.remove_circle_outline,
+        );
+        expect(find.text('0.5'), findsOneWidget);
+
+        await _submitItemCount(
+          tester,
+          itemCode: 'ITEM-001',
+        );
+        await _openReview(tester);
+
+        await tester.tap(find.byIcon(Icons.save_outlined));
+        await tester.pumpAndSettle();
+        await _confirmSubmitDialog(tester);
+
+        expect(service.submitCalled, isTrue);
+        expect(service.submittedLines, hasLength(1));
+        expect(service.submittedLines!.single['counted_qty'], equals(0.5));
       },
     );
 
