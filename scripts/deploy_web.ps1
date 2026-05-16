@@ -220,12 +220,36 @@ if (-not $webDecision.Required) {
 }
 
 Write-Step 'Building Flutter web release...'
-$buildOutput = & cmd.exe /c ""$repoRoot\scripts\build_release.bat" $Environment web" 2>&1
-if ($LASTEXITCODE -ne 0) {
-    throw "Flutter web build failed ($LASTEXITCODE)`n$($buildOutput -join "`n")"
+$buildStdoutPath = [System.IO.Path]::GetTempFileName()
+$buildStderrPath = [System.IO.Path]::GetTempFileName()
+try {
+    $buildProcess = Start-Process -FilePath 'cmd.exe' `
+        -ArgumentList '/c', """$repoRoot\scripts\build_release.bat"" $Environment web" `
+        -WorkingDirectory $repoRoot `
+        -NoNewWindow `
+        -Wait `
+        -PassThru `
+        -RedirectStandardOutput $buildStdoutPath `
+        -RedirectStandardError $buildStderrPath
+
+    $buildOutput = @()
+    if (Test-Path $buildStdoutPath) {
+        $buildOutput += Get-Content -Path $buildStdoutPath
+    }
+    if (Test-Path $buildStderrPath) {
+        $buildOutput += Get-Content -Path $buildStderrPath
+    }
+
+    if ($buildProcess.ExitCode -ne 0) {
+        throw "Flutter web build failed ($($buildProcess.ExitCode))`n$($buildOutput -join "`n")"
+    }
+
+    if ($buildOutput) {
+        $buildOutput | ForEach-Object { Write-Host $_ }
+    }
 }
-if ($buildOutput) {
-    $buildOutput | ForEach-Object { Write-Host $_ }
+finally {
+    Remove-Item -Path $buildStdoutPath, $buildStderrPath -ErrorAction SilentlyContinue
 }
 Write-Host ''
 
