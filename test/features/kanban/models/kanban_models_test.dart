@@ -154,6 +154,41 @@ void main() {
       expect(card.posProfile, 'Nasr city');
     });
 
+    test('should allow delivery slot and transfer actions through ready stage', () {
+      for (final status in const ['Received', 'In Progress', 'Preparing', 'Ready']) {
+        final card = buildCard(overrides: {'status': status});
+
+        expect(card.canChangeDeliverySlot, isTrue, reason: status);
+        expect(card.canTransferOrder, isTrue, reason: status);
+      }
+    });
+
+    test('should hide delivery slot and transfer actions after ready or when canceled', () {
+      for (final status in const [
+        'Out for Delivery',
+        'out_for_delivery',
+        'Delivered',
+        'Completed',
+        'Cancelled',
+        'Canceled',
+      ]) {
+        final card = buildCard(overrides: {'status': status});
+
+        expect(card.canChangeDeliverySlot, isFalse, reason: status);
+        expect(card.canTransferOrder, isFalse, reason: status);
+      }
+    });
+
+    test('should keep delivery slot hidden for pickup before post-ready stages', () {
+      final card = buildCard(overrides: {
+        'status': 'Ready',
+        'is_pickup': 1,
+      });
+
+      expect(card.canChangeDeliverySlot, isFalse);
+      expect(card.canTransferOrder, isTrue);
+    });
+
     test('delivery helpers parse future slot windows', () {
       final card = buildCard(overrides: {
         'delivery_date': '2099-06-01',

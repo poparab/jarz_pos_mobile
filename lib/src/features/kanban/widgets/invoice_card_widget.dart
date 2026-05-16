@@ -499,7 +499,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 ],
               ),
             ),
-            if (!widget.invoice.isPickup)
+            if (widget.invoice.canChangeDeliverySlot)
               PopupMenuItem(
                 value: 'change_delivery_slot',
                 child: Row(
@@ -541,16 +541,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 ],
               ),
             ),
-            PopupMenuItem(
-              value: 'transfer_order',
-              child: Row(
-                children: [
-                  const Icon(Icons.swap_horiz, size: 18),
-                  const SizedBox(width: 8),
-                  Text(l10n.invoiceTransferOrder),
-                ],
+            if (widget.invoice.canTransferOrder)
+              PopupMenuItem(
+                value: 'transfer_order',
+                child: Row(
+                  children: [
+                    const Icon(Icons.swap_horiz, size: 18),
+                    const SizedBox(width: 8),
+                    Text(l10n.invoiceTransferOrder),
+                  ],
+                ),
               ),
-            ),
             if (isLineManager && widget.invoice.canCancel)
                 PopupMenuItem(
                   value: 'cancel_order',
@@ -2716,6 +2717,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
   // Transfer order to another branch / Kanban profile.
   Future<void> _transferOrder(BuildContext context) async {
+    if (!widget.invoice.canTransferOrder) return;
+
     final messenger = ScaffoldMessenger.of(context);
     final notifier = ref.read(kanbanProvider.notifier);
 
@@ -2949,6 +2952,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
   // Change delivery slot for the order
   Future<void> _changeDeliverySlot(BuildContext context) async {
+    if (!widget.invoice.canChangeDeliverySlot) return;
+
     final messenger = ScaffoldMessenger.of(context);
     final notifier = ref.read(kanbanProvider.notifier);
 

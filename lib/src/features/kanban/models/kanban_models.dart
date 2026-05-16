@@ -21,6 +21,15 @@ class KanbanColumn {
 }
 
 class InvoiceCard {
+  static const _postReadyActionBlockedStatuses = {
+    DeliveryStatus.outForDelivery,
+    DeliveryStatus.outForDeliverySnake,
+    DeliveryStatus.delivered,
+    DeliveryStatus.completed,
+    DeliveryStatus.cancelled,
+    'canceled',
+  };
+
   final String id;
   final String invoiceIdShort;
   final String customerName;
@@ -401,6 +410,15 @@ class InvoiceCard {
   }
 
   bool get hasPartialPayment => !(isFullyPaid || isFullyUnpaid);
+
+  bool get _isPostReadyActionBlocked {
+    final normalized = status.trim().toLowerCase();
+    return _postReadyActionBlockedStatuses.any((blocked) => normalized.contains(blocked));
+  }
+
+  bool get canChangeDeliverySlot => !isPickup && !_isPostReadyActionBlocked;
+
+  bool get canTransferOrder => !_isPostReadyActionBlocked;
 
   bool get canCancel {
     if (hasUnsettledCourierTxn) {
