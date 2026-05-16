@@ -60,8 +60,7 @@ class OrderAlertChannel : FlutterPlugin, MethodChannel.MethodCallHandler {
             }
             "setAlarmSound" -> {
                 val uriString = call.argument<String>("uri")
-                OrderAlertNative.setAlarmSound(uriString)
-                result.success(null)
+                result.success(OrderAlertNative.setAlarmSound(appContext, uriString))
             }
             "previewAlarmSound" -> {
                 val uriString = call.argument<String>("uri")

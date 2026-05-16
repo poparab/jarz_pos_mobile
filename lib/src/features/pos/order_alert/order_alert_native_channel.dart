@@ -70,9 +70,9 @@ class OrderAlertNativeChannel {
     }).toList();
   }
 
-  static Future<void> setAlarmSound(String? uri) {
-    if (kIsWeb) return Future.value(); // No-op on web
-    return _channel.invokeMethod('setAlarmSound', {'uri': uri});
+  static Future<String?> setAlarmSound(String? uri) async {
+    if (kIsWeb) return uri; // No-op on web
+    return _channel.invokeMethod<String?>('setAlarmSound', {'uri': uri});
   }
 
   static Future<void> previewAlarmSound(String uri) {

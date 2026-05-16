@@ -25,10 +25,39 @@ class AlarmSoundService {
 
   /// Set the alarm sound preference
   Future<void> setSelectedSound(String uri, String title) async {
-    await _prefs.setString(_alarmSoundUriKey, uri);
+    final appliedUri = await OrderAlertNativeChannel.setAlarmSound(uri);
+    if (appliedUri == null || appliedUri.isEmpty) {
+      throw StateError('Selected alarm sound could not be applied on this device');
+    }
+
+    await _prefs.setString(_alarmSoundUriKey, appliedUri);
     await _prefs.setString(_alarmSoundTitleKey, title);
-    // Update the native side
-    await OrderAlertNativeChannel.setAlarmSound(uri);
+  }
+
+  /// Reapply the saved sound to native Android after app restart.
+  Future<void> restoreSelectedSoundOnNative() async {
+    final savedUri = getSelectedSoundUri();
+    if (savedUri == null || savedUri.isEmpty) {
+      return;
+    }
+
+    try {
+      final appliedUri = await OrderAlertNativeChannel.setAlarmSound(savedUri);
+      if (appliedUri == null || appliedUri.isEmpty) {
+        await _prefs.remove(_alarmSoundUriKey);
+        await _prefs.remove(_alarmSoundTitleKey);
+        return;
+      }
+
+      if (appliedUri != savedUri) {
+        await _prefs.setString(_alarmSoundUriKey, appliedUri);
+      }
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Failed to restore selected alarm sound: $error');
+        debugPrint('Stack trace: $stackTrace');
+      }
+    }
   }
 
   /// Load available alarm sounds from the device

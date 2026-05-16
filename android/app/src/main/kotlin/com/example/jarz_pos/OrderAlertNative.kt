@@ -1,5 +1,6 @@
 package com.example.jarz_pos
 
+import android.content.ContentResolver
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -17,6 +18,7 @@ import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import org.json.JSONArray
+import java.io.File
 import kotlin.jvm.Volatile
 
 object OrderAlertNative {
@@ -36,7 +38,7 @@ object OrderAlertNative {
     private var selectedAlarmUri: String? = null
 
     fun prepareNotificationChannels(context: Context) {
-        ensureChannel(context)
+        ensureChannel(context, recreateIfSoundChanged = false)
         ensureShiftChannel(context)
     }
 
@@ -69,10 +71,16 @@ object OrderAlertNative {
             val mp = MediaPlayer()
             mp.setAudioAttributes(attributes)
             mp.isLooping = true
-            mp.setDataSource(context, resolveAlarmUri(context))
-            mp.setVolume(1.0f, 1.0f)
-            mp.prepare()
-            mp.start()
+
+            if (!startAlarmPlayback(context, mp, resolveAlarmUri(context))) {
+                releaseAudioFocus()
+                try {
+                    mp.release()
+                } catch (_: Exception) {
+                }
+                return
+            }
+
             mediaPlayer = mp
             setVolumeLock(true)
         }
@@ -90,23 +98,13 @@ object OrderAlertNative {
             }
             mediaPlayer = null
 
-            audioManager?.let { manager ->
-                focusRequest?.let {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        manager.abandonAudioFocusRequest(it)
-                    }
-                } ?: run {
-                    @Suppress("DEPRECATION")
-                    manager.abandonAudioFocus(null)
-                }
-            }
-            focusRequest = null
+            releaseAudioFocus()
             setVolumeLock(false)
         }
     }
 
     fun showNotification(context: Context, data: Map<String, String>) {
-        ensureChannel(context)
+        ensureChannel(context, recreateIfSoundChanged = false)
 
         val invoiceId = data["invoice_id"] ?: ""
         val notificationId = if (invoiceId.isNotEmpty()) invoiceId.hashCode() else DEFAULT_NOTIFICATION_ID
@@ -163,8 +161,10 @@ object OrderAlertNative {
 
     fun isVolumeLocked(): Boolean = volumeLocked
 
-    fun setAlarmSound(uriString: String?) {
-        selectedAlarmUri = uriString
+    fun setAlarmSound(context: Context, uriString: String?): String? {
+        selectedAlarmUri = canonicalizeSoundUri(context, uriString)
+        ensureChannel(context, recreateIfSoundChanged = true)
+        return selectedAlarmUri
     }
 
     fun getAvailableAlarmSounds(context: Context): List<Map<String, String>> {
@@ -223,25 +223,23 @@ object OrderAlertNative {
         }
     }
 
-    private fun ensureChannel(context: Context) {
+    private fun ensureChannel(context: Context, recreateIfSoundChanged: Boolean) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val existing = manager.getNotificationChannel(CHANNEL_ID)
+            val desiredSoundUri = resolveNotificationSoundUri(context)
             val requiresRefresh =
                 existing == null ||
                 existing.importance < NotificationManager.IMPORTANCE_HIGH ||
-                existing.sound == null
+                existing.sound == null ||
+                (recreateIfSoundChanged && !sameUri(existing.sound, desiredSoundUri))
 
             if (requiresRefresh && existing != null) {
                 manager.deleteNotificationChannel(CHANNEL_ID)
             }
 
             if (requiresRefresh) {
-                val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-                val soundAttributes = AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build()
+                val soundAttributes = buildNotificationSoundAttributes()
 
                 val channel = NotificationChannel(
                     CHANNEL_ID,
@@ -251,7 +249,7 @@ object OrderAlertNative {
                 channel.description = "Urgent alerts for new POS orders"
                 channel.setBypassDnd(true)
                 channel.enableVibration(true)
-                channel.setSound(soundUri, soundAttributes)
+                channel.setSound(desiredSoundUri, soundAttributes)
                 manager.createNotificationChannel(channel)
             }
         }
@@ -307,26 +305,169 @@ object OrderAlertNative {
     }
 
     private fun resolveAlarmUri(context: Context): Uri {
-        // Use selected alarm if available
-        if (!selectedAlarmUri.isNullOrBlank()) {
-            try {
-                return Uri.parse(selectedAlarmUri)
-            } catch (e: Exception) {
-                e.printStackTrace()
+        resolveSelectedSoundUri(context)?.let { return it }
+        return fallbackAlarmUri()
+    }
+
+    private fun startAlarmPlayback(context: Context, mediaPlayer: MediaPlayer, uri: Uri): Boolean {
+        return try {
+            mediaPlayer.reset()
+            mediaPlayer.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build(),
+            )
+            mediaPlayer.isLooping = true
+            mediaPlayer.setDataSource(context, uri)
+            mediaPlayer.setVolume(1.0f, 1.0f)
+            mediaPlayer.prepare()
+            mediaPlayer.start()
+            true
+        } catch (_: Exception) {
+            val fallbackUri = fallbackAlarmUri()
+            if (sameUri(uri, fallbackUri)) {
+                false
+            } else {
+                try {
+                    mediaPlayer.reset()
+                    mediaPlayer.setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_ALARM)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build(),
+                    )
+                    mediaPlayer.isLooping = true
+                    mediaPlayer.setDataSource(context, fallbackUri)
+                    mediaPlayer.setVolume(1.0f, 1.0f)
+                    mediaPlayer.prepare()
+                    mediaPlayer.start()
+                    true
+                } catch (_: Exception) {
+                    false
+                }
             }
         }
+    }
 
-        // Fallback to defaults
-        val alarm = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-        if (alarm != null) return alarm
+    private fun releaseAudioFocus() {
+        audioManager?.let { manager ->
+            focusRequest?.let {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    manager.abandonAudioFocusRequest(it)
+                }
+            } ?: run {
+                @Suppress("DEPRECATION")
+                manager.abandonAudioFocus(null)
+            }
+        }
+        focusRequest = null
+    }
 
+    private fun resolveNotificationSoundUri(context: Context): Uri {
+        resolveSelectedSoundUri(context)?.let { return it }
+        return fallbackNotificationUri()
+    }
+
+    private fun resolveSelectedSoundUri(context: Context): Uri? {
+        val current = canonicalizeSoundUri(context, selectedAlarmUri)
+        selectedAlarmUri = current
+        return current?.let(Uri::parse)
+    }
+
+    private fun canonicalizeSoundUri(context: Context, uriString: String?): String? {
+        val trimmed = uriString?.trim().orEmpty()
+        if (trimmed.isEmpty()) {
+            return null
+        }
+
+        val candidate = parseSoundUri(trimmed) ?: return null
+        if (!canUseSoundUri(context, candidate)) {
+            return null
+        }
+
+        return normalizeUriString(candidate)
+    }
+
+    private fun parseSoundUri(uriString: String): Uri? {
+        return try {
+            val parsed = Uri.parse(uriString)
+            if (parsed.scheme.isNullOrBlank()) {
+                Uri.fromFile(File(uriString))
+            } else {
+                parsed
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun canUseSoundUri(context: Context, uri: Uri): Boolean {
+        return when (uri.scheme?.lowercase()) {
+            ContentResolver.SCHEME_FILE -> {
+                val path = uri.path ?: return false
+                val file = File(path)
+                file.exists() && file.isFile && file.canRead()
+            }
+
+            ContentResolver.SCHEME_CONTENT,
+            ContentResolver.SCHEME_ANDROID_RESOURCE,
+            null,
+            "" -> canOpenContentUri(context, uri)
+
+            else -> canOpenContentUri(context, uri)
+        }
+    }
+
+    private fun canOpenContentUri(context: Context, uri: Uri): Boolean {
+        return try {
+            context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { true } ?: false
+        } catch (_: Exception) {
+            try {
+                context.contentResolver.openInputStream(uri)?.use { true } ?: false
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+
+    private fun buildNotificationSoundAttributes(): AudioAttributes {
+        return AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+    }
+
+    private fun fallbackNotificationUri(): Uri {
         val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         if (notification != null) return notification
+
+        val alarm = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+        if (alarm != null) return alarm
 
         val ringtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
         if (ringtone != null) return ringtone
 
         return Uri.parse("content://settings/system/notification_sound")
+    }
+
+    private fun fallbackAlarmUri(): Uri {
+        val alarm = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+        if (alarm != null) return alarm
+
+        return fallbackNotificationUri()
+    }
+
+    private fun normalizeUriString(uri: Uri): String {
+        return uri.normalizeScheme().toString()
+    }
+
+    private fun sameUri(left: Uri?, right: Uri?): Boolean {
+        if (left == null || right == null) {
+            return left == right
+        }
+
+        return normalizeUriString(left) == normalizeUriString(right)
     }
 
     private fun buildOrderNotificationContent(data: Map<String, String>): OrderNotificationContent {

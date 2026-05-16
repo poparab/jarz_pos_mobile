@@ -63,6 +63,8 @@ Future<void> _bootstrapAndRunApp() async {
   await Hive.openBox(localeSettingsBoxName);
 
   final prefs = await SharedPreferences.getInstance();
+  final alarmSoundService = AlarmSoundService(prefs);
+  await alarmSoundService.restoreSelectedSoundOnNative();
 
   if (!kIsWeb) {
     await SystemChrome.setPreferredOrientations([
@@ -84,7 +86,7 @@ Future<void> _bootstrapAndRunApp() async {
     ProviderScope(
       observers: [AppProviderObserver()],
       overrides: [
-        alarmSoundServiceProvider.overrideWithValue(AlarmSoundService(prefs)),
+        alarmSoundServiceProvider.overrideWithValue(alarmSoundService),
       ],
       child: const JarzPosApp(),
     ),
