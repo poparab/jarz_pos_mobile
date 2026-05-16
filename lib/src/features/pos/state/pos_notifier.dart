@@ -21,7 +21,8 @@ class PosState {
   final Map<String, dynamic>? selectedCustomer;
   final DeliverySlot? selectedDeliverySlot;
   final Map<String, dynamic>? selectedSalesPartner;
-  final List<DeliverySlot> deliverySlots; // Cached delivery slots for current profile
+  final List<DeliverySlot>
+  deliverySlots; // Cached delivery slots for current profile
   final bool isLoading;
   final String? error;
   // When true, this order is for pickup (no delivery fee or slot required)
@@ -34,9 +35,11 @@ class PosState {
   // ── Draft (multi-cart) state ───────────────────────────────────────
   /// All persisted draft carts (summaries only, sorted newest-first).
   final List<DraftCartSummary> drafts;
+
   /// The draft id currently loaded into the active cart, or null for an
   /// unsaved "new" cart.
   final String? currentDraftId;
+
   /// True when the active cart has changes not yet persisted to Hive.
   final bool draftDirty;
 
@@ -48,8 +51,8 @@ class PosState {
     this.cartItems = const [],
     this.selectedCustomer,
     this.selectedDeliverySlot,
-  this.selectedSalesPartner,
-  this.deliverySlots = const [],
+    this.selectedSalesPartner,
+    this.deliverySlots = const [],
     this.isLoading = false,
     this.error,
     this.isPickup = false,
@@ -69,7 +72,7 @@ class PosState {
     List<Map<String, dynamic>>? cartItems,
     Map<String, dynamic>? selectedCustomer,
     DeliverySlot? selectedDeliverySlot,
-  Map<String, dynamic>? selectedSalesPartner,
+    Map<String, dynamic>? selectedSalesPartner,
     bool? isLoading,
     String? error,
     bool clearSelectedCustomer = false,
@@ -118,7 +121,9 @@ class PosState {
           ? null
           : (amendmentSourceGrandTotal ?? this.amendmentSourceGrandTotal),
       drafts: drafts ?? this.drafts,
-      currentDraftId: clearCurrentDraftId ? null : (currentDraftId ?? this.currentDraftId),
+      currentDraftId: clearCurrentDraftId
+          ? null
+          : (currentDraftId ?? this.currentDraftId),
       draftDirty: draftDirty ?? this.draftDirty,
     );
   }
@@ -140,9 +145,12 @@ class PosState {
     try {
       final hasFreeShippingBundle = cartItems.any((ci) {
         if (ci['type'] != 'bundle') return false;
-        final info = ci['bundle_details']?['bundle_info'] as Map<String, dynamic>?;
+        final info =
+            ci['bundle_details']?['bundle_info'] as Map<String, dynamic>?;
         final fs = info?['free_shipping'];
-        return (fs == true) || (fs is num && fs != 0) || (fs?.toString() == '1');
+        return (fs == true) ||
+            (fs is num && fs != 0) ||
+            (fs?.toString() == '1');
       });
       if (hasFreeShippingBundle) return 0.0;
     } catch (_) {}
@@ -178,6 +186,9 @@ class PosNotifier extends StateNotifier<PosState> {
   // ── Draft auto-save debounce ──────────────────────────────────────────
   static const _kAutoSaveDebounce = Duration(milliseconds: 400);
   Timer? _autoSaveTimer;
+  // True while startAmendmentDraft is running (between state-clear and final state-set).
+  // Prevents the autosave timer from persisting a half-built amendment cart to Hive.
+  bool _amendmentSetupInProgress = false;
 
   @override
   void dispose() {
@@ -200,6 +211,12 @@ class PosNotifier extends StateNotifier<PosState> {
   }
 
   // ── Draft: trigger debounced auto-save ───────────────────────────────
+
+  /// Exposes [_persistCurrentCart] for unit tests only.
+  /// Allows tests to simulate the autosave timer firing at a specific point.
+  @visibleForTesting
+  Future<void> testInvokePersistCurrentCart() => _persistCurrentCart();
+
   /// Schedule an auto-save of the current cart.
   void _autoSaveDebounced() {
     _autoSaveTimer?.cancel();
@@ -208,6 +225,43 @@ class PosNotifier extends StateNotifier<PosState> {
 
   Future<void> _persistCurrentCart() async {
     // Amendment drafts are also persisted so amendment context survives app restart.
+    // Guard 1: never persist while startAmendmentDraft is mid-flight (race window).
+    if (_amendmentSetupInProgress) {
+      if (kDebugMode) {
+        debugPrint(
+          '[PosNotifier] _persistCurrentCart: skipped — amendment setup in progress',
+        );
+      }
+      return;
+    }
+    // Guard 2: never persist while the state signals a loading operation.
+    if (state.isLoading) {
+      if (kDebugMode) {
+        debugPrint(
+          '[PosNotifier] _persistCurrentCart: skipped — state.isLoading=true',
+        );
+      }
+      return;
+    }
+    // Guard 3: don't poison Hive with a broken amendment draft.
+    if (state.isAmendmentDraft) {
+      final hasCatalogMiss = state.cartItems.any(
+        (i) => i['_bundle_catalog_miss'] == true,
+      );
+      final missingCustomer =
+          state.selectedCustomer == null &&
+          state.amendmentSourceInvoiceId != null;
+      if (hasCatalogMiss || missingCustomer) {
+        if (kDebugMode) {
+          debugPrint(
+            '[PosNotifier] _persistCurrentCart: skipped — broken amendment draft '
+            '(catalog_miss=$hasCatalogMiss, missing_customer=$missingCustomer). '
+            'Will NOT persist to Hive.',
+          );
+        }
+        return;
+      }
+    }
     final cartItems = state.cartItems;
     // Don't create a draft for a completely empty cart with no id yet.
     if (cartItems.isEmpty && state.currentDraftId == null) return;
@@ -242,10 +296,7 @@ class PosNotifier extends StateNotifier<PosState> {
       );
     } on DraftLimitReachedException {
       // Surface to the caller via a state error so the UI can show a snackbar.
-      state = state.copyWith(
-        error: 'draft_limit_reached',
-        clearError: false,
-      );
+      state = state.copyWith(error: 'draft_limit_reached', clearError: false);
     } catch (e) {
       if (kDebugMode) {
         debugPrint('⚠️ PosNotifier: auto-save failed: $e');
@@ -292,6 +343,44 @@ class PosNotifier extends StateNotifier<PosState> {
         orElse: () => null,
       );
       if (target == null) return;
+
+      // Revalidate amendment drafts before restoring — a previous auto-save
+      // race may have persisted a half-built cart (catalog-miss sentinel or
+      // null customer) to Hive. Restoring that would surface the bug again.
+      if (target.amendmentSourceInvoiceId != null) {
+        final hasCatalogMiss = target.cartItems.any(
+          (i) => i['_bundle_catalog_miss'] == true,
+        );
+        final missingCustomer = target.customer == null;
+        if (hasCatalogMiss || missingCustomer) {
+          if (kDebugMode) {
+            debugPrint(
+              '[PosNotifier] switchDraft: stale amendment draft detected '
+              '(catalog_miss=$hasCatalogMiss, missing_customer=$missingCustomer). '
+              'Aborting restore for invoice ${target.amendmentSourceInvoiceId}.',
+            );
+          }
+          await Sentry.captureMessage(
+            'amendment_stale_draft_blocked',
+            level: SentryLevel.warning,
+            withScope: (scope) {
+              scope.setContexts('amendment_stale_draft', <String, Object?>{
+                'invoice_id': target.amendmentSourceInvoiceId ?? '',
+                'has_catalog_miss': hasCatalogMiss,
+                'missing_customer': missingCustomer,
+                'draft_id': id,
+              });
+            },
+          );
+          state = state.copyWith(
+            error:
+                'This amendment draft is outdated — please reopen the order from the kanban to start again.',
+            clearError: false,
+          );
+          return;
+        }
+      }
+
       state = state.copyWith(
         cartItems: List<Map<String, dynamic>>.from(target.cartItems),
         selectedCustomer: target.customer,
@@ -437,11 +526,7 @@ class PosNotifier extends StateNotifier<PosState> {
       final items = futures[0];
       final bundles = futures[1];
 
-      state = state.copyWith(
-        items: items,
-        bundles: bundles,
-        isLoading: false,
-      );
+      state = state.copyWith(items: items, bundles: bundles, isLoading: false);
     } catch (e) {
       state = state.copyWith(
         error: e.toString(),
@@ -456,7 +541,9 @@ class PosNotifier extends StateNotifier<PosState> {
     // Block adding delivery/shipping related items when a Sales Partner is selected
     if (state.selectedSalesPartner != null) {
       final group = (item['item_group'] ?? '').toString().toLowerCase();
-      final name = (item['item_name'] ?? item['name'] ?? '').toString().toLowerCase();
+      final name = (item['item_name'] ?? item['name'] ?? '')
+          .toString()
+          .toLowerCase();
       final code = (item['name'] ?? '').toString().toLowerCase();
       if (group.contains('delivery') ||
           group.contains('shipping') ||
@@ -466,7 +553,9 @@ class PosNotifier extends StateNotifier<PosState> {
           code.contains('shipping') ||
           (item['is_shipping'] == true)) {
         if (kDebugMode) {
-          debugPrint('🚫 Skipping add: delivery/shipping charge is hidden for Sales Partner invoices');
+          debugPrint(
+            '🚫 Skipping add: delivery/shipping charge is hidden for Sales Partner invoices',
+          );
         }
         return false;
       }
@@ -474,7 +563,9 @@ class PosNotifier extends StateNotifier<PosState> {
 
     // Only enforce stock limits when the item payload includes stock metadata.
     final rawStockQty = item['actual_qty'];
-    final stockQty = rawStockQty is num ? rawStockQty.toDouble() : double.infinity;
+    final stockQty = rawStockQty is num
+        ? rawStockQty.toDouble()
+        : double.infinity;
     final existingItemIndex = state.cartItems.indexWhere(
       (cartItem) => cartItem['item_code'] == item['name'],
     );
@@ -483,7 +574,9 @@ class PosNotifier extends StateNotifier<PosState> {
         : 0;
     if (currentCartQty >= stockQty) {
       if (kDebugMode) {
-        debugPrint('🚫 Stock limit reached: ${item['name']} has $stockQty available, $currentCartQty in cart');
+        debugPrint(
+          '🚫 Stock limit reached: ${item['name']} has $stockQty available, $currentCartQty in cart',
+        );
       }
       return false;
     }
@@ -580,7 +673,9 @@ class PosNotifier extends StateNotifier<PosState> {
       (i) => i?['name'] == itemCode,
       orElse: () => null,
     );
-    return item != null ? ((item['actual_qty'] ?? 0) as num).toDouble() : double.infinity;
+    return item != null
+        ? ((item['actual_qty'] ?? 0) as num).toDouble()
+        : double.infinity;
   }
 
   void updateCartItemQuantity(int index, int newQuantity) {
@@ -674,7 +769,7 @@ class PosNotifier extends StateNotifier<PosState> {
 
   Future<void> _prefetchDeliverySlots() async {
     if (_isPrefetchingSlots) return; // avoid duplicate concurrent calls
-    final profile = state.selectedProfile; 
+    final profile = state.selectedProfile;
     if (profile == null) return;
     final profileName = profile['name']?.toString();
     if (profileName == null || profileName.isEmpty) return;
@@ -706,7 +801,10 @@ class PosNotifier extends StateNotifier<PosState> {
     if (value is bool) return value;
     if (value is num) return value != 0;
     final normalized = value?.toString().trim().toLowerCase();
-    return normalized == '1' || normalized == 'true' || normalized == 'yes' || normalized == 'y';
+    return normalized == '1' ||
+        normalized == 'true' ||
+        normalized == 'yes' ||
+        normalized == 'y';
   }
 
   double _coerceDouble(dynamic value, {double fallback = 0.0}) {
@@ -740,13 +838,42 @@ class PosNotifier extends StateNotifier<PosState> {
       final bundleId = bundle['id']?.toString().trim() ?? '';
       final bundleName = bundle['name']?.toString().trim() ?? '';
       final erpnextItem = bundle['erpnext_item']?.toString().trim() ?? '';
-      if (bundleCode.isNotEmpty && (bundleId == bundleCode || bundleName == bundleCode)) {
+      if (bundleCode.isNotEmpty &&
+          (bundleId == bundleCode || bundleName == bundleCode)) {
         return bundle;
       }
-      if (parentItemCode.isNotEmpty && erpnextItem.isNotEmpty && erpnextItem == parentItemCode) {
+      if (parentItemCode.isNotEmpty &&
+          erpnextItem.isNotEmpty &&
+          erpnextItem == parentItemCode) {
         return bundle;
       }
     }
+    // No match — log diagnostic to help diagnose catalog drift.
+    if (kDebugMode) {
+      final catalogTriples = bundles
+          .map(
+            (b) =>
+                '(id=${b['id']}, name=${b['name']}, erpnext_item=${b['erpnext_item']})',
+          )
+          .join(', ');
+      debugPrint(
+        '[Amendment] _findBundleInfoForInvoiceItem: NO MATCH '
+        'bundle_code="$bundleCode" parent_item_code="$parentItemCode" '
+        'catalog_size=${bundles.length} '
+        'catalog_triples=[$catalogTriples]',
+      );
+    }
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        message: 'amendment_bundle_catalog_miss_match_failure',
+        data: {
+          'bundle_code': bundleCode,
+          'parent_item_code': parentItemCode,
+          'catalog_size': bundles.length,
+        },
+        level: SentryLevel.warning,
+      ),
+    );
     return null;
   }
 
@@ -796,11 +923,14 @@ class PosNotifier extends StateNotifier<PosState> {
               ),
               // Carry forward the matched group when available so the cart UI
               // can still render the correct group header even on catalog miss.
-              if (matchedGroup != null) '_group_key': (matchedGroup['group_key'] ??
-                  matchedGroup['group_id'] ??
-                  matchedGroup['name'] ??
-                  matchedGroup['group_name'] ??
-                  '').toString(),
+              if (matchedGroup != null)
+                '_group_key':
+                    (matchedGroup['group_key'] ??
+                            matchedGroup['group_id'] ??
+                            matchedGroup['name'] ??
+                            matchedGroup['group_name'] ??
+                            '')
+                        .toString(),
             };
 
       final totalQuantity = _coerceInt(childItem['qty'], fallback: 1);
@@ -818,7 +948,9 @@ class PosNotifier extends StateNotifier<PosState> {
           : totalQuantity.clamp(1, totalQuantity);
 
       for (var index = 0; index < perBundleQuantity; index++) {
-        selections.putIfAbsent(selectionKey, () => []).add(Map<String, dynamic>.from(template));
+        selections
+            .putIfAbsent(selectionKey, () => [])
+            .add(Map<String, dynamic>.from(template));
       }
     }
 
@@ -835,7 +967,10 @@ class PosNotifier extends StateNotifier<PosState> {
       return null;
     }
 
-    final bundleQuantity = _coerceInt(parentItem['qty'], fallback: 1).clamp(1, 9999);
+    final bundleQuantity = _coerceInt(
+      parentItem['qty'],
+      fallback: 1,
+    ).clamp(1, 9999);
     // Prefer the catalog bundle price (always authoritative).
     // Only fall back to invoice-stored rates when the catalog has no price and
     // the stored rate is strictly positive — Dart's ?? does not catch numeric 0.
@@ -845,14 +980,19 @@ class PosNotifier extends StateNotifier<PosState> {
     final bundleRate = catalogPrice > 0
         ? catalogPrice
         : invoicePriceListRate > 0
-            ? invoicePriceListRate
-            : invoiceRate;
-    final bundleId = bundleInfo['id']?.toString() ??
+        ? invoicePriceListRate
+        : invoiceRate;
+    final bundleId =
+        bundleInfo['id']?.toString() ??
         parentItem['bundle_code']?.toString() ??
         parentItem['item_code']?.toString() ??
         '';
 
-    final selections = _reconstructBundleSelections(childItems, bundleInfo, bundleQuantity);
+    final selections = _reconstructBundleSelections(
+      childItems,
+      bundleInfo,
+      bundleQuantity,
+    );
     // B3: if reconstruction detected a qty-mismatch return null so the
     // catalog-miss sentinel path is triggered in _buildAmendmentCartItems.
     if (selections.containsKey('_qty_mismatch')) {
@@ -861,7 +1001,10 @@ class PosNotifier extends StateNotifier<PosState> {
 
     return {
       'item_code': bundleId,
-      'item_name': parentItem['item_name']?.toString() ?? bundleInfo['name']?.toString() ?? bundleId,
+      'item_name':
+          parentItem['item_name']?.toString() ??
+          bundleInfo['name']?.toString() ??
+          bundleId,
       'rate': bundleRate,
       'quantity': bundleQuantity,
       'type': 'bundle',
@@ -919,18 +1062,27 @@ class PosNotifier extends StateNotifier<PosState> {
         final bundleCode = item['bundle_code']?.toString().trim() ?? '';
         final childItems = <Map<String, dynamic>>[];
         final candidateChildIndices = <int>[];
-        for (var childIndex = 0; childIndex < invoiceItems.length; childIndex++) {
+        for (
+          var childIndex = 0;
+          childIndex < invoiceItems.length;
+          childIndex++
+        ) {
           if (childIndex == index) continue;
           final childItem = invoiceItems[childIndex];
           if (!_isBundleChildInvoiceItem(childItem)) continue;
-          final parentBundle = childItem['parent_bundle']?.toString().trim() ?? '';
+          final parentBundle =
+              childItem['parent_bundle']?.toString().trim() ?? '';
           if (bundleCode.isNotEmpty && parentBundle == bundleCode) {
             childItems.add(childItem);
             candidateChildIndices.add(childIndex);
           }
         }
 
-        final bundleCartItem = _buildAmendmentBundleCartItem(item, childItems, bundles);
+        final bundleCartItem = _buildAmendmentBundleCartItem(
+          item,
+          childItems,
+          bundles,
+        );
         if (bundleCartItem != null) {
           // Only consume child indices after a confirmed successful build.
           consumedBundleChildren.addAll(candidateChildIndices);
@@ -940,16 +1092,33 @@ class PosNotifier extends StateNotifier<PosState> {
         // Bundle catalog miss: consume children (they are always skipped anyway)
         // and add a sentinel so checkout validation can block a silent
         // zero-priced submission rather than letting it reach the backend.
+        // Also capture a Sentry event so we can diagnose root cause in the wild.
+        Sentry.captureMessage(
+          'amendment_bundle_catalog_miss',
+          level: SentryLevel.warning,
+          withScope: (scope) {
+            scope.setContexts('bundle_catalog_miss', <String, Object?>{
+              'bundle_code': item['bundle_code']?.toString() ?? '',
+              'item_code': item['item_code']?.toString() ?? '',
+              'item_name': item['item_name']?.toString() ?? '',
+              'catalog_size': bundles.length,
+            });
+          },
+        );
         consumedBundleChildren.addAll(candidateChildIndices);
         cartItems.add({
-          'item_code': bundleCode.isNotEmpty ? bundleCode : (item['item_code']?.toString() ?? ''),
+          'item_code': bundleCode.isNotEmpty
+              ? bundleCode
+              : (item['item_code']?.toString() ?? ''),
           'item_name': item['item_name']?.toString() ?? 'Unknown Bundle',
           'rate': 0.0,
           'quantity': _coerceInt(item['qty'], fallback: 1).clamp(1, 9999),
           'type': 'bundle',
           '_bundle_catalog_miss': true,
           'bundle_details': {
-            'bundle_id': bundleCode.isNotEmpty ? bundleCode : (item['item_code']?.toString() ?? ''),
+            'bundle_id': bundleCode.isNotEmpty
+                ? bundleCode
+                : (item['item_code']?.toString() ?? ''),
             'selected_items': <String, List<Map<String, dynamic>>>{},
             'bundle_info': <String, dynamic>{},
           },
@@ -968,8 +1137,10 @@ class PosNotifier extends StateNotifier<PosState> {
         'rate': _coerceDouble(item['rate']),
         'quantity': quantity < 1 ? 1 : quantity,
         'type': 'item',
-        if (item.containsKey('price_list_rate')) 'price_list_rate': _coerceDouble(item['price_list_rate']),
-        if (item.containsKey('discount_amount')) 'discount_amount': _coerceDouble(item['discount_amount']),
+        if (item.containsKey('price_list_rate'))
+          'price_list_rate': _coerceDouble(item['price_list_rate']),
+        if (item.containsKey('discount_amount'))
+          'discount_amount': _coerceDouble(item['discount_amount']),
         if (item.containsKey('discount_percentage'))
           'discount_percentage': _coerceDouble(item['discount_percentage']),
       });
@@ -978,9 +1149,34 @@ class PosNotifier extends StateNotifier<PosState> {
     return cartItems;
   }
 
-  Map<String, dynamic>? _buildAmendmentCustomer(Map<String, dynamic> invoiceData) {
-    final customer = invoiceData['customer']?.toString().trim() ?? '';
-    if (customer.isEmpty) return null;
+  Map<String, dynamic>? _buildAmendmentCustomer(
+    Map<String, dynamic> invoiceData,
+  ) {
+    final rawCustomer = invoiceData['customer'];
+    final customer = rawCustomer?.toString().trim() ?? '';
+    if (customer.isEmpty) {
+      final invoiceId = invoiceData['name']?.toString() ?? 'unknown';
+      if (kDebugMode) {
+        debugPrint(
+          '[Amendment] _buildAmendmentCustomer: MISSING customer for invoice "$invoiceId". '
+          'Raw customer field: ${rawCustomer.runtimeType}($rawCustomer). '
+          'Keys present: ${invoiceData.keys.toList()}',
+        );
+      }
+      Sentry.captureMessage(
+        'amendment_customer_missing',
+        level: SentryLevel.warning,
+        withScope: (scope) {
+          scope.setContexts('amendment_customer_missing', <String, Object?>{
+            'invoice_id': invoiceId,
+            'raw_customer': rawCustomer?.toString() ?? 'null',
+            'customer_name': invoiceData['customer_name']?.toString() ?? 'null',
+            'has_territory': invoiceData.containsKey('territory'),
+          });
+        },
+      );
+      return null;
+    }
 
     final selectedShippingAddressName =
         invoiceData['shipping_address_name']?.toString().trim() ?? '';
@@ -992,18 +1188,25 @@ class PosNotifier extends StateNotifier<PosState> {
       'name': customer,
       'customer_name': invoiceData['customer_name']?.toString() ?? customer,
       'territory': invoiceData['territory']?.toString() ?? '',
-      'territory_name': invoiceData['territory_display']?.toString() ?? invoiceData['territory']?.toString() ?? '',
+      'territory_name':
+          invoiceData['territory_display']?.toString() ??
+          invoiceData['territory']?.toString() ??
+          '',
       'territory_name_ar': invoiceData['territory_name_ar']?.toString() ?? '',
       // Gate delivery_income to zero when the source invoice had free shipping;
       // otherwise returning the territory default would re-charge on resubmit.
       'delivery_income': wasFreeShipping
           ? 0.0
           : invoiceData['shipping_income'] is num
-              ? (invoiceData['shipping_income'] as num).toDouble()
-              : double.tryParse(invoiceData['shipping_income']?.toString() ?? '') ?? 0.0,
+          ? (invoiceData['shipping_income'] as num).toDouble()
+          : double.tryParse(invoiceData['shipping_income']?.toString() ?? '') ??
+                0.0,
       'delivery_expense': invoiceData['shipping_expense'] is num
           ? (invoiceData['shipping_expense'] as num).toDouble()
-          : double.tryParse(invoiceData['shipping_expense']?.toString() ?? '') ?? 0.0,
+          : double.tryParse(
+                  invoiceData['shipping_expense']?.toString() ?? '',
+                ) ??
+                0.0,
       'was_free_shipping': wasFreeShipping,
       'mobile_no': invoiceData['customer_phone']?.toString() ?? '',
       'selected_shipping_address_name': selectedShippingAddressName,
@@ -1013,13 +1216,18 @@ class PosNotifier extends StateNotifier<PosState> {
 
   DeliverySlot? _buildAmendmentDeliverySlot(Map<String, dynamic> invoiceData) {
     final deliveryDate = invoiceData['delivery_date']?.toString().trim() ?? '';
-    final deliveryTime = invoiceData['delivery_time_from']?.toString().trim() ?? '';
+    final deliveryTime =
+        invoiceData['delivery_time_from']?.toString().trim() ?? '';
     if (deliveryDate.isEmpty || deliveryTime.isEmpty) {
       return null;
     }
 
-    final normalizedTime = deliveryTime.length == 5 ? '$deliveryTime:00' : deliveryTime;
-    final label = (invoiceData['delivery_slot_label']?.toString().trim().isNotEmpty ?? false)
+    final normalizedTime = deliveryTime.length == 5
+        ? '$deliveryTime:00'
+        : deliveryTime;
+    final label =
+        (invoiceData['delivery_slot_label']?.toString().trim().isNotEmpty ??
+            false)
         ? invoiceData['delivery_slot_label'].toString().trim()
         : '$deliveryDate $deliveryTime';
 
@@ -1051,12 +1259,19 @@ class PosNotifier extends StateNotifier<PosState> {
   }
 
   Future<void> startAmendmentDraft(Map<String, dynamic> invoiceData) async {
+    // Cancel any pending autosave timer immediately so it cannot fire during
+    // the async gap between state-clear and final state-set below.
+    _autoSaveTimer?.cancel();
+    _amendmentSetupInProgress = true;
+
     final invoiceId = invoiceData['name']?.toString().trim() ?? '';
-    final posProfileName = (invoiceData['pos_profile'] ?? invoiceData['custom_kanban_profile'])
+    final posProfileName =
+        (invoiceData['pos_profile'] ?? invoiceData['custom_kanban_profile'])
             ?.toString()
             .trim() ??
         '';
     if (invoiceId.isEmpty || posProfileName.isEmpty) {
+      _amendmentSetupInProgress = false;
       state = state.copyWith(
         error: 'Missing invoice amendment draft data',
         clearError: false,
@@ -1081,7 +1296,9 @@ class PosNotifier extends StateNotifier<PosState> {
     );
 
     try {
-      final profiles = state.profiles.isNotEmpty ? state.profiles : await _repository.getPosProfiles();
+      final profiles = state.profiles.isNotEmpty
+          ? state.profiles
+          : await _repository.getPosProfiles();
 
       Map<String, dynamic>? selectedProfile;
       for (final profile in profiles) {
@@ -1090,10 +1307,7 @@ class PosNotifier extends StateNotifier<PosState> {
           break;
         }
       }
-      selectedProfile ??= {
-        'name': posProfileName,
-        'title': posProfileName,
-      };
+      selectedProfile ??= {'name': posProfileName, 'title': posProfileName};
 
       final futures = await Future.wait([
         _repository.getItems(posProfileName),
@@ -1102,11 +1316,15 @@ class PosNotifier extends StateNotifier<PosState> {
 
       final customer = _buildAmendmentCustomer(invoiceData);
       final deliverySlot = _buildAmendmentDeliverySlot(invoiceData);
-      final salesPartnerName = invoiceData['sales_partner']?.toString().trim() ?? '';
+      final salesPartnerName =
+          invoiceData['sales_partner']?.toString().trim() ?? '';
       final isPickup = _coerceBool(invoiceData['is_pickup']);
       final bundleCatalog = futures[1];
 
-      final builtCartItems = _buildAmendmentCartItems(invoiceData['items'], bundleCatalog);
+      final builtCartItems = _buildAmendmentCartItems(
+        invoiceData['items'],
+        bundleCatalog,
+      );
 
       // B4: Guard against empty or badly loaded amendment cart.
       // If the source had items but we loaded zero, refuse to open the draft
@@ -1121,7 +1339,8 @@ class PosNotifier extends StateNotifier<PosState> {
           isLoading: false,
           isAmendmentDraft: false,
           clearAmendmentSourceInvoiceId: true,
-          error: 'Failed to load the original order items. '
+          error:
+              'Failed to load the original order items. '
               'Please close and reopen the order to retry.',
           clearError: false,
         );
@@ -1131,13 +1350,18 @@ class PosNotifier extends StateNotifier<PosState> {
             'built cart is empty. Source total: $sourceGrandTotal',
           );
         }
+        // early-return inside try — finally block will still clear the flag.
         return;
       }
 
       if (kDebugMode) {
-        final bundleCount = builtCartItems.where((i) => i['type'] == 'bundle').length;
+        final bundleCount = builtCartItems
+            .where((i) => i['type'] == 'bundle')
+            .length;
         final missCount = builtCartItems
-            .where((i) => i['type'] == 'bundle' && i['_bundle_catalog_miss'] == true)
+            .where(
+              (i) => i['type'] == 'bundle' && i['_bundle_catalog_miss'] == true,
+            )
             .length;
         debugPrint(
           '[Amendment] Loaded ${builtCartItems.length} cart items '
@@ -1156,15 +1380,21 @@ class PosNotifier extends StateNotifier<PosState> {
         clearSelectedCustomer: customer == null,
         selectedDeliverySlot: isPickup ? null : deliverySlot,
         clearSelectedDeliverySlot: isPickup || deliverySlot == null,
-        selectedSalesPartner: salesPartnerName.isEmpty ? null : {'name': salesPartnerName},
+        selectedSalesPartner: salesPartnerName.isEmpty
+            ? null
+            : {'name': salesPartnerName},
         clearSelectedSalesPartner: salesPartnerName.isEmpty,
-        deliverySlots: !isPickup && deliverySlot != null ? [deliverySlot] : const [],
+        deliverySlots: !isPickup && deliverySlot != null
+            ? [deliverySlot]
+            : const [],
         clearDeliverySlots: isPickup || deliverySlot == null,
         isPickup: isPickup,
         isLoading: false,
         isAmendmentDraft: true,
         amendmentSourceInvoiceId: invoiceId,
-        amendmentSourceGrandTotal: sourceGrandTotal > 0 ? sourceGrandTotal : null,
+        amendmentSourceGrandTotal: sourceGrandTotal > 0
+            ? sourceGrandTotal
+            : null,
       );
     } catch (e) {
       state = state.copyWith(
@@ -1174,12 +1404,14 @@ class PosNotifier extends StateNotifier<PosState> {
         isAmendmentDraft: false,
         clearAmendmentSourceInvoiceId: true,
       );
+    } finally {
+      _amendmentSetupInProgress = false;
     }
   }
 
   Future<void> checkout({
-    String? paymentType, 
-    String? overridePosProfileName, 
+    String? paymentType,
+    String? overridePosProfileName,
     String? paymentMethod,
     bool posProfileOverride = false,
   }) async {
@@ -1188,7 +1420,8 @@ class PosNotifier extends StateNotifier<PosState> {
       return;
     }
 
-    if (state.selectedProfile == null && (overridePosProfileName == null || overridePosProfileName.isEmpty)) {
+    if (state.selectedProfile == null &&
+        (overridePosProfileName == null || overridePosProfileName.isEmpty)) {
       state = state.copyWith(error: 'No profile selected', clearError: false);
       return;
     }
@@ -1200,7 +1433,8 @@ class PosNotifier extends StateNotifier<PosState> {
       // B4: Block empty cart submission for amendment drafts.
       if (state.cartItems.isEmpty) {
         state = state.copyWith(
-          error: 'Cannot submit amendment: cart is empty. '
+          error:
+              'Cannot submit amendment: cart is empty. '
               'Please close and reopen the order to reload the original items.',
           clearError: false,
           isLoading: false,
@@ -1209,11 +1443,13 @@ class PosNotifier extends StateNotifier<PosState> {
       }
 
       // B4: Block if any item has no item_code.
-      final hasEmptyCode = state.cartItems
-          .any((item) => (item['item_code']?.toString() ?? '').trim().isEmpty);
+      final hasEmptyCode = state.cartItems.any(
+        (item) => (item['item_code']?.toString() ?? '').trim().isEmpty,
+      );
       if (hasEmptyCode) {
         state = state.copyWith(
-          error: 'Cannot submit amendment: one or more items have no item code. '
+          error:
+              'Cannot submit amendment: one or more items have no item code. '
               'Please close and reopen the order.',
           clearError: false,
           isLoading: false,
@@ -1228,11 +1464,13 @@ class PosNotifier extends StateNotifier<PosState> {
           // must pass through to the backend.
           final isMiss = cartItem['_bundle_catalog_miss'] == true;
           if (isMiss) {
-            final name = cartItem['item_name']?.toString() ??
+            final name =
+                cartItem['item_name']?.toString() ??
                 cartItem['item_code']?.toString() ??
                 'bundle';
             state = state.copyWith(
-              error: 'Cannot submit amendment: "$name" was not found in the '
+              error:
+                  'Cannot submit amendment: "$name" was not found in the '
                   'item catalog. Please close and reopen the order to refresh.',
               clearError: false,
               isLoading: false,
@@ -1246,24 +1484,33 @@ class PosNotifier extends StateNotifier<PosState> {
     if (kDebugMode) {
       debugPrint('🛒 STARTING CHECKOUT PROCESS (no auto-print):');
       debugPrint('   Cart Items Count: ${state.cartItems.length}');
-      debugPrint('   Customer: ${state.selectedCustomer?['customer_name'] ?? 'Walking Customer'}');
-      debugPrint('   POS Profile: ${state.selectedProfile?['name'] ?? 'No Profile Selected'}');
+      debugPrint(
+        '   Customer: ${state.selectedCustomer?['customer_name'] ?? 'Walking Customer'}',
+      );
+      debugPrint(
+        '   POS Profile: ${state.selectedProfile?['name'] ?? 'No Profile Selected'}',
+      );
     }
 
     for (int i = 0; i < state.cartItems.length; i++) {
       final item = state.cartItems[i];
       final type = item['type'] ?? 'unknown';
       if (kDebugMode) {
-        debugPrint('   Cart Item ${i + 1}: ${item['item_code']} - Type: $type, Qty: ${item['quantity']}, Rate: ${item['rate']}');
+        debugPrint(
+          '   Cart Item ${i + 1}: ${item['item_code']} - Type: $type, Qty: ${item['quantity']}, Rate: ${item['rate']}',
+        );
         if (type == 'bundle') {
-          debugPrint('      Bundle ID: ${item['bundle_details']?['bundle_id']}');
+          debugPrint(
+            '      Bundle ID: ${item['bundle_details']?['bundle_id']}',
+          );
         }
       }
     }
 
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final effectivePosProfile = (overridePosProfileName != null && overridePosProfileName.isNotEmpty)
+      final effectivePosProfile =
+          (overridePosProfileName != null && overridePosProfileName.isNotEmpty)
           ? overridePosProfileName
           : state.selectedProfile!['name'];
       final invoice = state.isAmendmentDraft
@@ -1272,8 +1519,12 @@ class PosNotifier extends StateNotifier<PosState> {
               posProfile: effectivePosProfile,
               items: state.cartItems,
               customer: state.selectedCustomer,
-              requiredDeliveryDatetime: state.isPickup ? null : state.selectedDeliverySlot?.datetime,
-              deliveryEndDatetime: state.isPickup ? null : state.selectedDeliverySlot?.endDatetime,
+              requiredDeliveryDatetime: state.isPickup
+                  ? null
+                  : state.selectedDeliverySlot?.datetime,
+              deliveryEndDatetime: state.isPickup
+                  ? null
+                  : state.selectedDeliverySlot?.endDatetime,
               isPickup: state.isPickup,
               salesPartner: state.selectedSalesPartner?['name'],
               paymentType: paymentType,
@@ -1285,8 +1536,12 @@ class PosNotifier extends StateNotifier<PosState> {
               posProfile: effectivePosProfile,
               items: state.cartItems,
               customer: state.selectedCustomer,
-              requiredDeliveryDatetime: state.isPickup ? null : state.selectedDeliverySlot?.datetime,
-              deliveryEndDatetime: state.isPickup ? null : state.selectedDeliverySlot?.endDatetime,
+              requiredDeliveryDatetime: state.isPickup
+                  ? null
+                  : state.selectedDeliverySlot?.datetime,
+              deliveryEndDatetime: state.isPickup
+                  ? null
+                  : state.selectedDeliverySlot?.endDatetime,
               isPickup: state.isPickup,
               salesPartner: state.selectedSalesPartner?['name'],
               paymentType: paymentType,
@@ -1296,11 +1551,13 @@ class PosNotifier extends StateNotifier<PosState> {
 
       if (kDebugMode) {
         debugPrint('✅ CHECKOUT SUCCESS (no auto-print):');
-        debugPrint('   Invoice Name: ${invoice['name'] ?? invoice['invoice_name']}');
+        debugPrint(
+          '   Invoice Name: ${invoice['name'] ?? invoice['invoice_name']}',
+        );
         debugPrint('   Grand Total: ${invoice['grand_total']}');
       }
 
-  // No modal overlay; rely on inline progress UI
+      // No modal overlay; rely on inline progress UI
 
       // Delete the draft that was just checked out.
       final completedDraftId = state.currentDraftId;
@@ -1331,10 +1588,10 @@ class PosNotifier extends StateNotifier<PosState> {
         drafts: remainingDrafts,
       );
 
-  // TODO (Wallet/InstaPay Reference Capture):
-  // When adding a payment step (wallet / instapay) after invoice creation,
-  // prompt user for reference number & date, then call repository.payInvoice
-  // with those fields. Cash payments won't require references.
+      // TODO (Wallet/InstaPay Reference Capture):
+      // When adding a payment step (wallet / instapay) after invoice creation,
+      // prompt user for reference number & date, then call repository.payInvoice
+      // with those fields. Cash payments won't require references.
     } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint('❌ CHECKOUT ERROR: $e');
@@ -1347,14 +1604,16 @@ class PosNotifier extends StateNotifier<PosState> {
             e,
             stackTrace: stackTrace,
             hint: Hint.withMap({
-              'amendment_source_invoice_id': state.amendmentSourceInvoiceId ?? '',
+              'amendment_source_invoice_id':
+                  state.amendmentSourceInvoiceId ?? '',
               'cart_items_count': state.cartItems.length,
-              'amendment_source_grand_total': state.amendmentSourceGrandTotal ?? 0.0,
+              'amendment_source_grand_total':
+                  state.amendmentSourceGrandTotal ?? 0.0,
             }),
           ),
         );
       }
-  // No modal overlay; rely on inline progress UI
+      // No modal overlay; rely on inline progress UI
       state = state.copyWith(
         error: e.toString(),
         isLoading: false,
@@ -1390,7 +1649,9 @@ class PosNotifier extends StateNotifier<PosState> {
       final codeLower = item.itemCode.toLowerCase();
       if (codeLower.contains('delivery') || codeLower.contains('shipping')) {
         if (kDebugMode) {
-          debugPrint('🚫 Skipping add(PosCartItem): delivery/shipping blocked for Sales Partner');
+          debugPrint(
+            '🚫 Skipping add(PosCartItem): delivery/shipping blocked for Sales Partner',
+          );
         }
         return;
       }
@@ -1403,7 +1664,8 @@ class PosNotifier extends StateNotifier<PosState> {
       'type': item.isBundle ? 'bundle' : 'item',
       if (item.priceListRate != null) 'price_list_rate': item.priceListRate,
       if (item.discountAmount != null) 'discount_amount': item.discountAmount,
-      if (item.discountPercentage != null) 'discount_percentage': item.discountPercentage,
+      if (item.discountPercentage != null)
+        'discount_percentage': item.discountPercentage,
     };
     final updated = [...state.cartItems, cartEntry];
     state = state.copyWith(cartItems: updated, draftDirty: true);
