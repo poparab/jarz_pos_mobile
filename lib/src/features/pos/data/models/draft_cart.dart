@@ -12,6 +12,11 @@ class DraftCart {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Set when this draft is an amendment of a submitted invoice.
+  /// Persisted so amendment context survives app restarts.
+  final String? amendmentSourceInvoiceId;
+  final double? amendmentSourceGrandTotal;
+
   const DraftCart({
     required this.id,
     required this.label,
@@ -21,6 +26,8 @@ class DraftCart {
     required this.isPickup,
     required this.createdAt,
     required this.updatedAt,
+    this.amendmentSourceInvoiceId,
+    this.amendmentSourceGrandTotal,
   });
 
   DraftCart copyWith({
@@ -32,6 +39,9 @@ class DraftCart {
     bool clearSalesPartner = false,
     bool? isPickup,
     DateTime? updatedAt,
+    String? amendmentSourceInvoiceId,
+    bool clearAmendmentContext = false,
+    double? amendmentSourceGrandTotal,
   }) {
     return DraftCart(
       id: id,
@@ -42,6 +52,12 @@ class DraftCart {
       isPickup: isPickup ?? this.isPickup,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      amendmentSourceInvoiceId: clearAmendmentContext
+          ? null
+          : (amendmentSourceInvoiceId ?? this.amendmentSourceInvoiceId),
+      amendmentSourceGrandTotal: clearAmendmentContext
+          ? null
+          : (amendmentSourceGrandTotal ?? this.amendmentSourceGrandTotal),
     );
   }
 
@@ -56,6 +72,8 @@ class DraftCart {
       'is_pickup': isPickup,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'amendment_source_invoice_id': amendmentSourceInvoiceId,
+      'amendment_source_grand_total': amendmentSourceGrandTotal,
     };
   }
 
@@ -97,6 +115,10 @@ class DraftCart {
       isPickup: (map['is_pickup'] as bool?) ?? false,
       createdAt: parseDate(map['created_at'], now),
       updatedAt: parseDate(map['updated_at'], now),
+      amendmentSourceInvoiceId: map['amendment_source_invoice_id']?.toString(),
+      amendmentSourceGrandTotal: map['amendment_source_grand_total'] != null
+          ? double.tryParse(map['amendment_source_grand_total'].toString())
+          : null,
     );
   }
 

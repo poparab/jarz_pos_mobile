@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/models/draft_cart.dart';
@@ -200,15 +201,13 @@ class PosNotifier extends StateNotifier<PosState> {
 
   // ── Draft: trigger debounced auto-save ───────────────────────────────
   /// Schedule an auto-save of the current cart.
-  /// No-op when in amendment mode or cart is empty & no id yet.
   void _autoSaveDebounced() {
-    if (state.isAmendmentDraft) return;
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer(_kAutoSaveDebounce, _persistCurrentCart);
   }
 
   Future<void> _persistCurrentCart() async {
-    if (state.isAmendmentDraft) return;
+    // Amendment drafts are also persisted so amendment context survives app restart.
     final cartItems = state.cartItems;
     // Don't create a draft for a completely empty cart with no id yet.
     if (cartItems.isEmpty && state.currentDraftId == null) return;
@@ -229,6 +228,8 @@ class PosNotifier extends StateNotifier<PosState> {
       isPickup: state.isPickup,
       createdAt: now,
       updatedAt: now,
+      amendmentSourceInvoiceId: state.amendmentSourceInvoiceId,
+      amendmentSourceGrandTotal: state.amendmentSourceGrandTotal,
     );
 
     try {
@@ -303,8 +304,11 @@ class PosNotifier extends StateNotifier<PosState> {
         clearDeliverySlots: true,
         currentDraftId: id,
         draftDirty: false,
-        isAmendmentDraft: false,
-        clearAmendmentSourceInvoiceId: true,
+        // Restore amendment context if this draft was saved mid-amendment.
+        isAmendmentDraft: target.amendmentSourceInvoiceId != null,
+        amendmentSourceInvoiceId: target.amendmentSourceInvoiceId,
+        clearAmendmentSourceInvoiceId: target.amendmentSourceInvoiceId == null,
+        amendmentSourceGrandTotal: target.amendmentSourceGrandTotal,
       );
     } catch (e) {
       if (kDebugMode) {
@@ -1219,15 +1223,17 @@ class PosNotifier extends StateNotifier<PosState> {
 
       for (final cartItem in state.cartItems) {
         if (cartItem['type'] == 'bundle') {
+          // Only a true catalog miss (bundle not found in the item catalog)
+          // blocks submission.  A zero-rate is a legitimate 100% discount and
+          // must pass through to the backend.
           final isMiss = cartItem['_bundle_catalog_miss'] == true;
-          final hasNoPrice = _coerceDouble(cartItem['rate']) <= 0;
-          if (isMiss || hasNoPrice) {
+          if (isMiss) {
             final name = cartItem['item_name']?.toString() ??
                 cartItem['item_code']?.toString() ??
                 'bundle';
             state = state.copyWith(
-              error: 'Cannot submit amendment: "$name" could not be priced. '
-                  'Please close and reopen the order to refresh.',
+              error: 'Cannot submit amendment: "$name" was not found in the '
+                  'item catalog. Please close and reopen the order to refresh.',
               clearError: false,
               isLoading: false,
             );
@@ -1329,9 +1335,24 @@ class PosNotifier extends StateNotifier<PosState> {
   // When adding a payment step (wallet / instapay) after invoice creation,
   // prompt user for reference number & date, then call repository.payInvoice
   // with those fields. Cash payments won't require references.
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint('❌ CHECKOUT ERROR: $e');
+      }
+      // M3: Report amendment failures to Sentry with enough context to diagnose
+      // pricing drift or catalog-miss issues without a support call.
+      if (state.isAmendmentDraft) {
+        unawaited(
+          Sentry.captureException(
+            e,
+            stackTrace: stackTrace,
+            hint: Hint.withMap({
+              'amendment_source_invoice_id': state.amendmentSourceInvoiceId ?? '',
+              'cart_items_count': state.cartItems.length,
+              'amendment_source_grand_total': state.amendmentSourceGrandTotal ?? 0.0,
+            }),
+          ),
+        );
       }
   // No modal overlay; rely on inline progress UI
       state = state.copyWith(

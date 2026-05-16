@@ -812,7 +812,7 @@ void main() {
       await notifier.checkout();
 
       expect(notifier.state.error, isNotNull);
-      expect(notifier.state.error, contains('could not be priced'));
+      expect(notifier.state.error, contains('not found in the item catalog'));
       expect(repository.submitInvoiceAmendmentCalls, 0);
     });
 
@@ -1070,6 +1070,124 @@ void main() {
         expect(notifier.state.error, isNotNull,
             reason: 'Qty mismatch must produce either a sentinel or an error');
       }
+    });
+
+    // ── Phase-2 hardening tests ──────────────────────────────────────────────
+
+    test('H2: bundle with zero rate (100% discount) is NOT blocked by checkout guard', () async {
+      // A bundle whose catalog price is 0 (full discount campaign) must pass
+      // the amendment checkout guard — only a true catalog miss blocks.
+      repository.bundlesResult = [
+        {
+          'id': 'BDL-FREE',
+          'name': 'Free Bundle',
+          'price': 0.0, // 100% discount
+          'item_groups': [
+            {
+              'group_name': 'Choice',
+              'group_key': 'choice',
+              'quantity': 1,
+              'items': [
+                {'id': 'ITEM-X', 'name': 'X', 'item_name': 'X'},
+              ],
+            },
+          ],
+        },
+      ];
+
+      await notifier.startAmendmentDraft({
+        'name': 'INV-AMD-FREE',
+        'pos_profile': 'Main POS',
+        'grand_total': 0.0,
+        'items': [
+          {
+            'item_code': 'BDL-FREE',
+            'item_name': 'Free Bundle',
+            'qty': 1,
+            'rate': 0,
+            'price_list_rate': 0.0,
+            'is_bundle_parent': 1,
+            'bundle_code': 'BDL-FREE',
+          },
+          {
+            'item_code': 'ITEM-X',
+            'item_name': 'X',
+            'qty': 1,
+            'rate': 0,
+            'is_bundle_child': 1,
+            'parent_bundle': 'BDL-FREE',
+          },
+        ],
+      });
+
+      expect(notifier.state.cartItems, hasLength(1));
+      final bundleItem = notifier.state.cartItems.first;
+      expect(bundleItem['_bundle_catalog_miss'], isNot(true),
+          reason: 'Zero-rate catalog item must NOT be marked as catalog miss');
+
+      // Override the state so checkout can proceed (profile + amendment mode).
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': 'Main POS'},
+        isAmendmentDraft: true,
+        amendmentSourceInvoiceId: 'INV-AMD-FREE',
+        isPickup: true,
+      );
+
+      await notifier.checkout();
+
+      // The guard must not have fired — submitInvoiceAmendment should have been called.
+      expect(notifier.state.error, isNull,
+          reason: 'Zero-rate bundle must NOT be blocked by the catalog-miss guard');
+      expect(repository.submitInvoiceAmendmentCalls, 1,
+          reason: 'Amendment submit must be called for zero-rate bundle');
+    });
+
+    test('M1: DraftCart round-trips amendment context through toMap/fromMap', () {
+      const sourceInvoiceId = 'INV-AMD-PERSIST-001';
+      const sourceGrandTotal = 320.0;
+
+      final original = DraftCart(
+        id: 'draft-amend-001',
+        label: 'Test Label',
+        cartItems: const [
+          {'item_code': 'ITEM-A', 'rate': 100.0, 'quantity': 2.0, 'type': 'item'},
+        ],
+        isPickup: false,
+        createdAt: DateTime(2026, 5, 16),
+        updatedAt: DateTime(2026, 5, 16),
+        amendmentSourceInvoiceId: sourceInvoiceId,
+        amendmentSourceGrandTotal: sourceGrandTotal,
+      );
+
+      final map = original.toMap();
+      final restored = DraftCart.fromMap(map);
+
+      expect(restored.amendmentSourceInvoiceId, sourceInvoiceId,
+          reason: 'amendmentSourceInvoiceId must survive toMap/fromMap');
+      expect(restored.amendmentSourceGrandTotal, sourceGrandTotal,
+          reason: 'amendmentSourceGrandTotal must survive toMap/fromMap');
+      expect(restored.cartItems, hasLength(1));
+      expect(restored.id, 'draft-amend-001');
+    });
+
+    test('M1: DraftCart fromMap gracefully handles missing amendment fields (old format)', () {
+      // Simulate loading a Hive record saved before the amendment fields were added.
+      final oldMap = <dynamic, dynamic>{
+        'id': 'draft-old-001',
+        'label': 'Old Draft',
+        'cart_items': '[]',
+        'is_pickup': false,
+        'created_at': '2026-01-01T00:00:00.000',
+        'updated_at': '2026-01-01T00:00:00.000',
+        // amendment_source_invoice_id and amendment_source_grand_total absent
+      };
+
+      final restored = DraftCart.fromMap(oldMap);
+
+      expect(restored.amendmentSourceInvoiceId, isNull,
+          reason: 'Missing key must default to null (backward compat)');
+      expect(restored.amendmentSourceGrandTotal, isNull,
+          reason: 'Missing key must default to null (backward compat)');
     });
   });
 }
