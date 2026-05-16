@@ -13,6 +13,7 @@ class PrintableInvoiceItem {
   final bool showPricing;
   final int indentLevel;
   final bool bold;
+  final String? description;
   PrintableInvoiceItem({
     required this.name,
     required this.qty,
@@ -21,6 +22,7 @@ class PrintableInvoiceItem {
     this.showPricing = true,
     this.indentLevel = 0,
     this.bold = false,
+    this.description,
   }) : amount = amount ?? qty * rate;
 }
 
@@ -38,6 +40,11 @@ class PrintableInvoice {
   final double outstanding;
   final double shipping;
   final List<PrintableInvoiceItem> items;
+  final String? orderNo;
+  final String? paymentMethod;
+  final String? orderDate;
+  final String? deliveryTimeRange;
+  final String? deliveryDateFormatted;
   PrintableInvoice({
     required this.id,
     required this.date,
@@ -51,6 +58,11 @@ class PrintableInvoice {
     required this.outstanding,
     this.shipping = 0.0,
     required this.items,
+    this.orderNo,
+    this.paymentMethod,
+    this.orderDate,
+    this.deliveryTimeRange,
+    this.deliveryDateFormatted,
   });
 }
 
