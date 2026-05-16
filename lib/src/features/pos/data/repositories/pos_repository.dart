@@ -627,6 +627,8 @@ class PosRepository {
     String? paymentMethod,
     String? idempotencyKey,
     bool posProfileOverride = false,
+    double? expectedSourceGrandTotal,
+    int? expectedSourceItemCount,
   }) async {
     try {
       final requestData = _buildInvoiceRequestData(
@@ -649,6 +651,13 @@ class PosRepository {
       }
       if (idempotencyKey != null && idempotencyKey.isNotEmpty) {
         requestData['idempotency_key'] = idempotencyKey;
+      }
+      // B5: pass source invoice context for server-side parity check.
+      if (expectedSourceGrandTotal != null) {
+        requestData['expected_source_grand_total'] = expectedSourceGrandTotal;
+      }
+      if (expectedSourceItemCount != null) {
+        requestData['expected_source_item_count'] = expectedSourceItemCount;
       }
 
       if (kDebugMode) {

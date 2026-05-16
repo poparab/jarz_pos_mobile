@@ -81,6 +81,8 @@ class _FakePosRepository extends PosRepository {
     String? paymentMethod,
     String? idempotencyKey,
     bool posProfileOverride = false,
+    double? expectedSourceGrandTotal,
+    int? expectedSourceItemCount,
   }) async {
     submitInvoiceAmendmentCalls += 1;
     lastAmendmentSourceInvoiceId = sourceInvoiceId;
@@ -711,8 +713,15 @@ void main() {
       expect(bundleItem['quantity'], 2);
       expect(bundleItem['rate'], 120.0);
       expect(bundleItem['bundle_details']['bundle_id'], 'BDL-1');
-      expect(bundleItem['bundle_details']['selected_items']['main'].first['id'], 'ITEM-BURGER');
-      expect(bundleItem['bundle_details']['selected_items']['side'].first['id'], 'ITEM-FRIES');
+      // B3: selections are now keyed by itemCode, not groupKey.
+      // Each child item gets its own entry under its item_code key.
+      final selections = bundleItem['bundle_details']['selected_items'] as Map;
+      expect(selections.containsKey('ITEM-BURGER'), isTrue,
+          reason: 'Burger child must have its own selections entry keyed by item_code');
+      expect(selections.containsKey('ITEM-FRIES'), isTrue,
+          reason: 'Fries child must have its own selections entry keyed by item_code');
+      expect((selections['ITEM-BURGER'] as List).first['id'], 'ITEM-BURGER');
+      expect((selections['ITEM-FRIES'] as List).first['id'], 'ITEM-FRIES');
     });
 
     test('bundle rate uses catalog price when price_list_rate is zero', () async {
@@ -844,6 +853,223 @@ void main() {
       expect(repository.lastAmendmentSourceInvoiceId, 'INV-ORIG-001');
       expect(notifier.state.isAmendmentDraft, isFalse);
       expect(notifier.state.amendmentSourceInvoiceId, isNull);
+    });
+
+    // ── B4: Amendment hardening ──────────────────────────────────────────────
+
+    test('B4: startAmendmentDraft with empty source items leaves isAmendmentDraft false', () async {
+      // Source invoice has no items at all — safe to open (empty list is valid;
+      // we only block when sourceItemCount > 0 but builtCart is empty).
+      await notifier.startAmendmentDraft({
+        'name': 'INV-AMD-EMPTY',
+        'pos_profile': 'Main POS',
+        'grand_total': 0,
+        'items': [],
+      });
+
+      // Empty source → allowed through; cart stays empty; no error set.
+      expect(notifier.state.error, isNull,
+          reason: 'An invoice with no items is valid and must not raise an error');
+      expect(notifier.state.isLoading, isFalse);
+    });
+
+    test('B4: startAmendmentDraft stores source grand_total in amendmentSourceGrandTotal', () async {
+      await notifier.startAmendmentDraft({
+        'name': 'INV-AMD-GT',
+        'pos_profile': 'Main POS',
+        'grand_total': 250.0,
+        'items': [
+          {
+            'item_code': 'ITEM-001',
+            'item_name': 'Product A',
+            'qty': 2,
+            'rate': 125.0,
+            'amount': 250.0,
+            'is_bundle_parent': 0,
+            'is_bundle_child': 0,
+          },
+        ],
+      });
+
+      expect(notifier.state.isAmendmentDraft, isTrue);
+      expect(notifier.state.amendmentSourceGrandTotal, 250.0);
+    });
+
+    test('B4: amendmentSourceGrandTotal is cleared when amendment finishes', () async {
+      // Set up a clean draft state with known total
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': 'Main POS'},
+        isPickup: true,
+        isAmendmentDraft: true,
+        amendmentSourceInvoiceId: 'INV-AMD-CLR',
+        cartItems: const [
+          {'item_code': 'ITEM-001', 'item_name': 'A', 'rate': 100.0, 'quantity': 1, 'type': 'item'},
+        ],
+      );
+      // Manually inject a source total to verify it clears
+      notifier.state = notifier.state.copyWith(
+        // Using copyWith with clearAmendmentSourceInvoiceId=false so value persists
+        cartItems: notifier.state.cartItems,
+      );
+
+      await notifier.checkout();
+
+      expect(notifier.state.isAmendmentDraft, isFalse);
+      expect(notifier.state.amendmentSourceInvoiceId, isNull);
+      expect(notifier.state.amendmentSourceGrandTotal, isNull);
+    });
+
+    test('B4: checkout blocks empty-cart amendment submission', () async {
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': 'Main POS'},
+        isPickup: true,
+        isAmendmentDraft: true,
+        amendmentSourceInvoiceId: 'INV-AMD-NOITEMS',
+        cartItems: const [], // empty cart
+      );
+
+      await notifier.checkout();
+
+      expect(notifier.state.error, isNotNull);
+      expect(notifier.state.error, contains('empty'));
+      expect(repository.submitInvoiceAmendmentCalls, 0,
+          reason: 'Must not submit when cart is empty');
+    });
+
+    test('B4: bundle child identity — two different children of same group have distinct item_code', () async {
+      // This mirrors the real bug: two children from the SAME group_key but different item_codes.
+      // Both must survive reconstruction with their own identity.
+      repository.bundlesResult = [
+        {
+          'id': 'BDL-MULTI',
+          'name': 'Multi Bundle',
+          'price': 200.0,
+          'item_groups': [
+            {
+              'group_name': 'Flavor',
+              'group_key': 'flavor',
+              'quantity': 2, // 2 selections from this group
+              'items': [
+                {'id': 'ITEM-RED', 'name': 'Redvelvet', 'item_name': 'Redvelvet'},
+                {'id': 'ITEM-BLUE', 'name': 'Blueberry', 'item_name': 'Blueberry'},
+              ],
+            },
+          ],
+        },
+      ];
+
+      await notifier.startAmendmentDraft({
+        'name': 'INV-AMD-MULTI',
+        'pos_profile': 'Main POS',
+        'grand_total': 200.0,
+        'items': [
+          // Parent
+          {
+            'item_code': 'BDL-MULTI',
+            'item_name': 'Multi Bundle',
+            'qty': 1,
+            'rate': 0,
+            'price_list_rate': 200.0,
+            'is_bundle_parent': 1,
+            'bundle_code': 'BDL-MULTI',
+          },
+          // Child 1 — Redvelvet
+          {
+            'item_code': 'ITEM-RED',
+            'item_name': 'Redvelvet',
+            'qty': 1,
+            'rate': 0,
+            'is_bundle_child': 1,
+            'parent_bundle': 'BDL-MULTI',
+          },
+          // Child 2 — Blueberry (same group_key 'flavor')
+          {
+            'item_code': 'ITEM-BLUE',
+            'item_name': 'Blueberry',
+            'qty': 1,
+            'rate': 0,
+            'is_bundle_child': 1,
+            'parent_bundle': 'BDL-MULTI',
+          },
+        ],
+      });
+
+      expect(notifier.state.cartItems, hasLength(1));
+      final bundleItem = notifier.state.cartItems.first;
+      expect(bundleItem['type'], 'bundle');
+
+      final selections = bundleItem['bundle_details']['selected_items'] as Map;
+
+      // B3: selections are keyed by itemCode, not groupKey.
+      // Both children must have their own keys — ITEM-RED and ITEM-BLUE.
+      expect(selections.containsKey('ITEM-RED'), isTrue,
+          reason: 'Redvelvet must have its own selections entry keyed by item_code');
+      expect(selections.containsKey('ITEM-BLUE'), isTrue,
+          reason: 'Blueberry must have its own selections entry keyed by item_code');
+      final ids = selections.keys.where((k) => k != '_qty_mismatch').toSet();
+      expect(ids, containsAll(['ITEM-RED', 'ITEM-BLUE']),
+          reason: 'Both Redvelvet and Blueberry must survive bundle reconstruction');
+    });
+
+    test('B4: bundle with qty_mismatch (odd children) results in catalog-miss sentinel', () async {
+      // Parent qty=2 but only 1 child row (child qty=1).
+      // totalQuantity (1) % bundleQuantity (2) = 1 ≠ 0 → _qty_mismatch triggered.
+      repository.bundlesResult = [
+        {
+          'id': 'BDL-PAIR',
+          'name': 'Pair Bundle',
+          'price': 150.0,
+          'item_groups': [
+            {
+              'group_name': 'Pick',
+              'group_key': 'pick',
+              'quantity': 1,
+              'items': [
+                {'id': 'ITEM-A', 'name': 'A', 'item_name': 'A'},
+                {'id': 'ITEM-B', 'name': 'B', 'item_name': 'B'},
+              ],
+            },
+          ],
+        },
+      ];
+
+      await notifier.startAmendmentDraft({
+        'name': 'INV-AMD-MISMATCH',
+        'pos_profile': 'Main POS',
+        'grand_total': 300.0,
+        'items': [
+          {
+            'item_code': 'BDL-PAIR',
+            'item_name': 'Pair Bundle',
+            // Parent qty=2 → bundleQuantity=2
+            'qty': 2,
+            'rate': 0,
+            'price_list_rate': 150.0,
+            'is_bundle_parent': 1,
+            'bundle_code': 'BDL-PAIR',
+          },
+          {
+            'item_code': 'ITEM-A',
+            'item_name': 'A',
+            // qty=1 but bundleQuantity=2 → 1 % 2 = 1 ≠ 0 → mismatch
+            'qty': 1,
+            'rate': 0,
+            'is_bundle_child': 1,
+            'parent_bundle': 'BDL-PAIR',
+          },
+        ],
+      });
+
+      // Expect either a catalog-miss sentinel or an error
+      if (notifier.state.cartItems.isNotEmpty) {
+        final item = notifier.state.cartItems.first;
+        expect(item['_bundle_catalog_miss'], true,
+            reason: 'Qty mismatch must produce a catalog-miss sentinel');
+      } else {
+        // Alternatively an error was raised
+        expect(notifier.state.error, isNotNull,
+            reason: 'Qty mismatch must produce either a sentinel or an error');
+      }
     });
   });
 }

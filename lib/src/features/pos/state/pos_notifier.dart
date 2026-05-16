@@ -27,6 +27,9 @@ class PosState {
   final bool isPickup;
   final bool isAmendmentDraft;
   final String? amendmentSourceInvoiceId;
+  // Source invoice grand total captured when the amendment draft started.
+  // Used to guard against submitting an empty or badly loaded cart.
+  final double? amendmentSourceGrandTotal;
   // ── Draft (multi-cart) state ───────────────────────────────────────
   /// All persisted draft carts (summaries only, sorted newest-first).
   final List<DraftCartSummary> drafts;
@@ -51,6 +54,7 @@ class PosState {
     this.isPickup = false,
     this.isAmendmentDraft = false,
     this.amendmentSourceInvoiceId,
+    this.amendmentSourceGrandTotal,
     this.drafts = const [],
     this.currentDraftId,
     this.draftDirty = false,
@@ -77,6 +81,7 @@ class PosState {
     bool? isAmendmentDraft,
     String? amendmentSourceInvoiceId,
     bool clearAmendmentSourceInvoiceId = false,
+    double? amendmentSourceGrandTotal,
     // Draft fields
     List<DraftCartSummary>? drafts,
     String? currentDraftId,
@@ -108,6 +113,9 @@ class PosState {
       amendmentSourceInvoiceId: clearAmendmentSourceInvoiceId
           ? null
           : (amendmentSourceInvoiceId ?? this.amendmentSourceInvoiceId),
+      amendmentSourceGrandTotal: clearAmendmentSourceInvoiceId
+          ? null
+          : (amendmentSourceGrandTotal ?? this.amendmentSourceGrandTotal),
       drafts: drafts ?? this.drafts,
       currentDraftId: clearCurrentDraftId ? null : (currentDraftId ?? this.currentDraftId),
       draftDirty: draftDirty ?? this.draftDirty,
@@ -768,12 +776,11 @@ class PosNotifier extends StateNotifier<PosState> {
         if (matchedItem != null) break;
       }
 
-      final groupKey = (matchedGroup?['group_key'] ??
-              matchedGroup?['group_id'] ??
-              matchedGroup?['name'] ??
-              matchedGroup?['group_name'] ??
-              'group')
-          .toString();
+      // B3: key by itemCode to preserve distinct child identity.
+      // Two children sharing the same groupKey (e.g. both from "Medium" group)
+      // must not collapse into a single selections entry and overwrite each other.
+      final selectionKey = itemCode;
+
       final template = matchedItem != null
           ? Map<String, dynamic>.from(matchedItem)
           : {
@@ -783,15 +790,31 @@ class PosNotifier extends StateNotifier<PosState> {
               'price': _coerceDouble(
                 childItem['price_list_rate'] ?? childItem['rate'],
               ),
+              // Carry forward the matched group when available so the cart UI
+              // can still render the correct group header even on catalog miss.
+              if (matchedGroup != null) '_group_key': (matchedGroup['group_key'] ??
+                  matchedGroup['group_id'] ??
+                  matchedGroup['name'] ??
+                  matchedGroup['group_name'] ??
+                  '').toString(),
             };
 
       final totalQuantity = _coerceInt(childItem['qty'], fallback: 1);
+      // B3: use integer division (truncate) — if qty is not a clean multiple of
+      // bundleQuantity the bundle reconstruction is indeterminate; return null
+      // from the caller so the catalog-miss sentinel blocks the submit.
+      if (bundleQuantity > 0 && totalQuantity % bundleQuantity != 0) {
+        // Signal caller via a special sentinel entry so _buildAmendmentBundleCartItem
+        // can detect and return null (triggering catalog-miss guard).
+        selections['_qty_mismatch'] = [];
+        return selections;
+      }
       final perBundleQuantity = bundleQuantity > 0
-          ? (totalQuantity / bundleQuantity).round().clamp(1, totalQuantity)
+          ? (totalQuantity ~/ bundleQuantity).clamp(1, totalQuantity)
           : totalQuantity.clamp(1, totalQuantity);
 
       for (var index = 0; index < perBundleQuantity; index++) {
-        selections.putIfAbsent(groupKey, () => []).add(Map<String, dynamic>.from(template));
+        selections.putIfAbsent(selectionKey, () => []).add(Map<String, dynamic>.from(template));
       }
     }
 
@@ -825,6 +848,13 @@ class PosNotifier extends StateNotifier<PosState> {
         parentItem['item_code']?.toString() ??
         '';
 
+    final selections = _reconstructBundleSelections(childItems, bundleInfo, bundleQuantity);
+    // B3: if reconstruction detected a qty-mismatch return null so the
+    // catalog-miss sentinel path is triggered in _buildAmendmentCartItems.
+    if (selections.containsKey('_qty_mismatch')) {
+      return null;
+    }
+
     return {
       'item_code': bundleId,
       'item_name': parentItem['item_name']?.toString() ?? bundleInfo['name']?.toString() ?? bundleId,
@@ -833,7 +863,7 @@ class PosNotifier extends StateNotifier<PosState> {
       'type': 'bundle',
       'bundle_details': {
         'bundle_id': bundleId,
-        'selected_items': _reconstructBundleSelections(childItems, bundleInfo, bundleQuantity),
+        'selected_items': selections,
         'bundle_info': bundleInfo,
       },
     };
@@ -1072,12 +1102,52 @@ class PosNotifier extends StateNotifier<PosState> {
       final isPickup = _coerceBool(invoiceData['is_pickup']);
       final bundleCatalog = futures[1];
 
+      final builtCartItems = _buildAmendmentCartItems(invoiceData['items'], bundleCatalog);
+
+      // B4: Guard against empty or badly loaded amendment cart.
+      // If the source had items but we loaded zero, refuse to open the draft
+      // so the user cannot accidentally submit an empty cart that overwrites history.
+      final sourceItemCount = (invoiceData['items'] is List)
+          ? (invoiceData['items'] as List).length
+          : 0;
+      final sourceGrandTotal = _coerceDouble(invoiceData['grand_total']);
+
+      if (sourceItemCount > 0 && builtCartItems.isEmpty) {
+        state = state.copyWith(
+          isLoading: false,
+          isAmendmentDraft: false,
+          clearAmendmentSourceInvoiceId: true,
+          error: 'Failed to load the original order items. '
+              'Please close and reopen the order to retry.',
+          clearError: false,
+        );
+        if (kDebugMode) {
+          debugPrint(
+            '[Amendment] BLOCKED — source had $sourceItemCount items but '
+            'built cart is empty. Source total: $sourceGrandTotal',
+          );
+        }
+        return;
+      }
+
+      if (kDebugMode) {
+        final bundleCount = builtCartItems.where((i) => i['type'] == 'bundle').length;
+        final missCount = builtCartItems
+            .where((i) => i['type'] == 'bundle' && i['_bundle_catalog_miss'] == true)
+            .length;
+        debugPrint(
+          '[Amendment] Loaded ${builtCartItems.length} cart items '
+          '($bundleCount bundles, $missCount catalog misses) '
+          'from $sourceItemCount source rows. Source total: $sourceGrandTotal',
+        );
+      }
+
       state = state.copyWith(
         profiles: profiles,
         selectedProfile: selectedProfile,
         items: futures[0],
         bundles: bundleCatalog,
-        cartItems: _buildAmendmentCartItems(invoiceData['items'], bundleCatalog),
+        cartItems: builtCartItems,
         selectedCustomer: customer,
         clearSelectedCustomer: customer == null,
         selectedDeliverySlot: isPickup ? null : deliverySlot,
@@ -1090,6 +1160,7 @@ class PosNotifier extends StateNotifier<PosState> {
         isLoading: false,
         isAmendmentDraft: true,
         amendmentSourceInvoiceId: invoiceId,
+        amendmentSourceGrandTotal: sourceGrandTotal > 0 ? sourceGrandTotal : null,
       );
     } catch (e) {
       state = state.copyWith(
@@ -1122,6 +1193,30 @@ class PosNotifier extends StateNotifier<PosState> {
     // This catches both catalog-miss sentinels and unexpected zero-rate reloads
     // before they silently overwrite the original invoice with a lower amount.
     if (state.isAmendmentDraft) {
+      // B4: Block empty cart submission for amendment drafts.
+      if (state.cartItems.isEmpty) {
+        state = state.copyWith(
+          error: 'Cannot submit amendment: cart is empty. '
+              'Please close and reopen the order to reload the original items.',
+          clearError: false,
+          isLoading: false,
+        );
+        return;
+      }
+
+      // B4: Block if any item has no item_code.
+      final hasEmptyCode = state.cartItems
+          .any((item) => (item['item_code']?.toString() ?? '').trim().isEmpty);
+      if (hasEmptyCode) {
+        state = state.copyWith(
+          error: 'Cannot submit amendment: one or more items have no item code. '
+              'Please close and reopen the order.',
+          clearError: false,
+          isLoading: false,
+        );
+        return;
+      }
+
       for (final cartItem in state.cartItems) {
         if (cartItem['type'] == 'bundle') {
           final isMiss = cartItem['_bundle_catalog_miss'] == true;
@@ -1178,6 +1273,7 @@ class PosNotifier extends StateNotifier<PosState> {
               paymentType: paymentType,
               paymentMethod: paymentMethod,
               posProfileOverride: posProfileOverride,
+              expectedSourceGrandTotal: state.amendmentSourceGrandTotal,
             )
           : await _repository.createInvoice(
               posProfile: effectivePosProfile,
