@@ -67,6 +67,8 @@ void main() {
         discountAmount: 2,
         isBundleChild: true,
         parentBundle: 'BDL-1',
+        bundleGroupKey: 'ROW-FLAVOR-1',
+        bundleGroupName: 'Flavor',
       );
       expect(item.toJson(), {
         'item_code': 'ITEM-002',
@@ -81,7 +83,28 @@ void main() {
         'is_bundle_child': true,
         'bundle_code': null,
         'parent_bundle': 'BDL-1',
+        'bundle_group_key': 'ROW-FLAVOR-1',
+        'bundle_group_name': 'Flavor',
       });
+    });
+
+    test('fromJson toJson preserves bundle group metadata', () {
+      final item = InvoiceItem.fromJson({
+        'item_code': 'ITEM-CHILD',
+        'item_name': 'Child Item',
+        'qty': 1,
+        'rate': 50,
+        'amount': 50,
+        'is_bundle_child': 1,
+        'parent_bundle': 'BDL-1',
+        'bundle_group_key': 'ROW-FLAVOR-1',
+        'bundle_group_name': 'Flavor',
+      });
+
+      expect(item.bundleGroupKey, 'ROW-FLAVOR-1');
+      expect(item.bundleGroupName, 'Flavor');
+      expect(item.toJson()['bundle_group_key'], 'ROW-FLAVOR-1');
+      expect(item.toJson()['bundle_group_name'], 'Flavor');
     });
   });
 

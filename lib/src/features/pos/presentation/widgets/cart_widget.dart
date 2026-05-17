@@ -554,7 +554,9 @@ class CartWidget extends ConsumerWidget {
             ),
 
             // Show bundle items if it's a bundle
-            if (isBundle && cartItem['bundle_details'] != null)
+            if (isBundle && cartItem['_bundle_catalog_miss'] == true)
+              _buildIncompleteBundleWarning(context)
+            else if (isBundle && cartItem['bundle_details'] != null)
               _buildBundleDetails(context, cartItem['bundle_details']),
 
             SizedBox(height: isPhone ? 6 : 8),
@@ -821,6 +823,35 @@ class CartWidget extends ConsumerWidget {
               ),
             );
           }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIncompleteBundleWarning(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: colorScheme.errorContainer.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: colorScheme.error.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber_rounded, size: 16, color: colorScheme.error),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              'Bundle contents could not be loaded. Edit this bundle and reselect items before submitting.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onErrorContainer,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
       ),
     );

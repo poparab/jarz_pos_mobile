@@ -827,24 +827,42 @@ class PosNotifier extends StateNotifier<PosState> {
         (item['parent_bundle']?.toString().trim().isNotEmpty ?? false);
   }
 
+  String _firstNonEmptyString(Map<String, dynamic> source, List<String> keys) {
+    for (final key in keys) {
+      final value = source[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+    return '';
+  }
+
+  Set<String> _bundleCatalogIdentities(Map<String, dynamic> bundle) {
+    return <String>{
+      bundle['id']?.toString().trim() ?? '',
+      bundle['name']?.toString().trim() ?? '',
+      bundle['erpnext_item']?.toString().trim() ?? '',
+      bundle['parent_item_code']?.toString().trim() ?? '',
+      bundle['item_code']?.toString().trim() ?? '',
+      bundle['bundle_code']?.toString().trim() ?? '',
+    }..removeWhere((value) => value.isEmpty);
+  }
+
+  Set<String> _invoiceBundleIdentities(Map<String, dynamic> parentItem) {
+    return <String>{
+      parentItem['bundle_code']?.toString().trim() ?? '',
+      parentItem['item_code']?.toString().trim() ?? '',
+      parentItem['item_name']?.toString().trim() ?? '',
+    }..removeWhere((value) => value.isEmpty);
+  }
+
   Map<String, dynamic>? _findBundleInfoForInvoiceItem(
     Map<String, dynamic> parentItem,
     List<Map<String, dynamic>> bundles,
   ) {
-    final bundleCode = parentItem['bundle_code']?.toString().trim() ?? '';
-    final parentItemCode = parentItem['item_code']?.toString().trim() ?? '';
+    final parentIdentities = _invoiceBundleIdentities(parentItem);
 
     for (final bundle in bundles) {
-      final bundleId = bundle['id']?.toString().trim() ?? '';
-      final bundleName = bundle['name']?.toString().trim() ?? '';
-      final erpnextItem = bundle['erpnext_item']?.toString().trim() ?? '';
-      if (bundleCode.isNotEmpty &&
-          (bundleId == bundleCode || bundleName == bundleCode)) {
-        return bundle;
-      }
-      if (parentItemCode.isNotEmpty &&
-          erpnextItem.isNotEmpty &&
-          erpnextItem == parentItemCode) {
+      final catalogIdentities = _bundleCatalogIdentities(bundle);
+      if (parentIdentities.intersection(catalogIdentities).isNotEmpty) {
         return bundle;
       }
     }
@@ -853,12 +871,12 @@ class PosNotifier extends StateNotifier<PosState> {
       final catalogTriples = bundles
           .map(
             (b) =>
-                '(id=${b['id']}, name=${b['name']}, erpnext_item=${b['erpnext_item']})',
+                '(id=${b['id']}, name=${b['name']}, erpnext_item=${b['erpnext_item']}, parent_item_code=${b['parent_item_code']})',
           )
           .join(', ');
       debugPrint(
         '[Amendment] _findBundleInfoForInvoiceItem: NO MATCH '
-        'bundle_code="$bundleCode" parent_item_code="$parentItemCode" '
+        'parent_identities=$parentIdentities '
         'catalog_size=${bundles.length} '
         'catalog_triples=[$catalogTriples]',
       );
@@ -867,8 +885,7 @@ class PosNotifier extends StateNotifier<PosState> {
       Breadcrumb(
         message: 'amendment_bundle_catalog_miss_match_failure',
         data: {
-          'bundle_code': bundleCode,
-          'parent_item_code': parentItemCode,
+          'parent_identities': parentIdentities.toList(growable: false),
           'catalog_size': bundles.length,
         },
         level: SentryLevel.warning,
@@ -940,7 +957,7 @@ class PosNotifier extends StateNotifier<PosState> {
       final bool hasCatalogMatch = matchedGroup != null;
       final String selectionKey;
       if (hasCatalogMatch) {
-        selectionKey = groupKeyFor(matchedGroup!, matchedGroupIndex);
+        selectionKey = groupKeyFor(matchedGroup, matchedGroupIndex);
       } else if (persistedGroupKey.isNotEmpty) {
         selectionKey = persistedGroupKey;
       } else if (persistedGroupName.isNotEmpty) {
@@ -1014,10 +1031,15 @@ class PosNotifier extends StateNotifier<PosState> {
   Map<String, dynamic>? _buildAmendmentBundleCartItem(
     Map<String, dynamic> parentItem,
     List<Map<String, dynamic>> childItems,
-    List<Map<String, dynamic>> bundles,
-  ) {
-    final bundleInfo = _findBundleInfoForInvoiceItem(parentItem, bundles);
+    List<Map<String, dynamic>> bundles, {
+    Map<String, dynamic>? matchedBundleInfo,
+  }) {
+    final bundleInfo =
+        matchedBundleInfo ?? _findBundleInfoForInvoiceItem(parentItem, bundles);
     if (bundleInfo == null) {
+      return null;
+    }
+    if (childItems.isEmpty) {
       return null;
     }
 
@@ -1036,11 +1058,21 @@ class PosNotifier extends StateNotifier<PosState> {
         : invoicePriceListRate > 0
         ? invoicePriceListRate
         : invoiceRate;
-    final bundleId =
-        bundleInfo['id']?.toString() ??
-        parentItem['bundle_code']?.toString() ??
-        parentItem['item_code']?.toString() ??
-        '';
+    final persistedBundleId = _firstNonEmptyString(parentItem, ['bundle_code']);
+    final catalogBundleId = _firstNonEmptyString(bundleInfo, [
+      'id',
+      'name',
+      'erpnext_item',
+      'parent_item_code',
+    ]);
+    final catalogIdentities = _bundleCatalogIdentities(bundleInfo);
+    final effectiveBundleId =
+        persistedBundleId.isNotEmpty &&
+            catalogIdentities.contains(persistedBundleId)
+        ? persistedBundleId
+        : catalogBundleId.isNotEmpty
+        ? catalogBundleId
+        : persistedBundleId;
 
     final selections = _reconstructBundleSelections(
       childItems,
@@ -1054,16 +1086,16 @@ class PosNotifier extends StateNotifier<PosState> {
     }
 
     return {
-      'item_code': bundleId,
+      'item_code': effectiveBundleId,
       'item_name':
           parentItem['item_name']?.toString() ??
           bundleInfo['name']?.toString() ??
-          bundleId,
+          effectiveBundleId,
       'rate': bundleRate,
       'quantity': bundleQuantity,
       'type': 'bundle',
       'bundle_details': {
-        'bundle_id': bundleId,
+        'bundle_id': effectiveBundleId,
         'selected_items': selections,
         'bundle_info': bundleInfo,
       },
@@ -1114,6 +1146,12 @@ class PosNotifier extends StateNotifier<PosState> {
 
       if (_isBundleParentInvoiceItem(item)) {
         final bundleCode = item['bundle_code']?.toString().trim() ?? '';
+        final matchedBundleInfo = _findBundleInfoForInvoiceItem(item, bundles);
+        final bundleIdentities = <String>{
+          ..._invoiceBundleIdentities(item),
+          if (matchedBundleInfo != null)
+            ..._bundleCatalogIdentities(matchedBundleInfo),
+        }..removeWhere((value) => value.isEmpty);
         final childItems = <Map<String, dynamic>>[];
         final candidateChildIndices = <int>[];
         for (
@@ -1126,7 +1164,8 @@ class PosNotifier extends StateNotifier<PosState> {
           if (!_isBundleChildInvoiceItem(childItem)) continue;
           final parentBundle =
               childItem['parent_bundle']?.toString().trim() ?? '';
-          if (bundleCode.isNotEmpty && parentBundle == bundleCode) {
+          if (parentBundle.isNotEmpty &&
+              bundleIdentities.contains(parentBundle)) {
             childItems.add(childItem);
             candidateChildIndices.add(childIndex);
           }
@@ -1136,6 +1175,7 @@ class PosNotifier extends StateNotifier<PosState> {
           item,
           childItems,
           bundles,
+          matchedBundleInfo: matchedBundleInfo,
         );
         if (bundleCartItem != null) {
           // Only consume child indices after a confirmed successful build.
@@ -1155,6 +1195,8 @@ class PosNotifier extends StateNotifier<PosState> {
               'bundle_code': item['bundle_code']?.toString() ?? '',
               'item_code': item['item_code']?.toString() ?? '',
               'item_name': item['item_name']?.toString() ?? '',
+              'bundle_identities': bundleIdentities.toList(growable: false),
+              'child_count': childItems.length,
               'catalog_size': bundles.length,
             });
           },

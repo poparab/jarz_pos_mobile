@@ -454,7 +454,9 @@ class InvoiceCard {
   // Derived delivery helpers
   DateTime? get deliveryStartDateTime {
     try {
-      if ((deliveryDate ?? '').isEmpty || (deliveryTimeFrom ?? '').isEmpty) return null;
+      if ((deliveryDate ?? '').isEmpty || (deliveryTimeFrom ?? '').isEmpty) {
+        return null;
+      }
       final date = DateTime.tryParse(deliveryDate!);
       if (date == null) return null;
       // Time could be 'HH:mm' or 'HH:mm:ss'
@@ -493,7 +495,9 @@ class InvoiceCard {
 
   String get deliveryDateTimeLabel {
     // Prefer preformatted label from backend
-    if ((deliverySlotLabel ?? '').trim().isNotEmpty) return deliverySlotLabel!.trim();
+    if ((deliverySlotLabel ?? '').trim().isNotEmpty) {
+      return deliverySlotLabel!.trim();
+    }
     final start = deliveryStartDateTime;
     if (start == null) return '';
     final d = start;
@@ -568,6 +572,8 @@ class InvoiceItem {
   final bool isBundleChild;
   final String? bundleCode;
   final String? parentBundle;
+  final String? bundleGroupKey;
+  final String? bundleGroupName;
 
   InvoiceItem({
     required this.itemCode,
@@ -582,6 +588,8 @@ class InvoiceItem {
     this.isBundleChild = false,
     this.bundleCode,
     this.parentBundle,
+    this.bundleGroupKey,
+    this.bundleGroupName,
   });
 
   factory InvoiceItem.fromJson(Map<String, dynamic> json) {
@@ -604,6 +612,8 @@ class InvoiceItem {
       isBundleChild: [1, true, '1', 'true', 'True'].contains(json['is_bundle_child']),
       bundleCode: json['bundle_code']?.toString(),
       parentBundle: json['parent_bundle']?.toString(),
+      bundleGroupKey: json['bundle_group_key']?.toString(),
+      bundleGroupName: json['bundle_group_name']?.toString(),
     );
   }
 
@@ -621,6 +631,8 @@ class InvoiceItem {
       'is_bundle_child': isBundleChild,
       'bundle_code': bundleCode,
       'parent_bundle': parentBundle,
+      'bundle_group_key': bundleGroupKey,
+      'bundle_group_name': bundleGroupName,
     };
   }
 

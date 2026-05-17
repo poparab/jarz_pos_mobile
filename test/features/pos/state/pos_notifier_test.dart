@@ -849,6 +849,141 @@ void main() {
     );
 
     test(
+      'startAmendmentDraft rebuilds bundle when parent bundle_code is missing',
+      () async {
+        repository.bundlesResult = [
+          {
+            'id': 'BDL-1',
+            'name': 'Meal Deal',
+            'erpnext_item': 'BUNDLE-PARENT',
+            'price': 120.0,
+            'item_groups': [
+              {
+                'group_name': 'Main',
+                'group_key': 'main',
+                'quantity': 1,
+                'items': [
+                  {
+                    'id': 'ITEM-BURGER',
+                    'name': 'Burger',
+                    'item_name': 'Burger',
+                  },
+                ],
+              },
+            ],
+          },
+        ];
+
+        await notifier.startAmendmentDraft({
+          'name': 'INV-AMD-MISSING-CODE',
+          'pos_profile': 'Main POS',
+          'items': [
+            {
+              'item_code': 'BUNDLE-PARENT',
+              'item_name': 'Meal Deal',
+              'qty': 1,
+              'rate': 0,
+              'amount': 0,
+              'price_list_rate': 0,
+              'is_bundle_parent': 1,
+              'bundle_code': '',
+            },
+            {
+              'item_code': 'ITEM-BURGER',
+              'item_name': 'Burger',
+              'qty': 1,
+              'rate': 60,
+              'amount': 60,
+              'is_bundle_child': 1,
+              'parent_bundle': 'BDL-1',
+              'bundle_group_key': 'main',
+              'bundle_group_name': 'Main',
+            },
+          ],
+        });
+
+        expect(notifier.state.cartItems, hasLength(1));
+        final bundleItem = notifier.state.cartItems.first;
+        expect(bundleItem['_bundle_catalog_miss'], isNot(true));
+        expect(bundleItem['type'], 'bundle');
+        expect(bundleItem['rate'], 120.0);
+        expect(bundleItem['bundle_details']['bundle_id'], 'BDL-1');
+        final selections =
+            bundleItem['bundle_details']['selected_items'] as Map;
+        expect((selections['main'] as List).first['id'], 'ITEM-BURGER');
+      },
+    );
+
+    test(
+      'startAmendmentDraft rebuilds bundle when invoice bundle id was recreated',
+      () async {
+        repository.bundlesResult = [
+          {
+            'id': 'BDL-CURRENT',
+            'name': 'Jarz Sweet Six',
+            'price': 600.0,
+            'item_groups': [
+              {
+                'group_name': 'Medium',
+                'group_key': 'medium',
+                'quantity': 6,
+                'items': [
+                  {'id': 'Strawberry Medium', 'name': 'Strawberry Medium'},
+                  {'id': 'Blueberry Medium', 'name': 'Blueberry Medium'},
+                  {'id': 'Lotus Medium', 'name': 'Lotus Medium'},
+                  {'id': 'Mango Medium', 'name': 'Mango Medium'},
+                  {'id': 'Tiramisu Medium', 'name': 'Tiramisu Medium'},
+                ],
+              },
+            ],
+          },
+        ];
+
+        await notifier.startAmendmentDraft({
+          'name': 'ACC-SINV-2026-15959',
+          'pos_profile': 'Main POS',
+          'items': [
+            {
+              'item_code': 'Jarz Sweet Six',
+              'item_name': 'Jarz Sweet Six',
+              'qty': 1,
+              'rate': 0,
+              'amount': 0,
+              'price_list_rate': 540,
+              'is_bundle_parent': 1,
+              'bundle_code': 'BDL-OLD-DELETED',
+            },
+            {
+              'item_code': 'Strawberry Medium',
+              'item_name': 'Strawberry Medium',
+              'qty': 1,
+              'rate': 100,
+              'is_bundle_child': 1,
+              'parent_bundle': 'BDL-OLD-DELETED',
+            },
+            {
+              'item_code': 'Blueberry Medium',
+              'item_name': 'Blueberry Medium',
+              'qty': 2,
+              'rate': 100,
+              'is_bundle_child': 1,
+              'parent_bundle': 'BDL-OLD-DELETED',
+            },
+          ],
+        });
+
+        expect(notifier.state.cartItems, hasLength(1));
+        final bundleItem = notifier.state.cartItems.first;
+        expect(bundleItem['_bundle_catalog_miss'], isNot(true));
+        expect(bundleItem['rate'], 600.0);
+        expect(bundleItem['bundle_details']['bundle_id'], 'BDL-CURRENT');
+        final selections =
+            bundleItem['bundle_details']['selected_items'] as Map;
+        expect((selections['medium'] as List), hasLength(3));
+      },
+    );
+
+    test(
       'bundle catalog miss emits sentinel and checkout blocks submission',
       () async {
         // No matching bundle in the catalog → should produce a catalog-miss
