@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,6 +47,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
   with SingleTickerProviderStateMixin, RouteAware, WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isProfileDialogOpen = false;
+  bool _amendmentCleanupScheduled = false;
 
   // ── Scroll-to-hide state (phones only) ──────────────────────────
   late final AnimationController _hideController;
@@ -67,6 +70,56 @@ class _PosScreenState extends ConsumerState<PosScreen>
     return Map<String, dynamic>.from(invoiceData);
   }
 
+  String? _amendmentInvoiceId() {
+    final invoiceId = _amendmentInvoiceData()?['name']?.toString().trim() ?? '';
+    return invoiceId.isEmpty ? null : invoiceId;
+  }
+
+  void _scheduleAmendmentDraftCleanup() {
+    if (_amendmentCleanupScheduled) {
+      return;
+    }
+    final invoiceId = _amendmentInvoiceId();
+    if (invoiceId == null) {
+      return;
+    }
+    _amendmentCleanupScheduled = true;
+    unawaited(
+      ref.read(posNotifierProvider.notifier).abandonAmendmentDraft(
+        expectedInvoiceId: invoiceId,
+      ),
+    );
+  }
+
+  Widget _wrapWithAmendmentCleanupGuard(Widget child) {
+    if (_amendmentInvoiceId() == null) {
+      return child;
+    }
+    return PopScope<Object?>(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          _scheduleAmendmentDraftCleanup();
+        }
+      },
+      child: child,
+    );
+  }
+
+  void _openKanban() {
+    if (_amendmentInvoiceId() != null) {
+      _scheduleAmendmentDraftCleanup();
+      final navigator = Navigator.of(context);
+      if (navigator.canPop()) {
+        navigator.pop();
+        return;
+      }
+      context.go(AppRoutes.kanban);
+      return;
+    }
+
+    context.push(AppRoutes.kanban);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -82,6 +135,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       // Authentication assumed handled by route guard; proceed to load profiles.
 
       final amendmentInvoiceData = _amendmentInvoiceData();
@@ -130,6 +184,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
 
   @override
   void dispose() {
+    _scheduleAmendmentDraftCleanup();
     WidgetsBinding.instance.removeObserver(this);
     try {
       routeObserver.unsubscribe(this);
@@ -205,10 +260,14 @@ class _PosScreenState extends ConsumerState<PosScreen>
     // Enforce POS profile selection: show startup popup chooser on entry
     if (state.selectedProfile == null) {
       if (state.isLoading) {
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return _wrapWithAmendmentCleanupGuard(
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+        );
       }
       if (state.error != null && state.profiles.isEmpty) {
-        return Scaffold(body: _buildError(context, state.error!));
+        return _wrapWithAmendmentCleanupGuard(
+          Scaffold(body: _buildError(context, state.error!)),
+        );
       }
       // Auto-select if only one profile available
       if (state.profiles.length == 1) {
@@ -216,7 +275,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
           if (!mounted) return;
           ref.read(posNotifierProvider.notifier).selectProfile(state.profiles.first);
         });
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return _wrapWithAmendmentCleanupGuard(
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+        );
       }
 
       // Show popup chooser for multiple profiles
@@ -262,15 +323,21 @@ class _PosScreenState extends ConsumerState<PosScreen>
           });
         }
 
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return _wrapWithAmendmentCleanupGuard(
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+        );
       }
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return _wrapWithAmendmentCleanupGuard(
+        const Scaffold(body: Center(child: CircularProgressIndicator())),
+      );
     }
 
     // While shift data is still loading after a profile switch, show a spinner
     // instead of flashing the POS UI then redirecting.
     if (requirePosShift && activeShiftAsync.isLoading && !activeShiftAsync.hasValue) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return _wrapWithAmendmentCleanupGuard(
+        const Scaffold(body: Center(child: CircularProgressIndicator())),
+      );
     }
 
     final isPhone = ResponsiveUtils.isPhone(context);
@@ -279,6 +346,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
     final header = _MergedHeader(
       state: state,
       onShowCart: () => _showCartBottomSheet(context),
+      onOpenKanban: _openKanban,
       onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
       ref: ref,
       context: context,
@@ -293,7 +361,8 @@ class _PosScreenState extends ConsumerState<PosScreen>
       final primary = Theme.of(context).colorScheme.primary;
       final onPrimary = Theme.of(context).colorScheme.onPrimary;
       final statusBarHeight = MediaQuery.of(context).viewPadding.top;
-      return AnnotatedRegion<SystemUiOverlayStyle>(
+      return _wrapWithAmendmentCleanupGuard(
+        AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.light,
@@ -402,11 +471,11 @@ class _PosScreenState extends ConsumerState<PosScreen>
             ),
           ),
         ),
-      );
+      ));
     }
 
     // ── Tablet: standard layout ─────────────────────────────────────
-    return Scaffold(
+    return _wrapWithAmendmentCleanupGuard(Scaffold(
       key: _scaffoldKey,
       drawer: const AppDrawer(),
       appBar: PreferredSize(
@@ -429,7 +498,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildAmendmentDraftBanner(BuildContext context, PosState state) {
@@ -637,10 +706,11 @@ class _PosScreenState extends ConsumerState<PosScreen>
 class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
   final PosState state;
   final VoidCallback onShowCart;
+  final VoidCallback onOpenKanban;
   final VoidCallback onOpenDrawer;
   final WidgetRef ref;
   final BuildContext context;
-  const _MergedHeader({required this.state, required this.onShowCart, required this.onOpenDrawer, required this.ref, required this.context, double? headerHeight}) : _headerHeight = headerHeight;
+  const _MergedHeader({required this.state, required this.onShowCart, required this.onOpenKanban, required this.onOpenDrawer, required this.ref, required this.context, double? headerHeight}) : _headerHeight = headerHeight;
 
   @override
   Size get preferredSize => Size.fromHeight(_headerHeight ?? 88);
@@ -985,7 +1055,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
       IconButton(
         icon: Icon(Icons.view_kanban, color: theme.colorScheme.onPrimary, size: isPhone ? 20 : 24),
         tooltip: l10n.menuSalesKanban,
-        onPressed: () => context.push(AppRoutes.kanban),
+        onPressed: onOpenKanban,
         visualDensity: isPhone ? VisualDensity.compact : VisualDensity.standard,
       ),
       // Cart icon only shown on tablets (phones use FAB)

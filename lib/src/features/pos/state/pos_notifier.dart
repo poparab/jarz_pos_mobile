@@ -189,6 +189,8 @@ class PosNotifier extends StateNotifier<PosState> {
   // True while startAmendmentDraft is running (between state-clear and final state-set).
   // Prevents the autosave timer from persisting a half-built amendment cart to Hive.
   bool _amendmentSetupInProgress = false;
+  String? _pendingAmendmentSourceInvoiceId;
+  String? _discardedAmendmentSourceInvoiceId;
 
   @override
   void dispose() {
@@ -409,10 +411,14 @@ class PosNotifier extends StateNotifier<PosState> {
   /// Delete a draft by [id].
   /// If it is the currently active draft, switches to a new empty cart.
   Future<void> deleteDraft(String id) async {
+    final wasActive = state.currentDraftId == id;
+    if (wasActive) {
+      _autoSaveTimer?.cancel();
+    }
+
     try {
       await _draftRepo.delete(id);
       final allDrafts = await _draftRepo.loadAll();
-      final wasActive = state.currentDraftId == id;
       state = state.copyWith(
         drafts: allDrafts.map(DraftCartSummary.from).toList(),
         clearCurrentDraftId: wasActive,
@@ -425,13 +431,66 @@ class PosNotifier extends StateNotifier<PosState> {
           clearSelectedSalesPartner: true,
           clearDeliverySlots: true,
           isPickup: false,
+          isLoading: false,
+          isAmendmentDraft: false,
+          clearAmendmentSourceInvoiceId: true,
           draftDirty: false,
+          clearError: true,
         );
       }
     } catch (e) {
       if (kDebugMode) {
         debugPrint('⚠️ PosNotifier: deleteDraft failed: $e');
       }
+    }
+  }
+
+  bool _shouldDiscardAmendmentSetup(String invoiceId) {
+    final normalizedInvoiceId = invoiceId.trim();
+    return normalizedInvoiceId.isNotEmpty &&
+        _discardedAmendmentSourceInvoiceId == normalizedInvoiceId;
+  }
+
+  /// Abandon the current amendment draft flow.
+  ///
+  /// Clears in-memory amendment state immediately and deletes the persisted
+  /// draft if one was already auto-saved. When setup is still in progress,
+  /// marks the pending amendment load as discarded so late async completion
+  /// cannot restore stale amendment state after the user has exited the flow.
+  Future<void> abandonAmendmentDraft({String? expectedInvoiceId}) async {
+    final normalizedExpected = expectedInvoiceId?.trim() ?? '';
+    final activeOrPendingInvoiceId =
+        (state.amendmentSourceInvoiceId ?? _pendingAmendmentSourceInvoiceId ?? '')
+            .trim();
+
+    if (normalizedExpected.isNotEmpty &&
+        activeOrPendingInvoiceId.isNotEmpty &&
+        activeOrPendingInvoiceId != normalizedExpected) {
+      return;
+    }
+
+    final targetInvoiceId = activeOrPendingInvoiceId.isNotEmpty
+        ? activeOrPendingInvoiceId
+        : normalizedExpected;
+    if (targetInvoiceId.isEmpty) {
+      return;
+    }
+
+    _discardedAmendmentSourceInvoiceId = targetInvoiceId;
+    _autoSaveTimer?.cancel();
+
+    final draftId = state.currentDraftId;
+    if (draftId != null) {
+      await deleteDraft(draftId);
+      if (_pendingAmendmentSourceInvoiceId == null) {
+        _discardedAmendmentSourceInvoiceId = null;
+      }
+      return;
+    }
+
+    startNewInvoice();
+    if (_pendingAmendmentSourceInvoiceId == null) {
+      _discardedAmendmentSourceInvoiceId = null;
     }
   }
   // ─────────────────────────────────────────────────────────────────────
@@ -1366,7 +1425,10 @@ class PosNotifier extends StateNotifier<PosState> {
             ?.toString()
             .trim() ??
         '';
+    _pendingAmendmentSourceInvoiceId = invoiceId.isEmpty ? null : invoiceId;
+
     if (invoiceId.isEmpty || posProfileName.isEmpty) {
+      _pendingAmendmentSourceInvoiceId = null;
       _amendmentSetupInProgress = false;
       state = state.copyWith(
         error: 'Missing invoice amendment draft data',
@@ -1392,6 +1454,12 @@ class PosNotifier extends StateNotifier<PosState> {
     );
 
     try {
+      if (_shouldDiscardAmendmentSetup(invoiceId)) {
+        _discardedAmendmentSourceInvoiceId = null;
+        startNewInvoice();
+        return;
+      }
+
       final profiles = state.profiles.isNotEmpty
           ? state.profiles
           : await _repository.getPosProfiles();
@@ -1450,6 +1518,12 @@ class PosNotifier extends StateNotifier<PosState> {
         return;
       }
 
+      if (_shouldDiscardAmendmentSetup(invoiceId)) {
+        _discardedAmendmentSourceInvoiceId = null;
+        startNewInvoice();
+        return;
+      }
+
       if (kDebugMode) {
         final bundleCount = builtCartItems
             .where((i) => i['type'] == 'bundle')
@@ -1491,6 +1565,8 @@ class PosNotifier extends StateNotifier<PosState> {
         amendmentSourceGrandTotal: sourceGrandTotal > 0
             ? sourceGrandTotal
             : null,
+        clearCurrentDraftId: true,
+        draftDirty: false,
       );
     } catch (e) {
       state = state.copyWith(
@@ -1501,6 +1577,9 @@ class PosNotifier extends StateNotifier<PosState> {
         clearAmendmentSourceInvoiceId: true,
       );
     } finally {
+      if (_pendingAmendmentSourceInvoiceId == invoiceId) {
+        _pendingAmendmentSourceInvoiceId = null;
+      }
       _amendmentSetupInProgress = false;
     }
   }

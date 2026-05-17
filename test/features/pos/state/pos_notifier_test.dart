@@ -136,6 +136,43 @@ class _StubbedDraftCartRepository extends DraftCartRepository {
   Future<void> clearAll() async {}
 }
 
+/// Mutable draft repo for notifier lifecycle tests.
+class _MutableDraftCartRepository extends DraftCartRepository {
+  _MutableDraftCartRepository({List<DraftCart>? initialDrafts})
+    : _drafts = [...?initialDrafts];
+
+  final List<DraftCart> _drafts;
+  final List<String> deletedIds = [];
+
+  @override
+  Future<void> upsert(DraftCart draft) async {
+    final index = _drafts.indexWhere((existing) => existing.id == draft.id);
+    if (index >= 0) {
+      _drafts[index] = draft;
+      return;
+    }
+    _drafts.add(draft);
+  }
+
+  @override
+  Future<List<DraftCart>> loadAll() async {
+    final drafts = List<DraftCart>.from(_drafts);
+    drafts.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    return drafts;
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    deletedIds.add(id);
+    _drafts.removeWhere((draft) => draft.id == id);
+  }
+
+  @override
+  Future<void> clearAll() async {
+    _drafts.clear();
+  }
+}
+
 DeliverySlot _makeSlot({String label = 'Morning'}) => DeliverySlot(
   date: '2025-05-01',
   time: '10:00:00',
@@ -145,6 +182,41 @@ DeliverySlot _makeSlot({String label = 'Morning'}) => DeliverySlot(
   dayLabel: 'Thu',
   timeLabel: '10 AM - 11 AM',
 );
+
+DraftCart _makeDraft({
+  required String id,
+  String label = 'Draft',
+  List<Map<String, dynamic>>? cartItems,
+  Map<String, dynamic>? customer,
+  Map<String, dynamic>? salesPartner,
+  bool isPickup = false,
+  DateTime? at,
+  String? amendmentSourceInvoiceId,
+  double? amendmentSourceGrandTotal,
+}) {
+  final timestamp = at ?? DateTime(2026, 5, 1, 10);
+  return DraftCart(
+    id: id,
+    label: label,
+    cartItems:
+        cartItems ??
+        const [
+          {
+            'item_code': 'ITEM-001',
+            'rate': 50.0,
+            'quantity': 1,
+            'type': 'item',
+          },
+        ],
+    customer: customer,
+    salesPartner: salesPartner,
+    isPickup: isPickup,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    amendmentSourceInvoiceId: amendmentSourceInvoiceId,
+    amendmentSourceGrandTotal: amendmentSourceGrandTotal,
+  );
+}
 
 void main() {
   // ──────────────────────────────────────────────────────────────────────────
@@ -445,6 +517,291 @@ void main() {
 
       expect(notifier.state.error, isNotNull);
       expect(notifier.state.isLoading, false);
+    });
+  });
+
+  group('PosNotifier.deleteDraft', () {
+    late _FakePosRepository repository;
+
+    setUp(() {
+      repository = _FakePosRepository();
+    });
+
+    test('should keep active cart state when deleting an inactive draft', () async {
+      final activeDraft = _makeDraft(
+        id: 'draft-active',
+        label: 'Active Draft',
+        customer: const {'customer_name': 'Active Customer'},
+      );
+      final inactiveDraft = _makeDraft(
+        id: 'draft-inactive',
+        label: 'Inactive Draft',
+        at: DateTime(2026, 5, 1, 11),
+      );
+      final draftRepo = _MutableDraftCartRepository(
+        initialDrafts: [activeDraft, inactiveDraft],
+      );
+      final notifier = PosNotifier(repository, draftRepo);
+      final slot = _makeSlot();
+      await Future<void>.delayed(Duration.zero);
+
+      notifier.state = notifier.state.copyWith(
+        drafts: [
+          DraftCartSummary.from(inactiveDraft),
+          DraftCartSummary.from(activeDraft),
+        ],
+        currentDraftId: activeDraft.id,
+        cartItems: List<Map<String, dynamic>>.from(activeDraft.cartItems),
+        selectedCustomer: activeDraft.customer,
+        selectedDeliverySlot: slot,
+        selectedSalesPartner: const {'name': 'SP-KEEP'},
+        deliverySlots: [slot],
+        isPickup: true,
+        draftDirty: true,
+      );
+
+      await notifier.deleteDraft(inactiveDraft.id);
+
+      expect(draftRepo.deletedIds, [inactiveDraft.id]);
+      expect(notifier.state.currentDraftId, activeDraft.id);
+      expect(notifier.state.cartItems, activeDraft.cartItems);
+      expect(
+        notifier.state.selectedCustomer?['customer_name'],
+        'Active Customer',
+      );
+      expect(notifier.state.selectedDeliverySlot, isNotNull);
+      expect(notifier.state.selectedSalesPartner?['name'], 'SP-KEEP');
+      expect(notifier.state.isPickup, isTrue);
+      expect(notifier.state.draftDirty, isTrue);
+      expect(notifier.state.drafts.map((draft) => draft.id), [activeDraft.id]);
+    });
+
+    test('should reset active cart state when deleting the current draft', () async {
+      final activeDraft = _makeDraft(
+        id: 'draft-current',
+        label: 'Current Draft',
+        customer: const {'customer_name': 'Draft Customer'},
+        salesPartner: const {'name': 'SP-1'},
+        isPickup: true,
+      );
+      final draftRepo = _MutableDraftCartRepository(initialDrafts: [activeDraft]);
+      final notifier = PosNotifier(repository, draftRepo);
+      final slot = _makeSlot();
+      await Future<void>.delayed(Duration.zero);
+
+      notifier.state = notifier.state.copyWith(
+        drafts: [DraftCartSummary.from(activeDraft)],
+        currentDraftId: activeDraft.id,
+        cartItems: List<Map<String, dynamic>>.from(activeDraft.cartItems),
+        selectedCustomer: activeDraft.customer,
+        selectedDeliverySlot: slot,
+        selectedSalesPartner: activeDraft.salesPartner,
+        deliverySlots: [slot],
+        isPickup: true,
+        draftDirty: true,
+        error: 'stale-state',
+      );
+
+      await notifier.deleteDraft(activeDraft.id);
+
+      expect(draftRepo.deletedIds, [activeDraft.id]);
+      expect(notifier.state.currentDraftId, isNull);
+      expect(notifier.state.cartItems, isEmpty);
+      expect(notifier.state.selectedCustomer, isNull);
+      expect(notifier.state.selectedDeliverySlot, isNull);
+      expect(notifier.state.selectedSalesPartner, isNull);
+      expect(notifier.state.deliverySlots, isEmpty);
+      expect(notifier.state.isPickup, isFalse);
+      expect(notifier.state.draftDirty, isFalse);
+      expect(notifier.state.error, isNull);
+      expect(notifier.state.drafts, isEmpty);
+    });
+
+    test('should clear amendment context when deleting the active amendment draft', () async {
+      final amendmentDraft = _makeDraft(
+        id: 'draft-amendment',
+        label: 'Amendment Draft',
+        customer: const {'customer_name': 'Amendment Customer'},
+        amendmentSourceInvoiceId: 'ACC-SINV-2026-00001',
+        amendmentSourceGrandTotal: 320.0,
+      );
+      final draftRepo = _MutableDraftCartRepository(
+        initialDrafts: [amendmentDraft],
+      );
+      final notifier = PosNotifier(repository, draftRepo);
+      final slot = _makeSlot();
+      await Future<void>.delayed(Duration.zero);
+
+      notifier.state = notifier.state.copyWith(
+        drafts: [DraftCartSummary.from(amendmentDraft)],
+        currentDraftId: amendmentDraft.id,
+        cartItems: List<Map<String, dynamic>>.from(amendmentDraft.cartItems),
+        selectedCustomer: amendmentDraft.customer,
+        selectedDeliverySlot: slot,
+        deliverySlots: [slot],
+        isAmendmentDraft: true,
+        amendmentSourceInvoiceId: amendmentDraft.amendmentSourceInvoiceId,
+        amendmentSourceGrandTotal: amendmentDraft.amendmentSourceGrandTotal,
+        draftDirty: true,
+      );
+
+      await notifier.deleteDraft(amendmentDraft.id);
+
+      expect(notifier.state.currentDraftId, isNull);
+      expect(notifier.state.cartItems, isEmpty);
+      expect(notifier.state.isAmendmentDraft, isFalse);
+      expect(notifier.state.amendmentSourceInvoiceId, isNull);
+      expect(notifier.state.amendmentSourceGrandTotal, isNull);
+      expect(notifier.state.selectedCustomer, isNull);
+      expect(notifier.state.selectedDeliverySlot, isNull);
+      expect(notifier.state.draftDirty, isFalse);
+      expect(notifier.state.drafts, isEmpty);
+    });
+  });
+
+  group('PosNotifier.abandonAmendmentDraft', () {
+    late _FakePosRepository repository;
+
+    setUp(() {
+      repository = _FakePosRepository();
+    });
+
+    test('should delete the persisted active amendment draft and reset state', () async {
+      final amendmentDraft = _makeDraft(
+        id: 'draft-abandon-active',
+        label: 'Abandon Active Draft',
+        customer: const {'customer_name': 'Abandon Customer'},
+        amendmentSourceInvoiceId: 'ACC-SINV-2026-10001',
+        amendmentSourceGrandTotal: 180.0,
+      );
+      final draftRepo = _MutableDraftCartRepository(
+        initialDrafts: [amendmentDraft],
+      );
+      final notifier = PosNotifier(repository, draftRepo);
+      final slot = _makeSlot();
+      await Future<void>.delayed(Duration.zero);
+
+      notifier.state = notifier.state.copyWith(
+        drafts: [DraftCartSummary.from(amendmentDraft)],
+        currentDraftId: amendmentDraft.id,
+        cartItems: List<Map<String, dynamic>>.from(amendmentDraft.cartItems),
+        selectedCustomer: amendmentDraft.customer,
+        selectedDeliverySlot: slot,
+        deliverySlots: [slot],
+        isAmendmentDraft: true,
+        amendmentSourceInvoiceId: amendmentDraft.amendmentSourceInvoiceId,
+        amendmentSourceGrandTotal: amendmentDraft.amendmentSourceGrandTotal,
+        draftDirty: true,
+      );
+
+      await notifier.abandonAmendmentDraft(
+        expectedInvoiceId: amendmentDraft.amendmentSourceInvoiceId,
+      );
+
+      expect(draftRepo.deletedIds, [amendmentDraft.id]);
+      expect(notifier.state.currentDraftId, isNull);
+      expect(notifier.state.cartItems, isEmpty);
+      expect(notifier.state.isAmendmentDraft, isFalse);
+      expect(notifier.state.amendmentSourceInvoiceId, isNull);
+      expect(notifier.state.amendmentSourceGrandTotal, isNull);
+      expect(notifier.state.selectedCustomer, isNull);
+      expect(notifier.state.selectedDeliverySlot, isNull);
+      expect(notifier.state.drafts, isEmpty);
+    });
+
+    test('should reset in-memory amendment state when no draft was saved yet', () async {
+      final notifier = PosNotifier(repository, _FakeDraftCartRepository());
+      final slot = _makeSlot();
+      await Future<void>.delayed(Duration.zero);
+
+      notifier.state = notifier.state.copyWith(
+        cartItems: const [
+          {
+            'item_code': 'ITEM-001',
+            'rate': 75.0,
+            'quantity': 1,
+            'type': 'item',
+          },
+        ],
+        selectedCustomer: const {'customer_name': 'Amendment Customer'},
+        selectedDeliverySlot: slot,
+        deliverySlots: [slot],
+        isAmendmentDraft: true,
+        amendmentSourceInvoiceId: 'ACC-SINV-2026-10002',
+        amendmentSourceGrandTotal: 75.0,
+        draftDirty: true,
+      );
+
+      await notifier.abandonAmendmentDraft(expectedInvoiceId: 'ACC-SINV-2026-10002');
+
+      expect(notifier.state.currentDraftId, isNull);
+      expect(notifier.state.cartItems, isEmpty);
+      expect(notifier.state.selectedCustomer, isNull);
+      expect(notifier.state.selectedDeliverySlot, isNull);
+      expect(notifier.state.deliverySlots, isEmpty);
+      expect(notifier.state.isAmendmentDraft, isFalse);
+      expect(notifier.state.amendmentSourceInvoiceId, isNull);
+      expect(notifier.state.amendmentSourceGrandTotal, isNull);
+      expect(notifier.state.draftDirty, isFalse);
+    });
+
+    test('should ignore a mismatched invoice id when abandoning amendment flow', () async {
+      final amendmentDraft = _makeDraft(
+        id: 'draft-abandon-mismatch',
+        label: 'Mismatch Draft',
+        amendmentSourceInvoiceId: 'ACC-SINV-2026-10003',
+      );
+      final draftRepo = _MutableDraftCartRepository(
+        initialDrafts: [amendmentDraft],
+      );
+      final notifier = PosNotifier(repository, draftRepo);
+      await Future<void>.delayed(Duration.zero);
+
+      notifier.state = notifier.state.copyWith(
+        drafts: [DraftCartSummary.from(amendmentDraft)],
+        currentDraftId: amendmentDraft.id,
+        cartItems: List<Map<String, dynamic>>.from(amendmentDraft.cartItems),
+        isAmendmentDraft: true,
+        amendmentSourceInvoiceId: amendmentDraft.amendmentSourceInvoiceId,
+      );
+
+      await notifier.abandonAmendmentDraft(expectedInvoiceId: 'ACC-SINV-2026-DOES-NOT-MATCH');
+
+      expect(draftRepo.deletedIds, isEmpty);
+      expect(notifier.state.currentDraftId, amendmentDraft.id);
+      expect(notifier.state.isAmendmentDraft, isTrue);
+      expect(notifier.state.amendmentSourceInvoiceId, 'ACC-SINV-2026-10003');
+    });
+
+    test('should ignore a late amendment load after abandonment is requested', () async {
+      repository.getBundlesDelay = const Duration(milliseconds: 50);
+      final notifier = PosNotifier(repository, _FakeDraftCartRepository());
+      await Future<void>.delayed(Duration.zero);
+
+      final future = notifier.startAmendmentDraft({
+        'name': 'ACC-SINV-2026-10004',
+        'pos_profile': 'Main POS',
+        'customer': 'CUST-001',
+        'customer_name': 'Late Abandon',
+        'items': [
+          {
+            'item_code': 'ITEM-001',
+            'item_name': 'Item 1',
+            'qty': 1,
+            'rate': 40.0,
+          },
+        ],
+      });
+
+      await notifier.abandonAmendmentDraft(expectedInvoiceId: 'ACC-SINV-2026-10004');
+      await future;
+
+      expect(notifier.state.isAmendmentDraft, isFalse);
+      expect(notifier.state.amendmentSourceInvoiceId, isNull);
+      expect(notifier.state.amendmentSourceGrandTotal, isNull);
+      expect(notifier.state.currentDraftId, isNull);
+      expect(notifier.state.cartItems, isEmpty);
+      expect(notifier.state.draftDirty, isFalse);
     });
   });
 

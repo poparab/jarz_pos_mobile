@@ -74,39 +74,41 @@ class DraftTabsBar extends ConsumerWidget {
           final isActive = draft.id == currentDraftId;
           final showDot = isActive && draftDirty;
 
-          return GestureDetector(
-            onLongPress: () => _confirmDelete(context, ref, draft),
-            child: ChoiceChip(
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 140),
-                    child: Text(
-                      draft.label,
-                      overflow: TextOverflow.ellipsis,
+          return InputChip(
+            label: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 120),
+                  child: Text(
+                    draft.label,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (showDot) ...[
+                  const SizedBox(width: 4),
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: colorScheme.error,
                     ),
                   ),
-                  if (showDot) ...[
-                    const SizedBox(width: 4),
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: colorScheme.error,
-                      ),
-                    ),
-                  ],
                 ],
-              ),
-              selected: isActive,
-              onSelected: (_) {
-                if (!isActive) {
-                  ref.read(posNotifierProvider.notifier).switchDraft(draft.id);
-                }
-              },
+              ],
             ),
+            selected: isActive,
+            showCheckmark: false,
+            onPressed: () {
+              if (!isActive) {
+                ref.read(posNotifierProvider.notifier).switchDraft(draft.id);
+              }
+            },
+            onDeleted: () => _confirmDelete(context, ref, draft),
+            deleteIcon: const Icon(Icons.close, size: 18),
+            deleteButtonTooltipMessage: l10n.posDraftDeleteTitle,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           );
         },
       ),
