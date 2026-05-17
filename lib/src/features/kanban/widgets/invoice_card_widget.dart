@@ -2350,7 +2350,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         fallback: context.l10n.invoiceEditInvoiceFailed,
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 6),
+          action: SnackBarAction(
+            label: 'Retry',
+            onPressed: () => _openAmendmentDraft(context),
+          ),
+        ),
       );
     }
   }

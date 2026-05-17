@@ -1255,10 +1255,6 @@ final invoiceDetailsProvider = FutureProvider.family<InvoiceCard?, String>((
   invoiceId,
 ) async {
   final kanbanService = ref.watch(kanbanServiceProvider);
-  try {
-    final invoice = await kanbanService.getInvoiceDetails(invoiceId);
-    return invoice;
-  } catch (e) {
-    return null;
-  }
+  final invoice = await kanbanService.getInvoiceDetails(invoiceId);
+  return invoice;
 });

@@ -140,6 +140,18 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     return '${_groupName(group)}::$rawIndex';
   }
 
+  /// True when any selected item carries the `_catalog_drift` flag, meaning
+  /// the bundle catalog changed since the order was placed and selections were
+  /// placed into a fallback group rather than matched exactly.
+  bool get _hasCatalogDrift {
+    for (final entries in selectedItems.values) {
+      for (final entry in entries) {
+        if (entry['_catalog_drift'] == true) return true;
+      }
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final itemGroups = widget.bundle['item_groups'] as List<dynamic>? ?? [];
@@ -272,6 +284,31 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                     ],
                   ),
           ),
+
+          // Item groups list
+          if (_hasCatalogDrift)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              color: Colors.amber.shade100,
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded,
+                      color: Colors.amber.shade800, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Bundle options may have changed since this order was placed. '
+                      'Please review and confirm your selections.',
+                      style: TextStyle(
+                        color: Colors.amber.shade900,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           // Item groups list
           Expanded(

@@ -935,13 +935,34 @@ class PosNotifier extends StateNotifier<PosState> {
           childItem['bundle_group_key']?.toString().trim() ?? '';
       final persistedGroupName =
           childItem['bundle_group_name']?.toString().trim() ?? '';
-      final selectionKey = matchedGroup != null
-          ? groupKeyFor(matchedGroup, matchedGroupIndex)
-          : persistedGroupKey.isNotEmpty
-          ? persistedGroupKey
-          : persistedGroupName.isNotEmpty
-          ? persistedGroupName
-          : itemCode;
+
+      // Determine the selection key and whether we have a real catalog match.
+      final bool hasCatalogMatch = matchedGroup != null;
+      final String selectionKey;
+      if (hasCatalogMatch) {
+        selectionKey = groupKeyFor(matchedGroup!, matchedGroupIndex);
+      } else if (persistedGroupKey.isNotEmpty) {
+        selectionKey = persistedGroupKey;
+      } else if (persistedGroupName.isNotEmpty) {
+        selectionKey = persistedGroupName;
+      } else if (rawGroups.isNotEmpty) {
+        // Catalog drift: no metadata at all — fall back to the first group so
+        // the child at least appears under a visible header in the edit UI.
+        selectionKey = groupKeyFor(
+          Map<String, dynamic>.from(rawGroups.first as Map),
+          0,
+        );
+      } else {
+        selectionKey = itemCode;
+      }
+
+      // Tag the item template with _catalog_drift when there is no catalog
+      // match AND no persisted metadata, so the bundle editor can warn the
+      // user that selections may need re-confirmation.
+      final bool isDrift =
+          !hasCatalogMatch &&
+          persistedGroupKey.isEmpty &&
+          persistedGroupName.isEmpty;
 
       final template = matchedItem != null
           ? Map<String, dynamic>.from(matchedItem)
@@ -962,6 +983,8 @@ class PosNotifier extends StateNotifier<PosState> {
                             matchedGroup['group_name'] ??
                             '')
                         .toString(),
+              // Signal catalog drift so the bundle editor can show a warning.
+              if (isDrift) '_catalog_drift': true,
             };
 
       final totalQuantity = _coerceInt(childItem['qty'], fallback: 1);
