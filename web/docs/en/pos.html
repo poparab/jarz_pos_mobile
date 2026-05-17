@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS Order Entry — Staff Guide</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="bg-stone-50 font-sans text-stone-800">
+
+  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
+      <a href="index.html" class="font-bold text-lg tracking-wide">JARZ POS</a>
+      <div class="flex flex-wrap gap-1 text-xs">
+        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">Login</a>
+        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">Shift</a>
+        <a href="pos.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">POS Order</a>
+        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">Kanban</a>
+        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">Trips</a>
+        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">Expenses</a>
+        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">Courier Balances</a>
+      </div>
+      <a href="../ar/pos.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">عربي</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-10">
+
+    <div class="flex items-center gap-3 mb-1">
+      <span class="text-3xl">🛒</span>
+      <h1 class="text-2xl font-bold text-brand">POS Order Entry</h1>
+    </div>
+    <p class="text-stone-500 mb-8">How to build a cart, add a customer, set delivery or pickup, choose payment, and submit an order.</p>
+
+    <div class="bg-brand-light border-l-4 border-brand rounded-r-xl px-5 py-4 mb-8 text-sm">
+      <strong class="text-brand">When to use:</strong> Every time a customer places a new order — in-person, over the phone, or online. A shift must be open before you can submit orders.
+    </div>
+
+    <h2 class="text-lg font-semibold mb-4">Step-by-step</h2>
+
+    <div class="space-y-4 step-block">
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
+        <div>
+          <p class="font-semibold">Go to the POS screen</p>
+          <p class="text-sm text-stone-600 mt-1">After starting your shift, the app opens on the POS screen. You can also tap <strong>Point of Sale</strong> from the side menu at any time.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
+        <div>
+          <p class="font-semibold">Select the customer first</p>
+          <p class="text-sm text-stone-600 mt-1">Before adding any product, tap <strong>Add Customer</strong>. Search by name or phone number, then select the customer from the results. If the customer has a delivery address on file, it loads automatically. A customer must be selected before products are added or the order is submitted.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
+        <div>
+          <p class="font-semibold">Search for items and add to cart</p>
+          <p class="text-sm text-stone-600 mt-1">After the customer is selected, type an item name in the search bar or scroll the product grid. Tap an item to add it to the cart. Tap the item again (or use the +/− buttons in the cart) to adjust quantity. You can also select <strong>Bundles</strong> if configured for your profile.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">4</span>
+        <div>
+          <p class="font-semibold">Choose Delivery or Pickup</p>
+          <p class="text-sm text-stone-600 mt-1">
+            <strong>Delivery:</strong> Tap <strong>Select Delivery Time</strong> to choose an available time slot from the list. Delivery charges are added automatically based on the customer's address.<br>
+            <strong>Pickup:</strong> Toggle the <strong>Pickup from Branch (no delivery fee)</strong> option. The delivery slot selector disappears and no shipping fee is applied.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">5</span>
+        <div>
+          <p class="font-semibold">Review the cart total</p>
+          <p class="text-sm text-stone-600 mt-1">The cart shows: items subtotal + delivery fee (if applicable) = Grand Total. Remove items with the trash icon, or clear the entire cart with <strong>Clear Cart</strong>.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">6</span>
+        <div>
+          <p class="font-semibold">Choose a payment method and tap <strong>Submit</strong></p>
+          <p class="text-sm text-stone-600 mt-1">A dialog asks you to select: <em>Cash</em>, <em>InstaPay</em>, <em>Wallet</em>, or another method configured for your branch. After selecting, the order is submitted to the server and the invoice is created.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">7</span>
+        <div>
+          <p class="font-semibold">Order confirmed — start a new one</p>
+          <p class="text-sm text-stone-600 mt-1">A success message appears with the invoice name (e.g. <code class="bg-stone-100 px-1 rounded">ACC-SINV-2026-XXXXX</code>). The cart clears automatically and you are ready for the next order. The new invoice appears on the <a href="kanban.html" class="text-brand underline">Kanban Board</a>.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Drafts section -->
+    <h2 class="text-lg font-semibold mt-10 mb-4">Drafts (Auto-save)</h2>
+    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm">
+      <p class="text-stone-700">The POS automatically saves your cart every few seconds as a <strong>draft</strong>. If you accidentally close the app or switch screens, your cart is restored when you return. To view and restore saved drafts, tap the <strong>Drafts</strong> icon (clock/history icon) in the POS header.</p>
+      <p class="text-stone-700 mt-2">Drafts are stored on your device. If you log out, drafts for your session may be cleared — always submit orders before logging out.</p>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-amber-800 mb-2">💡 Tips</h3>
+      <ul class="list-disc list-inside space-y-1 text-amber-900">
+        <li>Always select the customer before adding products — this ensures the correct address, delivery charge, and customer history.</li>
+        <li>If no delivery slots appear, contact your manager — the branch timetable may need configuration.</li>
+        <li>For pickup orders, always toggle the Pickup option; otherwise the order will be treated as delivery.</li>
+        <li>If you make a mistake after submission, go to the <a href="kanban.html" class="underline text-amber-800">Kanban Board</a> and use the <strong>Edit Invoice</strong> (amendment) option.</li>
+      </ul>
+    </div>
+
+    <!-- Common issues -->
+    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-red-800 mb-2">⚠️ Common Issues</h3>
+      <ul class="list-disc list-inside space-y-1 text-red-900">
+        <li><strong>"Please select a delivery time":</strong> You tapped Submit without selecting a delivery slot. Choose a slot first or toggle Pickup.</li>
+        <li><strong>Cannot add products / customer required:</strong> Select the customer first, then add items to the cart.</li>
+        <li><strong>Items not loading:</strong> Check internet connection and refresh the page. If the profile has no items configured, contact your manager.</li>
+        <li><strong>Submit button greyed out:</strong> The cart is empty. Add at least one item.</li>
+        <li><strong>Order submitted but not visible on Kanban:</strong> Refresh the Kanban board by tapping the refresh icon.</li>
+      </ul>
+    </div>
+
+    <div class="mt-10 flex justify-between no-print">
+      <a href="shift.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
+        ← Shift Start &amp; End
+      </a>
+      <a href="kanban.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
+        Next: Kanban Board →
+      </a>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · Staff Guide · POS Order Entry</footer>
+</body>
+</html>

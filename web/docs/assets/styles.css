@@ -1,0 +1,23 @@
+/* Jarz POS Staff Guide — Shared Styles */
+
+/* ── Brand font: Cairo (Arabic) via Google Fonts, loaded per-page ── */
+
+/* ── Print ── */
+@media print {
+  nav, .no-print { display: none !important; }
+  body { font-size: 12pt; color: #000; }
+  a { color: #000; text-decoration: underline; }
+  h1,h2,h3 { page-break-after: avoid; }
+  .step-block { page-break-inside: avoid; }
+  .print-page-break { page-break-before: always; }
+}
+
+/* ── RTL helpers (applied on <html dir="rtl">) ── */
+[dir="rtl"] .ltr-only { display: none !important; }
+[dir="ltr"] .rtl-only { display: none !important; }
+
+/* ── Smooth scroll ── */
+html { scroll-behavior: smooth; }
+
+/* ── Focus visible ── */
+:focus-visible { outline: 2px solid #E85D04; outline-offset: 2px; }

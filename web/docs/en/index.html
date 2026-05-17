@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Guide — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="bg-stone-50 font-sans text-stone-800">
+
+  <!-- Top Nav -->
+  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
+      <a href="../index.html" class="font-bold text-lg tracking-wide">JARZ POS</a>
+      <div class="flex flex-wrap gap-1 text-xs">
+        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">Login</a>
+        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">Shift</a>
+        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">POS Order</a>
+        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">Kanban</a>
+        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">Trips</a>
+        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">Expenses</a>
+        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">Courier Balances</a>
+      </div>
+      <a href="../ar/index.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">عربي</a>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-4 py-10">
+    <!-- Hero -->
+    <div class="bg-brand text-white rounded-2xl p-8 mb-10 text-center shadow">
+      <h1 class="text-3xl font-bold">Staff User Guide</h1>
+      <p class="mt-2 text-orange-100">Everything you need to use the Jarz POS system</p>
+    </div>
+
+    <!-- Section cards -->
+    <h2 class="text-lg font-semibold text-stone-500 uppercase tracking-wide mb-4">Functions</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+      <a href="login.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
+        <div class="text-2xl mb-2">🔑</div>
+        <div class="font-bold text-stone-800 group-hover:text-brand">1. Login &amp; Profile</div>
+        <div class="text-sm text-stone-500 mt-1">Sign in, choose Employee mode, change password, log out.</div>
+      </a>
+
+      <a href="shift.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
+        <div class="text-2xl mb-2">🕐</div>
+        <div class="font-bold text-stone-800 group-hover:text-brand">2. Shift Start &amp; End</div>
+        <div class="text-sm text-stone-500 mt-1">Open your shift with cash drawer opening balance; close it with actual cash at end of day.</div>
+      </a>
+
+      <a href="pos.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
+        <div class="text-2xl mb-2">🛒</div>
+        <div class="font-bold text-stone-800 group-hover:text-brand">3. POS Order Entry</div>
+        <div class="text-sm text-stone-500 mt-1">Select customer first, add items, pick delivery slot or pickup, choose payment, submit.</div>
+      </a>
+
+      <a href="kanban.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
+        <div class="text-2xl mb-2">📋</div>
+        <div class="font-bold text-stone-800 group-hover:text-brand">4. Kanban Board</div>
+        <div class="text-sm text-stone-500 mt-1">Track orders through Recieved/Received → In Progress → Ready → Out for Delivery → Delivered → Cancelled.</div>
+      </a>
+
+      <a href="trips.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
+        <div class="text-2xl mb-2">🚚</div>
+        <div class="font-bold text-stone-800 group-hover:text-brand">5. Delivery Trips</div>
+        <div class="text-sm text-stone-500 mt-1">Create delivery trips, assign courier, send out, and mark delivered.</div>
+      </a>
+
+      <a href="expenses.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
+        <div class="text-2xl mb-2">💳</div>
+        <div class="font-bold text-stone-800 group-hover:text-brand">6. Daily Expenses</div>
+        <div class="text-sm text-stone-500 mt-1">Record a daily expense and submit it for manager approval.</div>
+      </a>
+
+      <a href="courier-balances.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
+        <div class="text-2xl mb-2">⚖️</div>
+        <div class="font-bold text-stone-800 group-hover:text-brand">7. Courier Balances</div>
+        <div class="text-sm text-stone-500 mt-1">View outstanding cash balances owed to or by each courier.</div>
+      </a>
+
+    </div>
+
+    <!-- Typical day flow -->
+    <div class="mt-10 bg-orange-50 border border-orange-200 rounded-xl p-6">
+      <h2 class="font-bold text-brand text-base mb-3">A Typical Staff Day</h2>
+      <ol class="space-y-2 text-sm text-stone-700 list-none">
+        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">1</span><span><strong>Login</strong> → choose <em>Employee</em> mode</span></li>
+        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">2</span><span><strong>Start Shift</strong> → enter opening cash balance</span></li>
+        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">3</span><span><strong>POS Order Entry</strong> → take and submit customer orders throughout the day</span></li>
+        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">4</span><span><strong>Kanban Board</strong> → confirm orders, manage delivery status, record payments</span></li>
+        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">5</span><span><strong>Delivery Trips</strong> → create trips for out-for-delivery orders</span></li>
+        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">6</span><span><strong>Expenses</strong> → log any cash expenses incurred during the day</span></li>
+        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">7</span><span><strong>End Shift</strong> → count cash, enter closing balance, submit</span></li>
+      </ol>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · Staff Guide</footer>
+</body>
+</html>

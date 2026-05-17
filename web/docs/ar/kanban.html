@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة كانبان — دليل الموظف</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
+
+  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
+      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
+      <div class="flex flex-wrap gap-1 text-xs">
+        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">تسجيل الدخول</a>
+        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">الشيفت</a>
+        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">إدخال الطلبات</a>
+        <a href="kanban.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">كانبان</a>
+        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">الرحلات</a>
+        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">المصروفات</a>
+        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">أرصدة المناديب</a>
+      </div>
+      <a href="../en/kanban.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-10">
+
+    <div class="flex items-center gap-3 mb-1">
+      <span class="text-3xl">📋</span>
+      <h1 class="text-2xl font-bold text-brand">لوحة كانبان</h1>
+    </div>
+    <p class="text-stone-500 mb-8">الكانبان هو مركز إدارة الطلبات. تابع حالة الطلبات من الإنشاء حتى التسليم وسجّل المدفوعات وأرسل الرحلات.</p>
+
+    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-8 text-sm">
+      <strong class="text-brand">متى تستخدم هذا؟</strong> طوال اليوم لمتابعة الطلبات، قبول الطلبات الجديدة، تسجيل إيصالات الدفع، وإرسال رحلات التوصيل.
+    </div>
+
+    <!-- Status columns -->
+    <h2 class="text-lg font-semibold mb-4">أعمدة حالة الطلبات</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm">
+        <div class="font-bold text-blue-800 mb-1">📥 تم الاستلام (Recieved / Received)</div>
+        <p class="text-blue-700">طلب جديد من نقطة البيع. قد تظهر الكلمة في التطبيق بالإنجليزية كـ<strong>Recieved</strong>.</p>
+      </div>
+      <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm">
+        <div class="font-bold text-yellow-800 mb-1">🧑‍🍳 قيد التجهيز (In Progress)</div>
+        <p class="text-yellow-700">تم قبول الطلب ويجري تحضيره.</p>
+      </div>
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm">
+        <div class="font-bold text-emerald-800 mb-1">✅ جاهز (Ready)</div>
+        <p class="text-emerald-700">تم تجهيز الطلب وأصبح جاهزاً للاستلام أو التوصيل.</p>
+      </div>
+      <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm">
+        <div class="font-bold text-orange-800 mb-1">🚚 خرج للتوصيل (Out for Delivery)</div>
+        <p class="text-orange-700">أُرسِل مع مندوب التوصيل.</p>
+      </div>
+      <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-sm">
+        <div class="font-bold text-green-800 mb-1">🎉 تم التسليم (Delivered)</div>
+        <p class="text-green-700">تم تسليم الطلب وسداد المدفوعات.</p>
+      </div>
+      <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-sm">
+        <div class="font-bold text-red-800 mb-1">⛔ ملغي (Cancelled)</div>
+        <p class="text-red-700">تظهر الفواتير الملغاة هنا للمتابعة والوضوح.</p>
+      </div>
+    </div>
+
+    <h2 class="text-lg font-semibold mb-4">سير العمل اليومي على الكانبان</h2>
+
+    <div class="space-y-4">
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">١</span>
+        <div>
+          <p class="font-semibold">افتح لوحة الكانبان</p>
+          <p class="text-sm text-stone-600 mt-1">اضغط <strong>كانبان</strong> من القائمة الجانبية أو شريط التنقل السفلي.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٢</span>
+        <div>
+          <p class="font-semibold">قبول الطلب الجديد</p>
+          <p class="text-sm text-stone-600 mt-1">ابحث عن الطلب في عمود <strong>تم الاستلام (Recieved / Received)</strong>. اضغط بطاقة الطلب ثم اضغط <strong>قبول الطلب</strong> إذا ظهر الزر. عند بدء التجهيز، انقل أو حدّث الطلب إلى <strong>قيد التجهيز (In Progress)</strong>.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٣</span>
+        <div>
+          <p class="font-semibold">انقل الطلب إلى جاهز عند انتهاء التجهيز</p>
+          <p class="text-sm text-stone-600 mt-1">عند انتهاء التحضير، انقل أو حدّث الطلب إلى <strong>جاهز (Ready)</strong>. معنى ذلك أن الطلب أصبح جاهزاً للاستلام من العميل أو التخصيص لرحلة توصيل.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٤</span>
+        <div>
+          <p class="font-semibold">تسجيل إيصال دفع (إذا لم يُدفع بعد)</p>
+          <p class="text-sm text-stone-600 mt-1">على بطاقة الطلب اضغط <strong>خيارات (⋮)</strong> ← <strong>إيصالات الدفع</strong>. أضف إيصالاً جديداً بالمبلغ وطريقة الدفع. تنتظر الإيصالات اعتماد المدير.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٥</span>
+        <div>
+          <p class="font-semibold">إرسال الطلب الجاهز للتوصيل</p>
+          <p class="text-sm text-stone-600 mt-1">عند جاهزية طلب التوصيل، اضغط بطاقته ← اضغط زر <strong>توصيل</strong>. تظهر نافذة لتأكيد حالة الدفع وتعيين مندوب. إذا كان الطلب غير مدفوع، اختر طريقة التحصيل الصحيحة قبل الإرسال.<br><br>لتجميع طلبات متعددة في رحلة واحدة، استخدم شاشة <a href="trips.html" class="text-brand underline">رحلات التوصيل</a>.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٦</span>
+        <div>
+          <p class="font-semibold">طلبات تم التسليم وملغي</p>
+          <p class="text-sm text-stone-600 mt-1">بعد تأكيد التسليم، يظهر الطلب في <strong>تم التسليم (Delivered)</strong>. الطلبات التي تم إلغاؤها من مستخدم مصرح تظهر في <strong>ملغي (Cancelled)</strong>. ملغي ليس خطوة توصيل طبيعية؛ هو عمود للطلبات التي تم إيقافها.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Filters -->
+    <h2 class="text-lg font-semibold mt-10 mb-4">الفلاتر والبحث</h2>
+    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm space-y-2">
+      <p><strong>إظهار الفلاتر:</strong> اضغط أيقونة الفلتر للتصفية حسب العميل، الحالة، نطاق التاريخ، أو نطاق المبلغ.</p>
+      <p><strong>البحث:</strong> استخدم خانة البحث للعثور على طلب باسم العميل أو رقم الفاتورة.</p>
+      <p><strong>التحديث:</strong> اضغط أيقونة التحديث لجلب أحدث الطلبات من الخادم.</p>
+    </div>
+
+    <!-- Edit invoice -->
+    <h2 class="text-lg font-semibold mt-10 mb-4">تعديل فاتورة (تعديل)</h2>
+    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm">
+      <p class="text-stone-700">إذا احتجت لتصحيح طلب بعد إدخاله (مثل منتج خاطئ أو كمية خاطئة)، اضغط بطاقة الطلب ← <strong>خيارات (⋮)</strong> ← <strong>تعديل الفاتورة</strong>. يُفتح مسودة التعديل في نقطة البيع. أجرِ التصحيحات ثم اضغط <strong>تأكيد التعديل</strong>.</p>
+      <p class="text-stone-700 mt-2">خيار <strong>تعديل الفاتورة</strong> يظهر فقط على الفواتير القابلة للتعديل (قبل الوصول إلى <strong>Out for Delivery</strong> أو <strong>Delivered</strong> أو <strong>Cancelled</strong>).</p>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-amber-800 mb-2">💡 نصائح</h3>
+      <ul class="list-disc list-inside space-y-1 text-amber-900">
+        <li>تحقق من الكانبان في بداية كل شيفت لمعرفة ما إذا كانت هناك طلبات ما زالت في تم الاستلام (Recieved / Received).</li>
+        <li>طلب عليه شارة "غير مدفوع" باللون الأحمر يتطلب تحصيل الدفع قبل الإرسال.</li>
+        <li>استخدم <strong>تغيير وقت التوصيل</strong> عبر الخيارات إذا طلب العميل تغيير الوقت بعد التأكيد.</li>
+      </ul>
+    </div>
+
+    <!-- Common issues -->
+    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-red-800 mb-2">⚠️ مشاكل شائعة</h3>
+      <ul class="list-disc list-inside space-y-1 text-red-900">
+        <li><strong>الطلب لا ينتقل للعمود التالي:</strong> قد فشل الإجراء على الخادم. تحقق من الاتصال وحاول مجدداً.</li>
+        <li><strong>تحذير "الفاتورة غير مدفوعة":</strong> حصّل الدفع من العميل أو اختر خيار المندوب يتحصل قبل الإرسال.</li>
+        <li><strong>لا تجد الطلب:</strong> استخدم البحث أو امسح جميع الفلاتر. الطلبات خارج نطاق التاريخ قد تكون مخفية.</li>
+      </ul>
+    </div>
+
+    <div class="mt-10 flex justify-between no-print">
+      <a href="pos.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
+        → إدخال الطلبات
+      </a>
+      <a href="trips.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
+        ← التالي: رحلات التوصيل
+      </a>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف · الكانبان</footer>
+</body>
+</html>

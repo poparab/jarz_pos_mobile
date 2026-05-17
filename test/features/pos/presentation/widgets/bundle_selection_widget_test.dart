@@ -36,10 +36,7 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             child: MaterialApp(
-              home: BundleSelectionWidget(
-                bundle: bundle,
-                onCancel: () {},
-              ),
+              home: BundleSelectionWidget(bundle: bundle, onCancel: () {}),
             ),
           ),
         );
@@ -126,7 +123,10 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(submittedSelections, isNotNull);
-        expect(submittedSelections!.keys, containsAll(['bundle-group-1', 'bundle-group-2']));
+        expect(
+          submittedSelections!.keys,
+          containsAll(['bundle-group-1', 'bundle-group-2']),
+        );
         expect(submittedSelections!['bundle-group-1'], hasLength(1));
         expect(submittedSelections!['bundle-group-2'], hasLength(1));
       },
@@ -171,10 +171,7 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             child: MaterialApp(
-              home: BundleSelectionWidget(
-                bundle: bundle,
-                onCancel: () {},
-              ),
+              home: BundleSelectionWidget(bundle: bundle, onCancel: () {}),
             ),
           ),
         );
@@ -202,6 +199,75 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('0/1'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'should migrate item-code keyed amendment selections into group keys',
+      (tester) async {
+        Map<String, List<Map<String, dynamic>>>? submittedSelections;
+        final bundle = {
+          'name': 'Jarz Flavor Bundle',
+          'price': 320.0,
+          'item_groups': [
+            {
+              'group_name': 'Flavor',
+              'group_key': 'flavor',
+              'quantity': 2,
+              'items': [
+                {
+                  'id': 'blueberry-large',
+                  'name': 'Blueberry Large',
+                  'price': 160.0,
+                  'qty': 10,
+                },
+                {
+                  'id': 'pistachio-large',
+                  'name': 'Pistachio Large',
+                  'price': 170.0,
+                  'qty': 10,
+                },
+              ],
+            },
+          ],
+        };
+
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: BundleSelectionWidget(
+                bundle: bundle,
+                onCancel: () {},
+                isEditing: true,
+                initialSelections: const {
+                  'blueberry-large': [
+                    {'id': 'blueberry-large', 'name': 'Blueberry Large'},
+                  ],
+                  'pistachio-large': [
+                    {'id': 'pistachio-large', 'name': 'Pistachio Large'},
+                  ],
+                },
+                onBundleSelected: (selections) {
+                  submittedSelections = selections;
+                },
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(find.text('2/2'), findsOneWidget);
+
+        await tester.tap(find.text('Update Bundle'));
+        await tester.pumpAndSettle();
+
+        expect(submittedSelections, isNotNull);
+        expect(submittedSelections!.keys, contains('flavor'));
+        final ids = submittedSelections!['flavor']!
+            .map((entry) => entry['id'])
+            .toSet();
+        expect(ids, containsAll(['blueberry-large', 'pistachio-large']));
       },
     );
   });

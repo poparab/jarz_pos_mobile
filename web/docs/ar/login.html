@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول والملف الشخصي — دليل الموظف</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
+
+  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
+      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
+      <div class="flex flex-wrap gap-1 text-xs">
+        <a href="login.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">تسجيل الدخول</a>
+        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">الشيفت</a>
+        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">إدخال الطلبات</a>
+        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">كانبان</a>
+        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">الرحلات</a>
+        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">المصروفات</a>
+        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">أرصدة المناديب</a>
+      </div>
+      <a href="../en/login.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-10">
+
+    <div class="flex items-center gap-3 mb-1">
+      <span class="text-3xl">🔐</span>
+      <h1 class="text-2xl font-bold text-brand">تسجيل الدخول والملف الشخصي</h1>
+    </div>
+    <p class="text-stone-500 mb-8">كيفية الدخول إلى النظام باستخدام بيانات الموظف وتحميل ملف نقطة البيع.</p>
+
+    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-8 text-sm">
+      <strong class="text-brand">متى تستخدم هذا؟</strong> في بداية كل يوم عمل. تحتاج فقط إلى الدخول مرة واحدة — يبقى النظام مسجلاً حتى تقوم بتسجيل الخروج بنفسك.
+    </div>
+
+    <h2 class="text-lg font-semibold mb-4">خطوات تسجيل الدخول</h2>
+
+    <div class="space-y-4">
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">١</span>
+        <div>
+          <p class="font-semibold">افتح الرابط</p>
+          <p class="text-sm text-stone-600 mt-1">افتح المتصفح وانتقل إلى رابط نقطة البيع الخاص بالفرع. إذا كنت لا تعرف الرابط، تواصل مع مديرك.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٢</span>
+        <div>
+          <p class="font-semibold">أدخل البريد الإلكتروني وكلمة المرور</p>
+          <p class="text-sm text-stone-600 mt-1">استخدم البريد الإلكتروني وكلمة المرور التي أعطاك إياها مديرك. لا تشارك بياناتك مع أحد.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٣</span>
+        <div>
+          <p class="font-semibold">اختر وضع <strong>موظف</strong></p>
+          <p class="text-sm text-stone-600 mt-1">عند ظهور شاشة اختيار وضع الدخول، اختر <strong>موظف</strong>. لا تختر مدير أو مدير إقليمي.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٤</span>
+        <div>
+          <p class="font-semibold">يتم تحميل ملف نقطة البيع تلقائياً</p>
+          <p class="text-sm text-stone-600 mt-1">يُخصَّص لك ملف نقطة بيع واحد فقط كموظف، لذا يتم تحميله تلقائياً دون أن تختار أي شيء. إذا ظهرت لك قائمة بأكثر من ملف، تواصل مع مديرك فوراً.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٥</span>
+        <div>
+          <p class="font-semibold">تنتقل تلقائياً إلى شاشة بدء الشيفت</p>
+          <p class="text-sm text-stone-600 mt-1">بعد تحميل الملف، تنتقل الشاشة مباشرة إلى <a href="shift.html" class="text-brand underline">بدء الشيفت</a>. اتبع التعليمات هناك.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Profile access -->
+    <h2 class="text-lg font-semibold mt-10 mb-4">الوصول إلى الملف الشخصي وتسجيل الخروج</h2>
+    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm space-y-2">
+      <p><strong>عرض ملفك الشخصي:</strong> اضغط على القائمة الجانبية ☰ → <strong>الملف الشخصي</strong>. يمكنك رؤية اسمك ودورك وملف نقطة البيع المرتبط بحسابك.</p>
+      <p><strong>تغيير كلمة المرور:</strong> غير متاح مباشرة من التطبيق للموظفين. تواصل مع مديرك.</p>
+      <p><strong>تسجيل الخروج:</strong> اضغط على القائمة الجانبية ☰ → <strong>تسجيل الخروج</strong>. تأكد من إنهاء شيفتك قبل تسجيل الخروج.</p>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-amber-800 mb-2">💡 نصائح</h3>
+      <ul class="list-disc list-inside space-y-1 text-amber-900">
+        <li>لا تسجّل الخروج خلال يوم العمل إلا عند الضرورة — ستحتاج إلى إعادة تسجيل الدخول والتحقق من الشيفت.</li>
+        <li>إذا نسيت كلمة المرور، تواصل مع مديرك لإعادة تعيينها.</li>
+        <li>إذا انتهت جلستك تلقائياً، سيطلب منك تسجيل الدخول مجدداً. مسوّدات السلة محفوظة على جهازك.</li>
+      </ul>
+    </div>
+
+    <!-- Common issues -->
+    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-red-800 mb-2">⚠️ مشاكل شائعة</h3>
+      <ul class="list-disc list-inside space-y-1 text-red-900">
+        <li><strong>"كلمة المرور غير صحيحة":</strong> تأكد من عدم وجود مسافات إضافية عند الكتابة. حاول مجدداً أو تواصل مع مديرك.</li>
+        <li><strong>الصفحة لا تُحمَّل:</strong> تحقق من اتصال الإنترنت. جرّب تحديث المتصفح.</li>
+        <li><strong>لا يظهر وضع "موظف":</strong> قد يكون حسابك لم يُهيَّأ بشكل صحيح. تواصل مع المدير.</li>
+      </ul>
+    </div>
+
+    <div class="mt-10 flex justify-between no-print">
+      <a href="index.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
+        → الصفحة الرئيسية
+      </a>
+      <a href="shift.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
+        ← التالي: الشيفت
+      </a>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف · تسجيل الدخول</footer>
+</body>
+</html>

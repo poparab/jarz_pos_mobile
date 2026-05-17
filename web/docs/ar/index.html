@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>دليل موظف نقطة البيع — Jarz POS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
+
+  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
+      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
+      <div class="flex flex-wrap gap-1 text-xs">
+        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">تسجيل الدخول</a>
+        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">الشيفت</a>
+        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">إدخال الطلبات</a>
+        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">كانبان</a>
+        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">الرحلات</a>
+        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">المصروفات</a>
+        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">أرصدة المناديب</a>
+      </div>
+      <a href="../en/index.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-12">
+
+    <div class="text-center mb-10">
+      <div class="text-5xl mb-3">🛍️</div>
+      <h1 class="text-3xl font-bold text-brand mb-2">دليل موظف نقطة البيع</h1>
+      <p class="text-stone-500 text-base">كل ما تحتاج معرفته للعمل على نظام Jarz POS يومياً</p>
+    </div>
+
+    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-10 text-sm">
+      <strong class="text-brand">للموظفين فقط:</strong> هذا الدليل مخصص لموظفي نقطة البيع. يوضح كيفية تسجيل الدخول، إدارة الشيفت، إدخال الطلبات، ومتابعة التوصيل.
+    </div>
+
+    <!-- 7 function cards -->
+    <h2 class="text-xl font-bold mb-5">الوظائف الأساسية</h2>
+    <div class="grid sm:grid-cols-2 gap-4 mb-12">
+
+      <a href="login.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group">
+        <div class="text-3xl mb-2">🔐</div>
+        <div class="font-bold text-brand group-hover:underline text-base mb-1">تسجيل الدخول والملف الشخصي</div>
+        <p class="text-xs text-stone-500">كيفية تسجيل الدخول ببيانات الموظف وتحميل ملف نقطة البيع.</p>
+      </a>
+
+      <a href="shift.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group">
+        <div class="text-3xl mb-2">⏱️</div>
+        <div class="font-bold text-brand group-hover:underline text-base mb-1">بدء الشيفت وإنهاؤه</div>
+        <p class="text-xs text-stone-500">كيفية إدخال كاش الدرج عند البداية والنهاية.</p>
+      </a>
+
+      <a href="pos.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group">
+        <div class="text-3xl mb-2">🛒</div>
+        <div class="font-bold text-brand group-hover:underline text-base mb-1">إدخال الطلبات (POS)</div>
+        <p class="text-xs text-stone-500">اختيار العميل أولاً، إضافة المنتجات، الدفع، وتأكيد الطلب.</p>
+      </a>
+
+      <a href="kanban.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group">
+        <div class="text-3xl mb-2">📋</div>
+        <div class="font-bold text-brand group-hover:underline text-base mb-1">لوحة كانبان</div>
+        <p class="text-xs text-stone-500">متابعة الطلبات من تم الاستلام (Recieved) حتى تم التسليم أو ملغي.</p>
+      </a>
+
+      <a href="trips.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group">
+        <div class="text-3xl mb-2">🚚</div>
+        <div class="font-bold text-brand group-hover:underline text-base mb-1">رحلات التوصيل</div>
+        <p class="text-xs text-stone-500">تجميع الطلبات في رحلة وتعيين مندوب التوصيل.</p>
+      </a>
+
+      <a href="expenses.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group">
+        <div class="text-3xl mb-2">💳</div>
+        <div class="font-bold text-brand group-hover:underline text-base mb-1">المصروفات اليومية</div>
+        <p class="text-xs text-stone-500">تسجيل أي مصروف وإرساله للاعتماد.</p>
+      </a>
+
+      <a href="courier-balances.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group sm:col-span-2 sm:max-w-xs sm:mx-auto sm:w-full">
+        <div class="text-3xl mb-2">⚖️</div>
+        <div class="font-bold text-brand group-hover:underline text-base mb-1">أرصدة المناديب</div>
+        <p class="text-xs text-stone-500">الاطلاع على أرصدة كل مندوب قبل تعيينه لرحلة جديدة.</p>
+      </a>
+
+    </div>
+
+    <!-- Typical day flow -->
+    <h2 class="text-xl font-bold mb-5">يوم عمل نموذجي</h2>
+    <ol class="relative border-r-2 border-brand-light space-y-0 pr-6">
+      <li class="mb-6 relative">
+        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">١</span>
+        <p class="font-bold text-brand">تسجيل الدخول</p>
+        <p class="text-sm text-stone-500">أدخل بريدك الإلكتروني وكلمة المرور، اختر وضع <strong>موظف</strong>.</p>
+      </li>
+      <li class="mb-6 relative">
+        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">٢</span>
+        <p class="font-bold text-brand">بدء الشيفت</p>
+        <p class="text-sm text-stone-500">أدخل كاش الدرج فقط ثم اضغط <strong>بدء الشيفت</strong>.</p>
+      </li>
+      <li class="mb-6 relative">
+        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">٣</span>
+        <p class="font-bold text-brand">إدخال الطلبات</p>
+        <p class="text-sm text-stone-500">اختر العميل أولاً، ثم أضف المنتجات، طريقة التوصيل، والدفع.</p>
+      </li>
+      <li class="mb-6 relative">
+        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">٤</span>
+        <p class="font-bold text-brand">متابعة الكانبان</p>
+        <p class="text-sm text-stone-500">قبول الطلبات وإرسالها للتسليم.</p>
+      </li>
+      <li class="mb-6 relative">
+        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">٥</span>
+        <p class="font-bold text-brand">إنشاء رحلات التوصيل</p>
+        <p class="text-sm text-stone-500">تجميع الطلبات مع مندوب وإرسالها.</p>
+      </li>
+      <li class="mb-6 relative">
+        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">٦</span>
+        <p class="font-bold text-brand">تسجيل المصروفات</p>
+        <p class="text-sm text-stone-500">سجّل أي مصاريف فورياً وأرسلها للاعتماد.</p>
+      </li>
+      <li class="relative">
+        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">٧</span>
+        <p class="font-bold text-brand">إنهاء الشيفت</p>
+        <p class="text-sm text-stone-500">أدخل كاش الإغلاق الفعلي واضغط <strong>إنهاء الشيفت</strong>.</p>
+      </li>
+    </ol>
+
+    <div class="mt-10 text-center">
+      <a href="login.html" class="inline-block bg-brand text-white px-8 py-4 rounded-2xl font-bold text-base hover:bg-brand-dark transition-colors">
+        ابدأ بتسجيل الدخول ←
+      </a>
+    </div>
+
+  </main>
+
+  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف</footer>
+</body>
+</html>

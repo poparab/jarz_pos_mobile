@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shift Start &amp; End — Staff Guide</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="bg-stone-50 font-sans text-stone-800">
+
+  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
+      <a href="index.html" class="font-bold text-lg tracking-wide">JARZ POS</a>
+      <div class="flex flex-wrap gap-1 text-xs">
+        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">Login</a>
+        <a href="shift.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">Shift</a>
+        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">POS Order</a>
+        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">Kanban</a>
+        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">Trips</a>
+        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">Expenses</a>
+        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">Courier Balances</a>
+      </div>
+      <a href="../ar/shift.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">عربي</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-10">
+
+    <div class="flex items-center gap-3 mb-1">
+      <span class="text-3xl">🕐</span>
+      <h1 class="text-2xl font-bold text-brand">Shift Start &amp; End</h1>
+    </div>
+    <p class="text-stone-500 mb-8">Open your shift at the start of the day and close it at the end. Both actions record cash balances for accounting.</p>
+
+    <div class="bg-brand-light border-l-4 border-brand rounded-r-xl px-5 py-4 mb-8 text-sm">
+      <strong class="text-brand">When to use:</strong> Every working day — <strong>Start Shift</strong> before your first order, <strong>End Shift</strong> after your last order.
+    </div>
+
+    <!-- START SHIFT -->
+    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-sm">Start of Day</span> Starting Your Shift</h2>
+
+    <div class="space-y-4 step-block">
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
+        <div>
+          <p class="font-semibold">The app opens on the Start Shift screen</p>
+          <p class="text-sm text-stone-600 mt-1">Right after login (Employee mode), you are taken to <strong>Start Shift</strong> automatically. You cannot use the POS until the shift is open.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
+        <div>
+          <p class="font-semibold">Enter the cash drawer opening balance only</p>
+          <p class="text-sm text-stone-600 mt-1">Count only the physical cash in your drawer for this BOS/POS profile and type that amount. Staff do not enter InstaPay, mobile wallet, bank, or other digital-account balances during shift start. If you see a non-cash field and are unsure what to do, leave it unchanged/zero and contact your manager.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
+        <div>
+          <p class="font-semibold">Tap <strong>"Start Shift"</strong></p>
+          <p class="text-sm text-stone-600 mt-1">The app sends the opening balance to the server and shows <em>"Shift Active"</em>. You are then redirected to the POS order screen.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- END SHIFT -->
+    <h2 class="text-lg font-semibold mt-10 mb-4 flex items-center gap-2"><span class="bg-red-100 text-red-800 px-2 py-0.5 rounded text-sm">End of Day</span> Ending Your Shift</h2>
+
+    <div class="space-y-4 step-block">
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
+        <div>
+          <p class="font-semibold">Finish all pending orders first</p>
+          <p class="text-sm text-stone-600 mt-1">Before closing, confirm that all orders for the day are in the correct state on the Kanban board. Settle any outstanding payments.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
+        <div>
+          <p class="font-semibold">Open the End Shift screen</p>
+          <p class="text-sm text-stone-600 mt-1">From the POS or Kanban screen, tap the <strong>☰ Menu</strong> → <strong>End Shift</strong>. You can also tap <strong>"Go to End Shift"</strong> if shown on the shift status banner.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
+        <div>
+          <p class="font-semibold">Review the shift summary</p>
+          <p class="text-sm text-stone-600 mt-1">The screen shows the total sales and a breakdown of invoices for the shift. For staff reconciliation, focus on the cash drawer amount for your BOS/POS profile.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">4</span>
+        <div>
+          <p class="font-semibold">Enter the cash drawer closing balance only</p>
+          <p class="text-sm text-stone-600 mt-1">Count the physical cash in your drawer and type the actual amount under <strong>Closing Amount</strong>. Do not enter InstaPay, mobile wallet, bank, or other digital-account balances. The app calculates the difference (variance) between expected and actual cash automatically.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">5</span>
+        <div>
+          <p class="font-semibold">Tap <strong>"End Shift"</strong></p>
+          <p class="text-sm text-stone-600 mt-1">Confirms the closing balance. The app shows <em>"Shift ended successfully."</em> If there is a cash discrepancy, a journal entry is automatically created. The shift is now archived.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-10 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-amber-800 mb-2">💡 Tips</h3>
+      <ul class="list-disc list-inside space-y-1 text-amber-900">
+        <li>Count the cash drawer physically before typing the opening or closing amount — do not guess.</li>
+        <li>Do not reconcile InstaPay, mobile wallet, or bank balances as a staff user; those balances are handled by managers/accounting.</li>
+        <li>If you see a <em>"Shift Already Open"</em> warning, another user has already opened a shift on the same profile. Contact your manager.</li>
+        <li>The shift must be open for orders to be submitted from the POS screen.</li>
+      </ul>
+    </div>
+
+    <!-- Common issues -->
+    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-red-800 mb-2">⚠️ Common Issues</h3>
+      <ul class="list-disc list-inside space-y-1 text-red-900">
+        <li><strong>"No active shift found":</strong> You are on the End Shift screen but the shift was never started. Go back and start a shift first.</li>
+        <li><strong>Shift start fails:</strong> Check internet connectivity. If the error persists, contact your manager to check if a shift is already open for your profile.</li>
+        <li><strong>Large variance / difference:</strong> Recount the cash. If the discrepancy is real, inform your manager before submitting.</li>
+      </ul>
+    </div>
+
+    <div class="mt-10 flex justify-between no-print">
+      <a href="login.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
+        ← Login &amp; Profile
+      </a>
+      <a href="pos.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
+        Next: POS Order Entry →
+      </a>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · Staff Guide · Shift Start &amp; End</footer>
+</body>
+</html>

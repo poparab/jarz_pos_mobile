@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login &amp; Profile — Staff Guide</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="bg-stone-50 font-sans text-stone-800">
+
+  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
+      <a href="index.html" class="font-bold text-lg tracking-wide">JARZ POS</a>
+      <div class="flex flex-wrap gap-1 text-xs">
+        <a href="login.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">Login</a>
+        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">Shift</a>
+        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">POS Order</a>
+        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">Kanban</a>
+        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">Trips</a>
+        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">Expenses</a>
+        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">Courier Balances</a>
+      </div>
+      <a href="../ar/login.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">عربي</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-10">
+
+    <div class="flex items-center gap-3 mb-1">
+      <span class="text-3xl">🔑</span>
+      <h1 class="text-2xl font-bold text-brand">Login &amp; Profile</h1>
+    </div>
+    <p class="text-stone-500 mb-8">How to sign into the app, select the correct mode, and manage your profile.</p>
+
+    <!-- When to use -->
+    <div class="bg-brand-light border-l-4 border-brand rounded-r-xl px-5 py-4 mb-8 text-sm">
+      <strong class="text-brand">When to use:</strong> At the start of every shift and whenever you need to log out or update your password.
+    </div>
+
+    <!-- Steps -->
+    <h2 class="text-lg font-semibold mb-4">Step-by-step</h2>
+
+    <div class="space-y-4 step-block">
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
+        <div>
+          <p class="font-semibold">Open the POS web app</p>
+          <p class="text-sm text-stone-600 mt-1">Go to the URL provided by your manager (e.g. <code class="bg-stone-100 px-1 rounded">https://erp.orderjarz.com/pos/</code>). The login screen appears automatically.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
+        <div>
+          <p class="font-semibold">Enter your username and password</p>
+          <p class="text-sm text-stone-600 mt-1">Type your credentials as given by your manager. Tap <strong>Login</strong>.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
+        <div>
+          <p class="font-semibold">Choose Login Mode: <strong>Employee</strong></p>
+          <p class="text-sm text-stone-600 mt-1">A dialog asks you to choose between <em>Line Manager</em> and <em>Employee</em>. Staff must always choose <strong>Employee</strong>. This mode requires opening a shift before you can use the POS.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">4</span>
+        <div>
+          <p class="font-semibold">Your POS profile loads automatically</p>
+          <p class="text-sm text-stone-600 mt-1">Because your account is assigned to exactly one POS profile (branch), the app selects it for you. You will not see a profile-selection screen.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">5</span>
+        <div>
+          <p class="font-semibold">You are redirected to Start Shift</p>
+          <p class="text-sm text-stone-600 mt-1">The app will not let you use the POS until a shift is open. Proceed to <a href="shift.html" class="text-brand underline">Start Shift</a>.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Profile section -->
+    <h2 class="text-lg font-semibold mt-10 mb-4">Accessing your Profile</h2>
+    <div class="space-y-4 step-block">
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-stone-400 text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">A</span>
+        <div>
+          <p class="font-semibold">Open the side menu</p>
+          <p class="text-sm text-stone-600 mt-1">Tap the <strong>☰ Menu</strong> icon (top-right) on the Kanban or POS screen, then tap <strong>Profile</strong>.</p>
+        </div>
+      </div>
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-stone-400 text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">B</span>
+        <div>
+          <p class="font-semibold">Change password or log out</p>
+          <p class="text-sm text-stone-600 mt-1">The profile screen shows your name, role, and linked POS profile. Use the <strong>Logout</strong> button to sign out. Contact your manager to reset your password.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-10 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-amber-800 mb-2">💡 Tips</h3>
+      <ul class="list-disc list-inside space-y-1 text-amber-900">
+        <li>Always choose <strong>Employee</strong> at login — never <em>Line Manager</em>.</li>
+        <li>Do not share your password with other staff members.</li>
+        <li>If the app opens on a blank screen, refresh the browser tab.</li>
+      </ul>
+    </div>
+
+    <!-- Common issues -->
+    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-red-800 mb-2">⚠️ Common Issues</h3>
+      <ul class="list-disc list-inside space-y-1 text-red-900">
+        <li><strong>Wrong password:</strong> The app shows an error. Re-type carefully — passwords are case-sensitive. Contact your manager if locked out.</li>
+        <li><strong>Blank or spinning screen after login:</strong> Check your internet connection. Try refreshing the page.</li>
+        <li><strong>Redirected to "No POS profile":</strong> Your account has not been assigned a POS profile. Contact your manager.</li>
+      </ul>
+    </div>
+
+    <!-- Next -->
+    <div class="mt-10 flex justify-end no-print">
+      <a href="shift.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
+        Next: Shift Start &amp; End →
+      </a>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · Staff Guide · Login &amp; Profile</footer>
+</body>
+</html>

@@ -784,24 +784,20 @@ void main() {
         expect(bundleItem['quantity'], 2);
         expect(bundleItem['rate'], 120.0);
         expect(bundleItem['bundle_details']['bundle_id'], 'BDL-1');
-        // B3: selections are now keyed by itemCode, not groupKey.
-        // Each child item gets its own entry under its item_code key.
         final selections =
             bundleItem['bundle_details']['selected_items'] as Map;
         expect(
-          selections.containsKey('ITEM-BURGER'),
+          selections.containsKey('main'),
           isTrue,
-          reason:
-              'Burger child must have its own selections entry keyed by item_code',
+          reason: 'Burger child must be restored under its bundle group key',
         );
         expect(
-          selections.containsKey('ITEM-FRIES'),
+          selections.containsKey('side'),
           isTrue,
-          reason:
-              'Fries child must have its own selections entry keyed by item_code',
+          reason: 'Fries child must be restored under its bundle group key',
         );
-        expect((selections['ITEM-BURGER'] as List).first['id'], 'ITEM-BURGER');
-        expect((selections['ITEM-FRIES'] as List).first['id'], 'ITEM-FRIES');
+        expect((selections['main'] as List).first['id'], 'ITEM-BURGER');
+        expect((selections['side'] as List).first['id'], 'ITEM-FRIES');
       },
     );
 
@@ -1134,21 +1130,15 @@ void main() {
         final selections =
             bundleItem['bundle_details']['selected_items'] as Map;
 
-        // B3: selections are keyed by itemCode, not groupKey.
-        // Both children must have their own keys — ITEM-RED and ITEM-BLUE.
         expect(
-          selections.containsKey('ITEM-RED'),
+          selections.containsKey('flavor'),
           isTrue,
           reason:
-              'Redvelvet must have its own selections entry keyed by item_code',
+              'Children from the same group must be restored under the group key',
         );
-        expect(
-          selections.containsKey('ITEM-BLUE'),
-          isTrue,
-          reason:
-              'Blueberry must have its own selections entry keyed by item_code',
-        );
-        final ids = selections.keys.where((k) => k != '_qty_mismatch').toSet();
+        final ids = (selections['flavor'] as List)
+            .map((entry) => entry['id'])
+            .toSet();
         expect(
           ids,
           containsAll(['ITEM-RED', 'ITEM-BLUE']),

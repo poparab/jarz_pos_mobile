@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>أرصدة المناديب — دليل الموظف</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
+
+  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
+      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
+      <div class="flex flex-wrap gap-1 text-xs">
+        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">تسجيل الدخول</a>
+        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">الشيفت</a>
+        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">إدخال الطلبات</a>
+        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">كانبان</a>
+        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">الرحلات</a>
+        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">المصروفات</a>
+        <a href="courier-balances.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">أرصدة المناديب</a>
+      </div>
+      <a href="../en/courier-balances.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-10">
+
+    <div class="flex items-center gap-3 mb-1">
+      <span class="text-3xl">⚖️</span>
+      <h1 class="text-2xl font-bold text-brand">أرصدة المناديب</h1>
+    </div>
+    <p class="text-stone-500 mb-8">عرض للاطلاع فقط على الرصيد المستحق لكل مندوب — كم يدين لنا (أو ندين له).</p>
+
+    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-8 text-sm">
+      <strong class="text-brand">متى تستخدم هذا؟</strong> قبل تعيين رحلة توصيل جديدة لمندوب، للتحقق من أن رصيده ليس كبيراً جداً ويحتاج تسوية أولاً.
+    </div>
+
+    <h2 class="text-lg font-semibold mb-4">فهم شاشة الأرصدة</h2>
+
+    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm space-y-4 mb-8">
+      <p>تعرض شاشة <strong>أرصدة المناديب</strong> قائمة بجميع المناديب النشطين مع ثلاثة أرقام لكل مندوب:</p>
+
+      <div class="grid sm:grid-cols-3 gap-3 mt-2">
+        <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+          <div class="font-bold text-green-800 text-xs uppercase mb-1">المندوب يدفع لنا</div>
+          <p class="text-green-700 text-xs">نقدية تحصّلها المندوب من العملاء ولم يسلّمها للفرع بعد.</p>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+          <div class="font-bold text-blue-800 text-xs uppercase mb-1">ندفع للمندوب</div>
+          <p class="text-blue-700 text-xs">مبالغ مستحقة للمندوب (رسوم توصيل أو سلف).</p>
+        </div>
+        <div class="bg-stone-50 border border-stone-300 rounded-lg p-3 text-center">
+          <div class="font-bold text-stone-700 text-xs uppercase mb-1">الصافي</div>
+          <p class="text-stone-600 text-xs">صافي الموقف — موجب يعني المندوب مدين لنا؛ سالب يعني نحن مدينون له.</p>
+        </div>
+      </div>
+
+      <p class="text-stone-600">عدد <strong>الفواتير</strong> يوضح كم من التسليمات غير المسوّاة مرتبطة بكل مندوب.</p>
+    </div>
+
+    <h2 class="text-lg font-semibold mb-4">كيفية فتح أرصدة المناديب</h2>
+
+    <div class="space-y-4">
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">١</span>
+        <div>
+          <p class="font-semibold">افتح من قائمة الكانبان</p>
+          <p class="text-sm text-stone-600 mt-1">على لوحة الكانبان، اضغط أيقونة <strong>القائمة ☰</strong> ← <strong>أرصدة المناديب</strong>. يظهر العرض التراكبي.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٢</span>
+        <div>
+          <p class="font-semibold">راجع رصيد كل مندوب</p>
+          <p class="text-sm text-stone-600 mt-1">انظر إلى عمود <strong>الصافي</strong>. رصيد موجب كبير يعني أن المندوب يحتفظ بنقدية كثيرة لم يسلّمها بعد.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٣</span>
+        <div>
+          <p class="font-semibold">أغلق العرض</p>
+          <p class="text-sm text-stone-600 mt-1">اضغط خارج النافذة أو زر X للعودة إلى الكانبان. هذه الشاشة للعرض فقط للموظفين — لا يمكن إجراء أي تسويات من هنا. التسوية إجراء خاص بالمديرين.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Staff note -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-blue-800 mb-2">ℹ️ ملاحظة للموظفين</h3>
+      <p class="text-blue-900">كموظف، يمكنك <strong>مشاهدة</strong> أرصدة المناديب فقط. لا يمكنك إجراء تسويات. التسوية (إنشاء دفعة مقابل المندوب) هي صلاحية المدير. إذا لاحظت رصيداً كبيراً بشكل غير عادي، أبلغ مديرك.</p>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-amber-800 mb-2">💡 نصائح</h3>
+      <ul class="list-disc list-inside space-y-1 text-amber-900">
+        <li>تحقق من أرصدة المناديب قبل إنشاء رحلة جديدة للتأكد من أن المندوب في وضع جيد.</li>
+        <li>إذا ظهرت رسالة "لا يوجد مناديب"، قائمة المناديب لم تُعدَّ بعد — تواصل مع مديرك.</li>
+      </ul>
+    </div>
+
+    <!-- Common issues -->
+    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-red-800 mb-2">⚠️ مشاكل شائعة</h3>
+      <ul class="list-disc list-inside space-y-1 text-red-900">
+        <li><strong>الأرصدة لا تُحمَّل:</strong> انتظر بضع ثوانٍ؛ إذا استمرت المشكلة، تحقق من الاتصال بالإنترنت.</li>
+        <li><strong>رصيد المندوب يبدو خاطئاً:</strong> قد يعكس رحلات سُلِّمت مؤخراً ولم تُسوَّ بعد. أبلغ مديرك.</li>
+      </ul>
+    </div>
+
+    <div class="mt-10 flex justify-between no-print">
+      <a href="expenses.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
+        → المصروفات
+      </a>
+      <a href="shift.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
+        ← نهاية اليوم: إنهاء الشيفت
+      </a>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف · أرصدة المناديب</footer>
+</body>
+</html>

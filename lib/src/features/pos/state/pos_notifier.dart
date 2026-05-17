@@ -885,12 +885,34 @@ class PosNotifier extends StateNotifier<PosState> {
     final selections = <String, List<Map<String, dynamic>>>{};
     final rawGroups = bundleInfo['item_groups'] as List<dynamic>? ?? const [];
 
+    String groupKeyFor(Map<String, dynamic> group, int fallbackIndex) {
+      final rawKey =
+          (group['group_key'] ?? group['group_id'] ?? group['name'])
+              ?.toString()
+              .trim() ??
+          '';
+      if (rawKey.isNotEmpty) return rawKey;
+
+      final groupName =
+          (group['group_name'] ?? group['item_group'] ?? group['title'])
+              ?.toString()
+              .trim() ??
+          'Group';
+      final rawIndex = _coerceInt(
+        group['group_index'] ?? group['idx'],
+        fallback: fallbackIndex + 1,
+      );
+      return '$groupName::$rawIndex';
+    }
+
     for (final childItem in childItems) {
       final itemCode = childItem['item_code']?.toString().trim() ?? '';
       if (itemCode.isEmpty) continue;
 
       Map<String, dynamic>? matchedGroup;
       Map<String, dynamic>? matchedItem;
+      var matchedGroupIndex = 0;
+      var groupIndex = 0;
       for (final rawGroup in rawGroups.whereType<Map>()) {
         final group = Map<String, dynamic>.from(rawGroup);
         final rawItems = group['items'] as List<dynamic>? ?? const [];
@@ -900,17 +922,26 @@ class PosNotifier extends StateNotifier<PosState> {
           final candidateName = candidate['name']?.toString().trim() ?? '';
           if (candidateId == itemCode || candidateName == itemCode) {
             matchedGroup = group;
+            matchedGroupIndex = groupIndex;
             matchedItem = candidate;
             break;
           }
         }
         if (matchedItem != null) break;
+        groupIndex += 1;
       }
 
-      // B3: key by itemCode to preserve distinct child identity.
-      // Two children sharing the same groupKey (e.g. both from "Medium" group)
-      // must not collapse into a single selections entry and overwrite each other.
-      final selectionKey = itemCode;
+      final persistedGroupKey =
+          childItem['bundle_group_key']?.toString().trim() ?? '';
+      final persistedGroupName =
+          childItem['bundle_group_name']?.toString().trim() ?? '';
+      final selectionKey = matchedGroup != null
+          ? groupKeyFor(matchedGroup, matchedGroupIndex)
+          : persistedGroupKey.isNotEmpty
+          ? persistedGroupKey
+          : persistedGroupName.isNotEmpty
+          ? persistedGroupName
+          : itemCode;
 
       final template = matchedItem != null
           ? Map<String, dynamic>.from(matchedItem)
@@ -1472,6 +1503,27 @@ class PosNotifier extends StateNotifier<PosState> {
               error:
                   'Cannot submit amendment: "$name" was not found in the '
                   'item catalog. Please close and reopen the order to refresh.',
+              clearError: false,
+              isLoading: false,
+            );
+            return;
+          }
+
+          final selectedItems = cartItem['bundle_details']?['selected_items'];
+          final hasSelectedChildren =
+              selectedItems is Map &&
+              selectedItems.values.any(
+                (entries) => entries is List && entries.isNotEmpty,
+              );
+          if (!hasSelectedChildren) {
+            final name =
+                cartItem['item_name']?.toString() ??
+                cartItem['item_code']?.toString() ??
+                'bundle';
+            state = state.copyWith(
+              error:
+                  'Cannot submit amendment: "$name" has no selected bundle items. '
+                  'Please close and reopen the order to refresh.',
               clearError: false,
               isLoading: false,
             );

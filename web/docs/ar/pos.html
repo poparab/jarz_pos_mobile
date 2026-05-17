@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدخال الطلبات — دليل الموظف</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
+
+  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
+      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
+      <div class="flex flex-wrap gap-1 text-xs">
+        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">تسجيل الدخول</a>
+        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">الشيفت</a>
+        <a href="pos.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">إدخال الطلبات</a>
+        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">كانبان</a>
+        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">الرحلات</a>
+        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">المصروفات</a>
+        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">أرصدة المناديب</a>
+      </div>
+      <a href="../en/pos.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-10">
+
+    <div class="flex items-center gap-3 mb-1">
+      <span class="text-3xl">🛒</span>
+      <h1 class="text-2xl font-bold text-brand">إدخال الطلبات (POS)</h1>
+    </div>
+    <p class="text-stone-500 mb-8">كيفية إضافة المنتجات، تحديد العميل، اختيار طريقة التوصيل، والدفع وتأكيد الطلب.</p>
+
+    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-8 text-sm">
+      <strong class="text-brand">متى تستخدم هذا؟</strong> في كل مرة يطلب فيها عميل طلباً جديداً — سواء حضورياً أو هاتفياً. يجب أن يكون الشيفت مفتوحاً قبل إدخال الطلبات.
+    </div>
+
+    <h2 class="text-lg font-semibold mb-4">الخطوات</h2>
+
+    <div class="space-y-4">
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">١</span>
+        <div>
+          <p class="font-semibold">انتقل إلى شاشة نقطة البيع</p>
+          <p class="text-sm text-stone-600 mt-1">بعد بدء الشيفت تفتح الشاشة مباشرةً على نقطة البيع. يمكنك أيضاً الضغط على <strong>نقطة البيع</strong> من القائمة الجانبية في أي وقت.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٢</span>
+        <div>
+          <p class="font-semibold">اختر العميل أولاً</p>
+          <p class="text-sm text-stone-600 mt-1">قبل إضافة أي منتج، اضغط <strong>إضافة عميل</strong>. ابحث بالاسم أو رقم الهاتف ثم اختر العميل من النتائج. إذا كان للعميل عنوان توصيل محفوظ، سيتم تحميله تلقائياً. يجب اختيار العميل قبل إضافة المنتجات أو تأكيد الطلب.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٣</span>
+        <div>
+          <p class="font-semibold">ابحث عن المنتجات وأضفها إلى السلة</p>
+          <p class="text-sm text-stone-600 mt-1">بعد اختيار العميل، اكتب اسم المنتج في خانة البحث أو تصفّح الشبكة. اضغط على المنتج لإضافته إلى <strong>سلة المشتريات</strong>. استخدم أزرار +/− لتعديل الكمية. يمكنك أيضاً إضافة <strong>باقات</strong> إذا كانت متاحة في ملف نقطة البيع الخاص بك.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٤</span>
+        <div>
+          <p class="font-semibold">اختر التوصيل أو الاستلام من الفرع</p>
+          <p class="text-sm text-stone-600 mt-1">
+            <strong>توصيل:</strong> اضغط <strong>اختر وقت التوصيل</strong> واختر الفترة المناسبة. تُضاف رسوم التوصيل تلقائياً.<br>
+            <strong>استلام من الفرع:</strong> فعّل خيار <strong>استلام من الفرع (بدون رسوم توصيل)</strong>. تختفي خانة وقت التوصيل ولا تُضاف أي رسوم.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٥</span>
+        <div>
+          <p class="font-semibold">راجع إجمالي السلة</p>
+          <p class="text-sm text-stone-600 mt-1">تعرض السلة: مجموع المنتجات + رسوم التوصيل (إن وجدت) = الإجمالي. احذف منتجاً بأيقونة سلة المهملات، أو امسح السلة كلها بـ<strong>مسح السلة</strong>.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٦</span>
+        <div>
+          <p class="font-semibold">اختر <strong>طريقة الدفع</strong> واضغط <strong>تأكيد</strong></p>
+          <p class="text-sm text-stone-600 mt-1">تظهر نافذة تطلب منك اختيار طريقة الدفع: <em>نقدي</em>، <em>إنستاباي</em>، <em>محفظة</em>، أو غيرها. بعد الاختيار يُرسَل الطلب للخادم وتُنشأ الفاتورة.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٧</span>
+        <div>
+          <p class="font-semibold">تم تأكيد الطلب — ابدأ طلباً جديداً</p>
+          <p class="text-sm text-stone-600 mt-1">تظهر رسالة نجاح مع رقم الفاتورة. تُفرَّغ السلة تلقائياً وأنت مستعد لطلب جديد. تظهر الفاتورة الجديدة على <a href="kanban.html" class="text-brand underline">لوحة الكانبان</a>.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Drafts -->
+    <h2 class="text-lg font-semibold mt-10 mb-4">المسوّدات (حفظ تلقائي)</h2>
+    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm">
+      <p class="text-stone-700">يحفظ النظام سلّتك تلقائياً كل بضع ثوانٍ. إذا أغلقت التطبيق أو انتقلت لشاشة أخرى، ستجد سلّتك محفوظة عند العودة. للاطلاع على المسوّدات المحفوظة، اضغط أيقونة <strong>المسوّدات</strong> (أيقونة الساعة) في رأس شاشة نقطة البيع.</p>
+      <p class="text-stone-700 mt-2">المسوّدات محفوظة على جهازك. إذا سجّلت الخروج، قد تُمسح مسوّدات الجلسة الحالية — أكمل الطلبات قبل تسجيل الخروج.</p>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-amber-800 mb-2">💡 نصائح</h3>
+      <ul class="list-disc list-inside space-y-1 text-amber-900">
+        <li>اختر العميل دائماً قبل إضافة المنتجات — يضمن ذلك العنوان الصحيح ورسوم التوصيل وسجل العميل.</li>
+        <li>إذا لم تظهر أوقات التوصيل، تواصل مع مديرك — قد يحتاج جدول الفرع إلى إعداد.</li>
+        <li>لطلبات الاستلام، تأكد من تفعيل خيار الاستلام لأن الإعداد الافتراضي هو التوصيل.</li>
+        <li>إذا ارتكبت خطأ بعد تأكيد الطلب، انتقل إلى <a href="kanban.html" class="underline text-amber-800">الكانبان</a> واستخدم خيار <strong>تعديل الفاتورة</strong>.</li>
+      </ul>
+    </div>
+
+    <!-- Common issues -->
+    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-red-800 mb-2">⚠️ مشاكل شائعة</h3>
+      <ul class="list-disc list-inside space-y-1 text-red-900">
+        <li><strong>"يرجى اختيار وقت توصيل":</strong> ضغطت على تأكيد دون اختيار وقت. اختر وقتاً أو فعّل خيار الاستلام.</li>
+        <li><strong>لا يمكن إضافة المنتجات / العميل مطلوب:</strong> اختر العميل أولاً ثم أضف المنتجات إلى السلة.</li>
+        <li><strong>المنتجات لا تظهر:</strong> تحقق من الاتصال بالإنترنت وحدّث الصفحة.</li>
+        <li><strong>زر التأكيد غير نشط:</strong> السلة فارغة. أضف منتجاً على الأقل.</li>
+        <li><strong>الطلب مؤكد لكن لا يظهر في الكانبان:</strong> اضغط أيقونة التحديث في الكانبان.</li>
+      </ul>
+    </div>
+
+    <div class="mt-10 flex justify-between no-print">
+      <a href="shift.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
+        → الشيفت
+      </a>
+      <a href="kanban.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
+        ← التالي: الكانبان
+      </a>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف · إدخال الطلبات</footer>
+</body>
+</html>

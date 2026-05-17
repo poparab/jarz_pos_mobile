@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المصروفات اليومية — دليل الموظف</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
+
+  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
+      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
+      <div class="flex flex-wrap gap-1 text-xs">
+        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">تسجيل الدخول</a>
+        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">الشيفت</a>
+        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">إدخال الطلبات</a>
+        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">كانبان</a>
+        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">الرحلات</a>
+        <a href="expenses.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">المصروفات</a>
+        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">أرصدة المناديب</a>
+      </div>
+      <a href="../en/expenses.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-10">
+
+    <div class="flex items-center gap-3 mb-1">
+      <span class="text-3xl">💳</span>
+      <h1 class="text-2xl font-bold text-brand">المصروفات اليومية</h1>
+    </div>
+    <p class="text-stone-500 mb-8">سجّل أي مصروف نقدي أو غير نقدي يحدث خلال شيفتك وأرسله للاعتماد.</p>
+
+    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-8 text-sm">
+      <strong class="text-brand">متى تستخدم هذا؟</strong> في أي وقت تصرف فيه مبلغاً لأغراض العمل — مثل شراء مستلزمات، تكاليف طباعة، أو أي مصاريف جانبية. سجّلها في نفس يوم الصرف.
+    </div>
+
+    <h2 class="text-lg font-semibold mb-4">خطوات إضافة مصروف جديد</h2>
+
+    <div class="space-y-4">
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">١</span>
+        <div>
+          <p class="font-semibold">افتح شاشة المصروفات</p>
+          <p class="text-sm text-stone-600 mt-1">اضغط <strong>المصروفات</strong> من القائمة الجانبية. تعرض الشاشة جميع مصروفاتك هذا الشهر مع ملخص في الأعلى: الإجمالي، المعتمد، قيد الاعتماد.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٢</span>
+        <div>
+          <p class="font-semibold">اضغط <strong>+ مصروف جديد</strong></p>
+          <p class="text-sm text-stone-600 mt-1">يظهر نموذج إدخال المصروف.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٣</span>
+        <div>
+          <p class="font-semibold">املأ بيانات المصروف</p>
+          <p class="text-sm text-stone-600 mt-1">
+            <strong>سبب الصرف (حساب مصروفات):</strong> اختر التصنيف من القائمة (مثل: قرطاسية، منظفات).<br>
+            <strong>الدفع من:</strong> اختر مصدر الدفع (نقدي، إنستاباي...).<br>
+            <strong>القيمة:</strong> أدخل المبلغ المدفوع.<br>
+            <strong>تاريخ المصروف:</strong> افتراضياً اليوم — عدّله إذا لزم.<br>
+            <strong>ملاحظات (اختياري):</strong> أضف وصفاً مختصراً لما تم شراؤه.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٤</span>
+        <div>
+          <p class="font-semibold">اضغط <strong>إرسال للاعتماد</strong></p>
+          <p class="text-sm text-stone-600 mt-1">يُحفظ المصروف ويُرسَل إلى مديرك للمراجعة. تظهر رسالة تأكيد وتُضاف المعاملة إلى القائمة بشارة <strong>قيد الاعتماد</strong>.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٥</span>
+        <div>
+          <p class="font-semibold">يعتمد المدير المصروف</p>
+          <p class="text-sm text-stone-600 mt-1">بعد الاعتماد تتغير الشارة إلى <strong>معتمد</strong> ويُضاف المبلغ إلى إجمالي المعتمد في الملخص.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Viewing and filtering -->
+    <h2 class="text-lg font-semibold mt-10 mb-4">عرض المصروفات وتصفيتها</h2>
+    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm space-y-2">
+      <p><strong>فلتر الشهر:</strong> افتراضياً يعرض الشهر الحالي. اضغط على محدد الشهر للتبديل إلى شهر سابق.</p>
+      <p><strong>تصفية حسب طريقة الدفع:</strong> اضغط أيقونة الفلتر لعرض مصروفات طريقة دفع محددة فقط.</p>
+      <p><strong>تحديث القائمة:</strong> اسحب للأسفل لتحديث القائمة من الخادم.</p>
+      <p><strong>حالات المصروف:</strong>
+        <span class="bg-yellow-100 text-yellow-800 px-1 rounded text-xs font-medium">قيد الاعتماد</span> ← ينتظر مراجعة المدير؛
+        <span class="bg-green-100 text-green-800 px-1 rounded text-xs font-medium">معتمد</span> ← تم الاعتماد؛
+        <span class="bg-stone-100 text-stone-600 px-1 rounded text-xs font-medium">مسودة</span> ← محفوظ ولم يُرسَل بعد.
+      </p>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-amber-800 mb-2">💡 نصائح</h3>
+      <ul class="list-disc list-inside space-y-1 text-amber-900">
+        <li>سجّل المصروف في نفس يوم الصرف — لا تؤجّل.</li>
+        <li>اختر مصدر الدفع الصحيح دائماً لضمان دقة توفيق النقدية عند إنهاء الشيفت.</li>
+        <li>إذا لم تجد سبب الصرف المناسب في القائمة، تواصل مع مديرك لإضافته.</li>
+        <li>المسوّدات محفوظة على الجهاز — إذا أغلقت النموذج تجده عند العودة.</li>
+      </ul>
+    </div>
+
+    <!-- Common issues -->
+    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-red-800 mb-2">⚠️ مشاكل شائعة</h3>
+      <ul class="list-disc list-inside space-y-1 text-red-900">
+        <li><strong>"لا توجد مصادر دفع":</strong> الفرع ليس لديه طرق دفع مُعدَّة للمصروفات. تواصل مع مديرك.</li>
+        <li><strong>"أدخل قيمة صحيحة":</strong> حقل القيمة فارغ أو يحتوي على رموز غير صالحة. أدخل رقماً (مثل 50 أو 50.5).</li>
+        <li><strong>المصروف لا يزال قيد الاعتماد منذ مدة:</strong> مديرك لم يراجعه بعد. تذكّره مباشرةً.</li>
+      </ul>
+    </div>
+
+    <div class="mt-10 flex justify-between no-print">
+      <a href="trips.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
+        → رحلات التوصيل
+      </a>
+      <a href="courier-balances.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
+        ← التالي: أرصدة المناديب
+      </a>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف · المصروفات</footer>
+</body>
+</html>

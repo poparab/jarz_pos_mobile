@@ -65,6 +65,15 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
           continue;
         }
 
+        final itemCodeSelections = _cloneItemCodeSelectionsForGroup(
+          initialSelections,
+          group,
+        );
+        if (itemCodeSelections.isNotEmpty) {
+          normalizedSelections[groupKey] = itemCodeSelections;
+          continue;
+        }
+
         normalizedSelections[groupKey] = [];
       }
 
@@ -88,6 +97,29 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
         .toList();
   }
 
+  List<Map<String, dynamic>> _cloneItemCodeSelectionsForGroup(
+    Map<String, List<Map<String, dynamic>>> initialSelections,
+    Map<String, dynamic> group,
+  ) {
+    final rawItems = group['items'] as List<dynamic>? ?? const [];
+    final selections = <Map<String, dynamic>>[];
+
+    for (final rawItem in rawItems.whereType<Map>()) {
+      final item = Map<String, dynamic>.from(rawItem);
+      final itemId = item['id']?.toString().trim() ?? '';
+      final itemName = item['name']?.toString().trim() ?? '';
+      final itemSelections =
+          initialSelections[itemId] ??
+          (itemName.isNotEmpty ? initialSelections[itemName] : null);
+      if (itemSelections == null || itemSelections.isEmpty) {
+        continue;
+      }
+      selections.addAll(_cloneSelectionList(itemSelections));
+    }
+
+    return selections;
+  }
+
   String _groupName(Map<String, dynamic> group) {
     final value = (group['group_name'] ?? group['item_group'] ?? group['title'])
         ?.toString()
@@ -103,8 +135,8 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
       return rawKey;
     }
 
-    final rawIndex = _asInt(group['group_index'] ?? group['idx']) ??
-        (fallbackIndex + 1);
+    final rawIndex =
+        _asInt(group['group_index'] ?? group['idx']) ?? (fallbackIndex + 1);
     return '${_groupName(group)}::$rawIndex';
   }
 
@@ -134,7 +166,9 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
               style: TextStyle(
                 color: _canAddToCart()
                     ? Theme.of(context).colorScheme.onPrimary
-                    : Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.5),
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onPrimary.withValues(alpha: 0.5),
                 fontWeight: FontWeight.bold,
                 fontSize: isPhone ? 13 : null,
               ),
@@ -160,10 +194,13 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                       Expanded(
                         child: Text(
                           widget.bundle['name'] ?? 'Bundle',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.bold,
+                              ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -177,10 +214,13 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                       const SizedBox(width: 4),
                       Text(
                         '\$${(widget.bundle['price'] ?? 0.0).toStringAsFixed(2)}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ],
                   )
@@ -189,26 +229,34 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                     children: [
                       Text(
                         widget.bundle['name'] ?? 'Bundle',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
                           Icon(
                             Icons.local_offer,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             '\$${(widget.bundle['price'] ?? 0.0).toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Theme.of(context).colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                         ],
                       ),
@@ -216,7 +264,9 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                       Text(
                         'Select items from each group below:',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
                         ),
                       ),
                     ],
@@ -325,14 +375,29 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: ResponsiveUtils.getBundleGridColumns(context),
                   childAspectRatio: isPhone ? 1.0 : 1.2,
-                  crossAxisSpacing: ResponsiveUtils.getSpacing(context, small: 4, medium: 8, large: 8),
-                  mainAxisSpacing: ResponsiveUtils.getSpacing(context, small: 4, medium: 8, large: 8),
+                  crossAxisSpacing: ResponsiveUtils.getSpacing(
+                    context,
+                    small: 4,
+                    medium: 8,
+                    large: 8,
+                  ),
+                  mainAxisSpacing: ResponsiveUtils.getSpacing(
+                    context,
+                    small: 4,
+                    medium: 8,
+                    large: 8,
+                  ),
                 ),
                 itemCount: availableItems.length,
                 itemBuilder: (context, itemIndex) {
                   final item =
                       availableItems[itemIndex] as Map<String, dynamic>;
-                  return _buildItemCard(item, groupKey, groupName, requiredQuantity);
+                  return _buildItemCard(
+                    item,
+                    groupKey,
+                    groupName,
+                    requiredQuantity,
+                  );
                 },
               )
             else
@@ -368,7 +433,10 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
 
     // Extract stock information (should now be consistent with main grid)
     final stockQty = _asDouble(item['qty'] ?? item['actual_qty']);
-    final remainingStock = (stockQty - selectedAcrossBundle).clamp(0, double.infinity);
+    final remainingStock = (stockQty - selectedAcrossBundle).clamp(
+      0,
+      double.infinity,
+    );
     // Debug: Log the stock values being received
     if (kDebugMode) {
       debugPrint(
@@ -467,7 +535,11 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.check, size: 10, color: Colors.white),
+                          const Icon(
+                            Icons.check,
+                            size: 10,
+                            color: Colors.white,
+                          ),
                           const SizedBox(width: 2),
                           Text(
                             '$selectedCount',
@@ -552,7 +624,9 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                                 ),
                               ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
                               child: Text(
                                 '$selectedCount',
                                 style: const TextStyle(
@@ -565,13 +639,18 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                             if (canActuallyAdd)
                               GestureDetector(
                                 behavior: HitTestBehavior.opaque,
-                                onTap: () =>
-                                    _addItemToSelection(item, groupKey, groupName),
+                                onTap: () => _addItemToSelection(
+                                  item,
+                                  groupKey,
+                                  groupName,
+                                ),
                                 child: Container(
                                   width: 32,
                                   height: 32,
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -774,7 +853,9 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
 
     var totalSelected = 0;
     for (final selections in selectedItems.values) {
-      totalSelected += selections.where((selected) => selected['id'] == itemId).length;
+      totalSelected += selections
+          .where((selected) => selected['id'] == itemId)
+          .length;
     }
     return totalSelected;
   }

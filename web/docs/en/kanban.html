@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban Board — Staff Guide</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="bg-stone-50 font-sans text-stone-800">
+
+  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
+      <a href="index.html" class="font-bold text-lg tracking-wide">JARZ POS</a>
+      <div class="flex flex-wrap gap-1 text-xs">
+        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">Login</a>
+        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">Shift</a>
+        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">POS Order</a>
+        <a href="kanban.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">Kanban</a>
+        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">Trips</a>
+        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">Expenses</a>
+        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">Courier Balances</a>
+      </div>
+      <a href="../ar/kanban.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">عربي</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-10">
+
+    <div class="flex items-center gap-3 mb-1">
+      <span class="text-3xl">📋</span>
+      <h1 class="text-2xl font-bold text-brand">Kanban Board</h1>
+    </div>
+    <p class="text-stone-500 mb-8">The Kanban is your central order management view. Move orders through their lifecycle, record payments, and dispatch for delivery.</p>
+
+    <div class="bg-brand-light border-l-4 border-brand rounded-r-xl px-5 py-4 mb-8 text-sm">
+      <strong class="text-brand">When to use:</strong> Throughout the day to track order status, confirm incoming orders, record payment receipts, and dispatch delivery trips.
+    </div>
+
+    <!-- Order status columns -->
+    <h2 class="text-lg font-semibold mb-4">Order Status Columns</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm">
+        <div class="font-bold text-blue-800 mb-1">📥 Recieved / Received</div>
+        <p class="text-blue-700">New order just submitted from POS. The app may show the first column as <strong>Recieved</strong>.</p>
+      </div>
+      <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm">
+        <div class="font-bold text-yellow-800 mb-1">🧑‍🍳 In Progress</div>
+        <p class="text-yellow-700">Order accepted and currently being prepared.</p>
+      </div>
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm">
+        <div class="font-bold text-emerald-800 mb-1">✅ Ready</div>
+        <p class="text-emerald-700">Order is prepared and ready for pickup or delivery dispatch.</p>
+      </div>
+      <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm">
+        <div class="font-bold text-orange-800 mb-1">🚚 Out for Delivery</div>
+        <p class="text-orange-700">Order dispatched with a courier. Delivery in progress.</p>
+      </div>
+      <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-sm">
+        <div class="font-bold text-green-800 mb-1">🎉 Delivered</div>
+        <p class="text-green-700">Order delivered and payment settled.</p>
+      </div>
+      <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-sm">
+        <div class="font-bold text-red-800 mb-1">⛔ Cancelled</div>
+        <p class="text-red-700">Cancelled invoices appear here for visibility and follow-up.</p>
+      </div>
+    </div>
+
+    <h2 class="text-lg font-semibold mb-4">Step-by-step: Daily Kanban Workflow</h2>
+
+    <div class="space-y-4 step-block">
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
+        <div>
+          <p class="font-semibold">Open the Kanban Board</p>
+          <p class="text-sm text-stone-600 mt-1">Tap <strong>Kanban</strong> from the side menu or the bottom navigation. All orders for your branch appear in their respective columns.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
+        <div>
+          <p class="font-semibold">Accept a new order</p>
+          <p class="text-sm text-stone-600 mt-1">Find the order in the <strong>Recieved / Received</strong> column. Tap the order card, then tap <strong>Accept Order</strong> if the button is shown. Move or update the order to <strong>In Progress</strong> when preparation starts.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
+        <div>
+          <p class="font-semibold">Move the order to Ready when prepared</p>
+          <p class="text-sm text-stone-600 mt-1">When production is finished, move or update the order to <strong>Ready</strong>. Ready means the order can now be picked up by the customer or assigned to a delivery trip.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">4</span>
+        <div>
+          <p class="font-semibold">Record a payment receipt if needed</p>
+          <p class="text-sm text-stone-600 mt-1">On an order card, tap <strong>More Options (⋮)</strong> → <strong>Payment Receipts</strong>. Add a new receipt by entering the amount and payment method. Receipts await manager confirmation before the order is considered fully paid.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">5</span>
+        <div>
+          <p class="font-semibold">Move Ready orders to Out for Delivery</p>
+          <p class="text-sm text-stone-600 mt-1">When a delivery order is ready to dispatch, tap the order card → tap the <strong>Delivery</strong> action button. A dialog asks you to confirm payment status and assign a courier. If the order is unpaid, choose the correct courier collection option before proceeding.<br><br>If the order is going into a <a href="trips.html" class="text-brand underline">Delivery Trip</a>, use the Trips screen instead.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">6</span>
+        <div>
+          <p class="font-semibold">Delivered and Cancelled orders</p>
+          <p class="text-sm text-stone-600 mt-1">After delivery is confirmed, the order appears in <strong>Delivered</strong>. Orders cancelled by an authorized user appear in <strong>Cancelled</strong>. Cancelled is not a normal delivery step; it is a visibility column for orders that were stopped.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Filters & search -->
+    <h2 class="text-lg font-semibold mt-10 mb-4">Filters &amp; Search</h2>
+    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm space-y-2">
+      <p><strong>Show Filters:</strong> Tap the filter icon to filter by customer name, status, date range, or amount range.</p>
+      <p><strong>Search orders:</strong> Use the search bar to find an order by customer name or invoice number.</p>
+      <p><strong>Filter by Branch:</strong> If you have access to multiple branches (unusual for staff), use the branch filter dropdown.</p>
+      <p><strong>Refresh Orders:</strong> Tap the refresh icon to pull the latest orders from the server.</p>
+    </div>
+
+    <!-- Edit invoice -->
+    <h2 class="text-lg font-semibold mt-10 mb-4">Editing an Invoice (Amendment)</h2>
+    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm">
+      <p class="text-stone-700">If you need to correct a submitted order (e.g. wrong item, wrong quantity), tap the order card → <strong>More Options (⋮)</strong> → <strong>Edit Invoice</strong>. This opens an amendment draft in the POS. Make corrections, then tap <strong>Submit Amendment</strong>. The original invoice is replaced.</p>
+      <p class="text-stone-700 mt-2">The <strong>Edit Invoice</strong> option only appears on invoices that can still be amended (i.e. not yet Out for Delivery, Delivered, or Cancelled).</p>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-amber-800 mb-2">💡 Tips</h3>
+      <ul class="list-disc list-inside space-y-1 text-amber-900">
+        <li>Check the Kanban at the start of every shift to see if any overnight orders are still in Recieved / Received.</li>
+        <li>An order with a red "UNPAID" badge must have payment collected before marking Out for Delivery.</li>
+        <li>Use <strong>Change Delivery Slot</strong> (via More Options) if the customer requests a different time after ordering.</li>
+      </ul>
+    </div>
+
+    <!-- Common issues -->
+    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
+      <h3 class="font-bold text-red-800 mb-2">⚠️ Common Issues</h3>
+      <ul class="list-disc list-inside space-y-1 text-red-900">
+        <li><strong>Order does not move to next column:</strong> The server action may have failed. Check your internet connection and try again.</li>
+        <li><strong>"Invoice is UNPAID" warning:</strong> Collect payment from the customer or choose the courier-collects option before dispatching.</li>
+        <li><strong>Cannot find an order:</strong> Use the search bar or clear all filters. Orders older than the current date range may be filtered out.</li>
+      </ul>
+    </div>
+
+    <div class="mt-10 flex justify-between no-print">
+      <a href="pos.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
+        ← POS Order Entry
+      </a>
+      <a href="trips.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
+        Next: Delivery Trips →
+      </a>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · Staff Guide · Kanban Board</footer>
+</body>
+</html>
