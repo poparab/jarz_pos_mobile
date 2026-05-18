@@ -64,6 +64,10 @@ class InvoiceCard {
   final bool? requiresAcceptanceFlag; // optional flag directly from backend
   final String? paymentMethod; // new: Cash, Instapay, or Mobile Wallet
   final String? actualPaymentMethod; // actual payment method from Payment Entry when paid
+  final String? paymentReceiptName;
+  final String? paymentReceiptMethod;
+  final String? paymentReceiptStatus;
+  final String? paymentReceiptImageUrl;
   final String? posProfile; // Effective Kanban branch: custom_kanban_profile first, then pos_profile
   final double outstandingAmount;
   final int? docstatusValue;
@@ -114,6 +118,10 @@ class InvoiceCard {
   this.requiresAcceptanceFlag,
   this.paymentMethod,
   this.actualPaymentMethod,
+  this.paymentReceiptName,
+  this.paymentReceiptMethod,
+  this.paymentReceiptStatus,
+  this.paymentReceiptImageUrl,
   this.posProfile,
     this.outstandingAmount = 0.0,
     this.docstatusValue,
@@ -194,6 +202,10 @@ class InvoiceCard {
       requiresAcceptanceFlag: requiresAcceptanceFlag,
       paymentMethod: (json['payment_method'] ?? json['custom_payment_method'])?.toString(),
       actualPaymentMethod: json['actual_payment_method']?.toString(),
+      paymentReceiptName: json['payment_receipt_name']?.toString(),
+      paymentReceiptMethod: json['payment_receipt_method']?.toString(),
+      paymentReceiptStatus: json['payment_receipt_status']?.toString(),
+      paymentReceiptImageUrl: json['payment_receipt_image_url']?.toString(),
       posProfile: (json['custom_kanban_profile'] ?? json['pos_profile'])?.toString(),
       outstandingAmount: (double.tryParse((json['outstanding_amount'] ?? json['outstandingAmount'] ?? 0).toString()) ?? 0.0),
       docstatusValue: json['docstatus_value'] is int
@@ -249,6 +261,10 @@ class InvoiceCard {
   'requires_acceptance': requiresAcceptanceFlag,
   'payment_method': paymentMethod,
   'actual_payment_method': actualPaymentMethod,
+  'payment_receipt_name': paymentReceiptName,
+  'payment_receipt_method': paymentReceiptMethod,
+  'payment_receipt_status': paymentReceiptStatus,
+  'payment_receipt_image_url': paymentReceiptImageUrl,
   'pos_profile': posProfile,
       'outstanding_amount': outstandingAmount,
       'docstatus_value': docstatusValue,
@@ -300,6 +316,10 @@ class InvoiceCard {
   bool? requiresAcceptanceFlag,
   String? paymentMethod,
   String? actualPaymentMethod,
+  String? paymentReceiptName,
+  String? paymentReceiptMethod,
+  String? paymentReceiptStatus,
+  String? paymentReceiptImageUrl,
   String? posProfile,
   double? outstandingAmount,
   int? docstatusValue,
@@ -349,6 +369,10 @@ class InvoiceCard {
   requiresAcceptanceFlag: requiresAcceptanceFlag ?? this.requiresAcceptanceFlag,
   paymentMethod: paymentMethod ?? this.paymentMethod,
   actualPaymentMethod: actualPaymentMethod ?? this.actualPaymentMethod,
+  paymentReceiptName: paymentReceiptName ?? this.paymentReceiptName,
+  paymentReceiptMethod: paymentReceiptMethod ?? this.paymentReceiptMethod,
+  paymentReceiptStatus: paymentReceiptStatus ?? this.paymentReceiptStatus,
+  paymentReceiptImageUrl: paymentReceiptImageUrl ?? this.paymentReceiptImageUrl,
   posProfile: posProfile ?? this.posProfile,
       outstandingAmount: outstandingAmount ?? this.outstandingAmount,
       docstatusValue: docstatusValue ?? this.docstatusValue,
@@ -401,6 +425,12 @@ class InvoiceCard {
   }
 
   bool get isFullyPaid => outstandingAmount.abs() <= _cancellationTolerance;
+
+  bool get hasUploadedPaymentReceipt {
+    final name = (paymentReceiptName ?? '').trim();
+    final imageUrl = (paymentReceiptImageUrl ?? '').trim();
+    return name.isNotEmpty && imageUrl.isNotEmpty;
+  }
 
   bool get isFullyUnpaid {
     if (grandTotal.abs() <= _cancellationTolerance) {

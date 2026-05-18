@@ -1,8 +1,10 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/kanban_models.dart';
 import '../providers/kanban_provider.dart';
@@ -19,6 +21,7 @@ import '../../manager/data/manager_api.dart';
 import '../../manager/state/manager_providers.dart';
 import 'settlement_preview_dialog.dart';
 import 'cancel_order_dialog.dart';
+import 'payment_collection_change_dialog.dart';
 import 'sub_territory_selection_sheet.dart';
 import 'custom_shipping_request_dialog.dart';
 import '../../printing/pos_printer_provider.dart';
@@ -107,6 +110,114 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         _animationController.reverse();
       }
     });
+  }
+
+  String? _resolvePaymentReceiptUrl(String? rawUrl) {
+    final value = (rawUrl ?? '').trim();
+    if (value.isEmpty) {
+      return null;
+    }
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      return value;
+    }
+    final baseUrl = dotenv.get('ERP_BASE_URL', fallback: '').trim();
+    if (baseUrl.isEmpty) {
+      return null;
+    }
+    final normalizedBase =
+        baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+    final normalizedPath = value.startsWith('/') ? value : '/$value';
+    return '$normalizedBase$normalizedPath';
+  }
+
+  Future<void> _openPaymentReceipt(String? rawUrl) async {
+    final resolvedUrl = _resolvePaymentReceiptUrl(rawUrl);
+    if (resolvedUrl == null) {
+      return;
+    }
+    final uri = Uri.tryParse(resolvedUrl);
+    if (uri == null) {
+      return;
+    }
+    await launchUrl(uri);
+  }
+
+  Widget _buildPaymentReceiptPreview(BuildContext context) {
+    final resolvedUrl = _resolvePaymentReceiptUrl(widget.invoice.paymentReceiptImageUrl);
+    if (resolvedUrl == null) {
+      return const SizedBox.shrink();
+    }
+
+    final receiptMethod = localizedPaymentMethodLabel(
+      context,
+      widget.invoice.paymentReceiptMethod,
+    );
+    final receiptStatus = localizedStatusLabel(
+      context,
+      widget.invoice.paymentReceiptStatus ?? 'Unconfirmed',
+    );
+
+    return InkWell(
+      onTap: () => _openPaymentReceipt(widget.invoice.paymentReceiptImageUrl),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.blueGrey.withValues(alpha: 0.2)),
+          color: Colors.blueGrey.withValues(alpha: 0.04),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                resolvedUrl,
+                width: 56,
+                height: 56,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 56,
+                  height: 56,
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.receipt_long_outlined),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    receiptMethod,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    receiptStatus,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () => _openPaymentReceipt(widget.invoice.paymentReceiptImageUrl),
+              icon: const Icon(Icons.open_in_new, size: 16),
+              label: Text(context.l10n.commonPreview),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _printInvoice(BuildContext context) async {
@@ -456,6 +567,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
     // Add three-dot menu for additional actions
     final isLineManager = ref.watch(isLineManagerProvider);
+    final managerAccessAsync = ref.watch(managerAccessProvider);
+    final canManageCollectionChange = managerAccessAsync.maybeWhen(
+      data: (value) => value,
+      orElse: () => false,
+    );
+    final canShowCollectionChange = _canShowCollectionChangeAction(
+      canManageCollectionChange,
+    );
     
     trailingWidgets.add(
       Tooltip(
@@ -484,6 +603,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               await _openAmendmentDraft(context);
             } else if (value == 'cancel_order') {
               await _cancelOrder(context);
+            } else if (value == 'change_collection_method') {
+              await _changeCollectionMethod(context);
             } else if (value == 'request_custom_shipping') {
               await _requestCustomShipping(context);
             }
@@ -518,6 +639,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                     const Icon(Icons.edit_note, size: 18),
                     const SizedBox(width: 8),
                     Text(l10n.invoiceEditInvoice),
+                  ],
+                ),
+              ),
+            if (canShowCollectionChange)
+              PopupMenuItem(
+                value: 'change_collection_method',
+                child: Row(
+                  children: [
+                    const Icon(Icons.sync_alt, size: 18),
+                    const SizedBox(width: 8),
+                    Text(l10n.invoiceChangeCollectionMethod),
                   ],
                 ),
               ),
@@ -908,6 +1040,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                         ),
                       ],
                     ),
+
+                    if (widget.invoice.hasUploadedPaymentReceipt)
+                      _buildPaymentReceiptPreview(context),
 
                     // Sub-territory chip
                     if (widget.invoice.hasSubTerritories) ...[
@@ -1416,6 +1551,106 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       );
       messenger.showSnackBar(
         SnackBar(content: Text(context.l10n.invoicePaymentError(errorMessage))),
+      );
+    }
+  }
+
+  bool _canShowCollectionChangeAction(bool hasManagerAccess) {
+    if (!hasManagerAccess ||
+        !widget.invoice.hasUnsettledCourierTxn ||
+        widget.invoice.isPickup ||
+        widget.invoice.isReturn ||
+        (widget.invoice.salesPartner?.trim().isNotEmpty ?? false)) {
+      return false;
+    }
+
+    final status = widget.invoice.status.trim().toLowerCase();
+    return status.contains(DeliveryStatus.outForDelivery) ||
+        status.contains(DeliveryStatus.outForDeliverySnake) ||
+        status.contains(DeliveryStatus.delivered);
+  }
+
+  Future<void> _changeCollectionMethod(BuildContext context) async {
+    final posState = ref.read(posNotifierProvider);
+    final notifier = ref.read(kanbanProvider.notifier);
+    final posProfile =
+        (widget.invoice.posProfile ?? posState.selectedProfile?['name'])
+            ?.toString();
+
+    final request = await PaymentCollectionChangeDialog.show(
+      context,
+      invoice: widget.invoice,
+      posProfile: posProfile,
+    );
+    if (request == null || !context.mounted) {
+      return;
+    }
+
+    final messenger = ScaffoldMessenger.of(context);
+    if (posProfile == null || posProfile.isEmpty) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(context.l10n.invoiceSelectPosFirst)),
+      );
+      return;
+    }
+
+    try {
+      messenger.showSnackBar(
+        SnackBar(content: Text(context.l10n.invoiceChangingCollectionMethod)),
+      );
+      final result = await ref
+          .read(courierServiceProvider)
+          .changePaymentCollectionMethod(
+            invoiceName: widget.invoice.name,
+            newMethod: request.method,
+            posProfile: posProfile,
+            partyType: widget.invoice.courierPartyType,
+            party: widget.invoice.courierParty,
+            receiptName: request.receiptName,
+            referenceNo: request.referenceNo,
+            notes: request.notes,
+            idempotencyToken: const Uuid().v4(),
+          );
+
+      if (!context.mounted) {
+        return;
+      }
+
+      if (result['success'] == true) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.invoiceCollectionMethodChanged(
+                localizedPaymentMethodLabel(context, request.method),
+              ),
+            ),
+          ),
+        );
+        try {
+          await notifier.refreshSingle(widget.invoice.name);
+        } catch (_) {
+          await notifier.loadInvoices();
+        }
+        return;
+      }
+
+      messenger.showSnackBar(
+        SnackBar(content: Text(context.l10n.invoiceDeliveryFailed)),
+      );
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      final errorMessage = extractFrappeErrorMessage(
+        error,
+        fallback: context.l10n.invoiceDeliveryFailed,
+      );
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.invoiceCollectionMethodChangeError(errorMessage),
+          ),
+        ),
       );
     }
   }

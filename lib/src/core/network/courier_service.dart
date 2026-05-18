@@ -154,6 +154,51 @@ class CourierService {
     }
   }
 
+  Future<Map<String, dynamic>> changePaymentCollectionMethod({
+    required String invoiceName,
+    required String newMethod,
+    required String posProfile,
+    String? partyType,
+    String? party,
+    String? referenceNo,
+    String? referenceDate,
+    String? receiptName,
+    String? notes,
+    String? idempotencyToken,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.changePaymentCollectionMethod,
+        data: {
+          'invoice_name': invoiceName,
+          'new_method': newMethod,
+          'pos_profile': posProfile,
+          if (partyType != null && partyType.trim().isNotEmpty)
+            'party_type': partyType,
+          if (party != null && party.trim().isNotEmpty) 'party': party,
+          if (referenceNo != null && referenceNo.trim().isNotEmpty)
+            'reference_no': referenceNo,
+          if (referenceDate != null && referenceDate.trim().isNotEmpty)
+            'reference_date': referenceDate,
+          if (receiptName != null && receiptName.trim().isNotEmpty)
+            'receipt_name': receiptName,
+          if (notes != null && notes.trim().isNotEmpty) 'notes': notes,
+          if (idempotencyToken != null && idempotencyToken.trim().isNotEmpty)
+            'idempotency_token': idempotencyToken,
+        },
+      );
+      return _parseMethodResponse(
+        resp.data,
+        fallback: 'Failed to change collection method',
+      );
+    } catch (error) {
+      throw mapFrappeError(
+        error,
+        fallback: 'Failed to change collection method',
+      );
+    }
+  }
+
   Future<Map<String, dynamic>> settleAllForParty({
     required String posProfile,
     String? partyType,

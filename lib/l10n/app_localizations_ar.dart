@@ -2396,6 +2396,35 @@ class AppLocalizationsAr extends AppLocalizations {
   String get invoiceSelectPosFirst => 'اختر ملف نقطة البيع أولاً';
 
   @override
+  String get invoiceChangeCollectionMethod => 'تغيير طريقة التحصيل';
+
+  @override
+  String get invoiceRequestedPaymentMethod => 'الطريقة المطلوبة';
+
+  @override
+  String get invoiceActualCollectionMethod => 'التحصيل الفعلي';
+
+  @override
+  String get invoiceCollectionReferenceLabel => 'رقم المرجع';
+
+  @override
+  String get invoiceCollectionReferenceRequired =>
+      'التحصيل الإلكتروني يتطلب رقم مرجع.';
+
+  @override
+  String get invoiceChangingCollectionMethod => 'جارٍ تغيير طريقة التحصيل...';
+
+  @override
+  String invoiceCollectionMethodChanged(Object method) {
+    return 'تم تغيير طريقة التحصيل إلى $method';
+  }
+
+  @override
+  String invoiceCollectionMethodChangeError(Object error) {
+    return 'خطأ في تغيير طريقة التحصيل: $error';
+  }
+
+  @override
   String get invoiceCollectingCashPartner =>
       'جارٍ تحصيل النقد والإرسال (شريك مبيعات)...';
 

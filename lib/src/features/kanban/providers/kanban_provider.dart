@@ -192,9 +192,16 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       _kanbanSub = _wsService?.kanbanUpdates.listen((event) {
         final invoiceId = event['invoice'] as String? ?? event['invoice_id'] as String?;
         final eventName = (event['event'] ?? '').toString().toLowerCase();
+        final paymentChanged = const [true, 1, '1', 'true', 'True']
+            .contains(event['payment_changed']);
 
         if (eventName.contains('custom_shipping') || eventName.contains('trip_')) {
           loadInvoices();
+          return;
+        }
+
+        if (paymentChanged && invoiceId != null) {
+          refreshSingle(invoiceId);
           return;
         }
 

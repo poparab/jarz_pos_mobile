@@ -109,6 +109,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.couriers.settle_single_invoice_paid';
   static const settleCourierCollectedPayment =
       '/api/method/jarz_pos.api.couriers.settle_courier_collected_payment';
+  static const changePaymentCollectionMethod =
+      '/api/method/jarz_pos.api.couriers.change_payment_collection_method';
   static const generateSettlementPreview =
       '/api/method/jarz_pos.api.couriers.generate_settlement_preview';
   static const confirmSettlement =

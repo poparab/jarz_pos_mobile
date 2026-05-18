@@ -4240,6 +4240,54 @@ abstract class AppLocalizations {
   /// **'Select POS profile first'**
   String get invoiceSelectPosFirst;
 
+  /// No description provided for @invoiceChangeCollectionMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Change collection method'**
+  String get invoiceChangeCollectionMethod;
+
+  /// No description provided for @invoiceRequestedPaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested method'**
+  String get invoiceRequestedPaymentMethod;
+
+  /// No description provided for @invoiceActualCollectionMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual collection'**
+  String get invoiceActualCollectionMethod;
+
+  /// No description provided for @invoiceCollectionReferenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference number'**
+  String get invoiceCollectionReferenceLabel;
+
+  /// No description provided for @invoiceCollectionReferenceRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Online collection requires a reference number.'**
+  String get invoiceCollectionReferenceRequired;
+
+  /// No description provided for @invoiceChangingCollectionMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Changing collection method...'**
+  String get invoiceChangingCollectionMethod;
+
+  /// No description provided for @invoiceCollectionMethodChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection method changed to {method}'**
+  String invoiceCollectionMethodChanged(Object method);
+
+  /// No description provided for @invoiceCollectionMethodChangeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection method error: {error}'**
+  String invoiceCollectionMethodChangeError(Object error);
+
   /// No description provided for @invoiceCollectingCashPartner.
   ///
   /// In en, this message translates to:

@@ -2398,6 +2398,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invoiceSelectPosFirst => 'Select POS profile first';
 
   @override
+  String get invoiceChangeCollectionMethod => 'Change collection method';
+
+  @override
+  String get invoiceRequestedPaymentMethod => 'Requested method';
+
+  @override
+  String get invoiceActualCollectionMethod => 'Actual collection';
+
+  @override
+  String get invoiceCollectionReferenceLabel => 'Reference number';
+
+  @override
+  String get invoiceCollectionReferenceRequired =>
+      'Online collection requires a reference number.';
+
+  @override
+  String get invoiceChangingCollectionMethod => 'Changing collection method...';
+
+  @override
+  String invoiceCollectionMethodChanged(Object method) {
+    return 'Collection method changed to $method';
+  }
+
+  @override
+  String invoiceCollectionMethodChangeError(Object error) {
+    return 'Collection method error: $error';
+  }
+
+  @override
   String get invoiceCollectingCashPartner =>
       'Collecting cash & dispatching (Sales Partner)...';
 
