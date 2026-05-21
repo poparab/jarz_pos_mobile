@@ -5,6 +5,7 @@ import io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService
 
 class JarzFirebaseMessagingService : FlutterFirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        OrderAlertNative.prepareNotificationChannels(applicationContext)
         val data = remoteMessage.data
         if (data.isNotEmpty()) {
             when (data["type"]) {

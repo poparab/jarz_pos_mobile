@@ -432,6 +432,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
 
   Widget _buildKanbanContent(KanbanState kanbanState) {
     final tripState = ref.watch(tripProvider);
+    final hasInvoices = kanbanState.invoices.values.any((list) => list.isNotEmpty);
 
     if (kanbanState.isLoading && kanbanState.columns.isEmpty) {
       return const Center(child: CircularProgressIndicator());
@@ -493,6 +494,50 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               child: Text(context.l10n.commonRetry),
             ),
           ],
+        ),
+      );
+    }
+
+    if (!hasInvoices && kanbanState.filters.hasFilters) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.search_off_rounded,
+                size: 64,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                context.l10n.masterOrdersNoResults,
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                context.l10n.kanbanFilterActiveCount(
+                  _getActiveFilterCount(kanbanState.filters),
+                ),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              FilledButton.tonal(
+                onPressed: () {
+                  ref.read(kanbanProvider.notifier).updateFilters(const KanbanFilters());
+                  if (!_showFilters) {
+                    setState(() => _showFilters = true);
+                  }
+                },
+                child: Text(context.l10n.kanbanFilterClearAll),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -575,6 +620,16 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         if (tripState.multiSelectActive) _buildTripSelectionBar(kanbanState, tripState),
       ],
     );
+  }
+
+  int _getActiveFilterCount(KanbanFilters filters) {
+    int count = 0;
+    if (filters.searchTerm.trim().isNotEmpty) count++;
+    if (filters.customer?.isNotEmpty == true) count++;
+    if (filters.status?.isNotEmpty == true) count++;
+    if (filters.dateFrom != null || filters.dateTo != null) count++;
+    if (filters.amountFrom != null || filters.amountTo != null) count++;
+    return count;
   }
 
   Widget _buildOFDTripGroupedList( List<InvoiceCard> invoices, TripState tripState) {

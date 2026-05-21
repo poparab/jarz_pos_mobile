@@ -9,6 +9,7 @@ import 'package:jarz_pos/src/core/websocket/websocket_service.dart';
 import 'package:jarz_pos/src/features/kanban/models/kanban_filter_options.dart';
 import 'package:jarz_pos/src/features/kanban/models/kanban_models.dart';
 import 'package:jarz_pos/src/features/kanban/providers/kanban_provider.dart';
+import 'package:jarz_pos/src/features/pos/data/models/draft_cart.dart';
 import 'package:jarz_pos/src/features/kanban/services/kanban_service.dart';
 import 'package:jarz_pos/src/features/kanban/services/notification_polling_service.dart';
 import 'package:jarz_pos/src/features/pos/data/repositories/draft_cart_repository.dart';
@@ -231,8 +232,22 @@ class _DummyPosRepository extends PosRepository {
   Future<List<Map<String, dynamic>>> getBundles(String posProfile) async => const [];
 }
 
+class _FakeDraftCartRepository extends DraftCartRepository {
+  @override
+  Future<List<DraftCart>> loadAll() async => const [];
+
+  @override
+  Future<void> upsert(DraftCart draft) async {}
+
+  @override
+  Future<void> delete(String id) async {}
+
+  @override
+  Future<void> clearAll() async {}
+}
+
 class _PosNotifierStub extends PosNotifier {
-  _PosNotifierStub() : super(_DummyPosRepository(), DraftCartRepository()) {
+  _PosNotifierStub() : super(_DummyPosRepository(), _FakeDraftCartRepository()) {
     state = state.copyWith(
       profiles: const [
         {'name': 'Main'},

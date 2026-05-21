@@ -705,9 +705,9 @@ class KanbanFilters {
 
   Map<String, dynamic> toJson() {
     return {
-      'searchTerm': searchTerm,
-      'customer': customer,
-      'status': status,
+      'searchTerm': searchTerm.trim(),
+      if (customer?.isNotEmpty == true) 'customer': customer,
+      if (status?.isNotEmpty == true) 'status': status,
       'dateFrom': dateFrom?.toIso8601String(),
       'dateTo': dateTo?.toIso8601String(),
       'amountFrom': amountFrom,
@@ -723,22 +723,28 @@ class KanbanFilters {
     DateTime? dateTo,
     double? amountFrom,
     double? amountTo,
+    bool clearCustomer = false,
+    bool clearStatus = false,
+    bool clearDateFrom = false,
+    bool clearDateTo = false,
+    bool clearAmountFrom = false,
+    bool clearAmountTo = false,
   }) {
     return KanbanFilters(
       searchTerm: searchTerm ?? this.searchTerm,
-      customer: customer ?? this.customer,
-      status: status ?? this.status,
-      dateFrom: dateFrom ?? this.dateFrom,
-      dateTo: dateTo ?? this.dateTo,
-      amountFrom: amountFrom ?? this.amountFrom,
-      amountTo: amountTo ?? this.amountTo,
+      customer: clearCustomer ? null : (customer ?? this.customer),
+      status: clearStatus ? null : (status ?? this.status),
+      dateFrom: clearDateFrom ? null : (dateFrom ?? this.dateFrom),
+      dateTo: clearDateTo ? null : (dateTo ?? this.dateTo),
+      amountFrom: clearAmountFrom ? null : (amountFrom ?? this.amountFrom),
+      amountTo: clearAmountTo ? null : (amountTo ?? this.amountTo),
     );
   }
 
   bool get hasFilters =>
-      searchTerm.isNotEmpty ||
-      customer != null ||
-      status != null ||
+      searchTerm.trim().isNotEmpty ||
+      (customer?.isNotEmpty == true) ||
+      (status?.isNotEmpty == true) ||
       dateFrom != null ||
       dateTo != null ||
       amountFrom != null ||

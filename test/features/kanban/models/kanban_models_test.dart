@@ -308,6 +308,51 @@ void main() {
       expect(updated.status, 'Paid');
       expect(updated.hasFilters, isTrue);
     });
+
+    test('copyWith clears nullable fields when requested', () {
+      final filters = KanbanFilters(
+        searchTerm: '  ',
+        customer: 'CUST-1',
+        status: 'Paid',
+        dateFrom: DateTime(2026, 1, 1),
+        dateTo: DateTime(2026, 1, 31),
+        amountFrom: 100,
+        amountTo: 500,
+      );
+
+      final updated = filters.copyWith(
+        clearCustomer: true,
+        clearStatus: true,
+        clearDateFrom: true,
+        clearDateTo: true,
+        clearAmountFrom: true,
+        clearAmountTo: true,
+      );
+
+      expect(updated.customer, isNull);
+      expect(updated.status, isNull);
+      expect(updated.dateFrom, isNull);
+      expect(updated.dateTo, isNull);
+      expect(updated.amountFrom, isNull);
+      expect(updated.amountTo, isNull);
+      expect(updated.hasFilters, isFalse);
+    });
+
+    test('toJson trims search and omits empty nullable filters', () {
+      const filters = KanbanFilters(
+        searchTerm: '  inv-1  ',
+        customer: '',
+        status: '',
+      );
+
+      expect(filters.toJson(), {
+        'searchTerm': 'inv-1',
+        'dateFrom': null,
+        'dateTo': null,
+        'amountFrom': null,
+        'amountTo': null,
+      });
+    });
   });
 
   group('KanbanState', () {

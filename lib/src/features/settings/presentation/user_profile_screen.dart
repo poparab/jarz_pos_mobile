@@ -247,7 +247,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Choose the sound for order notifications:',
+                        'Choose the in-app staff alarm sound:',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.grey[600],
                             ),
@@ -511,7 +511,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'The alarm sound will play when you receive new order notifications.',
+                          'This sound is used for the in-app staff alarm. Closed-app order notifications use the app order tone.',
                           style: TextStyle(
                             color: Colors.blue[900],
                             fontSize: 13,

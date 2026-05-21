@@ -27,6 +27,7 @@ object OrderAlertNative {
     private const val MAX_EXPANDED_ITEM_LINES = 4
     const val CHANNEL_ID = "jarz_order_alerts"
     private const val SHIFT_CHANNEL_ID = "jarz_shift_updates"
+    private const val ORDER_NOTIFICATION_SOUND_RESOURCE = "jarz_order_alert_notification"
 
     private var mediaPlayer: MediaPlayer? = null
     private var audioManager: AudioManager? = null
@@ -38,7 +39,7 @@ object OrderAlertNative {
     private var selectedAlarmUri: String? = null
 
     fun prepareNotificationChannels(context: Context) {
-        ensureChannel(context, recreateIfSoundChanged = false)
+        ensureChannel(context, recreateIfSoundChanged = true)
         ensureShiftChannel(context)
     }
 
@@ -104,7 +105,7 @@ object OrderAlertNative {
     }
 
     fun showNotification(context: Context, data: Map<String, String>) {
-        ensureChannel(context, recreateIfSoundChanged = false)
+        ensureChannel(context, recreateIfSoundChanged = true)
 
         val invoiceId = data["invoice_id"] ?: ""
         val notificationId = if (invoiceId.isNotEmpty()) invoiceId.hashCode() else DEFAULT_NOTIFICATION_ID
@@ -163,7 +164,6 @@ object OrderAlertNative {
 
     fun setAlarmSound(context: Context, uriString: String?): String? {
         selectedAlarmUri = canonicalizeSoundUri(context, uriString)
-        ensureChannel(context, recreateIfSoundChanged = true)
         return selectedAlarmUri
     }
 
@@ -365,8 +365,23 @@ object OrderAlertNative {
     }
 
     private fun resolveNotificationSoundUri(context: Context): Uri {
-        resolveSelectedSoundUri(context)?.let { return it }
+        resolveBundledNotificationSoundUri(context)?.let { return it }
         return fallbackNotificationUri()
+    }
+
+    private fun resolveBundledNotificationSoundUri(context: Context): Uri? {
+        val resourceId = context.resources.getIdentifier(
+            ORDER_NOTIFICATION_SOUND_RESOURCE,
+            "raw",
+            context.packageName,
+        )
+        if (resourceId == 0) {
+            return null
+        }
+
+        return Uri.parse(
+            "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/raw/$ORDER_NOTIFICATION_SOUND_RESOURCE",
+        )
     }
 
     private fun resolveSelectedSoundUri(context: Context): Uri? {
