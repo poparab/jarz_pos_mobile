@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/network/user_service.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../state/pos_notifier.dart';
 import '../dialogs/payment_method_dialog.dart';
@@ -18,6 +19,10 @@ class CartWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final state = ref.watch(posNotifierProvider);
+    final canManagePricing = ref.watch(userRolesFutureProvider).maybeWhen(
+      data: (roles) => roles.canAccessManagerDashboard,
+      orElse: () => false,
+    );
     final cartItems = state.cartItems;
     final hasAmendmentSource =
         !state.isAmendmentDraft ||
@@ -103,6 +108,14 @@ class CartWidget extends ConsumerWidget {
               ),
             ),
 
+            if (canManagePricing && state.selectedProfile != null)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: contentPadding,
+                  child: _buildManagerPricingControls(context, ref, state),
+                ),
+              ),
+
             // Items or empty state
             if (cartItems.isEmpty)
               SliverFillRemaining(
@@ -116,7 +129,13 @@ class CartWidget extends ConsumerWidget {
                   final cartItem = cartItems[index];
                   return Padding(
                     padding: contentPadding,
-                    child: _buildCartItem(context, ref, cartItem, index),
+                    child: _buildCartItem(
+                      context,
+                      ref,
+                      cartItem,
+                      index,
+                      canManagePricing: canManagePricing,
+                    ),
                   );
                 },
               ),
@@ -484,11 +503,33 @@ class CartWidget extends ConsumerWidget {
     WidgetRef ref,
     Map<String, dynamic> cartItem,
     int index,
+    {required bool canManagePricing}
   ) {
     final l10n = context.l10n;
     final isPhone = ResponsiveUtils.isPhone(context);
+    double readAmount(dynamic value) {
+      if (value is num) {
+        return value.toDouble();
+      }
+      return double.tryParse(value?.toString() ?? '') ?? 0.0;
+    }
+
     final quantity = (cartItem['quantity'] ?? 1) as int;
-    final rate = ((cartItem['rate'] ?? 0) as num).toDouble();
+    final rate = readAmount(cartItem['rate']);
+    final baseRate = readAmount(cartItem['price_list_rate'] ?? cartItem['rate']);
+    final customRate = cartItem.containsKey('custom_rate_override')
+        ? readAmount(cartItem['custom_rate_override'])
+        : null;
+    final discountAmount = cartItem.containsKey('discount_amount')
+        ? readAmount(cartItem['discount_amount'])
+        : null;
+    final discountPercentage = cartItem.containsKey('discount_percentage')
+        ? readAmount(cartItem['discount_percentage'])
+        : null;
+    final hasPricingOverride =
+        customRate != null ||
+        (discountAmount != null && discountAmount > 0) ||
+        (discountPercentage != null && discountPercentage > 0);
     final total = quantity.toDouble() * rate;
     final isBundle = cartItem['type'] == 'bundle';
     final isShipping = cartItem['is_shipping'] == true;
@@ -541,6 +582,14 @@ class CartWidget extends ConsumerWidget {
                     tooltip: l10n.posCartEditBundle,
                     visualDensity: VisualDensity.compact,
                   ),
+                if (canManagePricing && !isShipping)
+                  IconButton(
+                    icon: Icon(Icons.price_change, size: isPhone ? 18 : 20),
+                    onPressed: () =>
+                        _showItemPricingDialog(context, ref, cartItem, index),
+                    tooltip: l10n.posCartItemPricingDialogTitle,
+                    visualDensity: VisualDensity.compact,
+                  ),
                 if (!isShipping) // Don't allow removing shipping items
                   IconButton(
                     icon: Icon(Icons.delete, size: isPhone ? 18 : 20),
@@ -559,6 +608,37 @@ class CartWidget extends ConsumerWidget {
             else if (isBundle && cartItem['bundle_details'] != null)
               _buildBundleDetails(context, cartItem['bundle_details']),
 
+            if (hasPricingOverride) ...[
+              SizedBox(height: isPhone ? 6 : 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  if (customRate != null)
+                    _buildPricingChip(
+                      context,
+                      l10n.posCartItemCustomPriceApplied(
+                        customRate.toStringAsFixed(2),
+                      ),
+                    ),
+                  if (discountAmount != null && discountAmount > 0)
+                    _buildPricingChip(
+                      context,
+                      l10n.posCartItemDiscountAmountApplied(
+                        discountAmount.toStringAsFixed(2),
+                      ),
+                    ),
+                  if (discountPercentage != null && discountPercentage > 0)
+                    _buildPricingChip(
+                      context,
+                      l10n.posCartItemDiscountPercentApplied(
+                        discountPercentage.toStringAsFixed(2),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+
             SizedBox(height: isPhone ? 6 : 8),
 
             // Price and quantity controls
@@ -574,6 +654,18 @@ class CartWidget extends ConsumerWidget {
                     fontSize: isPhone ? 13 : null,
                   ),
                 ),
+                if (baseRate > rate) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    '\$${baseRate.toStringAsFixed(2)}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      decoration: TextDecoration.lineThrough,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(
+                            alpha: 0.6,
+                          ),
+                    ),
+                  ),
+                ],
                 const Spacer(),
 
                 // Quantity controls (disabled for shipping items)
@@ -668,6 +760,368 @@ class CartWidget extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildManagerPricingControls(
+    BuildContext context,
+    WidgetRef ref,
+    PosState state,
+  ) {
+    final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
+    final priceLists = state.availablePriceLists;
+    final selectedPriceList = state.selectedPriceList;
+    final selectedPriceListName = state.selectedPriceListName;
+    final zeroShippingDefault =
+        selectedPriceList?['zero_shipping_default'] == true ||
+        selectedPriceList?['zero_shipping_default'] == 1;
+    final shippingSwitchLocked =
+        state.isPickup || state.selectedSalesPartner != null;
+
+    final helperText = shippingSwitchLocked
+        ? (state.isPickup
+              ? l10n.posCartZeroShippingManagedByPickup
+              : l10n.posCartZeroShippingManagedByPartner)
+        : (zeroShippingDefault
+              ? l10n.posCartZeroShippingPriceListDefault
+              : l10n.posCartZeroShippingDescription);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.sell_outlined, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.posCartPricingTitle,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+                if (selectedPriceList?['is_default'] == true)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      l10n.posCartPriceListDefaultChip,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              key: ValueKey(selectedPriceListName ?? 'default-price-list'),
+              initialValue: priceLists.any(
+                (priceList) =>
+                    priceList['name']?.toString() == selectedPriceListName,
+              )
+                  ? selectedPriceListName
+                  : null,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: l10n.posCartPriceListLabel,
+                helperText: l10n.posCartPriceListHint,
+                border: const OutlineInputBorder(),
+              ),
+              items: priceLists
+                  .map(
+                    (priceList) => DropdownMenuItem<String>(
+                      value: priceList['name']?.toString(),
+                      child: Text(
+                        priceList['display_label']?.toString() ??
+                            priceList['name']?.toString() ??
+                            '',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: priceLists.isEmpty || state.isLoading
+                  ? null
+                  : (value) {
+                      ref
+                          .read(posNotifierProvider.notifier)
+                          .setSelectedPriceList(value);
+                    },
+            ),
+            const SizedBox(height: 12),
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              value: state.zeroShippingOverride,
+              onChanged: shippingSwitchLocked || state.isLoading
+                  ? null
+                  : (value) {
+                      ref
+                          .read(posNotifierProvider.notifier)
+                          .setZeroShippingOverride(value);
+                    },
+              title: Text(
+                l10n.posCartZeroShippingTitle,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              subtitle: Text(helperText),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPricingChip(BuildContext context, String label) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSecondaryContainer,
+              fontWeight: FontWeight.w600,
+            ),
+      ),
+    );
+  }
+
+  double? _parseNullableAmount(String raw) {
+    final normalized = raw.trim().replaceAll(',', '.');
+    if (normalized.isEmpty) {
+      return null;
+    }
+    return double.tryParse(normalized);
+  }
+
+  Future<void> _showItemPricingDialog(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> cartItem,
+    int index,
+  ) async {
+    final l10n = context.l10n;
+    double readAmount(dynamic value) {
+      if (value is num) {
+        return value.toDouble();
+      }
+      return double.tryParse(value?.toString() ?? '') ?? 0.0;
+    }
+
+    final originalCatalogRate = readAmount(
+      cartItem['original_catalog_rate'] ??
+          cartItem['price_list_rate'] ??
+          cartItem['rate'],
+    );
+    final hasOverrides =
+        cartItem.containsKey('custom_rate_override') ||
+        cartItem.containsKey('discount_amount') ||
+        cartItem.containsKey('discount_percentage');
+    final customRateController = TextEditingController(
+      text: cartItem.containsKey('custom_rate_override')
+          ? readAmount(cartItem['custom_rate_override']).toStringAsFixed(2)
+          : '',
+    );
+    final discountAmountController = TextEditingController(
+      text: cartItem.containsKey('discount_amount')
+          ? readAmount(cartItem['discount_amount']).toStringAsFixed(2)
+          : '',
+    );
+    final discountPercentController = TextEditingController(
+      text: cartItem.containsKey('discount_percentage')
+          ? readAmount(cartItem['discount_percentage']).toStringAsFixed(2)
+          : '',
+    );
+
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          String? validationError;
+          return StatefulBuilder(
+            builder: (context, setStateDialog) {
+              void savePricing() {
+                final customRate =
+                    _parseNullableAmount(customRateController.text);
+                final discountAmount =
+                    _parseNullableAmount(discountAmountController.text);
+                final discountPercentage =
+                    _parseNullableAmount(discountPercentController.text);
+
+                if ((customRateController.text.trim().isNotEmpty && customRate == null) ||
+                    (discountAmountController.text.trim().isNotEmpty && discountAmount == null) ||
+                    (discountPercentController.text.trim().isNotEmpty && discountPercentage == null)) {
+                  setStateDialog(() {
+                    validationError = l10n.posCartItemPricingInvalidNumber;
+                  });
+                  return;
+                }
+                if (customRate != null && customRate < 0) {
+                  setStateDialog(() {
+                    validationError = l10n.posCartItemPricingInvalidCustomRate;
+                  });
+                  return;
+                }
+                if (discountAmount != null && discountAmount < 0) {
+                  setStateDialog(() {
+                    validationError = l10n.posCartItemPricingInvalidDiscountAmount;
+                  });
+                  return;
+                }
+                if (discountPercentage != null &&
+                    (discountPercentage < 0 || discountPercentage > 100)) {
+                  setStateDialog(() {
+                    validationError = l10n.posCartItemPricingInvalidDiscountPercent;
+                  });
+                  return;
+                }
+                if ((discountAmount ?? 0) > 0 && (discountPercentage ?? 0) > 0) {
+                  setStateDialog(() {
+                    validationError = l10n.posCartItemPricingChooseSingleDiscount;
+                  });
+                  return;
+                }
+
+                final effectiveBase = customRate ?? originalCatalogRate;
+                if ((discountAmount ?? 0) > effectiveBase) {
+                  setStateDialog(() {
+                    validationError = l10n.posCartItemPricingDiscountTooHigh;
+                  });
+                  return;
+                }
+
+                ref.read(posNotifierProvider.notifier).applyCartItemPricing(
+                      index,
+                      customRateOverride: customRate,
+                      discountAmount: discountAmount,
+                      discountPercentage: discountPercentage,
+                    );
+                Navigator.of(dialogContext).pop();
+              }
+
+              return AlertDialog(
+                title: Text(l10n.posCartItemPricingDialogTitle),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        cartItem['item_name']?.toString() ?? l10n.posUnknownItem,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.posCartItemPricingBaseRate(
+                          originalCatalogRate.toStringAsFixed(2),
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: customRateController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: l10n.posCartItemPricingCustomRateLabel,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: discountAmountController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: l10n.posCartItemPricingDiscountAmountLabel,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: discountPercentController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: l10n.posCartItemPricingDiscountPercentLabel,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.posCartItemPricingDiscountHint,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.7),
+                            ),
+                      ),
+                      if (validationError != null) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          validationError!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                actions: [
+                  if (hasOverrides)
+                    TextButton(
+                      onPressed: () {
+                        ref
+                            .read(posNotifierProvider.notifier)
+                            .clearCartItemPricing(index);
+                        Navigator.of(dialogContext).pop();
+                      },
+                      child: Text(l10n.posCartItemPricingReset),
+                    ),
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: Text(l10n.commonCancel),
+                  ),
+                  ElevatedButton(
+                    onPressed: savePricing,
+                    child: Text(l10n.posCartItemPricingSave),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      customRateController.dispose();
+      discountAmountController.dispose();
+      discountPercentController.dispose();
+    }
   }
 
   void _showClearCartDialog(BuildContext context, WidgetRef ref) {

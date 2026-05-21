@@ -994,6 +994,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get posCartPickupChip => 'Pickup';
 
   @override
+  String get posCartPricingTitle => 'Manager Pricing';
+
+  @override
+  String get posCartPriceListLabel => 'Price list';
+
+  @override
+  String get posCartPriceListHint =>
+      'Use the profile default or switch to a B2B list.';
+
+  @override
+  String get posCartPriceListDefaultChip => 'Default';
+
+  @override
+  String get posCartZeroShippingTitle => 'Zero shipping income';
+
+  @override
+  String get posCartZeroShippingDescription =>
+      'Do not charge shipping income on this order.';
+
+  @override
+  String get posCartZeroShippingPriceListDefault =>
+      'Enabled automatically for this price list.';
+
+  @override
+  String get posCartZeroShippingManagedByPickup =>
+      'Pickup already disables delivery charges.';
+
+  @override
+  String get posCartZeroShippingManagedByPartner =>
+      'Sales partner orders already suppress shipping income.';
+
+  @override
   String get posSubtotalLabel => 'Subtotal:';
 
   @override
@@ -1055,6 +1087,71 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get posCartEditBundle => 'Edit Bundle';
+
+  @override
+  String get posCartItemPricingDialogTitle => 'Edit line pricing';
+
+  @override
+  String posCartItemPricingBaseRate(String amount) {
+    return 'Current catalog rate: $amount';
+  }
+
+  @override
+  String get posCartItemPricingCustomRateLabel => 'Custom unit price';
+
+  @override
+  String get posCartItemPricingDiscountAmountLabel => 'Discount amount';
+
+  @override
+  String get posCartItemPricingDiscountPercentLabel => 'Discount percentage';
+
+  @override
+  String get posCartItemPricingDiscountHint =>
+      'Use discount amount or discount percentage, not both.';
+
+  @override
+  String get posCartItemPricingReset => 'Reset pricing';
+
+  @override
+  String get posCartItemPricingSave => 'Apply';
+
+  @override
+  String posCartItemCustomPriceApplied(String amount) {
+    return 'Custom $amount';
+  }
+
+  @override
+  String posCartItemDiscountAmountApplied(String amount) {
+    return 'Discount $amount';
+  }
+
+  @override
+  String posCartItemDiscountPercentApplied(String amount) {
+    return 'Discount $amount%';
+  }
+
+  @override
+  String get posCartItemPricingInvalidNumber => 'Enter a valid number.';
+
+  @override
+  String get posCartItemPricingInvalidCustomRate =>
+      'Custom price must be zero or more.';
+
+  @override
+  String get posCartItemPricingInvalidDiscountAmount =>
+      'Discount amount must be zero or more.';
+
+  @override
+  String get posCartItemPricingInvalidDiscountPercent =>
+      'Discount percentage must be between 0 and 100.';
+
+  @override
+  String get posCartItemPricingChooseSingleDiscount =>
+      'Use discount amount or discount percentage, not both.';
+
+  @override
+  String get posCartItemPricingDiscountTooHigh =>
+      'Discount amount cannot exceed the effective unit price.';
 
   @override
   String get posCartClearTitle => 'Clear Cart';

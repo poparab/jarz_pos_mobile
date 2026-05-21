@@ -17,6 +17,8 @@ class PosState {
   final Map<String, dynamic>? selectedProfile;
   final List<Map<String, dynamic>> items;
   final List<Map<String, dynamic>> bundles;
+  final List<Map<String, dynamic>> availablePriceLists;
+  final Map<String, dynamic>? selectedPriceList;
   final List<Map<String, dynamic>> cartItems;
   final Map<String, dynamic>? selectedCustomer;
   final DeliverySlot? selectedDeliverySlot;
@@ -27,6 +29,7 @@ class PosState {
   final String? error;
   // When true, this order is for pickup (no delivery fee or slot required)
   final bool isPickup;
+  final bool zeroShippingOverride;
   final bool isAmendmentDraft;
   final String? amendmentSourceInvoiceId;
   // Source invoice grand total captured when the amendment draft started.
@@ -48,6 +51,8 @@ class PosState {
     this.selectedProfile,
     this.items = const [],
     this.bundles = const [],
+    this.availablePriceLists = const [],
+    this.selectedPriceList,
     this.cartItems = const [],
     this.selectedCustomer,
     this.selectedDeliverySlot,
@@ -56,6 +61,7 @@ class PosState {
     this.isLoading = false,
     this.error,
     this.isPickup = false,
+    this.zeroShippingOverride = false,
     this.isAmendmentDraft = false,
     this.amendmentSourceInvoiceId,
     this.amendmentSourceGrandTotal,
@@ -69,6 +75,9 @@ class PosState {
     Map<String, dynamic>? selectedProfile,
     List<Map<String, dynamic>>? items,
     List<Map<String, dynamic>>? bundles,
+    List<Map<String, dynamic>>? availablePriceLists,
+    Map<String, dynamic>? selectedPriceList,
+    bool clearSelectedPriceList = false,
     List<Map<String, dynamic>>? cartItems,
     Map<String, dynamic>? selectedCustomer,
     DeliverySlot? selectedDeliverySlot,
@@ -82,6 +91,7 @@ class PosState {
     bool clearDeliverySlots = false,
     List<DeliverySlot>? deliverySlots,
     bool? isPickup,
+    bool? zeroShippingOverride,
     bool? isAmendmentDraft,
     String? amendmentSourceInvoiceId,
     bool clearAmendmentSourceInvoiceId = false,
@@ -97,6 +107,10 @@ class PosState {
       selectedProfile: selectedProfile ?? this.selectedProfile,
       items: items ?? this.items,
       bundles: bundles ?? this.bundles,
+        availablePriceLists: availablePriceLists ?? this.availablePriceLists,
+        selectedPriceList: clearSelectedPriceList
+          ? null
+          : (selectedPriceList ?? this.selectedPriceList),
       cartItems: cartItems ?? this.cartItems,
       selectedCustomer: clearSelectedCustomer
           ? null
@@ -113,6 +127,8 @@ class PosState {
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
       isPickup: isPickup ?? this.isPickup,
+        zeroShippingOverride:
+          zeroShippingOverride ?? this.zeroShippingOverride,
       isAmendmentDraft: isAmendmentDraft ?? this.isAmendmentDraft,
       amendmentSourceInvoiceId: clearAmendmentSourceInvoiceId
           ? null
@@ -128,6 +144,11 @@ class PosState {
     );
   }
 
+  String? get selectedPriceListName {
+    final name = selectedPriceList?['name']?.toString().trim() ?? '';
+    return name.isEmpty ? null : name;
+  }
+
   double get cartTotal {
     return cartItems.fold(0.0, (total, item) {
       final price = ((item['rate'] ?? 0) as num).toDouble();
@@ -141,6 +162,7 @@ class PosState {
     if (selectedSalesPartner != null) return 0.0;
     // Pickup mode waives delivery
     if (isPickup) return 0.0;
+    if (zeroShippingOverride) return 0.0;
     // If any bundle in cart has free_shipping=true, waive delivery income client-side
     try {
       final hasFreeShippingBundle = cartItems.any((ci) {
@@ -281,6 +303,8 @@ class PosNotifier extends StateNotifier<PosState> {
       cartItems: List<Map<String, dynamic>>.from(cartItems),
       customer: state.selectedCustomer,
       salesPartner: state.selectedSalesPartner,
+      selectedPriceList: state.selectedPriceList,
+      zeroShippingOverride: state.zeroShippingOverride,
       isPickup: state.isPickup,
       createdAt: now,
       updatedAt: now,
@@ -315,6 +339,7 @@ class PosNotifier extends StateNotifier<PosState> {
       _autoSaveTimer?.cancel();
       _persistCurrentCart();
     }
+    final defaultPriceList = _defaultPriceListSelection();
     state = state.copyWith(
       cartItems: const [],
       clearSelectedCustomer: true,
@@ -322,11 +347,17 @@ class PosNotifier extends StateNotifier<PosState> {
       clearSelectedSalesPartner: true,
       clearDeliverySlots: true,
       isPickup: false,
+      selectedPriceList: defaultPriceList,
+      clearSelectedPriceList: defaultPriceList == null,
+      zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
       clearCurrentDraftId: true,
       draftDirty: false,
       isAmendmentDraft: false,
       clearAmendmentSourceInvoiceId: true,
     );
+    if (state.selectedProfile != null) {
+      unawaited(refreshCatalog());
+    }
   }
 
   /// Load a saved draft by [id] into the active cart.
@@ -389,6 +420,9 @@ class PosNotifier extends StateNotifier<PosState> {
         clearSelectedCustomer: target.customer == null,
         selectedSalesPartner: target.salesPartner,
         clearSelectedSalesPartner: target.salesPartner == null,
+        selectedPriceList: target.selectedPriceList,
+        clearSelectedPriceList: target.selectedPriceList == null,
+        zeroShippingOverride: target.zeroShippingOverride,
         isPickup: target.isPickup,
         // Delivery slot is intentionally cleared on load; must be re-picked at checkout.
         clearSelectedDeliverySlot: true,
@@ -401,6 +435,9 @@ class PosNotifier extends StateNotifier<PosState> {
         clearAmendmentSourceInvoiceId: target.amendmentSourceInvoiceId == null,
         amendmentSourceGrandTotal: target.amendmentSourceGrandTotal,
       );
+      if (state.selectedProfile != null) {
+        await refreshCatalog(showLoading: false);
+      }
     } catch (e) {
       if (kDebugMode) {
         debugPrint('⚠️ PosNotifier: switchDraft failed: $e');
@@ -424,6 +461,7 @@ class PosNotifier extends StateNotifier<PosState> {
         clearCurrentDraftId: wasActive,
       );
       if (wasActive) {
+        final defaultPriceList = _defaultPriceListSelection();
         state = state.copyWith(
           cartItems: const [],
           clearSelectedCustomer: true,
@@ -431,12 +469,18 @@ class PosNotifier extends StateNotifier<PosState> {
           clearSelectedSalesPartner: true,
           clearDeliverySlots: true,
           isPickup: false,
+          selectedPriceList: defaultPriceList,
+          clearSelectedPriceList: defaultPriceList == null,
+          zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
           isLoading: false,
           isAmendmentDraft: false,
           clearAmendmentSourceInvoiceId: true,
           draftDirty: false,
           clearError: true,
         );
+        if (state.selectedProfile != null) {
+          unawaited(refreshCatalog());
+        }
       }
     } catch (e) {
       if (kDebugMode) {
@@ -507,14 +551,33 @@ class PosNotifier extends StateNotifier<PosState> {
     );
 
     try {
-      final futures = await Future.wait([
-        _repository.getItems(profileName),
-        _repository.getBundles(profileName),
-      ]);
+      final catalogData = await _loadCatalogData(
+        profileName,
+        requestedPriceList: state.selectedPriceList,
+      );
+      final items = List<Map<String, dynamic>>.from(
+        catalogData['items'] as List,
+      );
+      final bundles = List<Map<String, dynamic>>.from(
+        catalogData['bundles'] as List,
+      );
+      final priceLists = List<Map<String, dynamic>>.from(
+        catalogData['price_lists'] as List,
+      );
+      final selectedPriceList = _clonePriceListOption(
+        catalogData['selected_price_list'] as Map<String, dynamic>?,
+      );
+      final repricedCart = state.cartItems.isEmpty
+          ? state.cartItems
+          : _repriceCartItemsForCatalog(state.cartItems, items, bundles);
 
       state = state.copyWith(
-        items: futures[0],
-        bundles: futures[1],
+        items: items,
+        bundles: bundles,
+        availablePriceLists: priceLists,
+        selectedPriceList: selectedPriceList,
+        clearSelectedPriceList: selectedPriceList == null,
+        cartItems: repricedCart,
         isLoading: false,
       );
     } catch (e) {
@@ -536,20 +599,31 @@ class PosNotifier extends StateNotifier<PosState> {
         final profile = profiles.first;
         final profileName = profile['name'] as String;
 
-        // Load both items and bundles for the single profile
-        final futures = await Future.wait([
-          _repository.getItems(profileName),
-          _repository.getBundles(profileName),
-        ]);
-
-        final items = futures[0];
-        final bundles = futures[1];
+        final catalogData = await _loadCatalogData(profileName);
+        final items = List<Map<String, dynamic>>.from(
+          catalogData['items'] as List,
+        );
+        final bundles = List<Map<String, dynamic>>.from(
+          catalogData['bundles'] as List,
+        );
+        final priceLists = List<Map<String, dynamic>>.from(
+          catalogData['price_lists'] as List,
+        );
+        final selectedPriceList = _clonePriceListOption(
+          catalogData['selected_price_list'] as Map<String, dynamic>?,
+        );
 
         state = state.copyWith(
           profiles: profiles,
           selectedProfile: profile,
           items: items,
           bundles: bundles,
+          availablePriceLists: priceLists,
+          selectedPriceList: selectedPriceList,
+          clearSelectedPriceList: selectedPriceList == null,
+          zeroShippingOverride: _zeroShippingDefaultForPriceList(
+            selectedPriceList,
+          ),
           isLoading: false,
         );
       } else {
@@ -572,20 +646,42 @@ class PosNotifier extends StateNotifier<PosState> {
       clearError: true,
       clearDeliverySlots: true,
       clearSelectedDeliverySlot: true,
+      clearSelectedPriceList: true,
+      availablePriceLists: const [],
+      zeroShippingOverride: false,
     );
     try {
       final profileName = profile['name'] as String;
 
-      // Load both items and bundles for the selected profile
-      final futures = await Future.wait([
-        _repository.getItems(profileName),
-        _repository.getBundles(profileName),
-      ]);
+      final catalogData = await _loadCatalogData(profileName);
+      final items = List<Map<String, dynamic>>.from(
+        catalogData['items'] as List,
+      );
+      final bundles = List<Map<String, dynamic>>.from(
+        catalogData['bundles'] as List,
+      );
+      final priceLists = List<Map<String, dynamic>>.from(
+        catalogData['price_lists'] as List,
+      );
+      final selectedPriceList = _clonePriceListOption(
+        catalogData['selected_price_list'] as Map<String, dynamic>?,
+      );
+      final repricedCart = state.cartItems.isEmpty
+          ? state.cartItems
+          : _repriceCartItemsForCatalog(state.cartItems, items, bundles);
 
-      final items = futures[0];
-      final bundles = futures[1];
-
-      state = state.copyWith(items: items, bundles: bundles, isLoading: false);
+      state = state.copyWith(
+        items: items,
+        bundles: bundles,
+        availablePriceLists: priceLists,
+        selectedPriceList: selectedPriceList,
+        clearSelectedPriceList: selectedPriceList == null,
+        zeroShippingOverride: _zeroShippingDefaultForPriceList(
+          selectedPriceList,
+        ),
+        cartItems: repricedCart,
+        isLoading: false,
+      );
     } catch (e) {
       state = state.copyWith(
         error: e.toString(),
@@ -661,6 +757,10 @@ class PosNotifier extends StateNotifier<PosState> {
         'item_code': item['name'],
         'item_name': item['item_name'],
         'rate': item['rate'],
+        'price_list_rate': _coerceDouble(item['price_list_rate'] ?? item['rate']),
+        'original_catalog_rate': _coerceDouble(
+          item['price_list_rate'] ?? item['rate'],
+        ),
         'quantity': 1,
         'type': 'item', // CRITICAL: Mark as regular item
       };
@@ -689,6 +789,12 @@ class PosNotifier extends StateNotifier<PosState> {
           bundle['id'], // This will be sent as item_code but will be overridden by bundle_id in createInvoice
       'item_name': bundle['name'],
       'rate': bundle['price'],
+      'price_list_rate': _coerceDouble(
+        bundle['price_list_rate'] ?? bundle['price'],
+      ),
+      'original_catalog_rate': _coerceDouble(
+        bundle['price_list_rate'] ?? bundle['price'],
+      ),
       'quantity': 1,
       'type': 'bundle', // CRITICAL: Mark as bundle
       'bundle_details': {
@@ -764,6 +870,62 @@ class PosNotifier extends StateNotifier<PosState> {
     _autoSaveDebounced();
   }
 
+  void applyCartItemPricing(
+    int index, {
+    double? customRateOverride,
+    double? discountAmount,
+    double? discountPercentage,
+  }) {
+    if (index < 0 || index >= state.cartItems.length) {
+      return;
+    }
+
+    final updatedCart = List<Map<String, dynamic>>.from(state.cartItems);
+    final cartItem = Map<String, dynamic>.from(updatedCart[index]);
+    final catalogData = cartItem['type'] == 'bundle'
+        ? _catalogBundleForCartItem(cartItem, state.bundles)
+        : _catalogItemForCartItem(cartItem, state.items);
+    final catalogRate = _coerceDouble(
+      catalogData?['price_list_rate'] ??
+          catalogData?['price'] ??
+          cartItem['original_catalog_rate'] ??
+          cartItem['price_list_rate'] ??
+          cartItem['rate'],
+    );
+
+    final normalizedItem = Map<String, dynamic>.from(cartItem);
+    if (customRateOverride != null &&
+        (customRateOverride - catalogRate).abs() > 0.0001) {
+      normalizedItem['custom_rate_override'] = customRateOverride;
+    } else {
+      normalizedItem.remove('custom_rate_override');
+    }
+
+    if (discountAmount != null && discountAmount > 0) {
+      normalizedItem['discount_amount'] = discountAmount;
+      normalizedItem.remove('discount_percentage');
+    } else if (discountPercentage != null && discountPercentage > 0) {
+      normalizedItem['discount_percentage'] = discountPercentage;
+      normalizedItem.remove('discount_amount');
+    } else {
+      normalizedItem.remove('discount_amount');
+      normalizedItem.remove('discount_percentage');
+    }
+
+    updatedCart[index] = _rebuildCartItemPricing(
+      normalizedItem,
+      catalogRate: catalogRate,
+      catalogData: catalogData,
+    );
+
+    state = state.copyWith(cartItems: updatedCart, draftDirty: true);
+    _autoSaveDebounced();
+  }
+
+  void clearCartItemPricing(int index) {
+    applyCartItemPricing(index);
+  }
+
   void selectCustomer(Map<String, dynamic> customer) {
     // Simply select the customer without adding shipping to cart
     // Shipping will be handled separately in the UI total calculation
@@ -777,6 +939,40 @@ class PosNotifier extends StateNotifier<PosState> {
 
   void setDeliverySlot(DeliverySlot? slot) {
     state = state.copyWith(selectedDeliverySlot: slot);
+  }
+
+  Future<void> setSelectedPriceList(String? name) async {
+    final normalizedName = name?.trim() ?? '';
+    final selection = normalizedName.isEmpty
+        ? _defaultPriceListSelection()
+        : (_matchingPriceListSelection(normalizedName) ??
+              _defaultPriceListSelection());
+    final currentName = state.selectedPriceListName ?? '';
+    final nextName = selection?['name']?.toString().trim() ?? '';
+
+    if (currentName == nextName) {
+      return;
+    }
+
+    state = state.copyWith(
+      selectedPriceList: selection,
+      clearSelectedPriceList: selection == null,
+      zeroShippingOverride: _zeroShippingDefaultForPriceList(selection),
+      draftDirty: true,
+    );
+    _autoSaveDebounced();
+
+    if (state.selectedProfile != null) {
+      await refreshCatalog(showLoading: false);
+    }
+  }
+
+  void setZeroShippingOverride(bool value) {
+    state = state.copyWith(
+      zeroShippingOverride: value,
+      draftDirty: true,
+    );
+    _autoSaveDebounced();
   }
 
   // Toggle pickup mode; when enabling pickup, clear any selected delivery slot
@@ -874,6 +1070,265 @@ class PosNotifier extends StateNotifier<PosState> {
   int _coerceInt(dynamic value, {int fallback = 0}) {
     if (value is num) return value.round();
     return int.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  Map<String, dynamic>? _clonePriceListOption(Map<String, dynamic>? option) {
+    if (option == null) {
+      return null;
+    }
+    return Map<String, dynamic>.from(option);
+  }
+
+  Map<String, dynamic>? _matchingPriceListSelection(
+    String? name, [
+    List<Map<String, dynamic>>? options,
+  ]) {
+    final normalizedName = name?.trim() ?? '';
+    if (normalizedName.isEmpty) {
+      return null;
+    }
+
+    for (final option in options ?? state.availablePriceLists) {
+      final candidate = option['name']?.toString().trim() ?? '';
+      if (candidate == normalizedName) {
+        return _clonePriceListOption(option);
+      }
+    }
+
+    return null;
+  }
+
+  Map<String, dynamic>? _defaultPriceListSelection([
+    List<Map<String, dynamic>>? options,
+  ]) {
+    final available = options ?? state.availablePriceLists;
+    for (final option in available) {
+      if (_coerceBool(option['is_default'])) {
+        return _clonePriceListOption(option);
+      }
+    }
+
+    if (available.isEmpty) {
+      return null;
+    }
+
+    return _clonePriceListOption(available.first);
+  }
+
+  bool _zeroShippingDefaultForPriceList(Map<String, dynamic>? priceList) {
+    return _coerceBool(priceList?['zero_shipping_default']);
+  }
+
+  double _applyDiscountsToRate(
+    double baseRate, {
+    double? discountAmount,
+    double? discountPercentage,
+  }) {
+    if (discountAmount != null && discountAmount > 0) {
+      return (baseRate - discountAmount).clamp(0.0, double.infinity);
+    }
+    if (discountPercentage != null && discountPercentage > 0) {
+      final normalizedPct = discountPercentage.clamp(0.0, 100.0);
+      return baseRate * (1 - (normalizedPct / 100));
+    }
+    return baseRate;
+  }
+
+  Map<String, dynamic>? _catalogItemForCartItem(
+    Map<String, dynamic> cartItem,
+    List<Map<String, dynamic>> items,
+  ) {
+    final itemCode = cartItem['item_code']?.toString().trim() ?? '';
+    if (itemCode.isEmpty) {
+      return null;
+    }
+
+    for (final item in items) {
+      final candidate = item['name']?.toString().trim() ?? '';
+      if (candidate == itemCode) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  Map<String, dynamic>? _catalogBundleForCartItem(
+    Map<String, dynamic> cartItem,
+    List<Map<String, dynamic>> bundles,
+  ) {
+    final bundleDetails =
+        cartItem['bundle_details'] as Map<String, dynamic>? ?? const {};
+    final bundleId = bundleDetails['bundle_id']?.toString().trim() ?? '';
+    final itemCode = cartItem['item_code']?.toString().trim() ?? '';
+    final identities = <String>{bundleId, itemCode}..removeWhere(
+      (value) => value.isEmpty,
+    );
+
+    for (final bundle in bundles) {
+      final bundleIdentities = <String>{
+        bundle['id']?.toString().trim() ?? '',
+        bundle['erpnext_item']?.toString().trim() ?? '',
+        bundle['name']?.toString().trim() ?? '',
+      }..removeWhere((value) => value.isEmpty);
+      if (identities.intersection(bundleIdentities).isNotEmpty) {
+        return bundle;
+      }
+    }
+    return null;
+  }
+
+  Map<String, dynamic> _rebuildCartItemPricing(
+    Map<String, dynamic> cartItem, {
+    required double catalogRate,
+    Map<String, dynamic>? catalogData,
+  }) {
+    final updated = Map<String, dynamic>.from(cartItem);
+    final hasCustomRate =
+        cartItem.containsKey('custom_rate_override') &&
+        cartItem['custom_rate_override'] != null;
+    final customRate =
+        hasCustomRate ? _coerceDouble(cartItem['custom_rate_override']) : null;
+    final hasDiscountAmount =
+        cartItem.containsKey('discount_amount') &&
+        cartItem['discount_amount'] != null;
+    final discountAmount =
+        hasDiscountAmount ? _coerceDouble(cartItem['discount_amount']) : null;
+    final hasDiscountPercentage =
+        cartItem.containsKey('discount_percentage') &&
+        cartItem['discount_percentage'] != null;
+    final discountPercentage = hasDiscountPercentage
+        ? _coerceDouble(cartItem['discount_percentage'])
+        : null;
+
+    final baseRate = customRate ?? catalogRate;
+    final effectiveRate = _applyDiscountsToRate(
+      baseRate,
+      discountAmount: discountAmount,
+      discountPercentage: discountPercentage,
+    );
+
+    updated['original_catalog_rate'] = catalogRate;
+    updated['price_list_rate'] = baseRate;
+    updated['rate'] = effectiveRate;
+
+    if (hasCustomRate) {
+      updated['custom_rate_override'] = customRate;
+    } else {
+      updated.remove('custom_rate_override');
+    }
+
+    if (hasDiscountAmount && (discountAmount ?? 0) > 0) {
+      updated['discount_amount'] = discountAmount;
+    } else {
+      updated.remove('discount_amount');
+    }
+
+    if (hasDiscountPercentage && (discountPercentage ?? 0) > 0) {
+      updated['discount_percentage'] = discountPercentage;
+    } else {
+      updated.remove('discount_percentage');
+    }
+
+    if (catalogData != null) {
+      if (updated['type'] == 'bundle') {
+        final bundleDetails = Map<String, dynamic>.from(
+          updated['bundle_details'] as Map<String, dynamic>? ?? const {},
+        );
+        bundleDetails['bundle_info'] = catalogData;
+        updated['bundle_details'] = bundleDetails;
+        updated['item_name'] = catalogData['name'] ?? updated['item_name'];
+      } else {
+        updated['item_name'] = catalogData['item_name'] ?? updated['item_name'];
+      }
+    }
+
+    return updated;
+  }
+
+  List<Map<String, dynamic>> _repriceCartItemsForCatalog(
+    List<Map<String, dynamic>> cartItems,
+    List<Map<String, dynamic>> items,
+    List<Map<String, dynamic>> bundles,
+  ) {
+    return cartItems.map((entry) {
+      final cartItem = Map<String, dynamic>.from(entry);
+      if (cartItem['type'] == 'bundle') {
+        final catalogBundle = _catalogBundleForCartItem(cartItem, bundles);
+        final catalogRate = _coerceDouble(
+          catalogBundle?['price_list_rate'] ??
+              catalogBundle?['price'] ??
+              cartItem['original_catalog_rate'] ??
+              cartItem['price_list_rate'] ??
+              cartItem['rate'],
+        );
+        return _rebuildCartItemPricing(
+          cartItem,
+          catalogRate: catalogRate,
+          catalogData: catalogBundle,
+        );
+      }
+
+      final catalogItem = _catalogItemForCartItem(cartItem, items);
+      final catalogRate = _coerceDouble(
+        catalogItem?['price_list_rate'] ??
+            catalogItem?['rate'] ??
+            cartItem['original_catalog_rate'] ??
+            cartItem['price_list_rate'] ??
+            cartItem['rate'],
+      );
+      return _rebuildCartItemPricing(
+        cartItem,
+        catalogRate: catalogRate,
+        catalogData: catalogItem,
+      );
+    }).toList();
+  }
+
+  Future<Map<String, dynamic>> _loadCatalogData(
+    String profileName, {
+    Map<String, dynamic>? requestedPriceList,
+  }) async {
+    final requestedPriceListName =
+        requestedPriceList?['name']?.toString().trim() ?? '';
+
+    final initialResults = await Future.wait<dynamic>([
+      _repository.getItems(
+        profileName,
+        priceList: requestedPriceListName.isEmpty ? null : requestedPriceListName,
+      ),
+      _repository.getBundles(
+        profileName,
+        priceList: requestedPriceListName.isEmpty ? null : requestedPriceListName,
+      ),
+      _repository.getPosPriceLists(profileName),
+    ]);
+
+    var items = List<Map<String, dynamic>>.from(initialResults[0] as List);
+    var bundles = List<Map<String, dynamic>>.from(initialResults[1] as List);
+    final priceLists = List<Map<String, dynamic>>.from(initialResults[2] as List);
+
+    final selectedPriceList =
+        _matchingPriceListSelection(requestedPriceListName, priceLists) ??
+        _defaultPriceListSelection(priceLists);
+    final selectedPriceListName =
+        selectedPriceList?['name']?.toString().trim() ?? '';
+
+    if (selectedPriceListName.isNotEmpty &&
+        selectedPriceListName != requestedPriceListName) {
+      final repricedResults = await Future.wait<dynamic>([
+        _repository.getItems(profileName, priceList: selectedPriceListName),
+        _repository.getBundles(profileName, priceList: selectedPriceListName),
+      ]);
+      items = List<Map<String, dynamic>>.from(repricedResults[0] as List);
+      bundles = List<Map<String, dynamic>>.from(repricedResults[1] as List);
+    }
+
+    return {
+      'items': items,
+      'bundles': bundles,
+      'price_lists': priceLists,
+      'selected_price_list': selectedPriceList,
+    };
   }
 
   bool _isBundleParentInvoiceItem(Map<String, dynamic> item) {
@@ -1473,17 +1928,32 @@ class PosNotifier extends StateNotifier<PosState> {
       }
       selectedProfile ??= {'name': posProfileName, 'title': posProfileName};
 
-      final futures = await Future.wait([
-        _repository.getItems(posProfileName),
-        _repository.getBundles(posProfileName),
-      ]);
+      final requestedPriceListName =
+          invoiceData['selling_price_list']?.toString().trim() ?? '';
+      final catalogData = await _loadCatalogData(
+        posProfileName,
+        requestedPriceList: requestedPriceListName.isEmpty
+            ? null
+            : {'name': requestedPriceListName},
+      );
+      final catalogItems = List<Map<String, dynamic>>.from(
+        catalogData['items'] as List,
+      );
+      final bundleCatalog = List<Map<String, dynamic>>.from(
+        catalogData['bundles'] as List,
+      );
+      final priceLists = List<Map<String, dynamic>>.from(
+        catalogData['price_lists'] as List,
+      );
+      final selectedPriceList = _clonePriceListOption(
+        catalogData['selected_price_list'] as Map<String, dynamic>?,
+      );
 
       final customer = _buildAmendmentCustomer(invoiceData);
       final deliverySlot = _buildAmendmentDeliverySlot(invoiceData);
       final salesPartnerName =
           invoiceData['sales_partner']?.toString().trim() ?? '';
       final isPickup = _coerceBool(invoiceData['is_pickup']);
-      final bundleCatalog = futures[1];
 
       final builtCartItems = _buildAmendmentCartItems(
         invoiceData['items'],
@@ -1543,8 +2013,11 @@ class PosNotifier extends StateNotifier<PosState> {
       state = state.copyWith(
         profiles: profiles,
         selectedProfile: selectedProfile,
-        items: futures[0],
+        items: catalogItems,
         bundles: bundleCatalog,
+        availablePriceLists: priceLists,
+        selectedPriceList: selectedPriceList,
+        clearSelectedPriceList: selectedPriceList == null,
         cartItems: builtCartItems,
         selectedCustomer: customer,
         clearSelectedCustomer: customer == null,
@@ -1559,6 +2032,9 @@ class PosNotifier extends StateNotifier<PosState> {
             : const [],
         clearDeliverySlots: isPickup || deliverySlot == null,
         isPickup: isPickup,
+        zeroShippingOverride:
+          _coerceBool(invoiceData['was_free_shipping']) ||
+          _zeroShippingDefaultForPriceList(selectedPriceList),
         isLoading: false,
         isAmendmentDraft: true,
         amendmentSourceInvoiceId: invoiceId,
@@ -1725,6 +2201,8 @@ class PosNotifier extends StateNotifier<PosState> {
               salesPartner: state.selectedSalesPartner?['name'],
               paymentType: paymentType,
               paymentMethod: paymentMethod,
+              priceList: state.selectedPriceListName,
+              zeroShippingOverride: state.zeroShippingOverride,
               posProfileOverride: posProfileOverride,
               expectedSourceGrandTotal: state.amendmentSourceGrandTotal,
             )
@@ -1742,6 +2220,8 @@ class PosNotifier extends StateNotifier<PosState> {
               salesPartner: state.selectedSalesPartner?['name'],
               paymentType: paymentType,
               paymentMethod: paymentMethod,
+              priceList: state.selectedPriceListName,
+              zeroShippingOverride: state.zeroShippingOverride,
               posProfileOverride: posProfileOverride,
             );
 
@@ -1770,12 +2250,16 @@ class PosNotifier extends StateNotifier<PosState> {
       } catch (_) {}
 
       // Reset invoice context (cart, customer, delivery slot, sales partner) for a fresh start.
+      final defaultPriceList = _defaultPriceListSelection();
       state = state.copyWith(
         cartItems: [],
         clearSelectedCustomer: true,
         clearSelectedDeliverySlot: true,
         clearSelectedSalesPartner: true,
         isPickup: false,
+        selectedPriceList: defaultPriceList,
+        clearSelectedPriceList: defaultPriceList == null,
+        zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
         isLoading: false,
         isAmendmentDraft: false,
         clearAmendmentSourceInvoiceId: true,
@@ -1783,6 +2267,9 @@ class PosNotifier extends StateNotifier<PosState> {
         draftDirty: false,
         drafts: remainingDrafts,
       );
+      if (state.selectedProfile != null) {
+        unawaited(refreshCatalog());
+      }
 
       // TODO (Wallet/InstaPay Reference Capture):
       // When adding a payment step (wallet / instapay) after invoice creation,
@@ -1824,6 +2311,7 @@ class PosNotifier extends StateNotifier<PosState> {
 
   // Explicit public method to start a new invoice manually (also clears sales partner)
   void startNewInvoice() {
+    final defaultPriceList = _defaultPriceListSelection();
     state = state.copyWith(
       cartItems: [],
       clearSelectedCustomer: true,
@@ -1832,11 +2320,17 @@ class PosNotifier extends StateNotifier<PosState> {
       clearDeliverySlots: true,
       isLoading: false,
       isPickup: false,
+      selectedPriceList: defaultPriceList,
+      clearSelectedPriceList: defaultPriceList == null,
+      zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
       isAmendmentDraft: false,
       clearAmendmentSourceInvoiceId: true,
       clearCurrentDraftId: true,
       draftDirty: false,
     );
+    if (state.selectedProfile != null) {
+      unawaited(refreshCatalog());
+    }
   }
 
   void addCartPosItem(PosCartItem item) {
@@ -1856,9 +2350,10 @@ class PosNotifier extends StateNotifier<PosState> {
       'item_code': item.itemCode,
       'item_name': item.itemCode,
       'rate': item.rate,
+      'price_list_rate': item.priceListRate ?? item.rate,
+      'original_catalog_rate': item.priceListRate ?? item.rate,
       'quantity': item.quantity,
       'type': item.isBundle ? 'bundle' : 'item',
-      if (item.priceListRate != null) 'price_list_rate': item.priceListRate,
       if (item.discountAmount != null) 'discount_amount': item.discountAmount,
       if (item.discountPercentage != null)
         'discount_percentage': item.discountPercentage,

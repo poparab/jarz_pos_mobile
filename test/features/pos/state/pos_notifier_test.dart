@@ -32,7 +32,10 @@ class _FakePosRepository extends PosRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getItems(String posProfile) async {
+  Future<List<Map<String, dynamic>>> getItems(
+    String posProfile, {
+    String? priceList,
+  }) async {
     itemsCalls += 1;
     lastItemsProfile = posProfile;
     if (shouldThrow) throw Exception('items error');
@@ -40,13 +43,20 @@ class _FakePosRepository extends PosRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getBundles(String posProfile) async {
+  Future<List<Map<String, dynamic>>> getBundles(
+    String posProfile, {
+    String? priceList,
+  }) async {
     bundlesCalls += 1;
     lastBundlesProfile = posProfile;
     if (shouldThrow) throw Exception('bundles error');
     if (getBundlesDelay != null) await Future.delayed(getBundlesDelay!);
     return bundlesResult;
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getPosPriceLists(String posProfile) async =>
+      const [];
 
   @override
   Future<List<DeliverySlot>> getDeliverySlots(String posProfile) async {
@@ -64,6 +74,8 @@ class _FakePosRepository extends PosRepository {
     String? paymentType,
     bool isPickup = false,
     String? paymentMethod,
+    String? priceList,
+    bool zeroShippingOverride = false,
     bool posProfileOverride = false,
   }) async {
     createInvoiceCalls += 1;
@@ -82,6 +94,8 @@ class _FakePosRepository extends PosRepository {
     String? paymentType,
     bool isPickup = false,
     String? paymentMethod,
+    String? priceList,
+    bool zeroShippingOverride = false,
     String? idempotencyKey,
     bool posProfileOverride = false,
     double? expectedSourceGrandTotal,

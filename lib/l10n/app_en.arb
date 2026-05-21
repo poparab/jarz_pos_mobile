@@ -461,6 +461,15 @@
   "posCartPickupDescription": "Customer will collect the order from branch.",
   "posCartDeliveryDescription": "Deliver to customer at selected time.",
   "posCartPickupChip": "Pickup",
+  "posCartPricingTitle": "Manager Pricing",
+  "posCartPriceListLabel": "Price list",
+  "posCartPriceListHint": "Use the profile default or switch to a B2B list.",
+  "posCartPriceListDefaultChip": "Default",
+  "posCartZeroShippingTitle": "Zero shipping income",
+  "posCartZeroShippingDescription": "Do not charge shipping income on this order.",
+  "posCartZeroShippingPriceListDefault": "Enabled automatically for this price list.",
+  "posCartZeroShippingManagedByPickup": "Pickup already disables delivery charges.",
+  "posCartZeroShippingManagedByPartner": "Sales partner orders already suppress shipping income.",
   "posSubtotalLabel": "Subtotal:",
   "posDeliveryLabel": "Delivery:",
   "posTotalLabel": "Total:",
@@ -488,6 +497,35 @@
   "posDeliveryCostGeneric": "Cost to deliver",
   "posUnknownItem": "Unknown Item",
   "posCartEditBundle": "Edit Bundle",
+  "posCartItemPricingDialogTitle": "Edit line pricing",
+  "posCartItemPricingBaseRate": "Current catalog rate: {amount}",
+  "@posCartItemPricingBaseRate": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "posCartItemPricingCustomRateLabel": "Custom unit price",
+  "posCartItemPricingDiscountAmountLabel": "Discount amount",
+  "posCartItemPricingDiscountPercentLabel": "Discount percentage",
+  "posCartItemPricingDiscountHint": "Use discount amount or discount percentage, not both.",
+  "posCartItemPricingReset": "Reset pricing",
+  "posCartItemPricingSave": "Apply",
+  "posCartItemCustomPriceApplied": "Custom {amount}",
+  "@posCartItemCustomPriceApplied": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "posCartItemDiscountAmountApplied": "Discount {amount}",
+  "@posCartItemDiscountAmountApplied": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "posCartItemDiscountPercentApplied": "Discount {amount}%",
+  "@posCartItemDiscountPercentApplied": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "posCartItemPricingInvalidNumber": "Enter a valid number.",
+  "posCartItemPricingInvalidCustomRate": "Custom price must be zero or more.",
+  "posCartItemPricingInvalidDiscountAmount": "Discount amount must be zero or more.",
+  "posCartItemPricingInvalidDiscountPercent": "Discount percentage must be between 0 and 100.",
+  "posCartItemPricingChooseSingleDiscount": "Use discount amount or discount percentage, not both.",
+  "posCartItemPricingDiscountTooHigh": "Discount amount cannot exceed the effective unit price.",
   "posCartClearTitle": "Clear Cart",
   "posCartClearMessage": "Are you sure you want to remove all items from the cart?",
   "posCartClearConfirm": "Clear",

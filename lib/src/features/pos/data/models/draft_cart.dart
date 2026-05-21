@@ -8,6 +8,8 @@ class DraftCart {
   final List<Map<String, dynamic>> cartItems;
   final Map<String, dynamic>? customer;
   final Map<String, dynamic>? salesPartner;
+  final Map<String, dynamic>? selectedPriceList;
+  final bool zeroShippingOverride;
   final bool isPickup;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -23,6 +25,8 @@ class DraftCart {
     required this.cartItems,
     this.customer,
     this.salesPartner,
+    this.selectedPriceList,
+    this.zeroShippingOverride = false,
     required this.isPickup,
     required this.createdAt,
     required this.updatedAt,
@@ -37,6 +41,9 @@ class DraftCart {
     bool clearCustomer = false,
     Map<String, dynamic>? salesPartner,
     bool clearSalesPartner = false,
+    Map<String, dynamic>? selectedPriceList,
+    bool clearSelectedPriceList = false,
+    bool? zeroShippingOverride,
     bool? isPickup,
     DateTime? updatedAt,
     String? amendmentSourceInvoiceId,
@@ -49,6 +56,11 @@ class DraftCart {
       cartItems: cartItems ?? this.cartItems,
       customer: clearCustomer ? null : (customer ?? this.customer),
       salesPartner: clearSalesPartner ? null : (salesPartner ?? this.salesPartner),
+        selectedPriceList: clearSelectedPriceList
+          ? null
+          : (selectedPriceList ?? this.selectedPriceList),
+        zeroShippingOverride:
+          zeroShippingOverride ?? this.zeroShippingOverride,
       isPickup: isPickup ?? this.isPickup,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -69,6 +81,10 @@ class DraftCart {
       'cart_items': jsonEncode(cartItems),
       'customer': customer != null ? jsonEncode(customer) : null,
       'sales_partner': salesPartner != null ? jsonEncode(salesPartner) : null,
+        'selected_price_list': selectedPriceList != null
+          ? jsonEncode(selectedPriceList)
+          : null,
+        'zero_shipping_override': zeroShippingOverride,
       'is_pickup': isPickup,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -112,6 +128,9 @@ class DraftCart {
       cartItems: decodeItems(map['cart_items']),
       customer: decodeMap(map['customer']),
       salesPartner: decodeMap(map['sales_partner']),
+        selectedPriceList: decodeMap(map['selected_price_list']),
+        zeroShippingOverride:
+          (map['zero_shipping_override'] as bool?) ?? false,
       isPickup: (map['is_pickup'] as bool?) ?? false,
       createdAt: parseDate(map['created_at'], now),
       updatedAt: parseDate(map['updated_at'], now),

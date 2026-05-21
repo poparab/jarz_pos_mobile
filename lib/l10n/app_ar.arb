@@ -461,6 +461,15 @@
   "posCartPickupDescription": "سيستلم العميل الطلب من الفرع.",
   "posCartDeliveryDescription": "سيوصل الطلب للعميل في الوقت المحدد.",
   "posCartPickupChip": "استلام",
+  "posCartPricingTitle": "تسعير المدير",
+  "posCartPriceListLabel": "قائمة الأسعار",
+  "posCartPriceListHint": "استخدم القائمة الافتراضية للفرع أو اختر قائمة B2B.",
+  "posCartPriceListDefaultChip": "افتراضي",
+  "posCartZeroShippingTitle": "بدون إيراد شحن",
+  "posCartZeroShippingDescription": "لا تضف إيراد الشحن على هذا الطلب.",
+  "posCartZeroShippingPriceListDefault": "مفعّل تلقائيًا لهذه القائمة السعرية.",
+  "posCartZeroShippingManagedByPickup": "الاستلام من الفرع يلغي رسوم التوصيل بالفعل.",
+  "posCartZeroShippingManagedByPartner": "طلبات شريك البيع تلغي إيراد الشحن بالفعل.",
   "posSubtotalLabel": "الإجمالي الفرعي:",
   "posDeliveryLabel": "التوصيل:",
   "posTotalLabel": "الإجمالي:",
@@ -488,6 +497,35 @@
   "posDeliveryCostGeneric": "تكلفة التوصيل",
   "posUnknownItem": "صنف غير معروف",
   "posCartEditBundle": "تعديل الباقة",
+  "posCartItemPricingDialogTitle": "تعديل تسعير السطر",
+  "posCartItemPricingBaseRate": "سعر الكتالوج الحالي: {amount}",
+  "@posCartItemPricingBaseRate": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "posCartItemPricingCustomRateLabel": "سعر وحدة مخصص",
+  "posCartItemPricingDiscountAmountLabel": "قيمة الخصم",
+  "posCartItemPricingDiscountPercentLabel": "نسبة الخصم",
+  "posCartItemPricingDiscountHint": "استخدم قيمة الخصم أو نسبة الخصم فقط، وليس الاثنين معًا.",
+  "posCartItemPricingReset": "إلغاء التسعير",
+  "posCartItemPricingSave": "تطبيق",
+  "posCartItemCustomPriceApplied": "سعر مخصص {amount}",
+  "@posCartItemCustomPriceApplied": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "posCartItemDiscountAmountApplied": "خصم {amount}",
+  "@posCartItemDiscountAmountApplied": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "posCartItemDiscountPercentApplied": "خصم {amount}%",
+  "@posCartItemDiscountPercentApplied": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "posCartItemPricingInvalidNumber": "أدخل رقمًا صالحًا.",
+  "posCartItemPricingInvalidCustomRate": "يجب أن يكون السعر المخصص صفرًا أو أكثر.",
+  "posCartItemPricingInvalidDiscountAmount": "يجب أن تكون قيمة الخصم صفرًا أو أكثر.",
+  "posCartItemPricingInvalidDiscountPercent": "يجب أن تكون نسبة الخصم بين 0 و100.",
+  "posCartItemPricingChooseSingleDiscount": "استخدم قيمة الخصم أو نسبة الخصم فقط، وليس الاثنين معًا.",
+  "posCartItemPricingDiscountTooHigh": "لا يمكن أن تتجاوز قيمة الخصم سعر الوحدة الفعلي.",
   "posCartClearTitle": "إفراغ السلة",
   "posCartClearMessage": "هل أنت متأكد من حذف جميع الأصناف من السلة؟",
   "posCartClearConfirm": "إفراغ",

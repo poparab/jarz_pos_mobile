@@ -226,10 +226,20 @@ class _DummyPosRepository extends PosRepository {
   Future<List<Map<String, dynamic>>> getPosProfiles() async => const [];
 
   @override
-  Future<List<Map<String, dynamic>>> getItems(String posProfile) async => const [];
+  Future<List<Map<String, dynamic>>> getItems(
+    String posProfile, {
+    String? priceList,
+  }) async => const [];
 
   @override
-  Future<List<Map<String, dynamic>>> getBundles(String posProfile) async => const [];
+  Future<List<Map<String, dynamic>>> getBundles(
+    String posProfile, {
+    String? priceList,
+  }) async => const [];
+
+  @override
+  Future<List<Map<String, dynamic>>> getPosPriceLists(String posProfile) async =>
+      const [];
 }
 
 class _FakeDraftCartRepository extends DraftCartRepository {

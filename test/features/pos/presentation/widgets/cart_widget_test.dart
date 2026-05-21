@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
+import 'package:jarz_pos/src/features/pos/data/models/draft_cart.dart';
 import 'package:jarz_pos/src/features/pos/data/repositories/draft_cart_repository.dart';
 import 'package:jarz_pos/src/features/pos/data/repositories/pos_repository.dart';
 import 'package:jarz_pos/src/features/pos/presentation/widgets/cart_widget.dart';
@@ -16,14 +17,39 @@ class _DummyPosRepository extends PosRepository {
   Future<List<Map<String, dynamic>>> getPosProfiles() async => const [];
 
   @override
-  Future<List<Map<String, dynamic>>> getItems(String posProfile) async => const [];
+  Future<List<Map<String, dynamic>>> getItems(
+    String posProfile, {
+    String? priceList,
+  }) async => const [];
 
   @override
-  Future<List<Map<String, dynamic>>> getBundles(String posProfile) async => const [];
+  Future<List<Map<String, dynamic>>> getBundles(
+    String posProfile, {
+    String? priceList,
+  }) async => const [];
+
+  @override
+  Future<List<Map<String, dynamic>>> getPosPriceLists(String posProfile) async =>
+      const [];
+}
+
+class _DummyDraftCartRepository extends DraftCartRepository {
+  @override
+  Future<List<DraftCart>> loadAll() async => const [];
+
+  @override
+  Future<void> upsert(draft) async {}
+
+  @override
+  Future<void> delete(String id) async {}
+
+  @override
+  Future<void> clearAll() async {}
 }
 
 class _PosNotifierStub extends PosNotifier {
-  _PosNotifierStub(PosState initialState) : super(_DummyPosRepository(), DraftCartRepository()) {
+  _PosNotifierStub(PosState initialState)
+      : super(_DummyPosRepository(), _DummyDraftCartRepository()) {
     state = initialState;
   }
 }

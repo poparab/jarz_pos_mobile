@@ -1826,6 +1826,60 @@ abstract class AppLocalizations {
   /// **'Pickup'**
   String get posCartPickupChip;
 
+  /// No description provided for @posCartPricingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager Pricing'**
+  String get posCartPricingTitle;
+
+  /// No description provided for @posCartPriceListLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Price list'**
+  String get posCartPriceListLabel;
+
+  /// No description provided for @posCartPriceListHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the profile default or switch to a B2B list.'**
+  String get posCartPriceListHint;
+
+  /// No description provided for @posCartPriceListDefaultChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get posCartPriceListDefaultChip;
+
+  /// No description provided for @posCartZeroShippingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero shipping income'**
+  String get posCartZeroShippingTitle;
+
+  /// No description provided for @posCartZeroShippingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not charge shipping income on this order.'**
+  String get posCartZeroShippingDescription;
+
+  /// No description provided for @posCartZeroShippingPriceListDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled automatically for this price list.'**
+  String get posCartZeroShippingPriceListDefault;
+
+  /// No description provided for @posCartZeroShippingManagedByPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup already disables delivery charges.'**
+  String get posCartZeroShippingManagedByPickup;
+
+  /// No description provided for @posCartZeroShippingManagedByPartner.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales partner orders already suppress shipping income.'**
+  String get posCartZeroShippingManagedByPartner;
+
   /// No description provided for @posSubtotalLabel.
   ///
   /// In en, this message translates to:
@@ -1933,6 +1987,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Bundle'**
   String get posCartEditBundle;
+
+  /// No description provided for @posCartItemPricingDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit line pricing'**
+  String get posCartItemPricingDialogTitle;
+
+  /// No description provided for @posCartItemPricingBaseRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Current catalog rate: {amount}'**
+  String posCartItemPricingBaseRate(String amount);
+
+  /// No description provided for @posCartItemPricingCustomRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom unit price'**
+  String get posCartItemPricingCustomRateLabel;
+
+  /// No description provided for @posCartItemPricingDiscountAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount amount'**
+  String get posCartItemPricingDiscountAmountLabel;
+
+  /// No description provided for @posCartItemPricingDiscountPercentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount percentage'**
+  String get posCartItemPricingDiscountPercentLabel;
+
+  /// No description provided for @posCartItemPricingDiscountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use discount amount or discount percentage, not both.'**
+  String get posCartItemPricingDiscountHint;
+
+  /// No description provided for @posCartItemPricingReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset pricing'**
+  String get posCartItemPricingReset;
+
+  /// No description provided for @posCartItemPricingSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get posCartItemPricingSave;
+
+  /// No description provided for @posCartItemCustomPriceApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom {amount}'**
+  String posCartItemCustomPriceApplied(String amount);
+
+  /// No description provided for @posCartItemDiscountAmountApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount {amount}'**
+  String posCartItemDiscountAmountApplied(String amount);
+
+  /// No description provided for @posCartItemDiscountPercentApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount {amount}%'**
+  String posCartItemDiscountPercentApplied(String amount);
+
+  /// No description provided for @posCartItemPricingInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number.'**
+  String get posCartItemPricingInvalidNumber;
+
+  /// No description provided for @posCartItemPricingInvalidCustomRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom price must be zero or more.'**
+  String get posCartItemPricingInvalidCustomRate;
+
+  /// No description provided for @posCartItemPricingInvalidDiscountAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount amount must be zero or more.'**
+  String get posCartItemPricingInvalidDiscountAmount;
+
+  /// No description provided for @posCartItemPricingInvalidDiscountPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount percentage must be between 0 and 100.'**
+  String get posCartItemPricingInvalidDiscountPercent;
+
+  /// No description provided for @posCartItemPricingChooseSingleDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Use discount amount or discount percentage, not both.'**
+  String get posCartItemPricingChooseSingleDiscount;
+
+  /// No description provided for @posCartItemPricingDiscountTooHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount amount cannot exceed the effective unit price.'**
+  String get posCartItemPricingDiscountTooHigh;
 
   /// No description provided for @posCartClearTitle.
   ///

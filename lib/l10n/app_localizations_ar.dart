@@ -997,6 +997,38 @@ class AppLocalizationsAr extends AppLocalizations {
   String get posCartPickupChip => 'استلام';
 
   @override
+  String get posCartPricingTitle => 'تسعير المدير';
+
+  @override
+  String get posCartPriceListLabel => 'قائمة الأسعار';
+
+  @override
+  String get posCartPriceListHint =>
+      'استخدم القائمة الافتراضية للفرع أو اختر قائمة B2B.';
+
+  @override
+  String get posCartPriceListDefaultChip => 'افتراضي';
+
+  @override
+  String get posCartZeroShippingTitle => 'بدون إيراد شحن';
+
+  @override
+  String get posCartZeroShippingDescription =>
+      'لا تضف إيراد الشحن على هذا الطلب.';
+
+  @override
+  String get posCartZeroShippingPriceListDefault =>
+      'مفعّل تلقائيًا لهذه القائمة السعرية.';
+
+  @override
+  String get posCartZeroShippingManagedByPickup =>
+      'الاستلام من الفرع يلغي رسوم التوصيل بالفعل.';
+
+  @override
+  String get posCartZeroShippingManagedByPartner =>
+      'طلبات شريك البيع تلغي إيراد الشحن بالفعل.';
+
+  @override
   String get posSubtotalLabel => 'الإجمالي الفرعي:';
 
   @override
@@ -1057,6 +1089,71 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get posCartEditBundle => 'تعديل الباقة';
+
+  @override
+  String get posCartItemPricingDialogTitle => 'تعديل تسعير السطر';
+
+  @override
+  String posCartItemPricingBaseRate(String amount) {
+    return 'سعر الكتالوج الحالي: $amount';
+  }
+
+  @override
+  String get posCartItemPricingCustomRateLabel => 'سعر وحدة مخصص';
+
+  @override
+  String get posCartItemPricingDiscountAmountLabel => 'قيمة الخصم';
+
+  @override
+  String get posCartItemPricingDiscountPercentLabel => 'نسبة الخصم';
+
+  @override
+  String get posCartItemPricingDiscountHint =>
+      'استخدم قيمة الخصم أو نسبة الخصم فقط، وليس الاثنين معًا.';
+
+  @override
+  String get posCartItemPricingReset => 'إلغاء التسعير';
+
+  @override
+  String get posCartItemPricingSave => 'تطبيق';
+
+  @override
+  String posCartItemCustomPriceApplied(String amount) {
+    return 'سعر مخصص $amount';
+  }
+
+  @override
+  String posCartItemDiscountAmountApplied(String amount) {
+    return 'خصم $amount';
+  }
+
+  @override
+  String posCartItemDiscountPercentApplied(String amount) {
+    return 'خصم $amount%';
+  }
+
+  @override
+  String get posCartItemPricingInvalidNumber => 'أدخل رقمًا صالحًا.';
+
+  @override
+  String get posCartItemPricingInvalidCustomRate =>
+      'يجب أن يكون السعر المخصص صفرًا أو أكثر.';
+
+  @override
+  String get posCartItemPricingInvalidDiscountAmount =>
+      'يجب أن تكون قيمة الخصم صفرًا أو أكثر.';
+
+  @override
+  String get posCartItemPricingInvalidDiscountPercent =>
+      'يجب أن تكون نسبة الخصم بين 0 و100.';
+
+  @override
+  String get posCartItemPricingChooseSingleDiscount =>
+      'استخدم قيمة الخصم أو نسبة الخصم فقط، وليس الاثنين معًا.';
+
+  @override
+  String get posCartItemPricingDiscountTooHigh =>
+      'لا يمكن أن تتجاوز قيمة الخصم سعر الوحدة الفعلي.';
 
   @override
   String get posCartClearTitle => 'إفراغ السلة';

@@ -88,6 +88,11 @@ class PosRepository {
         double.tryParse(value.toString().trim())?.toInt();
   }
 
+  String? _normalizedOptionalString(dynamic value) {
+    final normalized = value?.toString().trim() ?? '';
+    return normalized.isEmpty ? null : normalized;
+  }
+
   Map<String, dynamic>? _normalizedBundleItem(Map<String, dynamic> rawItem) {
     if (_isExplicitlyDisabled(rawItem)) {
       return null;
@@ -256,11 +261,18 @@ class PosRepository {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getBundles(String posProfile) async {
+  Future<List<Map<String, dynamic>>> getBundles(
+    String posProfile, {
+    String? priceList,
+  }) async {
     try {
       final response = await _dio.post(
         ApiEndpoints.getProfileBundles,
-        data: {'profile': posProfile},
+        data: {
+          'profile': posProfile,
+          if (_normalizedOptionalString(priceList) case final value?)
+            'price_list': value,
+        },
       );
 
       if (response.statusCode == 200 && response.data['message'] != null) {
@@ -276,7 +288,16 @@ class PosRepository {
             return null;
           }
 
+          final bundleRate =
+              _asDouble(bundle['price'] ?? bundle['price_list_rate'] ?? bundle['rate']) ??
+              0.0;
           bundle['free_shipping'] = _asBool(bundle['free_shipping']);
+          bundle['price'] = bundleRate;
+          bundle['price_list_rate'] =
+              _asDouble(bundle['price_list_rate'] ?? bundle['price']) ?? bundleRate;
+          bundle['price_list'] =
+              _normalizedOptionalString(bundle['price_list']) ??
+              _normalizedOptionalString(priceList);
           bundle['item_groups'] = itemGroups;
           return bundle;
         }).whereType<Map<String, dynamic>>().toList();
@@ -320,11 +341,18 @@ class PosRepository {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getItems(String posProfile) async {
+  Future<List<Map<String, dynamic>>> getItems(
+    String posProfile, {
+    String? priceList,
+  }) async {
     try {
       final response = await _dio.post(
         ApiEndpoints.getProfileProducts,
-        data: {'profile': posProfile},
+        data: {
+          'profile': posProfile,
+          if (_normalizedOptionalString(priceList) case final value?)
+            'price_list': value,
+        },
       );
 
       if (response.statusCode == 200 && response.data['message'] != null) {
@@ -338,11 +366,20 @@ class PosRepository {
             continue;
           }
 
+          final rate =
+              _asDouble(item['price'] ?? item['price_list_rate'] ?? item['rate']) ??
+              0.0;
+
           items.add({
             'name': item['id'],
             'item_name': item['name'],
             'item_group': item['item_group'],
-            'rate': item['price'] ?? 0.0,
+            'rate': rate,
+            'price_list_rate':
+                _asDouble(item['price_list_rate'] ?? item['price']) ?? rate,
+            'price_list':
+                _normalizedOptionalString(item['price_list']) ??
+                _normalizedOptionalString(priceList),
             'actual_qty': item['qty'] ?? 0.0,
             'stock_uom': 'Unit', // Default UOM
           });
@@ -352,6 +389,40 @@ class PosRepository {
       return [];
     } catch (e) {
       throw Exception('Failed to fetch items: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getPosPriceLists(String posProfile) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.getPosPriceLists,
+        data: {'profile': posProfile},
+      );
+
+      if (response.statusCode == 200 && response.data['message'] != null) {
+        final List<dynamic> priceListsData = response.data['message'];
+        return priceListsData.whereType<Map>().map((raw) {
+          final priceList = Map<String, dynamic>.from(raw);
+          return {
+            'name': _normalizedOptionalString(priceList['name']) ?? '',
+            'display_label':
+                _normalizedOptionalString(priceList['display_label']) ??
+                _normalizedOptionalString(priceList['name']) ??
+                '',
+            'currency': _normalizedOptionalString(priceList['currency']),
+            'is_default': _asBool(priceList['is_default']),
+            'zero_shipping_default':
+                _asBool(priceList['zero_shipping_default']),
+          };
+        }).where((item) => (item['name'] as String).isNotEmpty).toList();
+      }
+
+      return [];
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ Failed to fetch POS price lists: $e');
+      }
+      return [];
     }
   }
 
@@ -568,6 +639,8 @@ class PosRepository {
     String? paymentType, // 'cash' | 'online' (optional, advisory)
     bool isPickup = false,
     String? paymentMethod, // 'Cash' | 'Instapay' | 'Mobile Wallet'
+    String? priceList,
+    bool zeroShippingOverride = false,
     bool posProfileOverride = false,
   }) async {
     try {
@@ -581,6 +654,9 @@ class PosRepository {
         paymentType: paymentType,
         isPickup: isPickup,
         paymentMethod: paymentMethod,
+        priceList: priceList,
+        zeroShippingOverride: zeroShippingOverride,
+        posProfileOverride: posProfileOverride,
       );
 
       if (kDebugMode) {
@@ -625,6 +701,8 @@ class PosRepository {
     String? paymentType,
     bool isPickup = false,
     String? paymentMethod,
+    String? priceList,
+    bool zeroShippingOverride = false,
     String? idempotencyKey,
     bool posProfileOverride = false,
     double? expectedSourceGrandTotal,
@@ -641,6 +719,8 @@ class PosRepository {
         paymentType: paymentType,
         isPickup: isPickup,
         paymentMethod: paymentMethod,
+        priceList: priceList,
+        zeroShippingOverride: zeroShippingOverride,
         posProfileOverride: posProfileOverride,
       );
       requestData['invoice_id'] = sourceInvoiceId;
@@ -720,6 +800,9 @@ class PosRepository {
       if (item.containsKey('discount_percentage')) {
         base['discount_percentage'] = item['discount_percentage'];
       }
+      if (item.containsKey('custom_rate_override')) {
+        base['custom_rate_override'] = item['custom_rate_override'];
+      }
       return base;
     }).toList();
   }
@@ -734,6 +817,8 @@ class PosRepository {
     String? paymentType,
     bool isPickup = false,
     String? paymentMethod,
+    String? priceList,
+    bool zeroShippingOverride = false,
     bool posProfileOverride = false,
   }) {
     final cartItems = _buildCartRequestItems(items);
@@ -763,6 +848,7 @@ class PosRepository {
 
     final partnerActive = salesPartner != null && salesPartner.isNotEmpty;
     if (!partnerActive &&
+        !zeroShippingOverride &&
         customer != null &&
         customer['delivery_income'] != null &&
         customer['delivery_income'] > 0) {
@@ -796,6 +882,12 @@ class PosRepository {
     }
     if (paymentMethod != null && paymentMethod.isNotEmpty) {
       requestData['payment_method'] = paymentMethod;
+    }
+    if (priceList != null && priceList.isNotEmpty) {
+      requestData['price_list'] = priceList;
+    }
+    if (zeroShippingOverride) {
+      requestData['zero_shipping_override'] = 1;
     }
     return requestData;
   }
