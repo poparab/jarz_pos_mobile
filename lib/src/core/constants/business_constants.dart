@@ -12,6 +12,17 @@ abstract final class PaymentModes {
   static const onlineLower = 'online';
 }
 
+// ── Courier settlement modes ───────────────────────────────────────────
+abstract final class SettlementModes {
+  static const payNow = 'pay_now';
+  static const later = 'later';
+}
+
+abstract final class OutForDeliverySettlement {
+  static const defaultMode = SettlementModes.later;
+  static const showModePicker = false;
+}
+
 // ── Invoice / document statuses ─────────────────────────────────────────
 abstract final class InvoiceStatus {
   static const draft = 'Draft';

@@ -1121,7 +1121,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     // Only pay_now is supported per new business rule
 
       // New: Support 'later' when enabled (except Sales Partner and Pickup)
-      if (mode == 'later') {
+      if (mode == SettlementModes.later) {
         try {
           final courierService = ref.read(courierServiceProvider);
           // Generate preview only to obtain a token; do not show any collect/pay dialogs
@@ -1129,7 +1129,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             invoice: invoiceId,
             partyType: partyType,
             party: party,
-            mode: 'later',
+            mode: SettlementModes.later,
             recentPaymentSeconds: 30,
           );
           final previewPartyType = (preview['party_type'] ?? '').toString().trim();
@@ -1164,7 +1164,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           final res = await courierService.confirmSettlement(
             invoice: invoiceId,
             previewToken: token,
-            mode: 'later',
+            mode: SettlementModes.later,
             posProfile: posProfile,
             partyType: resolvedPartyType,
             party: resolvedParty,
@@ -1183,6 +1183,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           }
           // Success: do not show collection/info popups for settle later
           messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanMarkedSettleLater)));
+          try {
+            await ref.read(kanbanProvider.notifier).refreshSingle(invoiceId);
+          } catch (_) {}
           return; // handled fully; backend already moved to OFD
         } catch (e) {
           final errorMessage = extractFrappeErrorMessage(
@@ -1203,7 +1206,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       }
 
   // For pay_now flow (regardless of paid/unpaid), use two-step preview -> confirm.
-  if (mode == 'pay_now') {
+  if (mode == SettlementModes.payNow) {
         try {
           final courierService = ref.read(courierServiceProvider);
           final preview = await courierService.generateSettlementPreview(
@@ -1315,7 +1318,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             courierDisplay: courierDisplay,
           )
           .then((res) async {
-        if (mode == 'pay_now') {
+        if (mode == SettlementModes.payNow) {
           // Fetch settlement preview to drive UI (signed net logic)
           try {
             final courierService = ref.read(courierServiceProvider);
@@ -1593,7 +1596,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     String? invoicePosProfile, // The specific invoice's POS profile (branch)
   }) async {
     String? courier;
-    String mode = 'pay_now';
+    String mode = OutForDeliverySettlement.defaultMode;
     bool loading = true;
     List<Map<String, String>> couriers = [];
     bool creating = false;
@@ -1635,7 +1638,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       builder: (ctx) {
         return StatefulBuilder(builder: (ctx, setState) {
           return AlertDialog(
-            title: Text(context.l10n.kanbanCourierAndMode),
+            title: Text(context.l10n.commonCourierLabel),
             content: SizedBox(
               width: ResponsiveUtils.getDialogWidth(ctx),
               child: loading
@@ -1880,33 +1883,34 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                             ),
                             const SizedBox(height: 8),
                           ],
-                          const SizedBox(height: 14),
-                          Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: Text(context.l10n.kanbanMode, style: Theme.of(context).textTheme.titleSmall),
-                          ),
-                          // Offer Pay Now always; optionally show Settle Later per business rule
-                          RadioGroup<String>(
-                            groupValue: mode,
-                            onChanged: (v) => setState(() => mode = v ?? mode),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                RadioListTile<String>(
-                                  title: Text(context.l10n.kanbanPayNowCash),
-                                  value: 'pay_now',
-                                  dense: true,
-                                ),
-                                if (!hideSettleLater)
+                          if (OutForDeliverySettlement.showModePicker) ...[
+                            const SizedBox(height: 14),
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: Text(context.l10n.kanbanMode, style: Theme.of(context).textTheme.titleSmall),
+                            ),
+                            RadioGroup<String>(
+                              groupValue: mode,
+                              onChanged: (v) => setState(() => mode = v ?? mode),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
                                   RadioListTile<String>(
-                                    title: Text(context.l10n.kanbanSettleLater),
-                                    subtitle: Text(context.l10n.kanbanSettleLaterSubtitle),
-                                    value: 'later',
+                                    title: Text(context.l10n.kanbanPayNowCash),
+                                    value: SettlementModes.payNow,
                                     dense: true,
                                   ),
-                              ],
+                                  if (!hideSettleLater)
+                                    RadioListTile<String>(
+                                      title: Text(context.l10n.kanbanSettleLater),
+                                      subtitle: Text(context.l10n.kanbanSettleLaterSubtitle),
+                                      value: SettlementModes.later,
+                                      dense: true,
+                                    ),
+                                ],
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),

@@ -236,6 +236,32 @@ void main() {
         expect(req['data']['courier'], 'Ahmad');
       });
 
+      test('sends later mode for OFD settle-later confirmations', () async {
+        mockDio.setResponse(
+          ApiEndpoints.confirmSettlement,
+          createSuccessResponse(data: {'success': true}),
+        );
+
+        await service.confirmSettlement(
+          invoice: 'INV-002',
+          previewToken: 'tok-later',
+          mode: 'later',
+          posProfile: 'Main Store',
+          partyType: 'Supplier',
+          party: 'SUP-001',
+          courier: 'Courier Later',
+        );
+
+        final req = mockDio.requestLog.first;
+        expect(req['data']['invoice'], 'INV-002');
+        expect(req['data']['preview_token'], 'tok-later');
+        expect(req['data']['mode'], 'later');
+        expect(req['data']['pos_profile'], 'Main Store');
+        expect(req['data']['party_type'], 'Supplier');
+        expect(req['data']['party'], 'SUP-001');
+        expect(req['data']['courier'], 'Courier Later');
+      });
+
       test('does not send courier when empty string', () async {
         mockDio.setResponse(
           ApiEndpoints.confirmSettlement,

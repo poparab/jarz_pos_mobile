@@ -1764,14 +1764,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ? courierDisplay!
         : ((courier != null && courier.isNotEmpty) ? courier : 'UNKNOWN');
 
-    if (mode == 'later') {
+    if (mode == SettlementModes.later) {
       try {
         final courierService = ref.read(courierServiceProvider);
         final preview = await courierService.generateSettlementPreview(
           invoice: widget.invoice.name,
           partyType: partyType,
           party: party,
-          mode: 'later',
+          mode: SettlementModes.later,
           recentPaymentSeconds: 30,
         );
         final previewPartyType = (preview['party_type'] ?? '').toString().trim();
@@ -1786,7 +1786,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         final res = await courierService.confirmSettlement(
           invoice: widget.invoice.name,
           previewToken: token,
-          mode: 'later',
+          mode: SettlementModes.later,
           posProfile: posProfile,
           partyType: partyType,
           party: party,
@@ -1794,6 +1794,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         );
         if (res['success'] == true) {
           messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceMarkedSettleLater)));
+          try {
+            await notifier.refreshSingle(widget.invoice.name);
+          } catch (_) {}
         } else {
           messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettleLaterFailed)));
         }
@@ -1810,7 +1813,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     }
 
     // For pay_now flows always use preview -> confirm so backend handles paid/unpaid logic uniformly
-    if (mode == 'pay_now') {
+    if (mode == SettlementModes.payNow) {
       try {
         final courierService = ref.read(courierServiceProvider);
         final preview = await courierService.generateSettlementPreview(
@@ -1905,7 +1908,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     String? courier;
     String? partyType;
     String? party;
-    String mode = 'pay_now';
+    String mode = OutForDeliverySettlement.defaultMode;
     bool loading = true;
     List<Map<String, String>> couriers = [];
     bool creating = false;
@@ -1938,7 +1941,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) {
           return AlertDialog(
-            title: Text(context.l10n.invoiceDeliveryTitle),
+            title: Text(context.l10n.commonCourierLabel),
             content: SizedBox(
               width: ResponsiveUtils.getDialogWidth(context, small: 350, medium: 480, large: 640),
               child: loading
@@ -2209,26 +2212,34 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                             ),
                             const SizedBox(height: 8),
                           ],
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: Text(context.l10n.kanbanMode, style: Theme.of(context).textTheme.titleSmall),
-                          ),
-                          // Only Pay Now option is available per new rule
-                          RadioGroup<String>(
-                            groupValue: mode,
-                            onChanged: (v) => setState(() => mode = v ?? mode),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                RadioListTile<String>(
-                                  title: Text(context.l10n.kanbanPayNowCash),
-                                  value: 'pay_now',
-                                  dense: true,
-                                ),
-                              ],
+                          if (OutForDeliverySettlement.showModePicker) ...[
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: Text(context.l10n.kanbanMode, style: Theme.of(context).textTheme.titleSmall),
                             ),
-                          ),
+                            RadioGroup<String>(
+                              groupValue: mode,
+                              onChanged: (v) => setState(() => mode = v ?? mode),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  RadioListTile<String>(
+                                    title: Text(context.l10n.kanbanPayNowCash),
+                                    value: SettlementModes.payNow,
+                                    dense: true,
+                                  ),
+                                  if (!hideSettleLater)
+                                    RadioListTile<String>(
+                                      title: Text(context.l10n.kanbanSettleLater),
+                                      subtitle: Text(context.l10n.kanbanSettleLaterSubtitle),
+                                      value: SettlementModes.later,
+                                      dense: true,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
