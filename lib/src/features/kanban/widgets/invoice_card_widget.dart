@@ -931,9 +931,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                 ),
                               ],
                               // Payment method badge – only show when NOT fully paid
-                              if (!widget.invoice.isFullyPaid && widget.invoice.paymentMethod != null && widget.invoice.paymentMethod!.isNotEmpty) ...[
+                              if (!widget.invoice.isFullyPaid && widget.invoice.effectiveCollectionMethod != null) ...[
                                 const SizedBox(height: 4),
-                                _buildPaymentMethodBadge(widget.invoice.paymentMethod!),
+                                _buildPaymentMethodBadge(widget.invoice.effectiveCollectionMethod!),
                               ],
                             ],
                           ),

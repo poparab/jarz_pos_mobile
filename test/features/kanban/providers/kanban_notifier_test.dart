@@ -24,6 +24,7 @@ class _FakeKanbanService extends KanbanService {
   String? lastUpdatedInvoice;
   String? lastUpdatedState;
   bool updateShouldSucceed = true;
+  Object? fetchInvoicesError;
 
   @override
   Future<List<KanbanColumn>> getKanbanColumns() async {
@@ -35,6 +36,9 @@ class _FakeKanbanService extends KanbanService {
 
   @override
   Future<Map<String, List<InvoiceCard>>> getKanbanInvoices({Map<String, dynamic>? filters}) async {
+    if (fetchInvoicesError != null) {
+      throw fetchInvoicesError!;
+    }
     lastFilters = filters == null ? null : Map<String, dynamic>.from(filters);
     final older = InvoiceCard.fromJson({
       'name': 'INV-OLD',
@@ -384,6 +388,28 @@ void main() {
       // Card should still be in the received column since fake returns it there
       final received = state.invoices['received'] ?? [];
       expect(received.any((c) => c.id == 'INV-OLD'), isTrue);
+    });
+
+    test('refreshSingle surfaces errors so callers can fallback to reload', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      service.fetchInvoicesError = Exception('network failed');
+
+      await expectLater(
+        notifier.refreshSingle('INV-OLD'),
+        throwsA(
+          isA<Exception>().having(
+            (error) => error.toString(),
+            'message',
+            contains('network failed'),
+          ),
+        ),
+      );
+
+      final state = container.read(kanbanProvider);
+      expect(state.error, contains('Failed to refresh invoice'));
     });
 
     test('clearError sets error to null', () async {

@@ -419,6 +419,20 @@ class InvoiceCard {
   String? get phone => customerPhone; // backward compatible alias if other code expects phone
   bool get pickup => isPickup;
 
+  String? get effectiveCollectionMethod {
+    final actual = actualPaymentMethod?.trim();
+    if (!isFullyPaid && hasUnsettledCourierTxn && actual != null && actual.isNotEmpty) {
+      return actual;
+    }
+
+    final requested = paymentMethod?.trim();
+    if (requested != null && requested.isNotEmpty) {
+      return requested;
+    }
+
+    return (actual != null && actual.isNotEmpty) ? actual : null;
+  }
+
   double get _cancellationTolerance {
     final base = grandTotal.abs() * 0.001;
     return base < 0.01 ? 0.01 : base;

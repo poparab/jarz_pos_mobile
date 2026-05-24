@@ -151,29 +151,41 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
 
   Future<void> refreshSingle(String invoiceId) async {
     try {
-  final data = await fetchInvoices();
+      final data = await fetchInvoices();
       // Find updated invoice card in result set, then patch existing state without full reload
       InvoiceCard? updated;
       for (final list in data.values) {
         final idx = list.indexWhere((c) => c.id == invoiceId || c.name == invoiceId);
-        if (idx >= 0) { updated = list[idx]; break; }
+        if (idx >= 0) {
+          updated = list[idx];
+          break;
+        }
       }
       if (updated == null) return; // not found; skip
+      final updatedCard = updated;
       final current = Map<String, List<InvoiceCard>>.from(state.invoices);
       // Remove from any column
       for (final key in current.keys) {
         final list = List<InvoiceCard>.from(current[key] ?? []);
         final before = list.length;
         list.removeWhere((c) => c.id == invoiceId || c.name == invoiceId);
-        if (before != list.length) current[key] = list;
+        if (before != list.length) {
+          current[key] = list;
+        }
       }
-      final destKey = _stateKey(updated.status);
+      final destKey = _stateKey(updatedCard.status);
       final dest = List<InvoiceCard>.from(current[destKey] ?? []);
-      dest.removeWhere((c) => c.id == updated!.id);
-      dest.add(updated);
+      dest.removeWhere((c) => c.id == updatedCard.id);
+      dest.add(updatedCard);
       current[destKey] = dest;
       state = state.copyWith(invoices: current);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Refresh single invoice failed for $invoiceId: $e');
+      state = state.copyWith(
+        error: _formatActionError(e, action: 'Failed to refresh invoice'),
+      );
+      rethrow;
+    }
   }
 
   Future<void> _initializeKanban() async {

@@ -276,6 +276,29 @@ void main() {
       expect(card.itemsCount, 1);
     });
 
+    test('effectiveCollectionMethod prefers actual method for unsettled unpaid courier cards', () {
+      final card = buildCard(overrides: {
+        'payment_method': 'Cash',
+        'actual_payment_method': 'Instapay',
+        'has_unsettled_courier_txn': 1,
+        'outstanding_amount': 150,
+      });
+
+      expect(card.isFullyPaid, isFalse);
+      expect(card.effectiveCollectionMethod, 'Instapay');
+    });
+
+    test('effectiveCollectionMethod falls back to requested payment method when needed', () {
+      final card = buildCard(overrides: {
+        'payment_method': 'Cash',
+        'actual_payment_method': 'Instapay',
+        'has_unsettled_courier_txn': 0,
+        'outstanding_amount': 150,
+      });
+
+      expect(card.effectiveCollectionMethod, 'Cash');
+    });
+
     test('copyWith preserves unspecified fields', () {
       final card = buildCard(overrides: {
         'status': 'Received',
