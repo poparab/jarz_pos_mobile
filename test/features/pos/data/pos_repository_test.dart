@@ -6,7 +6,7 @@ import '../../../helpers/test_helpers.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setupMockPlatformChannels();
-  
+
   group('PosRepository', () {
     late MockDio mockDio;
     late PosRepository repository;
@@ -20,9 +20,7 @@ void main() {
       test('returns list of POS profiles', () async {
         mockDio.setResponse(
           '/api/method/jarz_pos.api.pos.get_pos_profiles',
-          createSuccessResponse(
-            data: ['Main POS', 'Branch POS'],
-          ),
+          createSuccessResponse(data: ['Main POS', 'Branch POS']),
         );
 
         final result = await repository.getPosProfiles();
@@ -50,17 +48,13 @@ void main() {
           createMockDioException(message: 'API Error'),
         );
 
-        expect(
-          () => repository.getPosProfiles(),
-          throwsException,
-        );
+        expect(() => repository.getPosProfiles(), throwsException);
       });
 
       test('handles null message gracefully', () async {
-        mockDio.setResponse(
-          '/api/method/jarz_pos.api.pos.get_pos_profiles',
-          {'message': null},
-        );
+        mockDio.setResponse('/api/method/jarz_pos.api.pos.get_pos_profiles', {
+          'message': null,
+        });
 
         final result = await repository.getPosProfiles();
 
@@ -80,7 +74,7 @@ void main() {
               {
                 'group_name': 'Main',
                 'items': [
-                  {'id': 'ITEM-001', 'name': 'Product A'}
+                  {'id': 'ITEM-001', 'name': 'Product A'},
                 ],
               },
             ],
@@ -94,7 +88,7 @@ void main() {
               {
                 'group_name': 'Main',
                 'items': [
-                  {'id': 'ITEM-002', 'name': 'Product B'}
+                  {'id': 'ITEM-002', 'name': 'Product B'},
                 ],
               },
             ],
@@ -114,99 +108,102 @@ void main() {
         expect(result[1]['free_shipping'], isFalse);
       });
 
-      test('filters disabled bundles after normalizing disabled values', () async {
-        final bundles = [
-          {
-            'id': 'BUNDLE-001',
-            'name': 'Enabled bool',
-            'disabled': false,
-            'item_groups': [
-              {
-                'group_name': 'Main',
-                'items': [
-                  {'id': 'ITEM-001', 'name': 'Product A'}
-                ],
-              },
-            ],
-          },
-          {
-            'id': 'BUNDLE-002',
-            'name': 'Disabled bool',
-            'disabled': true,
-            'item_groups': [
-              {
-                'group_name': 'Main',
-                'items': [
-                  {'id': 'ITEM-002', 'name': 'Product B'}
-                ],
-              },
-            ],
-          },
-          {
-            'id': 'BUNDLE-003',
-            'name': 'Enabled int',
-            'disabled': 0,
-            'item_groups': [
-              {
-                'group_name': 'Main',
-                'items': [
-                  {'id': 'ITEM-003', 'name': 'Product C'}
-                ],
-              },
-            ],
-          },
-          {
-            'id': 'BUNDLE-004',
-            'name': 'Disabled int',
-            'disabled': 1,
-            'item_groups': [
-              {
-                'group_name': 'Main',
-                'items': [
-                  {'id': 'ITEM-004', 'name': 'Product D'}
-                ],
-              },
-            ],
-          },
-          {
-            'id': 'BUNDLE-005',
-            'name': 'Enabled missing',
-            'item_groups': [
-              {
-                'group_name': 'Main',
-                'items': [
-                  {'id': 'ITEM-005', 'name': 'Product E'}
-                ],
-              },
-            ],
-          },
-          {
-            'id': 'BUNDLE-006',
-            'name': 'Disabled string',
-            'disabled': 'true',
-            'item_groups': [
-              {
-                'group_name': 'Main',
-                'items': [
-                  {'id': 'ITEM-006', 'name': 'Product F'}
-                ],
-              },
-            ],
-          },
-        ];
+      test(
+        'filters disabled bundles after normalizing disabled values',
+        () async {
+          final bundles = [
+            {
+              'id': 'BUNDLE-001',
+              'name': 'Enabled bool',
+              'disabled': false,
+              'item_groups': [
+                {
+                  'group_name': 'Main',
+                  'items': [
+                    {'id': 'ITEM-001', 'name': 'Product A'},
+                  ],
+                },
+              ],
+            },
+            {
+              'id': 'BUNDLE-002',
+              'name': 'Disabled bool',
+              'disabled': true,
+              'item_groups': [
+                {
+                  'group_name': 'Main',
+                  'items': [
+                    {'id': 'ITEM-002', 'name': 'Product B'},
+                  ],
+                },
+              ],
+            },
+            {
+              'id': 'BUNDLE-003',
+              'name': 'Enabled int',
+              'disabled': 0,
+              'item_groups': [
+                {
+                  'group_name': 'Main',
+                  'items': [
+                    {'id': 'ITEM-003', 'name': 'Product C'},
+                  ],
+                },
+              ],
+            },
+            {
+              'id': 'BUNDLE-004',
+              'name': 'Disabled int',
+              'disabled': 1,
+              'item_groups': [
+                {
+                  'group_name': 'Main',
+                  'items': [
+                    {'id': 'ITEM-004', 'name': 'Product D'},
+                  ],
+                },
+              ],
+            },
+            {
+              'id': 'BUNDLE-005',
+              'name': 'Enabled missing',
+              'item_groups': [
+                {
+                  'group_name': 'Main',
+                  'items': [
+                    {'id': 'ITEM-005', 'name': 'Product E'},
+                  ],
+                },
+              ],
+            },
+            {
+              'id': 'BUNDLE-006',
+              'name': 'Disabled string',
+              'disabled': 'true',
+              'item_groups': [
+                {
+                  'group_name': 'Main',
+                  'items': [
+                    {'id': 'ITEM-006', 'name': 'Product F'},
+                  ],
+                },
+              ],
+            },
+          ];
 
-        mockDio.setResponse(
-          '/api/method/jarz_pos.api.pos.get_profile_bundles',
-          createSuccessResponse(data: bundles),
-        );
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.pos.get_profile_bundles',
+            createSuccessResponse(data: bundles),
+          );
 
-        final result = await repository.getBundles('Main POS');
+          final result = await repository.getBundles('Main POS');
 
-        expect(
-          result.map((bundle) => bundle['name']),
-          equals(['Enabled bool', 'Enabled int', 'Enabled missing']),
-        );
-      });
+          expect(
+            result.map((bundle) => bundle['name']),
+            equals(['Enabled bool', 'Enabled int', 'Enabled missing']),
+          );
+        },
+      );
 
       test('normalizes free_shipping from various formats', () async {
         final bundles = [
@@ -218,7 +215,7 @@ void main() {
               {
                 'group_name': 'Main',
                 'items': [
-                  {'id': 'ITEM-001', 'name': 'Product A'}
+                  {'id': 'ITEM-001', 'name': 'Product A'},
                 ],
               },
             ],
@@ -231,7 +228,7 @@ void main() {
               {
                 'group_name': 'Main',
                 'items': [
-                  {'id': 'ITEM-002', 'name': 'Product B'}
+                  {'id': 'ITEM-002', 'name': 'Product B'},
                 ],
               },
             ],
@@ -244,7 +241,7 @@ void main() {
               {
                 'group_name': 'Main',
                 'items': [
-                  {'id': 'ITEM-003', 'name': 'Product C'}
+                  {'id': 'ITEM-003', 'name': 'Product C'},
                 ],
               },
             ],
@@ -257,7 +254,7 @@ void main() {
               {
                 'group_name': 'Main',
                 'items': [
-                  {'id': 'ITEM-004', 'name': 'Product D'}
+                  {'id': 'ITEM-004', 'name': 'Product D'},
                 ],
               },
             ],
@@ -270,7 +267,7 @@ void main() {
               {
                 'group_name': 'Main',
                 'items': [
-                  {'id': 'ITEM-005', 'name': 'Product E'}
+                  {'id': 'ITEM-005', 'name': 'Product E'},
                 ],
               },
             ],
@@ -283,7 +280,7 @@ void main() {
               {
                 'group_name': 'Main',
                 'items': [
-                  {'id': 'ITEM-006', 'name': 'Product F'}
+                  {'id': 'ITEM-006', 'name': 'Product F'},
                 ],
               },
             ],
@@ -335,7 +332,7 @@ void main() {
               {
                 'group_name': 'Main',
                 'items': [
-                  {'id': 'ITEM-004', 'name': 'Product D'}
+                  {'id': 'ITEM-004', 'name': 'Product D'},
                 ],
               },
             ],
@@ -347,16 +344,12 @@ void main() {
               {
                 'group_name': 'Main',
                 'items': [
-                  {'id': 'ITEM-005', 'name': 'Product E'}
+                  {'id': 'ITEM-005', 'name': 'Product E'},
                 ],
               },
             ],
           },
-          {
-            'id': 'BUNDLE-NO-GROUPS',
-            'name': 'No Groups',
-            'item_groups': [],
-          },
+          {'id': 'BUNDLE-NO-GROUPS', 'name': 'No Groups', 'item_groups': []},
           {
             'id': 'BUNDLE-INVALID-GROUPS',
             'name': 'Invalid Groups',
@@ -386,92 +379,107 @@ void main() {
         expect(result.single['item_groups'][1]['items'], hasLength(1));
       });
 
-      test('normalizes alternate bundle item field names for picker UI', () async {
-        final bundles = [
-          {
-            'id': 'BUNDLE-ALT',
-            'name': 'Jarz Signature Trio',
-            'item_groups': [
-              {
-                'group_name': 'Signature Drinks',
-                'quantity': 3,
-                'items': [
-                  {
-                    'item_code': 'ITEM-001',
-                    'item_name': 'Spanish Latte',
-                    'rate': 55.0,
-                    'actual_qty': 7,
-                  },
-                  {
-                    'item_code': 'ITEM-002',
-                    'item_name': 'Pistachio Latte',
-                    'rate': 60.0,
-                    'qty': 5,
-                  },
-                ],
-              },
-            ],
-          },
-        ];
+      test(
+        'normalizes alternate bundle item field names for picker UI',
+        () async {
+          final bundles = [
+            {
+              'id': 'BUNDLE-ALT',
+              'name': 'Jarz Signature Trio',
+              'item_groups': [
+                {
+                  'group_name': 'Signature Drinks',
+                  'quantity': 3,
+                  'items': [
+                    {
+                      'item_code': 'ITEM-001',
+                      'item_name': 'Spanish Latte',
+                      'rate': 55.0,
+                      'actual_qty': 7,
+                    },
+                    {
+                      'item_code': 'ITEM-002',
+                      'item_name': 'Pistachio Latte',
+                      'rate': 60.0,
+                      'qty': 5,
+                    },
+                  ],
+                },
+              ],
+            },
+          ];
 
-        mockDio.setResponse(
-          '/api/method/jarz_pos.api.pos.get_profile_bundles',
-          createSuccessResponse(data: bundles),
-        );
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.pos.get_profile_bundles',
+            createSuccessResponse(data: bundles),
+          );
 
-        final result = await repository.getBundles('Main POS');
-        final items = result.single['item_groups'].single['items'] as List<dynamic>;
+          final result = await repository.getBundles('Main POS');
+          final items =
+              result.single['item_groups'].single['items'] as List<dynamic>;
 
-        expect(items, hasLength(2));
-        expect(items.first['id'], equals('ITEM-001'));
-        expect(items.first['name'], equals('Spanish Latte'));
-        expect(items.first['price'], equals(55.0));
-        expect(items.first['actual_qty'], equals(7.0));
-        expect(items[1]['id'], equals('ITEM-002'));
-        expect(items[1]['name'], equals('Pistachio Latte'));
-        expect(items[1]['price'], equals(60.0));
-        expect(items[1]['qty'], equals(5.0));
-      });
+          expect(items, hasLength(2));
+          expect(items.first['id'], equals('ITEM-001'));
+          expect(items.first['name'], equals('Spanish Latte'));
+          expect(items.first['price'], equals(55.0));
+          expect(items.first['actual_qty'], equals(7.0));
+          expect(items[1]['id'], equals('ITEM-002'));
+          expect(items[1]['name'], equals('Pistachio Latte'));
+          expect(items[1]['price'], equals(60.0));
+          expect(items[1]['qty'], equals(5.0));
+        },
+      );
 
-      test('assigns stable unique keys to duplicate same-name bundle groups', () async {
-        final bundles = [
-          {
-            'id': 'BUNDLE-DUP-GROUPS',
-            'name': 'Jarz Large Bundle',
-            'item_groups': [
-              {
-                'group_name': 'Large',
-                'quantity': 4,
-                'items': [
-                  {'id': 'ITEM-001', 'name': 'Blueberry Large', 'price': 160.0},
-                ],
-              },
-              {
-                'group_name': 'Large',
-                'quantity': 2,
-                'items': [
-                  {'id': 'ITEM-002', 'name': 'Pistachio Large', 'price': 170.0},
-                ],
-              },
-            ],
-          },
-        ];
+      test(
+        'assigns stable unique keys to duplicate same-name bundle groups',
+        () async {
+          final bundles = [
+            {
+              'id': 'BUNDLE-DUP-GROUPS',
+              'name': 'Jarz Large Bundle',
+              'item_groups': [
+                {
+                  'group_name': 'Large',
+                  'quantity': 4,
+                  'items': [
+                    {
+                      'id': 'ITEM-001',
+                      'name': 'Blueberry Large',
+                      'price': 160.0,
+                    },
+                  ],
+                },
+                {
+                  'group_name': 'Large',
+                  'quantity': 2,
+                  'items': [
+                    {
+                      'id': 'ITEM-002',
+                      'name': 'Pistachio Large',
+                      'price': 170.0,
+                    },
+                  ],
+                },
+              ],
+            },
+          ];
 
-        mockDio.setResponse(
-          '/api/method/jarz_pos.api.pos.get_profile_bundles',
-          createSuccessResponse(data: bundles),
-        );
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.pos.get_profile_bundles',
+            createSuccessResponse(data: bundles),
+          );
 
-        final result = await repository.getBundles('Main POS');
-        final groups = result.single['item_groups'] as List<dynamic>;
+          final result = await repository.getBundles('Main POS');
+          final groups = result.single['item_groups'] as List<dynamic>;
 
-        expect(groups, hasLength(2));
-        expect(groups[0]['group_name'], equals('Large'));
-        expect(groups[1]['group_name'], equals('Large'));
-        expect(groups[0]['group_key'], isNotEmpty);
-        expect(groups[1]['group_key'], isNotEmpty);
-        expect(groups[0]['group_key'], isNot(equals(groups[1]['group_key'])));
-      });
+          expect(groups, hasLength(2));
+          expect(groups[0]['group_name'], equals('Large'));
+          expect(groups[1]['group_name'], equals('Large'));
+          expect(groups[0]['group_key'], isNotEmpty);
+          expect(groups[1]['group_key'], isNotEmpty);
+          expect(groups[0]['group_key'], isNot(equals(groups[1]['group_key'])));
+        },
+      );
 
       test('sends profile parameter correctly', () async {
         mockDio.setResponse(
@@ -491,10 +499,7 @@ void main() {
           createMockDioException(message: 'Network error'),
         );
 
-        expect(
-          () => repository.getBundles('Main POS'),
-          throwsException,
-        );
+        expect(() => repository.getBundles('Main POS'), throwsException);
       });
     });
 
@@ -546,10 +551,28 @@ void main() {
           createMockDioException(message: 'Server error'),
         );
 
-        expect(
-          () => repository.getTerritories(),
-          throwsException,
+        expect(() => repository.getTerritories(), throwsException);
+      });
+    });
+
+    group('saveCustomerShippingAddress', () {
+      test('should send territory when saving a new address', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.customer.save_customer_shipping_address',
+          createSuccessResponse(
+            data: {'success': true, 'selected_address_name': 'ADDR-NSR'},
+          ),
         );
+
+        await repository.saveCustomerShippingAddress(
+          customer: 'CUST-001',
+          phone: '01000000000',
+          address: 'Street 1',
+          territory: 'EGNASRCITY',
+        );
+
+        final data = mockDio.requestLog.last['data'] as Map<String, dynamic>;
+        expect(data['territory'], 'EGNASRCITY');
       });
     });
 
@@ -583,11 +606,7 @@ void main() {
 
       test('handles missing price and qty with defaults', () async {
         final apiItems = [
-          {
-            'id': 'ITEM-001',
-            'name': 'Product A',
-            'item_group': 'Electronics',
-          },
+          {'id': 'ITEM-001', 'name': 'Product A', 'item_group': 'Electronics'},
         ];
 
         mockDio.setResponse(
@@ -601,39 +620,32 @@ void main() {
         expect(result[0]['actual_qty'], equals(0.0));
       });
 
-      test('filters items that are disabled or missing usable identity', () async {
-        final apiItems = [
-          {
-            'id': 'ITEM-001',
-            'name': 'Product A',
-            'item_group': 'Electronics',
-          },
-          {
-            'id': 'ITEM-002',
-            'name': 'Disabled Product',
-            'disabled': 1,
-          },
-          {
-            'id': '',
-            'name': 'Missing Id',
-          },
-          {
-            'id': 'ITEM-003',
-            'name': '',
-          },
-        ];
+      test(
+        'filters items that are disabled or missing usable identity',
+        () async {
+          final apiItems = [
+            {
+              'id': 'ITEM-001',
+              'name': 'Product A',
+              'item_group': 'Electronics',
+            },
+            {'id': 'ITEM-002', 'name': 'Disabled Product', 'disabled': 1},
+            {'id': '', 'name': 'Missing Id'},
+            {'id': 'ITEM-003', 'name': ''},
+          ];
 
-        mockDio.setResponse(
-          '/api/method/jarz_pos.api.pos.get_profile_products',
-          createSuccessResponse(data: apiItems),
-        );
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.pos.get_profile_products',
+            createSuccessResponse(data: apiItems),
+          );
 
-        final result = await repository.getItems('Main POS');
+          final result = await repository.getItems('Main POS');
 
-        expect(result, hasLength(1));
-        expect(result.single['name'], equals('ITEM-001'));
-        expect(result.single['item_name'], equals('Product A'));
-      });
+          expect(result, hasLength(1));
+          expect(result.single['name'], equals('ITEM-001'));
+          expect(result.single['item_name'], equals('Product A'));
+        },
+      );
 
       test('sends profile parameter correctly', () async {
         mockDio.setResponse(
@@ -653,10 +665,7 @@ void main() {
           createMockDioException(message: 'Failed to load items'),
         );
 
-        expect(
-          () => repository.getItems('Main POS'),
-          throwsException,
-        );
+        expect(() => repository.getItems('Main POS'), throwsException);
       });
     });
   });

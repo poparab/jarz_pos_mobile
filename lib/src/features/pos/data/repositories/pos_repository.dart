@@ -100,15 +100,18 @@ class PosRepository {
 
     final item = Map<String, dynamic>.from(rawItem);
     final itemId = _firstNonEmptyString(item, const ['id', 'item_code']);
-    final itemName = _firstNonEmptyString(
-      item,
-      const ['name', 'item_name', 'title'],
-    );
+    final itemName = _firstNonEmptyString(item, const [
+      'name',
+      'item_name',
+      'title',
+    ]);
 
     item['id'] = itemId;
     item['name'] = itemName;
 
-    final price = _asDouble(item['price'] ?? item['rate'] ?? item['price_list_rate']);
+    final price = _asDouble(
+      item['price'] ?? item['rate'] ?? item['price_list_rate'],
+    );
     if (price != null) {
       item['price'] = price;
     }
@@ -146,15 +149,17 @@ class PosRepository {
     String groupName,
     int fallbackIndex,
   ) {
-    final explicitKey = _firstNonEmptyString(
-      group,
-      const ['group_key', 'group_id', 'name'],
-    );
+    final explicitKey = _firstNonEmptyString(group, const [
+      'group_key',
+      'group_id',
+      'name',
+    ]);
     if (explicitKey.isNotEmpty) {
       return explicitKey;
     }
 
-    final rawIndex = _asInt(group['group_index'] ?? group['idx']) ?? fallbackIndex;
+    final rawIndex =
+        _asInt(group['group_index'] ?? group['idx']) ?? fallbackIndex;
     return '$groupName::$rawIndex';
   }
 
@@ -174,15 +179,18 @@ class PosRepository {
       }
 
       final group = Map<String, dynamic>.from(rawGroup);
-      final groupName = _firstNonEmptyString(
-        group,
-        const ['group_name', 'item_group', 'title'],
-      );
+      final groupName = _firstNonEmptyString(group, const [
+        'group_name',
+        'item_group',
+        'title',
+      ]);
       if (groupName.isEmpty) {
         continue;
       }
 
-      final rawQuantity = _asInt(group['quantity'] ?? group['required_quantity']);
+      final rawQuantity = _asInt(
+        group['quantity'] ?? group['required_quantity'],
+      );
       if (rawQuantity != null && rawQuantity <= 0) {
         continue;
       }
@@ -210,8 +218,13 @@ class PosRepository {
         continue;
       }
 
-      final groupKey = _normalizedBundleGroupKey(group, groupName, fallbackIndex);
-      final groupIndex = _asInt(group['group_index'] ?? group['idx']) ?? fallbackIndex;
+      final groupKey = _normalizedBundleGroupKey(
+        group,
+        groupName,
+        fallbackIndex,
+      );
+      final groupIndex =
+          _asInt(group['group_index'] ?? group['idx']) ?? fallbackIndex;
 
       group['group_name'] = groupName;
       group['group_key'] = groupKey;
@@ -227,9 +240,7 @@ class PosRepository {
 
   Future<List<Map<String, dynamic>>> getPosProfiles() async {
     try {
-      final response = await _dio.post(
-        ApiEndpoints.getPosProfiles,
-      );
+      final response = await _dio.post(ApiEndpoints.getPosProfiles);
 
       if (response.statusCode == 200 && response.data['message'] != null) {
         final List<dynamic> profilesData = response.data['message'];
@@ -239,10 +250,7 @@ class PosRepository {
         for (final item in profilesData) {
           if (item is String) {
             // Legacy format: just a name string
-            profiles.add({
-              'name': item,
-              'title': item,
-            });
+            profiles.add({'name': item, 'title': item});
           } else if (item is Map) {
             // New format: {name, allow_delivery_partner, ...}
             final name = (item['name'] ?? '').toString();
@@ -277,30 +285,40 @@ class PosRepository {
 
       if (response.statusCode == 200 && response.data['message'] != null) {
         final List<dynamic> bundlesData = response.data['message'];
-        return bundlesData.whereType<Map>().map((raw) {
-          final bundle = Map<String, dynamic>.from(raw);
-          if (_isExplicitlyDisabled(bundle) || !_hasUsableBundleIdentity(bundle)) {
-            return null;
-          }
+        return bundlesData
+            .whereType<Map>()
+            .map((raw) {
+              final bundle = Map<String, dynamic>.from(raw);
+              if (_isExplicitlyDisabled(bundle) ||
+                  !_hasUsableBundleIdentity(bundle)) {
+                return null;
+              }
 
-          final itemGroups = _normalizedBundleGroups(bundle);
-          if (itemGroups.isEmpty) {
-            return null;
-          }
+              final itemGroups = _normalizedBundleGroups(bundle);
+              if (itemGroups.isEmpty) {
+                return null;
+              }
 
-          final bundleRate =
-              _asDouble(bundle['price'] ?? bundle['price_list_rate'] ?? bundle['rate']) ??
-              0.0;
-          bundle['free_shipping'] = _asBool(bundle['free_shipping']);
-          bundle['price'] = bundleRate;
-          bundle['price_list_rate'] =
-              _asDouble(bundle['price_list_rate'] ?? bundle['price']) ?? bundleRate;
-          bundle['price_list'] =
-              _normalizedOptionalString(bundle['price_list']) ??
-              _normalizedOptionalString(priceList);
-          bundle['item_groups'] = itemGroups;
-          return bundle;
-        }).whereType<Map<String, dynamic>>().toList();
+              final bundleRate =
+                  _asDouble(
+                    bundle['price'] ??
+                        bundle['price_list_rate'] ??
+                        bundle['rate'],
+                  ) ??
+                  0.0;
+              bundle['free_shipping'] = _asBool(bundle['free_shipping']);
+              bundle['price'] = bundleRate;
+              bundle['price_list_rate'] =
+                  _asDouble(bundle['price_list_rate'] ?? bundle['price']) ??
+                  bundleRate;
+              bundle['price_list'] =
+                  _normalizedOptionalString(bundle['price_list']) ??
+                  _normalizedOptionalString(priceList);
+              bundle['item_groups'] = itemGroups;
+              return bundle;
+            })
+            .whereType<Map<String, dynamic>>()
+            .toList();
       }
       return [];
     } catch (e) {
@@ -308,7 +326,9 @@ class PosRepository {
     }
   }
 
-  Future<Map<String, dynamic>> getPosProfileAccountBalance(String posProfile) async {
+  Future<Map<String, dynamic>> getPosProfileAccountBalance(
+    String posProfile,
+  ) async {
     try {
       final response = await _dio.post(
         ApiEndpoints.getPosProfileAccountBalance,
@@ -367,7 +387,9 @@ class PosRepository {
           }
 
           final rate =
-              _asDouble(item['price'] ?? item['price_list_rate'] ?? item['rate']) ??
+              _asDouble(
+                item['price'] ?? item['price_list_rate'] ?? item['rate'],
+              ) ??
               0.0;
 
           items.add({
@@ -401,20 +423,25 @@ class PosRepository {
 
       if (response.statusCode == 200 && response.data['message'] != null) {
         final List<dynamic> priceListsData = response.data['message'];
-        return priceListsData.whereType<Map>().map((raw) {
-          final priceList = Map<String, dynamic>.from(raw);
-          return {
-            'name': _normalizedOptionalString(priceList['name']) ?? '',
-            'display_label':
-                _normalizedOptionalString(priceList['display_label']) ??
-                _normalizedOptionalString(priceList['name']) ??
-                '',
-            'currency': _normalizedOptionalString(priceList['currency']),
-            'is_default': _asBool(priceList['is_default']),
-            'zero_shipping_default':
-                _asBool(priceList['zero_shipping_default']),
-          };
-        }).where((item) => (item['name'] as String).isNotEmpty).toList();
+        return priceListsData
+            .whereType<Map>()
+            .map((raw) {
+              final priceList = Map<String, dynamic>.from(raw);
+              return {
+                'name': _normalizedOptionalString(priceList['name']) ?? '',
+                'display_label':
+                    _normalizedOptionalString(priceList['display_label']) ??
+                    _normalizedOptionalString(priceList['name']) ??
+                    '',
+                'currency': _normalizedOptionalString(priceList['currency']),
+                'is_default': _asBool(priceList['is_default']),
+                'zero_shipping_default': _asBool(
+                  priceList['zero_shipping_default'],
+                ),
+              };
+            })
+            .where((item) => (item['name'] as String).isNotEmpty)
+            .toList();
       }
 
       return [];
@@ -426,7 +453,10 @@ class PosRepository {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getSalesPartners({String? search, int limit = 10}) async {
+  Future<List<Map<String, dynamic>>> getSalesPartners({
+    String? search,
+    int limit = 10,
+  }) async {
     try {
       final response = await _dio.post(
         ApiEndpoints.getSalesPartners,
@@ -493,6 +523,7 @@ class PosRepository {
     String? invoice,
     String? addressName,
     String? address,
+    String? territory,
   }) async {
     try {
       final response = await _dio.post(
@@ -504,6 +535,7 @@ class PosRepository {
           if (addressName != null && addressName.isNotEmpty)
             'address_name': addressName,
           if (address != null && address.isNotEmpty) 'address': address,
+          if (territory != null && territory.isNotEmpty) 'territory': territory,
           'set_as_primary': 1,
         },
       );
@@ -561,8 +593,10 @@ class PosRepository {
       message ??= e.message;
 
       // Specific friendly mapping: duplicate customer/mobile
-      if ((exceptionType == 'ValidationError' || exceptionType == 'frappe.exceptions.ValidationError') &&
-          message != null && message.toLowerCase().contains('already exists')) {
+      if ((exceptionType == 'ValidationError' ||
+              exceptionType == 'frappe.exceptions.ValidationError') &&
+          message != null &&
+          message.toLowerCase().contains('already exists')) {
         final lowerMsg = message.toLowerCase();
 
         // Mobile/phone uniqueness violation
@@ -661,9 +695,7 @@ class PosRepository {
 
       if (kDebugMode) {
         debugPrint('🚀 SENDING REQUEST TO BACKEND:');
-        debugPrint(
-          '   Endpoint: ${ApiEndpoints.createPosInvoice}',
-        );
+        debugPrint('   Endpoint: ${ApiEndpoints.createPosInvoice}');
         debugPrint('   Cart JSON: ${requestData['cart_json']}');
         debugPrint('   Customer: ${requestData['customer_name']}');
         debugPrint('   POS Profile: ${requestData['pos_profile_name']}');
@@ -770,14 +802,16 @@ class PosRepository {
     return items.map((item) {
       final isBundle = item['type'] == 'bundle';
       final base = <String, dynamic>{
-        'item_code': isBundle ? item['bundle_details']['bundle_id'] : item['item_code'],
+        'item_code': isBundle
+            ? item['bundle_details']['bundle_id']
+            : item['item_code'],
         'qty': item['quantity'],
         'rate': item['rate'],
         'is_bundle': isBundle,
       };
       if (isBundle) {
-        final rawSelections = item['bundle_details']?['selected_items']
-            as Map<String, dynamic>?;
+        final rawSelections =
+            item['bundle_details']?['selected_items'] as Map<String, dynamic>?;
         if (rawSelections != null) {
           final normalizedSelections = <String, List<Map<String, dynamic>>>{};
           rawSelections.forEach((groupName, entries) {
@@ -846,23 +880,38 @@ class PosRepository {
       requestData['shipping_address_name'] = shippingAddressName;
     }
 
+    final deliveryIncome = customer == null
+        ? null
+        : _asDouble(
+            customer['selected_shipping_address_delivery_income'] ??
+                customer['delivery_income'],
+          );
+    final deliveryTerritory = customer == null
+        ? ''
+        : _firstNonEmptyString(customer, const [
+            'selected_shipping_address_territory',
+            'territory',
+            'territory_name',
+          ]);
+
     final partnerActive = salesPartner != null && salesPartner.isNotEmpty;
     if (!partnerActive &&
         !zeroShippingOverride &&
         customer != null &&
-        customer['delivery_income'] != null &&
-        customer['delivery_income'] > 0) {
+        deliveryIncome != null &&
+        deliveryIncome > 0) {
       requestData['delivery_charges_json'] = jsonEncode([
         {
           'charge_type': 'Delivery',
-          'amount': customer['delivery_income'],
+          'amount': deliveryIncome,
           'description':
-              'Delivery charge for ${customer['territory'] ?? 'Unknown Territory'}',
+              'Delivery charge for ${deliveryTerritory.isNotEmpty ? deliveryTerritory : 'Unknown Territory'}',
         },
       ]);
     }
 
-    if (requiredDeliveryDatetime != null && requiredDeliveryDatetime.isNotEmpty) {
+    if (requiredDeliveryDatetime != null &&
+        requiredDeliveryDatetime.isNotEmpty) {
       requestData['required_delivery_datetime'] = requiredDeliveryDatetime;
     }
     if (deliveryEndDatetime != null && deliveryEndDatetime.isNotEmpty) {
@@ -950,7 +999,8 @@ class PosRepository {
     required List<Map<String, dynamic>> items,
     Map<String, dynamic>? customer,
     String? requiredDeliveryDatetime,
-    bool printReceipt = false, // default false; printing moved outside POS submit
+    bool printReceipt =
+        false, // default false; printing moved outside POS submit
   }) async {
     // Deprecated inline printing; retained for future Kanban use
     return createInvoice(
@@ -979,10 +1029,7 @@ class PosRepository {
         if (referenceDate != null) 'reference_date': referenceDate,
       };
 
-      final response = await _dio.post(
-        ApiEndpoints.payInvoice,
-        data: data,
-      );
+      final response = await _dio.post(ApiEndpoints.payInvoice, data: data);
 
       if (response.statusCode == 200 && response.data['message'] != null) {
         return Map<String, dynamic>.from(response.data['message']);
@@ -1005,7 +1052,9 @@ class PosRepository {
       // Validate input
       if (posProfile.isEmpty) {
         if (kDebugMode) {
-          debugPrint('⚠️ isPosProfileOpen: POS profile is empty, defaulting to open');
+          debugPrint(
+            '⚠️ isPosProfileOpen: POS profile is empty, defaulting to open',
+          );
         }
         return {'is_open': true, 'message': 'No POS profile specified'};
       }
@@ -1023,21 +1072,24 @@ class PosRepository {
       if (kDebugMode) {
         debugPrint('⚠️ DioException in isPosProfileOpen: ${e.message}');
       }
-      // If there's a server error or network issue, default to "open" 
+      // If there's a server error or network issue, default to "open"
       // to avoid blocking critical operations like order transfers
       return {
-        'is_open': true, 
-        'message': 'Error checking timetable: ${e.message}. Defaulting to open.'
+        'is_open': true,
+        'message':
+            'Error checking timetable: ${e.message}. Defaulting to open.',
       };
     } catch (e) {
       if (kDebugMode) {
         debugPrint('⚠️ Error in isPosProfileOpen: $e');
       }
       // Default to open to avoid blocking operations
-      return {'is_open': true, 'message': 'Error checking timetable. Defaulting to open.'};
+      return {
+        'is_open': true,
+        'message': 'Error checking timetable. Defaulting to open.',
+      };
     }
   }
-
 }
 
 class ApiException implements Exception {

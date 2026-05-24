@@ -36,12 +36,14 @@ final dynamicCustomerSearchProvider =
     });
 
 // Territories provider (local) backed by PosRepository
-final territoriesProvider = FutureProvider.family<List<Map<String, dynamic>>, String?>(
-  (ref, search) async {
-    final repo = ref.watch(posRepositoryProvider);
-    return await repo.getTerritories(search: search);
-  },
-);
+final territoriesProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, String?>((
+      ref,
+      search,
+    ) async {
+      final repo = ref.watch(posRepositoryProvider);
+      return await repo.getTerritories(search: search);
+    });
 
 class CustomerSearchWidget extends ConsumerStatefulWidget {
   const CustomerSearchWidget({super.key});
@@ -79,6 +81,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
   Map<String, dynamic> _mergeCustomerAddressBook(
     Map<String, dynamic> customer,
     Map<String, dynamic> addressBook,
+    List<Map<String, dynamic>> territories,
   ) {
     final addresses = (addressBook['addresses'] as List? ?? const [])
         .whereType<Map>()
@@ -89,10 +92,28 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
         : <String, dynamic>{};
     final selectedPhone =
         selectedAddress['phone']?.toString().trim().isNotEmpty == true
-            ? selectedAddress['phone'].toString().trim()
-            : (addressBook['default_phone']?.toString().trim() ??
-                customer['mobile_no']?.toString().trim() ??
-                '');
+        ? selectedAddress['phone'].toString().trim()
+        : (addressBook['default_phone']?.toString().trim() ??
+              customer['mobile_no']?.toString().trim() ??
+              '');
+    final selectedTerritory = _firstNonEmptyString(selectedAddress, const [
+      'city',
+      'state',
+      'territory',
+    ]);
+    final territory = _findTerritory(territories, selectedTerritory);
+    final deliveryIncome =
+        _asDouble(
+          territory?['delivery_income'] ??
+              selectedAddress['delivery_income'] ??
+              customer['delivery_income'],
+        ) ??
+        0.0;
+    final territoryDisplay = _firstNonEmptyString(territory ?? const {}, const [
+      'territory_name',
+      'name',
+      'id',
+    ]);
 
     return {
       ...customer,
@@ -101,9 +122,55 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
           addressBook['selected_address_name']?.toString().trim() ?? '',
       'selected_shipping_address':
           selectedAddress['full_address']?.toString().trim() ?? '',
+      if (selectedTerritory.isNotEmpty) ...{
+        'territory': selectedTerritory,
+        'selected_shipping_address_territory': selectedTerritory,
+      },
+      if (territoryDisplay.isNotEmpty) 'territory_name': territoryDisplay,
+      'delivery_income': deliveryIncome,
+      'selected_shipping_address_delivery_income': deliveryIncome,
       'selected_shipping_phone': selectedPhone,
       if (selectedPhone.isNotEmpty) 'mobile_no': selectedPhone,
     };
+  }
+
+  String _firstNonEmptyString(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final value = data[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) {
+        return value;
+      }
+    }
+    return '';
+  }
+
+  double? _asDouble(dynamic value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value?.toString().trim() ?? '');
+  }
+
+  Map<String, dynamic>? _findTerritory(
+    List<Map<String, dynamic>> territories,
+    String territoryValue,
+  ) {
+    final normalized = territoryValue.trim();
+    if (normalized.isEmpty) {
+      return null;
+    }
+
+    for (final territory in territories) {
+      final candidates = [
+        territory['name'],
+        territory['id'],
+        territory['territory_name'],
+      ].map((value) => value?.toString().trim()).whereType<String>();
+      if (candidates.any((candidate) => candidate == normalized)) {
+        return territory;
+      }
+    }
+    return null;
   }
 
   Future<void> _selectCustomerWithShippingAddress(
@@ -150,7 +217,8 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
         territories: territories,
         initialSelectedAddressName:
             addressBook['selected_address_name']?.toString() ?? '',
-        initialPhone: addressBook['default_phone']?.toString() ??
+        initialPhone:
+            addressBook['default_phone']?.toString() ??
             customer['mobile_no']?.toString() ??
             '',
         repository: addressRepo,
@@ -165,6 +233,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
           phone: selection['phone']?.toString() ?? '',
           addressName: selection['address_name']?.toString(),
           address: selection['address']?.toString(),
+          territory: selection['territory']?.toString(),
         );
         addressBook = saveResult['address_book'] is Map
             ? Map<String, dynamic>.from(saveResult['address_book'] as Map)
@@ -181,7 +250,9 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
     if (!mounted) return;
     ref
         .read(posNotifierProvider.notifier)
-        .selectCustomer(_mergeCustomerAddressBook(customer, addressBook));
+        .selectCustomer(
+          _mergeCustomerAddressBook(customer, addressBook, territories),
+        );
     _controller.clear();
     _focusNode.unfocus();
     setState(() {
@@ -224,8 +295,9 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
                   tooltip: l10n.customerShippingAddressTitle,
                   color: Theme.of(context).colorScheme.primary,
                   style: IconButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
                     padding: const EdgeInsets.all(8),
                   ),
                 ),
@@ -331,7 +403,9 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  customer['territory_name_ar']?.toString() ?? customer['territory_name']?.toString() ?? customer['territory'],
+                  customer['territory_name_ar']?.toString() ??
+                      customer['territory_name']?.toString() ??
+                      customer['territory'],
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w500,
@@ -414,7 +488,9 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
         if (customer['_isQuickAdd'] == true) {
           _showQuickAddCustomerDialog(customer['searchQuery'] ?? '');
         } else {
-          _selectCustomerWithShippingAddress(Map<String, dynamic>.from(customer));
+          _selectCustomerWithShippingAddress(
+            Map<String, dynamic>.from(customer),
+          );
         }
       },
       fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
@@ -459,7 +535,9 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
             borderRadius: BorderRadius.circular(8),
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: ResponsiveUtils.isPhoneLandscape(context) ? 180 : 250,
+                maxHeight: ResponsiveUtils.isPhoneLandscape(context)
+                    ? 180
+                    : 250,
                 maxWidth: ResponsiveUtils.getDialogWidth(
                   context,
                   small: 450,
@@ -481,9 +559,8 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: isQuickAdd
-                            ? Theme.of(
-                                context,
-                              ).colorScheme.primaryContainer.withValues(alpha: 0.3)
+                            ? Theme.of(context).colorScheme.primaryContainer
+                                  .withValues(alpha: 0.3)
                             : null,
                         border: Border(
                           bottom: BorderSide(
@@ -997,12 +1074,14 @@ class _QuickAddCustomerWidgetState
     });
 
     try {
-        // If Sales Partner is selected and address is empty, auto-fill with partner name
-  final selectedSalesPartner = ref.read(posNotifierProvider.select((s) => s.selectedSalesPartner));
+      // If Sales Partner is selected and address is empty, auto-fill with partner name
+      final selectedSalesPartner = ref.read(
+        posNotifierProvider.select((s) => s.selectedSalesPartner),
+      );
       final bool hasPartner = selectedSalesPartner != null;
       String addressValue = _addressController.text.trim();
       if (hasPartner && addressValue.isEmpty) {
-  final Map<String, dynamic> sp = selectedSalesPartner;
+        final Map<String, dynamic> sp = selectedSalesPartner;
         String partnerLabel = 'Sales Partner';
         for (final key in const ['title', 'partner_name', 'name']) {
           final val = sp[key];
@@ -1014,18 +1093,20 @@ class _QuickAddCustomerWidgetState
         addressValue = partnerLabel;
       }
 
-  final newCustomer = await ref.read(posRepositoryProvider).createCustomer(
-    customerName: _nameController.text.trim(),
-    mobileNumber: _mobileController.text.trim(),
-    territoryId: _selectedTerritoryId!,
-    detailedAddress: addressValue,
-    locationLink: _locationController.text.trim().isNotEmpty
-        ? _locationController.text.trim()
-        : null,
-    secondaryMobile: _secondaryMobileController.text.trim().isNotEmpty
-        ? _secondaryMobileController.text.trim()
-        : null,
-      );
+      final newCustomer = await ref
+          .read(posRepositoryProvider)
+          .createCustomer(
+            customerName: _nameController.text.trim(),
+            mobileNumber: _mobileController.text.trim(),
+            territoryId: _selectedTerritoryId!,
+            detailedAddress: addressValue,
+            locationLink: _locationController.text.trim().isNotEmpty
+                ? _locationController.text.trim()
+                : null,
+            secondaryMobile: _secondaryMobileController.text.trim().isNotEmpty
+                ? _secondaryMobileController.text.trim()
+                : null,
+          );
 
       if (mounted) {
         widget.onCustomerCreated(newCustomer);
@@ -1038,7 +1119,9 @@ class _QuickAddCustomerWidgetState
       }
     } catch (e) {
       if (mounted) {
-        final friendly = e is ApiException ? e.message : context.l10n.customerCreateFailed;
+        final friendly = e is ApiException
+            ? e.message
+            : context.l10n.customerCreateFailed;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(friendly),

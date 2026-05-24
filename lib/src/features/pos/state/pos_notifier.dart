@@ -107,8 +107,8 @@ class PosState {
       selectedProfile: selectedProfile ?? this.selectedProfile,
       items: items ?? this.items,
       bundles: bundles ?? this.bundles,
-        availablePriceLists: availablePriceLists ?? this.availablePriceLists,
-        selectedPriceList: clearSelectedPriceList
+      availablePriceLists: availablePriceLists ?? this.availablePriceLists,
+      selectedPriceList: clearSelectedPriceList
           ? null
           : (selectedPriceList ?? this.selectedPriceList),
       cartItems: cartItems ?? this.cartItems,
@@ -127,8 +127,7 @@ class PosState {
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
       isPickup: isPickup ?? this.isPickup,
-        zeroShippingOverride:
-          zeroShippingOverride ?? this.zeroShippingOverride,
+      zeroShippingOverride: zeroShippingOverride ?? this.zeroShippingOverride,
       isAmendmentDraft: isAmendmentDraft ?? this.isAmendmentDraft,
       amendmentSourceInvoiceId: clearAmendmentSourceInvoiceId
           ? null
@@ -176,12 +175,21 @@ class PosState {
       });
       if (hasFreeShippingBundle) return 0.0;
     } catch (_) {}
-    if (selectedCustomer != null &&
-        selectedCustomer!['delivery_income'] != null &&
-        selectedCustomer!['delivery_income'] > 0) {
-      return (selectedCustomer!['delivery_income'] as num).toDouble();
+    final deliveryIncome = _asDouble(
+      selectedCustomer?['selected_shipping_address_delivery_income'] ??
+          selectedCustomer?['delivery_income'],
+    );
+    if (deliveryIncome != null && deliveryIncome > 0) {
+      return deliveryIncome;
     }
     return 0.0;
+  }
+
+  double? _asDouble(dynamic value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value?.toString().trim() ?? '');
   }
 
   double get totalWithShipping {
@@ -471,7 +479,9 @@ class PosNotifier extends StateNotifier<PosState> {
           isPickup: false,
           selectedPriceList: defaultPriceList,
           clearSelectedPriceList: defaultPriceList == null,
-          zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
+          zeroShippingOverride: _zeroShippingDefaultForPriceList(
+            defaultPriceList,
+          ),
           isLoading: false,
           isAmendmentDraft: false,
           clearAmendmentSourceInvoiceId: true,
@@ -504,7 +514,9 @@ class PosNotifier extends StateNotifier<PosState> {
   Future<void> abandonAmendmentDraft({String? expectedInvoiceId}) async {
     final normalizedExpected = expectedInvoiceId?.trim() ?? '';
     final activeOrPendingInvoiceId =
-        (state.amendmentSourceInvoiceId ?? _pendingAmendmentSourceInvoiceId ?? '')
+        (state.amendmentSourceInvoiceId ??
+                _pendingAmendmentSourceInvoiceId ??
+                '')
             .trim();
 
     if (normalizedExpected.isNotEmpty &&
@@ -757,7 +769,9 @@ class PosNotifier extends StateNotifier<PosState> {
         'item_code': item['name'],
         'item_name': item['item_name'],
         'rate': item['rate'],
-        'price_list_rate': _coerceDouble(item['price_list_rate'] ?? item['rate']),
+        'price_list_rate': _coerceDouble(
+          item['price_list_rate'] ?? item['rate'],
+        ),
         'original_catalog_rate': _coerceDouble(
           item['price_list_rate'] ?? item['rate'],
         ),
@@ -968,10 +982,7 @@ class PosNotifier extends StateNotifier<PosState> {
   }
 
   void setZeroShippingOverride(bool value) {
-    state = state.copyWith(
-      zeroShippingOverride: value,
-      draftDirty: true,
-    );
+    state = state.copyWith(zeroShippingOverride: value, draftDirty: true);
     _autoSaveDebounced();
   }
 
@@ -1160,9 +1171,8 @@ class PosNotifier extends StateNotifier<PosState> {
         cartItem['bundle_details'] as Map<String, dynamic>? ?? const {};
     final bundleId = bundleDetails['bundle_id']?.toString().trim() ?? '';
     final itemCode = cartItem['item_code']?.toString().trim() ?? '';
-    final identities = <String>{bundleId, itemCode}..removeWhere(
-      (value) => value.isEmpty,
-    );
+    final identities = <String>{bundleId, itemCode}
+      ..removeWhere((value) => value.isEmpty);
 
     for (final bundle in bundles) {
       final bundleIdentities = <String>{
@@ -1186,13 +1196,15 @@ class PosNotifier extends StateNotifier<PosState> {
     final hasCustomRate =
         cartItem.containsKey('custom_rate_override') &&
         cartItem['custom_rate_override'] != null;
-    final customRate =
-        hasCustomRate ? _coerceDouble(cartItem['custom_rate_override']) : null;
+    final customRate = hasCustomRate
+        ? _coerceDouble(cartItem['custom_rate_override'])
+        : null;
     final hasDiscountAmount =
         cartItem.containsKey('discount_amount') &&
         cartItem['discount_amount'] != null;
-    final discountAmount =
-        hasDiscountAmount ? _coerceDouble(cartItem['discount_amount']) : null;
+    final discountAmount = hasDiscountAmount
+        ? _coerceDouble(cartItem['discount_amount'])
+        : null;
     final hasDiscountPercentage =
         cartItem.containsKey('discount_percentage') &&
         cartItem['discount_percentage'] != null;
@@ -1294,18 +1306,24 @@ class PosNotifier extends StateNotifier<PosState> {
     final initialResults = await Future.wait<dynamic>([
       _repository.getItems(
         profileName,
-        priceList: requestedPriceListName.isEmpty ? null : requestedPriceListName,
+        priceList: requestedPriceListName.isEmpty
+            ? null
+            : requestedPriceListName,
       ),
       _repository.getBundles(
         profileName,
-        priceList: requestedPriceListName.isEmpty ? null : requestedPriceListName,
+        priceList: requestedPriceListName.isEmpty
+            ? null
+            : requestedPriceListName,
       ),
       _repository.getPosPriceLists(profileName),
     ]);
 
     var items = List<Map<String, dynamic>>.from(initialResults[0] as List);
     var bundles = List<Map<String, dynamic>>.from(initialResults[1] as List);
-    final priceLists = List<Map<String, dynamic>>.from(initialResults[2] as List);
+    final priceLists = List<Map<String, dynamic>>.from(
+      initialResults[2] as List,
+    );
 
     final selectedPriceList =
         _matchingPriceListSelection(requestedPriceListName, priceLists) ??
@@ -2033,8 +2051,8 @@ class PosNotifier extends StateNotifier<PosState> {
         clearDeliverySlots: isPickup || deliverySlot == null,
         isPickup: isPickup,
         zeroShippingOverride:
-          _coerceBool(invoiceData['was_free_shipping']) ||
-          _zeroShippingDefaultForPriceList(selectedPriceList),
+            _coerceBool(invoiceData['was_free_shipping']) ||
+            _zeroShippingDefaultForPriceList(selectedPriceList),
         isLoading: false,
         isAmendmentDraft: true,
         amendmentSourceInvoiceId: invoiceId,
@@ -2259,7 +2277,9 @@ class PosNotifier extends StateNotifier<PosState> {
         isPickup: false,
         selectedPriceList: defaultPriceList,
         clearSelectedPriceList: defaultPriceList == null,
-        zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
+        zeroShippingOverride: _zeroShippingDefaultForPriceList(
+          defaultPriceList,
+        ),
         isLoading: false,
         isAmendmentDraft: false,
         clearAmendmentSourceInvoiceId: true,

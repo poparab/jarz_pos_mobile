@@ -64,7 +64,10 @@ void main() {
         final selections = bundle['selected_items'] as Map<String, dynamic>;
         expect(selections.containsKey('Main Course'), isTrue);
         expect(selections.containsKey('Side'), isTrue);
-        expect((selections['Main Course'] as List).first['id'], equals('ITEM-BURGER'));
+        expect(
+          (selections['Main Course'] as List).first['id'],
+          equals('ITEM-BURGER'),
+        );
         expect((selections['Side'] as List).first['id'], equals('ITEM-FRIES'));
       });
 
@@ -94,8 +97,10 @@ void main() {
           ],
         );
 
-        final cartJson = jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
-        final selections = cartJson[0]['selected_items'] as Map<String, dynamic>;
+        final cartJson =
+            jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
+        final selections =
+            cartJson[0]['selected_items'] as Map<String, dynamic>;
         expect((selections['Drinks'] as List).length, equals(2));
       });
 
@@ -124,7 +129,8 @@ void main() {
           ],
         );
 
-        final cartJson = jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
+        final cartJson =
+            jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
         expect(cartJson[0]['qty'], equals(3));
       });
     });
@@ -142,11 +148,7 @@ void main() {
         await repository.createInvoice(
           posProfile: 'Main POS',
           items: [
-            {
-              'item_code': 'ITEM-REG',
-              'quantity': 2,
-              'rate': 50.0,
-            },
+            {'item_code': 'ITEM-REG', 'quantity': 2, 'rate': 50.0},
             {
               'type': 'bundle',
               'bundle_details': {
@@ -163,7 +165,8 @@ void main() {
           ],
         );
 
-        final cartJson = jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
+        final cartJson =
+            jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
         expect(cartJson.length, equals(2));
 
         // Regular item
@@ -199,7 +202,8 @@ void main() {
           ],
         );
 
-        final cartJson = jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
+        final cartJson =
+            jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
         expect(cartJson[0]['price_list_rate'], equals(100.0));
         expect(cartJson[0]['discount_percentage'], equals(20.0));
       });
@@ -223,7 +227,8 @@ void main() {
           ],
         );
 
-        final cartJson = jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
+        final cartJson =
+            jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
         expect(cartJson[0]['price_list_rate'], equals(200.0));
         expect(cartJson[0]['discount_amount'], equals(40.0));
       });
@@ -237,145 +242,159 @@ void main() {
         await repository.createInvoice(
           posProfile: 'Main POS',
           items: [
-            {
-              'item_code': 'ITEM-FULL',
-              'quantity': 1,
-              'rate': 100.0,
-            },
+            {'item_code': 'ITEM-FULL', 'quantity': 1, 'rate': 100.0},
           ],
         );
 
-        final cartJson = jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
+        final cartJson =
+            jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
         expect(cartJson[0].containsKey('discount_percentage'), isFalse);
         expect(cartJson[0].containsKey('discount_amount'), isFalse);
         expect(cartJson[0].containsKey('price_list_rate'), isFalse);
       });
 
-      test('both discount_percentage and discount_amount can coexist', () async {
-        mockDio.setResponse(
-          '/api/method/jarz_pos.api.invoices.create_pos_invoice',
-          createSuccessResponse(data: {'name': 'INV-DISC-BOTH'}),
-        );
+      test(
+        'both discount_percentage and discount_amount can coexist',
+        () async {
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.invoices.create_pos_invoice',
+            createSuccessResponse(data: {'name': 'INV-DISC-BOTH'}),
+          );
 
-        await repository.createInvoice(
-          posProfile: 'Main POS',
-          items: [
-            {
-              'item_code': 'ITEM-D3',
-              'quantity': 2,
-              'rate': 80.0,
-              'price_list_rate': 100.0,
-              'discount_percentage': 20.0,
-              'discount_amount': 20.0,
-            },
-          ],
-        );
+          await repository.createInvoice(
+            posProfile: 'Main POS',
+            items: [
+              {
+                'item_code': 'ITEM-D3',
+                'quantity': 2,
+                'rate': 80.0,
+                'price_list_rate': 100.0,
+                'discount_percentage': 20.0,
+                'discount_amount': 20.0,
+              },
+            ],
+          );
 
-        final cartJson = jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
-        expect(cartJson[0]['discount_percentage'], equals(20.0));
-        expect(cartJson[0]['discount_amount'], equals(20.0));
-        expect(cartJson[0]['price_list_rate'], equals(100.0));
-      });
+          final cartJson =
+              jsonDecode(mockDio.requestLog.last['data']['cart_json']) as List;
+          expect(cartJson[0]['discount_percentage'], equals(20.0));
+          expect(cartJson[0]['discount_amount'], equals(20.0));
+          expect(cartJson[0]['price_list_rate'], equals(100.0));
+        },
+      );
     });
 
     // ---------------------------------------------------------------
     // Delivery Charges JSON
     // ---------------------------------------------------------------
     group('Delivery Charges JSON', () {
-      test('delivery_charges_json sent when customer has delivery_income', () async {
-        mockDio.setResponse(
-          '/api/method/jarz_pos.api.invoices.create_pos_invoice',
-          createSuccessResponse(data: {'name': 'INV-DEL-001'}),
-        );
+      test(
+        'delivery_charges_json sent when customer has delivery_income',
+        () async {
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.invoices.create_pos_invoice',
+            createSuccessResponse(data: {'name': 'INV-DEL-001'}),
+          );
 
-        await repository.createInvoice(
-          posProfile: 'Main POS',
-          items: [
-            {'item_code': 'ITEM-A', 'quantity': 1, 'rate': 50.0},
-          ],
-          customer: {
-            'name': 'CUST-001',
-            'delivery_income': 30.0,
-            'territory': 'Cairo',
-          },
-        );
+          await repository.createInvoice(
+            posProfile: 'Main POS',
+            items: [
+              {'item_code': 'ITEM-A', 'quantity': 1, 'rate': 50.0},
+            ],
+            customer: {
+              'name': 'CUST-001',
+              'delivery_income': 30.0,
+              'territory': 'Cairo',
+            },
+          );
 
-        final req = mockDio.requestLog.last;
-        expect(req['data'].containsKey('delivery_charges_json'), isTrue);
+          final req = mockDio.requestLog.last;
+          expect(req['data'].containsKey('delivery_charges_json'), isTrue);
 
-        final charges = jsonDecode(req['data']['delivery_charges_json']) as List;
-        expect(charges.length, equals(1));
-        expect(charges[0]['charge_type'], equals('Delivery'));
-        expect(charges[0]['amount'], equals(30.0));
-        expect(charges[0]['description'], contains('Cairo'));
-      });
+          final charges =
+              jsonDecode(req['data']['delivery_charges_json']) as List;
+          expect(charges.length, equals(1));
+          expect(charges[0]['charge_type'], equals('Delivery'));
+          expect(charges[0]['amount'], equals(30.0));
+          expect(charges[0]['description'], contains('Cairo'));
+        },
+      );
 
-      test('delivery_charges_json NOT sent when sales partner active', () async {
-        mockDio.setResponse(
-          '/api/method/jarz_pos.api.invoices.create_pos_invoice',
-          createSuccessResponse(data: {'name': 'INV-DEL-PARTNER'}),
-        );
+      test(
+        'delivery_charges_json NOT sent when sales partner active',
+        () async {
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.invoices.create_pos_invoice',
+            createSuccessResponse(data: {'name': 'INV-DEL-PARTNER'}),
+          );
 
-        await repository.createInvoice(
-          posProfile: 'Main POS',
-          items: [
-            {'item_code': 'ITEM-A', 'quantity': 1, 'rate': 50.0},
-          ],
-          customer: {
-            'name': 'CUST-002',
-            'delivery_income': 30.0,
-            'territory': 'Cairo',
-          },
-          salesPartner: 'PARTNER-A',
-        );
+          await repository.createInvoice(
+            posProfile: 'Main POS',
+            items: [
+              {'item_code': 'ITEM-A', 'quantity': 1, 'rate': 50.0},
+            ],
+            customer: {
+              'name': 'CUST-002',
+              'delivery_income': 30.0,
+              'territory': 'Cairo',
+            },
+            salesPartner: 'PARTNER-A',
+          );
 
-        final req = mockDio.requestLog.last;
-        expect(req['data'].containsKey('delivery_charges_json'), isFalse,
-            reason: 'Sales partner should suppress delivery charges');
-      });
+          final req = mockDio.requestLog.last;
+          expect(
+            req['data'].containsKey('delivery_charges_json'),
+            isFalse,
+            reason: 'Sales partner should suppress delivery charges',
+          );
+        },
+      );
 
-      test('delivery_charges_json NOT sent when delivery_income is zero', () async {
-        mockDio.setResponse(
-          '/api/method/jarz_pos.api.invoices.create_pos_invoice',
-          createSuccessResponse(data: {'name': 'INV-DEL-ZERO'}),
-        );
+      test(
+        'delivery_charges_json NOT sent when delivery_income is zero',
+        () async {
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.invoices.create_pos_invoice',
+            createSuccessResponse(data: {'name': 'INV-DEL-ZERO'}),
+          );
 
-        await repository.createInvoice(
-          posProfile: 'Main POS',
-          items: [
-            {'item_code': 'ITEM-A', 'quantity': 1, 'rate': 50.0},
-          ],
-          customer: {
-            'name': 'CUST-003',
-            'delivery_income': 0,
-            'territory': 'Cairo',
-          },
-        );
+          await repository.createInvoice(
+            posProfile: 'Main POS',
+            items: [
+              {'item_code': 'ITEM-A', 'quantity': 1, 'rate': 50.0},
+            ],
+            customer: {
+              'name': 'CUST-003',
+              'delivery_income': 0,
+              'territory': 'Cairo',
+            },
+          );
 
-        final req = mockDio.requestLog.last;
-        expect(req['data'].containsKey('delivery_charges_json'), isFalse);
-      });
+          final req = mockDio.requestLog.last;
+          expect(req['data'].containsKey('delivery_charges_json'), isFalse);
+        },
+      );
 
-      test('delivery_charges_json NOT sent when delivery_income is null', () async {
-        mockDio.setResponse(
-          '/api/method/jarz_pos.api.invoices.create_pos_invoice',
-          createSuccessResponse(data: {'name': 'INV-DEL-NULL'}),
-        );
+      test(
+        'delivery_charges_json NOT sent when delivery_income is null',
+        () async {
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.invoices.create_pos_invoice',
+            createSuccessResponse(data: {'name': 'INV-DEL-NULL'}),
+          );
 
-        await repository.createInvoice(
-          posProfile: 'Main POS',
-          items: [
-            {'item_code': 'ITEM-A', 'quantity': 1, 'rate': 50.0},
-          ],
-          customer: {
-            'name': 'CUST-004',
-            'territory': 'Cairo',
-          },
-        );
+          await repository.createInvoice(
+            posProfile: 'Main POS',
+            items: [
+              {'item_code': 'ITEM-A', 'quantity': 1, 'rate': 50.0},
+            ],
+            customer: {'name': 'CUST-004', 'territory': 'Cairo'},
+          );
 
-        final req = mockDio.requestLog.last;
-        expect(req['data'].containsKey('delivery_charges_json'), isFalse);
-      });
+          final req = mockDio.requestLog.last;
+          expect(req['data'].containsKey('delivery_charges_json'), isFalse);
+        },
+      );
 
       test('delivery_charges_json NOT sent when no customer', () async {
         mockDio.setResponse(
@@ -412,34 +431,68 @@ void main() {
           },
         );
 
-        final charges = jsonDecode(
-          mockDio.requestLog.last['data']['delivery_charges_json'],
-        ) as List;
+        final charges =
+            jsonDecode(mockDio.requestLog.last['data']['delivery_charges_json'])
+                as List;
         expect(charges[0]['description'], contains('Maadi'));
       });
 
-      test('delivery_charges_json uses Unknown Territory when territory missing', () async {
-        mockDio.setResponse(
-          '/api/method/jarz_pos.api.invoices.create_pos_invoice',
-          createSuccessResponse(data: {'name': 'INV-DEL-NO-TERR'}),
-        );
+      test(
+        'delivery_charges_json uses selected shipping address territory',
+        () async {
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.invoices.create_pos_invoice',
+            createSuccessResponse(data: {'name': 'INV-DEL-ADDR'}),
+          );
 
-        await repository.createInvoice(
-          posProfile: 'Main POS',
-          items: [
-            {'item_code': 'ITEM-A', 'quantity': 1, 'rate': 50.0},
-          ],
-          customer: {
-            'name': 'CUST-006',
-            'delivery_income': 20.0,
-          },
-        );
+          await repository.createInvoice(
+            posProfile: 'Nasr city',
+            items: [
+              {'item_code': 'ITEM-A', 'quantity': 1, 'rate': 50.0},
+            ],
+            customer: {
+              'name': 'CUST-007',
+              'delivery_income': 45.0,
+              'territory': 'EGHADAYEQAH',
+              'selected_shipping_address_name': 'ADDR-NSR',
+              'selected_shipping_address_territory': 'EGNASRCITY',
+              'selected_shipping_address_delivery_income': 50.0,
+            },
+          );
 
-        final charges = jsonDecode(
-          mockDio.requestLog.last['data']['delivery_charges_json'],
-        ) as List;
-        expect(charges[0]['description'], contains('Unknown Territory'));
-      });
+          final req = mockDio.requestLog.last;
+          expect(req['data']['shipping_address_name'], 'ADDR-NSR');
+          final charges =
+              jsonDecode(req['data']['delivery_charges_json']) as List;
+          expect(charges[0]['amount'], 50.0);
+          expect(charges[0]['description'], contains('EGNASRCITY'));
+        },
+      );
+
+      test(
+        'delivery_charges_json uses Unknown Territory when territory missing',
+        () async {
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.invoices.create_pos_invoice',
+            createSuccessResponse(data: {'name': 'INV-DEL-NO-TERR'}),
+          );
+
+          await repository.createInvoice(
+            posProfile: 'Main POS',
+            items: [
+              {'item_code': 'ITEM-A', 'quantity': 1, 'rate': 50.0},
+            ],
+            customer: {'name': 'CUST-006', 'delivery_income': 20.0},
+          );
+
+          final charges =
+              jsonDecode(
+                    mockDio.requestLog.last['data']['delivery_charges_json'],
+                  )
+                  as List;
+          expect(charges[0]['description'], contains('Unknown Territory'));
+        },
+      );
     });
 
     // ---------------------------------------------------------------

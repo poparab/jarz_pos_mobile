@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../localization/localization_extensions.dart';
 import '../repositories/customer_address_repository.dart';
@@ -9,7 +9,7 @@ import '../repositories/customer_address_repository.dart';
 /// Returns a ``Map<String, String>?`` with:
 ///   - ``address_name`` when an existing saved address is chosen, OR
 ///   - ``address`` (free-text) when adding a brand-new address,
-///   plus ``phone`` in both cases.
+///   plus ``phone`` and optional ``territory`` in both cases.
 ///
 /// Edit and delete are handled inline; the dialog calls
 /// [CustomerAddressRepository] directly and refreshes its own list.
@@ -119,15 +119,14 @@ class _CustomerShippingAddressDialogState
         : (_addresses.isNotEmpty ? _addresses.first['name']?.toString() : null);
     _tab = _addresses.isEmpty ? _Tab.addNew : _Tab.saved;
 
-    final selectedAddress =
-        _addresses.cast<Map<String, dynamic>?>().firstWhere(
-              (a) => a?['name']?.toString() == _selectedAddressName,
-              orElse: () => null,
-            );
+    final selectedAddress = _addresses.cast<Map<String, dynamic>?>().firstWhere(
+      (a) => a?['name']?.toString() == _selectedAddressName,
+      orElse: () => null,
+    );
     final initialPhone =
         selectedAddress?['phone']?.toString().trim().isNotEmpty == true
-            ? selectedAddress!['phone'].toString().trim()
-            : widget.initialPhone;
+        ? selectedAddress!['phone'].toString().trim()
+        : widget.initialPhone;
 
     _phoneController = TextEditingController(text: initialPhone);
     _newAddressController = TextEditingController();
@@ -153,9 +152,9 @@ class _CustomerShippingAddressDialogState
       _editState = null;
     });
     final selected = _addresses.cast<Map<String, dynamic>?>().firstWhere(
-          (a) => a?['name']?.toString() == addressName,
-          orElse: () => null,
-        );
+      (a) => a?['name']?.toString() == addressName,
+      orElse: () => null,
+    );
     final phone = selected?['phone']?.toString().trim() ?? '';
     if (phone.isNotEmpty) _phoneController.text = phone;
   }
@@ -165,14 +164,18 @@ class _CustomerShippingAddressDialogState
     setState(() {
       _editState = _EditState(
         addressName: address['name']?.toString() ?? '',
-        line1Controller:
-            TextEditingController(text: address['address_line1']?.toString() ?? ''),
-        line2Controller:
-            TextEditingController(text: address['address_line2']?.toString() ?? ''),
-        phoneController:
-            TextEditingController(text: address['phone']?.toString() ?? ''),
-        pincodeController:
-            TextEditingController(text: address['pincode']?.toString() ?? ''),
+        line1Controller: TextEditingController(
+          text: address['address_line1']?.toString() ?? '',
+        ),
+        line2Controller: TextEditingController(
+          text: address['address_line2']?.toString() ?? '',
+        ),
+        phoneController: TextEditingController(
+          text: address['phone']?.toString() ?? '',
+        ),
+        pincodeController: TextEditingController(
+          text: address['pincode']?.toString() ?? '',
+        ),
         selectedTerritory: address['city']?.toString(),
       );
     });
@@ -216,11 +219,11 @@ class _CustomerShippingAddressDialogState
         _editState?.dispose();
         _editState = null;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.customerShippingAddressUpdateSuccess)),
-        );
-      }
+      if (!mounted) return;
+      final l10n = context.l10n;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.customerShippingAddressUpdateSuccess)),
+      );
     } catch (e) {
       _showError('${context.l10n.customerShippingAddressUpdateFailed}: $e');
     } finally {
@@ -242,7 +245,8 @@ class _CustomerShippingAddressDialogState
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error),
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
             child: const Icon(Icons.delete),
           ),
         ],
@@ -264,16 +268,17 @@ class _CustomerShippingAddressDialogState
       setState(() {
         _addresses = newAddresses;
         if (_selectedAddressName == addressName) {
-          _selectedAddressName =
-              newAddresses.isNotEmpty ? newAddresses.first['name']?.toString() : null;
+          _selectedAddressName = newAddresses.isNotEmpty
+              ? newAddresses.first['name']?.toString()
+              : null;
         }
         if (newAddresses.isEmpty) _tab = _Tab.addNew;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.customerShippingAddressDeleteSuccess)),
-        );
-      }
+      if (!mounted) return;
+      final l10n = context.l10n;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.customerShippingAddressDeleteSuccess)),
+      );
     } catch (e) {
       _showError('${context.l10n.customerShippingAddressDeleteFailed}: $e');
     } finally {
@@ -309,9 +314,15 @@ class _CustomerShippingAddressDialogState
         _showError(context.l10n.customerShippingAddressSelectRequired);
         return;
       }
+      final selected = _addresses.cast<Map<String, dynamic>?>().firstWhere(
+        (a) => a?['name']?.toString() == _selectedAddressName,
+        orElse: () => null,
+      );
+      final selectedTerritory = selected?['city']?.toString().trim() ?? '';
       Navigator.of(context).pop({
         'address_name': _selectedAddressName!.trim(),
         'phone': _phoneController.text.trim(),
+        if (selectedTerritory.isNotEmpty) 'territory': selectedTerritory,
       });
     }
   }
@@ -350,10 +361,9 @@ class _CustomerShippingAddressDialogState
             children: [
               Text(
                 widget.customerName,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               Text(
@@ -500,8 +510,9 @@ class _CustomerShippingAddressDialogState
             : Theme.of(context).colorScheme.outline,
       ),
       title: Text(address['full_address']?.toString() ?? ''),
-      subtitle:
-          subtitleParts.isEmpty ? null : Text(subtitleParts.join(' â€¢ ')),
+      subtitle: subtitleParts.isEmpty
+          ? null
+          : Text(subtitleParts.join(' â€¢ ')),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -533,10 +544,9 @@ class _CustomerShippingAddressDialogState
         children: [
           Text(
             l10n.customerShippingAddressEditTitle,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
           TextField(
@@ -624,7 +634,9 @@ class _TerritoryDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     if (territories.isEmpty) return const SizedBox.shrink();
     return DropdownButtonFormField<String>(
-      initialValue: territories.any((t) => t['name']?.toString() == value) ? value : null,
+      initialValue: territories.any((t) => t['name']?.toString() == value)
+          ? value
+          : null,
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
@@ -635,7 +647,9 @@ class _TerritoryDropdown extends StatelessWidget {
           .map(
             (t) => DropdownMenuItem<String>(
               value: t['name']?.toString() ?? '',
-              child: Text(t['territory_name']?.toString() ?? t['name']?.toString() ?? ''),
+              child: Text(
+                t['territory_name']?.toString() ?? t['name']?.toString() ?? '',
+              ),
             ),
           )
           .toList(),
@@ -643,4 +657,3 @@ class _TerritoryDropdown extends StatelessWidget {
     );
   }
 }
-
