@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/localized_formatters.dart';
+import '../../../core/utils/responsive_utils.dart';
 
 /// Dialog for requesting custom shipping expense on an invoice.
 class CustomShippingRequestDialog extends StatefulWidget {
@@ -43,7 +44,12 @@ class _CustomShippingRequestDialogState extends State<CustomShippingRequestDialo
         ],
       ),
       content: SizedBox(
-        width: 360,
+        width: ResponsiveUtils.getDialogWidth(
+          context,
+          small: 360,
+          medium: 420,
+          large: 480,
+        ),
         child: Form(
           key: _formKey,
           child: Column(

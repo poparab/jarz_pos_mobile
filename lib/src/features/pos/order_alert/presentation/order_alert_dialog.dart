@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import '../domain/invoice_alert.dart';
 import '../state/order_alert_controller.dart';
 
@@ -68,7 +69,14 @@ class OrderAlertDialog extends ConsumerWidget {
         ],
       ),
       content: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
+        constraints: BoxConstraints(
+          maxWidth: ResponsiveUtils.getDialogWidth(
+            context,
+            small: 420,
+            medium: 420,
+            large: 480,
+          ),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

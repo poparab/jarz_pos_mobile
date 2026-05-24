@@ -87,6 +87,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   @override
   Widget build(BuildContext context) {
     final kanbanState = ref.watch(kanbanProvider);
+    final isPhone = ResponsiveUtils.isPhone(context);
     
     // Listen for errors and show them as SnackBars
     ref.listen<KanbanState>(kanbanProvider, (previous, next) {
@@ -130,7 +131,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         body: Column(
           children: [
             // Removed full-width branch chips to maximize kanban space; filter now in header
-            if (_showFilters)
+            if (_showFilters && !isPhone)
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -212,12 +213,14 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         icon: const Icon(Icons.refresh),
         visualDensity: isPhone ? VisualDensity.compact : VisualDensity.standard,
         onPressed: () async {
+          final l10n = context.l10n;
           final notifier = ref.read(kanbanProvider.notifier);
           final messenger = ScaffoldMessenger.of(context);
           await notifier.loadInvoices();
+          if (!context.mounted) return;
           messenger.showSnackBar(
             SnackBar(
-              content: Text(context.l10n.kanbanOrdersRefreshed),
+              content: Text(l10n.kanbanOrdersRefreshed),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -230,7 +233,13 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         tooltip: _showFilters ? context.l10n.kanbanHideFilters : context.l10n.kanbanShowFilters,
         icon: Icon(_showFilters ? Icons.filter_alt_off : Icons.filter_alt),
         visualDensity: isPhone ? VisualDensity.compact : VisualDensity.standard,
-        onPressed: () => setState(() => _showFilters = !_showFilters),
+        onPressed: () {
+          if (isPhone) {
+            _showMobileFiltersSheet();
+            return;
+          }
+          setState(() => _showFilters = !_showFilters);
+        },
       ),
     ];
 
@@ -327,6 +336,39 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       ),
       title: Text(isPhone ? context.l10n.kanbanTitleShort : context.l10n.kanbanTitleFull),
       actions: primaryActions,
+    );
+  }
+
+  void _showMobileFiltersSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.72,
+          minChildSize: 0.42,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            return Consumer(
+              builder: (context, ref, _) {
+                final kanbanState = ref.watch(kanbanProvider);
+                return SingleChildScrollView(
+                  controller: scrollController,
+                  child: KanbanFiltersWidget(
+                    filters: kanbanState.filters,
+                    customers: kanbanState.customers,
+                    onFiltersChanged: (newFilters) {
+                      ref.read(kanbanProvider.notifier).updateFilters(newFilters);
+                    },
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 
@@ -542,12 +584,15 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       );
     }
 
-    return Stack(
+    final board = Stack(
       children: [
         ScrollConfiguration(
           behavior: const _KanbanScrollBehavior(),
           child: LayoutBuilder(
             builder: (context, constraints) {
+              final boardPadding = ResponsiveUtils.getKanbanBoardPadding(context);
+              final columnGap = ResponsiveUtils.getKanbanColumnGap(context);
+              final columnWidth = ResponsiveUtils.getKanbanColumnWidth(context);
               return SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(), // Allow pull-to-refresh
                 child: SizedBox(
@@ -561,7 +606,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                       controller: _horizontalScrollController,
                       scrollDirection: Axis.horizontal,
                       physics: _allowHScroll ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
+                      padding: boardPadding,
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -572,8 +617,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                 final isReady = _isReadyColumn(column);
                                 final isOFD = _isOutForDeliveryColumn(column);
                                 return Container(
-                                  width: 300,
-                                  margin: const EdgeInsetsDirectional.only(end: 16),
+                                  width: columnWidth,
+                                  margin: EdgeInsetsDirectional.only(end: columnGap),
                                   child: KanbanColumnWidget(
                                     column: column,
                                     invoices: invoices,
@@ -581,6 +626,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                     onCardMoved: (invoiceId, fromColumnId, newColumnId) =>
                                         _handleCardMove(invoiceId, fromColumnId, newColumnId),
                                     onCardPointerActive: (active) => _setScrollActive(!active),
+                                    onMobileMoveRequested: ResponsiveUtils.isPhone(context)
+                                      ? (invoice, fromColumnId) => _showMobileMoveSheet(invoice, fromColumnId)
+                                      : null,
                                     headerAction: isReady
                                         ? IconButton(
                                             tooltip: tripState.multiSelectActive ? 'Exit Selection' : 'Select Orders',
@@ -619,6 +667,68 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         ),
         if (tripState.multiSelectActive) _buildTripSelectionBar(kanbanState, tripState),
       ],
+    );
+
+    if (!ResponsiveUtils.isPhone(context)) {
+      return board;
+    }
+
+    return Column(
+      children: [
+        _buildMobileColumnJumpStrip(kanbanState),
+        Expanded(child: board),
+      ],
+    );
+  }
+
+  Widget _buildMobileColumnJumpStrip(KanbanState kanbanState) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.surface,
+      elevation: 1,
+      child: SizedBox(
+        height: 48,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          itemCount: kanbanState.columns.length,
+          separatorBuilder: (_, _) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            final column = kanbanState.columns[index];
+            final count = kanbanState.invoices[column.id]?.length ?? 0;
+            return ActionChip(
+              visualDensity: VisualDensity.compact,
+              avatar: CircleAvatar(
+                radius: 10,
+                backgroundColor: theme.colorScheme.primaryContainer,
+                foregroundColor: theme.colorScheme.onPrimaryContainer,
+                child: Text(
+                  '$count',
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+                ),
+              ),
+              label: Text(
+                column.name,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onPressed: () => _scrollToKanbanColumn(index),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  void _scrollToKanbanColumn(int index) {
+    if (!_horizontalScrollController.hasClients) return;
+    final columnWidth = ResponsiveUtils.getKanbanColumnWidth(context);
+    final columnGap = ResponsiveUtils.getKanbanColumnGap(context);
+    final target = index * (columnWidth + columnGap);
+    final maxScroll = _horizontalScrollController.position.maxScrollExtent;
+    _horizontalScrollController.animateTo(
+      target.clamp(0.0, maxScroll).toDouble(),
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
     );
   }
 
@@ -694,33 +804,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         for (final inv in nonTrip)
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
-            child: LongPressDraggable<Map<String, dynamic>>(
-              data: {
-                'invoiceId': inv.id,
-                'fromColumnId': ofdColumnId,
-              },
-              dragAnchorStrategy: pointerDragAnchorStrategy,
-              maxSimultaneousDrags: 1,
-              feedback: Material(
-                color: Colors.transparent,
-                child: Transform.scale(
-                  scale: 1.03,
-                  child: Opacity(
-                    opacity: 0.95,
-                    child: SizedBox(
-                      width: ResponsiveUtils.getKanbanColumnWidth(context),
-                      child: InvoiceCardWidget(invoice: inv, isDragging: true, compact: true),
-                    ),
-                  ),
-                ),
-              ),
-              childWhenDragging: AnimatedOpacity(
-                duration: const Duration(milliseconds: 150),
-                opacity: 0.25,
-                child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
-              ),
-              child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
-            ),
+            child: _buildDraggableInvoiceCard(inv, ofdColumnId),
           ),
       ],
     );
@@ -790,33 +874,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         for (final inv in nonTrip)
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
-            child: LongPressDraggable<Map<String, dynamic>>(
-              data: {
-                'invoiceId': inv.id,
-                'fromColumnId': readyColumnId,
-              },
-              dragAnchorStrategy: pointerDragAnchorStrategy,
-              maxSimultaneousDrags: 1,
-              feedback: Material(
-                color: Colors.transparent,
-                child: Transform.scale(
-                  scale: 1.03,
-                  child: Opacity(
-                    opacity: 0.95,
-                    child: SizedBox(
-                      width: ResponsiveUtils.getKanbanColumnWidth(context),
-                      child: InvoiceCardWidget(invoice: inv, isDragging: true, compact: true),
-                    ),
-                  ),
-                ),
-              ),
-              childWhenDragging: AnimatedOpacity(
-                duration: const Duration(milliseconds: 150),
-                opacity: 0.25,
-                child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
-              ),
-              child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
-            ),
+            child: _buildDraggableInvoiceCard(inv, readyColumnId),
           ),
       ],
     );
@@ -829,34 +887,68 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         for (final inv in invoices)
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
-            child: LongPressDraggable<Map<String, dynamic>>(
-              data: {
-                'invoiceId': inv.id,
-                'fromColumnId': columnId,
-              },
-              dragAnchorStrategy: pointerDragAnchorStrategy,
-              maxSimultaneousDrags: 1,
-              feedback: Material(
-                color: Colors.transparent,
-                child: Transform.scale(
-                  scale: 1.03,
-                  child: Opacity(
-                    opacity: 0.95,
-                    child: SizedBox(
-                      width: ResponsiveUtils.getKanbanColumnWidth(context),
-                      child: InvoiceCardWidget(invoice: inv, isDragging: true, compact: true),
-                    ),
-                  ),
-                ),
-              ),
-              childWhenDragging: AnimatedOpacity(
-                duration: const Duration(milliseconds: 150),
-                opacity: 0.25,
-                child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
-              ),
-              child: InvoiceCardWidget(invoice: inv, isDragging: false, compact: false),
+            child: _buildDraggableInvoiceCard(inv, columnId),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDraggableInvoiceCard(InvoiceCard invoice, String columnId) {
+    return LongPressDraggable<Map<String, dynamic>>(
+      data: {
+        'invoiceId': invoice.id,
+        'fromColumnId': columnId,
+      },
+      dragAnchorStrategy: pointerDragAnchorStrategy,
+      maxSimultaneousDrags: 1,
+      feedback: Material(
+        color: Colors.transparent,
+        child: Transform.scale(
+          scale: 1.03,
+          child: Opacity(
+            opacity: 0.95,
+            child: SizedBox(
+              width: ResponsiveUtils.getKanbanColumnWidth(context),
+              child: InvoiceCardWidget(invoice: invoice, isDragging: true, compact: true),
             ),
           ),
+        ),
+      ),
+      childWhenDragging: AnimatedOpacity(
+        duration: const Duration(milliseconds: 150),
+        opacity: 0.25,
+        child: InvoiceCardWidget(invoice: invoice, isDragging: false, compact: false),
+      ),
+      child: _buildInvoiceCardWithMobileMove(invoice, columnId),
+    );
+  }
+
+  Widget _buildInvoiceCardWithMobileMove(InvoiceCard invoice, String columnId) {
+    final card = InvoiceCardWidget(invoice: invoice, isDragging: false, compact: false);
+    if (!ResponsiveUtils.isPhone(context)) {
+      return card;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        card,
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(end: 4, bottom: 8),
+            child: OutlinedButton.icon(
+              onPressed: () => _showMobileMoveSheet(invoice, columnId),
+              icon: const Icon(Icons.drive_file_move, size: 16),
+              label: const Text('Move'),
+              style: OutlinedButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -941,8 +1033,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     String fromColumnId,
     String toColumnId,
   ) async {
+    final screenContext = context;
+    final l10n = screenContext.l10n;
     // Clear any previous error so it doesn't persist on the screen
-    final messenger = ScaffoldMessenger.of(context);
+    final messenger = ScaffoldMessenger.of(screenContext);
     ref.read(kanbanProvider.notifier).clearError();
     final targetColumn = ref.read(kanbanProvider).columns.firstWhere(
       (col) => col.id == toColumnId,
@@ -967,7 +1061,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       if (tripName != null && tripName.isNotEmpty) {
         messenger.showSnackBar(
           SnackBar(
-            content: Text(context.l10n.kanbanPartOfTripWarning(tripName)),
+            content: Text(l10n.kanbanPartOfTripWarning(tripName)),
             duration: const Duration(seconds: 4),
           ),
         );
@@ -1015,7 +1109,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       // branch cash account is used regardless of which profile is globally selected.
       final posProfile = _getEffectiveProfileForInvoice(inv);
       if (posProfile == null) {
-        messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSelectPosProfileFirst)));
+        messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanSelectPosProfileFirst)));
         // revert
         final fromCol = ref.read(kanbanProvider).columns.firstWhere(
           (c) => c.id == fromColumnId,
@@ -1047,7 +1141,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               ? party!.trim()
               : (previewParty.isNotEmpty ? previewParty : null);
           if (resolvedPartyType == null || resolvedParty == null) {
-            messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettleLaterMissingParty)));
+            messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanSettleLaterMissingParty)));
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
               orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
@@ -1057,7 +1151,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           }
           final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
           if (token.isEmpty) {
-            messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettleLaterPreviewExpired)));
+            messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanSettleLaterPreviewExpired)));
             // revert
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
@@ -1078,7 +1172,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             courier: courier ?? courierDisplay ?? 'UNKNOWN',
           );
           if (res['success'] != true) {
-            messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettleLaterFailed)));
+            messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanSettleLaterFailed)));
             // revert
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
@@ -1088,15 +1182,15 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             return;
           }
           // Success: do not show collection/info popups for settle later
-          messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanMarkedSettleLater)));
+          messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanMarkedSettleLater)));
           return; // handled fully; backend already moved to OFD
         } catch (e) {
           final errorMessage = extractFrappeErrorMessage(
             e,
-            fallback: context.l10n.kanbanSettleLaterFailed,
+            fallback: l10n.kanbanSettleLaterFailed,
           );
           messenger.showSnackBar(
-            SnackBar(content: Text(context.l10n.kanbanSettleLaterError(errorMessage))),
+            SnackBar(content: Text(l10n.kanbanSettleLaterError(errorMessage))),
           );
           // revert
           final fromCol = ref.read(kanbanProvider).columns.firstWhere(
@@ -1128,7 +1222,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               ? party!.trim()
               : (previewParty.isNotEmpty ? previewParty : null);
           if (resolvedPartyType == null || resolvedParty == null) {
-            messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettlementMissingParty)));
+            messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanSettlementMissingParty)));
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
               orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
@@ -1136,10 +1230,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
             return;
           }
-          if (!mounted) return;
+          if (!screenContext.mounted) return;
 
           final confirmed = await showSettlementConfirmDialog(
-            context,
+            screenContext,
             preview,
             invoice: invoiceId,
             territory: inv?.territoryNameAr ?? inv?.territoryDisplay ?? inv?.territory,
@@ -1158,7 +1252,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
 
           final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
           if (token.isEmpty) {
-            messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanPreviewExpired)));
+            messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanPreviewExpired)));
             // revert
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
@@ -1168,7 +1262,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             return;
           }
 
-          messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanConfirmingSettlement)));
+          messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanConfirmingSettlement)));
           final res = await courierService.confirmSettlement(
             invoice: invoiceId,
             previewToken: token,
@@ -1180,7 +1274,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             courier: courier ?? courierDisplay ?? 'UNKNOWN',
           );
           if (res['success'] != true) {
-            messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettlementFailed)));
+            messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanSettlementFailed)));
             // revert
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
@@ -1189,15 +1283,15 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
             return;
           }
-          messenger.showSnackBar(SnackBar(content: Text(context.l10n.kanbanSettlementConfirmed)));
+          messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanSettlementConfirmed)));
           return; // handled: server already performed OFD
         } catch (e) {
           final errorMessage = extractFrappeErrorMessage(
             e,
-            fallback: context.l10n.kanbanSettlementFailed,
+            fallback: l10n.kanbanSettlementFailed,
           );
           messenger.showSnackBar(
-            SnackBar(content: Text(context.l10n.kanbanSettlementError(errorMessage))),
+            SnackBar(content: Text(l10n.kanbanSettlementError(errorMessage))),
           );
           // revert
           final fromCol = ref.read(kanbanProvider).columns.firstWhere(
@@ -1236,10 +1330,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             if (!mounted) return;
             final errorMessage = extractFrappeErrorMessage(
               e,
-              fallback: context.l10n.kanbanSettlementFailed,
+              fallback: l10n.kanbanSettlementFailed,
             );
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(context.l10n.kanbanPreviewFailed(errorMessage))),
+              SnackBar(content: Text(l10n.kanbanPreviewFailed(errorMessage))),
             );
           }
         }
@@ -1251,9 +1345,93 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, targetColumn.name);
   }
 
-  bool _canAcceptCardMove(String invoiceId, String fromColumnId, String toColumnId) {
+  Future<void> _showMobileMoveSheet(InvoiceCard invoice, String fromColumnId) async {
     final columns = ref.read(kanbanProvider).columns;
-    if (columns.isEmpty) return true;
+    final targets = columns
+        .where((column) => column.id != fromColumnId)
+        .where((column) => _cardMoveBlockMessage(invoice.id, fromColumnId, column.id) == null)
+        .toList(growable: false);
+
+    if (targets.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.kanbanMoveOneStage)),
+      );
+      return;
+    }
+
+    final target = await showModalBottomSheet<KanbanColumn>(
+      context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: ResponsiveUtils.getDialogHeight(sheetContext, phoneFraction: 0.65),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 8, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Move order',
+                          style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(sheetContext).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: targets.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final column = targets[index];
+                      return ListTile(
+                        leading: const Icon(Icons.arrow_forward),
+                        title: Text(column.name),
+                        subtitle: Text(invoice.customerName, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        onTap: () => Navigator.of(sheetContext).pop(column),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (!mounted || target == null) return;
+    await _handleCardMove(invoice.id, fromColumnId, target.id);
+  }
+
+  bool _canAcceptCardMove(String invoiceId, String fromColumnId, String toColumnId) {
+    final blockMessage = _cardMoveBlockMessage(invoiceId, fromColumnId, toColumnId);
+    if (blockMessage == null) return true;
+    if (blockMessage.isNotEmpty) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.removeCurrentSnackBar();
+      messenger.showSnackBar(SnackBar(content: Text(blockMessage)));
+    }
+    return false;
+  }
+
+  String? _cardMoveBlockMessage(String invoiceId, String fromColumnId, String toColumnId) {
+    final columns = ref.read(kanbanProvider).columns;
+    if (columns.isEmpty) return null;
 
     int resolveIndex(String candidate) {
       final normalized = candidate.trim().toLowerCase();
@@ -1266,11 +1444,11 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     final fromIndex = resolveIndex(fromColumnId);
     final toIndex = resolveIndex(toColumnId);
     if (fromIndex == -1 || toIndex == -1) {
-      return true; // Unknown columns; do not block the move
+      return null; // Unknown columns; do not block the move
     }
 
     if (fromIndex == toIndex) {
-      return false;
+      return '';
     }
 
     // PICKUP ORDER VALIDATION: Prevent pickup orders from going to Courier Settlement
@@ -1284,12 +1462,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       final inv = _findInvoice(invoiceId);
       final isPickup = (inv?.isPickup ?? false);
       if (isPickup) {
-        final messenger = ScaffoldMessenger.of(context);
-        messenger.removeCurrentSnackBar();
-        messenger.showSnackBar(
-          SnackBar(content: Text(context.l10n.kanbanPickupNoSettlement)),
-        );
-        return false;
+        return context.l10n.kanbanPickupNoSettlement;
       }
     }
 
@@ -1299,27 +1472,17 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     final allowBackwardToCancelled = isBackward && movingToCancelled && fromIndex > cancelledIndex;
 
     if (isBackward && !allowBackwardToCancelled) {
-      final messenger = ScaffoldMessenger.of(context);
-      messenger.removeCurrentSnackBar();
-      messenger.showSnackBar(
-        SnackBar(content: Text(context.l10n.kanbanCannotMoveBackward)),
-      );
-      return false;
+      return context.l10n.kanbanCannotMoveBackward;
     }
 
     if (!isBackward) {
       final step = toIndex - fromIndex;
       if (step > 1) {
-        final messenger = ScaffoldMessenger.of(context);
-        messenger.removeCurrentSnackBar();
-        messenger.showSnackBar(
-          SnackBar(content: Text(context.l10n.kanbanMoveOneStage)),
-        );
-        return false;
+        return context.l10n.kanbanMoveOneStage;
       }
     }
 
-    return true;
+    return null;
   }
 
   bool _isCancelledColumn(KanbanColumn column) {

@@ -7,6 +7,7 @@ import '../state/order_alert_controller.dart';
 import '../order_alert_native_channel.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/constants/timing_config.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import 'order_alert_dialog.dart';
 
 /// Global overlay-based alert system that doesn't depend on Navigator context
@@ -193,7 +194,14 @@ class _OverlayContent extends ConsumerWidget {
       color: Colors.black54, // Semi-transparent background
       child: Center(
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 600),
+          constraints: BoxConstraints(
+            maxWidth: ResponsiveUtils.getDialogWidth(
+              context,
+              small: 600,
+              medium: 600,
+              large: 600,
+            ),
+          ),
           margin: const EdgeInsets.all(24),
           child: OrderAlertDialog(
             onAccept: () async {

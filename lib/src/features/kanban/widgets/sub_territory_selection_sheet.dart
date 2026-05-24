@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/localized_formatters.dart';
+import '../../../core/utils/responsive_utils.dart';
 
 /// Bottom sheet for selecting a sub-territory for an invoice.
 class SubTerritorySelectionSheet extends StatefulWidget {
@@ -37,9 +38,9 @@ class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet>
     final l10n = context.l10n;
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.5,
-      minChildSize: 0.3,
-      maxChildSize: 0.85,
+      initialChildSize: ResponsiveUtils.isPhoneLandscape(context) ? 0.72 : 0.55,
+      minChildSize: ResponsiveUtils.isPhone(context) ? 0.42 : 0.3,
+      maxChildSize: ResponsiveUtils.isPhone(context) ? 0.92 : 0.85,
       expand: false,
       builder: (context, scrollController) {
         return Padding(

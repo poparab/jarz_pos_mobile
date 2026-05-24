@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../kanban/models/kanban_models.dart';
 import '../../kanban/widgets/invoice_card_widget.dart';
 
@@ -202,9 +203,9 @@ class _TripGroupCardState extends State<TripGroupCard> {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.4,
-        maxChildSize: 0.95,
+        initialChildSize: ResponsiveUtils.getCartBottomSheetInitialSize(context),
+        minChildSize: ResponsiveUtils.getCartBottomSheetMinSize(context),
+        maxChildSize: ResponsiveUtils.getCartBottomSheetMaxSize(context),
         builder: (ctx, scrollController) => Container(
           decoration: const BoxDecoration(
             color: Colors.white,

@@ -12,6 +12,7 @@ class KanbanColumnWidget extends StatefulWidget { // changed to Stateful for hov
   final ValueChanged<bool>? onCardPointerActive; // new
   final Widget? headerAction;
   final Widget Function(BuildContext context, List<InvoiceCard> invoices)? customListBuilder;
+  final Future<void> Function(InvoiceCard invoice, String fromColumnId)? onMobileMoveRequested;
   final bool selectionMode;
   final Set<String> selectedInvoiceIds;
   final ValueChanged<String>? onToggleInvoiceSelection;
@@ -25,6 +26,7 @@ class KanbanColumnWidget extends StatefulWidget { // changed to Stateful for hov
     this.onCardPointerActive,
     this.headerAction,
     this.customListBuilder,
+    this.onMobileMoveRequested,
     this.selectionMode = false,
     this.selectedInvoiceIds = const {},
     this.onToggleInvoiceSelection,
@@ -312,15 +314,7 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
             onTapDown: (_) => widget.onCardPointerActive?.call(true),
             onTapUp: (_) => widget.onCardPointerActive?.call(false),
             onTapCancel: () => widget.onCardPointerActive?.call(false),
-            child: AnimatedScale(
-              duration: const Duration(milliseconds: 160),
-              scale: isDraggingThis ? 0.92 : 1,
-              child: InvoiceCardWidget(
-                invoice: invoice,
-                isDragging: false,
-                compact: false,
-              ),
-            ),
+            child: _buildCardWithMobileAction(invoice, isDraggingThis),
           );
 
           // On web use Draggable (click-and-drag); on mobile use
@@ -369,6 +363,45 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildCardWithMobileAction(InvoiceCard invoice, bool isDraggingThis) {
+    final card = AnimatedScale(
+      duration: const Duration(milliseconds: 160),
+      scale: isDraggingThis ? 0.92 : 1,
+      child: InvoiceCardWidget(
+        invoice: invoice,
+        isDragging: false,
+        compact: false,
+      ),
+    );
+
+    if (!ResponsiveUtils.isPhone(context) || widget.onMobileMoveRequested == null) {
+      return card;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        card,
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(end: 4, bottom: 8),
+            child: OutlinedButton.icon(
+              onPressed: () => widget.onMobileMoveRequested?.call(invoice, widget.column.id),
+              icon: const Icon(Icons.drive_file_move, size: 16),
+              label: const Text('Move'),
+              style: OutlinedButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

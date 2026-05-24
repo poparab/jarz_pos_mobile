@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import '../../state/courier_balances_provider.dart';
 import '../../data/repositories/courier_repository.dart';
 import '../../../kanban/widgets/settlement_preview_dialog.dart';
@@ -89,9 +90,9 @@ class CourierBalancesScreen extends ConsumerWidget {
                       useSafeArea: true,
                       builder: (_) {
                         return DraggableScrollableSheet(
-                          initialChildSize: 0.7,
-                          minChildSize: 0.4,
-                          maxChildSize: 0.95,
+                          initialChildSize: ResponsiveUtils.getCartBottomSheetInitialSize(context),
+                          minChildSize: ResponsiveUtils.getCartBottomSheetMinSize(context),
+                          maxChildSize: ResponsiveUtils.getCartBottomSheetMaxSize(context),
                           expand: false,
                           builder: (context, scrollController) {
                             return Column(

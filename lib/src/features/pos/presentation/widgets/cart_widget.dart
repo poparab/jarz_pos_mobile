@@ -1526,7 +1526,20 @@ class CartWidget extends ConsumerWidget {
         barrierDismissible: true,
         builder: (context) => Dialog(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+            constraints: BoxConstraints(
+              maxWidth: ResponsiveUtils.getDialogWidth(
+                context,
+                small: 800,
+                medium: 800,
+                large: 800,
+              ),
+              maxHeight: ResponsiveUtils.getDialogHeight(
+                context,
+                phoneFraction: 0.9,
+                tabletFraction: 0.78,
+                max: 600,
+              ),
+            ),
             child: bundleWidget,
           ),
         ),

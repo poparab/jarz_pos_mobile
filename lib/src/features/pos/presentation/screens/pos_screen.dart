@@ -293,7 +293,12 @@ class _PosScreenState extends ConsumerState<PosScreen>
                 return AlertDialog(
                   title: Text(context.l10n.posProfileSelectionTitle),
                   content: SizedBox(
-                    width: 380,
+                    width: ResponsiveUtils.getDialogWidth(
+                      dialogContext,
+                      small: 380,
+                      medium: 420,
+                      large: 480,
+                    ),
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: state.profiles.length,
@@ -648,14 +653,17 @@ class _PosScreenState extends ConsumerState<PosScreen>
   void _showCartBottomSheet(BuildContext context) {
     final l10n = context.l10n;
     final isPhone = ResponsiveUtils.isPhone(context);
+    final initialChildSize = ResponsiveUtils.getCartBottomSheetInitialSize(context);
+    final minChildSize = ResponsiveUtils.getCartBottomSheetMinSize(context);
+    final maxChildSize = ResponsiveUtils.getCartBottomSheetMaxSize(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
+        initialChildSize: initialChildSize,
+        minChildSize: minChildSize,
+        maxChildSize: maxChildSize,
         builder: (context, scrollController) => Column(
           children: [
             Container(

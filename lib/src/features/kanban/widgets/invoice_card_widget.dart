@@ -2996,7 +2996,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             builder: (ctx, setState) => AlertDialog(
               title: Text(context.l10n.invoiceAssignBranch),
               content: SizedBox(
-                width: 400,
+                width: ResponsiveUtils.getDialogWidth(
+                  ctx,
+                  small: 400,
+                  medium: 460,
+                  large: 520,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -3272,7 +3277,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             builder: (ctx, setState) => AlertDialog(
               title: Text(context.l10n.invoiceChangeSlot),
               content: SizedBox(
-                width: 400,
+                width: ResponsiveUtils.getDialogWidth(
+                  ctx,
+                  small: 400,
+                  medium: 460,
+                  large: 520,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

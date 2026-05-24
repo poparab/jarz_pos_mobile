@@ -4,6 +4,7 @@ import '../models/kanban_models.dart';
 import '../../../core/constants/business_constants.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/responsive_utils.dart';
 
 class KanbanFiltersWidget extends StatefulWidget {
   final KanbanFilters filters;
@@ -408,9 +409,12 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
   void _showCustomerPicker(BuildContext context) {
     final l10n = context.l10n;
     final searchController = TextEditingController();
-    final dialogHeight = (MediaQuery.sizeOf(context).height * 0.5)
-        .clamp(240.0, 360.0)
-        .toDouble();
+    final dialogHeight = ResponsiveUtils.getDialogHeight(
+      context,
+      phoneFraction: 0.72,
+      tabletFraction: 0.5,
+      max: 360,
+    );
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -425,7 +429,12 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
           return AlertDialog(
             title: Text(l10n.kanbanFilterCustomerTitle),
             content: SizedBox(
-              width: double.maxFinite,
+              width: ResponsiveUtils.getDialogWidth(
+                context,
+                small: 500,
+                medium: 560,
+                large: 640,
+              ),
               height: dialogHeight,
               child: Column(
                 mainAxisSize: MainAxisSize.min,

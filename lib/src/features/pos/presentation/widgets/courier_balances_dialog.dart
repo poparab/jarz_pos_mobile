@@ -10,6 +10,7 @@ import '../../../../core/network/courier_service.dart';
 import '../../../kanban/providers/kanban_provider.dart';
 import '../../data/repositories/courier_repository.dart';
 import '../../../kanban/widgets/settlement_preview_dialog.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 Future<void> showCourierBalancesDialog(BuildContext context) async {
   await showDialog(
@@ -197,9 +198,9 @@ class _CourierTile extends StatelessWidget {
       useSafeArea: true,
       builder: (_) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.7,
-          minChildSize: 0.4,
-          maxChildSize: 0.95,
+          initialChildSize: ResponsiveUtils.getCartBottomSheetInitialSize(ctx),
+          minChildSize: ResponsiveUtils.getCartBottomSheetMinSize(ctx),
+          maxChildSize: ResponsiveUtils.getCartBottomSheetMaxSize(ctx),
           expand: false,
           builder: (sheetCtx, scrollController) {
             return Column(
@@ -476,7 +477,12 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
       builder: (ctx) => AlertDialog(
         title: Text(context.l10n.courierSettleAllDialogTitle(actionLabel, netLabel)),
         content: SizedBox(
-          width: 400,
+          width: ResponsiveUtils.getDialogWidth(
+            ctx,
+            small: 400,
+            medium: 460,
+            large: 520,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,

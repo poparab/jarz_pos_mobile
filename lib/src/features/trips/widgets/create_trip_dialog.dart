@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../kanban/models/kanban_models.dart';
 import '../../kanban/providers/kanban_provider.dart';
 import '../providers/trip_provider.dart';
@@ -71,7 +72,12 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
         ],
       ),
       content: SizedBox(
-        width: 400,
+        width: ResponsiveUtils.getDialogWidth(
+          context,
+          small: 400,
+          medium: 460,
+          large: 520,
+        ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,

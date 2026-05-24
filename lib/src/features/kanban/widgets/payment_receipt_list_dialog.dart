@@ -7,6 +7,7 @@ import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/network/frappe_error_message.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../providers/kanban_provider.dart';
 
 class PaymentReceiptListDialog extends ConsumerStatefulWidget {
@@ -194,10 +195,22 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
 
   @override
   Widget build(BuildContext context) {
+    final dialogWidth = ResponsiveUtils.getDialogWidth(
+      context,
+      small: 620,
+      medium: 840,
+      large: 1100,
+    );
+    final dialogHeight = ResponsiveUtils.getDialogHeight(
+      context,
+      phoneFraction: 0.82,
+      tabletFraction: 0.8,
+      max: 860,
+    );
     return Dialog(
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        height: MediaQuery.of(context).size.height * 0.8,
+        width: dialogWidth,
+        height: dialogHeight,
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

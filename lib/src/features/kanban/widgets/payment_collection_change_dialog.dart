@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../models/kanban_models.dart';
 import '../providers/kanban_provider.dart';
 
@@ -360,7 +361,12 @@ class _PaymentCollectionChangeDialogState
     return AlertDialog(
       title: Text(l10n.invoiceChangeCollectionMethod),
       content: SizedBox(
-        width: 420,
+        width: ResponsiveUtils.getDialogWidth(
+          context,
+          small: 420,
+          medium: 420,
+          large: 480,
+        ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,

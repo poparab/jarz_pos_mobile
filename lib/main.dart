@@ -17,6 +17,7 @@ import 'src/core/debug/app_error_console.dart';
 import 'src/core/debug/app_error_reporter.dart';
 import 'src/core/localization/locale_notifier.dart';
 import 'src/core/monitoring/sentry_service.dart';
+import 'src/core/widgets/orientation_policy_scope.dart';
 import 'src/features/settings/data/alarm_sound_service.dart';
 
 @pragma('vm:entry-point')
@@ -67,10 +68,7 @@ Future<void> _bootstrapAndRunApp() async {
   await alarmSoundService.restoreSelectedSoundOnNative();
 
   if (!kIsWeb) {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    await OrientationPolicyScope.applyDefaultNativePolicy();
 
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(

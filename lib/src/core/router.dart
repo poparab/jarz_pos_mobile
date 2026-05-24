@@ -29,6 +29,7 @@ import '../features/master_orders/presentation/master_orders_screen.dart';
 import 'network/user_service.dart';
 import '../features/shift/state/shift_notifier.dart';
 import '../features/pos/state/pos_notifier.dart';
+import 'widgets/orientation_policy_scope.dart';
 
 // Global RouteObserver for navigation lifecycle (used by Kanban to refresh on return)
 final RouteObserver<PageRoute<dynamic>> routeObserver = RouteObserver<PageRoute<dynamic>>();
@@ -138,7 +139,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra;
           final launchData = extra is Map ? Map<String, dynamic>.from(extra) : null;
-          return PosScreen(launchData: launchData);
+          return OrientationPolicyScope(
+            policy: AppOrientationPolicy.handsetAny,
+            child: PosScreen(launchData: launchData),
+          );
         },
       ),
       GoRoute(
@@ -149,7 +153,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.kanban,
         name: 'kanban',
-        builder: (context, state) => const KanbanBoardScreen(),
+        builder: (context, state) => const OrientationPolicyScope(
+          policy: AppOrientationPolicy.handsetAny,
+          child: KanbanBoardScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.courierBalances,

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/timing_config.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/widgets/customer_shipping_address_dialog.dart';
 import '../../../../core/repositories/customer_address_repository.dart';
 import '../../data/repositories/pos_repository.dart';
@@ -376,7 +377,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
       r'^[0-9+\-\s()]+$',
     ).hasMatch(_currentQuery.trim());
 
-    final isPhone = MediaQuery.of(context).size.shortestSide < 600;
+    final isPhone = ResponsiveUtils.isPhone(context);
     return Autocomplete<Map<String, dynamic>>(
       optionsViewOpenDirection: isPhone
           ? OptionsViewOpenDirection.up
@@ -457,7 +458,15 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
             elevation: 4,
             borderRadius: BorderRadius.circular(8),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 250, maxWidth: 450),
+              constraints: BoxConstraints(
+                maxHeight: ResponsiveUtils.isPhoneLandscape(context) ? 180 : 250,
+                maxWidth: ResponsiveUtils.getDialogWidth(
+                  context,
+                  small: 450,
+                  medium: 450,
+                  large: 450,
+                ),
+              ),
               child: ListView.builder(
                 padding: EdgeInsets.zero,
                 shrinkWrap: true,
@@ -651,7 +660,20 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
       context: context,
       builder: (context) => Dialog(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+          constraints: BoxConstraints(
+            maxWidth: ResponsiveUtils.getDialogWidth(
+              context,
+              small: 800,
+              medium: 800,
+              large: 800,
+            ),
+            maxHeight: ResponsiveUtils.getDialogHeight(
+              context,
+              phoneFraction: 0.9,
+              tabletFraction: 0.78,
+              max: 600,
+            ),
+          ),
           child: QuickAddCustomerWidget(
             initialQuery: initialQuery,
             onCustomerCreated: (customer) {
@@ -918,7 +940,7 @@ class _QuickAddCustomerWidgetState
           return DropdownMenuItem<String>(
             value: territory['name'],
             child: SizedBox(
-              width: 360,
+              width: ResponsiveUtils.isPhone(context) ? 260 : 360,
               child: Text(
                 '${territory['territory_name_ar'] ?? territory['territory_name'] ?? context.l10n.unknownTerritory}$deliveryInfo',
                 maxLines: 1,

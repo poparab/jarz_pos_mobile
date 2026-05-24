@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../localization/localization_extensions.dart';
+import '../utils/responsive_utils.dart';
 
 /// Shared dialog for filtering by POS branches (profiles).
 /// - profiles: List of maps each containing at least 'name' and optionally 'title'
@@ -35,9 +36,18 @@ class _BranchFilterDialogState extends State<BranchFilterDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final double dialogHeight = (screenSize.height * 0.6).clamp(260.0, 420.0);
-    final double dialogWidth = (screenSize.width * 0.9).clamp(260.0, 420.0);
+    final dialogHeight = ResponsiveUtils.getDialogHeight(
+      context,
+      phoneFraction: 0.7,
+      tabletFraction: 0.6,
+      max: 420,
+    );
+    final dialogWidth = ResponsiveUtils.getDialogWidth(
+      context,
+      small: 420,
+      medium: 420,
+      large: 420,
+    );
     final l10n = context.l10n;
     final dialogTitle = widget.title.isEmpty ? l10n.branchFilterTitle : widget.title;
     return AlertDialog(
