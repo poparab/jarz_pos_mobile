@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/frappe_error_message.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
@@ -254,7 +256,9 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                       width: 90,
                       child: TextFormField(
                         controller: line.bomCtrl,
+                        focusNode: line.bomFocusNode,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: const [_EditableDecimalInputFormatter()],
                         onChanged: (v) {
                           setState(() {
                             line.onBomChanged(v);
@@ -284,7 +288,9 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                       width: 110,
                       child: TextFormField(
                         controller: line.qtyCtrl,
+                        focusNode: line.qtyFocusNode,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: const [_EditableDecimalInputFormatter()],
                         onChanged: (v) {
                           setState(() {
                             line.onQtyChanged(v);
@@ -538,6 +544,70 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
     );
   }
 
+  bool _isSubmitSuccess(Map<String, dynamic> result) {
+    return result['ok'] == true ||
+        result['status'] == 'success' ||
+        (result['work_order'] ?? '').toString().isNotEmpty;
+  }
+
+  String _submissionIssueMessage(Map<String, dynamic> result) {
+    final error = result['error']?.toString().trim();
+    final line = result['line'];
+    if (line is Map) {
+      final itemCode = (line['item_code'] ?? '').toString();
+      if (itemCode.isNotEmpty && error != null && error.isNotEmpty) {
+        return '$itemCode: $error';
+      }
+      if (itemCode.isNotEmpty) {
+        return itemCode;
+      }
+    }
+    if (error != null && error.isNotEmpty) {
+      return error;
+    }
+    return context.l10n.commonError;
+  }
+
+  Future<void> _showSubmissionIssuesDialog(List<String> issues) async {
+    if (issues.isEmpty || !mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(context.l10n.commonError),
+        content: SizedBox(
+          width: 520,
+          child: SingleChildScrollView(
+            child: Text(issues.join('\n\n')),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+            child: Text(context.l10n.commonOk),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<List<_MfgLine>> _refreshAvailabilityForLines(List<_MfgLine> targetLines) async {
+    final service = ref.read(manufacturingServiceProvider);
+    final refreshedBlocked = <_MfgLine>[];
+
+    for (final line in targetLines) {
+      final details = await service.getBomDetails(line.itemCode);
+      line.updateComponentsFrom(details);
+      if (line.hasKnownInventoryShortage) {
+        refreshedBlocked.add(line);
+      }
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
+    return refreshedBlocked;
+  }
+
   Future<void> _submitAll() async {
     final service = ref.read(manufacturingServiceProvider);
     final messenger = ScaffoldMessenger.of(context);
@@ -548,6 +618,24 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
 
     if (blockedLines.isNotEmpty) {
       messenger.showSnackBar(SnackBar(content: Text(_submitAllDisabledReason(positiveLines, blockedLines))));
+      return;
+    }
+
+    List<_MfgLine> blockedAfterRefresh;
+    try {
+      blockedAfterRefresh = await _refreshAvailabilityForLines(positiveLines);
+    } catch (e) {
+      if (!mounted) return;
+      final message = extractFrappeErrorMessage(e, fallback: context.l10n.commonError);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.manufacturingSubmitFailed(message))));
+      return;
+    }
+
+    if (blockedAfterRefresh.isNotEmpty) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(_submitAllDisabledReason(positiveLines, blockedAfterRefresh))),
+      );
       return;
     }
 
@@ -562,9 +650,11 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
           }
     ];
     if (payload.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.manufacturingNothingToSubmit)));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.manufacturingNothingToSubmit)));
       return;
     }
+
+    if (!mounted) return;
 
     final confirmedPostingDate = await confirmPostingDatesBeforeSubmit(
       context,
@@ -584,7 +674,8 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
     } catch (e) {
       if (navigator.canPop()) navigator.pop();
       if (!context.mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(l10n.manufacturingSubmitFailed('$e'))));
+      final message = extractFrappeErrorMessage(e, fallback: l10n.commonError);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.manufacturingSubmitFailed(message))));
       return;
     }
 
@@ -594,13 +685,19 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
     String message = l10n.manufacturingSubmitAllSuccess;
     if (result.containsKey('results') && result['results'] is List) {
       final list = (result['results'] as List);
-      final okCount = list.where((e) => e is Map && (e['ok'] == true || e['status'] == 'success')).length;
-      message = l10n.manufacturingSubmitAllResult(list.length, okCount);
+      final okCount = list.where((e) => e is Map && _isSubmitSuccess(Map<String, dynamic>.from(e))).length;
+      final issues = list
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .where((e) => !_isSubmitSuccess(e))
+          .map(_submissionIssueMessage)
+          .toList(growable: false);
+      message = l10n.manufacturingSubmitAllResult(okCount, list.length);
 
       // Remove successfully submitted lines from UI (match by item_code+bom_name+qty timestamp)
       final toRemove = <int>{};
       for (final e in list) {
-        if (e is Map && (e['ok'] == true || e['status'] == 'success')) {
+        if (e is Map && _isSubmitSuccess(Map<String, dynamic>.from(e))) {
           final line = e['line'] as Map?;
           if (line == null) continue;
           for (int i = 0; i < lines.length; i++) {
@@ -625,6 +722,10 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
             }
           }
         });
+      }
+
+      if (issues.isNotEmpty) {
+        await _showSubmissionIssuesDialog(issues);
       }
     }
 
@@ -656,6 +757,20 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
       return;
     }
 
+    try {
+      final blocked = await _refreshAvailabilityForLines([l]);
+      if (blocked.isNotEmpty) {
+        if (!mounted) return;
+        messenger.showSnackBar(SnackBar(content: Text(_lineSubmitDisabledReason(l))));
+        return;
+      }
+    } catch (e) {
+      if (!mounted) return;
+      final message = extractFrappeErrorMessage(e, fallback: l10n.commonError);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.manufacturingSubmitFailed(message))));
+      return;
+    }
+
     // Show progress dialog (do not await)
     _showProgress(l10n.manufacturingSubmittingSingleWorkOrder);
 
@@ -670,11 +785,17 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
     } catch (e) {
       if (navigator.canPop()) navigator.pop();
       if (!context.mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(l10n.manufacturingSubmitFailed('$e'))));
+      final message = extractFrappeErrorMessage(e, fallback: l10n.commonError);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.manufacturingSubmitFailed(message))));
       return;
     }
 
     if (navigator.canPop()) navigator.pop();
+
+    if (!_isSubmitSuccess(result)) {
+      await _showSubmissionIssuesDialog([_submissionIssueMessage(result)]);
+      return;
+    }
 
     String message = l10n.manufacturingSubmitResult;
     if (result.containsKey('status')) message = l10n.manufacturingSubmitStatus('${result['status']}');
@@ -701,7 +822,8 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
       rows = await service.listRecentWorkOrders(limit: 100);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.manufacturingLoadFailed('$e'))));
+      final message = extractFrappeErrorMessage(e, fallback: context.l10n.commonError);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.manufacturingLoadFailed(message))));
       return;
     }
     if (!mounted) return;
@@ -810,6 +932,8 @@ class _MfgLine {
   // Controllers for two-way binding between BOM count and quantity
   final TextEditingController bomCtrl;
   final TextEditingController qtyCtrl;
+  final FocusNode bomFocusNode;
+  final FocusNode qtyFocusNode;
   bool _updatingFromBom = false;
   bool _updatingFromQty = false;
 
@@ -822,9 +946,15 @@ class _MfgLine {
     required this.bomCount,
     required this.itemQty,
     required this.scheduledAt,
-    required this.components,
+    required List<_Component> components,
   })  : bomCtrl = TextEditingController(text: bomCount.toStringAsFixed(2)),
-        qtyCtrl = TextEditingController(text: itemQty.toStringAsFixed(2));
+        qtyCtrl = TextEditingController(text: itemQty.toStringAsFixed(2)),
+        bomFocusNode = FocusNode(),
+        qtyFocusNode = FocusNode(),
+        components = List<_Component>.from(components) {
+    bomFocusNode.addListener(_handleBomFocusChanged);
+    qtyFocusNode.addListener(_handleQtyFocusChanged);
+  }
 
   factory _MfgLine.from(Map<String, dynamic> bomDetails) {
     final bomQty = (bomDetails['bom_qty'] as num).toDouble();
@@ -854,22 +984,14 @@ class _MfgLine {
   void setBomCount(double n) {
     bomCount = n > 0 ? n : 0;
     itemQty = bomCount * bomQtyYield;
-    // Update controllers safely
-    _updatingFromBom = true;
-    bomCtrl.text = bomCount.toStringAsFixed(2);
-    qtyCtrl.text = itemQty.toStringAsFixed(2);
-    _updatingFromBom = false;
+    _syncControllers();
   }
 
   void setItemQty(double n) {
     itemQty = n > 0 ? n : 0;
     // derive bom count; avoid divide-by-zero
     bomCount = bomQtyYield > 0 ? (itemQty / bomQtyYield) : 0;
-    // Update controllers safely
-    _updatingFromQty = true;
-    qtyCtrl.text = itemQty.toStringAsFixed(2);
-    bomCtrl.text = bomCount.toStringAsFixed(2);
-    _updatingFromQty = false;
+    _syncControllers();
   }
 
   // Steppers
@@ -909,6 +1031,70 @@ class _MfgLine {
         )
         .toList();
   }
+
+  void updateComponentsFrom(Map<String, dynamic> bomDetails) {
+    final incoming = ((bomDetails['components'] as List?) ?? [])
+        .map((e) => _Component(
+              itemCode: e['item_code'] as String,
+              itemName: (e['item_name'] ?? e['item_code']) as String,
+              uom: e['uom'] as String,
+              qtyPerBom: (e['qty_per_bom'] as num).toDouble(),
+              availableQty: (e['available_qty'] as num?)?.toDouble(),
+            ))
+        .toList(growable: false);
+    components
+      ..clear()
+      ..addAll(incoming);
+  }
+
+  void _handleBomFocusChanged() {
+    if (!bomFocusNode.hasFocus) {
+      _syncControllers();
+    }
+  }
+
+  void _handleQtyFocusChanged() {
+    if (!qtyFocusNode.hasFocus) {
+      _syncControllers();
+    }
+  }
+
+  void _syncControllers() {
+    if (!bomFocusNode.hasFocus) {
+      _setControllerValue(bomCtrl, bomCount.toStringAsFixed(2));
+    }
+    if (!qtyFocusNode.hasFocus) {
+      _setControllerValue(qtyCtrl, itemQty.toStringAsFixed(2));
+    }
+  }
+
+  void _setControllerValue(TextEditingController controller, String value) {
+    if (controller.text == value) return;
+    controller.value = controller.value.copyWith(
+      text: value,
+      selection: TextSelection.collapsed(offset: value.length),
+      composing: TextRange.empty,
+    );
+  }
+}
+
+class _EditableDecimalInputFormatter extends TextInputFormatter {
+  const _EditableDecimalInputFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = newValue.text;
+    if (text.isEmpty) {
+      return newValue;
+    }
+
+    final normalized = text.replaceAll(',', '.');
+    if (!RegExp(r'^\d*(?:\.\d*)?$').hasMatch(normalized)) {
+      return oldValue;
+    }
+
+    return newValue;
+  }
 }
 
 class _StepperButton extends StatelessWidget {
@@ -936,18 +1122,56 @@ extension _MfgLineEditing on _MfgLine {
   // Parse and update from BOM field; guard to avoid feedback loop
   void onBomChanged(String v) {
     if (_updatingFromQty) return; // ignore changes triggered by qty updates
-    final n = double.tryParse(v.trim()) ?? bomCount;
-    setBomCount(n);
+    final normalized = v.trim().replaceAll(',', '.');
+    if (normalized.isEmpty || normalized == '.') {
+      bomCount = 0;
+      itemQty = 0;
+      if (!qtyFocusNode.hasFocus) {
+        _setControllerValue(qtyCtrl, itemQty.toStringAsFixed(2));
+      }
+      return;
+    }
+
+    final n = double.tryParse(normalized);
+    if (n == null) return;
+
+    _updatingFromBom = true;
+    bomCount = n > 0 ? n : 0;
+    itemQty = bomCount * bomQtyYield;
+    if (!qtyFocusNode.hasFocus) {
+      _setControllerValue(qtyCtrl, itemQty.toStringAsFixed(2));
+    }
+    _updatingFromBom = false;
   }
 
   // Parse and update from Qty field; guard to avoid feedback loop
   void onQtyChanged(String v) {
     if (_updatingFromBom) return; // ignore changes triggered by bom updates
-    final n = double.tryParse(v.trim()) ?? itemQty;
-    setItemQty(n);
+    final normalized = v.trim().replaceAll(',', '.');
+    if (normalized.isEmpty || normalized == '.') {
+      itemQty = 0;
+      bomCount = 0;
+      if (!bomFocusNode.hasFocus) {
+        _setControllerValue(bomCtrl, bomCount.toStringAsFixed(2));
+      }
+      return;
+    }
+
+    final n = double.tryParse(normalized);
+    if (n == null) return;
+
+    _updatingFromQty = true;
+    itemQty = n > 0 ? n : 0;
+    bomCount = bomQtyYield > 0 ? (itemQty / bomQtyYield) : 0;
+    if (!bomFocusNode.hasFocus) {
+      _setControllerValue(bomCtrl, bomCount.toStringAsFixed(2));
+    }
+    _updatingFromQty = false;
   }
 
   void dispose() {
+    bomFocusNode.dispose();
+    qtyFocusNode.dispose();
     bomCtrl.dispose();
     qtyCtrl.dispose();
   }

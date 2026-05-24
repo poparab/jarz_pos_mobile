@@ -123,6 +123,28 @@ void main() {
           throwsException,
         );
       });
+
+      test('maps frappe error message from dio response', () async {
+        mockDio.setError(
+          '/api/method/jarz_pos.api.manufacturing.get_bom_details',
+          createMockDioException(
+            statusCode: 417,
+            type: DioExceptionType.badResponse,
+            data: {'message': 'Insufficient stock for Cheesecake Mix'},
+          ),
+        );
+
+        expect(
+          () => service.getBomDetails('ITEM-001'),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Insufficient stock for Cheesecake Mix'),
+            ),
+          ),
+        );
+      });
     });
 
     group('submitWorkOrders', () {
@@ -167,6 +189,30 @@ void main() {
         expect(
           () => service.submitWorkOrders([]),
           throwsException,
+        );
+      });
+
+      test('maps frappe error message from submit response', () async {
+        mockDio.setError(
+          '/api/method/jarz_pos.api.manufacturing.submit_work_orders',
+          createMockDioException(
+            statusCode: 417,
+            type: DioExceptionType.badResponse,
+            data: {'message': 'Manufacturing pre-check failed for Blueberry Medium'},
+          ),
+        );
+
+        expect(
+          () => service.submitWorkOrders([
+            {'item_code': 'ITEM-001', 'qty': 5},
+          ]),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Manufacturing pre-check failed for Blueberry Medium'),
+            ),
+          ),
         );
       });
     });
