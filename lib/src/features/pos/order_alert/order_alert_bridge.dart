@@ -34,6 +34,7 @@ class OrderAlertBridge {
   StreamSubscription<RemoteMessage>? _onOpenedSub;
   StreamSubscription<String>? _onTokenRefreshSub;
   StreamSubscription<Map<String, dynamic>>? _invoiceStreamSub;
+  StreamSubscription<Map<String, dynamic>>? _kanbanUpdateSub;
   StreamSubscription<Map<String, dynamic>>? _shiftStreamSub;
   ProviderSubscription<PosState>? _posStateSub;
   Timer? _backgroundPollTimer;
@@ -62,6 +63,10 @@ class OrderAlertBridge {
     _logger.info("📡 Subscribing to websocket invoiceStream...");
     _invoiceStreamSub = ws.invoiceStream.listen(_handleRealtimeInvoice, onError: (error) {
       _logger.error('Failed processing websocket invoice alert', error, StackTrace.current);
+    });
+
+    _kanbanUpdateSub = ws.kanbanUpdates.listen(_handleKanbanUpdate, onError: (error) {
+      _logger.error('Failed processing websocket kanban refresh event', error, StackTrace.current);
     });
 
     // Listen for shift start/end events via websocket
@@ -148,6 +153,7 @@ class OrderAlertBridge {
     _onOpenedSub?.cancel();
     _onTokenRefreshSub?.cancel();
     _invoiceStreamSub?.cancel();
+    _kanbanUpdateSub?.cancel();
     _shiftStreamSub?.cancel();
     _posStateSub?.close();
     _backgroundPollTimer?.cancel();
@@ -345,6 +351,31 @@ class OrderAlertBridge {
     }
   }
 
+  void _handleKanbanUpdate(Map<String, dynamic> payload) {
+    try {
+      final event = payload['event']?.toString() ?? '';
+      final forceRefresh = _isTruthyFlag(payload['force_refresh']);
+      if (!forceRefresh && event != 'invoice_reassigned') {
+        return;
+      }
+
+      final invoiceId =
+          payload['invoice_id']?.toString() ?? payload['name']?.toString() ?? '';
+      _logger.info(
+        'Kanban update requires alert sync event=$event '
+        'invoice=$invoiceId forceRefresh=$forceRefresh',
+      );
+
+      unawaited(_ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts());
+    } catch (error, stackTrace) {
+      _logger.error(
+        'Failed processing websocket kanban alert refresh',
+        error,
+        stackTrace,
+      );
+    }
+  }
+
   Future<void> _registerToken(String? token, {bool force = false}) async {
     _currentToken = token;
 
@@ -523,4 +554,11 @@ class OrderAlertBridge {
 
     return completer.future;
   }
+}
+
+bool _isTruthyFlag(dynamic value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  final text = value?.toString().toLowerCase();
+  return text == '1' || text == 'true' || text == 'yes';
 }

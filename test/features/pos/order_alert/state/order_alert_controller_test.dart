@@ -45,9 +45,11 @@ class _FakePosRepository extends PosRepository {
   _FakePosRepository() : super(Dio());
 
   bool posProfileOpen = true;
+  String? lastCheckedProfile;
 
   @override
   Future<Map<String, dynamic>> isPosProfileOpen(String posProfile) async {
+    lastCheckedProfile = posProfile;
     return {'is_open': posProfileOpen, 'message': 'test'};
   }
 }
@@ -153,6 +155,22 @@ void main() {
       expect(controller.state.queue, hasLength(1));
       expect(controller.state.active?.invoiceId, 'INV-1');
       expect(nativeChannelCalls, isEmpty);
+    });
+
+    test('uses effective branch for timetable checks', () async {
+      final alert = InvoiceAlert.fromDynamic({
+        'invoice_id': 'INV-1',
+        'pos_profile': 'Dokki',
+        'custom_kanban_profile': 'Nasr city',
+        'effective_pos_profile': 'Heliopolis',
+        'acceptance_status': 'Pending',
+        'requires_acceptance': true,
+        'grand_total': 100,
+      });
+
+      await controller.enqueueAlert(alert);
+
+      expect(posRepo.lastCheckedProfile, 'Heliopolis');
     });
   });
 

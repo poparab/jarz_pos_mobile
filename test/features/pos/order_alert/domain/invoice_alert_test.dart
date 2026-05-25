@@ -79,6 +79,28 @@ void main() {
       expect(alert.raw, isNotEmpty);
     });
 
+    test('prefers effective branch fields over original pos_profile', () {
+      final alert = InvoiceAlert.fromDynamic({
+        'invoice_id': 'INV-001',
+        'pos_profile': 'Dokki',
+        'custom_kanban_profile': 'Nasr city',
+        'kanban_profile': 'October',
+        'effective_pos_profile': 'Heliopolis',
+      });
+
+      expect(alert.posProfile, 'Heliopolis');
+    });
+
+    test('falls back to custom kanban profile before original pos_profile', () {
+      final alert = InvoiceAlert.fromDynamic({
+        'invoice_id': 'INV-001',
+        'pos_profile': 'Dokki',
+        'custom_kanban_profile': 'Nasr city',
+      });
+
+      expect(alert.posProfile, 'Nasr city');
+    });
+
     test('falls back to "name" when invoice_id is missing', () {
       final alert = InvoiceAlert.fromDynamic({
         'name': 'SINV-999',
@@ -253,6 +275,17 @@ void main() {
         'requires_acceptance': '1',
       });
       expect(alert.requiresAcceptance, isTrue);
+    });
+
+    test('prefers effective branch fields from FCM data', () {
+      final alert = InvoiceAlert.fromFcmData({
+        'invoice_id': 'INV-FCM',
+        'pos_profile': 'Dokki',
+        'kanban_profile': 'Nasr city',
+        'effective_pos_profile': 'Heliopolis',
+      });
+
+      expect(alert.posProfile, 'Heliopolis');
     });
   });
 

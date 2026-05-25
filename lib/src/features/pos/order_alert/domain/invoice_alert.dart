@@ -61,7 +61,7 @@ class InvoiceAlert {
     final raw = Map<String, dynamic>.from(payload);
     final invoiceId =
         raw['invoice_id']?.toString() ?? raw['name']?.toString() ?? '';
-    final posProfile = raw['pos_profile']?.toString() ?? '';
+    final posProfile = _resolveAlertPosProfile(raw);
     final acceptance =
         raw['acceptance_status']?.toString() ??
         raw['custom_acceptance_status']?.toString() ??
@@ -139,6 +139,14 @@ class InvoiceAlert {
       raw: raw,
     );
   }
+}
+
+String _resolveAlertPosProfile(Map<String, dynamic> raw) {
+  return raw['effective_pos_profile']?.toString() ??
+      raw['kanban_profile']?.toString() ??
+      raw['custom_kanban_profile']?.toString() ??
+      raw['pos_profile']?.toString() ??
+      '';
 }
 
 double? _parseDouble(dynamic value) {
