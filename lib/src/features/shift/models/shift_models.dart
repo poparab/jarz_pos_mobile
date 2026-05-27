@@ -183,6 +183,110 @@ class ShiftEntry {
   }
 }
 
+class ShiftCourierCloseParty {
+  final String partyType;
+  final String party;
+  final String displayName;
+  final int transactionCount;
+  final int invoiceCount;
+  final double netBalance;
+  final List<String> invoices;
+
+  const ShiftCourierCloseParty({
+    required this.partyType,
+    required this.party,
+    required this.displayName,
+    this.transactionCount = 0,
+    this.invoiceCount = 0,
+    this.netBalance = 0,
+    this.invoices = const [],
+  });
+
+  factory ShiftCourierCloseParty.fromJson(Map<String, dynamic> json) {
+    double toDouble(dynamic value) {
+      if (value is num) return value.toDouble();
+      return double.tryParse(value?.toString() ?? '') ?? 0;
+    }
+
+    int toInt(dynamic value) {
+      if (value is num) return value.toInt();
+      return int.tryParse(value?.toString() ?? '') ?? 0;
+    }
+
+    final invoicesRaw = json['invoices'];
+    final invoices = invoicesRaw is List
+        ? invoicesRaw.map((invoice) => invoice.toString()).where((invoice) => invoice.isNotEmpty).toList()
+        : <String>[];
+
+    return ShiftCourierCloseParty(
+      partyType: (json['party_type'] ?? '').toString(),
+      party: (json['party'] ?? '').toString(),
+      displayName: (json['display_name'] ?? '').toString(),
+      transactionCount: toInt(json['transaction_count']),
+      invoiceCount: toInt(json['invoice_count']),
+      netBalance: toDouble(json['net_balance']),
+      invoices: invoices,
+    );
+  }
+}
+
+class ShiftCourierCloseBlock {
+  final bool blocked;
+  final String posProfile;
+  final int transactionCount;
+  final int invoiceCount;
+  final int partyCount;
+  final double netBalance;
+  final List<ShiftCourierCloseParty> parties;
+
+  const ShiftCourierCloseBlock({
+    required this.blocked,
+    required this.posProfile,
+    this.transactionCount = 0,
+    this.invoiceCount = 0,
+    this.partyCount = 0,
+    this.netBalance = 0,
+    this.parties = const [],
+  });
+
+  factory ShiftCourierCloseBlock.fromJson(Map<String, dynamic> json) {
+    double toDouble(dynamic value) {
+      if (value is num) return value.toDouble();
+      return double.tryParse(value?.toString() ?? '') ?? 0;
+    }
+
+    int toInt(dynamic value) {
+      if (value is num) return value.toInt();
+      return int.tryParse(value?.toString() ?? '') ?? 0;
+    }
+
+    bool toBool(dynamic value) {
+      if (value is bool) return value;
+      if (value is num) return value != 0;
+      final normalized = value?.toString().trim().toLowerCase();
+      return normalized == 'true' || normalized == '1' || normalized == 'yes';
+    }
+
+    final partiesRaw = json['parties'];
+    final parties = partiesRaw is List
+        ? partiesRaw
+            .whereType<Map>()
+            .map((party) => ShiftCourierCloseParty.fromJson(Map<String, dynamic>.from(party)))
+            .toList()
+        : <ShiftCourierCloseParty>[];
+
+    return ShiftCourierCloseBlock(
+      blocked: toBool(json['blocked']),
+      posProfile: (json['pos_profile'] ?? '').toString(),
+      transactionCount: toInt(json['transaction_count']),
+      invoiceCount: toInt(json['invoice_count']),
+      partyCount: toInt(json['party_count']),
+      netBalance: toDouble(json['net_balance']),
+      parties: parties,
+    );
+  }
+}
+
 class ShiftSummary {
   final String openingEntry;
   final String status;
@@ -200,6 +304,9 @@ class ShiftSummary {
   final double netMovement;
   final String? journalEntry;
   final String? closingEntry;
+  final bool amountsHidden;
+  final bool varianceVisible;
+  final ShiftCourierCloseBlock? courierCloseBlock;
 
   const ShiftSummary({
     required this.openingEntry,
@@ -218,12 +325,22 @@ class ShiftSummary {
     this.netMovement = 0,
     this.journalEntry,
     this.closingEntry,
+    this.amountsHidden = false,
+    this.varianceVisible = false,
+    this.courierCloseBlock,
   });
 
   factory ShiftSummary.fromJson(Map<String, dynamic> json) {
     double toDouble(dynamic value) {
       if (value is num) return value.toDouble();
       return double.tryParse(value?.toString() ?? '') ?? 0;
+    }
+
+    bool toBool(dynamic value) {
+      if (value is bool) return value;
+      if (value is num) return value != 0;
+      final normalized = value?.toString().trim().toLowerCase();
+      return normalized == 'true' || normalized == '1' || normalized == 'yes';
     }
 
     final reconciliationRaw = json['payment_reconciliation'];
@@ -249,6 +366,7 @@ class ShiftSummary {
         .map((e) => ShiftAccountMovement.fromJson(Map<String, dynamic>.from(e)))
         .toList()
       : <ShiftAccountMovement>[];
+    final courierCloseBlockRaw = json['courier_close_block'];
 
     return ShiftSummary(
       openingEntry: (json['opening_entry'] ?? '').toString(),
@@ -267,6 +385,11 @@ class ShiftSummary {
       netMovement: toDouble(json['net_movement']),
       journalEntry: json['journal_entry']?.toString(),
       closingEntry: json['closing_entry']?.toString(),
+      amountsHidden: toBool(json['amounts_hidden']),
+      varianceVisible: toBool(json['variance_visible']),
+      courierCloseBlock: courierCloseBlockRaw is Map
+          ? ShiftCourierCloseBlock.fromJson(Map<String, dynamic>.from(courierCloseBlockRaw))
+          : null,
     );
   }
 }

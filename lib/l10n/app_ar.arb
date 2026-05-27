@@ -349,7 +349,7 @@
   "shiftEndTitle": "إنهاء الشيفت",
   "shiftNoActive": "لا يوجد شيفت مفتوح.",
   "shiftBackToPos": "العودة لنقطة البيع",
-  "shiftOpeningPrompt": "أدخل رصيد البداية لكل طريقة دفع:",
+  "shiftOpeningPrompt": "قم بعدّ نقدية البداية ثم أدخلها:",
   "shiftPosProfile": "ملف نقطة البيع: {profile}",
   "@shiftPosProfile": {
     "placeholders": {
@@ -369,14 +369,20 @@
     }
   },
   "shiftConfirmedOpeningAmount": "رصيد البداية المؤكد",
+  "shiftCountedOpeningAmount": "النقدية المعدودة عند البداية",
   "shiftDifferenceAmount": "الفرق: {amount}",
   "@shiftDifferenceAmount": {
     "placeholders": {
       "amount": {}
     }
   },
-  "shiftClosingPrompt": "أدخل رصيد الإغلاق:",
+  "shiftClosingPrompt": "قم بعدّ نقدية الإغلاق ثم أدخلها:",
   "shiftClosingAmountLabel": "رصيد الإغلاق",
+  "shiftCountedClosingAmount": "النقدية المعدودة عند الإغلاق",
+  "shiftBlindCountHint": "قم بعدّ النقدية في الدرج ثم أدخل المبلغ.",
+  "shiftCashCountRequired": "أدخل مبلغ النقدية المعدودة.",
+  "shiftCashCountInvalid": "أدخل مبلغ نقدية صحيح.",
+  "shiftCashCountNegative": "لا يمكن أن تكون قيمة النقدية سالبة.",
   "shiftExpectedAmount": "المتوقع: {amount}",
   "shiftLoadActiveFailed": "تعذر تحميل الشيفت النشط: {error}",
   "@shiftLoadActiveFailed": {
@@ -394,6 +400,50 @@
   "shiftUnexpectedStartResponse": "استجابة غير متوقعة من الخادم أثناء بدء الشيفت.",
   "shiftUnexpectedSummaryResponse": "استجابة غير متوقعة من الخادم أثناء تحميل ملخص الشيفت.",
   "shiftUnexpectedEndResponse": "استجابة غير متوقعة من الخادم أثناء إنهاء الشيفت.",
+  "shiftCourierBlockTitle": "سوِّ أرصدة المندوبين قبل إنهاء الشيفت",
+  "shiftCourierBlockBody": "لا يزال هذا الشيفت يحتوي على {transactions} حركة مندوب غير مسواة تخص {couriers} مندوبًا عبر {invoices} فاتورة على ملف نقطة البيع {profile}.",
+  "@shiftCourierBlockBody": {
+    "placeholders": {
+      "transactions": {
+        "type": "int"
+      },
+      "couriers": {
+        "type": "int"
+      },
+      "invoices": {
+        "type": "int"
+      },
+      "profile": {}
+    }
+  },
+  "shiftCourierBlockHint": "افتح أرصدة المندوبين، سوِّ ما يزال معلقًا، ثم ارجع لإكمال إنهاء الشيفت.",
+  "shiftCourierReviewButton": "مراجعة وتسوية المندوبين",
+  "shiftCourierBlockPartySummary": "{name}: عدد {transactions} حركة على {invoices} فاتورة",
+  "@shiftCourierBlockPartySummary": {
+    "placeholders": {
+      "name": {},
+      "transactions": {
+        "type": "int"
+      },
+      "invoices": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftCourierBlockNetBalance": "صافي الرصيد: {amount}",
+  "@shiftCourierBlockNetBalance": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "shiftCourierBlockMore": "+{count} مندوب إضافي",
+  "@shiftCourierBlockMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "shiftOutflows": "المصروفات الخارجة: {amount}",
   "@shiftOutflows": {
     "placeholders": {

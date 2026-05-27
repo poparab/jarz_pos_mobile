@@ -1499,7 +1499,7 @@ abstract class AppLocalizations {
   /// No description provided for @shiftOpeningPrompt.
   ///
   /// In en, this message translates to:
-  /// **'Enter opening balances per payment method:'**
+  /// **'Count opening cash and enter it:'**
   String get shiftOpeningPrompt;
 
   /// No description provided for @shiftPosProfile.
@@ -1526,6 +1526,12 @@ abstract class AppLocalizations {
   /// **'Confirmed Opening Amount'**
   String get shiftConfirmedOpeningAmount;
 
+  /// No description provided for @shiftCountedOpeningAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted Opening Cash'**
+  String get shiftCountedOpeningAmount;
+
   /// No description provided for @shiftDifferenceAmount.
   ///
   /// In en, this message translates to:
@@ -1535,7 +1541,7 @@ abstract class AppLocalizations {
   /// No description provided for @shiftClosingPrompt.
   ///
   /// In en, this message translates to:
-  /// **'Enter closing balances:'**
+  /// **'Count closing cash and enter it:'**
   String get shiftClosingPrompt;
 
   /// No description provided for @shiftClosingAmountLabel.
@@ -1543,6 +1549,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Closing Amount'**
   String get shiftClosingAmountLabel;
+
+  /// No description provided for @shiftCountedClosingAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted Closing Cash'**
+  String get shiftCountedClosingAmount;
+
+  /// No description provided for @shiftBlindCountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Count the cash in the drawer and enter the amount.'**
+  String get shiftBlindCountHint;
+
+  /// No description provided for @shiftCashCountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the counted cash amount.'**
+  String get shiftCashCountRequired;
+
+  /// No description provided for @shiftCashCountInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid cash amount.'**
+  String get shiftCashCountInvalid;
+
+  /// No description provided for @shiftCashCountNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash amount cannot be negative.'**
+  String get shiftCashCountNegative;
 
   /// No description provided for @shiftExpectedAmount.
   ///
@@ -1585,6 +1621,57 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unexpected server response while ending the shift.'**
   String get shiftUnexpectedEndResponse;
+
+  /// No description provided for @shiftCourierBlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle courier balances before ending the shift'**
+  String get shiftCourierBlockTitle;
+
+  /// No description provided for @shiftCourierBlockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This shift still has {transactions} unsettled courier transaction(s) for {couriers} courier(s) across {invoices} invoice(s) on POS Profile {profile}.'**
+  String shiftCourierBlockBody(
+    int transactions,
+    int couriers,
+    int invoices,
+    Object profile,
+  );
+
+  /// No description provided for @shiftCourierBlockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open courier balances, settle what is still pending, then come back to finish the shift.'**
+  String get shiftCourierBlockHint;
+
+  /// No description provided for @shiftCourierReviewButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Review & Settle Couriers'**
+  String get shiftCourierReviewButton;
+
+  /// No description provided for @shiftCourierBlockPartySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {transactions} transaction(s) on {invoices} invoice(s)'**
+  String shiftCourierBlockPartySummary(
+    Object name,
+    int transactions,
+    int invoices,
+  );
+
+  /// No description provided for @shiftCourierBlockNetBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Net balance: {amount}'**
+  String shiftCourierBlockNetBalance(Object amount);
+
+  /// No description provided for @shiftCourierBlockMore.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more courier(s)'**
+  String shiftCourierBlockMore(int count);
 
   /// No description provided for @shiftOutflows.
   ///

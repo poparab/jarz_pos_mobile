@@ -349,7 +349,7 @@
   "shiftEndTitle": "End Shift",
   "shiftNoActive": "No active shift found.",
   "shiftBackToPos": "Back to POS",
-  "shiftOpeningPrompt": "Enter opening balances per payment method:",
+  "shiftOpeningPrompt": "Count opening cash and enter it:",
   "shiftPosProfile": "POS Profile: {profile}",
   "@shiftPosProfile": {
     "placeholders": {
@@ -369,14 +369,20 @@
     }
   },
   "shiftConfirmedOpeningAmount": "Confirmed Opening Amount",
+  "shiftCountedOpeningAmount": "Counted Opening Cash",
   "shiftDifferenceAmount": "Difference: {amount}",
   "@shiftDifferenceAmount": {
     "placeholders": {
       "amount": {}
     }
   },
-  "shiftClosingPrompt": "Enter closing balances:",
+  "shiftClosingPrompt": "Count closing cash and enter it:",
   "shiftClosingAmountLabel": "Closing Amount",
+  "shiftCountedClosingAmount": "Counted Closing Cash",
+  "shiftBlindCountHint": "Count the cash in the drawer and enter the amount.",
+  "shiftCashCountRequired": "Enter the counted cash amount.",
+  "shiftCashCountInvalid": "Enter a valid cash amount.",
+  "shiftCashCountNegative": "Cash amount cannot be negative.",
   "shiftExpectedAmount": "Expected: {amount}",
   "shiftLoadActiveFailed": "Failed to load active shift: {error}",
   "@shiftLoadActiveFailed": {
@@ -394,6 +400,50 @@
   "shiftUnexpectedStartResponse": "Unexpected server response while starting the shift.",
   "shiftUnexpectedSummaryResponse": "Unexpected server response while loading the shift summary.",
   "shiftUnexpectedEndResponse": "Unexpected server response while ending the shift.",
+  "shiftCourierBlockTitle": "Settle courier balances before ending the shift",
+  "shiftCourierBlockBody": "This shift still has {transactions} unsettled courier transaction(s) for {couriers} courier(s) across {invoices} invoice(s) on POS Profile {profile}.",
+  "@shiftCourierBlockBody": {
+    "placeholders": {
+      "transactions": {
+        "type": "int"
+      },
+      "couriers": {
+        "type": "int"
+      },
+      "invoices": {
+        "type": "int"
+      },
+      "profile": {}
+    }
+  },
+  "shiftCourierBlockHint": "Open courier balances, settle what is still pending, then come back to finish the shift.",
+  "shiftCourierReviewButton": "Review & Settle Couriers",
+  "shiftCourierBlockPartySummary": "{name}: {transactions} transaction(s) on {invoices} invoice(s)",
+  "@shiftCourierBlockPartySummary": {
+    "placeholders": {
+      "name": {},
+      "transactions": {
+        "type": "int"
+      },
+      "invoices": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftCourierBlockNetBalance": "Net balance: {amount}",
+  "@shiftCourierBlockNetBalance": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "shiftCourierBlockMore": "+{count} more courier(s)",
+  "@shiftCourierBlockMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "shiftOutflows": "Outflows: {amount}",
   "@shiftOutflows": {
     "placeholders": {

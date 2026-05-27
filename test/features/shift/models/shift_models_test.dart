@@ -255,6 +255,8 @@ void main() {
         'net_movement': 7000.5,
         'journal_entry': 'JE-001',
         'closing_entry': 'POS-CL-001',
+        'amounts_hidden': 0,
+        'variance_visible': 1,
       });
 
       expect(summary.openingEntry, 'POS-OPN-001');
@@ -271,6 +273,55 @@ void main() {
       expect(summary.netMovement, 7000.5);
       expect(summary.journalEntry, 'JE-001');
       expect(summary.closingEntry, 'POS-CL-001');
+      expect(summary.amountsHidden, isFalse);
+      expect(summary.varianceVisible, isTrue);
+    });
+
+    test('fromJson parses blind pre-close summary without money fields', () {
+      final summary = ShiftSummary.fromJson({
+        'opening_entry': 'POS-OPN-001',
+        'status': 'Open',
+        'invoice_count': 3,
+        'amounts_hidden': 1,
+        'variance_visible': 0,
+        'courier_close_block': {
+          'blocked': true,
+          'pos_profile': 'Nasr city',
+          'transaction_count': 2,
+          'invoice_count': 1,
+          'party_count': 1,
+          'net_balance': 160,
+          'parties': [
+            {
+              'party_type': 'Employee',
+              'party': 'HR-EMP-0001',
+              'display_name': 'Ali Courier',
+              'transaction_count': 2,
+              'invoice_count': 1,
+              'net_balance': 160,
+              'invoices': ['ACC-SINV-0001'],
+            },
+          ],
+        },
+        'payment_reconciliation': [
+          {'mode_of_payment': 'Cash'},
+        ],
+      });
+
+      expect(summary.openingEntry, 'POS-OPN-001');
+      expect(summary.invoiceCount, 3);
+      expect(summary.amountsHidden, isTrue);
+      expect(summary.varianceVisible, isFalse);
+      expect(summary.paymentReconciliation, hasLength(1));
+      expect(summary.paymentReconciliation.first.modeOfPayment, 'Cash');
+      expect(summary.paymentReconciliation.first.expectedAmount, 0);
+      expect(summary.totalSales, 0);
+      expect(summary.accountMovements, isEmpty);
+      expect(summary.courierCloseBlock, isNotNull);
+      expect(summary.courierCloseBlock!.blocked, isTrue);
+      expect(summary.courierCloseBlock!.parties, hasLength(1));
+      expect(summary.courierCloseBlock!.parties.first.displayName, 'Ali Courier');
+      expect(summary.courierCloseBlock!.parties.first.invoices, ['ACC-SINV-0001']);
     });
 
     test('fromJson defaults lists and numbers when missing', () {
@@ -285,6 +336,9 @@ void main() {
       expect(summary.salesInvoices, isEmpty);
       expect(summary.accountMovements, isEmpty);
       expect(summary.accountBalance, 0);
+      expect(summary.amountsHidden, isFalse);
+      expect(summary.varianceVisible, isFalse);
+      expect(summary.courierCloseBlock, isNull);
     });
   });
 }

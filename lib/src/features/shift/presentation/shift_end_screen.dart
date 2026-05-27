@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
-import '../../../core/constants/business_constants.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../auth/state/login_notifier.dart';
+import '../../pos/presentation/widgets/courier_balances_dialog.dart';
 import '../models/shift_models.dart';
 import '../state/shift_notifier.dart';
 
@@ -32,6 +32,35 @@ String _localizedShiftError(BuildContext context, String error) {
   }
 }
 
+double? _parseShiftAmount(String text) {
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) return null;
+  final amount = double.tryParse(trimmed);
+  if (amount == null || amount.isNaN || amount.isInfinite || amount < 0) {
+    return null;
+  }
+  return amount;
+}
+
+String? _validateShiftAmount(BuildContext context, String text) {
+  final l10n = context.l10n;
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) {
+    return l10n.shiftCashCountRequired;
+  }
+
+  final amount = double.tryParse(trimmed);
+  if (amount == null || amount.isNaN || amount.isInfinite) {
+    return l10n.shiftCashCountInvalid;
+  }
+
+  if (amount < 0) {
+    return l10n.shiftCashCountNegative;
+  }
+
+  return null;
+}
+
 class ShiftEndScreen extends ConsumerStatefulWidget {
   const ShiftEndScreen({super.key});
 
@@ -42,12 +71,7 @@ class ShiftEndScreen extends ConsumerStatefulWidget {
 class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
   final Map<String, TextEditingController> _controllers = {};
   ShiftSummary? _endResult;
-
-  static const List<String> _preferredVoucherOrder = [
-    VoucherTypes.salesInvoice,
-    VoucherTypes.journalEntry,
-    VoucherTypes.paymentEntry,
-  ];
+  String? _validationError;
 
   @override
   void dispose() {
@@ -123,92 +147,80 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
   Widget _buildPreCloseView(BuildContext context, ShiftSummary summary, ShiftState shiftState) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    final courierCloseBlock = summary.courierCloseBlock;
+    final hasCourierCloseBlock = courierCloseBlock?.blocked == true;
+    final displayError = _validationError ??
+        (shiftState.error != null ? _localizedShiftError(context, shiftState.error!) : null);
 
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header info ──
           Text(l10n.shiftLabel(summary.openingEntry), style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           _infoRow(l10n.shiftInvoices(summary.invoiceCount), Icons.receipt_long),
-          _infoRow(l10n.shiftGrandTotal(summary.totalSales.toStringAsFixed(2)), Icons.attach_money),
-          _infoRow(l10n.shiftOutflows(summary.totalOutflows.toStringAsFixed(2)), Icons.trending_down),
-          _infoRow(l10n.shiftNetMovement(summary.netMovement.toStringAsFixed(2)), Icons.swap_vert),
-          if (summary.account != null)
-            _infoRow(
-              '${l10n.shiftAccountBalance}: ${summary.accountBalance.toStringAsFixed(2)}',
-              Icons.account_balance,
-            ),
           const Divider(height: 24),
 
-          // ── Closing balance input ──
-          Text(l10n.shiftClosingPrompt, style: theme.textTheme.titleSmall),
-          const SizedBox(height: 10),
-          ...summary.paymentReconciliation.map((row) {
-            final controller = _controllers.putIfAbsent(
-              row.modeOfPayment,
-              () => TextEditingController(text: row.expectedAmount.toStringAsFixed(2)),
-            );
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${row.modeOfPayment} (${l10n.shiftExpectedAmount(row.expectedAmount.toStringAsFixed(2))})',
-                  ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: controller,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      labelText: l10n.shiftClosingAmountLabel,
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
-                  Builder(builder: (context) {
-                    final confirmed = double.tryParse(controller.text) ?? 0;
-                    final diff = confirmed - row.expectedAmount;
-                    if (diff == 0) return const SizedBox.shrink();
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        '${l10n.shiftDifference}: ${diff.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          color: diff > 0 ? Colors.green : theme.colorScheme.error,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    );
-                  }),
+          Expanded(
+            child: ListView(
+              children: [
+                if (hasCourierCloseBlock) ...[
+                  _buildCourierCloseBlockCard(context, courierCloseBlock!),
+                  const SizedBox(height: 14),
                 ],
-              ),
-            );
-          }),
+                Text(l10n.shiftClosingPrompt, style: theme.textTheme.titleSmall),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.shiftBlindCountHint,
+                  style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: 10),
+                ...summary.paymentReconciliation.map((row) {
+                  final controller = _controllers.putIfAbsent(
+                    row.modeOfPayment,
+                    () => TextEditingController(),
+                  );
 
-          // ── Account movements list ──
-          if (summary.accountMovements.isNotEmpty) ...[
-            const Divider(height: 24),
-            Text(l10n.shiftAccountMovements, style: theme.textTheme.titleSmall),
-            const SizedBox(height: 6),
-            Expanded(child: _buildMovementsTable(context, summary.accountMovements)),
-          ] else
-            const Expanded(child: SizedBox.shrink()),
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(row.modeOfPayment),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: controller,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          onChanged: (_) {
+                            if (_validationError != null) {
+                              setState(() {
+                                _validationError = null;
+                              });
+                            }
+                          },
+                          decoration: InputDecoration(
+                            labelText: l10n.shiftCountedClosingAmount,
+                            border: const OutlineInputBorder(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
 
-          // ── Error ──
-          if (shiftState.error != null)
+          if (displayError != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Text(
-                _localizedShiftError(context, shiftState.error!),
+                displayError,
                 style: TextStyle(color: theme.colorScheme.error),
               ),
             ),
 
-          // ── Navigation + End Shift actions ──
           Row(
             children: [
               Expanded(
@@ -220,9 +232,18 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: FilledButton(
-                  onPressed: shiftState.isLoading ? null : () => _handleEndShift(summary),
-                  child: Text(l10n.shiftEndButton),
+                child: FilledButton.icon(
+                  onPressed: shiftState.isLoading
+                      ? null
+                      : hasCourierCloseBlock
+                      ? () => _handleCourierSettlementReview(summary)
+                      : () => _handleEndShift(summary),
+                  icon: Icon(
+                    hasCourierCloseBlock ? Icons.local_shipping_outlined : Icons.task_alt_outlined,
+                  ),
+                  label: Text(
+                    hasCourierCloseBlock ? l10n.shiftCourierReviewButton : l10n.shiftEndButton,
+                  ),
                 ),
               ),
             ],
@@ -250,14 +271,6 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
             if (result.closingEntry != null)
               _infoRow('${l10n.shiftClosingEntry}: ${result.closingEntry}', Icons.check_circle),
             _infoRow(l10n.shiftInvoices(result.invoiceCount), Icons.receipt_long),
-            _infoRow(l10n.shiftGrandTotal(result.totalSales.toStringAsFixed(2)), Icons.attach_money),
-            _infoRow(l10n.shiftOutflows(result.totalOutflows.toStringAsFixed(2)), Icons.trending_down),
-            _infoRow(l10n.shiftNetMovement(result.netMovement.toStringAsFixed(2)), Icons.swap_vert),
-            if (result.account != null)
-              _infoRow(
-                '${l10n.shiftAccountBalance}: ${result.accountBalance.toStringAsFixed(2)}',
-                Icons.account_balance,
-              ),
             if (result.journalEntry != null && result.journalEntry!.isNotEmpty && result.journalEntry != 'null')
               Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -283,51 +296,63 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
                 ),
               ),
 
-            // ── Payment reconciliation ──
             const Divider(height: 24),
-            ...result.paymentReconciliation.map((row) {
-              final diff = row.closingAmount - row.expectedAmount;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(row.modeOfPayment, style: theme.textTheme.bodyMedium),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(l10n.shiftExpectedAmount(row.expectedAmount.toStringAsFixed(2))),
-                        Text(
-                          '${l10n.shiftClosingAmountLabel}: ${row.closingAmount.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            color: diff == 0 ? null : (diff > 0 ? Colors.green : theme.colorScheme.error),
-                            fontWeight: diff == 0 ? null : FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }),
+            Expanded(
+              child: ListView(
+                children: [
+                  ...result.paymentReconciliation.map((row) {
+                    final diff = row.difference;
+                    final diffColor = diff == 0
+                        ? theme.colorScheme.onSurface
+                        : (diff > 0 ? Colors.green : theme.colorScheme.error);
 
-            // ── Account Movements ──
-            if (result.accountMovements.isNotEmpty) ...[
-              const Divider(height: 24),
-              Text(l10n.shiftAccountMovements, style: theme.textTheme.titleSmall),
-              const SizedBox(height: 6),
-              Expanded(child: _buildMovementsTable(context, result.accountMovements)),
-            ] else
-              const Expanded(child: SizedBox.shrink()),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            row.modeOfPayment,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          if (result.varianceVisible)
+                            Text(
+                              l10n.shiftExpectedAmount(
+                                row.expectedAmount.toStringAsFixed(2),
+                              ),
+                            ),
+                          Text(
+                            '${l10n.shiftCountedClosingAmount}: ${row.closingAmount.toStringAsFixed(2)}',
+                          ),
+                          if (result.varianceVisible)
+                            Text(
+                              '${l10n.shiftDifference}: ${diff.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                color: diffColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
 
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () {
+                onPressed: () async {
                   ref.invalidate(activeShiftProvider);
-                  context.go(AppRoutes.pos);
+                  await ref.read(loginNotifierProvider.notifier).logout();
+                  if (!context.mounted) return;
+                  context.go(AppRoutes.login);
                 },
-                child: Text(l10n.shiftBackToPos),
+                child: Text(l10n.shiftLogout),
               ),
             ),
           ],
@@ -351,102 +376,146 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
     );
   }
 
-  Widget _buildMovementsTable(BuildContext context, List<ShiftAccountMovement> movements) {
+  Widget _buildCourierCloseBlockCard(
+    BuildContext context,
+    ShiftCourierCloseBlock block,
+  ) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final grouped = <String, List<ShiftAccountMovement>>{};
-    for (final movement in movements) {
-      final key = movement.voucherType.isNotEmpty ? movement.voucherType : l10n.shiftOther;
-      grouped.putIfAbsent(key, () => <ShiftAccountMovement>[]).add(movement);
-    }
+    final extraCouriers = block.partyCount - block.parties.length;
 
-    final orderedTypes = <String>[
-      ..._preferredVoucherOrder.where(grouped.containsKey),
-      ...grouped.keys
-          .where((type) => !_preferredVoucherOrder.contains(type))
-          .toList()
-        ..sort(),
-    ];
-
-    return ListView.builder(
-      shrinkWrap: true,
-      itemCount: orderedTypes.length,
-      itemBuilder: (context, groupIndex) {
-        final voucherType = orderedTypes[groupIndex];
-        final rows = grouped[voucherType] ?? const <ShiftAccountMovement>[];
-        final subtotal = rows.fold<double>(0, (sum, row) => sum + row.amount);
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Column(
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.32)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
+              const Padding(
+                padding: EdgeInsets.only(top: 2),
+                child: Icon(Icons.local_shipping_outlined, color: Colors.orange),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        voucherType,
-                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                    Text(
+                      l10n.shiftCourierBlockTitle,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
+                    const SizedBox(height: 6),
                     Text(
-                      l10n.shiftSubtotal(subtotal.toStringAsFixed(2)),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: subtotal >= 0 ? Colors.green : theme.colorScheme.error,
+                      l10n.shiftCourierBlockBody(
+                        block.transactionCount,
+                        block.partyCount,
+                        block.invoiceCount,
+                        block.posProfile,
+                      ),
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.shiftCourierBlockHint,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 6),
-              ...rows.map(
-                (movement) => ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    movement.voucherNo.isNotEmpty ? movement.voucherNo : movement.name,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                  ),
-                  subtitle: Text(
-                    movement.remarks?.isNotEmpty == true
-                        ? movement.remarks!
-                        : (movement.against?.isNotEmpty == true ? movement.against! : (movement.postingDate ?? l10n.shiftNoDeliveryStatus)),
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  trailing: Text(
-                    movement.amount.toStringAsFixed(2),
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: movement.amount >= 0 ? Colors.green : theme.colorScheme.error,
-                    ),
-                  ),
-                ),
-              ),
-              if (groupIndex != orderedTypes.length - 1) const Divider(height: 16),
             ],
           ),
-        );
-      },
+          if (block.parties.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            ...block.parties.map(
+              (party) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.shiftCourierBlockPartySummary(
+                          party.displayName.isNotEmpty ? party.displayName : party.party,
+                          party.transactionCount,
+                          party.invoiceCount,
+                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      l10n.shiftCourierBlockNetBalance(
+                        party.netBalance.toStringAsFixed(2),
+                      ),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          if (extraCouriers > 0)
+            Text(
+              l10n.shiftCourierBlockMore(extraCouriers),
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+        ],
+      ),
     );
   }
 
+  Future<void> _handleCourierSettlementReview(ShiftSummary summary) async {
+    final activeBlock = summary.courierCloseBlock?.parties ?? const <ShiftCourierCloseParty>[];
+    final shouldFilterDialog = summary.courierCloseBlock != null &&
+        summary.courierCloseBlock!.partyCount == activeBlock.length;
+
+    await showCourierBalancesDialog(
+      context,
+      allowedPartyKeys: shouldFilterDialog
+          ? activeBlock.map((party) => '${party.partyType}::${party.party}').toSet()
+          : null,
+    );
+    if (!mounted) return;
+
+    ref.read(shiftNotifierProvider.notifier).clearError();
+    setState(() {
+      _validationError = null;
+    });
+  }
+
   Future<void> _handleEndShift(ShiftSummary summary) async {
-    final balances = summary.paymentReconciliation.map((row) {
-      final text = _controllers[row.modeOfPayment]?.text ?? '0';
-      final amount = double.tryParse(text) ?? 0;
-      return {
-        'mode_of_payment': row.modeOfPayment,
-        'closing_amount': amount,
-      };
-    }).toList();
+    final balances = <Map<String, dynamic>>[];
+    for (final row in summary.paymentReconciliation) {
+      final text = _controllers[row.modeOfPayment]?.text ?? '';
+      final validationError = _validateShiftAmount(context, text);
+      if (validationError != null) {
+        setState(() {
+          _validationError = validationError;
+        });
+        return;
+      }
+
+      balances.add(
+        {
+          'mode_of_payment': row.modeOfPayment,
+          'closing_amount': _parseShiftAmount(text)!,
+        },
+      );
+    }
 
     final result = await ref
         .read(shiftNotifierProvider.notifier)
@@ -457,9 +526,11 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
 
     if (!mounted) return;
     if (result != null) {
-      await ref.read(loginNotifierProvider.notifier).logout();
-      if (!mounted) return;
-      context.go(AppRoutes.login);
+      ref.invalidate(activeShiftProvider);
+      setState(() {
+        _validationError = null;
+        _endResult = result;
+      });
     }
   }
 }

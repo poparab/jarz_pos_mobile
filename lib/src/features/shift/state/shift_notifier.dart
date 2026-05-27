@@ -46,6 +46,11 @@ class ShiftNotifier extends StateNotifier<ShiftState> {
 
   final ShiftRepository _repository;
 
+  void clearError() {
+    if (state.error == null) return;
+    state = state.copyWith(clearError: true);
+  }
+
   Future<ShiftEntry?> checkActiveShift({String? posProfile}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {

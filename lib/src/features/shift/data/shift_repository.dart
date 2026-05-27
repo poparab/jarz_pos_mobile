@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/dio_provider.dart';
 import '../../../core/constants/api_endpoints.dart';
+import '../../../core/network/frappe_error_message.dart';
 import '../models/shift_models.dart';
 
 class ShiftRepository {
@@ -10,25 +11,11 @@ class ShiftRepository {
 
   final Dio _dio;
 
-  Exception _mapApiException(Object error) {
-    if (error is DioException) {
-      final data = error.response?.data;
-      if (data is Map) {
-        final message = data['message']?.toString();
-        final exception = data['exception']?.toString();
-        final serverMessages = data['_server_messages']?.toString();
-        if (message != null && message.isNotEmpty) {
-          return Exception(message);
-        }
-        if (exception != null && exception.isNotEmpty) {
-          return Exception(exception);
-        }
-        if (serverMessages != null && serverMessages.isNotEmpty) {
-          return Exception(serverMessages);
-        }
-      }
-    }
-    return Exception(error.toString());
+  Exception _mapApiException(
+    Object error, {
+    String fallback = 'Request failed',
+  }) {
+    return mapFrappeError(error, fallback: fallback);
   }
 
   Future<ShiftEntry?> getActiveShift({String? posProfile}) async {
@@ -102,19 +89,23 @@ class ShiftRepository {
     required String openingEntry,
     required List<Map<String, dynamic>> closingBalances,
   }) async {
-    final response = await _dio.post(
-      ApiEndpoints.endShift,
-      data: {
-        'pos_opening_entry': openingEntry,
-        'closing_balances': closingBalances,
-      },
-    );
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.endShift,
+        data: {
+          'pos_opening_entry': openingEntry,
+          'closing_balances': closingBalances,
+        },
+      );
 
-    final message = response.data is Map ? response.data['message'] : null;
-    if (message is Map) {
-      return ShiftSummary.fromJson(Map<String, dynamic>.from(message));
+      final message = response.data is Map ? response.data['message'] : null;
+      if (message is Map) {
+        return ShiftSummary.fromJson(Map<String, dynamic>.from(message));
+      }
+      throw Exception('Unexpected end shift response');
+    } catch (e) {
+      throw _mapApiException(e, fallback: 'Failed to close shift');
     }
-    throw Exception('Unexpected end shift response');
   }
 }
 

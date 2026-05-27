@@ -792,7 +792,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shiftBackToPos => 'العودة لنقطة البيع';
 
   @override
-  String get shiftOpeningPrompt => 'أدخل رصيد البداية لكل طريقة دفع:';
+  String get shiftOpeningPrompt => 'قم بعدّ نقدية البداية ثم أدخلها:';
 
   @override
   String shiftPosProfile(Object profile) {
@@ -813,15 +813,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shiftConfirmedOpeningAmount => 'رصيد البداية المؤكد';
 
   @override
+  String get shiftCountedOpeningAmount => 'النقدية المعدودة عند البداية';
+
+  @override
   String shiftDifferenceAmount(Object amount) {
     return 'الفرق: $amount';
   }
 
   @override
-  String get shiftClosingPrompt => 'أدخل رصيد الإغلاق:';
+  String get shiftClosingPrompt => 'قم بعدّ نقدية الإغلاق ثم أدخلها:';
 
   @override
   String get shiftClosingAmountLabel => 'رصيد الإغلاق';
+
+  @override
+  String get shiftCountedClosingAmount => 'النقدية المعدودة عند الإغلاق';
+
+  @override
+  String get shiftBlindCountHint => 'قم بعدّ النقدية في الدرج ثم أدخل المبلغ.';
+
+  @override
+  String get shiftCashCountRequired => 'أدخل مبلغ النقدية المعدودة.';
+
+  @override
+  String get shiftCashCountInvalid => 'أدخل مبلغ نقدية صحيح.';
+
+  @override
+  String get shiftCashCountNegative => 'لا يمكن أن تكون قيمة النقدية سالبة.';
 
   @override
   String shiftExpectedAmount(Object amount) {
@@ -852,6 +870,45 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get shiftUnexpectedEndResponse =>
       'استجابة غير متوقعة من الخادم أثناء إنهاء الشيفت.';
+
+  @override
+  String get shiftCourierBlockTitle => 'سوِّ أرصدة المندوبين قبل إنهاء الشيفت';
+
+  @override
+  String shiftCourierBlockBody(
+    int transactions,
+    int couriers,
+    int invoices,
+    Object profile,
+  ) {
+    return 'لا يزال هذا الشيفت يحتوي على $transactions حركة مندوب غير مسواة تخص $couriers مندوبًا عبر $invoices فاتورة على ملف نقطة البيع $profile.';
+  }
+
+  @override
+  String get shiftCourierBlockHint =>
+      'افتح أرصدة المندوبين، سوِّ ما يزال معلقًا، ثم ارجع لإكمال إنهاء الشيفت.';
+
+  @override
+  String get shiftCourierReviewButton => 'مراجعة وتسوية المندوبين';
+
+  @override
+  String shiftCourierBlockPartySummary(
+    Object name,
+    int transactions,
+    int invoices,
+  ) {
+    return '$name: عدد $transactions حركة على $invoices فاتورة';
+  }
+
+  @override
+  String shiftCourierBlockNetBalance(Object amount) {
+    return 'صافي الرصيد: $amount';
+  }
+
+  @override
+  String shiftCourierBlockMore(int count) {
+    return '+$count مندوب إضافي';
+  }
 
   @override
   String shiftOutflows(Object amount) {

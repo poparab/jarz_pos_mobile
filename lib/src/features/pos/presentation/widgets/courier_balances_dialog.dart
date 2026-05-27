@@ -12,16 +12,26 @@ import '../../data/repositories/courier_repository.dart';
 import '../../../kanban/widgets/settlement_preview_dialog.dart';
 import '../../../../core/utils/responsive_utils.dart';
 
-Future<void> showCourierBalancesDialog(BuildContext context) async {
+String _courierPartyKey(String partyType, String party) => '$partyType::$party';
+
+Future<void> showCourierBalancesDialog(
+  BuildContext context, {
+  Set<String>? allowedPartyKeys,
+}) async {
   await showDialog(
     context: context,
     barrierDismissible: true,
-    builder: (ctx) => const CourierBalancesDialog(),
+    builder: (ctx) => CourierBalancesDialog(allowedPartyKeys: allowedPartyKeys),
   );
 }
 
 class CourierBalancesDialog extends ConsumerWidget {
-  const CourierBalancesDialog({super.key});
+  const CourierBalancesDialog({
+    super.key,
+    this.allowedPartyKeys,
+  });
+
+  final Set<String>? allowedPartyKeys;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,7 +59,10 @@ class CourierBalancesDialog extends ConsumerWidget {
             ),
             const Divider(height: 1),
             Expanded(
-              child: _DialogBody(state: state),
+              child: _DialogBody(
+                state: state,
+                allowedPartyKeys: allowedPartyKeys,
+              ),
             ),
           ],
         ),
@@ -99,7 +112,12 @@ class _DialogHeader extends StatelessWidget {
 
 class _DialogBody extends StatelessWidget {
   final CourierBalancesState state;
-  const _DialogBody({required this.state});
+  final Set<String>? allowedPartyKeys;
+
+  const _DialogBody({
+    required this.state,
+    this.allowedPartyKeys,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +128,13 @@ class _DialogBody extends StatelessWidget {
     if (state.error != null) {
       return Center(child: Text(l10n.commonErrorWithDetails('${state.error}')));
     }
-    final balances = state.balances;
+    final balances = allowedPartyKeys == null || allowedPartyKeys!.isEmpty
+        ? state.balances
+        : state.balances.where((balance) {
+            return allowedPartyKeys!.contains(
+              _courierPartyKey(balance.partyType, balance.party),
+            );
+          }).toList(growable: false);
     if (balances.isEmpty) {
       return Center(child: Text(l10n.courierBalancesEmpty));
     }

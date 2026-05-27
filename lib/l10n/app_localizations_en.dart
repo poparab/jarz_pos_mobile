@@ -788,7 +788,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shiftBackToPos => 'Back to POS';
 
   @override
-  String get shiftOpeningPrompt => 'Enter opening balances per payment method:';
+  String get shiftOpeningPrompt => 'Count opening cash and enter it:';
 
   @override
   String shiftPosProfile(Object profile) {
@@ -809,15 +809,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shiftConfirmedOpeningAmount => 'Confirmed Opening Amount';
 
   @override
+  String get shiftCountedOpeningAmount => 'Counted Opening Cash';
+
+  @override
   String shiftDifferenceAmount(Object amount) {
     return 'Difference: $amount';
   }
 
   @override
-  String get shiftClosingPrompt => 'Enter closing balances:';
+  String get shiftClosingPrompt => 'Count closing cash and enter it:';
 
   @override
   String get shiftClosingAmountLabel => 'Closing Amount';
+
+  @override
+  String get shiftCountedClosingAmount => 'Counted Closing Cash';
+
+  @override
+  String get shiftBlindCountHint =>
+      'Count the cash in the drawer and enter the amount.';
+
+  @override
+  String get shiftCashCountRequired => 'Enter the counted cash amount.';
+
+  @override
+  String get shiftCashCountInvalid => 'Enter a valid cash amount.';
+
+  @override
+  String get shiftCashCountNegative => 'Cash amount cannot be negative.';
 
   @override
   String shiftExpectedAmount(Object amount) {
@@ -848,6 +867,46 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get shiftUnexpectedEndResponse =>
       'Unexpected server response while ending the shift.';
+
+  @override
+  String get shiftCourierBlockTitle =>
+      'Settle courier balances before ending the shift';
+
+  @override
+  String shiftCourierBlockBody(
+    int transactions,
+    int couriers,
+    int invoices,
+    Object profile,
+  ) {
+    return 'This shift still has $transactions unsettled courier transaction(s) for $couriers courier(s) across $invoices invoice(s) on POS Profile $profile.';
+  }
+
+  @override
+  String get shiftCourierBlockHint =>
+      'Open courier balances, settle what is still pending, then come back to finish the shift.';
+
+  @override
+  String get shiftCourierReviewButton => 'Review & Settle Couriers';
+
+  @override
+  String shiftCourierBlockPartySummary(
+    Object name,
+    int transactions,
+    int invoices,
+  ) {
+    return '$name: $transactions transaction(s) on $invoices invoice(s)';
+  }
+
+  @override
+  String shiftCourierBlockNetBalance(Object amount) {
+    return 'Net balance: $amount';
+  }
+
+  @override
+  String shiftCourierBlockMore(int count) {
+    return '+$count more courier(s)';
+  }
 
   @override
   String shiftOutflows(Object amount) {

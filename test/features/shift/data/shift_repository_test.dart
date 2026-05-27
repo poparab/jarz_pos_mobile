@@ -96,7 +96,7 @@ void main() {
         mockDio.setResponse(
           ApiEndpoints.getShiftPaymentMethods,
           createSuccessResponse(data: [
-            {'mode_of_payment': 'Cash', 'default': 1},
+            {'mode_of_payment': 'Cash', 'amounts_hidden': 1},
             {'mode_of_payment': 'Card', 'default': 0},
           ]),
         );
@@ -105,6 +105,7 @@ void main() {
 
         expect(result, hasLength(2));
         expect(result[0]['mode_of_payment'], 'Cash');
+        expect(result[0]['amounts_hidden'], 1);
         expect(result[1]['mode_of_payment'], 'Card');
       });
 
@@ -281,6 +282,8 @@ void main() {
             'total_sales': 5400.50,
             'total_outflows': 200,
             'net_movement': 5200.50,
+            'amounts_hidden': 0,
+            'variance_visible': 1,
           }),
         );
 
@@ -296,6 +299,37 @@ void main() {
         expect(summary.account, 'Cash - JRZ');
         expect(summary.totalSales, 5400.50);
         expect(summary.netMovement, 5200.50);
+        expect(summary.amountsHidden, isFalse);
+        expect(summary.varianceVisible, isTrue);
+      });
+
+      test('parses blind pre-close summary without exposed money fields', () async {
+        mockDio.setResponse(
+          ApiEndpoints.getShiftSummary,
+          createSuccessResponse(data: {
+            'opening_entry': 'POS-OPN-001',
+            'status': 'Open',
+            'invoice_count': 2,
+            'amounts_hidden': 1,
+            'variance_visible': 0,
+            'payment_reconciliation': [
+              {
+                'mode_of_payment': 'Cash',
+              },
+            ],
+            'sales_invoices': [],
+          }),
+        );
+
+        final summary = await repo.getShiftSummary('POS-OPN-001');
+
+        expect(summary.openingEntry, 'POS-OPN-001');
+        expect(summary.amountsHidden, isTrue);
+        expect(summary.varianceVisible, isFalse);
+        expect(summary.paymentReconciliation, hasLength(1));
+        expect(summary.paymentReconciliation.first.modeOfPayment, 'Cash');
+        expect(summary.paymentReconciliation.first.expectedAmount, 0);
+        expect(summary.totalSales, 0);
       });
 
       test('sends pos_opening_entry in body', () async {
@@ -381,6 +415,41 @@ void main() {
           () =>
               repo.endShift(openingEntry: 'E1', closingBalances: []),
           throwsA(isA<Exception>()),
+        );
+      });
+
+      test('maps backend close blocker into a clean exception', () async {
+        mockDio.setError(
+          ApiEndpoints.endShift,
+          createMockDioException(
+            path: ApiEndpoints.endShift,
+            statusCode: 417,
+            type: DioExceptionType.badResponse,
+            message: 'DioException [bad response]: This exception was thrown because the response has a status code of 417.',
+            data: {
+              '_server_messages': '["{\\"message\\": \\"You still have 2 unsettled courier transaction(s) for 1 courier(s) across 1 invoice(s) on POS Profile Dokki. Settle courier balances before closing the shift.\\"}"]',
+            },
+          ),
+        );
+
+        expect(
+          () => repo.endShift(
+            openingEntry: 'E1',
+            closingBalances: const [],
+          ),
+          throwsA(
+            isA<Exception>()
+                .having(
+                  (e) => e.toString(),
+                  'message',
+                  contains('Settle courier balances before closing the shift'),
+                )
+                .having(
+                  (e) => e.toString(),
+                  'raw dio text removed',
+                  isNot(contains('DioException')),
+                ),
+          ),
         );
       });
     });

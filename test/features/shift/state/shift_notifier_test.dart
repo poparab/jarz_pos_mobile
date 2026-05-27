@@ -240,6 +240,37 @@ void main() {
         expect(notifier.state.error, isNotNull);
         expect(notifier.state.isLoading, false);
       });
+
+      test('stores clean backend close-block message in error state', () async {
+        mockDio.setResponse(
+          ApiEndpoints.getActiveShift,
+          createSuccessResponse(data: {
+            'name': 'POS-OPN-001',
+            'pos_profile': 'Main',
+            'status': 'Open',
+          }),
+        );
+        await notifier.checkActiveShift();
+
+        mockDio.setError(
+          ApiEndpoints.endShift,
+          createMockDioException(
+            path: ApiEndpoints.endShift,
+            statusCode: 417,
+            type: DioExceptionType.badResponse,
+            message: 'DioException [bad response]: This exception was thrown because the response has a status code of 417.',
+            data: {
+              '_server_messages': '["{\\"message\\": \\"You still have 2 unsettled courier transaction(s) for 1 courier(s) across 1 invoice(s) on POS Profile Main. Settle courier balances before closing the shift.\\"}"]',
+            },
+          ),
+        );
+
+        final summary = await notifier.endShift(closingBalances: const []);
+
+        expect(summary, isNull);
+        expect(notifier.state.error, contains('Settle courier balances before closing the shift'));
+        expect(notifier.state.error, isNot(contains('DioException')));
+      });
     });
 
     // ── getCurrentShiftSummary ────────────────────────────────────────
