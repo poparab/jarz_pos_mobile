@@ -33,6 +33,7 @@ void main() {
         invoiceNames: const ['SINV-1', 'SINV-2'],
         partyType: 'Employee',
         party: 'EMP-001',
+        posProfile: 'POS-001',
       );
 
       expect(trip.name, 'TRIP-00001');
@@ -43,6 +44,7 @@ void main() {
       expect(req['path'], '/api/method/jarz_pos.api.trips.create_delivery_trip');
       expect(req['data']['party_type'], 'Employee');
       expect(req['data']['party'], 'EMP-001');
+      expect(req['data']['pos_profile'], 'POS-001');
     });
 
     test('getTrips parses list response', () async {

@@ -22,7 +22,17 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
   String? _selectedPartyType;
   String? _selectedParty;
   bool _isLoading = false;
+  bool _couriersLoaded = false;
   List<Map<String, dynamic>> _couriers = [];
+
+  Set<String> get _tripProfiles => widget.selectedInvoices
+      .map((invoice) => (invoice.posProfile ?? '').trim())
+      .where((profile) => profile.isNotEmpty)
+      .toSet();
+
+  String? get _tripPosProfile => _tripProfiles.length == 1 ? _tripProfiles.first : null;
+
+  bool get _hasMixedProfiles => _tripProfiles.length > 1;
 
   double get _totalAmount => widget.selectedInvoices.fold(0.0, (s, i) => s + i.grandTotal);
   double get _totalShipping => widget.selectedInvoices.fold(0.0, (s, i) => s + i.shippingExpense);
@@ -45,18 +55,28 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
 
   Future<void> _loadCouriers() async {
     try {
-      final svc = ref.read(kanbanServiceProvider);
-      final couriers = await svc.rawPost('/api/method/jarz_pos.api.couriers.get_active_couriers', {});
-      if (couriers is Map && couriers['data'] != null) {
+      final tripPosProfile = _tripPosProfile;
+      if (tripPosProfile == null) {
         setState(() {
-          _couriers = List<Map<String, dynamic>>.from(couriers['data'] as List);
+          _couriers = [];
+          _couriersLoaded = true;
         });
-      } else if (couriers is List) {
-        setState(() {
-          _couriers = List<Map<String, dynamic>>.from(couriers);
-        });
+        return;
       }
-    } catch (_) {}
+
+      final svc = ref.read(kanbanServiceProvider);
+      final couriers = await svc.fetchCouriers(posProfile: tripPosProfile);
+      setState(() {
+        _couriers = couriers.cast<Map<String, dynamic>>();
+        _couriersLoaded = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _couriers = [];
+        _couriersLoaded = true;
+      });
+    }
   }
 
   @override
@@ -134,8 +154,44 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
               // Courier selection
               Text(l10n.tripsSelectCourier, style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              if (_couriers.isEmpty)
+              if (_hasMixedProfiles) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.shade300),
+                  ),
+                  child: const Text(
+                    'Select invoices from one branch only to create a trip.',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+              if (!_couriersLoaded)
                 const Center(child: CircularProgressIndicator(strokeWidth: 2))
+              else if (_couriers.isEmpty)
+                Column(
+                  children: [
+                    const Icon(Icons.local_shipping_outlined, size: 40, color: Colors.orange),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.kanbanNoCouriersAvailable,
+                      style: Theme.of(context).textTheme.titleSmall,
+                      textAlign: TextAlign.center,
+                    ),
+                    if (!_hasMixedProfiles) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n.kanbanCreateCourierHint,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                      ),
+                    ],
+                  ],
+                )
               else
                 SizedBox(
                   height: 180,
@@ -181,7 +237,7 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
           child: Text(l10n.commonCancel),
         ),
         ElevatedButton(
-          onPressed: _isLoading || _selectedParty == null ? null : _createTrip,
+          onPressed: _isLoading || _selectedParty == null || _tripPosProfile == null ? null : _createTrip,
           style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
           child: _isLoading
               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -192,6 +248,15 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
   }
 
   Future<void> _createTrip() async {
+    if (_tripPosProfile == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Select invoices from one branch only to create a trip.')),
+        );
+      }
+      return;
+    }
+
     // Client-side pre-validation: check sub-territory requirements
     final missingSubTerritory = widget.selectedInvoices
         .where((inv) => inv.hasSubTerritories && (inv.subTerritory == null || inv.subTerritory!.isEmpty))
@@ -217,6 +282,7 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
         invoiceNames: widget.selectedInvoices.map((i) => i.id).toList(),
         partyType: _selectedPartyType!,
         party: _selectedParty!,
+        posProfile: _tripPosProfile,
       );
       if (trip != null && mounted) {
         Navigator.of(context).pop(trip);

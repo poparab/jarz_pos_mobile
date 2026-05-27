@@ -373,10 +373,14 @@ class KanbanService {
   }
 
   /// Fetch list of active couriers (name & courier_name)
-  Future<List<Map<String, String>>> fetchCouriers() async {
+  Future<List<Map<String, String>>> fetchCouriers({String? posProfile}) async {
     try {
       final resp = await _dio.get(
         ApiEndpoints.getActiveCouriers,
+        queryParameters: {
+          if (posProfile != null && posProfile.trim().isNotEmpty)
+            'pos_profile': posProfile.trim(),
+        },
       );
       final msg = resp.data['message'];
       if (msg is List) {

@@ -1922,14 +1922,22 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final phoneController = TextEditingController();
 
     final container = ProviderScope.containerOf(context, listen: false);
-    // Check if current POS profile allows delivery partner assignment
-    final currentProfile = container.read(posNotifierProvider).selectedProfile;
+    final posState = container.read(posNotifierProvider);
+    final invoicePosProfile = (widget.invoice.posProfile ?? '').trim();
+    final effectiveProfile = invoicePosProfile.isNotEmpty
+        ? invoicePosProfile
+        : posState.selectedProfile?['name']?.toString();
+    final currentProfile = effectiveProfile != null
+        ? posState.profiles.cast<Map<String, dynamic>?>().firstWhere(
+            (profile) => profile?['name'] == effectiveProfile,
+            orElse: () => posState.selectedProfile,
+          )
+        : posState.selectedProfile;
     final allowDeliveryPartner = currentProfile?['allow_delivery_partner'] == true;
     try {
-      couriers = await container.read(kanbanProvider.notifier).getCouriers();
-      final posProfile = container.read(posNotifierProvider).selectedProfile?['name'];
-      if (posProfile != null) {
-        couriers = couriers.where((c) => (c['branch'] == null || c['branch']!.isEmpty) ? true : c['branch'] == posProfile).toList();
+      couriers = await container.read(kanbanProvider.notifier).getCouriers(posProfile: effectiveProfile);
+      if (effectiveProfile != null) {
+        couriers = couriers.where((c) => c['branch'] == effectiveProfile).toList();
       }
     } catch (_) {}
     loading = false;
@@ -2175,13 +2183,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                           if (firstName.isEmpty || lastName.isEmpty) return;
                                           setState(() => loading = true);
                                           try {
-                                            final posProfile = container.read(posNotifierProvider).selectedProfile?['name'];
                                             final created = await container.read(kanbanProvider.notifier).createDeliveryParty(
                                               partyType: newPartyType,
                                               firstName: firstName,
                                               lastName: lastName,
                                               phone: phone,
-                                              posProfile: posProfile,
+                                              posProfile: effectiveProfile,
                                               deliveryPartner: isPartnerCourier ? selectedDeliveryPartner : null,
                                             );
                                             if (created != null) {

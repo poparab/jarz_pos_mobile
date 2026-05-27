@@ -12,7 +12,6 @@ import '../widgets/invoice_card_widget.dart';
 import '../widgets/kanban_filters_widget.dart';
 import '../widgets/payment_receipt_list_dialog.dart';
 import '../../pos/state/pos_notifier.dart';
-import '../../pos/state/pos_account_balance_provider.dart';
 import '../../../core/router.dart';
 import '../../pos/presentation/widgets/courier_balances_dialog.dart';
 import '../../../core/network/courier_service.dart';
@@ -74,11 +73,6 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         ref.read(posNotifierProvider.notifier).loadProfiles();
       }
       _handlePosStateChange(posState);
-      // Auto-refresh account balance on every screen entry
-      final profileName = posState.selectedProfile?['name']?.toString();
-      if (profileName != null && profileName.isNotEmpty) {
-        ref.invalidate(posAccountBalanceProvider(profileName));
-      }
       // Auto-refresh unconfirmed receipts badge
       ref.invalidate(unconfirmedReceiptsCountProvider);
     });
@@ -151,12 +145,6 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                 onRefresh: () async {
                   final notifier = ref.read(kanbanProvider.notifier);
                   await notifier.loadInvoices();
-                  // Also refresh the account balance
-                  final posState = ref.read(posNotifierProvider);
-                  final profileName = posState.selectedProfile?['name']?.toString();
-                  if (profileName != null && profileName.isNotEmpty) {
-                    ref.invalidate(posAccountBalanceProvider(profileName));
-                  }
                   ref.invalidate(unconfirmedReceiptsCountProvider);
                 },
                 child: _buildKanbanContent(kanbanState),
@@ -227,7 +215,6 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         },
       ),
       const _BranchFilterButton(),
-      if (!isPhone) const _BranchBalanceChip(),
       if (!isPhone) _buildPrinterChip(context),
       IconButton(
         tooltip: _showFilters ? context.l10n.kanbanHideFilters : context.l10n.kanbanShowFilters,
@@ -248,56 +235,104 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       primaryActions.add(
         PopupMenuButton<String>(
           icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const Icon(Icons.more_vert),
-                if (hasUnconfirmed) Positioned(
-                  top: -2, right: -2,
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.more_vert),
+              if (hasUnconfirmed)
+                Positioned(
+                  top: -2,
+                  right: -2,
                   child: Container(
-                    width: 9, height: 9,
-                    decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+                    width: 9,
+                    height: 9,
+                    decoration: const BoxDecoration(
+                      color: Colors.orange,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
-              ],
-            ),
+            ],
+          ),
           tooltip: context.l10n.kanbanMoreActions,
           onSelected: (value) {
             switch (value) {
               case 'receipts':
                 showDialog(context: context, builder: (_) => const PaymentReceiptListDialog())
-                  .then((_) => ref.invalidate(unconfirmedReceiptsCountProvider));
+                    .then((_) => ref.invalidate(unconfirmedReceiptsCountProvider));
+                break;
               case 'printers':
                 context.push(AppRoutes.printers);
+                break;
               case 'couriers':
                 showCourierBalancesDialog(context);
+                break;
               case 'profile':
                 context.push(AppRoutes.profile);
+                break;
               case 'pos':
                 context.push(AppRoutes.pos);
+                break;
             }
           },
           itemBuilder: (_) => [
-            PopupMenuItem(value: 'receipts', child: ListTile(
-              leading: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  const Icon(Icons.receipt_long),
-                  if (hasUnconfirmed) Positioned(
-                    top: -4, right: -6,
-                    child: Container(
-                      width: 10, height: 10,
-                      decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
-                    ),
-                  ),
-                ],
+            PopupMenuItem(
+              value: 'receipts',
+              child: ListTile(
+                leading: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.receipt_long),
+                    if (hasUnconfirmed)
+                      Positioned(
+                        top: -4,
+                        right: -6,
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          decoration: const BoxDecoration(
+                            color: Colors.orange,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                title: Text(context.l10n.kanbanMenuReceipts),
+                dense: true,
               ),
-              title: Text(context.l10n.kanbanMenuReceipts),
-              dense: true,
-            )),
-            PopupMenuItem(value: 'printers', child: ListTile(leading: const Icon(Icons.print), title: Text(context.l10n.kanbanMenuPrinters), dense: true)),
-            PopupMenuItem(value: 'couriers', child: ListTile(leading: const Icon(Icons.local_shipping), title: Text(context.l10n.kanbanMenuCouriers), dense: true)),
-            PopupMenuItem(value: 'profile', child: ListTile(leading: const Icon(Icons.account_circle), title: Text(context.l10n.kanbanMenuProfile), dense: true)),
-            PopupMenuItem(value: 'pos', child: ListTile(leading: const Icon(Icons.point_of_sale), title: Text(context.l10n.kanbanMenuPos), dense: true)),
+            ),
+            PopupMenuItem(
+              value: 'printers',
+              child: ListTile(
+                leading: const Icon(Icons.print),
+                title: Text(context.l10n.kanbanMenuPrinters),
+                dense: true,
+              ),
+            ),
+            PopupMenuItem(
+              value: 'couriers',
+              child: ListTile(
+                leading: const Icon(Icons.local_shipping),
+                title: Text(context.l10n.kanbanMenuCouriers),
+                dense: true,
+              ),
+            ),
+            PopupMenuItem(
+              value: 'profile',
+              child: ListTile(
+                leading: const Icon(Icons.account_circle),
+                title: Text(context.l10n.kanbanMenuProfile),
+                dense: true,
+              ),
+            ),
+            PopupMenuItem(
+              value: 'pos',
+              child: ListTile(
+                leading: const Icon(Icons.point_of_sale),
+                title: Text(context.l10n.kanbanMenuPos),
+                dense: true,
+              ),
+            ),
           ],
         ),
       );
@@ -314,14 +349,26 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           ),
           onPressed: () {
             showDialog(context: context, builder: (ctx) => const PaymentReceiptListDialog())
-              .then((_) => ref.invalidate(unconfirmedReceiptsCountProvider));
+                .then((_) => ref.invalidate(unconfirmedReceiptsCountProvider));
           },
         ),
       ]);
       primaryActions.addAll([
-        IconButton(tooltip: context.l10n.kanbanCourierBalances, icon: const Icon(Icons.local_shipping), onPressed: () => showCourierBalancesDialog(context)),
-        IconButton(tooltip: context.l10n.kanbanUserProfile, icon: const Icon(Icons.account_circle), onPressed: () => context.push(AppRoutes.profile)),
-        IconButton(tooltip: context.l10n.kanbanOpenPos, icon: const Icon(Icons.point_of_sale), onPressed: () => context.push(AppRoutes.pos)),
+        IconButton(
+          tooltip: context.l10n.kanbanCourierBalances,
+          icon: const Icon(Icons.local_shipping),
+          onPressed: () => showCourierBalancesDialog(context),
+        ),
+        IconButton(
+          tooltip: context.l10n.kanbanUserProfile,
+          icon: const Icon(Icons.account_circle),
+          onPressed: () => context.push(AppRoutes.profile),
+        ),
+        IconButton(
+          tooltip: context.l10n.kanbanOpenPos,
+          icon: const Icon(Icons.point_of_sale),
+          onPressed: () => context.push(AppRoutes.pos),
+        ),
       ]);
     }
 
@@ -1622,12 +1669,12 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         : posState.selectedProfile;
     final allowDeliveryPartner = currentProfile?['allow_delivery_partner'] == true;
     try {
-      couriers = await ref.read(kanbanProvider.notifier).getCouriers();
+      couriers = await ref.read(kanbanProvider.notifier).getCouriers(posProfile: effectiveProfile);
       // Branch filter: keep only couriers whose branch matches this invoice's POS profile.
       // Using the invoice's own profile (not the globally selected one) so that
       // multi-profile users see couriers from the correct branch.
       if (effectiveProfile != null) {
-        couriers = couriers.where((c) => (c['branch'] == null || c['branch']!.isEmpty) ? true : c['branch'] == effectiveProfile).toList();
+        couriers = couriers.where((c) => c['branch'] == effectiveProfile).toList();
       }
     } catch (_) {}
     loading = false;
@@ -2054,110 +2101,6 @@ class _BranchFilterButton extends ConsumerWidget {
               const SizedBox(width: 2),
               Icon(Icons.arrow_drop_down, size: 18, color: theme.colorScheme.onSurface),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BranchBalanceChip extends ConsumerWidget {
-  const _BranchBalanceChip();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final posState = ref.watch(posNotifierProvider);
-    final profileName = posState.selectedProfile?['name']?.toString();
-    if (profileName == null || profileName.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final theme = Theme.of(context);
-    final balanceAsync = ref.watch(posAccountBalanceProvider(profileName));
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-      child: Tooltip(
-        message: context.l10n.kanbanTapToRefreshBalance,
-        waitDuration: const Duration(milliseconds: 600),
-        child: InkWell(
-          onTap: () => ref.invalidate(posAccountBalanceProvider(profileName)),
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            constraints: const BoxConstraints(minWidth: 120, maxWidth: 220),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
-            ),
-            child: balanceAsync.when(
-              data: (value) {
-                final isNegative = value.balance < 0;
-                final color = isNegative ? Colors.red.shade700 : Colors.green.shade700;
-                final currency = value.currency.trim();
-                final amountText = value.balance.abs().toStringAsFixed(2);
-                final label = currency.isEmpty ? amountText : '$currency $amountText';
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.account_balance_wallet, size: 16, color: color),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        label,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: color,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-              loading: () => Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Cash…',
-                    style: TextStyle(
-                      color: theme.colorScheme.onSurface,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              error: (error, _) => Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.error_outline, size: 16, color: theme.colorScheme.error),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      'Cash unavailable',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: theme.colorScheme.error,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
         ),
       ),

@@ -59,6 +59,7 @@ class TripService {
     required List<String> invoiceNames,
     required String partyType,
     required String party,
+    String? posProfile,
   }) async {
     try {
       _logger.info('Creating trip with ${invoiceNames.length} invoices');
@@ -68,6 +69,8 @@ class TripService {
           'invoice_names': json.encode(invoiceNames),
           'party_type': partyType,
           'party': party,
+          if (posProfile != null && posProfile.trim().isNotEmpty)
+            'pos_profile': posProfile.trim(),
         },
       );
       final msg = resp.data['message'];

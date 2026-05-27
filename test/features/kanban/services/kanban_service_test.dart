@@ -463,13 +463,16 @@ void main() {
           createSuccessResponse(data: couriersData),
         );
 
-        final result = await service.fetchCouriers();
+        final result = await service.fetchCouriers(posProfile: 'Main Branch');
 
         expect(result, hasLength(2));
         expect(result[0]['party_type'], equals('Employee'));
         expect(result[0]['display_name'], equals('John Courier'));
         expect(result[0]['courier_name'], equals('John Courier')); // Legacy key
         expect(result[1]['party_type'], equals('Supplier'));
+
+        final request = mockDio.requestLog.last;
+        expect(request['queryParameters']['pos_profile'], equals('Main Branch'));
       });
 
       test('createDeliveryParty - creates new courier party', () async {

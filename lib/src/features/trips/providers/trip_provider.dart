@@ -149,6 +149,7 @@ class TripNotifier extends StateNotifier<TripState> {
     required List<String> invoiceNames,
     required String partyType,
     required String party,
+    String? posProfile,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
@@ -156,6 +157,7 @@ class TripNotifier extends StateNotifier<TripState> {
         invoiceNames: invoiceNames,
         partyType: partyType,
         party: party,
+        posProfile: posProfile,
       );
       // Refresh list and clear multi-select
       final updated = [trip, ...state.trips];

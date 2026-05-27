@@ -1022,9 +1022,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     state = state.copyWith(invoices: current);
   }
 
-  Future<List<Map<String, String>>> getCouriers() async {
+  Future<List<Map<String, String>>> getCouriers({String? posProfile}) async {
     try {
-      return await _kanbanService.fetchCouriers();
+      return await _kanbanService.fetchCouriers(posProfile: posProfile);
     } catch (_) {
       return [];
     }
