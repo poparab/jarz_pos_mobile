@@ -950,6 +950,47 @@ abstract class AppLocalizations {
   /// **'Reason'**
   String get commonReasonLabel;
 
+  /// No description provided for @ofdShortageDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve stock shortage for dispatch'**
+  String get ofdShortageDialogTitle;
+
+  /// No description provided for @ofdShortageDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'These items are short at the dispatch warehouse. Add a reason to continue the Out For Delivery move.'**
+  String get ofdShortageDialogMessage;
+
+  /// No description provided for @ofdShortageLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{item}: required {required}, available {available}, warehouse {warehouse}'**
+  String ofdShortageLine(
+    String item,
+    String required,
+    String available,
+    String warehouse,
+  );
+
+  /// No description provided for @ofdShortageReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain why dispatch should continue despite the shortage'**
+  String get ofdShortageReasonHint;
+
+  /// No description provided for @ofdShortageReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Provide a shortage reason to continue'**
+  String get ofdShortageReasonRequired;
+
+  /// No description provided for @ofdShortageApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve and continue'**
+  String get ofdShortageApprove;
+
   /// No description provided for @commonNotSpecified.
   ///
   /// In en, this message translates to:
@@ -1990,6 +2031,34 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Checkout'**
   String get posCheckoutButton;
+
+  /// No description provided for @posCheckoutStockExceedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Items exceed available stock'**
+  String get posCheckoutStockExceedTitle;
+
+  /// No description provided for @posCheckoutStockExceedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The following cart items exceed current system stock. The order can still be created, but fulfillment may need incoming stock or inventory correction.'**
+  String get posCheckoutStockExceedMessage;
+
+  /// No description provided for @posCheckoutStockExceedLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{item}: requested {requested}, available {available}'**
+  String posCheckoutStockExceedLine(
+    String item,
+    String requested,
+    String available,
+  );
+
+  /// No description provided for @posCheckoutProceedAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Proceed with order'**
+  String get posCheckoutProceedAnyway;
 
   /// No description provided for @posTerritoryMismatchTitle.
   ///

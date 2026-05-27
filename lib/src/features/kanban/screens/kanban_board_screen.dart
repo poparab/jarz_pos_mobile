@@ -25,6 +25,7 @@ import '../../trips/widgets/trip_group_card.dart';
 import '../../../core/network/frappe_error_message.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/branch_filter_dialog.dart';
+import '../../../core/widgets/ofd_shortage_dialog.dart';
 import '../../../core/localization/localization_extensions.dart';
 
 class KanbanBoardScreen extends ConsumerStatefulWidget {
@@ -38,6 +39,61 @@ class KanbanBoardScreen extends ConsumerStatefulWidget {
 
 class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with RouteAware {
   bool _showFilters = false;
+
+  Future<bool> _sendTripForDeliveryWithPreview(String tripName) async {
+    String? shortageReason;
+    try {
+      final preview = await ref
+          .read(tripProvider.notifier)
+          .previewSendForDelivery(tripName);
+      final blockingMessage = buildOfdBlockingErrorMessage(preview);
+      if (blockingMessage != null && blockingMessage.isNotEmpty) {
+        if (!mounted) return false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(blockingMessage)),
+        );
+        return false;
+      }
+      if (preview['requires_shortage_reason'] == true) {
+        if (!mounted) return false;
+        shortageReason = await showOfdShortageReasonDialog(context, preview);
+        if (shortageReason == null || shortageReason.trim().isEmpty) {
+          return false;
+        }
+      }
+    } catch (e) {
+      if (!mounted) return false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))),
+      );
+      return false;
+    }
+
+    await ref.read(tripProvider.notifier).sendForDeliveryWithApproval(
+      tripName,
+      shortageApproved: shortageReason != null,
+      shortageReason: shortageReason,
+    );
+    return true;
+  }
+
+  Future<String?> _previewInvoiceOfdReason(String invoiceId) async {
+    final preview = await ref.read(kanbanProvider.notifier).previewOutForDelivery(invoiceId);
+    final blockingMessage = buildOfdBlockingErrorMessage(preview);
+    if (blockingMessage != null && blockingMessage.isNotEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(blockingMessage)),
+        );
+      }
+      return null;
+    }
+    if (preview['requires_shortage_reason'] == true) {
+      if (!mounted) return null;
+      return showOfdShortageReasonDialog(context, preview);
+    }
+    return '';
+  }
   bool _allowHScroll = true; // new state
   bool _posProfileDialogActive = false;
   bool _profileDialogDismissed = false; // once dismissed, don't re-prompt automatically
@@ -907,8 +963,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             invoices: entry.value,
             onSendForDelivery: (tripName) async {
               try {
-                await ref.read(tripProvider.notifier).sendForDelivery(tripName);
-                if (mounted) {
+                final sent = await _sendTripForDeliveryWithPreview(tripName);
+                if (sent && mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(context.l10n.tripsSentForDeliverySuccess)),
                   );
@@ -1102,6 +1158,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       final inv = _findInvoice(invoiceId);
       final hasPartner = ((inv?.salesPartner ?? '').isNotEmpty);
       final isPickup = (inv?.isPickup ?? false);
+      final isPaid = (inv?.isFullyPaid ?? false);
 
       // Block individual OFD for invoices that belong to a trip — must use bulk trip send
       final tripName = inv?.deliveryTrip;
@@ -1121,12 +1178,31 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         return;
       }
       
-      // Fast-path for Sales Partner OR Pickup orders - no courier dialog needed
-      if (hasPartner || isPickup) {
-        // For Sales Partner: Provider logic distinguishes paid vs unpaid and will:
-        //  - Paid: simple state update
-        //  - Unpaid: create cash Payment Entry + auto OFD via backend endpoint
-        // For Pickup: Just update state (no courier/delivery needed)
+      // Fast-path for pickup orders and already-paid Sales Partner invoices.
+      if (isPickup || (hasPartner && isPaid)) {
+        String? shortageReason;
+        try {
+          shortageReason = await _previewInvoiceOfdReason(invoiceId);
+          if (shortageReason == null) {
+            return;
+          }
+        } catch (e) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.commonErrorWithDetails(e.toString()))),
+          );
+          return;
+        }
+
+        await ref.read(kanbanProvider.notifier).updateInvoiceState(
+          invoiceId,
+          'Out For Delivery',
+          shortageApproved: shortageReason.isNotEmpty,
+          shortageReason: shortageReason.isEmpty ? null : shortageReason,
+        );
+        return;
+      }
+
+      if (hasPartner && !isPaid) {
         await ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, 'Out For Delivery');
         return;
       }

@@ -203,6 +203,88 @@ void main() {
     );
 
     testWidgets(
+      'should allow selecting out of stock bundle item when negative stock is enabled',
+      (tester) async {
+        final bundle = {
+          'name': 'Jarz Large Bundle',
+          'price': 160.0,
+          'item_groups': [
+            {
+              'group_name': 'Large',
+              'group_key': 'bundle-group-1',
+              'quantity': 1,
+              'items': [
+                {
+                  'id': 'blueberry-large',
+                  'name': 'Blueberry Large',
+                  'price': 160.0,
+                  'qty': 0,
+                  'actual_qty': 0,
+                  'allow_negative_stock': true,
+                },
+              ],
+            },
+          ],
+        };
+
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: BundleSelectionWidget(bundle: bundle, onCancel: () {}),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Blueberry Large'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('1/1'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'should keep blocking out of stock bundle item when negative stock is disabled',
+      (tester) async {
+        final bundle = {
+          'name': 'Jarz Large Bundle',
+          'price': 160.0,
+          'item_groups': [
+            {
+              'group_name': 'Large',
+              'group_key': 'bundle-group-1',
+              'quantity': 1,
+              'items': [
+                {
+                  'id': 'blueberry-large',
+                  'name': 'Blueberry Large',
+                  'price': 160.0,
+                  'qty': 0,
+                  'actual_qty': 0,
+                  'allow_negative_stock': false,
+                },
+              ],
+            },
+          ],
+        };
+
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: BundleSelectionWidget(bundle: bundle, onCancel: () {}),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Blueberry Large'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('0/1'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
       'should migrate item-code keyed amendment selections into group keys',
       (tester) async {
         Map<String, List<Map<String, dynamic>>>? submittedSelections;

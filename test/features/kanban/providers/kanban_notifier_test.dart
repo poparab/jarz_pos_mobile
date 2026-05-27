@@ -83,7 +83,12 @@ class _FakeKanbanService extends KanbanService {
   }
 
   @override
-  Future<bool> updateInvoiceState(String invoiceId, String newState) async {
+  Future<bool> updateInvoiceState(
+    String invoiceId,
+    String newState, {
+    bool shortageApproved = false,
+    String? shortageReason,
+  }) async {
     lastUpdatedInvoice = invoiceId;
     lastUpdatedState = newState;
     return updateShouldSucceed;

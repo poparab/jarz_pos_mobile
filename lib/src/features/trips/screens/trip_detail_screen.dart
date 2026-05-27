@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/widgets/ofd_shortage_dialog.dart';
 import '../models/trip_models.dart';
 import '../providers/trip_provider.dart';
 
@@ -216,10 +217,43 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       ),
     );
     if (confirmed != true || !mounted) return;
+    final l10n = context.l10n;
+
+    String? shortageReason;
+    try {
+      final preview = await ref
+          .read(tripProvider.notifier)
+          .previewSendForDelivery(trip.name);
+      final blockingMessage = buildOfdBlockingErrorMessage(preview);
+      if (blockingMessage != null && blockingMessage.isNotEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(blockingMessage)),
+        );
+        return;
+      }
+      if (preview['requires_shortage_reason'] == true) {
+        if (!mounted) return;
+        shortageReason = await showOfdShortageReasonDialog(context, preview);
+        if (shortageReason == null || shortageReason.trim().isEmpty) {
+          return;
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.commonErrorWithDetails(e.toString()))),
+      );
+      return;
+    }
 
     setState(() => _sending = true);
     try {
-      await ref.read(tripProvider.notifier).sendForDelivery(trip.name);
+      await ref.read(tripProvider.notifier).sendForDeliveryWithApproval(
+        trip.name,
+        shortageApproved: shortageReason != null,
+        shortageReason: shortageReason,
+      );
       if (!mounted) return;
       // Refresh the detail view
       ref.invalidate(tripDetailProvider(widget.tripName));

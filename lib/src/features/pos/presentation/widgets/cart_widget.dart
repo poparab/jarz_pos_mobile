@@ -534,6 +534,9 @@ class CartWidget extends ConsumerWidget {
     final isBundle = cartItem['type'] == 'bundle';
     final isShipping = cartItem['is_shipping'] == true;
     final itemName = cartItem['item_name']?.toString();
+    final itemCode = cartItem['item_code']?.toString() ?? '';
+    final stockQty = ref.read(posNotifierProvider.notifier).getStockForItem(itemCode);
+    final exceedsStock = !isShipping && stockQty.isFinite && quantity > stockQty;
 
     return Card(
       margin: EdgeInsets.only(bottom: isPhone ? 6 : 8),
@@ -691,22 +694,13 @@ class CartWidget extends ConsumerWidget {
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      Builder(
-                        builder: (context) {
-                          final itemCode = cartItem['item_code']?.toString() ?? '';
-                          final stockQty = ref.read(posNotifierProvider.notifier).getStockForItem(itemCode);
-                          final atLimit = stockQty.isFinite && quantity >= stockQty.toInt();
-                          return IconButton(
-                            icon: Icon(Icons.add, size: isPhone ? 18 : 20),
-                            onPressed: atLimit
-                                ? null
-                                : () => ref
-                                    .read(posNotifierProvider.notifier)
-                                    .updateCartItemQuantity(index, quantity + 1),
-                            iconSize: isPhone ? 18 : 20,
-                            visualDensity: VisualDensity.compact,
-                          );
-                        },
+                      IconButton(
+                        icon: Icon(Icons.add, size: isPhone ? 18 : 20),
+                        onPressed: () => ref
+                            .read(posNotifierProvider.notifier)
+                            .updateCartItemQuantity(index, quantity + 1),
+                        iconSize: isPhone ? 18 : 20,
+                        visualDensity: VisualDensity.compact,
                       ),
                     ],
                   )
@@ -733,6 +727,33 @@ class CartWidget extends ConsumerWidget {
                   ),
               ],
             ),
+
+            if (exceedsStock) ...[
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, size: 16, color: Colors.orange),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.itemGridStockLimitReached(stockQty.toInt()),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.orange.shade900,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             const SizedBox(height: 8),
 
@@ -1163,16 +1184,29 @@ class CartWidget extends ConsumerWidget {
       return;
     }
 
+    final stockOverages = ref
+        .read(posNotifierProvider.notifier)
+        .getCartItemsExceedingStock();
+    if (stockOverages.isNotEmpty) {
+      final proceed = await _confirmStockOverageCheckout(
+        context,
+        stockOverages,
+      );
+      if (proceed != true) {
+        return;
+      }
+    }
+
     // Payment method selection for non-sales partner orders
     String? paymentMethod;
     if (state.selectedSalesPartner == null) {
+      if (!context.mounted) return;
       // Show payment method dialog
       paymentMethod = await PaymentMethodDialog.show(context);
       if (paymentMethod == null) {
         return; // user cancelled the dialog
       }
     }
-
     // Sales partner orders require choosing how the partner will pay
     String? paymentType;
     if (state.selectedSalesPartner != null) {
@@ -1216,6 +1250,64 @@ class CartWidget extends ConsumerWidget {
         );
       }
     }
+  }
+
+  Future<bool?> _confirmStockOverageCheckout(
+    BuildContext context,
+    List<Map<String, dynamic>> overages,
+  ) {
+    final l10n = context.l10n;
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.posCheckoutStockExceedTitle),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.posCheckoutStockExceedMessage),
+              const SizedBox(height: 12),
+              ...overages.map((item) {
+                final itemName = item['item_name']?.toString() ??
+                    item['item_code']?.toString() ??
+                    l10n.posUnknownItem;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    l10n.posCheckoutStockExceedLine(
+                      itemName,
+                      _formatQty(item['requested_qty']),
+                      _formatQty(item['available_qty']),
+                    ),
+                    style: Theme.of(dialogContext).textTheme.bodySmall,
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.posCheckoutProceedAnyway),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatQty(dynamic value) {
+    final qty = value is num
+        ? value.toDouble()
+        : double.tryParse(value?.toString() ?? '') ?? 0;
+    return qty == qty.roundToDouble()
+        ? qty.toInt().toString()
+        : qty.toStringAsFixed(2);
   }
 
 

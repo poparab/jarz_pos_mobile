@@ -487,6 +487,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonReasonLabel => 'السبب';
 
   @override
+  String get ofdShortageDialogTitle => 'اعتماد عجز المخزون قبل الإرسال';
+
+  @override
+  String get ofdShortageDialogMessage =>
+      'هذه الأصناف بها عجز في مخزن التسليم. أضف سببًا للمتابعة إلى حالة خارج للتوصيل.';
+
+  @override
+  String ofdShortageLine(
+    String item,
+    String required,
+    String available,
+    String warehouse,
+  ) {
+    return '$item: المطلوب $required، المتاح $available، المخزن $warehouse';
+  }
+
+  @override
+  String get ofdShortageReasonHint => 'اشرح لماذا يجب متابعة الإرسال رغم العجز';
+
+  @override
+  String get ofdShortageReasonRequired => 'أدخل سبب العجز للمتابعة';
+
+  @override
+  String get ofdShortageApprove => 'اعتماد والمتابعة';
+
+  @override
   String get commonNotSpecified => 'غير محدد';
 
   @override
@@ -1096,6 +1122,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get posCheckoutButton => 'إتمام الطلب';
+
+  @override
+  String get posCheckoutStockExceedTitle => 'الأصناف تتجاوز المخزون المتاح';
+
+  @override
+  String get posCheckoutStockExceedMessage =>
+      'الأصناف التالية في السلة تتجاوز المخزون الحالي في النظام. يمكن إنشاء الطلب، لكن التنفيذ قد يحتاج مخزونًا واردًا أو تصحيح جرد.';
+
+  @override
+  String posCheckoutStockExceedLine(
+    String item,
+    String requested,
+    String available,
+  ) {
+    return '$item: المطلوب $requested، المتاح $available';
+  }
+
+  @override
+  String get posCheckoutProceedAnyway => 'متابعة الطلب';
 
   @override
   String get posTerritoryMismatchTitle => 'عدم تطابق الفرع';

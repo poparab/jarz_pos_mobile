@@ -555,7 +555,16 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     }
   }
 
-  Future<void> updateInvoiceState(String invoiceId, String newState) async {
+  Future<Map<String, dynamic>> previewOutForDelivery(String invoiceId) {
+    return _kanbanService.previewOutForDelivery(invoiceId);
+  }
+
+  Future<void> updateInvoiceState(
+    String invoiceId,
+    String newState, {
+    bool shortageApproved = false,
+    String? shortageReason,
+  }) async {
     // Resolve to canonical state LABEL from either label or id/key
     String canonical;
     final cols = state.columns;
@@ -596,7 +605,12 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         
         try {
           _optimisticMove(invoiceId, canonical);
-          final success = await _kanbanService.updateInvoiceState(invoiceId, canonical);
+          final success = await _kanbanService.updateInvoiceState(
+            invoiceId,
+            canonical,
+            shortageApproved: shortageApproved,
+            shortageReason: shortageReason,
+          );
           if (!success) {
             state = state.copyWith(error: 'Failed to update pickup order state');
           } else {
@@ -652,15 +666,19 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
             return;
           }
         } else {
-          // Already paid + Sales Partner -> call dedicated backend endpoint to ensure DN & realtime
+          // Already paid + Sales Partner -> use the shared kanban state endpoint so OFD shortage approval stays consistent.
           try {
-            final res = await _kanbanService.salesPartnerPaidOutForDelivery(invoiceId: invoiceId);
-            if (res['success'] != true) {
+            _optimisticMove(invoiceId, canonical);
+            final success = await _kanbanService.updateInvoiceState(
+              invoiceId,
+              canonical,
+              shortageApproved: shortageApproved,
+              shortageReason: shortageReason,
+            );
+            if (!success) {
               state = state.copyWith(error: 'Sales Partner paid dispatch failed');
               return;
             }
-            // Optimistically move, then reload authoritative data
-            _optimisticMove(invoiceId, canonical);
             await loadInvoices();
           } catch (e) {
             state = state.copyWith(
@@ -679,7 +697,12 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     final prevState = state;
     try {
       _optimisticMove(invoiceId, canonical);
-      final success = await _kanbanService.updateInvoiceState(invoiceId, canonical);
+      final success = await _kanbanService.updateInvoiceState(
+        invoiceId,
+        canonical,
+        shortageApproved: shortageApproved,
+        shortageReason: shortageReason,
+      );
       if (!success) {
         state = prevState.copyWith(error: 'Update failed (no success flag)');
       } else {

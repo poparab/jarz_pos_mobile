@@ -485,6 +485,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonReasonLabel => 'Reason';
 
   @override
+  String get ofdShortageDialogTitle => 'Approve stock shortage for dispatch';
+
+  @override
+  String get ofdShortageDialogMessage =>
+      'These items are short at the dispatch warehouse. Add a reason to continue the Out For Delivery move.';
+
+  @override
+  String ofdShortageLine(
+    String item,
+    String required,
+    String available,
+    String warehouse,
+  ) {
+    return '$item: required $required, available $available, warehouse $warehouse';
+  }
+
+  @override
+  String get ofdShortageReasonHint =>
+      'Explain why dispatch should continue despite the shortage';
+
+  @override
+  String get ofdShortageReasonRequired =>
+      'Provide a shortage reason to continue';
+
+  @override
+  String get ofdShortageApprove => 'Approve and continue';
+
+  @override
   String get commonNotSpecified => 'Not specified';
 
   @override
@@ -1095,6 +1123,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get posCheckoutButton => 'Checkout';
+
+  @override
+  String get posCheckoutStockExceedTitle => 'Items exceed available stock';
+
+  @override
+  String get posCheckoutStockExceedMessage =>
+      'The following cart items exceed current system stock. The order can still be created, but fulfillment may need incoming stock or inventory correction.';
+
+  @override
+  String posCheckoutStockExceedLine(
+    String item,
+    String requested,
+    String available,
+  ) {
+    return '$item: requested $requested, available $available';
+  }
+
+  @override
+  String get posCheckoutProceedAnyway => 'Proceed with order';
 
   @override
   String get posTerritoryMismatchTitle => 'Profile Mismatch';

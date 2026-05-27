@@ -15,6 +15,7 @@ import 'src/core/env/env.dart';
 import 'src/core/app.dart';
 import 'src/core/debug/app_error_console.dart';
 import 'src/core/debug/app_error_reporter.dart';
+import 'src/core/firebase/firebase_runtime_config.dart';
 import 'src/core/localization/locale_notifier.dart';
 import 'src/core/monitoring/sentry_service.dart';
 import 'src/core/widgets/orientation_policy_scope.dart';
@@ -55,10 +56,7 @@ Future<void> main() async {
 }
 
 Future<void> _bootstrapAndRunApp() async {
-  if (!kIsWeb) {
-    await Firebase.initializeApp();
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  }
+  await _initializeFirebaseForCurrentPlatform();
 
   await Hive.initFlutter();
   await Hive.openBox(localeSettingsBoxName);
@@ -89,6 +87,28 @@ Future<void> _bootstrapAndRunApp() async {
       child: const JarzPosApp(),
     ),
   );
+}
+
+Future<void> _initializeFirebaseForCurrentPlatform() async {
+  if (Firebase.apps.isNotEmpty) {
+    return;
+  }
+
+  if (kIsWeb) {
+    final options = FirebaseRuntimeConfig.webOptions;
+    if (options == null) {
+      if (FirebaseRuntimeConfig.webPushEnabled) {
+        debugPrint('Firebase web push is enabled but Firebase web config is incomplete.');
+      }
+      return;
+    }
+
+    await Firebase.initializeApp(options: options);
+    return;
+  }
+
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 }
 
 void _installGlobalErrorHandling() {

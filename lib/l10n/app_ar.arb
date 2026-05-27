@@ -233,6 +233,20 @@
   "commonOutstandingLabel": "المتبقي",
   "commonUploadedByLabel": "تم الرفع بواسطة",
   "commonReasonLabel": "السبب",
+  "ofdShortageDialogTitle": "اعتماد عجز المخزون قبل الإرسال",
+  "ofdShortageDialogMessage": "هذه الأصناف بها عجز في مخزن التسليم. أضف سببًا للمتابعة إلى حالة خارج للتوصيل.",
+  "ofdShortageLine": "{item}: المطلوب {required}، المتاح {available}، المخزن {warehouse}",
+  "@ofdShortageLine": {
+    "placeholders": {
+      "item": { "type": "String" },
+      "required": { "type": "String" },
+      "available": { "type": "String" },
+      "warehouse": { "type": "String" }
+    }
+  },
+  "ofdShortageReasonHint": "اشرح لماذا يجب متابعة الإرسال رغم العجز",
+  "ofdShortageReasonRequired": "أدخل سبب العجز للمتابعة",
+  "ofdShortageApprove": "اعتماد والمتابعة",
   "commonNotSpecified": "غير محدد",
   "commonWalkIn": "عميل مباشر",
   "commonScheduled": "مجدول",
@@ -524,6 +538,17 @@
   "posDeliveryLabel": "التوصيل:",
   "posTotalLabel": "الإجمالي:",
   "posCheckoutButton": "إتمام الطلب",
+  "posCheckoutStockExceedTitle": "الأصناف تتجاوز المخزون المتاح",
+  "posCheckoutStockExceedMessage": "الأصناف التالية في السلة تتجاوز المخزون الحالي في النظام. يمكن إنشاء الطلب، لكن التنفيذ قد يحتاج مخزونًا واردًا أو تصحيح جرد.",
+  "posCheckoutStockExceedLine": "{item}: المطلوب {requested}، المتاح {available}",
+  "@posCheckoutStockExceedLine": {
+    "placeholders": {
+      "item": { "type": "String" },
+      "requested": { "type": "String" },
+      "available": { "type": "String" }
+    }
+  },
+  "posCheckoutProceedAnyway": "متابعة الطلب",
   "posTerritoryMismatchTitle": "عدم تطابق الفرع",
   "posTerritoryMismatchBody": "منطقة العميل مرتبطة بفرع POS مختلف.",
   "posTerritoryMismatchUseSelected": "الاستمرار بالفرع المحدد: {profile}",

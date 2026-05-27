@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatf
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/router.dart';
+import '../../../core/firebase/firebase_runtime_config.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/websocket/websocket_service.dart';
@@ -12,8 +13,11 @@ import '../state/pos_notifier.dart';
 import 'data/order_alert_service.dart';
 import 'domain/invoice_alert.dart';
 import 'order_alert_native_channel.dart';
+import 'web_notification_permission_policy.dart';
 import 'state/order_alert_controller.dart';
 import 'web_notification_service.dart';
+import 'web_push_registration_result.dart';
+import 'web_push_registration_service.dart';
 import '../../../core/constants/timing_config.dart';
 
 final orderAlertBridgeProvider = Provider<OrderAlertBridge>((ref) {
@@ -119,14 +123,24 @@ class OrderAlertBridge {
       // Request runtime permission (Android 13+)
       await FirebaseMessaging.instance.requestPermission();
     } else {
-      _logger.info("🌐 Running on web - FCM disabled, using websocket only");
-      // Request browser notification permission on web
-      _logger.info("🔔 Requesting browser notification permission...");
-      final granted = await WebNotificationService.requestPermission();
-      if (granted) {
-        _logger.info("✅ Browser notification permission granted");
+      _logger.info(
+        "🌐 Running on web - websocket alerts enabled, background web push is config-gated",
+      );
+
+      if (shouldAutoPromptBrowserNotifications(
+        webPushEnabled: FirebaseRuntimeConfig.webPushEnabled,
+      )) {
+        _logger.info("🔔 Requesting browser notification permission...");
+        final granted = await WebNotificationService.requestPermission();
+        if (granted) {
+          _logger.info("✅ Browser notification permission granted");
+        } else {
+          _logger.warning("⚠️ Browser notification permission denied");
+        }
       } else {
-        _logger.warning("⚠️ Browser notification permission denied");
+        _logger.info(
+          "🔕 Web push is enabled for this environment; browser notification permission stays user-initiated.",
+        );
       }
     }
 
@@ -168,6 +182,8 @@ class OrderAlertBridge {
         _logger.warning('FCM token not ready during auth setup; waiting for token refresh callback');
       }
       await _registerToken(token);
+    } else {
+      await _registerWebTokenIfPermissionGranted();
     }
     await _ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts();
     
@@ -175,6 +191,39 @@ class OrderAlertBridge {
     _startBackgroundPolling();
     
     _logger.info("✅ Authentication setup complete");
+  }
+
+  Future<WebPushRegistrationResult> enableWebPushNotifications() async {
+    if (!kIsWeb) {
+      return const WebPushRegistrationResult(
+        status: WebPushRegistrationStatus.unsupported,
+        message: 'Web push notifications are only available in the web app.',
+      );
+    }
+
+    final result = await WebPushRegistrationService.requestToken();
+    if (!result.hasToken) {
+      _logger.warning('Web push enable skipped: ${result.message}');
+      return result;
+    }
+
+    try {
+      await _registerToken(result.token, force: true);
+      return result.asRegistered();
+    } catch (error, stackTrace) {
+      _logger.error('Failed to register web push token', error, stackTrace);
+      return result.asFailed(error);
+    }
+  }
+
+  Future<void> _registerWebTokenIfPermissionGranted() async {
+    final result = await WebPushRegistrationService.getTokenIfPermissionGranted();
+    if (!result.hasToken) {
+      _logger.debug('Web push token not registered on auth: ${result.message}');
+      return;
+    }
+
+    await _registerToken(result.token);
   }
 
   Future<void> _onLoggedOut() async {

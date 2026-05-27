@@ -728,25 +728,9 @@ class PosNotifier extends StateNotifier<PosState> {
       }
     }
 
-    // Only enforce stock limits when the item payload includes stock metadata.
-    final rawStockQty = item['actual_qty'];
-    final stockQty = rawStockQty is num
-        ? rawStockQty.toDouble()
-        : double.infinity;
     final existingItemIndex = state.cartItems.indexWhere(
       (cartItem) => cartItem['item_code'] == item['name'],
     );
-    final currentCartQty = existingItemIndex >= 0
-        ? ((state.cartItems[existingItemIndex]['quantity'] ?? 1) as num).toInt()
-        : 0;
-    if (currentCartQty >= stockQty) {
-      if (kDebugMode) {
-        debugPrint(
-          '🚫 Stock limit reached: ${item['name']} has $stockQty available, $currentCartQty in cart',
-        );
-      }
-      return false;
-    }
 
     List<Map<String, dynamic>> updatedCart;
     if (existingItemIndex >= 0) {
@@ -857,22 +841,196 @@ class PosNotifier extends StateNotifier<PosState> {
         : double.infinity;
   }
 
+  int getCartQuantityForItem(String itemCode) {
+    return state.cartItems.fold<int>(0, (total, cartItem) {
+      if ((cartItem['item_code']?.toString() ?? '') != itemCode) {
+        return total;
+      }
+      return total + ((cartItem['quantity'] ?? 0) as num).toInt();
+    });
+  }
+
+  bool cartItemExceedsAvailableStock(String itemCode) {
+    final stockQty = getStockForItem(itemCode);
+    if (!stockQty.isFinite) {
+      return false;
+    }
+
+    return getCartQuantityForItem(itemCode) > stockQty;
+  }
+
+  List<Map<String, dynamic>> getCartItemsExceedingStock() {
+    final overages = <Map<String, dynamic>>[];
+
+    for (final cartItem in state.cartItems) {
+      if (cartItem['is_shipping'] == true) {
+        continue;
+      }
+
+      if (cartItem['type'] == 'bundle') {
+        overages.addAll(_getBundleStockOverages(cartItem));
+        continue;
+      }
+
+      final itemCode = cartItem['item_code']?.toString().trim() ?? '';
+      if (itemCode.isEmpty) {
+        continue;
+      }
+
+      final catalogItem = _catalogItemForCartItem(cartItem, state.items);
+      final availableQty = catalogItem == null
+          ? getStockForItem(itemCode)
+          : _coerceDouble(catalogItem['actual_qty']);
+      if (!availableQty.isFinite) {
+        continue;
+      }
+
+      final requestedQty = _coerceDouble(cartItem['quantity'], fallback: 1);
+      if (requestedQty <= availableQty) {
+        continue;
+      }
+
+      overages.add({
+        'item_code': itemCode,
+        'item_name': cartItem['item_name'] ?? catalogItem?['item_name'] ?? itemCode,
+        'requested_qty': requestedQty,
+        'available_qty': availableQty,
+        'shortage_qty': requestedQty - availableQty,
+        'allow_negative_stock': _coerceBool(catalogItem?['allow_negative_stock']),
+        'source': 'item',
+      });
+    }
+
+    return overages;
+  }
+
+  List<Map<String, dynamic>> _getBundleStockOverages(
+    Map<String, dynamic> cartItem,
+  ) {
+    final bundleDetails = cartItem['bundle_details'];
+    if (bundleDetails is! Map) {
+      return const [];
+    }
+
+    final rawSelections = bundleDetails['selected_items'];
+    if (rawSelections is! Map) {
+      return const [];
+    }
+
+    final bundleQuantity = _coerceDouble(cartItem['quantity'], fallback: 1);
+    final catalogBundle = _catalogBundleForCartItem(cartItem, state.bundles) ??
+        (bundleDetails['bundle_info'] is Map
+            ? Map<String, dynamic>.from(bundleDetails['bundle_info'] as Map)
+            : null);
+    final selectedByItem = <String, Map<String, dynamic>>{};
+
+    for (final entries in rawSelections.values) {
+      if (entries is! List) {
+        continue;
+      }
+
+      for (final rawEntry in entries) {
+        if (rawEntry is! Map) {
+          continue;
+        }
+
+        final entry = Map<String, dynamic>.from(rawEntry);
+        final itemCode = (entry['id'] ?? entry['item_code'])?.toString().trim() ?? '';
+        if (itemCode.isEmpty) {
+          continue;
+        }
+
+        final catalogChild = _findBundleCatalogChild(catalogBundle, itemCode);
+        final aggregate = selectedByItem.putIfAbsent(itemCode, () {
+          final rawAvailableQty = entry['actual_qty'] ??
+              entry['qty'] ??
+              catalogChild?['actual_qty'] ??
+              catalogChild?['qty'];
+          return {
+            'item_code': itemCode,
+            'item_name': entry['name'] ?? catalogChild?['name'] ?? itemCode,
+            'requested_qty': 0.0,
+            'available_qty': rawAvailableQty == null
+                ? double.infinity
+                : _coerceDouble(rawAvailableQty),
+            'allow_negative_stock': _coerceBool(
+              entry['allow_negative_stock'] ?? catalogChild?['allow_negative_stock'],
+            ),
+            'source': 'bundle',
+          };
+        });
+        aggregate['requested_qty'] =
+            _coerceDouble(aggregate['requested_qty']) + bundleQuantity;
+      }
+    }
+
+    final overages = <Map<String, dynamic>>[];
+    for (final entry in selectedByItem.values) {
+      final availableQty = _coerceDouble(
+        entry['available_qty'],
+        fallback: double.infinity,
+      );
+      final requestedQty = _coerceDouble(entry['requested_qty']);
+      if (!availableQty.isFinite || requestedQty <= availableQty) {
+        continue;
+      }
+
+      overages.add({
+        ...entry,
+        'available_qty': availableQty,
+        'requested_qty': requestedQty,
+        'shortage_qty': requestedQty - availableQty,
+      });
+    }
+
+    return overages;
+  }
+
+  Map<String, dynamic>? _findBundleCatalogChild(
+    Map<String, dynamic>? bundle,
+    String itemCode,
+  ) {
+    final rawGroups = bundle?['item_groups'];
+    if (rawGroups is! List) {
+      return null;
+    }
+
+    for (final rawGroup in rawGroups) {
+      if (rawGroup is! Map) {
+        continue;
+      }
+      final rawItems = rawGroup['items'];
+      if (rawItems is! List) {
+        continue;
+      }
+
+      for (final rawItem in rawItems) {
+        if (rawItem is! Map) {
+          continue;
+        }
+        final item = Map<String, dynamic>.from(rawItem);
+        final identities = <String>{
+          item['id']?.toString().trim() ?? '',
+          item['item_code']?.toString().trim() ?? '',
+          item['name']?.toString().trim() ?? '',
+        }..removeWhere((value) => value.isEmpty);
+        if (identities.contains(itemCode)) {
+          return item;
+        }
+      }
+    }
+
+    return null;
+  }
+
   void updateCartItemQuantity(int index, int newQuantity) {
     if (newQuantity <= 0) {
       removeFromCart(index);
       return;
     }
 
-    // Cap at available stock (skip for bundles / items not in stock list)
-    final itemCode = state.cartItems[index]['item_code']?.toString() ?? '';
-    final stockQty = getStockForItem(itemCode);
-    final cappedQuantity = stockQty.isFinite
-        ? (newQuantity <= stockQty.toInt() ? newQuantity : stockQty.toInt())
-        : newQuantity;
-    if (cappedQuantity <= 0) return;
-
     final updatedCart = List<Map<String, dynamic>>.from(state.cartItems);
-    updatedCart[index] = {...updatedCart[index], 'quantity': cappedQuantity};
+    updatedCart[index] = {...updatedCart[index], 'quantity': newQuantity};
     state = state.copyWith(cartItems: updatedCart, draftDirty: true);
     _autoSaveDebounced();
   }

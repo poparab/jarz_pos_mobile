@@ -23,7 +23,7 @@ Future<void> _pumpLocalizedApp(WidgetTester tester, Widget child) async {
 }
 
 class _MapperProbe extends StatelessWidget {
-  const _MapperProbe({super.key, required this.status, required this.method, required this.partyType});
+  const _MapperProbe({required this.status, required this.method, required this.partyType});
 
   final String? status;
   final String? method;

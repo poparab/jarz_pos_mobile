@@ -233,6 +233,20 @@
   "commonOutstandingLabel": "Outstanding",
   "commonUploadedByLabel": "Uploaded by",
   "commonReasonLabel": "Reason",
+  "ofdShortageDialogTitle": "Approve stock shortage for dispatch",
+  "ofdShortageDialogMessage": "These items are short at the dispatch warehouse. Add a reason to continue the Out For Delivery move.",
+  "ofdShortageLine": "{item}: required {required}, available {available}, warehouse {warehouse}",
+  "@ofdShortageLine": {
+    "placeholders": {
+      "item": { "type": "String" },
+      "required": { "type": "String" },
+      "available": { "type": "String" },
+      "warehouse": { "type": "String" }
+    }
+  },
+  "ofdShortageReasonHint": "Explain why dispatch should continue despite the shortage",
+  "ofdShortageReasonRequired": "Provide a shortage reason to continue",
+  "ofdShortageApprove": "Approve and continue",
   "commonNotSpecified": "Not specified",
   "commonWalkIn": "Walk-in",
   "commonScheduled": "Scheduled",
@@ -524,6 +538,17 @@
   "posDeliveryLabel": "Delivery:",
   "posTotalLabel": "Total:",
   "posCheckoutButton": "Checkout",
+  "posCheckoutStockExceedTitle": "Items exceed available stock",
+  "posCheckoutStockExceedMessage": "The following cart items exceed current system stock. The order can still be created, but fulfillment may need incoming stock or inventory correction.",
+  "posCheckoutStockExceedLine": "{item}: requested {requested}, available {available}",
+  "@posCheckoutStockExceedLine": {
+    "placeholders": {
+      "item": { "type": "String" },
+      "requested": { "type": "String" },
+      "available": { "type": "String" }
+    }
+  },
+  "posCheckoutProceedAnyway": "Proceed with order",
   "posTerritoryMismatchTitle": "Profile Mismatch",
   "posTerritoryMismatchBody": "The customer''s territory is mapped to a different POS profile.",
   "posTerritoryMismatchUseSelected": "Keep selected: {profile}",

@@ -5,6 +5,7 @@ import '../../../core/localization/localization_extensions.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/constants/business_constants.dart';
 import '../data/alarm_sound_service.dart';
+import '../../pos/order_alert/order_alert_bridge.dart';
 import '../../pos/order_alert/order_alert_native_channel.dart';
 import '../../pos/order_alert/state/order_alert_controller.dart';
 
@@ -16,6 +17,8 @@ class UserProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
+  bool _isEnablingWebPush = false;
+
   @override
   void dispose() {
     // Stop any playing preview when leaving the screen
@@ -159,6 +162,64 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                     ),
               ),
               const SizedBox(height: 12),
+
+              if (kIsWeb) ...[
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.install_mobile,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'iPhone web push notifications',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Install this app to the iPhone Home Screen, then tap Enable Notifications to receive background alerts.',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey[600],
+                              ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            icon: _isEnablingWebPush
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.notifications_active_outlined),
+                            label: Text(
+                              _isEnablingWebPush
+                                  ? 'Enabling notifications...'
+                                  : 'Enable Notifications',
+                            ),
+                            onPressed: _isEnablingWebPush
+                                ? null
+                                : () => _enableWebPushNotifications(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               
               // Global Mute Toggle (only for authorized roles)
               if (userRoles.canMuteNotifications) ...[
@@ -554,6 +615,26 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _enableWebPushNotifications(BuildContext context) async {
+    setState(() => _isEnablingWebPush = true);
+    try {
+      final result = await ref.read(orderAlertBridgeProvider).enableWebPushNotifications();
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          duration: const Duration(seconds: 3),
+          backgroundColor: result.isSuccess ? Colors.green : Colors.orange,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isEnablingWebPush = false);
+      }
+    }
   }
 
   String _getInitials(String name) {

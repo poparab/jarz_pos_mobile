@@ -175,9 +175,25 @@ class TripNotifier extends StateNotifier<TripState> {
   }
 
   Future<Map<String, dynamic>?> sendForDelivery(String tripName) async {
+    return sendForDeliveryWithApproval(tripName);
+  }
+
+  Future<Map<String, dynamic>> previewSendForDelivery(String tripName) {
+    return _service.previewForDelivery(tripName);
+  }
+
+  Future<Map<String, dynamic>?> sendForDeliveryWithApproval(
+    String tripName, {
+    bool shortageApproved = false,
+    String? shortageReason,
+  }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final result = await _service.sendForDelivery(tripName);
+      final result = await _service.sendForDeliveryWithApproval(
+        tripName,
+        shortageApproved: shortageApproved,
+        shortageReason: shortageReason,
+      );
       // Refresh trip details
       await loadTripDetails(tripName);
       await loadTrips();

@@ -462,7 +462,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
         'Main item ${item['item_name']} - actual_qty: ${item['actual_qty']}, final stock: $stockQty',
       );
     }
-    final canAddToCart = selectedCustomer != null && !isOutOfStock;
+    final canAddToCart = selectedCustomer != null;
 
     // Determine stock color based on quantity
     Color stockColor;
@@ -479,11 +479,17 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
       child: InkWell(
         onTap: canAddToCart
             ? () {
-                final added = ref.read(posNotifierProvider.notifier).addToCart(item);
+                final notifier = ref.read(posNotifierProvider.notifier);
+                final added = notifier.addToCart(item);
                 if (added) {
-                  _showAddedToCartSnackbar(item);
+                  final itemCode = item['name']?.toString() ?? '';
+                  if (notifier.cartItemExceedsAvailableStock(itemCode)) {
+                    _showStockLimitMessage(stockQty.toInt());
+                  } else {
+                    _showAddedToCartSnackbar(item);
+                  }
                 } else {
-                  _showStockLimitMessage(stockQty.toInt());
+                  _showCannotAddToCartMessage(selectedCustomer, false);
                 }
               }
             : () {

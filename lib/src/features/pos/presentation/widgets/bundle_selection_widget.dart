@@ -467,6 +467,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     final isPhone = ResponsiveUtils.isPhone(context);
     final itemName = _displayItemName(item);
     final itemPrice = _asDouble(item['price']);
+    final allowNegativeStock = _asBool(item['allow_negative_stock']);
 
     // Extract stock information (should now be consistent with main grid)
     final stockQty = _asDouble(item['qty'] ?? item['actual_qty']);
@@ -490,7 +491,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     }
 
     final isOutOfStock = remainingStock <= 0;
-    final canActuallyAdd = canAddMore && !isOutOfStock;
+    final canActuallyAdd = canAddMore && (!isOutOfStock || allowNegativeStock);
 
     return Card(
       elevation: 2,
@@ -602,7 +603,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                         style: TextStyle(
                           fontSize: isPhone ? 10 : 13,
                           fontWeight: FontWeight.bold,
-                          color: isOutOfStock
+                            color: isOutOfStock && !allowNegativeStock
                               ? Theme.of(context).colorScheme.onSurfaceVariant
                               : Theme.of(context).colorScheme.onSurface,
                         ),
@@ -615,7 +616,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                         '\$${itemPrice.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontSize: isPhone ? 10 : 11,
-                          color: isOutOfStock
+                          color: isOutOfStock && !allowNegativeStock
                               ? Theme.of(context).colorScheme.onSurfaceVariant
                               : Theme.of(context).colorScheme.secondary,
                           fontWeight: FontWeight.w600,
@@ -833,6 +834,9 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
         'id': item['id'],
         'name': item['name'],
         'price': item['price'],
+        'qty': item['qty'],
+        'actual_qty': item['actual_qty'] ?? item['qty'],
+        'allow_negative_stock': item['allow_negative_stock'],
         'group_name': groupName,
       };
       selectedItems[groupKey] = [...(selectedItems[groupKey] ?? []), cleanItem];
@@ -909,9 +913,19 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     // Check stock limit: don't allow adding more than available inventory
     final stockQty = _asDouble(item['qty'] ?? item['actual_qty']);
     final selectedCount = _getSelectedCountAcrossBundle(item);
-    if (selectedCount >= stockQty) return false;
+    if (selectedCount >= stockQty && !_asBool(item['allow_negative_stock'])) return false;
 
     return true;
+  }
+
+  bool _asBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    final normalized = value?.toString().trim().toLowerCase();
+    return normalized == '1' ||
+        normalized == 'true' ||
+        normalized == 'yes' ||
+        normalized == 'y';
   }
 
   void _addBundleToCart() {

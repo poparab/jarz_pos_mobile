@@ -1,7 +1,9 @@
 // ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:html' as html;
 
+import '../../../core/firebase/firebase_runtime_config.dart';
 import '../../../core/utils/logger.dart';
+import 'web_notification_permission_policy.dart';
 
 /// Service for managing browser notifications on web platform
 class WebNotificationService {
@@ -11,6 +13,8 @@ class WebNotificationService {
 
   /// Request notification permission from the browser
   static Future<bool> requestPermission() async {
+    _permissionStatus = _currentPermissionStatus();
+
     if (_permissionRequested) return _permissionStatus == 'granted';
 
     try {
@@ -33,10 +37,26 @@ class WebNotificationService {
 
   /// Check if permission is granted
   static Future<bool> get hasPermission async {
-    if (!_permissionRequested) {
+    _permissionStatus = _currentPermissionStatus();
+    if (_permissionStatus != 'default') {
+      return _permissionStatus == 'granted';
+    }
+
+    if (!_permissionRequested && shouldAutoPromptBrowserNotifications(
+      webPushEnabled: FirebaseRuntimeConfig.webPushEnabled,
+    )) {
       await requestPermission();
     }
+
     return _permissionStatus == 'granted';
+  }
+
+  static String _currentPermissionStatus() {
+    try {
+      return html.Notification.permission ?? _permissionStatus;
+    } catch (_) {
+      return _permissionStatus;
+    }
   }
 
   /// Show a browser notification

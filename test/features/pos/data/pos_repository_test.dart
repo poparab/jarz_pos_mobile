@@ -585,6 +585,7 @@ void main() {
             'item_group': 'Electronics',
             'price': 100.0,
             'qty': 10.0,
+            'allow_negative_stock': 1,
           },
         ];
 
@@ -601,6 +602,7 @@ void main() {
         expect(result[0]['item_group'], equals('Electronics'));
         expect(result[0]['rate'], equals(100.0));
         expect(result[0]['actual_qty'], equals(10.0));
+        expect(result[0]['allow_negative_stock'], isTrue);
         expect(result[0]['stock_uom'], equals('Unit'));
       });
 
@@ -618,6 +620,7 @@ void main() {
 
         expect(result[0]['rate'], equals(0.0));
         expect(result[0]['actual_qty'], equals(0.0));
+	      expect(result[0]['allow_negative_stock'], isFalse);
       });
 
       test(

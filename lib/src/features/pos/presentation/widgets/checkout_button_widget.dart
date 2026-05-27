@@ -137,6 +137,19 @@ class CheckoutButtonWidget extends ConsumerWidget {
         return;
       }
 
+      final stockOverages = ref
+          .read(posNotifierProvider.notifier)
+          .getCartItemsExceedingStock();
+      if (stockOverages.isNotEmpty) {
+        final proceed = await _confirmStockOverageCheckout(
+          context,
+          stockOverages,
+        );
+        if (proceed != true) {
+          return;
+        }
+      }
+
       // Proceed with the already selected profile; no popup, no dimming
       await ref.read(posNotifierProvider.notifier).checkout();
       if (context.mounted) {
@@ -159,6 +172,64 @@ class CheckoutButtonWidget extends ConsumerWidget {
         );
       }
     }
+  }
+
+  Future<bool?> _confirmStockOverageCheckout(
+    BuildContext context,
+    List<Map<String, dynamic>> overages,
+  ) {
+    final l10n = context.l10n;
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.posCheckoutStockExceedTitle),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.posCheckoutStockExceedMessage),
+              const SizedBox(height: 12),
+              ...overages.map((item) {
+                final itemName = item['item_name']?.toString() ??
+                    item['item_code']?.toString() ??
+                    context.l10n.posUnknownItem;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    l10n.posCheckoutStockExceedLine(
+                      itemName,
+                      _formatQty(item['requested_qty']),
+                      _formatQty(item['available_qty']),
+                    ),
+                    style: Theme.of(dialogContext).textTheme.bodySmall,
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.posCheckoutProceedAnyway),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatQty(dynamic value) {
+    final qty = value is num
+        ? value.toDouble()
+        : double.tryParse(value?.toString() ?? '') ?? 0;
+    return qty == qty.roundToDouble()
+        ? qty.toInt().toString()
+        : qty.toStringAsFixed(2);
   }
 
   // No checkout-time profile dialog: profile is chosen before entering POS

@@ -137,10 +137,43 @@ class KanbanService {
   }
 
   /// Update the state of an invoice
-  Future<bool> updateInvoiceState(String invoiceId, String newState) async {
+  Future<Map<String, dynamic>> previewOutForDelivery(String invoiceId) async {
+    final response = await _dio.get(
+      ApiEndpoints.previewInvoiceOutForDelivery,
+      queryParameters: {'invoice_id': invoiceId},
+    );
+
+    final message = response.data['message'];
+    if (message is Map && message['success'] == true) {
+      return Map<String, dynamic>.from(message);
+    }
+    throw Exception(
+      message is Map
+          ? message['error'] ?? 'Failed to preview Out For Delivery'
+          : 'Failed to preview Out For Delivery',
+    );
+  }
+
+  Future<bool> updateInvoiceState(
+    String invoiceId,
+    String newState, {
+    bool shortageApproved = false,
+    String? shortageReason,
+  }) async {
+    final payload = <String, dynamic>{
+      'invoice_id': invoiceId,
+      'new_state': newState,
+    };
+    if (shortageApproved) {
+      payload['shortage_approved'] = 1;
+    }
+    if (shortageReason != null && shortageReason.trim().isNotEmpty) {
+      payload['shortage_reason'] = shortageReason.trim();
+    }
+
     final response = await _dio.post(
       ApiEndpoints.updateInvoiceState,
-      data: {"invoice_id": invoiceId, "new_state": newState},
+      data: payload,
     );
 
     if (response.data["message"]["success"] == true) {

@@ -140,11 +140,44 @@ class TripService {
   }
 
   Future<Map<String, dynamic>> sendForDelivery(String tripName) async {
+    return sendForDeliveryWithApproval(tripName);
+  }
+
+  Future<Map<String, dynamic>> previewForDelivery(String tripName) async {
+    try {
+      _logger.info('Previewing trip $tripName for delivery');
+      final resp = await _dio.get(
+        ApiEndpoints.previewTripForDelivery,
+        queryParameters: {'trip_name': tripName},
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(msg is Map ? msg['error'] ?? 'Failed' : 'Failed to preview trip');
+    } catch (e) {
+      _logger.error('Failed to preview trip for delivery', e);
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> sendForDeliveryWithApproval(
+    String tripName, {
+    bool shortageApproved = false,
+    String? shortageReason,
+  }) async {
     try {
       _logger.info('Sending trip $tripName for delivery');
+      final payload = <String, dynamic>{'trip_name': tripName};
+      if (shortageApproved) {
+        payload['shortage_approved'] = 1;
+      }
+      if (shortageReason != null && shortageReason.trim().isNotEmpty) {
+        payload['shortage_reason'] = shortageReason.trim();
+      }
       final resp = await _postWithRetry(
         ApiEndpoints.sendTripForDelivery,
-        {'trip_name': tripName},
+        payload,
         // Heavy operation: DN + courier + JE per invoice — give it time
         sendTimeout: const Duration(seconds: 60),
         receiveTimeout: const Duration(seconds: 120),

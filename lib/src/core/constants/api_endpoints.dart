@@ -87,6 +87,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.kanban.get_kanban_invoices';
   static const updateInvoiceState =
       '/api/method/jarz_pos.api.kanban.update_invoice_state';
+  static const previewInvoiceOutForDelivery =
+      '/api/method/jarz_pos.api.kanban.preview_invoice_out_for_delivery';
   static const cancelInvoice =
       '/api/method/jarz_pos.api.kanban.cancel_invoice';
   static const getInvoiceDetails =
@@ -253,6 +255,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.trips.get_delivery_trips';
   static const getTripDetails =
       '/api/method/jarz_pos.api.trips.get_trip_details';
+  static const previewTripForDelivery =
+      '/api/method/jarz_pos.api.trips.preview_trip_for_delivery';
   static const sendTripForDelivery =
       '/api/method/jarz_pos.api.trips.send_trip_for_delivery';
   static const markTripAsDelivered =

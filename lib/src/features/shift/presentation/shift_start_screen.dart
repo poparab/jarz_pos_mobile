@@ -38,6 +38,35 @@ String _localizedShiftError(BuildContext context, String error) {
   }
 }
 
+double? _parseShiftAmount(String text) {
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) return null;
+  final amount = double.tryParse(trimmed);
+  if (amount == null || amount.isNaN || amount.isInfinite || amount < 0) {
+    return null;
+  }
+  return amount;
+}
+
+String? _validateShiftAmount(BuildContext context, String text) {
+  final l10n = context.l10n;
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) {
+    return l10n.shiftCashCountRequired;
+  }
+
+  final amount = double.tryParse(trimmed);
+  if (amount == null || amount.isNaN || amount.isInfinite) {
+    return l10n.shiftCashCountInvalid;
+  }
+
+  if (amount < 0) {
+    return l10n.shiftCashCountNegative;
+  }
+
+  return null;
+}
+
 class ShiftStartScreen extends ConsumerStatefulWidget {
   const ShiftStartScreen({super.key});
 
@@ -48,7 +77,7 @@ class ShiftStartScreen extends ConsumerStatefulWidget {
 class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
   final Map<String, TextEditingController> _controllers = {};
   String? _requestedProfile;
-  double? _lastSystemBalance;
+  String? _validationError;
 
   @override
   void dispose() {
@@ -65,6 +94,8 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
     final shiftState = ref.watch(shiftNotifierProvider);
     final activeShiftAsync = ref.watch(activeShiftProvider);
     final activeShift = activeShiftAsync.valueOrNull;
+    final displayError = _validationError ??
+      (shiftState.error != null ? _localizedShiftError(context, shiftState.error!) : null);
 
     final selectedFromState = (posState.selectedProfile?['name'] ?? '').toString();
     final posProfile = selectedFromState.isNotEmpty ? selectedFromState : null;
@@ -169,6 +200,11 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(l10n.shiftOpeningPrompt),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.shiftBlindCountHint,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                   const SizedBox(height: 12),
                   Expanded(
                     child: Builder(
@@ -180,49 +216,31 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
                         final row = shiftState.paymentMethods.first;
                         final mode = (row['mode_of_payment'] ?? '').toString();
                         final account = (row['account'] ?? '').toString();
-                        final currentBalance = ((row['current_balance'] as num?)?.toDouble() ??
-                                (row['default_amount'] as num?)?.toDouble() ??
-                                0)
-                            .toDouble();
 
                         final controller = _controllers.putIfAbsent(
                           'single_account_opening',
-                          () => TextEditingController(
-                            text: currentBalance.toStringAsFixed(2),
-                          ),
+                          () => TextEditingController(),
                         );
-
-                        if (_lastSystemBalance == null || _lastSystemBalance != currentBalance) {
-                          _lastSystemBalance = currentBalance;
-                          controller.text = currentBalance.toStringAsFixed(2);
-                        }
-
-                        final confirmed = double.tryParse(controller.text) ?? 0;
-                        final difference = confirmed - currentBalance;
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(mode, style: Theme.of(context).textTheme.titleSmall),
                             if (account.isNotEmpty) Text(l10n.shiftAccount(account)),
-                            Text(l10n.shiftSystemBalance(currentBalance.toStringAsFixed(2))),
                             const SizedBox(height: 8),
                             TextField(
                               controller: controller,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              onChanged: (_) => setState(() {}),
+                              onChanged: (_) {
+                                if (_validationError != null) {
+                                  setState(() {
+                                    _validationError = null;
+                                  });
+                                }
+                              },
                               decoration: InputDecoration(
-                                labelText: l10n.shiftConfirmedOpeningAmount,
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              l10n.shiftDifferenceAmount(difference.toStringAsFixed(2)),
-                              style: TextStyle(
-                                color: difference == 0
-                                    ? Theme.of(context).colorScheme.onSurface
-                                    : Theme.of(context).colorScheme.error,
+                                labelText: l10n.shiftCountedOpeningAmount,
+                                border: const OutlineInputBorder(),
                               ),
                             ),
                           ],
@@ -230,11 +248,11 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
                       },
                     ),
                   ),
-                  if (shiftState.error != null)
+                  if (displayError != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Text(
-                        _localizedShiftError(context, shiftState.error!),
+                        displayError,
                         style: TextStyle(color: Theme.of(context).colorScheme.error),
                       ),
                     ),
@@ -249,19 +267,25 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
                               final row = shiftState.paymentMethods.first;
                               final mode = (row['mode_of_payment'] ?? '').toString();
                               final account = (row['account'] ?? '').toString();
-                              final systemBalance = ((row['current_balance'] as num?)?.toDouble() ??
-                                      (row['default_amount'] as num?)?.toDouble() ??
-                                      0)
-                                  .toDouble();
-                              final confirmedText = _controllers['single_account_opening']?.text ?? '0';
-                              final confirmedAmount = double.tryParse(confirmedText) ?? 0;
+                              final confirmedText =
+                                  _controllers['single_account_opening']?.text ?? '';
+                              final validationError = _validateShiftAmount(
+                                context,
+                                confirmedText,
+                              );
+                              if (validationError != null) {
+                                setState(() {
+                                  _validationError = validationError;
+                                });
+                                return;
+                              }
+
+                              final confirmedAmount = _parseShiftAmount(confirmedText)!;
                               final balances = [
                                 {
                                   'mode_of_payment': mode,
                                   'account': account,
-                                  'system_balance': systemBalance,
                                   'opening_amount': confirmedAmount,
-                                  'difference': confirmedAmount - systemBalance,
                                 }
                               ];
 
@@ -271,6 +295,9 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
 
                               if (!mounted) return;
                               if (openingEntry != null) {
+                                setState(() {
+                                  _validationError = null;
+                                });
                                 ref.invalidate(activeShiftProvider);
                                 router.go(AppRoutes.pos);
                               }

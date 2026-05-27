@@ -127,6 +127,8 @@ class PosRepository {
       item['actual_qty'] = stockQty;
     }
 
+    item['allow_negative_stock'] = _asBool(item['allow_negative_stock']);
+
     if (!_hasUsableItemIdentity(item)) {
       return null;
     }
@@ -403,6 +405,7 @@ class PosRepository {
                 _normalizedOptionalString(item['price_list']) ??
                 _normalizedOptionalString(priceList),
             'actual_qty': item['qty'] ?? 0.0,
+            'allow_negative_stock': _asBool(item['allow_negative_stock']),
             'stock_uom': 'Unit', // Default UOM
           });
         }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -39,13 +40,26 @@ final authStateProvider = FutureProvider<bool>((ref) async {
   final sessionManager = ref.watch(sessionManagerProvider);
   final authRepo = ref.watch(authRepositoryProvider);
 
-  // Check if we have a stored session
-  final hasSession = await sessionManager.hasValidSession();
-  if (!hasSession) return false;
-
-  // Validate the session with the server
-  return await authRepo.validateSession();
+  return resolveInitialAuthState(
+    isWeb: kIsWeb,
+    hasStoredSession: sessionManager.hasValidSession,
+    validateSession: authRepo.validateSession,
+  );
 });
+
+@visibleForTesting
+Future<bool> resolveInitialAuthState({
+  required bool isWeb,
+  required Future<bool> Function() hasStoredSession,
+  required Future<bool> Function() validateSession,
+}) async {
+  if (!isWeb) {
+    final hasSession = await hasStoredSession();
+    if (!hasSession) return false;
+  }
+
+  return validateSession();
+}
 
 // Current auth state for UI
 final currentAuthStateProvider = StateProvider<bool>((ref) {

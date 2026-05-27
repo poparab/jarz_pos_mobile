@@ -946,6 +946,28 @@ void main() {
       expect(notifier.state.cartItems.first['type'], 'item');
     });
 
+    test('addToCart allows quantity to exceed available stock metadata', () {
+      notifier.state = notifier.state.copyWith(
+        items: const [
+          {'name': 'ITEM-1', 'actual_qty': 1.0},
+        ],
+      );
+
+      notifier.addToCart({
+        'name': 'ITEM-1',
+        'item_name': 'Sample',
+        'rate': 12.5,
+      });
+      notifier.addToCart({
+        'name': 'ITEM-1',
+        'item_name': 'Sample',
+        'rate': 12.5,
+      });
+
+      expect(notifier.state.cartItems.first['quantity'], 2);
+      expect(notifier.cartItemExceedsAvailableStock('ITEM-1'), isTrue);
+    });
+
     test('addToCart skips delivery items when sales partner selected', () {
       notifier.state = notifier.state.copyWith(
         selectedSalesPartner: const {'name': 'SP-1'},
@@ -1024,6 +1046,72 @@ void main() {
       notifier.addToCart({'name': 'X', 'item_name': 'X', 'rate': 5});
       notifier.updateCartItemQuantity(0, 3);
       expect(notifier.state.cartItems.first['quantity'], 3);
+    });
+
+    test('updateCartItemQuantity does not cap quantity to stock metadata', () {
+      notifier.state = notifier.state.copyWith(
+        items: const [
+          {'name': 'X', 'actual_qty': 1.0},
+        ],
+      );
+
+      notifier.addToCart({'name': 'X', 'item_name': 'X', 'rate': 5});
+      notifier.updateCartItemQuantity(0, 3);
+
+      expect(notifier.state.cartItems.first['quantity'], 3);
+      expect(notifier.cartItemExceedsAvailableStock('X'), isTrue);
+    });
+
+    test('getCartItemsExceedingStock includes regular and bundle child overages', () {
+      notifier.state = notifier.state.copyWith(
+        items: const [
+          {'name': 'ITEM-A', 'item_name': 'Item A', 'actual_qty': 2.0},
+        ],
+        cartItems: const [
+          {
+            'item_code': 'ITEM-A',
+            'item_name': 'Item A',
+            'quantity': 4,
+            'rate': 10.0,
+            'type': 'item',
+          },
+          {
+            'item_code': 'BUNDLE-1',
+            'item_name': 'Bundle 1',
+            'quantity': 1,
+            'rate': 100.0,
+            'type': 'bundle',
+            'bundle_details': {
+              'bundle_id': 'BUNDLE-1',
+              'selected_items': {
+                'g1': [
+                  {
+                    'id': 'CHILD-A',
+                    'name': 'Child A',
+                    'actual_qty': 1.0,
+                    'allow_negative_stock': true,
+                  },
+                  {
+                    'id': 'CHILD-A',
+                    'name': 'Child A',
+                    'actual_qty': 1.0,
+                    'allow_negative_stock': true,
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      );
+
+      final overages = notifier.getCartItemsExceedingStock();
+
+      expect(overages, hasLength(2));
+      expect(overages[0]['item_code'], 'ITEM-A');
+      expect(overages[0]['shortage_qty'], 2.0);
+      expect(overages[1]['item_code'], 'CHILD-A');
+      expect(overages[1]['allow_negative_stock'], isTrue);
+      expect(overages[1]['shortage_qty'], 1.0);
     });
 
     test('updateCartItemQuantity with 0 removes item', () {
