@@ -1,7 +1,12 @@
 /* global firebase, JARZ_FIREBASE_WEB_CONFIG */
 
+const scopeUrl = new URL(self.registration.scope);
+const appBasePath = scopeUrl.pathname.endsWith('/')
+  ? scopeUrl.pathname
+  : `${scopeUrl.pathname}/`;
+
 try {
-  importScripts('/firebase-web-config.js');
+  importScripts('firebase-web-config.js');
 } catch (error) {
   // The app can deploy this worker before Firebase web push is configured.
 }
@@ -30,12 +35,14 @@ if (typeof JARZ_FIREBASE_WEB_CONFIG !== 'undefined') {
 
     self.registration.showNotification(title, {
       body,
-      icon: '/icons/Icon-192.png',
-      badge: '/icons/Icon-192.png',
+      icon: `${appBasePath}icons/Icon-192.png`,
+      badge: `${appBasePath}icons/Icon-192.png`,
       tag: invoiceId || type,
       data: {
         ...data,
-        url: invoiceId ? `/?notification=${encodeURIComponent(invoiceId)}` : '/',
+        url: invoiceId
+          ? `${appBasePath}?notification=${encodeURIComponent(invoiceId)}`
+          : appBasePath,
       },
       requireInteraction: type === 'new_invoice',
     });
@@ -44,14 +51,16 @@ if (typeof JARZ_FIREBASE_WEB_CONFIG !== 'undefined') {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = event.notification?.data?.url || '/';
+  const targetUrl = event.notification?.data?.url || appBasePath;
 
   event.waitUntil((async () => {
     const windows = await clients.matchAll({ type: 'window', includeUncontrolled: true });
     for (const client of windows) {
       if ('focus' in client) {
+        if ('postMessage' in client) {
+          client.postMessage({ type: 'jarz_pos_notification_click', url: targetUrl });
+        }
         await client.focus();
-        client.postMessage({ type: 'jarz_pos_notification_click', url: targetUrl });
         return;
       }
     }

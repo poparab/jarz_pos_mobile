@@ -86,7 +86,9 @@ function Test-WebRuntimeImpact([string[]]$Paths) {
         if (
             $path.StartsWith('assets/') -or
             $path.StartsWith('lib/') -or
+            $path.StartsWith('tool/') -or
             $path.StartsWith('web/') -or
+            $path.StartsWith('server-config/pos-web/') -or
             $path -eq '.env.prod' -or
             $path -eq '.env.staging' -or
             $path -eq 'l10n.yaml' -or

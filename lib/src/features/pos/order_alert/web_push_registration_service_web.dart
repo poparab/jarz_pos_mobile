@@ -1,12 +1,45 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:web/web.dart' as web;
+import 'dart:js_interop';
 
 import '../../../core/firebase/firebase_runtime_config.dart';
 import '../../../core/utils/logger.dart';
+import 'web_push_paths.dart';
 import 'web_push_registration_result.dart';
+
+@JS('firebase_messaging.getMessaging')
+external _WebMessagingJsImpl _getWebMessaging();
+
+@JS('firebase_messaging.getToken')
+external JSPromise<JSString> _getWebPushToken(
+  _WebMessagingJsImpl messaging,
+  _WebGetTokenOptions options,
+);
+
+@JS()
+@staticInterop
+class _WebMessagingJsImpl {}
+
+@JS()
+@staticInterop
+@anonymous
+class _WebGetTokenOptions {
+  external factory _WebGetTokenOptions({
+    JSString? vapidKey,
+    web.ServiceWorkerRegistration? serviceWorkerRegistration,
+  });
+}
 
 class WebPushRegistrationService {
   static final Logger _logger = Logger('WebPushRegistrationService');
+
+  static String get _webAppBasePath => normalizeWebAppBasePath(Uri.base.path);
+
+  static String get _serviceWorkerUrl =>
+      buildWebAppAssetUrl(_webAppBasePath, 'firebase-messaging-sw.js');
+
+  static String get _serviceWorkerScope => _webAppBasePath;
 
   static Future<WebPushRegistrationResult> getTokenIfPermissionGranted() {
     return _getToken(requestPermission: false);
@@ -71,9 +104,8 @@ class WebPushRegistrationService {
         );
       }
 
-      final token = await messaging.getToken(
-        vapidKey: FirebaseRuntimeConfig.webVapidKey,
-      );
+      final registration = await _ensureServiceWorkerRegistration();
+      final token = await _getTokenWithServiceWorker(registration);
       if (token == null || token.isEmpty) {
         return const WebPushRegistrationResult(
           status: WebPushRegistrationStatus.noToken,
@@ -98,5 +130,57 @@ class WebPushRegistrationService {
   static bool _isAuthorized(AuthorizationStatus status) {
     return status == AuthorizationStatus.authorized ||
         status == AuthorizationStatus.provisional;
+  }
+
+  static Future<web.ServiceWorkerRegistration> _ensureServiceWorkerRegistration() async {
+    final container = web.window.navigator.serviceWorker;
+    final existingRegistration = await container
+        .getRegistration(_serviceWorkerScope)
+        .toDart;
+    if (existingRegistration != null) {
+      return existingRegistration;
+    }
+
+    final registration = await container
+        .register(
+          _serviceWorkerUrl.toJS,
+          web.RegistrationOptions(scope: _serviceWorkerScope),
+        )
+        .toDart;
+
+    try {
+      return await container.ready.toDart;
+    } catch (_) {
+      return registration;
+    }
+  }
+
+  static Future<String?> _getTokenWithServiceWorker(
+    web.ServiceWorkerRegistration registration,
+  ) async {
+    try {
+      final token = await _getWebPushToken(
+        _getWebMessaging(),
+        _WebGetTokenOptions(
+          vapidKey: FirebaseRuntimeConfig.webVapidKey.toJS,
+          serviceWorkerRegistration: registration,
+        ),
+      ).toDart;
+      return token.toDart;
+    } catch (error) {
+      if (!error.toString().toLowerCase().contains('no active service worker')) {
+        rethrow;
+      }
+
+      final readyRegistration = await web.window.navigator.serviceWorker.ready.toDart;
+      final token = await _getWebPushToken(
+        _getWebMessaging(),
+        _WebGetTokenOptions(
+          vapidKey: FirebaseRuntimeConfig.webVapidKey.toJS,
+          serviceWorkerRegistration: readyRegistration,
+        ),
+      ).toDart;
+      return token.toDart;
+    }
   }
 }

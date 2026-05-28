@@ -43,6 +43,9 @@ goto :usage_fail
 :build_web
 echo [build_release] Building web for %ENV_DEFINE% using %ENV_FILE%
 call flutter build web --release --dart-define=ENV=%ENV_DEFINE% %SENTRY_ARGS% --dart-define-from-file=%ENV_FILE% --base-href /pos/
+if errorlevel 1 exit /b 1
+call dart --disable-dart-dev tool\write_web_push_config.dart --env-file %ENV_FILE% --output-file build\web\firebase-web-config.js
+if errorlevel 1 exit /b 1
 goto :eof
 
 :build_apk

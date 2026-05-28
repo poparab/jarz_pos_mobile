@@ -61,6 +61,10 @@ build_web() {
   flutter build web --release \
     "${build_args[@]}" \
     --base-href /pos/
+
+  dart --disable-dart-dev tool/write_web_push_config.dart \
+    --env-file "$env_file" \
+    --output-file build/web/firebase-web-config.js
 }
 
 build_apk() {

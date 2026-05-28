@@ -4,12 +4,18 @@ import 'dart:html' as html;
 import '../../../core/firebase/firebase_runtime_config.dart';
 import '../../../core/utils/logger.dart';
 import 'web_notification_permission_policy.dart';
+import 'web_push_paths.dart';
 
 /// Service for managing browser notifications on web platform
 class WebNotificationService {
   static final Logger _logger = Logger('WebNotificationService');
   static bool _permissionRequested = false;
   static String _permissionStatus = 'default';
+
+  static String get _notificationIconPath => buildWebAppAssetUrl(
+    normalizeWebAppBasePath(Uri.base.path),
+    'icons/Icon-192.png',
+  );
 
   /// Request notification permission from the browser
   static Future<bool> requestPermission() async {
@@ -81,7 +87,7 @@ class WebNotificationService {
       final notification = html.Notification(
         title,
         body: body,
-        icon: icon ?? '/icons/Icon-192.png',
+        icon: icon ?? _notificationIconPath,
         tag: tag,
       );
 

@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_routes.dart';
 import '../../../core/router.dart';
 import '../../../core/firebase/firebase_runtime_config.dart';
 import '../../../core/utils/logger.dart';
@@ -13,6 +15,7 @@ import '../state/pos_notifier.dart';
 import 'data/order_alert_service.dart';
 import 'domain/invoice_alert.dart';
 import 'order_alert_native_channel.dart';
+import 'web_notification_click_service.dart';
 import 'web_notification_permission_policy.dart';
 import 'state/order_alert_controller.dart';
 import 'web_notification_service.dart';
@@ -40,6 +43,7 @@ class OrderAlertBridge {
   StreamSubscription<Map<String, dynamic>>? _invoiceStreamSub;
   StreamSubscription<Map<String, dynamic>>? _kanbanUpdateSub;
   StreamSubscription<Map<String, dynamic>>? _shiftStreamSub;
+  StreamSubscription<String>? _webNotificationClickSub;
   ProviderSubscription<PosState>? _posStateSub;
   Timer? _backgroundPollTimer;
   bool _hasInit = false;
@@ -49,6 +53,7 @@ class OrderAlertBridge {
   bool _isRegisteringToken = false;
   String? _queuedTokenRegistration;
   bool _queuedTokenRegistrationForce = false;
+  String? _pendingWebNotificationInvoiceId;
 
   bool get _shouldSuppressFcmNativeEffects =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
@@ -127,6 +132,16 @@ class OrderAlertBridge {
         "🌐 Running on web - websocket alerts enabled, background web push is config-gated",
       );
 
+      _webNotificationClickSub = WebNotificationClickService
+          .notificationClicks()
+          .listen(_handleWebNotificationClick);
+
+      final initialNotificationId =
+          WebNotificationClickService.consumeInitialNotificationId();
+      if (initialNotificationId != null) {
+        _handleWebNotificationClick(initialNotificationId);
+      }
+
       if (shouldAutoPromptBrowserNotifications(
         webPushEnabled: FirebaseRuntimeConfig.webPushEnabled,
       )) {
@@ -169,6 +184,7 @@ class OrderAlertBridge {
     _invoiceStreamSub?.cancel();
     _kanbanUpdateSub?.cancel();
     _shiftStreamSub?.cancel();
+    _webNotificationClickSub?.cancel();
     _posStateSub?.close();
     _backgroundPollTimer?.cancel();
     OrderAlertNativeChannel.setLaunchHandler(null);
@@ -186,6 +202,12 @@ class OrderAlertBridge {
       await _registerWebTokenIfPermissionGranted();
     }
     await _ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts();
+
+    final pendingNotificationId = _pendingWebNotificationInvoiceId;
+    if (pendingNotificationId != null && pendingNotificationId.isNotEmpty) {
+      _pendingWebNotificationInvoiceId = null;
+      _navigateToPosForWebNotification(pendingNotificationId);
+    }
     
     // Start background polling to ensure alerts stay in sync
     _startBackgroundPolling();
@@ -371,6 +393,38 @@ class OrderAlertBridge {
     } catch (error, stackTrace) {
       _logger.error('Failed to enqueue realtime invoice alert', error, stackTrace);
     }
+  }
+
+  void _handleWebNotificationClick(String invoiceId) {
+    if (invoiceId.isEmpty) {
+      return;
+    }
+
+    _logger.info('Web notification click received for invoice $invoiceId');
+    _pendingWebNotificationInvoiceId = invoiceId;
+
+    if (_ref.read(currentAuthStateProvider)) {
+      unawaited(_ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts());
+      _pendingWebNotificationInvoiceId = null;
+      _navigateToPosForWebNotification(invoiceId);
+    }
+  }
+
+  void _navigateToPosForWebNotification(String invoiceId) {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null) {
+      _pendingWebNotificationInvoiceId = invoiceId;
+      return;
+    }
+
+    GoRouter.of(context).go(
+      AppRoutes.pos,
+      extra: {
+        'type': 'new_invoice',
+        'invoice_id': invoiceId,
+        'notification_id': invoiceId,
+      },
+    );
   }
 
   void _handleShiftEvent(Map<String, dynamic> payload) {
