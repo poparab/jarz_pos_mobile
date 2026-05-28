@@ -50,7 +50,15 @@ function Invoke-ToolText {
         [string[]]$Arguments
     )
 
-    $output = & $CommandName @Arguments 2>&1
+    $previousNativeErrorPreference = $PSNativeCommandUseErrorActionPreference
+    $PSNativeCommandUseErrorActionPreference = $false
+    try {
+        $output = & $CommandName @Arguments 2>&1
+    }
+    finally {
+        $PSNativeCommandUseErrorActionPreference = $previousNativeErrorPreference
+    }
+
     $exitCode = $LASTEXITCODE
     if ($exitCode -ne 0) {
         throw "$CommandName $($Arguments -join ' ') failed ($exitCode)`n$($output -join "`n")"
@@ -62,7 +70,7 @@ function Invoke-ToolText {
 function Invoke-Git {
     param([string[]]$Arguments)
 
-    return Invoke-ToolText -CommandName 'git' -Arguments (@('-C', $MobileRepoPath) + $Arguments)
+    return Invoke-ToolText -CommandName 'git' -Arguments (@('-c', 'http.version=HTTP/1.1', '-C', $MobileRepoPath) + $Arguments)
 }
 
 function Invoke-Gh {
@@ -121,7 +129,7 @@ function Get-ChangedPathsForCommit([string]$Sha) {
 }
 
 function Invoke-MobileClassifier([string[]]$Paths) {
-    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $classifierScriptPath -RepoPath $MobileRepoPath -ChangedPath $Paths -Format Env 2>&1
+    $output = & $classifierScriptPath -RepoPath $MobileRepoPath -ChangedPath $Paths -Format Env 2>&1
     $exitCode = $LASTEXITCODE
     if ($exitCode -ne 0) {
         throw "classify_mobile_release.ps1 failed ($exitCode)`n$($output -join "`n")"

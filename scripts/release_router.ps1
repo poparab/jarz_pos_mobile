@@ -64,7 +64,15 @@ function Invoke-GitText {
         [switch]$IgnoreExitCode
     )
 
-    $output = & git -C $RepositoryPath @Arguments 2>&1
+    $previousNativeErrorPreference = $PSNativeCommandUseErrorActionPreference
+    $PSNativeCommandUseErrorActionPreference = $false
+    try {
+        $output = & git -c http.version=HTTP/1.1 -C $RepositoryPath @Arguments 2>&1
+    }
+    finally {
+        $PSNativeCommandUseErrorActionPreference = $previousNativeErrorPreference
+    }
+
     $exitCode = $LASTEXITCODE
     if ($exitCode -ne 0 -and -not $IgnoreExitCode) {
         throw "git -C $RepositoryPath $($Arguments -join ' ') failed ($exitCode)`n$($output -join "`n")"
@@ -219,10 +227,10 @@ function Get-KeyValueFromText {
 }
 
 function Invoke-MobileClassifier {
-    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $mobileClassifierPath -RepoPath $repoRoot -Format Env 2>&1
+    $output = & $mobileClassifierPath -RepoPath $repoRoot -Format Env 2>&1
     $exitCode = $LASTEXITCODE
     if ($exitCode -ne 0) {
-        throw "powershell -File $mobileClassifierPath failed ($exitCode)`n$($output -join "`n")"
+        throw "$mobileClassifierPath failed ($exitCode)`n$($output -join "`n")"
     }
 
     $map = @{}

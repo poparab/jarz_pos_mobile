@@ -268,8 +268,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                 SnackBar(
                                   content: Text(
                                     value 
-                                      ? 'Notification alarms enabled' 
-                                      : 'Notification alarms muted',
+                                      ? 'Notification alarms enabled on this device' 
+                                      : 'Notification alarms muted on this device',
                                   ),
                                   duration: const Duration(seconds: 2),
                                   backgroundColor: value ? Colors.green : Colors.orange,
