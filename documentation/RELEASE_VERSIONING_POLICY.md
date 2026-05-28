@@ -12,7 +12,7 @@ This means the same commit produces the same app version on both channels:
 - same `build_number`
 - same `version`
 
-Only the channel, Firebase target, and APK filename prefix differ.
+Only the channel, Android release type, Firebase target for full APKs, and APK filename prefix differ.
 
 ## Hard Rules
 
@@ -21,10 +21,12 @@ Only the channel, Firebase target, and APK filename prefix differ.
 3. Treat production as a release built from `main` using the same commit-derived versioning as staging.
 4. Trigger production only from `main`.
 5. Use the optional manual production `release_notes` input only for human notes, not for version control.
+6. Decide `full_apk`, `shorebird_patch`, or `none` before any Android rollout.
+7. `shorebird_patch` is allowed only for code-push-safe Dart changes after a Shorebird-enabled APK is already installed.
 
 ## Naming Policy
 
-For every distributed APK:
+For every full APK release:
 
 - APK filename: `jarz-pos-<channel>-v<build_name>+<build_number>-<short_sha>.apk`
 - Release id: `<channel>-v<build_name>+<build_number>-<short_sha>`
@@ -40,9 +42,9 @@ Examples:
 
 ## Tracking Policy
 
-Every staging and production workflow run now produces:
+Every Android workflow run that performs a mobile release now produces:
 
-- the versioned APK artifact
+- the versioned APK artifact for `full_apk` releases
 - a metadata artifact containing:
   - a JSON manifest
   - the exact release notes sent to Firebase App Distribution
@@ -60,19 +62,22 @@ This gives one clean audit trail per release without relying on Firebase naming 
 
 1. Update `pubspec.yaml` when you want a new semantic release line such as `1.0.0` to `1.1.0`.
 2. Commit and push that change through GitHub.
-3. Every push to `main` builds and distributes both the staging and production APKs automatically.
-4. Validate staging and production artifacts for the exact commit that was pushed.
-5. Optionally rerun the manual production workflow from that same `main` commit when you need custom human release notes.
+3. Every push to `main` auto-classifies the staging Android release as `full_apk`, `shorebird_patch`, or `none`.
+4. Production Android releases are manual from `main`; choose `full_apk` or `shorebird_patch` explicitly.
+5. Validate staging artifacts or patches before any production Android rollout.
 
-Because the build number comes from the commit history instead of the workflow run number, staging and production stay aligned for the same commit while still producing a new installable APK on every new commit.
+Because the build number comes from the commit history instead of the workflow run number, staging and production stay aligned for the same commit while still producing a new installable APK on every full release commit.
 
 ## Files That Enforce This Policy
 
 - `.github/workflows/firebase-app-distribution.yml`
 - `tool/release_metadata.dart`
+- `scripts/classify_mobile_release.ps1`
+- `scripts/shorebird_android.ps1`
 
 ## Operator Guidance
 
 - If a rerun is needed for the same commit, the app version remains the same by design.
 - The rerun is still distinguishable in GitHub by the artifact label `attempt<run_attempt>`.
 - If you need a new installable build for testers, create a new commit on `main` or intentionally bump the semantic version in `pubspec.yaml`.
+- If you only need a Dart-only fix and the Shorebird-enabled APK is already installed, prefer a Shorebird patch instead of a new APK.

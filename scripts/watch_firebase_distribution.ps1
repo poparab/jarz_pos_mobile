@@ -3,6 +3,9 @@ param(
     [ValidateSet('staging', 'production')]
     [string]$Environment,
 
+    [ValidateSet('auto', 'apk', 'patch')]
+    [string]$ReleaseType = 'auto',
+
     [string]$CommitSha,
     [string]$ReleaseNotes,
     [int]$TimeoutMinutes = 45,
@@ -114,161 +117,36 @@ function Find-WorkflowRun {
 
         [Parameter(Mandatory = $true)]
         [string]$HeadSha
-    )
-
-    $runs = Invoke-GhJson -Arguments @(
-        'run', 'list',
-        '--workflow', $workflowName,
-        '--branch', 'main',
-        '--limit', '20',
-        '--json', 'databaseId,displayTitle,event,headSha,status,conclusion,url,createdAt'
-    )
-
-    $runList = @($runs)
-    if (-not $runList -or $runList.Count -eq 0) {
-        return $null
-    }
-
-    $matchingRuns = @(
-        $runList |
-        Where-Object { $_.event -eq $EventName -and $_.headSha -eq $HeadSha } |
-        Sort-Object -Property databaseId -Descending
-    )
-
-    if ($matchingRuns.Count -eq 0) {
-        return $null
-    }
-
-    return $matchingRuns[0]
-}
-
-function Get-WorkflowRunState([string]$RunId) {
-    return Invoke-GhJson -Arguments @(
-        'run', 'view', $RunId,
-        '--json', 'status,conclusion,url,displayTitle,headSha,workflowName'
-    )
-}
-
-Test-CommandAvailable 'git'
-Test-CommandAvailable 'gh'
-
-if (-not (Test-Path $MobileRepoPath)) {
-    throw "Mobile repo not found at $MobileRepoPath"
-}
-
-$githubRepo = Get-GitHubRepoSlug
-
-if (-not $CommitSha) {
-    $CommitSha = (Invoke-Git -Arguments @('rev-parse', 'HEAD')).Trim()
-}
-
-$originMainHead = Get-OriginMainHead
-if ($CommitSha -ne $originMainHead) {
-    throw "Commit $CommitSha is not the current origin/main head ($originMainHead). Push main before waiting for Firebase distribution."
-}
-
-$config = switch ($Environment) {
-    'staging' {
-        @{
-            EventName = 'push'
-            TriggerWorkflow = $false
-            SummaryLabel = 'staging'
+        if (-not $MobileRepoPath) {
+            $MobileRepoPath = Split-Path -Parent $PSScriptRoot
         }
-    }
-    'production' {
-        @{
-            EventName = 'workflow_dispatch'
-            TriggerWorkflow = $true
-            SummaryLabel = 'production'
+
+        $scriptPath = Join-Path $PSScriptRoot 'watch_android_release.ps1'
+        if (-not (Test-Path $scriptPath)) {
+            throw "Android release watcher not found at $scriptPath"
         }
-    }
-}
 
-Write-Host ''
-Write-Info "Watching Firebase distribution for $($config.SummaryLabel)"
-Write-Info "Commit: $CommitSha"
-Write-Host ''
+        $arguments = @(
+            '-Environment', $Environment,
+            '-ReleaseType', $ReleaseType,
+            '-TimeoutMinutes', "$TimeoutMinutes",
+            '-PollSeconds', "$PollSeconds",
+            '-RunDiscoveryGraceSeconds', "$RunDiscoveryGraceSeconds",
+            '-MobileRepoPath', $MobileRepoPath
+        )
 
-$run = $null
-if ($config.TriggerWorkflow) {
-    if (-not $ForceTrigger) {
-        $run = Find-WorkflowRun -EventName $config.EventName -HeadSha $CommitSha
-        if ($run) {
-            Write-Info "Reusing existing workflow run $($run.databaseId) for this commit"
-            Write-Info "Run URL: $($run.url)"
-            Write-Host ''
+        if ($CommitSha) {
+            $arguments += @('-CommitSha', $CommitSha)
         }
-    }
-
-    if (-not $run) {
-        Write-Step 'Triggering Firebase App Distribution workflow...'
-        $workflowArgs = @('workflow', 'run', $workflowName, '--ref', 'main')
         if ($ReleaseNotes) {
-            $workflowArgs += @('-f', "release_notes=$ReleaseNotes")
+            $arguments += @('-ReleaseNotes', $ReleaseNotes)
+        }
+        if ($SkipIfNoRun) {
+            $arguments += '-SkipIfNoRun'
+        }
+        if ($ForceTrigger) {
+            $arguments += '-ForceTrigger'
         }
 
-        Invoke-Gh -Arguments $workflowArgs | Out-Null
-        Write-Info 'Workflow dispatch submitted'
-        Write-Host ''
-    }
-}
-
-$deadline = (Get-Date).AddMinutes($TimeoutMinutes)
-$discoveryDeadline = (Get-Date).AddSeconds($RunDiscoveryGraceSeconds)
-
-Write-Step 'Waiting for matching GitHub Actions run...'
-while (-not $run) {
-    if ((Get-Date) -ge $deadline) {
-        throw "Timed out after $TimeoutMinutes minutes waiting for the Firebase workflow run to appear."
-    }
-
-    if ($SkipIfNoRun -and (Get-Date) -ge $discoveryDeadline) {
-        Write-Info 'No matching Firebase workflow run was found for this commit. Skipping Firebase wait.'
-        Write-Output 'FIREBASE_ACTION=skipped'
-        exit 0
-    }
-
-    $run = Find-WorkflowRun -EventName $config.EventName -HeadSha $CommitSha
-    if (-not $run) {
-        Start-Sleep -Seconds $PollSeconds
-    }
-}
-
-Write-Info "Found workflow run $($run.databaseId)"
-Write-Info "Run URL: $($run.url)"
-Write-Host ''
-
-$lastStatus = ''
-while ($true) {
-    if ((Get-Date) -ge $deadline) {
-        throw "Timed out after $TimeoutMinutes minutes waiting for Firebase distribution to finish."
-    }
-
-    $state = Get-WorkflowRunState -RunId "$($run.databaseId)"
-    $statusSummary = if ($state.status -eq 'completed') {
-        "$($state.status)/$($state.conclusion)"
-    }
-    else {
-        $state.status
-    }
-
-    if ($statusSummary -ne $lastStatus) {
-        Write-Info "Firebase workflow status: $statusSummary"
-        $lastStatus = $statusSummary
-    }
-
-    if ($state.status -eq 'completed') {
-        Write-Host ''
-        if ($state.conclusion -ne 'success') {
-            throw "Firebase distribution failed. See $($state.url)"
-        }
-
-        Write-Info 'Firebase distribution completed successfully'
-        Write-Info "Run URL: $($state.url)"
-        Write-Output 'FIREBASE_ACTION=completed'
-        Write-Host ''
-        break
-    }
-
-    Start-Sleep -Seconds $PollSeconds
-}
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $scriptPath @arguments
+        exit $LASTEXITCODE

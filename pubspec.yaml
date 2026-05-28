@@ -90,6 +90,7 @@ flutter:
     - .env.prod
     - assets/images/logo.png
     - assets/fonts/
+    - shorebird.yaml
 
 # Launcher icon configuration
 flutter_launcher_icons:

@@ -1,4 +1,7 @@
-name: Firebase App Distribution
+name: Android Release
+
+run-name: >-
+  Android Release / ${{ inputs.environment || 'staging' }} / ${{ inputs.release_type || 'auto' }} / ${{ github.ref_name }}
 
 on:
   push:
@@ -12,13 +15,36 @@ on:
       - 'pubspec.lock'
       - '.env.prod'
       - '.env.staging'
+      - 'shorebird.yaml'
       - 'scripts/build_release.bat'
       - 'scripts/build_release.sh'
+      - 'scripts/classify_mobile_release.ps1'
+      - 'scripts/shorebird_android.ps1'
+      - 'scripts/shorebird_android.sh'
+      - 'scripts/watch_android_release.ps1'
       - 'tool/release_metadata.dart'
   workflow_dispatch:
     inputs:
+      environment:
+        description: Target Android environment
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      release_type:
+        description: Full APK release or Shorebird patch
+        required: true
+        type: choice
+        options:
+          - full_apk
+          - shorebird_patch
       release_notes:
-        description: Optional production release notes appended to the generated release metadata
+        description: Optional release notes appended to generated metadata
+        required: false
+        type: string
+      release_version:
+        description: Optional Shorebird release version for patching; defaults to latest
         required: false
         type: string
 
@@ -29,209 +55,12 @@ env:
   FLUTTER_VERSION: "3.35.1"
 
 concurrency:
-  group: firebase-distribution-${{ github.event_name }}-${{ github.ref_name }}
+  group: android-release-${{ github.ref_name }}-${{ inputs.environment || 'staging' }}
   cancel-in-progress: true
 
 jobs:
-  distribute-staging:
-    name: Distribute Staging
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout source revision
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: gradle
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Restore pub cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Restore Firebase Android config
-        shell: bash
-        env:
-          ANDROID_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}
-        run: |
-          echo "$ANDROID_GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > android/app/google-services.json
-
-      - name: Restore Android release keystore
-        id: signing
-        shell: bash
-        env:
-          ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
-        run: |
-          keystore_path="$RUNNER_TEMP/jarz-pos-upload.jks"
-          echo "$ANDROID_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
-          echo "keystore_path=$keystore_path" >> "$GITHUB_OUTPUT"
-
-      - name: Resolve staging build metadata
-        id: meta
-        shell: bash
-        env:
-          SOURCE_EVENT: ${{ github.event_name }}
-          SOURCE_BRANCH: ${{ github.ref_name }}
-          SOURCE_SHA: ${{ github.sha }}
-          SOURCE_ACTOR: ${{ github.actor }}
-          RUN_ID: ${{ github.run_id }}
-          RUN_NUMBER: ${{ github.run_number }}
-          RUN_ATTEMPT: ${{ github.run_attempt }}
-        run: |
-          release_notes_file="$RUNNER_TEMP/staging-release-notes.txt"
-          manifest_file="$RUNNER_TEMP/staging-release-metadata.json"
-
-          while IFS='=' read -r key value; do
-            case "$key" in
-              BUILD_NAME) build_name="$value" ;;
-              BUILD_NUMBER) build_number="$value" ;;
-              VERSION) version="$value" ;;
-              ARTIFACT_NAME) artifact_name="$value" ;;
-              ARTIFACT_UPLOAD_NAME) artifact_upload_name="$value" ;;
-              METADATA_ARTIFACT_NAME) metadata_artifact_name="$value" ;;
-              RELEASE_ID) release_id="$value" ;;
-              SHORT_SHA) short_sha="$value" ;;
-              GENERATED_AT_UTC) generated_at_utc="$value" ;;
-            esac
-          done < <(
-            dart run tool/release_metadata.dart \
-              --channel staging \
-              --event "$SOURCE_EVENT" \
-              --branch "$SOURCE_BRANCH" \
-              --sha "$SOURCE_SHA" \
-              --actor "$SOURCE_ACTOR" \
-              --run-id "$RUN_ID" \
-              --run-number "$RUN_NUMBER" \
-              --run-attempt "$RUN_ATTEMPT" \
-              --release-notes-file "$release_notes_file" \
-              --manifest-file "$manifest_file" \
-              --format env
-          )
-
-          echo "build_name=$build_name" >> "$GITHUB_OUTPUT"
-          echo "build_number=$build_number" >> "$GITHUB_OUTPUT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
-          echo "artifact_upload_name=$artifact_upload_name" >> "$GITHUB_OUTPUT"
-          echo "metadata_artifact_name=$metadata_artifact_name" >> "$GITHUB_OUTPUT"
-          echo "release_id=$release_id" >> "$GITHUB_OUTPUT"
-          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
-          echo "generated_at_utc=$generated_at_utc" >> "$GITHUB_OUTPUT"
-          echo "release_notes_file=$release_notes_file" >> "$GITHUB_OUTPUT"
-          echo "manifest_file=$manifest_file" >> "$GITHUB_OUTPUT"
-
-      - name: Build staging APK
-        env:
-          ANDROID_UPLOAD_KEYSTORE_PATH: ${{ steps.signing.outputs.keystore_path }}
-          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
-          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
-        run: |
-          flutter build apk --release \
-            --flavor staging \
-            --dart-define=ENV=staging \
-            --dart-define=SENTRY_ENVIRONMENT=staging \
-            --dart-define=SENTRY_RELEASE=${{ steps.meta.outputs.release_id }} \
-            --dart-define=SENTRY_DIST=${{ steps.meta.outputs.build_number }} \
-            --dart-define-from-file=.env.staging \
-            --build-name="${{ steps.meta.outputs.build_name }}" \
-            --build-number="${{ steps.meta.outputs.build_number }}"
-
-      - name: Name staging artifact
-        id: artifact
-        shell: bash
-        run: |
-          artifact_path="build/app/outputs/flutter-apk/${{ steps.meta.outputs.artifact_name }}"
-          cp build/app/outputs/flutter-apk/app-staging-release.apk "$artifact_path"
-          echo "artifact_path=$artifact_path" >> "$GITHUB_OUTPUT"
-
-      - name: Upload staging artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.meta.outputs.artifact_upload_name }}
-          path: ${{ steps.artifact.outputs.artifact_path }}
-          compression-level: 0
-          retention-days: 14
-
-      - name: Upload staging metadata artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.meta.outputs.metadata_artifact_name }}
-          path: |
-            ${{ steps.meta.outputs.manifest_file }}
-            ${{ steps.meta.outputs.release_notes_file }}
-          retention-days: 14
-
-      - name: Register staging Sentry release
-        shell: bash
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG_SLUG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT_FLUTTER }}
-          RELEASE_ID: ${{ steps.meta.outputs.release_id }}
-        run: |
-          if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_ORG" ] || [ -z "$SENTRY_PROJECT" ]; then
-            echo "Skipping Sentry release registration; missing Sentry secrets."
-            exit 0
-          fi
-
-          npm install --global @sentry/cli
-
-          if ! sentry-cli releases info "$RELEASE_ID" >/dev/null 2>&1; then
-            sentry-cli releases new -p "$SENTRY_PROJECT" "$RELEASE_ID"
-          fi
-          sentry-cli releases set-commits "$RELEASE_ID" --auto
-          sentry-cli releases finalize "$RELEASE_ID"
-          sentry-cli releases deploys "$RELEASE_ID" new -e staging
-
-      - name: Write staging release summary
-        shell: bash
-        run: |
-          {
-            echo "## Staging Release"
-            echo
-            echo "| Field | Value |"
-            echo "| --- | --- |"
-            echo "| Release ID | ${{ steps.meta.outputs.release_id }} |"
-            echo "| Version | ${{ steps.meta.outputs.version }} |"
-            echo "| APK file | ${{ steps.meta.outputs.artifact_name }} |"
-            echo "| APK artifact | ${{ steps.meta.outputs.artifact_upload_name }} |"
-            echo "| Metadata artifact | ${{ steps.meta.outputs.metadata_artifact_name }} |"
-            echo "| Commit | ${{ steps.meta.outputs.short_sha }} |"
-            echo "| Generated (UTC) | ${{ steps.meta.outputs.generated_at_utc }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Distribute staging APK
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: 1:91050591321:android:d71f35bd6e626244bd1d48
-          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-          testers: ${{ secrets.FIREBASE_TESTERS_STAGING }}
-          file: ${{ steps.artifact.outputs.artifact_path }}
-          releaseNotesFile: ${{ steps.meta.outputs.release_notes_file }}
-
-  distribute-production:
-    name: Distribute Production
+  android-release:
+    name: Android Release
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
 
@@ -241,7 +70,120 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Plan Android release
+        id: plan
+        shell: pwsh
+        env:
+          SOURCE_EVENT: ${{ github.event_name }}
+          SOURCE_SHA: ${{ github.sha }}
+          INPUT_ENVIRONMENT: ${{ inputs.environment }}
+          INPUT_RELEASE_TYPE: ${{ inputs.release_type }}
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+        run: |
+          $targetEnvironment = if ($env:SOURCE_EVENT -eq 'push') { 'staging' } else { $env:INPUT_ENVIRONMENT }
+          $requestedReleaseType = if ($env:SOURCE_EVENT -eq 'push') { 'auto' } else { $env:INPUT_RELEASE_TYPE }
+          $changedPaths = @(
+              (& git show --pretty=format: --name-only $env:SOURCE_SHA) -split "`r?`n" | 
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | 
+                ForEach-Object { $_.Trim() }
+          )
+
+            $classifierOutput = & .\scripts\classify_mobile_release.ps1 -RepoPath $PWD -ChangedPath $changedPaths -Format Env 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            throw "classify_mobile_release.ps1 failed`n$($classifierOutput -join "`n")"
+          }
+
+          $classifier = @{}
+          foreach ($line in ($classifierOutput -join "`n") -split "`r?`n") {
+            if ($line -match '^(?<key>[A-Z0-9_]+)=(?<value>.*)$') {
+              $classifier[$Matches['key']] = $Matches['value']
+            }
+          }
+
+          $classifiedType = $classifier['MOBILE_RELEASE_TYPE']
+          $classifiedReason = $classifier['MOBILE_RELEASE_REASON']
+          $shorebirdReady = (Test-Path 'shorebird.yaml') -and -not [string]::IsNullOrWhiteSpace($env:SHOREBIRD_TOKEN)
+          $patchBlocked = $false
+          $supportNote = ''
+
+          $effectiveReleaseType = switch ($requestedReleaseType) {
+            'auto' {
+              if ($classifiedType -eq 'shorebird_patch') {
+                'shorebird_patch'
+              }
+              elseif ($classifiedType -eq 'none') {
+                'none'
+              }
+              else {
+                'full_apk'
+              }
+            }
+            default { $requestedReleaseType }
+          }
+
+          if ($effectiveReleaseType -eq 'shorebird_patch' -and -not $shorebirdReady) {
+            if ($env:SOURCE_EVENT -eq 'push') {
+              $effectiveReleaseType = 'full_apk'
+              $supportNote = 'Shorebird is not bootstrapped yet; staging push falls back to a full APK build.'
+            }
+            else {
+              $patchBlocked = $true
+              $supportNote = 'Shorebird patch requested but shorebird.yaml or SHOREBIRD_TOKEN is missing.'
+            }
+          }
+
+          $releaseEngine = switch ($effectiveReleaseType) {
+            'shorebird_patch' { 'shorebird' }
+            'full_apk' {
+              if ($shorebirdReady) { 'shorebird' } else { 'flutter' }
+            }
+            default { 'none' }
+          }
+
+          switch ($targetEnvironment) {
+            'staging' {
+              $flavor = 'staging'
+              $envDefine = 'staging'
+              $envFile = '.env.staging'
+              $sentryEnvironment = 'staging'
+              $builtApk = 'build/app/outputs/flutter-apk/app-staging-release.apk'
+              $shorebirdTrack = 'staging'
+            }
+            'production' {
+              $flavor = 'production'
+              $envDefine = 'prod'
+              $envFile = '.env.prod'
+              $sentryEnvironment = 'production'
+              $builtApk = 'build/app/outputs/flutter-apk/app-production-release.apk'
+              $shorebirdTrack = 'stable'
+            }
+          }
+
+          "target_environment=$targetEnvironment" >> $env:GITHUB_OUTPUT
+          "requested_release_type=$requestedReleaseType" >> $env:GITHUB_OUTPUT
+          "classified_release_type=$classifiedType" >> $env:GITHUB_OUTPUT
+          "classified_reason=$classifiedReason" >> $env:GITHUB_OUTPUT
+          "release_type=$effectiveReleaseType" >> $env:GITHUB_OUTPUT
+          "release_engine=$releaseEngine" >> $env:GITHUB_OUTPUT
+          "shorebird_ready=$($shorebirdReady.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "patch_blocked=$($patchBlocked.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "support_note=$supportNote" >> $env:GITHUB_OUTPUT
+          "flavor=$flavor" >> $env:GITHUB_OUTPUT
+          "env_define=$envDefine" >> $env:GITHUB_OUTPUT
+          "env_file=$envFile" >> $env:GITHUB_OUTPUT
+          "sentry_environment=$sentryEnvironment" >> $env:GITHUB_OUTPUT
+          "built_apk=$builtApk" >> $env:GITHUB_OUTPUT
+          "shorebird_track=$shorebirdTrack" >> $env:GITHUB_OUTPUT
+
+      - name: Block unsupported patch request
+        if: steps.plan.outputs.patch_blocked == 'true'
+        shell: bash
+        run: |
+          echo "${{ steps.plan.outputs.support_note }}"
+          exit 1
+
       - name: Set up Java
+        if: steps.plan.outputs.release_type != 'none'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -249,13 +191,21 @@ jobs:
           cache: gradle
 
       - name: Set up Flutter
+        if: steps.plan.outputs.release_type != 'none'
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
+      - name: Set up Shorebird CLI
+        if: steps.plan.outputs.release_engine == 'shorebird'
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+
       - name: Restore pub cache
+        if: steps.plan.outputs.release_type != 'none'
         uses: actions/cache@v4
         with:
           path: ~/.pub-cache
@@ -264,16 +214,27 @@ jobs:
             ${{ runner.os }}-pub-
 
       - name: Install dependencies
+        if: steps.plan.outputs.release_type != 'none'
         run: flutter pub get
 
-      - name: Require main branch for production release
-        if: github.ref_name != 'main'
+      - name: Verify Shorebird bootstrap
+        if: steps.plan.outputs.release_engine == 'shorebird'
         shell: bash
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
         run: |
-          echo "Production releases must be triggered from the main branch."
-          exit 1
+          if [ -z "$SHOREBIRD_TOKEN" ]; then
+            echo "SHOREBIRD_TOKEN is missing. Create an API key in the Shorebird console and store it as a GitHub secret."
+            exit 1
+          fi
+          if [ ! -f shorebird.yaml ]; then
+            echo "shorebird.yaml is missing. Run shorebird init and commit the generated flavor app IDs before using Shorebird release or patch flows."
+            exit 1
+          fi
+          shorebird --version
 
       - name: Restore Firebase Android config
+        if: steps.plan.outputs.release_type != 'none'
         shell: bash
         env:
           ANDROID_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}
@@ -281,6 +242,7 @@ jobs:
           echo "$ANDROID_GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > android/app/google-services.json
 
       - name: Restore Android release keystore
+        if: steps.plan.outputs.release_type != 'none'
         id: signing
         shell: bash
         env:
@@ -290,7 +252,8 @@ jobs:
           echo "$ANDROID_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
           echo "keystore_path=$keystore_path" >> "$GITHUB_OUTPUT"
 
-      - name: Resolve production build metadata
+      - name: Resolve build metadata
+        if: steps.plan.outputs.release_type != 'none'
         id: meta
         shell: bash
         env:
@@ -302,9 +265,10 @@ jobs:
           RUN_NUMBER: ${{ github.run_number }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           INPUT_RELEASE_NOTES: ${{ inputs.release_notes }}
+          TARGET_ENVIRONMENT: ${{ steps.plan.outputs.target_environment }}
         run: |
-          release_notes_file="$RUNNER_TEMP/production-release-notes.txt"
-          manifest_file="$RUNNER_TEMP/production-release-metadata.json"
+          release_notes_file="$RUNNER_TEMP/${TARGET_ENVIRONMENT}-release-notes.txt"
+          manifest_file="$RUNNER_TEMP/${TARGET_ENVIRONMENT}-release-metadata.json"
 
           while IFS='=' read -r key value; do
             case "$key" in
@@ -320,7 +284,7 @@ jobs:
             esac
           done < <(
             dart run tool/release_metadata.dart \
-              --channel production \
+              --channel "$TARGET_ENVIRONMENT" \
               --event "$SOURCE_EVENT" \
               --branch "$SOURCE_BRANCH" \
               --sha "$SOURCE_SHA" \
@@ -346,7 +310,8 @@ jobs:
           echo "release_notes_file=$release_notes_file" >> "$GITHUB_OUTPUT"
           echo "manifest_file=$manifest_file" >> "$GITHUB_OUTPUT"
 
-      - name: Build production APK
+      - name: Build full APK via Flutter
+        if: steps.plan.outputs.release_type == 'full_apk' && steps.plan.outputs.release_engine == 'flutter'
         env:
           ANDROID_UPLOAD_KEYSTORE_PATH: ${{ steps.signing.outputs.keystore_path }}
           ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
@@ -354,24 +319,60 @@ jobs:
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
         run: |
           flutter build apk --release \
-            --flavor production \
-            --dart-define=ENV=prod \
-            --dart-define=SENTRY_ENVIRONMENT=production \
+            --flavor ${{ steps.plan.outputs.flavor }} \
+            --dart-define=ENV=${{ steps.plan.outputs.env_define }} \
+            --dart-define=SENTRY_ENVIRONMENT=${{ steps.plan.outputs.sentry_environment }} \
             --dart-define=SENTRY_RELEASE=${{ steps.meta.outputs.release_id }} \
             --dart-define=SENTRY_DIST=${{ steps.meta.outputs.build_number }} \
-            --dart-define-from-file=.env.prod \
+            --dart-define-from-file=${{ steps.plan.outputs.env_file }} \
             --build-name="${{ steps.meta.outputs.build_name }}" \
             --build-number="${{ steps.meta.outputs.build_number }}"
 
-      - name: Name production artifact
+      - name: Build full APK via Shorebird
+        if: steps.plan.outputs.release_type == 'full_apk' && steps.plan.outputs.release_engine == 'shorebird'
+        shell: pwsh
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+          ANDROID_UPLOAD_KEYSTORE_PATH: ${{ steps.signing.outputs.keystore_path }}
+          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+          SENTRY_RELEASE: ${{ steps.meta.outputs.release_id }}
+          SENTRY_DIST: ${{ steps.meta.outputs.build_number }}
+        run: |
+          .\scripts\shorebird_android.ps1 -Environment '${{ steps.plan.outputs.target_environment }}' -Action release -BuildName '${{ steps.meta.outputs.build_name }}' -BuildNumber '${{ steps.meta.outputs.build_number }}'
+
+      - name: Publish Shorebird patch
+        if: steps.plan.outputs.release_type == 'shorebird_patch'
+        shell: pwsh
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+          ANDROID_UPLOAD_KEYSTORE_PATH: ${{ steps.signing.outputs.keystore_path }}
+          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+          SENTRY_RELEASE: ${{ steps.meta.outputs.release_id }}
+          SENTRY_DIST: ${{ steps.meta.outputs.build_number }}
+        run: |
+          $releaseVersion = '${{ inputs.release_version }}'
+          if ([string]::IsNullOrWhiteSpace($releaseVersion)) {
+            $releaseVersion = 'latest'
+          }
+          .\scripts\shorebird_android.ps1 -Environment '${{ steps.plan.outputs.target_environment }}' -Action patch -ReleaseVersion $releaseVersion -Track '${{ steps.plan.outputs.shorebird_track }}'
+
+      - name: Name APK artifact
+        if: steps.plan.outputs.release_type == 'full_apk'
         id: artifact
         shell: bash
+        env:
+          BUILT_APK: ${{ steps.plan.outputs.built_apk }}
         run: |
           artifact_path="build/app/outputs/flutter-apk/${{ steps.meta.outputs.artifact_name }}"
-          cp build/app/outputs/flutter-apk/app-production-release.apk "$artifact_path"
+          cp "$BUILT_APK" "$artifact_path"
           echo "artifact_path=$artifact_path" >> "$GITHUB_OUTPUT"
 
-      - name: Upload production artifact
+      - name: Upload APK artifact
+        if: steps.plan.outputs.release_type == 'full_apk'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.meta.outputs.artifact_upload_name }}
@@ -379,7 +380,8 @@ jobs:
           compression-level: 0
           retention-days: 14
 
-      - name: Upload production metadata artifact
+      - name: Upload metadata artifact
+        if: steps.plan.outputs.release_type != 'none'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.meta.outputs.metadata_artifact_name }}
@@ -388,13 +390,15 @@ jobs:
             ${{ steps.meta.outputs.release_notes_file }}
           retention-days: 14
 
-      - name: Register production Sentry release
+      - name: Register Sentry release
+        if: steps.plan.outputs.release_type != 'none'
         shell: bash
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG_SLUG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT_FLUTTER }}
           RELEASE_ID: ${{ steps.meta.outputs.release_id }}
+          DEPLOY_ENVIRONMENT: ${{ steps.plan.outputs.target_environment }}
         run: |
           if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_ORG" ] || [ -z "$SENTRY_PROJECT" ]; then
             echo "Skipping Sentry release registration; missing Sentry secrets."
@@ -408,26 +412,44 @@ jobs:
           fi
           sentry-cli releases set-commits "$RELEASE_ID" --auto
           sentry-cli releases finalize "$RELEASE_ID"
-          sentry-cli releases deploys "$RELEASE_ID" new -e production
+          sentry-cli releases deploys "$RELEASE_ID" new -e "$DEPLOY_ENVIRONMENT"
 
-      - name: Write production release summary
+      - name: Write release summary
         shell: bash
         run: |
           {
-            echo "## Production Release"
+            echo "## Android Release"
             echo
             echo "| Field | Value |"
             echo "| --- | --- |"
-            echo "| Release ID | ${{ steps.meta.outputs.release_id }} |"
-            echo "| Version | ${{ steps.meta.outputs.version }} |"
-            echo "| APK file | ${{ steps.meta.outputs.artifact_name }} |"
-            echo "| APK artifact | ${{ steps.meta.outputs.artifact_upload_name }} |"
-            echo "| Metadata artifact | ${{ steps.meta.outputs.metadata_artifact_name }} |"
-            echo "| Commit | ${{ steps.meta.outputs.short_sha }} |"
-            echo "| Generated (UTC) | ${{ steps.meta.outputs.generated_at_utc }} |"
+            echo "| Target environment | ${{ steps.plan.outputs.target_environment }} |"
+            echo "| Requested release type | ${{ steps.plan.outputs.requested_release_type }} |"
+            echo "| Classified release type | ${{ steps.plan.outputs.classified_release_type }} |"
+            echo "| Effective release type | ${{ steps.plan.outputs.release_type }} |"
+            echo "| Release engine | ${{ steps.plan.outputs.release_engine }} |"
+            echo "| Classifier reason | ${{ steps.plan.outputs.classified_reason }} |"
+            echo "| Support note | ${{ steps.plan.outputs.support_note || 'n/a' }} |"
+            echo "| Release ID | ${{ steps.meta.outputs.release_id || 'n/a' }} |"
+            echo "| Version | ${{ steps.meta.outputs.version || 'n/a' }} |"
+            echo "| APK file | ${{ steps.plan.outputs.release_type == 'full_apk' && steps.meta.outputs.artifact_name || 'n/a (Shorebird patch)' }} |"
+            echo "| APK artifact | ${{ steps.plan.outputs.release_type == 'full_apk' && steps.meta.outputs.artifact_upload_name || 'n/a (Shorebird patch)' }} |"
+            echo "| Metadata artifact | ${{ steps.meta.outputs.metadata_artifact_name || 'n/a' }} |"
+            echo "| Commit | ${{ steps.meta.outputs.short_sha || github.sha }} |"
+            echo "| Generated (UTC) | ${{ steps.meta.outputs.generated_at_utc || 'n/a' }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Distribute staging APK
+        if: steps.plan.outputs.release_type == 'full_apk' && steps.plan.outputs.target_environment == 'staging'
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: 1:91050591321:android:d71f35bd6e626244bd1d48
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          testers: ${{ secrets.FIREBASE_TESTERS_STAGING }}
+          file: ${{ steps.artifact.outputs.artifact_path }}
+          releaseNotesFile: ${{ steps.meta.outputs.release_notes_file }}
+
       - name: Distribute production APK
+        if: steps.plan.outputs.release_type == 'full_apk' && steps.plan.outputs.target_environment == 'production'
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: 1:91050591321:android:51e8d24563ad8989bd1d48

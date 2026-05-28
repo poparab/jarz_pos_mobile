@@ -34,6 +34,30 @@ scripts\build_release.bat staging apk
 scripts\build_release.bat prod apk
 ```
 
+## Shorebird Android Bootstrap
+
+Shorebird is used for Dart-only Android patches after the first Shorebird-enabled APK is installed on devices.
+
+```powershell
+# One-time local setup after installing the Shorebird CLI
+shorebird init --display-name "Jarz POS"
+
+# Create a Shorebird-enabled full release
+scripts\shorebird_android.ps1 -Environment staging -Action release
+scripts\shorebird_android.ps1 -Environment production -Action release
+
+# Publish a Dart-only patch after the Shorebird-enabled APK is already installed
+scripts\shorebird_android.ps1 -Environment staging -Action patch -Track staging
+scripts\shorebird_android.ps1 -Environment production -Action patch -Track stable
+```
+
+Notes:
+
+- `shorebird.yaml` must be committed after `shorebird init`.
+- CI authentication now uses a Shorebird API key in `SHOREBIRD_TOKEN`; `shorebird login:ci` is deprecated.
+- Patch-safe changes are Dart-only; native/plugin/permission/assets/env/versioning changes still require a full APK.
+- On Windows, Shorebird may warn about Git long paths until `git config --system core.longpaths true` is set in an elevated shell.
+
 Android APK builds now use product flavors so both apps can be installed on one device:
 
 - `staging` → package `com.example.jarz_pos.staging`, launcher name `Jarz POS Staging`
