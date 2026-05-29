@@ -81,6 +81,95 @@ class AppLocalizationsAr extends AppLocalizations {
   String get menuPurchaseInvoice => 'فواتير الشراء';
 
   @override
+  String get menuAbout => 'حول التطبيق';
+
+  @override
+  String get aboutTitle => 'حول التطبيق';
+
+  @override
+  String get aboutAppSection => 'التطبيق';
+
+  @override
+  String get aboutReleaseSection => 'الإصدار';
+
+  @override
+  String get aboutShorebirdSection => 'Shorebird';
+
+  @override
+  String get aboutAppName => 'اسم التطبيق';
+
+  @override
+  String get aboutPackageName => 'اسم الحزمة';
+
+  @override
+  String get aboutPlatform => 'المنصة';
+
+  @override
+  String get aboutEnvironment => 'البيئة';
+
+  @override
+  String get aboutBuildName => 'اسم البناء';
+
+  @override
+  String get aboutBuildNumber => 'رقم البناء';
+
+  @override
+  String get aboutReleaseId => 'معرّف الإصدار';
+
+  @override
+  String get aboutReleaseDist => 'توزيع الإصدار';
+
+  @override
+  String get aboutPatchNumber => 'رقم التصحيح';
+
+  @override
+  String get aboutPatchStatus => 'حالة التصحيح';
+
+  @override
+  String get aboutLastChecked => 'آخر فحص';
+
+  @override
+  String get aboutNotAvailable => 'غير متوفر';
+
+  @override
+  String get aboutPatchNotInstalled => 'الإصدار الأساسي فقط';
+
+  @override
+  String get aboutPatchUnavailable => 'غير متاح على هذه المنصة';
+
+  @override
+  String get aboutPatchStatusUpToDate => 'محدّث';
+
+  @override
+  String get aboutPatchStatusUpdateAvailable => 'يوجد تحديث';
+
+  @override
+  String get aboutPatchStatusRestartRequired => 'إعادة التشغيل مطلوبة';
+
+  @override
+  String get aboutPatchStatusUnavailable => 'غير متاح';
+
+  @override
+  String get aboutPatchStatusUnknown => 'غير معروف';
+
+  @override
+  String get aboutRefresh => 'تحديث';
+
+  @override
+  String get aboutCopyDiagnostics => 'نسخ معلومات التشخيص';
+
+  @override
+  String get aboutCopiedDiagnostics => 'تم نسخ معلومات التشخيص';
+
+  @override
+  String get aboutRetry => 'إعادة المحاولة';
+
+  @override
+  String aboutError(Object error) {
+    return 'خطأ: $error';
+  }
+
+  @override
   String get menuManufacturing => 'التصنيع';
 
   @override

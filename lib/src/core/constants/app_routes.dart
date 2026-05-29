@@ -4,6 +4,7 @@
 /// and in the GoRouter definition so every reference points to the same source.
 abstract final class AppRoutes {
   static const login = '/login';
+  static const about = '/about';
   static const pos = '/pos';
   static const selectProfile = '/pos/select-profile';
   static const kanban = '/kanban';

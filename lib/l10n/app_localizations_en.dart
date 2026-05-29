@@ -81,6 +81,95 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuPurchaseInvoice => 'Purchase Invoice';
 
   @override
+  String get menuAbout => 'About';
+
+  @override
+  String get aboutTitle => 'About';
+
+  @override
+  String get aboutAppSection => 'App';
+
+  @override
+  String get aboutReleaseSection => 'Release';
+
+  @override
+  String get aboutShorebirdSection => 'Shorebird';
+
+  @override
+  String get aboutAppName => 'App name';
+
+  @override
+  String get aboutPackageName => 'Package name';
+
+  @override
+  String get aboutPlatform => 'Platform';
+
+  @override
+  String get aboutEnvironment => 'Environment';
+
+  @override
+  String get aboutBuildName => 'Build name';
+
+  @override
+  String get aboutBuildNumber => 'Build number';
+
+  @override
+  String get aboutReleaseId => 'Release ID';
+
+  @override
+  String get aboutReleaseDist => 'Release dist';
+
+  @override
+  String get aboutPatchNumber => 'Patch number';
+
+  @override
+  String get aboutPatchStatus => 'Patch status';
+
+  @override
+  String get aboutLastChecked => 'Last checked';
+
+  @override
+  String get aboutNotAvailable => 'Not available';
+
+  @override
+  String get aboutPatchNotInstalled => 'Base release only';
+
+  @override
+  String get aboutPatchUnavailable => 'Unavailable on this platform';
+
+  @override
+  String get aboutPatchStatusUpToDate => 'Up to date';
+
+  @override
+  String get aboutPatchStatusUpdateAvailable => 'Update available';
+
+  @override
+  String get aboutPatchStatusRestartRequired => 'Restart required';
+
+  @override
+  String get aboutPatchStatusUnavailable => 'Unavailable';
+
+  @override
+  String get aboutPatchStatusUnknown => 'Unknown';
+
+  @override
+  String get aboutRefresh => 'Refresh';
+
+  @override
+  String get aboutCopyDiagnostics => 'Copy diagnostics';
+
+  @override
+  String get aboutCopiedDiagnostics => 'Diagnostics copied';
+
+  @override
+  String get aboutRetry => 'Retry';
+
+  @override
+  String aboutError(Object error) {
+    return 'Error: $error';
+  }
+
+  @override
   String get menuManufacturing => 'Manufacturing';
 
   @override

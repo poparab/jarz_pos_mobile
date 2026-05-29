@@ -28,12 +28,15 @@ import '../features/trips/screens/trips_screen.dart';
 import '../features/reports/presentation/reports_screen.dart';
 import '../features/master_orders/presentation/master_orders_screen.dart';
 import 'network/user_service.dart';
+import '../features/about/presentation/screens/about_screen.dart';
+
 import '../features/shift/state/shift_notifier.dart';
 import '../features/pos/state/pos_notifier.dart';
 import 'widgets/orientation_policy_scope.dart';
 
 // Global RouteObserver for navigation lifecycle (used by Kanban to refresh on return)
-final RouteObserver<PageRoute<dynamic>> routeObserver = RouteObserver<PageRoute<dynamic>>();
+final RouteObserver<PageRoute<dynamic>> routeObserver =
+    RouteObserver<PageRoute<dynamic>>();
 
 // Auth state provider that checks stored session on startup
 final authStateProvider = FutureProvider<bool>((ref) async {
@@ -78,7 +81,9 @@ final currentAuthStateProvider = StateProvider<bool>((ref) {
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 // Expose as provider for consumers needing context
-final navigatorKeyProvider = Provider<GlobalKey<NavigatorState>>((ref) => rootNavigatorKey);
+final navigatorKeyProvider = Provider<GlobalKey<NavigatorState>>(
+  (ref) => rootNavigatorKey,
+);
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(currentAuthStateProvider);
@@ -88,7 +93,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   // Keep a single observer instance; safe to reuse across router rebuilds
   // Note: exported below for screen imports
   // (Declared outside function in actual file scope)
-  
+
   return GoRouter(
     // On startup: if authenticated, land on POS main screen
     initialLocation: isAuthenticated ? AppRoutes.pos : AppRoutes.login,
@@ -133,7 +138,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         // While shift data is loading/refreshing, don't redirect.
         if (!isActiveShiftKnown) return null;
 
-        final hasShiftForProfile = activeShift != null &&
+        final hasShiftForProfile =
+            activeShift != null &&
             activeShift.posProfile == selectedProfileName;
 
         if (!hasShiftForProfile) {
@@ -150,15 +156,25 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       return null; // no change
     },
-  observers: [routeObserver],
-  routes: [
-      GoRoute(path: AppRoutes.login, builder: (context, state) => const LoginScreen()),
+    observers: [routeObserver],
+    routes: [
+      GoRoute(
+        path: AppRoutes.login,
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.about,
+        name: 'about',
+        builder: (context, state) => const AboutScreen(),
+      ),
       GoRoute(
         path: AppRoutes.pos,
         name: 'pos',
         builder: (context, state) {
           final extra = state.extra;
-          final launchData = extra is Map ? Map<String, dynamic>.from(extra) : null;
+          final launchData = extra is Map
+              ? Map<String, dynamic>.from(extra)
+              : null;
           return OrientationPolicyScope(
             policy: AppOrientationPolicy.handsetAny,
             child: PosScreen(launchData: launchData),
@@ -253,9 +269,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'shift-end',
         builder: (context, state) => const ShiftEndScreen(),
       ),
-  GoRoute(path: AppRoutes.root, redirect: (context, state) => AppRoutes.pos),
+      GoRoute(
+        path: AppRoutes.root,
+        redirect: (context, state) => AppRoutes.pos,
+      ),
     ],
-  navigatorKey: rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
   );
 });
-

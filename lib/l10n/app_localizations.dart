@@ -236,6 +236,180 @@ abstract class AppLocalizations {
   /// **'Purchase Invoice'**
   String get menuPurchaseInvoice;
 
+  /// No description provided for @menuAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get menuAbout;
+
+  /// No description provided for @aboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get aboutTitle;
+
+  /// No description provided for @aboutAppSection.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get aboutAppSection;
+
+  /// No description provided for @aboutReleaseSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Release'**
+  String get aboutReleaseSection;
+
+  /// No description provided for @aboutShorebirdSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Shorebird'**
+  String get aboutShorebirdSection;
+
+  /// No description provided for @aboutAppName.
+  ///
+  /// In en, this message translates to:
+  /// **'App name'**
+  String get aboutAppName;
+
+  /// No description provided for @aboutPackageName.
+  ///
+  /// In en, this message translates to:
+  /// **'Package name'**
+  String get aboutPackageName;
+
+  /// No description provided for @aboutPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform'**
+  String get aboutPlatform;
+
+  /// No description provided for @aboutEnvironment.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment'**
+  String get aboutEnvironment;
+
+  /// No description provided for @aboutBuildName.
+  ///
+  /// In en, this message translates to:
+  /// **'Build name'**
+  String get aboutBuildName;
+
+  /// No description provided for @aboutBuildNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Build number'**
+  String get aboutBuildNumber;
+
+  /// No description provided for @aboutReleaseId.
+  ///
+  /// In en, this message translates to:
+  /// **'Release ID'**
+  String get aboutReleaseId;
+
+  /// No description provided for @aboutReleaseDist.
+  ///
+  /// In en, this message translates to:
+  /// **'Release dist'**
+  String get aboutReleaseDist;
+
+  /// No description provided for @aboutPatchNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Patch number'**
+  String get aboutPatchNumber;
+
+  /// No description provided for @aboutPatchStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Patch status'**
+  String get aboutPatchStatus;
+
+  /// No description provided for @aboutLastChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Last checked'**
+  String get aboutLastChecked;
+
+  /// No description provided for @aboutNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get aboutNotAvailable;
+
+  /// No description provided for @aboutPatchNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Base release only'**
+  String get aboutPatchNotInstalled;
+
+  /// No description provided for @aboutPatchUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable on this platform'**
+  String get aboutPatchUnavailable;
+
+  /// No description provided for @aboutPatchStatusUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get aboutPatchStatusUpToDate;
+
+  /// No description provided for @aboutPatchStatusUpdateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get aboutPatchStatusUpdateAvailable;
+
+  /// No description provided for @aboutPatchStatusRestartRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart required'**
+  String get aboutPatchStatusRestartRequired;
+
+  /// No description provided for @aboutPatchStatusUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get aboutPatchStatusUnavailable;
+
+  /// No description provided for @aboutPatchStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get aboutPatchStatusUnknown;
+
+  /// No description provided for @aboutRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get aboutRefresh;
+
+  /// No description provided for @aboutCopyDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy diagnostics'**
+  String get aboutCopyDiagnostics;
+
+  /// No description provided for @aboutCopiedDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics copied'**
+  String get aboutCopiedDiagnostics;
+
+  /// No description provided for @aboutRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get aboutRetry;
+
+  /// No description provided for @aboutError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String aboutError(Object error);
+
   /// No description provided for @menuManufacturing.
   ///
   /// In en, this message translates to:

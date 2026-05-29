@@ -37,16 +37,14 @@ class AppDrawer extends ConsumerWidget {
     final currentLocale = locale?.languageCode ?? englishLocale.languageCode;
     final isArabic = currentLocale == arabicLocale.languageCode;
     final selectedLanguageLabel = l10n.menuSelectedLanguage(
-      describeLocale(
-        context,
-        isArabic ? arabicLocale : englishLocale,
-      ),
+      describeLocale(context, isArabic ? arabicLocale : englishLocale),
     );
 
     Future<void> changeLanguage(Locale targetLocale) async {
       final notifier = ref.read(localeNotifierProvider.notifier);
       final languageName = describeLocale(context, targetLocale);
-      final confirmed = await showDialog<bool>(
+      final confirmed =
+          await showDialog<bool>(
             context: context,
             builder: (dialogCtx) => AlertDialog(
               title: Text(l10n.menuLanguage),
@@ -82,9 +80,7 @@ class AppDrawer extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                _DrawerHeaderTitle(),
-              ],
+              children: [_DrawerHeaderTitle()],
             ),
           ),
           ListTile(
@@ -204,6 +200,14 @@ class AppDrawer extends ConsumerWidget {
             ),
           ],
           const Divider(),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text(l10n.menuAbout),
+            onTap: () {
+              Navigator.pop(context);
+              context.go(AppRoutes.about);
+            },
+          ),
           SwitchListTile.adaptive(
             secondary: const Icon(Icons.language),
             title: Text(l10n.menuLanguage),
