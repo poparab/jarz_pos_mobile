@@ -149,6 +149,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
     final theme = Theme.of(context);
     final courierCloseBlock = summary.courierCloseBlock;
     final hasCourierCloseBlock = courierCloseBlock?.blocked == true;
+    final hasClosingPaymentModes = summary.paymentReconciliation.isNotEmpty;
     final displayError = _validationError ??
         (shiftState.error != null ? _localizedShiftError(context, shiftState.error!) : null);
 
@@ -164,6 +165,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
 
           Expanded(
             child: ListView(
+              padding: const EdgeInsets.only(bottom: 12),
               children: [
                 if (hasCourierCloseBlock) ...[
                   _buildCourierCloseBlockCard(context, courierCloseBlock!),
@@ -176,38 +178,41 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
                   style: theme.textTheme.bodySmall,
                 ),
                 const SizedBox(height: 10),
-                ...summary.paymentReconciliation.map((row) {
-                  final controller = _controllers.putIfAbsent(
-                    row.modeOfPayment,
-                    () => TextEditingController(),
-                  );
+                if (!hasClosingPaymentModes)
+                  _buildMissingPaymentModesCard(context)
+                else
+                  ...summary.paymentReconciliation.map((row) {
+                    final controller = _controllers.putIfAbsent(
+                      row.modeOfPayment,
+                      () => TextEditingController(),
+                    );
 
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(row.modeOfPayment),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: controller,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          onChanged: (_) {
-                            if (_validationError != null) {
-                              setState(() {
-                                _validationError = null;
-                              });
-                            }
-                          },
-                          decoration: InputDecoration(
-                            labelText: l10n.shiftCountedClosingAmount,
-                            border: const OutlineInputBorder(),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(row.modeOfPayment),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: controller,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            onChanged: (_) {
+                              if (_validationError != null) {
+                                setState(() {
+                                  _validationError = null;
+                                });
+                              }
+                            },
+                            decoration: InputDecoration(
+                              labelText: l10n.shiftCountedClosingAmount,
+                              border: const OutlineInputBorder(),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
+                        ],
+                      ),
+                    );
+                  }),
               ],
             ),
           ),
@@ -237,6 +242,8 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
                       ? null
                       : hasCourierCloseBlock
                       ? () => _handleCourierSettlementReview(summary)
+                      : !hasClosingPaymentModes
+                      ? null
                       : () => _handleEndShift(summary),
                   icon: Icon(
                     hasCourierCloseBlock ? Icons.local_shipping_outlined : Icons.task_alt_outlined,
@@ -478,6 +485,46 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
     );
   }
 
+  Widget _buildMissingPaymentModesCard(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.error_outline, color: theme.colorScheme.onErrorContainer),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  l10n.shiftNoClosingPaymentMethodsTitle,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.onErrorContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.shiftNoClosingPaymentMethodsBody,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onErrorContainer,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleCourierSettlementReview(ShiftSummary summary) async {
     final activeBlock = summary.courierCloseBlock?.parties ?? const <ShiftCourierCloseParty>[];
     final shouldFilterDialog = summary.courierCloseBlock != null &&
@@ -498,6 +545,13 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
   }
 
   Future<void> _handleEndShift(ShiftSummary summary) async {
+    if (summary.paymentReconciliation.isEmpty) {
+      setState(() {
+        _validationError = context.l10n.shiftNoClosingPaymentMethodsBody;
+      });
+      return;
+    }
+
     final balances = <Map<String, dynamic>>[];
     for (final row in summary.paymentReconciliation) {
       final text = _controllers[row.modeOfPayment]?.text ?? '';

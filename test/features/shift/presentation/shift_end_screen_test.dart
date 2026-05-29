@@ -9,14 +9,26 @@ import 'package:jarz_pos/src/features/shift/models/shift_models.dart';
 import 'package:jarz_pos/src/features/shift/presentation/shift_end_screen.dart';
 import 'package:jarz_pos/src/features/shift/state/shift_notifier.dart';
 
+Finder _buttonWithLabel(String label) {
+  return find.ancestor(
+    of: find.text(label),
+    matching: find.byWidgetPredicate((widget) => widget is ButtonStyleButton),
+  );
+}
+
 class _FakeShiftRepository extends ShiftRepository {
   _FakeShiftRepository({
     required this.activeShift,
     required this.summary,
-  }) : super(Dio());
+    ShiftSummary? endShiftSummary,
+  }) : endShiftSummary = endShiftSummary,
+       super(Dio());
 
   final ShiftEntry? activeShift;
   final ShiftSummary summary;
+  final ShiftSummary? endShiftSummary;
+  List<Map<String, dynamic>>? submittedClosingBalances;
+  String? submittedOpeningEntry;
 
   @override
   Future<ShiftEntry?> getActiveShift({String? posProfile}) async {
@@ -26,6 +38,18 @@ class _FakeShiftRepository extends ShiftRepository {
   @override
   Future<ShiftSummary> getShiftSummary(String openingEntry) async {
     return summary;
+  }
+
+  @override
+  Future<ShiftSummary> endShift({
+    required String openingEntry,
+    required List<Map<String, dynamic>> closingBalances,
+  }) async {
+    submittedOpeningEntry = openingEntry;
+    submittedClosingBalances = closingBalances
+        .map((row) => Map<String, dynamic>.from(row))
+        .toList();
+    return endShiftSummary ?? summary;
   }
 }
 
@@ -57,6 +81,149 @@ Future<void> _pumpShiftEndScreen(
 }
 
 void main() {
+  group('ShiftEndScreen blind count', () {
+    testWidgets('shows a blank counted closing cash field for the cash payment row', (tester) async {
+      // Arrange
+      final repository = _FakeShiftRepository(
+        activeShift: const ShiftEntry(
+          name: 'POS-OPN-001',
+          posProfile: 'Dokki',
+          status: 'Open',
+        ),
+        summary: const ShiftSummary(
+          openingEntry: 'POS-OPN-001',
+          status: 'Open',
+          invoiceCount: 1,
+          paymentReconciliation: [
+            ShiftBalanceDetail(modeOfPayment: 'Cash'),
+          ],
+          amountsHidden: true,
+        ),
+      );
+
+      // Act
+      await _pumpShiftEndScreen(tester, repository);
+
+      // Assert
+      final amountField = tester.widget<TextField>(find.byType(TextField));
+      expect(amountField.controller?.text ?? '', isEmpty);
+      expect(find.text('Cash'), findsOneWidget);
+      expect(find.text('Counted Closing Cash'), findsOneWidget);
+      expect(find.text('Count the cash in the drawer and enter the amount.'), findsOneWidget);
+    });
+
+    testWidgets('blocks submitting when counted closing cash is empty', (tester) async {
+      // Arrange
+      final repository = _FakeShiftRepository(
+        activeShift: const ShiftEntry(
+          name: 'POS-OPN-001',
+          posProfile: 'Dokki',
+          status: 'Open',
+        ),
+        summary: const ShiftSummary(
+          openingEntry: 'POS-OPN-001',
+          status: 'Open',
+          invoiceCount: 1,
+          paymentReconciliation: [
+            ShiftBalanceDetail(modeOfPayment: 'Cash'),
+          ],
+          amountsHidden: true,
+        ),
+      );
+
+      // Act
+      await _pumpShiftEndScreen(tester, repository);
+      await tester.tap(_buttonWithLabel('End Shift').first);
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.text('Enter the counted cash amount.'), findsOneWidget);
+      expect(repository.submittedClosingBalances, isNull);
+    });
+
+    testWidgets('submits the entered counted closing cash amount', (tester) async {
+      // Arrange
+      final repository = _FakeShiftRepository(
+        activeShift: const ShiftEntry(
+          name: 'POS-OPN-001',
+          posProfile: 'Dokki',
+          status: 'Open',
+        ),
+        summary: const ShiftSummary(
+          openingEntry: 'POS-OPN-001',
+          status: 'Open',
+          invoiceCount: 1,
+          paymentReconciliation: [
+            ShiftBalanceDetail(modeOfPayment: 'Cash'),
+          ],
+          amountsHidden: true,
+        ),
+        endShiftSummary: const ShiftSummary(
+          openingEntry: 'POS-OPN-001',
+          status: 'Closed',
+          closingEntry: 'POS-CL-001',
+          invoiceCount: 1,
+          paymentReconciliation: [
+            ShiftBalanceDetail(
+              modeOfPayment: 'Cash',
+              closingAmount: 145.75,
+            ),
+          ],
+          amountsHidden: false,
+          varianceVisible: true,
+        ),
+      );
+
+      // Act
+      await _pumpShiftEndScreen(tester, repository);
+      await tester.enterText(find.byType(TextField), '145.75');
+      await tester.tap(_buttonWithLabel('End Shift').first);
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(repository.submittedOpeningEntry, 'POS-OPN-001');
+      expect(repository.submittedClosingBalances, const [
+        {
+          'mode_of_payment': 'Cash',
+          'closing_amount': 145.75,
+        },
+      ]);
+      expect(find.byType(TextField), findsNothing);
+    });
+
+    testWidgets('shows an actionable empty state when no closing payment modes are available', (tester) async {
+      // Arrange
+      final repository = _FakeShiftRepository(
+        activeShift: const ShiftEntry(
+          name: 'POS-OPN-001',
+          posProfile: 'Dokki',
+          status: 'Open',
+        ),
+        summary: const ShiftSummary(
+          openingEntry: 'POS-OPN-001',
+          status: 'Open',
+          invoiceCount: 0,
+          paymentReconciliation: [],
+          amountsHidden: true,
+        ),
+      );
+
+      // Act
+      await _pumpShiftEndScreen(tester, repository);
+
+      // Assert
+      expect(find.byType(TextField), findsNothing);
+      expect(find.text('Cash entry is unavailable'), findsOneWidget);
+      expect(
+        find.text('No closing payment method is available for this shift. Reopen the shift or contact support.'),
+        findsOneWidget,
+      );
+      final endShiftButton = tester.widget<ButtonStyleButton>(_buttonWithLabel('End Shift'));
+      expect(endShiftButton.onPressed, isNull);
+      expect(repository.submittedClosingBalances, isNull);
+    });
+  });
+
   group('ShiftEndScreen courier blocker', () {
     testWidgets('shows settlement guidance when courier balances block closing', (tester) async {
       // Arrange

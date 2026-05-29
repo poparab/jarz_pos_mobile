@@ -394,6 +394,8 @@
   "shiftClosingAmountLabel": "Closing Amount",
   "shiftCountedClosingAmount": "Counted Closing Cash",
   "shiftBlindCountHint": "Count the cash in the drawer and enter the amount.",
+  "shiftNoClosingPaymentMethodsTitle": "Cash entry is unavailable",
+  "shiftNoClosingPaymentMethodsBody": "No closing payment method is available for this shift. Reopen the shift or contact support.",
   "shiftCashCountRequired": "Enter the counted cash amount.",
   "shiftCashCountInvalid": "Enter a valid cash amount.",
   "shiftCashCountNegative": "Cash amount cannot be negative.",

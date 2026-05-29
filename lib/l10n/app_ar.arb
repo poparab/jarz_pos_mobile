@@ -394,6 +394,8 @@
   "shiftClosingAmountLabel": "رصيد الإغلاق",
   "shiftCountedClosingAmount": "النقدية المعدودة عند الإغلاق",
   "shiftBlindCountHint": "قم بعدّ النقدية في الدرج ثم أدخل المبلغ.",
+  "shiftNoClosingPaymentMethodsTitle": "تعذر إظهار حقل إدخال النقدية",
+  "shiftNoClosingPaymentMethodsBody": "لا توجد وسيلة دفع متاحة لإغلاق هذا الشيفت. أعد فتح الشيفت أو تواصل مع الدعم.",
   "shiftCashCountRequired": "أدخل مبلغ النقدية المعدودة.",
   "shiftCashCountInvalid": "أدخل مبلغ نقدية صحيح.",
   "shiftCashCountNegative": "لا يمكن أن تكون قيمة النقدية سالبة.",

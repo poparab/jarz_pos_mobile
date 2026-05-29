@@ -1603,6 +1603,18 @@ abstract class AppLocalizations {
   /// **'Count the cash in the drawer and enter the amount.'**
   String get shiftBlindCountHint;
 
+  /// No description provided for @shiftNoClosingPaymentMethodsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash entry is unavailable'**
+  String get shiftNoClosingPaymentMethodsTitle;
+
+  /// No description provided for @shiftNoClosingPaymentMethodsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No closing payment method is available for this shift. Reopen the shift or contact support.'**
+  String get shiftNoClosingPaymentMethodsBody;
+
   /// No description provided for @shiftCashCountRequired.
   ///
   /// In en, this message translates to:

@@ -858,6 +858,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Count the cash in the drawer and enter the amount.';
 
   @override
+  String get shiftNoClosingPaymentMethodsTitle => 'Cash entry is unavailable';
+
+  @override
+  String get shiftNoClosingPaymentMethodsBody =>
+      'No closing payment method is available for this shift. Reopen the shift or contact support.';
+
+  @override
   String get shiftCashCountRequired => 'Enter the counted cash amount.';
 
   @override

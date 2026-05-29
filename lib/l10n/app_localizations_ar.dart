@@ -859,6 +859,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shiftBlindCountHint => 'قم بعدّ النقدية في الدرج ثم أدخل المبلغ.';
 
   @override
+  String get shiftNoClosingPaymentMethodsTitle =>
+      'تعذر إظهار حقل إدخال النقدية';
+
+  @override
+  String get shiftNoClosingPaymentMethodsBody =>
+      'لا توجد وسيلة دفع متاحة لإغلاق هذا الشيفت. أعد فتح الشيفت أو تواصل مع الدعم.';
+
+  @override
   String get shiftCashCountRequired => 'أدخل مبلغ النقدية المعدودة.';
 
   @override
