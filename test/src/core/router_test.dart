@@ -49,5 +49,15 @@ void main() {
 
       expect(result, isTrue);
     });
+
+    test('returns false when web session validation throws', () async {
+      final result = await resolveInitialAuthState(
+        isWeb: true,
+        hasStoredSession: () async => true,
+        validateSession: () async => throw Exception('validation failed'),
+      );
+
+      expect(result, isFalse);
+    });
   });
 }

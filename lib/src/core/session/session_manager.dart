@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,19 +11,35 @@ class SessionManager {
   );
 
   Future<String?> getSessionId() async {
+    if (kIsWeb) {
+      return null;
+    }
+
     try {
       return await _storage.read(key: _sessionKey);
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
 
   Future<void> saveSessionId(String sessionId) async {
-    await _storage.write(key: _sessionKey, value: sessionId);
+    if (kIsWeb) {
+      return;
+    }
+
+    try {
+      await _storage.write(key: _sessionKey, value: sessionId);
+    } catch (_) {}
   }
 
   Future<void> clearSession() async {
-    await _storage.delete(key: _sessionKey);
+    if (kIsWeb) {
+      return;
+    }
+
+    try {
+      await _storage.delete(key: _sessionKey);
+    } catch (_) {}
   }
 
   Future<bool> hasValidSession() async {

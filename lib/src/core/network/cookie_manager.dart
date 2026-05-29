@@ -10,6 +10,10 @@ class CookieManager {
   static const _sessionIdKey = SecureStorageKeys.sessionId;
 
   static Future<void> saveCookies(Response response) async {
+    if (kIsWeb) {
+      return;
+    }
+
     try {
       final cookies = response.headers['set-cookie'];
       if (cookies != null && cookies.isNotEmpty) {
@@ -33,6 +37,10 @@ class CookieManager {
   }
 
   static Future<String?> loadCookies() async {
+    if (kIsWeb) {
+      return null;
+    }
+
     try {
       return await _storage.read(key: _cookieKey);
     } catch (e) {
@@ -44,6 +52,10 @@ class CookieManager {
   }
 
   static Future<String?> getSessionId() async {
+    if (kIsWeb) {
+      return null;
+    }
+
     try {
       return await _storage.read(key: _sessionIdKey);
     } catch (e) {
@@ -55,8 +67,13 @@ class CookieManager {
   }
 
   static Future<void> clearCookies() async {
+    if (kIsWeb) {
+      return;
+    }
+
     try {
-      await _storage.deleteAll();
+      await _storage.delete(key: _cookieKey);
+      await _storage.delete(key: _sessionIdKey);
     } catch (e) {
       if (kDebugMode) {
         debugPrint('⚠️ CookieManager.clearCookies error: $e');
@@ -65,6 +82,10 @@ class CookieManager {
   }
 
   static Future<void> attachCookiesToRequest(RequestOptions options) async {
+    if (kIsWeb) {
+      return;
+    }
+
     try {
       final cookies = await loadCookies();
       if (cookies != null) {

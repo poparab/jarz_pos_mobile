@@ -23,18 +23,10 @@ class JarzPosApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final locale = ref.watch(localeNotifierProvider);
+    final isAuthenticated = ref.watch(currentAuthStateProvider);
 
-    // Initialize services
-    ref.watch(webSocketServiceProvider);
-    ref.watch(offlineSyncServiceProvider);
     // Initialize printer service early so it can auto-reconnect if a device was saved
     ref.watch(posPrinterServiceProvider);
-    // Prefetch current user roles (safe if unauthenticated; will be retried post-login)
-    ref.watch(userRolesFutureProvider);
-
-    // Initialize courier websocket bridge
-    ref.watch(courierWsBridgeProvider);
-    ref.watch(orderAlertBridgeProvider);
 
     return MaterialApp.router(
       onGenerateTitle: (context) => context.l10n.appTitle,
@@ -80,7 +72,11 @@ class JarzPosApp extends ConsumerWidget {
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
-        final routed = child ?? const SizedBox.shrink();
+        final routed = isAuthenticated
+            ? _AuthenticatedServiceBootstrap(
+                child: child ?? const SizedBox.shrink(),
+              )
+            : child ?? const SizedBox.shrink();
         return AppErrorConsole(
           child: OrderAlertOverlay(
             child: GestureDetector(
@@ -97,5 +93,22 @@ class JarzPosApp extends ConsumerWidget {
         );
       },
     );
+  }
+}
+
+class _AuthenticatedServiceBootstrap extends ConsumerWidget {
+  const _AuthenticatedServiceBootstrap({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(webSocketServiceProvider);
+    ref.watch(offlineSyncServiceProvider);
+    ref.watch(userRolesFutureProvider);
+    ref.watch(courierWsBridgeProvider);
+    ref.watch(orderAlertBridgeProvider);
+
+    return child;
   }
 }

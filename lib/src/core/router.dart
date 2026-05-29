@@ -53,12 +53,16 @@ Future<bool> resolveInitialAuthState({
   required Future<bool> Function() hasStoredSession,
   required Future<bool> Function() validateSession,
 }) async {
-  if (!isWeb) {
-    final hasSession = await hasStoredSession();
-    if (!hasSession) return false;
-  }
+  try {
+    if (!isWeb) {
+      final hasSession = await hasStoredSession();
+      if (!hasSession) return false;
+    }
 
-  return validateSession();
+    return await validateSession();
+  } catch (_) {
+    return false;
+  }
 }
 
 // Current auth state for UI
@@ -79,12 +83,6 @@ final navigatorKeyProvider = Provider<GlobalKey<NavigatorState>>((ref) => rootNa
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(currentAuthStateProvider);
   final isAuthenticated = authState;
-  final requirePosShift = ref.watch(requirePosShiftProvider);
-  final activeShiftAsync = ref.watch(activeShiftProvider);
-  // Only watch selectedProfile – avoids recreating GoRouter on every cart/item change.
-  final selectedProfile = ref.watch(
-    posNotifierProvider.select((s) => s.selectedProfile),
-  );
 
   // Expose a RouteObserver so screens can respond to navigation lifecycle (e.g., refresh on return)
   // Keep a single observer instance; safe to reuse across router rebuilds
@@ -103,6 +101,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (!isAuthenticated && !isOnLogin) return AppRoutes.login;
       // Authenticated on login -> go to POS
       if (isAuthenticated && isOnLogin) return AppRoutes.pos;
+
+      final requirePosShift = ref.read(requirePosShiftProvider);
+      final activeShiftAsync = ref.read(activeShiftProvider);
+      // Only read selectedProfile here so unauthenticated startup does not construct
+      // extra providers before the login route is stable.
+      final selectedProfile = ref.read(
+        posNotifierProvider.select((s) => s.selectedProfile),
+      );
 
       // Track whether a profile has been selected (used for subsequent checks).
       final hasSelectedProfile = selectedProfile != null;

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart'
+  show debugPrint, kDebugMode, kIsWeb, visibleForTesting;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,11 +10,17 @@ import 'cookie_manager.dart';
 import '../offline/offline_queue.dart';
 
 class SessionInterceptor extends Interceptor {
-  SessionInterceptor(this._sessionManager, this._offlineQueue, this._frappeSite);
+  SessionInterceptor(
+    this._sessionManager,
+    this._offlineQueue,
+    this._frappeSite, {
+    bool? isWebOverride,
+  }) : _isWeb = isWebOverride ?? kIsWeb;
 
   final SessionManager _sessionManager;
   final OfflineQueue _offlineQueue;
   final String _frappeSite;
+  final bool _isWeb;
 
   @override
   void onRequest(
@@ -22,7 +29,7 @@ class SessionInterceptor extends Interceptor {
   ) async {
     // On web, browsers manage cookies automatically for same-origin requests.
     // Manually setting Cookie headers is blocked by browsers and causes issues.
-    if (!kIsWeb) {
+    if (!_isWeb) {
       // Add session cookies
       await CookieManager.attachCookiesToRequest(options);
       
@@ -50,7 +57,7 @@ class SessionInterceptor extends Interceptor {
   void onResponse(Response response, ResponseInterceptorHandler handler) async {
     // On web, browsers manage cookies automatically. The set-cookie header
     // is hidden from JavaScript by the browser for security.
-    if (!kIsWeb) {
+    if (!_isWeb) {
       // Save cookies using new cookie manager
       await CookieManager.saveCookies(response);
       
@@ -81,8 +88,11 @@ class SessionInterceptor extends Interceptor {
     
     // Clear session on 401 Unauthorized
     if (err.response?.statusCode == 401) {
-      await _sessionManager.clearSession();
-      await CookieManager.clearCookies();
+      await clearStoredSessionAfterUnauthorized(
+        isWeb: _isWeb,
+        sessionManager: _sessionManager,
+        clearCookies: CookieManager.clearCookies,
+      );
     }
     
     // Add to offline queue if network error and it's a modifying request
@@ -108,6 +118,20 @@ class SessionInterceptor extends Interceptor {
     
     handler.next(err);
   }
+}
+
+@visibleForTesting
+Future<void> clearStoredSessionAfterUnauthorized({
+  required bool isWeb,
+  required SessionManager sessionManager,
+  required Future<void> Function() clearCookies,
+}) async {
+  if (isWeb) {
+    return;
+  }
+
+  await sessionManager.clearSession();
+  await clearCookies();
 }
 
 final dioProvider = Provider<Dio>((ref) {
