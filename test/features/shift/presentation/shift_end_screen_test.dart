@@ -20,9 +20,8 @@ class _FakeShiftRepository extends ShiftRepository {
   _FakeShiftRepository({
     required this.activeShift,
     required this.summary,
-    ShiftSummary? endShiftSummary,
-  }) : endShiftSummary = endShiftSummary,
-       super(Dio());
+    this.endShiftSummary,
+  }) : super(Dio());
 
   final ShiftEntry? activeShift;
   final ShiftSummary summary;
