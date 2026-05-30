@@ -25,9 +25,6 @@ class JarzPosApp extends ConsumerWidget {
     final locale = ref.watch(localeNotifierProvider);
     final isAuthenticated = ref.watch(currentAuthStateProvider);
 
-    // Initialize printer service early so it can auto-reconnect if a device was saved
-    ref.watch(posPrinterServiceProvider);
-
     return MaterialApp.router(
       onGenerateTitle: (context) => context.l10n.appTitle,
       locale: locale,
@@ -103,6 +100,7 @@ class _AuthenticatedServiceBootstrap extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(posPrinterServiceProvider);
     ref.watch(webSocketServiceProvider);
     ref.watch(offlineSyncServiceProvider);
     ref.watch(userRolesFutureProvider);

@@ -31,6 +31,7 @@ import 'network/user_service.dart';
 import '../features/about/presentation/screens/about_screen.dart';
 
 import '../features/shift/state/shift_notifier.dart';
+import '../features/shift/models/shift_models.dart';
 import '../features/pos/state/pos_notifier.dart';
 import 'widgets/orientation_policy_scope.dart';
 
@@ -85,6 +86,63 @@ final navigatorKeyProvider = Provider<GlobalKey<NavigatorState>>(
   (ref) => rootNavigatorKey,
 );
 
+@visibleForTesting
+String? resolveRouterRedirect({
+  required bool isAuthenticated,
+  required String location,
+  required bool Function() readRequirePosShift,
+  required AsyncValue<ShiftEntry?> Function() readActiveShift,
+  required Map<String, dynamic>? Function() readSelectedProfile,
+}) {
+  final isOnLogin = location == AppRoutes.login;
+  final isOnShiftStart = location == AppRoutes.shiftStart;
+  final isOnProfileSelection = location == AppRoutes.selectProfile;
+
+  if (!isAuthenticated && !isOnLogin) return AppRoutes.login;
+  if (isAuthenticated && isOnLogin) return AppRoutes.pos;
+
+  if (!isAuthenticated) return null;
+
+  final requirePosShift = readRequirePosShift();
+  final activeShiftAsync = readActiveShift();
+  final selectedProfile = readSelectedProfile();
+
+  // Track whether a profile has been selected (used for subsequent checks).
+  final hasSelectedProfile = selectedProfile != null;
+
+  // If profile is selected, no need to keep user on profile selection screen.
+  if (hasSelectedProfile && isOnProfileSelection) {
+    return AppRoutes.pos;
+  }
+
+  // Global shift gating: only after POS profile is selected.
+  // Each POS profile is independent – shifts on other profiles are irrelevant.
+  if (hasSelectedProfile && requirePosShift) {
+    final activeShift = activeShiftAsync.valueOrNull;
+    final selectedProfileName = (selectedProfile['name'] ?? '').toString();
+    final isActiveShiftKnown = !activeShiftAsync.isLoading;
+
+    // While shift data is loading/refreshing, don't redirect.
+    if (!isActiveShiftKnown) return null;
+
+    final hasShiftForProfile =
+        activeShift != null && activeShift.posProfile == selectedProfileName;
+
+    if (!hasShiftForProfile) {
+      // No shift on this profile → force Start Shift.
+      if (!isOnShiftStart) return AppRoutes.shiftStart;
+    } else if (activeShift.isCurrentUser) {
+      // Same user + same profile → go to POS.
+      if (isOnShiftStart) return AppRoutes.pos;
+    } else {
+      // Different user + same profile → block on Start Shift.
+      if (!isOnShiftStart) return AppRoutes.shiftStart;
+    }
+  }
+
+  return null;
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(currentAuthStateProvider);
   final isAuthenticated = authState;
@@ -98,63 +156,18 @@ final routerProvider = Provider<GoRouter>((ref) {
     // On startup: if authenticated, land on POS main screen
     initialLocation: isAuthenticated ? AppRoutes.pos : AppRoutes.login,
     redirect: (context, state) {
-      final location = state.matchedLocation;
-      final isOnLogin = location == AppRoutes.login;
-      final isOnShiftStart = location == AppRoutes.shiftStart;
-      final isOnProfileSelection = location == AppRoutes.selectProfile;
-      // Not authenticated -> force login
-      if (!isAuthenticated && !isOnLogin) return AppRoutes.login;
-      // Authenticated on login -> go to POS
-      if (isAuthenticated && isOnLogin) return AppRoutes.pos;
-
-      final requirePosShift = ref.read(requirePosShiftProvider);
-      final activeShiftAsync = ref.read(activeShiftProvider);
-      // Only read selectedProfile here so unauthenticated startup does not construct
-      // extra providers before the login route is stable.
-      final selectedProfile = ref.read(
-        posNotifierProvider.select((s) => s.selectedProfile),
-      );
-
-      // Track whether a profile has been selected (used for subsequent checks).
-      final hasSelectedProfile = selectedProfile != null;
       // NOTE: We do NOT redirect non-POS/shift screens when no profile is selected.
       // Kanban, Trips, Expenses, and Courier screens can operate across all accessible
       // profiles without requiring a single selection. Profile selection is only mandatory
-      // for POS order creation (handled inline by PosScreen) and shift management
-      // (handled by the shift gating block below).
-
-      // If profile is selected, no need to keep user on profile selection screen.
-      if (isAuthenticated && hasSelectedProfile && isOnProfileSelection) {
-        return AppRoutes.pos;
-      }
-
-      // Global shift gating: only after POS profile is selected.
-      // Each POS profile is independent – shifts on other profiles are irrelevant.
-      if (isAuthenticated && hasSelectedProfile && requirePosShift) {
-        final activeShift = activeShiftAsync.valueOrNull;
-        final selectedProfileName = (selectedProfile['name'] ?? '').toString();
-        final isActiveShiftKnown = !activeShiftAsync.isLoading;
-
-        // While shift data is loading/refreshing, don't redirect.
-        if (!isActiveShiftKnown) return null;
-
-        final hasShiftForProfile =
-            activeShift != null &&
-            activeShift.posProfile == selectedProfileName;
-
-        if (!hasShiftForProfile) {
-          // No shift on this profile → force Start Shift.
-          if (!isOnShiftStart) return AppRoutes.shiftStart;
-        } else if (activeShift.isCurrentUser) {
-          // Same user + same profile → go to POS.
-          if (isOnShiftStart) return AppRoutes.pos;
-        } else {
-          // Different user + same profile → block on Start Shift.
-          if (!isOnShiftStart) return AppRoutes.shiftStart;
-        }
-      }
-
-      return null; // no change
+      // for POS order creation and authenticated shift management.
+      return resolveRouterRedirect(
+        isAuthenticated: isAuthenticated,
+        location: state.matchedLocation,
+        readRequirePosShift: () => ref.read(requirePosShiftProvider),
+        readActiveShift: () => ref.read(activeShiftProvider),
+        readSelectedProfile: () =>
+            ref.read(posNotifierProvider.select((s) => s.selectedProfile)),
+      );
     },
     observers: [routeObserver],
     routes: [
