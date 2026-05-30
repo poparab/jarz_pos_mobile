@@ -1,20 +1,23 @@
+// ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:web/web.dart' as web;
 import 'dart:js_interop';
+import 'dart:js_util' as js_util;
 
 import '../../../core/firebase/firebase_runtime_config.dart';
 import '../../../core/utils/logger.dart';
 import 'web_notification_service_web.dart';
 import 'web_push_paths.dart';
 import 'web_push_registration_result.dart';
+import 'web_push_token_normalizer.dart';
 
 @JS('firebase_messaging.getMessaging')
-external _WebMessagingJsImpl _getWebMessaging();
+external _WebMessagingJsImpl? _getWebMessaging();
 
 @JS('firebase_messaging.getToken')
-external JSPromise<JSString> _getWebPushToken(
+external JSPromise<JSAny?> _getWebPushToken(
   _WebMessagingJsImpl messaging,
   _WebGetTokenOptions options,
 );
@@ -196,15 +199,17 @@ class WebPushRegistrationService {
   static Future<String?> _getTokenWithServiceWorker(
     web.ServiceWorkerRegistration registration,
   ) async {
+    final messaging = _requireWebMessaging();
+
     try {
-      final token = await _getWebPushToken(
-        _getWebMessaging(),
+      final tokenValue = await _getWebPushToken(
+        messaging,
         _WebGetTokenOptions(
           vapidKey: FirebaseRuntimeConfig.webVapidKey.toJS,
           serviceWorkerRegistration: registration,
         ),
       ).toDart.timeout(_tokenTimeout);
-      return token.toDart;
+      return normalizeWebPushTokenCandidate(_dartifyWebPushTokenValue(tokenValue));
     } catch (error) {
       if (!error.toString().toLowerCase().contains('no active service worker')) {
         rethrow;
@@ -212,14 +217,31 @@ class WebPushRegistrationService {
 
       final readyRegistration = await web.window.navigator.serviceWorker.ready.toDart
           .timeout(_serviceWorkerTimeout);
-      final token = await _getWebPushToken(
-        _getWebMessaging(),
+      final tokenValue = await _getWebPushToken(
+        _requireWebMessaging(),
         _WebGetTokenOptions(
           vapidKey: FirebaseRuntimeConfig.webVapidKey.toJS,
           serviceWorkerRegistration: readyRegistration,
         ),
       ).toDart.timeout(_tokenTimeout);
-      return token.toDart;
+      return normalizeWebPushTokenCandidate(_dartifyWebPushTokenValue(tokenValue));
     }
+  }
+
+  static _WebMessagingJsImpl _requireWebMessaging() {
+    final messaging = _getWebMessaging();
+    if (messaging == null) {
+      throw StateError('Firebase web messaging is unavailable in this browser context.');
+    }
+
+    return messaging;
+  }
+
+  static Object? _dartifyWebPushTokenValue(JSAny? value) {
+    if (value == null) {
+      return null;
+    }
+
+    return js_util.dartify(value);
   }
 }

@@ -21,7 +21,7 @@ class WebPushRegistrationResult {
   final String message;
   final String? token;
 
-  bool get hasToken => token != null && token!.isNotEmpty;
+  bool get hasToken => token?.isNotEmpty ?? false;
   bool get isSuccess => status == WebPushRegistrationStatus.registered;
 
   WebPushRegistrationResult asRegistered() {
