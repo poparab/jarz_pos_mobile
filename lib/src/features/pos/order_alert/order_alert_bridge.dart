@@ -226,11 +226,22 @@ class OrderAlertBridge {
     try {
       final result = await WebPushRegistrationService.requestToken();
       if (!result.hasToken) {
-        _logger.warning('Web push enable skipped: ${result.message}');
+        final diagnostics = result.diagnostics?.toCompactSummary();
+        _logger.warning(
+          diagnostics == null
+              ? 'Web push enable skipped: ${result.message}'
+              : 'Web push enable skipped: ${result.message}; $diagnostics',
+        );
         return result;
       }
 
-      await _registerToken(result.token, force: true);
+      try {
+        await _registerToken(result.token, force: true);
+      } catch (error, stackTrace) {
+        _logger.error('Failed to register web push token', error, stackTrace);
+        return result.asFailed(error);
+      }
+
       return result.asRegistered();
     } catch (error, stackTrace) {
       _logger.error('Failed to register web push token', error, stackTrace);

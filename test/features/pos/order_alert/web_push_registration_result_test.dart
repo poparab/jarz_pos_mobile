@@ -1,7 +1,66 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jarz_pos/src/features/pos/order_alert/web_push_enable_diagnostics.dart';
 import 'package:jarz_pos/src/features/pos/order_alert/web_push_registration_result.dart';
 
 void main() {
+  group('WebPushRegistrationResult', () {
+    test('should preserve diagnostics when marking token result as registered', () {
+      // Arrange
+      const diagnostics = WebPushEnableDiagnostics(
+        currentPath: '/pos/',
+        basePath: '/pos/',
+        serviceWorkerScope: '/pos/',
+        serviceWorkerUrl: '/pos/firebase-messaging-sw.js',
+        webPushEnabled: true,
+        firebaseOptionsReady: true,
+        firebaseInitialized: true,
+        failingStep: 'token_ready',
+        tokenState: 'ready',
+      );
+      const result = WebPushRegistrationResult(
+        status: WebPushRegistrationStatus.tokenReady,
+        message: 'Web push token is ready for registration.',
+        token: 'token-123',
+        diagnostics: diagnostics,
+      );
+
+      // Act
+      final registered = result.asRegistered();
+
+      // Assert
+      expect(registered.status, WebPushRegistrationStatus.registered);
+      expect(registered.token, 'token-123');
+      expect(registered.diagnostics, same(diagnostics));
+    });
+
+    test('should preserve diagnostics when converting a result to failure', () {
+      // Arrange
+      const diagnostics = WebPushEnableDiagnostics(
+        currentPath: '/pos/',
+        basePath: '/pos/',
+        serviceWorkerScope: '/pos/',
+        serviceWorkerUrl: '/pos/firebase-messaging-sw.js',
+        webPushEnabled: true,
+        firebaseOptionsReady: true,
+        firebaseInitialized: true,
+        failingStep: 'backend_registration',
+      );
+      const result = WebPushRegistrationResult(
+        status: WebPushRegistrationStatus.tokenReady,
+        message: 'Web push token is ready for registration.',
+        token: 'token-123',
+        diagnostics: diagnostics,
+      );
+
+      // Act
+      final failed = result.asFailed(StateError('backend failed'));
+
+      // Assert
+      expect(failed.status, WebPushRegistrationStatus.failed);
+      expect(failed.diagnostics, same(diagnostics));
+    });
+  });
+
   group('webPushPermissionNotGrantedResult', () {
     test('should explain denied permission with iPhone settings guidance', () {
       // Arrange

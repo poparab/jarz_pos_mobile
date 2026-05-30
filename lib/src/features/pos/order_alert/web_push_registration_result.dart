@@ -1,3 +1,5 @@
+import 'web_push_enable_diagnostics.dart';
+
 enum WebPushRegistrationStatus {
   disabled,
   unsupported,
@@ -15,11 +17,13 @@ class WebPushRegistrationResult {
     required this.status,
     required this.message,
     this.token,
+    this.diagnostics,
   });
 
   final WebPushRegistrationStatus status;
   final String message;
   final String? token;
+  final WebPushEnableDiagnostics? diagnostics;
 
   bool get hasToken => token?.isNotEmpty ?? false;
   bool get isSuccess => status == WebPushRegistrationStatus.registered;
@@ -29,22 +33,25 @@ class WebPushRegistrationResult {
       status: WebPushRegistrationStatus.registered,
       message: 'Web push notifications are enabled for this device.',
       token: token,
+      diagnostics: diagnostics,
     );
   }
 
   WebPushRegistrationResult asFailed(Object error) {
-    return webPushFailedFromException(error, token: token);
+    return webPushFailedFromException(error, token: token, diagnostics: diagnostics);
   }
 }
 
 WebPushRegistrationResult webPushFailedFromException(
   Object error, {
   String? token,
+  WebPushEnableDiagnostics? diagnostics,
 }) {
   return WebPushRegistrationResult(
     status: WebPushRegistrationStatus.failed,
     message: webPushSafeErrorMessage(error),
     token: token,
+    diagnostics: diagnostics,
   );
 }
 
@@ -73,7 +80,10 @@ String webPushSafeErrorMessage(Object error) {
   return 'Failed to enable web push notifications. Reopen the Home Screen app and try again.';
 }
 
-WebPushRegistrationResult webPushPermissionNotGrantedResult(String status) {
+WebPushRegistrationResult webPushPermissionNotGrantedResult(
+  String status, {
+  WebPushEnableDiagnostics? diagnostics,
+}) {
   final normalizedStatus = status.trim().toLowerCase();
 
   final message = switch (normalizedStatus) {
@@ -90,13 +100,18 @@ WebPushRegistrationResult webPushPermissionNotGrantedResult(String status) {
   return WebPushRegistrationResult(
     status: WebPushRegistrationStatus.permissionDenied,
     message: message,
+    diagnostics: diagnostics,
   );
 }
 
-WebPushRegistrationResult webPushTimedOutResult(String operation) {
+WebPushRegistrationResult webPushTimedOutResult(
+  String operation, {
+  WebPushEnableDiagnostics? diagnostics,
+}) {
   return WebPushRegistrationResult(
     status: WebPushRegistrationStatus.failed,
     message:
         '$operation timed out. Check your connection, reopen the Home Screen app, and try Enable Notifications again.',
+    diagnostics: diagnostics,
   );
 }

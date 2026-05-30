@@ -635,12 +635,15 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     });
     try {
       final result = await ref.read(orderAlertBridgeProvider).enableWebPushNotifications();
-      final diagnostics = result.isSuccess
+      final releaseDiagnostics = result.isSuccess
           ? null
           : await WebPushReleaseDiagnostics.load();
       if (!context.mounted) return;
 
-      final diagnosticMessage = diagnostics?.toUserMessage();
+      final diagnosticMessage = _joinWebPushMessages(
+        result.diagnostics?.toUserMessage(),
+        releaseDiagnostics?.toUserMessage(),
+      );
       if (diagnosticMessage != null) {
         setState(() => _webPushDiagnosticMessage = diagnosticMessage);
       }
@@ -677,6 +680,18 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
         setState(() => _isEnablingWebPush = false);
       }
     }
+  }
+
+  String? _joinWebPushMessages(String? first, String? second) {
+    final parts = [first, second]
+        .whereType<String>()
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toList(growable: false);
+    if (parts.isEmpty) {
+      return null;
+    }
+    return parts.join('\n');
   }
 
   String _getInitials(String name) {
