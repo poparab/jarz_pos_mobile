@@ -11,6 +11,10 @@ class WebNotificationService {
   /// Check if permission is granted (always false on non-web)
   static Future<bool> get hasPermission async => false;
 
+  static String get permissionStatus => 'unsupported';
+
+  static bool get hasGrantedPermissionNow => false;
+
   /// Show a browser notification (no-op on non-web platforms)
   static Future<void> showNotification({
     required String title,

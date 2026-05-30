@@ -7,6 +7,7 @@ import '../../../core/constants/business_constants.dart';
 import '../data/alarm_sound_service.dart';
 import '../../pos/order_alert/order_alert_bridge.dart';
 import '../../pos/order_alert/order_alert_native_channel.dart';
+import '../../pos/order_alert/web_push_release_diagnostics.dart';
 import '../../pos/order_alert/state/order_alert_controller.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
@@ -18,6 +19,7 @@ class UserProfileScreen extends ConsumerStatefulWidget {
 
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   bool _isEnablingWebPush = false;
+  String? _webPushDiagnosticMessage;
 
   @override
   void dispose() {
@@ -214,6 +216,15 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                 : () => _enableWebPushNotifications(context),
                           ),
                         ),
+                        if (_webPushDiagnosticMessage != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            _webPushDiagnosticMessage!,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Colors.grey[700],
+                                ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -618,25 +629,46 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   }
 
   Future<void> _enableWebPushNotifications(BuildContext context) async {
-    setState(() => _isEnablingWebPush = true);
+    setState(() {
+      _isEnablingWebPush = true;
+      _webPushDiagnosticMessage = null;
+    });
     try {
       final result = await ref.read(orderAlertBridgeProvider).enableWebPushNotifications();
+      final diagnostics = result.isSuccess
+          ? null
+          : await WebPushReleaseDiagnostics.load();
       if (!context.mounted) return;
+
+      final diagnosticMessage = diagnostics?.toUserMessage();
+      if (diagnosticMessage != null) {
+        setState(() => _webPushDiagnosticMessage = diagnosticMessage);
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result.message),
-          duration: const Duration(seconds: 3),
+          content: Text(
+            diagnosticMessage == null
+                ? result.message
+                : '${result.message}\n$diagnosticMessage',
+          ),
+          duration: Duration(seconds: result.isSuccess ? 3 : 6),
           backgroundColor: result.isSuccess ? Colors.green : Colors.orange,
         ),
       );
     } catch (error) {
+      final diagnostics = await WebPushReleaseDiagnostics.load();
       if (!context.mounted) return;
+
+      final diagnosticMessage = diagnostics.toUserMessage();
+      setState(() => _webPushDiagnosticMessage = diagnosticMessage);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to enable notifications: $error'),
-          duration: const Duration(seconds: 4),
+          content: Text(
+            'Failed to enable notifications. Reopen the Home Screen app and try again.\n$diagnosticMessage',
+          ),
+          duration: const Duration(seconds: 6),
           backgroundColor: Colors.red,
         ),
       );

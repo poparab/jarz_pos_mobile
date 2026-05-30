@@ -1,10 +1,9 @@
 // ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:async';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:web/web.dart' as web;
-import 'dart:js_interop';
+import 'dart:html' as html;
 import 'dart:js_util' as js_util;
+
+import 'package:firebase_core/firebase_core.dart';
 
 import '../../../core/firebase/firebase_runtime_config.dart';
 import '../../../core/utils/logger.dart';
@@ -13,34 +12,9 @@ import 'web_push_paths.dart';
 import 'web_push_registration_result.dart';
 import 'web_push_token_normalizer.dart';
 
-@JS('firebase_messaging.getMessaging')
-external _WebMessagingJsImpl? _getWebMessaging();
-
-@JS('firebase_messaging.getToken')
-external JSPromise<JSAny?> _getWebPushToken(
-  _WebMessagingJsImpl messaging,
-  _WebGetTokenOptions options,
-);
-
-@JS()
-@staticInterop
-class _WebMessagingJsImpl {}
-
-@JS()
-@staticInterop
-@anonymous
-class _WebGetTokenOptions {
-  external factory _WebGetTokenOptions({
-    JSString? vapidKey,
-    web.ServiceWorkerRegistration? serviceWorkerRegistration,
-  });
-}
-
 class WebPushRegistrationService {
   static final Logger _logger = Logger('WebPushRegistrationService');
   static const _permissionTimeout = Duration(seconds: 5);
-  static const _supportTimeout = Duration(seconds: 3);
-  static const _settingsTimeout = Duration(seconds: 3);
   static const _serviceWorkerTimeout = Duration(seconds: 7);
   static const _tokenTimeout = Duration(seconds: 10);
 
@@ -51,8 +25,15 @@ class WebPushRegistrationService {
 
   static String get _serviceWorkerScope => _webAppBasePath;
 
-  static Future<WebPushRegistrationResult> getTokenIfPermissionGranted() {
-    return _getToken(requestPermission: false);
+  static Future<WebPushRegistrationResult> getTokenIfPermissionGranted() async {
+    if (!WebNotificationService.hasGrantedPermissionNow) {
+      return const WebPushRegistrationResult(
+        status: WebPushRegistrationStatus.permissionRequired,
+        message: 'Tap Enable Notifications to allow web push on this device.',
+      );
+    }
+
+    return _getTokenDirectly();
   }
 
   static Future<WebPushRegistrationResult> requestToken() async {
@@ -77,25 +58,14 @@ class WebPushRegistrationService {
       return webPushPermissionNotGrantedResult(permission);
     }
 
-    return _getToken(requestPermission: false);
+    return _getTokenDirectly();
   }
 
   static Stream<String> tokenRefreshStream() {
-    if (!FirebaseRuntimeConfig.webPushEnabled || Firebase.apps.isEmpty) {
-      return const Stream.empty();
-    }
-
-    try {
-      return FirebaseMessaging.instance.onTokenRefresh;
-    } catch (error, stackTrace) {
-      _logger.error('Unable to subscribe to web FCM token refresh', error, stackTrace);
-      return const Stream.empty();
-    }
+    return const Stream.empty();
   }
 
-  static Future<WebPushRegistrationResult> _getToken({
-    required bool requestPermission,
-  }) async {
+  static Future<WebPushRegistrationResult> _getTokenDirectly() async {
     if (!FirebaseRuntimeConfig.webPushEnabled) {
       return const WebPushRegistrationResult(
         status: WebPushRegistrationStatus.disabled,
@@ -111,34 +81,31 @@ class WebPushRegistrationService {
     }
 
     try {
-      final messaging = FirebaseMessaging.instance;
-      final supported = await messaging.isSupported().timeout(_supportTimeout);
-      if (!supported) {
+      if (!WebNotificationService.isSupported) {
         return const WebPushRegistrationResult(
           status: WebPushRegistrationStatus.unsupported,
-          message:
-              'This browser granted notification permission, but Firebase web push is not supported on this device.',
+          message: 'This browser does not support notification permission prompts.',
         );
       }
 
-      final settings = requestPermission
-          ? await messaging.requestPermission().timeout(_permissionTimeout)
-          : await messaging.getNotificationSettings().timeout(_settingsTimeout);
-      final status = settings.authorizationStatus;
-      if (!_isAuthorized(status)) {
-        return WebPushRegistrationResult(
-          status: requestPermission
-              ? WebPushRegistrationStatus.permissionDenied
-              : WebPushRegistrationStatus.permissionRequired,
-          message: requestPermission
-              ? 'Notification permission was not granted.'
-              : 'Tap Enable Notifications to allow web push on this device.',
+      if (!WebNotificationService.hasGrantedPermissionNow) {
+        return const WebPushRegistrationResult(
+          status: WebPushRegistrationStatus.permissionRequired,
+          message: 'Tap Enable Notifications to allow web push on this device.',
         );
       }
 
       final registration = await _ensureServiceWorkerRegistration().timeout(
         _serviceWorkerTimeout,
       );
+      if (registration == null) {
+        return const WebPushRegistrationResult(
+          status: WebPushRegistrationStatus.unsupported,
+          message:
+              'Notification service worker is not available in this browser context. Reopen the Home Screen app and try again.',
+        );
+      }
+
       final token = await _getTokenWithServiceWorker(registration).timeout(
         _tokenTimeout,
       );
@@ -159,77 +126,104 @@ class WebPushRegistrationService {
       return webPushTimedOutResult('Notification setup');
     } catch (error, stackTrace) {
       _logger.error('Failed to get web push token', error, stackTrace);
-      return WebPushRegistrationResult(
-        status: WebPushRegistrationStatus.failed,
-        message: 'Failed to prepare web push notifications: $error',
-      );
+      return webPushFailedFromException(error);
     }
   }
 
-  static bool _isAuthorized(AuthorizationStatus status) {
-    return status == AuthorizationStatus.authorized ||
-        status == AuthorizationStatus.provisional;
-  }
+  static Future<html.ServiceWorkerRegistration?> _ensureServiceWorkerRegistration() async {
+    final container = _serviceWorkerContainer();
+    if (container == null) {
+      return null;
+    }
 
-  static Future<web.ServiceWorkerRegistration> _ensureServiceWorkerRegistration() async {
-    final container = web.window.navigator.serviceWorker;
-    final existingRegistration = await container
-      .getRegistration(_serviceWorkerScope)
-      .toDart
-      .timeout(_serviceWorkerTimeout);
+    final existingRegistration = await _getExistingServiceWorkerRegistration(
+      container,
+    ).timeout(_serviceWorkerTimeout);
     if (existingRegistration != null) {
       return existingRegistration;
     }
 
     final registration = await container
         .register(
-          _serviceWorkerUrl.toJS,
-          web.RegistrationOptions(scope: _serviceWorkerScope),
+          _serviceWorkerUrl,
+          {'scope': _serviceWorkerScope},
         )
-        .toDart
         .timeout(_serviceWorkerTimeout);
 
     try {
-      return await container.ready.toDart.timeout(_serviceWorkerTimeout);
+      final readyRegistration = await container.ready.timeout(_serviceWorkerTimeout);
+      return readyRegistration;
     } on TimeoutException {
       return registration;
     }
   }
 
   static Future<String?> _getTokenWithServiceWorker(
-    web.ServiceWorkerRegistration registration,
+    html.ServiceWorkerRegistration registration,
   ) async {
     final messaging = _requireWebMessaging();
 
     try {
       final tokenValue = await _getWebPushToken(
         messaging,
-        _WebGetTokenOptions(
-          vapidKey: FirebaseRuntimeConfig.webVapidKey.toJS,
-          serviceWorkerRegistration: registration,
-        ),
-      ).toDart.timeout(_tokenTimeout);
+        registration,
+      ).timeout(_tokenTimeout);
       return normalizeWebPushTokenCandidate(_dartifyWebPushTokenValue(tokenValue));
     } catch (error) {
       if (!error.toString().toLowerCase().contains('no active service worker')) {
         rethrow;
       }
 
-      final readyRegistration = await web.window.navigator.serviceWorker.ready.toDart
+      final readyRegistration = await _serviceWorkerContainer()
+          ?.ready
           .timeout(_serviceWorkerTimeout);
+      if (readyRegistration == null) {
+        return null;
+      }
+
       final tokenValue = await _getWebPushToken(
         _requireWebMessaging(),
-        _WebGetTokenOptions(
-          vapidKey: FirebaseRuntimeConfig.webVapidKey.toJS,
-          serviceWorkerRegistration: readyRegistration,
-        ),
-      ).toDart.timeout(_tokenTimeout);
+        readyRegistration,
+      ).timeout(_tokenTimeout);
       return normalizeWebPushTokenCandidate(_dartifyWebPushTokenValue(tokenValue));
     }
   }
 
-  static _WebMessagingJsImpl _requireWebMessaging() {
-    final messaging = _getWebMessaging();
+  static html.ServiceWorkerContainer? _serviceWorkerContainer() {
+    try {
+      return html.window.navigator.serviceWorker;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<html.ServiceWorkerRegistration?> _getExistingServiceWorkerRegistration(
+    html.ServiceWorkerContainer container,
+  ) async {
+    final registrationPromise = js_util.callMethod<Object?>(
+      container,
+      'getRegistration',
+      <Object?>[_serviceWorkerScope],
+    );
+    if (registrationPromise == null) {
+      return null;
+    }
+
+    final registration = await js_util.promiseToFuture<Object?>(registrationPromise);
+    return registration is html.ServiceWorkerRegistration ? registration : null;
+  }
+
+  static Object _requireWebMessaging() {
+    final firebaseMessaging = _firebaseMessagingLibrary();
+    if (firebaseMessaging == null) {
+      throw UnsupportedError('Firebase web messaging is unavailable in this browser context.');
+    }
+
+    final messaging = js_util.callMethod<Object?>(
+      firebaseMessaging,
+      'getMessaging',
+      const <Object?>[],
+    );
     if (messaging == null) {
       throw StateError('Firebase web messaging is unavailable in this browser context.');
     }
@@ -237,7 +231,40 @@ class WebPushRegistrationService {
     return messaging;
   }
 
-  static Object? _dartifyWebPushTokenValue(JSAny? value) {
+  static Object? _firebaseMessagingLibrary() {
+    try {
+      return js_util.getProperty<Object?>(html.window, 'firebase_messaging');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<Object?> _getWebPushToken(
+    Object messaging,
+    html.ServiceWorkerRegistration registration,
+  ) async {
+    final firebaseMessaging = _firebaseMessagingLibrary();
+    if (firebaseMessaging == null) {
+      throw UnsupportedError('Firebase web messaging is unavailable in this browser context.');
+    }
+
+    final options = js_util.newObject<Object>();
+    js_util.setProperty(options, 'vapidKey', FirebaseRuntimeConfig.webVapidKey);
+    js_util.setProperty(options, 'serviceWorkerRegistration', registration);
+
+    final tokenPromise = js_util.callMethod<Object?>(
+      firebaseMessaging,
+      'getToken',
+      <Object?>[messaging, options],
+    );
+    if (tokenPromise == null) {
+      return null;
+    }
+
+    return js_util.promiseToFuture<Object?>(tokenPromise);
+  }
+
+  static Object? _dartifyWebPushTokenValue(Object? value) {
     if (value == null) {
       return null;
     }

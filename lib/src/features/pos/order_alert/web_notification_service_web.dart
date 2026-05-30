@@ -75,6 +75,10 @@ class WebNotificationService {
     return _permissionStatus == 'granted';
   }
 
+  static String get permissionStatus => _currentPermissionStatus();
+
+  static bool get hasGrantedPermissionNow => _currentPermissionStatus() == 'granted';
+
   static String _currentPermissionStatus() {
     try {
       return html.Notification.permission ?? _permissionStatus;

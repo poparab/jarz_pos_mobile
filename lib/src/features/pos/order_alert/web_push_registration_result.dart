@@ -33,12 +33,44 @@ class WebPushRegistrationResult {
   }
 
   WebPushRegistrationResult asFailed(Object error) {
-    return WebPushRegistrationResult(
-      status: WebPushRegistrationStatus.failed,
-      message: 'Failed to enable web push notifications: $error',
-      token: token,
-    );
+    return webPushFailedFromException(error, token: token);
   }
+}
+
+WebPushRegistrationResult webPushFailedFromException(
+  Object error, {
+  String? token,
+}) {
+  return WebPushRegistrationResult(
+    status: WebPushRegistrationStatus.failed,
+    message: webPushSafeErrorMessage(error),
+    token: token,
+  );
+}
+
+String webPushSafeErrorMessage(Object error) {
+  final raw = error.toString();
+  final lower = raw.toLowerCase();
+
+  if (lower.contains('null check operator used on a null value')) {
+    return 'iPhone could not complete notification setup in this installed app. Reopen the Home Screen app and try again; if it repeats, delete and re-add the Home Screen icon.';
+  }
+
+  if (lower.contains('firebase web messaging is unavailable') ||
+      lower.contains('firebase_messaging') ||
+      lower.contains('unsupported')) {
+    return 'This browser context cannot create a web push token. Reopen the Home Screen app and try again.';
+  }
+
+  if (lower.contains('service worker')) {
+    return 'Notification service worker is not ready yet. Reopen the Home Screen app and try Enable Notifications again.';
+  }
+
+  if (lower.contains('timeout')) {
+    return 'Notification setup timed out. Check your connection, reopen the Home Screen app, and try again.';
+  }
+
+  return 'Failed to enable web push notifications. Reopen the Home Screen app and try again.';
 }
 
 WebPushRegistrationResult webPushPermissionNotGrantedResult(String status) {

@@ -234,10 +234,7 @@ class OrderAlertBridge {
       return result.asRegistered();
     } catch (error, stackTrace) {
       _logger.error('Failed to register web push token', error, stackTrace);
-      return WebPushRegistrationResult(
-        status: WebPushRegistrationStatus.failed,
-        message: 'Failed to enable web push notifications: $error',
-      );
+      return webPushFailedFromException(error);
     }
   }
 

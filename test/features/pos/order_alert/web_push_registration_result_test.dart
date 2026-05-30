@@ -39,4 +39,20 @@ void main() {
       expect(result.message, contains('Enable Notifications'));
     });
   });
+
+  group('webPushFailedFromException', () {
+    test('should not expose raw null-check exception text', () {
+      // Arrange
+
+      // Act
+      final result = webPushFailedFromException(
+        StateError('Null check operator used on a null value'),
+      );
+
+      // Assert
+      expect(result.status, WebPushRegistrationStatus.failed);
+      expect(result.message, isNot(contains('Null check operator')));
+      expect(result.message, contains('Home Screen app'));
+    });
+  });
 }
