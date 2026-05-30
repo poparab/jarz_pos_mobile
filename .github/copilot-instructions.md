@@ -9,6 +9,15 @@ This document provides context and guidelines for GitHub Copilot and AI coding a
 - Do not treat work as complete while any deployable change exists only locally or only on a server.
 - If any environment diverges, stop and reconcile through GitHub before continuing.
 
+## After-Finish Release Handoff
+
+- At the end of every task, inspect whether the change touched Flutter web, Android/mobile, backend/API contracts, or only docs/tooling.
+- If the work changes deployable Flutter behavior, do not close it as complete until the change is committed/pushed and the release path is stated: `full_apk`, `shorebird_patch`, or `none`.
+- `full_apk` means the tester release goes through Firebase App Distribution after commit/push.
+- `shorebird_patch` means publish the Android patch after commit/push only when the target devices already have a Shorebird-enabled APK installed.
+- `none` must still be stated explicitly when Flutter work does not require an Android rollout.
+- If the task also changes backend behavior, the expected finish path includes staging deploy/verify and production deploy/verify for the backend side as well.
+
 ## Project Overview
 
 Jarz POS Mobile is a comprehensive Point of Sale (POS) mobile application built with Flutter for managing sales, inventory, and operations. It integrates with an ERPNext backend server and supports offline-first functionality.

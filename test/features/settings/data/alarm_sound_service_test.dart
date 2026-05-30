@@ -103,4 +103,22 @@ void main() {
       expect(sut.getSelectedSoundTitle(), isNull);
     });
   });
+
+  group('AlarmSoundService.inMemory', () {
+    test('should persist sound selection for the current session without shared preferences', () async {
+      // Arrange
+      messenger.setMockMethodCallHandler(channel, (MethodCall call) async {
+        expect(call.method, 'setAlarmSound');
+        return 'content://media/external/audio/media/99';
+      });
+      final sut = AlarmSoundService.inMemory();
+
+      // Act
+      await sut.setSelectedSound('file:///tmp/custom.mp3', 'Session tone');
+
+      // Assert
+      expect(sut.getSelectedSoundUri(), 'content://media/external/audio/media/99');
+      expect(sut.getSelectedSoundTitle(), 'Session tone');
+    });
+  });
 }

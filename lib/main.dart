@@ -31,18 +31,38 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await loadEnv();
   _installGlobalErrorHandling();
+  await _loadEnvSafely();
 
   final sentryConfig = SentryRuntimeConfig.fromEnvironment(
     appEnvironment: resolveEnvName(currentHost: Uri.base.host),
   );
 
   await runZonedGuarded<Future<void>>(
-    () => SentryService.instance.initialize(
-      config: sentryConfig,
-      appRunner: _bootstrapAndRunApp,
-    ),
+    () async {
+      var appRunnerStarted = false;
+
+      try {
+        await SentryService.instance.initialize(
+          config: sentryConfig,
+          appRunner: () async {
+            appRunnerStarted = true;
+            await _bootstrapAndRunApp();
+          },
+        );
+      } catch (error, stackTrace) {
+        AppErrorReporter.instance.capture(
+          source: 'SentryInit',
+          error: error,
+          stackTrace: stackTrace,
+          summary: 'Sentry initialization failed; starting app without Sentry',
+        );
+
+        if (!appRunnerStarted) {
+          await _bootstrapAndRunApp();
+        }
+      }
+    },
     (error, stackTrace) {
       AppErrorReporter.instance.capture(
         source: 'Zone',
@@ -55,15 +75,24 @@ Future<void> main() async {
   );
 }
 
+Future<void> _loadEnvSafely() async {
+  try {
+    await loadEnv();
+  } catch (error, stackTrace) {
+    AppErrorReporter.instance.capture(
+      source: 'Env',
+      error: error,
+      stackTrace: stackTrace,
+      summary: 'Environment configuration failed to load; continuing with defaults',
+    );
+  }
+}
+
 Future<void> _bootstrapAndRunApp() async {
-  await _initializeFirebaseForCurrentPlatform();
+  await _initializeFirebaseSafely();
+  await _initializeLocaleStorageSafely();
 
-  await Hive.initFlutter();
-  await Hive.openBox(localeSettingsBoxName);
-
-  final prefs = await SharedPreferences.getInstance();
-  final alarmSoundService = AlarmSoundService(prefs);
-  await alarmSoundService.restoreSelectedSoundOnNative();
+  final alarmSoundService = await _createAlarmSoundService();
 
   if (!kIsWeb) {
     await OrientationPolicyScope.applyDefaultNativePolicy();
@@ -87,6 +116,53 @@ Future<void> _bootstrapAndRunApp() async {
       child: const JarzPosApp(),
     ),
   );
+}
+
+Future<void> _initializeFirebaseSafely() async {
+  try {
+    await _initializeFirebaseForCurrentPlatform();
+  } catch (error, stackTrace) {
+    AppErrorReporter.instance.capture(
+      source: 'FirebaseInit',
+      error: error,
+      stackTrace: stackTrace,
+      summary: 'Firebase initialization failed; continuing without Firebase services',
+    );
+  }
+}
+
+Future<void> _initializeLocaleStorageSafely() async {
+  try {
+    await Hive.initFlutter();
+    if (!Hive.isBoxOpen(localeSettingsBoxName)) {
+      await Hive.openBox(localeSettingsBoxName);
+    }
+  } catch (error, stackTrace) {
+    AppErrorReporter.instance.capture(
+      source: 'LocaleStorage',
+      error: error,
+      stackTrace: stackTrace,
+      summary: 'Locale storage unavailable; continuing without persisted locale preferences',
+      details: const <String, Object?>{'box': localeSettingsBoxName},
+    );
+  }
+}
+
+Future<AlarmSoundService> _createAlarmSoundService() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final service = AlarmSoundService(prefs);
+    await service.restoreSelectedSoundOnNative();
+    return service;
+  } catch (error, stackTrace) {
+    AppErrorReporter.instance.capture(
+      source: 'AlarmSoundPreferences',
+      error: error,
+      stackTrace: stackTrace,
+      summary: 'Alarm sound preferences unavailable; using in-memory settings for this session',
+    );
+    return AlarmSoundService.inMemory();
+  }
 }
 
 Future<void> _initializeFirebaseForCurrentPlatform() async {

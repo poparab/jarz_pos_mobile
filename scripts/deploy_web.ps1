@@ -18,9 +18,15 @@ if (-not $SshKeyPath) {
 
 $remoteWebDir = '/home/ubuntu/pos-web/web'
 $remoteMetaPath = "$remoteWebDir/release-metadata.json"
+$localNginxConfigPath = Join-Path $repoRoot 'scripts\pos-web\nginx.conf'
+$remoteNginxConfigPath = '/home/ubuntu/pos-web/nginx.conf'
 
 if (-not (Test-Path $SshKeyPath)) {
     throw "SSH key not found at $SshKeyPath"
+}
+
+if (-not (Test-Path $localNginxConfigPath)) {
+    throw "POS web nginx config not found at $localNginxConfigPath"
 }
 
 $config = switch ($Environment) {
@@ -88,7 +94,7 @@ function Test-WebRuntimeImpact([string[]]$Paths) {
             $path.StartsWith('lib/') -or
             $path.StartsWith('tool/') -or
             $path.StartsWith('web/') -or
-            $path.StartsWith('server-config/pos-web/') -or
+            $path -eq 'scripts/pos-web/nginx.conf' -or
             $path -eq '.env.prod' -or
             $path -eq '.env.staging' -or
             $path -eq 'l10n.yaml' -or
@@ -132,6 +138,9 @@ function Test-WebDeployRequired {
         [Parameter(Mandatory = $true)]
         [string]$LocalHead,
 
+        [Parameter(Mandatory = $true)]
+        [string]$LocalNginxConfigHash,
+
         [Parameter(Mandatory = $false)]
         $RemoteMetadata
     )
@@ -147,6 +156,21 @@ function Test-WebDeployRequired {
         return @{
             Required = $true
             Reason = 'missing-remote-metadata'
+        }
+    }
+
+    $remoteNginxConfigHash = "$($RemoteMetadata.pos_web_nginx_conf_sha256)".Trim().ToLowerInvariant()
+    if (-not $remoteNginxConfigHash) {
+        return @{
+            Required = $true
+            Reason = 'missing-remote-nginx-config-hash'
+        }
+    }
+
+    if ($remoteNginxConfigHash -ne $LocalNginxConfigHash) {
+        return @{
+            Required = $true
+            Reason = 'nginx-config-changed'
         }
     }
 
@@ -197,15 +221,18 @@ Write-Info 'SSH connected'
 Write-Host ''
 
 $localHead = Get-RepoHead
+$localNginxConfigHash = (Get-FileHash $localNginxConfigPath -Algorithm SHA256).Hash.ToLowerInvariant()
 $remoteMetadata = Get-RemoteReleaseMetadata
-$webDecision = Test-WebDeployRequired -LocalHead $localHead -RemoteMetadata $remoteMetadata
+$webDecision = Test-WebDeployRequired -LocalHead $localHead -LocalNginxConfigHash $localNginxConfigHash -RemoteMetadata $remoteMetadata
 
 if ($PlanOnly) {
     Write-Step 'Web deploy plan'
     Write-Info "local_head=$localHead"
+    Write-Info "local_pos_web_nginx_conf_sha256=$localNginxConfigHash"
     if ($remoteMetadata) {
         Write-Info "remote_web_commit=$($remoteMetadata.commit_sha)"
         Write-Info "remote_web_environment=$($remoteMetadata.environment)"
+        Write-Info "remote_pos_web_nginx_conf_sha256=$($remoteMetadata.pos_web_nginx_conf_sha256)"
     }
     else {
         Write-Info 'remote_web_commit=unknown'
@@ -266,6 +293,7 @@ $releaseMetadata = [ordered]@{
     environment = $Environment
     generated_at_utc = (Get-Date).ToUniversalTime().ToString('o')
     main_dart_js_sha256 = $localHash
+    pos_web_nginx_conf_sha256 = $localNginxConfigHash
 }
 $localMetaPath = Join-Path $repoRoot 'build\web\release-metadata.json'
 $releaseMetadata | ConvertTo-Json | Set-Content -Path $localMetaPath -Encoding UTF8
@@ -275,6 +303,13 @@ $null = Invoke-Remote "rm -rf $remoteWebDir ; mkdir -p $remoteWebDir"
 & scp -o StrictHostKeyChecking=no -i $SshKeyPath -r "$repoRoot\build\web\*" "${sshTarget}:$remoteWebDir/" 2>&1 | ForEach-Object { Write-Host $_ }
 if ($LASTEXITCODE -ne 0) {
     throw 'Web bundle upload failed'
+}
+Write-Host ''
+
+Write-Step 'Uploading POS web server config...'
+& scp -o StrictHostKeyChecking=no -i $SshKeyPath "$localNginxConfigPath" "${sshTarget}:$remoteNginxConfigPath" 2>&1 | ForEach-Object { Write-Host $_ }
+if ($LASTEXITCODE -ne 0) {
+    throw 'POS web server config upload failed'
 }
 Write-Host ''
 

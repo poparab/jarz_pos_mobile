@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jarz_pos/src/core/offline/offline_queue.dart';
 import '../../helpers/mock_services.dart';
 
 void main() {
@@ -112,6 +113,21 @@ void main() {
       final pending = await offlineQueue.getPendingTransactions();
       expect(pending, hasLength(1));
       expect(pending.first['id'], equals(allTransactions[1]['id']));
+    });
+
+    test('should keep operating when persistent storage is unavailable', () async {
+      // Arrange
+      final sut = OfflineQueue.memoryOnly();
+
+      // Act
+      await sut.addTransaction({
+        'endpoint': '/api/fallback',
+        'data': {'key': 'value'},
+      });
+
+      // Assert
+      expect(await sut.getPendingCount(), 1);
+      expect((await sut.getPendingTransactions()).first['endpoint'], '/api/fallback');
     });
   });
 }

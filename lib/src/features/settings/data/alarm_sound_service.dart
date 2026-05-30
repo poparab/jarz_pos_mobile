@@ -9,9 +9,12 @@ import '../../pos/order_alert/order_alert_native_channel.dart';
 class AlarmSoundService {
   static const String _alarmSoundUriKey = PrefKeys.alarmSoundUri;
   static const String _alarmSoundTitleKey = PrefKeys.alarmSoundTitle;
-  final SharedPreferences _prefs;
+  final _AlarmSoundPreferencesStore _prefs;
 
-  AlarmSoundService(this._prefs);
+  AlarmSoundService(SharedPreferences prefs)
+    : _prefs = _SharedPreferencesAlarmSoundStore(prefs);
+
+  AlarmSoundService.inMemory() : _prefs = _InMemoryAlarmSoundStore();
 
   /// Get the currently selected alarm sound URI
   String? getSelectedSoundUri() {
@@ -197,3 +200,48 @@ final selectedAlarmSoundProvider = Provider<AlarmSoundOption?>((ref) {
   
   return AlarmSoundOption(title: title, uri: uri);
 });
+
+abstract class _AlarmSoundPreferencesStore {
+  String? getString(String key);
+
+  Future<void> setString(String key, String value);
+
+  Future<void> remove(String key);
+}
+
+class _SharedPreferencesAlarmSoundStore
+    implements _AlarmSoundPreferencesStore {
+  _SharedPreferencesAlarmSoundStore(this._prefs);
+
+  final SharedPreferences _prefs;
+
+  @override
+  String? getString(String key) => _prefs.getString(key);
+
+  @override
+  Future<void> remove(String key) async {
+    await _prefs.remove(key);
+  }
+
+  @override
+  Future<void> setString(String key, String value) async {
+    await _prefs.setString(key, value);
+  }
+}
+
+class _InMemoryAlarmSoundStore implements _AlarmSoundPreferencesStore {
+  final Map<String, String> _values = <String, String>{};
+
+  @override
+  String? getString(String key) => _values[key];
+
+  @override
+  Future<void> remove(String key) async {
+    _values.remove(key);
+  }
+
+  @override
+  Future<void> setString(String key, String value) async {
+    _values[key] = value;
+  }
+}

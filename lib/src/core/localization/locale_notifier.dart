@@ -13,28 +13,34 @@ Locale? _localeFromCode(String? code) {
   return Locale(code);
 }
 
-Locale? _loadInitialLocale(Box box) {
-  final stored = box.get(_localeStorageKey) as String?;
+Locale? _loadInitialLocale(Box<dynamic>? box) {
+  final stored = box?.get(_localeStorageKey) as String?;
   return _localeFromCode(stored);
 }
 
 class LocaleNotifier extends StateNotifier<Locale?> {
   LocaleNotifier(this._box) : super(_loadInitialLocale(_box));
 
-  final Box _box;
+  final Box<dynamic>? _box;
 
   Future<void> setLocale(Locale? locale) async {
-    if (locale == null) {
-      await _box.delete(_localeStorageKey);
-    } else {
-      await _box.put(_localeStorageKey, locale.languageCode);
+    final box = _box;
+    if (box != null) {
+      if (locale == null) {
+        await box.delete(_localeStorageKey);
+      } else {
+        await box.put(_localeStorageKey, locale.languageCode);
+      }
     }
+
     state = locale;
   }
 }
 
 final localeNotifierProvider = StateNotifierProvider<LocaleNotifier, Locale?>((ref) {
-  final box = Hive.box(localeSettingsBoxName);
+  final box = Hive.isBoxOpen(localeSettingsBoxName)
+      ? Hive.box(localeSettingsBoxName)
+      : null;
   return LocaleNotifier(box);
 });
 
