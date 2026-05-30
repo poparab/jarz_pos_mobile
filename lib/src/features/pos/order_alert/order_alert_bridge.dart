@@ -245,7 +245,12 @@ class OrderAlertBridge {
       return result.asRegistered();
     } catch (error, stackTrace) {
       _logger.error('Failed to register web push token', error, stackTrace);
-      return webPushFailedFromException(error);
+      final diagnostics = WebPushRegistrationService.captureEmergencyDiagnostics(
+        failingStep: 'request_token_exception',
+        failureReason: 'request_token_exception',
+        error: error,
+      );
+      return webPushFailedFromException(error, diagnostics: diagnostics);
     }
   }
 

@@ -7,6 +7,7 @@ import '../../../core/constants/business_constants.dart';
 import '../data/alarm_sound_service.dart';
 import '../../pos/order_alert/order_alert_bridge.dart';
 import '../../pos/order_alert/order_alert_native_channel.dart';
+import '../../pos/order_alert/web_push_registration_service.dart';
 import '../../pos/order_alert/web_push_release_diagnostics.dart';
 import '../../pos/order_alert/state/order_alert_controller.dart';
 
@@ -660,10 +661,18 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
         ),
       );
     } catch (error) {
+      final emergencyDiagnostics = WebPushRegistrationService.captureEmergencyDiagnostics(
+        failingStep: 'settings_exception',
+        failureReason: 'settings_exception',
+        error: error,
+      );
       final diagnostics = await WebPushReleaseDiagnostics.load();
       if (!context.mounted) return;
 
-      final diagnosticMessage = diagnostics.toUserMessage();
+      final diagnosticMessage = _joinWebPushMessages(
+        emergencyDiagnostics.toUserMessage(),
+        diagnostics.toUserMessage(),
+      );
       setState(() => _webPushDiagnosticMessage = diagnosticMessage);
 
       ScaffoldMessenger.of(context).showSnackBar(

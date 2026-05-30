@@ -94,6 +94,18 @@ class WebPushRegistrationService {
     return const Stream.empty();
   }
 
+  static WebPushEnableDiagnostics captureEmergencyDiagnostics({
+    String failingStep = 'request_token_exception',
+    String? failureReason,
+    Object? error,
+  }) {
+    return _newDiagnostics().copyWith(
+      failingStep: failingStep,
+      failureReason: failureReason ?? 'request_token_exception',
+      errorSummary: error?.toString(),
+    );
+  }
+
   static Future<WebPushRegistrationResult> _getTokenDirectly({
     WebPushEnableDiagnostics? diagnostics,
   }) async {
@@ -365,17 +377,77 @@ class WebPushRegistrationService {
 
   static WebPushEnableDiagnostics _newDiagnostics() {
     return WebPushEnableDiagnostics(
-      currentPath: Uri.base.path,
-      basePath: _webAppBasePath,
-      serviceWorkerScope: _serviceWorkerScope,
-      serviceWorkerUrl: _serviceWorkerUrl,
+      currentPath: _safeCurrentPath(),
+      basePath: _safeWebAppBasePath(),
+      serviceWorkerScope: _safeServiceWorkerScope(),
+      serviceWorkerUrl: _safeServiceWorkerUrl(),
       webPushEnabled: FirebaseRuntimeConfig.webPushEnabled,
       firebaseOptionsReady: FirebaseRuntimeConfig.webOptions != null,
-      firebaseInitialized: Firebase.apps.isNotEmpty,
-      permissionStatus: WebNotificationService.permissionStatus,
-      notificationSupported: WebNotificationService.isSupported,
-      serviceWorkerSupported: _serviceWorkerContainer() != null,
+      firebaseInitialized: _safeFirebaseInitialized(),
+      permissionStatus: _safePermissionStatus(),
+      notificationSupported: _safeNotificationSupported(),
+      serviceWorkerSupported: _safeServiceWorkerSupported(),
     );
+  }
+
+  static String _safeCurrentPath() {
+    try {
+      return Uri.base.path;
+    } catch (_) {
+      return '/unknown';
+    }
+  }
+
+  static String _safeWebAppBasePath() {
+    try {
+      return normalizeWebAppBasePath(_safeCurrentPath());
+    } catch (_) {
+      return '/';
+    }
+  }
+
+  static String _safeServiceWorkerScope() {
+    return _safeWebAppBasePath();
+  }
+
+  static String _safeServiceWorkerUrl() {
+    try {
+      return buildWebAppAssetUrl(_safeWebAppBasePath(), 'firebase-messaging-sw.js');
+    } catch (_) {
+      return 'firebase-messaging-sw.js';
+    }
+  }
+
+  static bool _safeFirebaseInitialized() {
+    try {
+      return Firebase.apps.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static String _safePermissionStatus() {
+    try {
+      return WebNotificationService.permissionStatus;
+    } catch (_) {
+      return 'unknown';
+    }
+  }
+
+  static bool? _safeNotificationSupported() {
+    try {
+      return WebNotificationService.isSupported;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static bool? _safeServiceWorkerSupported() {
+    try {
+      return _serviceWorkerContainer() != null;
+    } catch (_) {
+      return null;
+    }
   }
 
   static String? _registrationScope(Object? registration) {
