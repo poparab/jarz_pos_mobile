@@ -130,7 +130,7 @@ class WebPushRegistrationService {
     }
   }
 
-  static Future<html.ServiceWorkerRegistration?> _ensureServiceWorkerRegistration() async {
+  static Future<Object?> _ensureServiceWorkerRegistration() async {
     final container = _serviceWorkerContainer();
     if (container == null) {
       return null;
@@ -143,23 +143,22 @@ class WebPushRegistrationService {
       return existingRegistration;
     }
 
-    final registration = await container
-        .register(
-          _serviceWorkerUrl,
-          {'scope': _serviceWorkerScope},
-        )
-        .timeout(_serviceWorkerTimeout);
+    final registration = await _registerServiceWorker(container).timeout(
+      _serviceWorkerTimeout,
+    );
 
     try {
-      final readyRegistration = await container.ready.timeout(_serviceWorkerTimeout);
-      return readyRegistration;
+      final readyRegistration = await _getReadyServiceWorkerRegistration(
+        container,
+      ).timeout(_serviceWorkerTimeout);
+      return readyRegistration ?? registration;
     } on TimeoutException {
       return registration;
     }
   }
 
   static Future<String?> _getTokenWithServiceWorker(
-    html.ServiceWorkerRegistration registration,
+    Object registration,
   ) async {
     final messaging = _requireWebMessaging();
 
@@ -174,9 +173,12 @@ class WebPushRegistrationService {
         rethrow;
       }
 
-      final readyRegistration = await _serviceWorkerContainer()
-          ?.ready
-          .timeout(_serviceWorkerTimeout);
+      final container = _serviceWorkerContainer();
+      final readyRegistration = container == null
+          ? null
+          : await _getReadyServiceWorkerRegistration(
+              container,
+            ).timeout(_serviceWorkerTimeout);
       if (readyRegistration == null) {
         return null;
       }
@@ -189,28 +191,64 @@ class WebPushRegistrationService {
     }
   }
 
-  static html.ServiceWorkerContainer? _serviceWorkerContainer() {
+  static Object? _serviceWorkerContainer() {
     try {
-      return html.window.navigator.serviceWorker;
+      return js_util.getProperty<Object?>(html.window.navigator, 'serviceWorker');
     } catch (_) {
       return null;
     }
   }
 
-  static Future<html.ServiceWorkerRegistration?> _getExistingServiceWorkerRegistration(
-    html.ServiceWorkerContainer container,
+  static Future<Object?> _getExistingServiceWorkerRegistration(
+    Object container,
   ) async {
-    final registrationPromise = js_util.callMethod<Object?>(
-      container,
-      'getRegistration',
-      <Object?>[_serviceWorkerScope],
-    );
-    if (registrationPromise == null) {
+    try {
+      final registrationPromise = js_util.callMethod<Object?>(
+        container,
+        'getRegistration',
+        <Object?>[_serviceWorkerScope],
+      );
+      if (registrationPromise == null) {
+        return null;
+      }
+
+      return await js_util.promiseToFuture<Object?>(registrationPromise);
+    } catch (_) {
       return null;
     }
+  }
 
-    final registration = await js_util.promiseToFuture<Object?>(registrationPromise);
-    return registration is html.ServiceWorkerRegistration ? registration : null;
+  static Future<Object?> _registerServiceWorker(Object container) async {
+    try {
+      final options = js_util.newObject<Object>();
+      js_util.setProperty(options, 'scope', _serviceWorkerScope);
+
+      final registrationPromise = js_util.callMethod<Object?>(
+        container,
+        'register',
+        <Object?>[_serviceWorkerUrl, options],
+      );
+      if (registrationPromise == null) {
+        return null;
+      }
+
+      return await js_util.promiseToFuture<Object?>(registrationPromise);
+    } catch (error) {
+      throw StateError('Notification service worker registration failed: $error');
+    }
+  }
+
+  static Future<Object?> _getReadyServiceWorkerRegistration(Object container) async {
+    try {
+      final readyPromise = js_util.getProperty<Object?>(container, 'ready');
+      if (readyPromise == null) {
+        return null;
+      }
+
+      return await js_util.promiseToFuture<Object?>(readyPromise);
+    } catch (error) {
+      throw StateError('Notification service worker readiness check failed: $error');
+    }
   }
 
   static Object _requireWebMessaging() {
@@ -241,7 +279,7 @@ class WebPushRegistrationService {
 
   static Future<Object?> _getWebPushToken(
     Object messaging,
-    html.ServiceWorkerRegistration registration,
+    Object registration,
   ) async {
     final firebaseMessaging = _firebaseMessagingLibrary();
     if (firebaseMessaging == null) {
