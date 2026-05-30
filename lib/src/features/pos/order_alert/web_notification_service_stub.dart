@@ -1,7 +1,9 @@
 /// Stub implementation for non-web platforms (Android, iOS, etc.)
 class WebNotificationService {
   /// Request notification permission (no-op on non-web platforms)
-  static Future<bool> requestPermission() async => false;
+  static Future<bool> requestPermission({Duration? timeout}) async => false;
+
+  static Future<String> requestPermissionStatus({Duration? timeout}) async => 'unsupported';
 
   /// Check if notifications are supported (always false on non-web)
   static bool get isSupported => false;

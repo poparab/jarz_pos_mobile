@@ -630,6 +630,16 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           backgroundColor: result.isSuccess ? Colors.green : Colors.orange,
         ),
       );
+    } catch (error) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to enable notifications: $error'),
+          duration: const Duration(seconds: 4),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _isEnablingWebPush = false);

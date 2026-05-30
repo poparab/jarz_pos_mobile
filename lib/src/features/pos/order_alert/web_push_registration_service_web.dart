@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:web/web.dart' as web;
@@ -5,6 +6,7 @@ import 'dart:js_interop';
 
 import '../../../core/firebase/firebase_runtime_config.dart';
 import '../../../core/utils/logger.dart';
+import 'web_notification_service_web.dart';
 import 'web_push_paths.dart';
 import 'web_push_registration_result.dart';
 
@@ -33,6 +35,11 @@ class _WebGetTokenOptions {
 
 class WebPushRegistrationService {
   static final Logger _logger = Logger('WebPushRegistrationService');
+  static const _permissionTimeout = Duration(seconds: 5);
+  static const _supportTimeout = Duration(seconds: 3);
+  static const _settingsTimeout = Duration(seconds: 3);
+  static const _serviceWorkerTimeout = Duration(seconds: 7);
+  static const _tokenTimeout = Duration(seconds: 10);
 
   static String get _webAppBasePath => normalizeWebAppBasePath(Uri.base.path);
 
@@ -45,8 +52,29 @@ class WebPushRegistrationService {
     return _getToken(requestPermission: false);
   }
 
-  static Future<WebPushRegistrationResult> requestToken() {
-    return _getToken(requestPermission: true);
+  static Future<WebPushRegistrationResult> requestToken() async {
+    if (!FirebaseRuntimeConfig.webPushEnabled) {
+      return const WebPushRegistrationResult(
+        status: WebPushRegistrationStatus.disabled,
+        message: 'Web push notifications are disabled for this environment.',
+      );
+    }
+
+    if (FirebaseRuntimeConfig.webVapidKey.isEmpty || Firebase.apps.isEmpty) {
+      return const WebPushRegistrationResult(
+        status: WebPushRegistrationStatus.missingConfig,
+        message: 'Web push notifications are not configured for this environment.',
+      );
+    }
+
+    final permission = await WebNotificationService.requestPermissionStatus(
+      timeout: _permissionTimeout,
+    );
+    if (permission != 'granted') {
+      return webPushPermissionNotGrantedResult(permission);
+    }
+
+    return _getToken(requestPermission: false);
   }
 
   static Stream<String> tokenRefreshStream() {
@@ -81,17 +109,18 @@ class WebPushRegistrationService {
 
     try {
       final messaging = FirebaseMessaging.instance;
-      final supported = await messaging.isSupported();
+      final supported = await messaging.isSupported().timeout(_supportTimeout);
       if (!supported) {
         return const WebPushRegistrationResult(
           status: WebPushRegistrationStatus.unsupported,
-          message: 'This browser does not support web push notifications.',
+          message:
+              'This browser granted notification permission, but Firebase web push is not supported on this device.',
         );
       }
 
       final settings = requestPermission
-          ? await messaging.requestPermission()
-          : await messaging.getNotificationSettings();
+          ? await messaging.requestPermission().timeout(_permissionTimeout)
+          : await messaging.getNotificationSettings().timeout(_settingsTimeout);
       final status = settings.authorizationStatus;
       if (!_isAuthorized(status)) {
         return WebPushRegistrationResult(
@@ -104,8 +133,12 @@ class WebPushRegistrationService {
         );
       }
 
-      final registration = await _ensureServiceWorkerRegistration();
-      final token = await _getTokenWithServiceWorker(registration);
+      final registration = await _ensureServiceWorkerRegistration().timeout(
+        _serviceWorkerTimeout,
+      );
+      final token = await _getTokenWithServiceWorker(registration).timeout(
+        _tokenTimeout,
+      );
       if (token == null || token.isEmpty) {
         return const WebPushRegistrationResult(
           status: WebPushRegistrationStatus.noToken,
@@ -118,6 +151,9 @@ class WebPushRegistrationService {
         message: 'Web push token is ready for registration.',
         token: token,
       );
+    } on TimeoutException catch (error, stackTrace) {
+      _logger.error('Web push registration timed out', error, stackTrace);
+      return webPushTimedOutResult('Notification setup');
     } catch (error, stackTrace) {
       _logger.error('Failed to get web push token', error, stackTrace);
       return WebPushRegistrationResult(
@@ -135,8 +171,9 @@ class WebPushRegistrationService {
   static Future<web.ServiceWorkerRegistration> _ensureServiceWorkerRegistration() async {
     final container = web.window.navigator.serviceWorker;
     final existingRegistration = await container
-        .getRegistration(_serviceWorkerScope)
-        .toDart;
+      .getRegistration(_serviceWorkerScope)
+      .toDart
+      .timeout(_serviceWorkerTimeout);
     if (existingRegistration != null) {
       return existingRegistration;
     }
@@ -146,11 +183,12 @@ class WebPushRegistrationService {
           _serviceWorkerUrl.toJS,
           web.RegistrationOptions(scope: _serviceWorkerScope),
         )
-        .toDart;
+        .toDart
+        .timeout(_serviceWorkerTimeout);
 
     try {
-      return await container.ready.toDart;
-    } catch (_) {
+      return await container.ready.toDart.timeout(_serviceWorkerTimeout);
+    } on TimeoutException {
       return registration;
     }
   }
@@ -165,21 +203,22 @@ class WebPushRegistrationService {
           vapidKey: FirebaseRuntimeConfig.webVapidKey.toJS,
           serviceWorkerRegistration: registration,
         ),
-      ).toDart;
+      ).toDart.timeout(_tokenTimeout);
       return token.toDart;
     } catch (error) {
       if (!error.toString().toLowerCase().contains('no active service worker')) {
         rethrow;
       }
 
-      final readyRegistration = await web.window.navigator.serviceWorker.ready.toDart;
+      final readyRegistration = await web.window.navigator.serviceWorker.ready.toDart
+          .timeout(_serviceWorkerTimeout);
       final token = await _getWebPushToken(
         _getWebMessaging(),
         _WebGetTokenOptions(
           vapidKey: FirebaseRuntimeConfig.webVapidKey.toJS,
           serviceWorkerRegistration: readyRegistration,
         ),
-      ).toDart;
+      ).toDart.timeout(_tokenTimeout);
       return token.toDart;
     }
   }

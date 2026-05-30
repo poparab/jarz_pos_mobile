@@ -223,18 +223,21 @@ class OrderAlertBridge {
       );
     }
 
-    final result = await WebPushRegistrationService.requestToken();
-    if (!result.hasToken) {
-      _logger.warning('Web push enable skipped: ${result.message}');
-      return result;
-    }
-
     try {
+      final result = await WebPushRegistrationService.requestToken();
+      if (!result.hasToken) {
+        _logger.warning('Web push enable skipped: ${result.message}');
+        return result;
+      }
+
       await _registerToken(result.token, force: true);
       return result.asRegistered();
     } catch (error, stackTrace) {
       _logger.error('Failed to register web push token', error, stackTrace);
-      return result.asFailed(error);
+      return WebPushRegistrationResult(
+        status: WebPushRegistrationStatus.failed,
+        message: 'Failed to enable web push notifications: $error',
+      );
     }
   }
 

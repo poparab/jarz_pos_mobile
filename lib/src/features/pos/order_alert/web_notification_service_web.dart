@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
+import 'dart:async';
 import 'dart:html' as html;
 
 import '../../../core/firebase/firebase_runtime_config.dart';
@@ -18,21 +19,38 @@ class WebNotificationService {
   );
 
   /// Request notification permission from the browser
-  static Future<bool> requestPermission() async {
+  static Future<bool> requestPermission({
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    return await requestPermissionStatus(timeout: timeout) == 'granted';
+  }
+
+  static Future<String> requestPermissionStatus({
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
     _permissionStatus = _currentPermissionStatus();
 
-    if (_permissionRequested) return _permissionStatus == 'granted';
+    if (_permissionStatus == 'granted' || _permissionStatus == 'denied') {
+      _permissionRequested = true;
+      return _permissionStatus;
+    }
+
+    if (_permissionRequested) return _permissionStatus;
 
     try {
-      final permission = await html.Notification.requestPermission();
+      final permission = await html.Notification.requestPermission().timeout(
+        timeout,
+        onTimeout: () => 'timeout',
+      );
       _permissionStatus = permission;
-      _permissionRequested = true;
+      _permissionRequested = permission != 'timeout';
       
       _logger.info('🔔 Browser notification permission: $permission');
-      return permission == 'granted';
+      return permission;
     } catch (e) {
       _logger.error('Failed to request notification permission', e);
-      return false;
+      _permissionStatus = 'error';
+      return _permissionStatus;
     }
   }
 

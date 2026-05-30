@@ -40,3 +40,31 @@ class WebPushRegistrationResult {
     );
   }
 }
+
+WebPushRegistrationResult webPushPermissionNotGrantedResult(String status) {
+  final normalizedStatus = status.trim().toLowerCase();
+
+  final message = switch (normalizedStatus) {
+    'denied' =>
+      'Notification permission is blocked. Open iPhone Settings > Notifications > Jarz POS and allow notifications, then try again.',
+    'timeout' =>
+      'No notification prompt appeared in time. Delete and re-add the Home Screen app, then tap Enable Notifications again.',
+    'error' =>
+      'iPhone could not open the notification permission prompt. Reopen the Home Screen app and try again.',
+    'unsupported' => 'Web push notifications are only available in the web app.',
+    _ => 'Notification permission was not granted. Tap Enable Notifications again and choose Allow.',
+  };
+
+  return WebPushRegistrationResult(
+    status: WebPushRegistrationStatus.permissionDenied,
+    message: message,
+  );
+}
+
+WebPushRegistrationResult webPushTimedOutResult(String operation) {
+  return WebPushRegistrationResult(
+    status: WebPushRegistrationStatus.failed,
+    message:
+        '$operation timed out. Check your connection, reopen the Home Screen app, and try Enable Notifications again.',
+  );
+}
