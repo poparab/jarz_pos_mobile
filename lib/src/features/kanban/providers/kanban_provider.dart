@@ -88,6 +88,54 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     return message == action ? action : '$action: $message';
   }
 
+  DateTime _parseInvoiceTimestamp(String? value) {
+    final raw = (value ?? '').trim();
+    if (raw.isEmpty) {
+      return DateTime.fromMillisecondsSinceEpoch(0);
+    }
+    return DateTime.tryParse(raw) ?? DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
+  DateTime _receivedPostingDateTime(InvoiceCard card) {
+    final date = card.postingDate.trim();
+    final creationFallback = _parseInvoiceTimestamp(card.creation);
+    if (date.isEmpty) {
+      return creationFallback;
+    }
+
+    final time = (card.postingTime ?? '').trim();
+    final postingDateTime = time.isEmpty
+        ? DateTime.tryParse(date)
+        : DateTime.tryParse('$date $time');
+    return postingDateTime ?? DateTime.tryParse(date) ?? creationFallback;
+  }
+
+  int _compareReceivedCards(InvoiceCard a, InvoiceCard b) {
+    final postingCompare = _receivedPostingDateTime(b).compareTo(_receivedPostingDateTime(a));
+    if (postingCompare != 0) {
+      return postingCompare;
+    }
+
+    final creationCompare = _parseInvoiceTimestamp(b.creation).compareTo(_parseInvoiceTimestamp(a.creation));
+    if (creationCompare != 0) {
+      return creationCompare;
+    }
+
+    return b.name.compareTo(a.name);
+  }
+
+  Map<String, List<InvoiceCard>> _sortReceivedColumn(Map<String, List<InvoiceCard>> invoices) {
+    final receivedKey = _stateKey('Received');
+    final received = invoices[receivedKey];
+    if (received == null || received.length < 2) {
+      return invoices;
+    }
+
+    final sorted = List<InvoiceCard>.from(received)..sort(_compareReceivedCards);
+    invoices[receivedKey] = sorted;
+    return invoices;
+  }
+
   KanbanNotifier(this._kanbanService, Ref ref) : _ref = ref, super(KanbanState()) {
     _wsService = ref.read(webSocketServiceProvider);
     _initializeKanban();
@@ -178,7 +226,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       dest.removeWhere((c) => c.id == updatedCard.id);
       dest.add(updatedCard);
       current[destKey] = dest;
-      state = state.copyWith(invoices: current);
+      state = state.copyWith(invoices: _sortReceivedColumn(current));
     } catch (e) {
       debugPrint('Refresh single invoice failed for $invoiceId: $e');
       state = state.copyWith(
@@ -442,7 +490,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     dest.add(updated);
     current[outKey] = dest;
     final ti = Set<String>.from(state.transitioningInvoices)..remove(invoiceId);
-    state = state.copyWith(invoices: current, transitioningInvoices: ti);
+    state = state.copyWith(invoices: _sortReceivedColumn(current), transitioningInvoices: ti);
   }
 
   void _applyRealtimeMove(String invoiceId, String? oldStateKey, String newStateKey) {
@@ -469,7 +517,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       dest.removeWhere((c) => c.id == invoiceId);
       dest.add(updatedCard);
       current[newStateKey] = dest;
-      state = state.copyWith(invoices: current);
+      state = state.copyWith(invoices: _sortReceivedColumn(current));
     }
   }
 
@@ -513,18 +561,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         filterMap['branches'] = state.selectedBranches.toList();
       }
       final invoices = await _kanbanService.getKanbanInvoices(filters: filterMap);
-
-      // Sort the "Received" column by posting date (newest first)
-      final receivedKey = _stateKey('Received');
       final sorted = Map<String, List<InvoiceCard>>.from(invoices);
-      if (sorted.containsKey(receivedKey)) {
-        final list = List<InvoiceCard>.from(sorted[receivedKey] ?? const []);
-        DateTime parseDate(String s) => DateTime.tryParse(s) ?? DateTime.fromMillisecondsSinceEpoch(0);
-        list.sort((a, b) => parseDate(b.postingDate).compareTo(parseDate(a.postingDate)));
-        sorted[receivedKey] = list;
-      }
 
-      state = state.copyWith(invoices: sorted, isLoading: false);
+      state = state.copyWith(invoices: _sortReceivedColumn(sorted), isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -743,7 +782,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     dest.removeWhere((c) => c.id == invoiceId);
     dest.add(updated);
     current[targetKey] = dest;
-    state = state.copyWith(invoices: current);
+    state = state.copyWith(invoices: _sortReceivedColumn(current));
   }
 
   Future<Map<String, dynamic>?> cancelInvoice({
@@ -770,7 +809,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
           current[entry.key] = list;
         }
       }
-      state = state.copyWith(invoices: current);
+      state = state.copyWith(invoices: _sortReceivedColumn(current));
 
       await loadInvoices();
       return result;
@@ -1042,7 +1081,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     dest.removeWhere((c) => c.id == invoiceId);
     dest.add(updated);
     current[targetKey] = dest;
-    state = state.copyWith(invoices: current);
+    state = state.copyWith(invoices: _sortReceivedColumn(current));
   }
 
   Future<List<Map<String, String>>> getCouriers({String? posProfile}) async {

@@ -44,6 +44,8 @@ class InvoiceCard {
   final String? deliverySlotLabel; // optional preformatted label from backend
   final String status;
   final String postingDate;
+  final String? postingTime;
+  final String? creation;
   final double grandTotal;
   final double netTotal;
   final double totalTaxesAndCharges;
@@ -98,6 +100,8 @@ class InvoiceCard {
     this.deliverySlotLabel,
     required this.status,
     required this.postingDate,
+    this.postingTime,
+    this.creation,
     required this.grandTotal,
     required this.netTotal,
     required this.totalTaxesAndCharges,
@@ -179,6 +183,8 @@ class InvoiceCard {
       deliverySlotLabel: json['delivery_slot_label']?.toString(),
       status: json['status'] ?? '',
       postingDate: json['posting_date'] ?? '',
+      postingTime: json['posting_time']?.toString(),
+      creation: json['creation']?.toString(),
       grandTotal: (json['grand_total'] ?? 0).toDouble(),
       netTotal: (json['net_total'] ?? 0).toDouble(),
       totalTaxesAndCharges: (json['total_taxes_and_charges'] ?? 0).toDouble(),
@@ -242,6 +248,8 @@ class InvoiceCard {
       'delivery_slot_label': deliverySlotLabel,
       'status': status,
       'posting_date': postingDate,
+      'posting_time': postingTime,
+      'creation': creation,
       'grand_total': grandTotal,
       'net_total': netTotal,
       'total_taxes_and_charges': totalTaxesAndCharges,
@@ -296,6 +304,8 @@ class InvoiceCard {
     String? deliverySlotLabel,
     String? status,
     String? postingDate,
+    String? postingTime,
+    String? creation,
     double? grandTotal,
     double? netTotal,
     double? totalTaxesAndCharges,
@@ -349,6 +359,8 @@ class InvoiceCard {
       deliverySlotLabel: deliverySlotLabel ?? this.deliverySlotLabel,
       status: status ?? this.status,
       postingDate: postingDate ?? this.postingDate,
+      postingTime: postingTime ?? this.postingTime,
+      creation: creation ?? this.creation,
       grandTotal: grandTotal ?? this.grandTotal,
       netTotal: netTotal ?? this.netTotal,
       totalTaxesAndCharges: totalTaxesAndCharges ?? this.totalTaxesAndCharges,

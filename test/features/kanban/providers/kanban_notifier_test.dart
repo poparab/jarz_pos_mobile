@@ -47,7 +47,9 @@ class _FakeKanbanService extends KanbanService {
       'customer': 'CUST-1',
       'territory': 'Metro',
       'status': 'Received',
-      'posting_date': '2024-01-01',
+      'posting_date': '2024-03-01',
+      'posting_time': '09:15:00',
+      'creation': '2024-03-01 09:10:00',
       'grand_total': 100,
       'net_total': 90,
       'total_taxes_and_charges': 10,
@@ -62,6 +64,8 @@ class _FakeKanbanService extends KanbanService {
       'territory': 'Metro',
       'status': 'Received',
       'posting_date': '2024-03-01',
+      'posting_time': '18:45:00',
+      'creation': '2024-03-01 18:40:00',
       'grand_total': 150,
       'net_total': 140,
       'total_taxes_and_charges': 10,
@@ -305,7 +309,7 @@ void main() {
       container.dispose();
     });
 
-    test('loadInvoices sorts Received column by posting date descending', () async {
+    test('loadInvoices sorts Received column by posting datetime descending', () async {
       final notifier = container.read(kanbanProvider.notifier);
 
       await notifier.loadKanbanData();
@@ -380,19 +384,17 @@ void main() {
       expect(state.customers, isNotEmpty);
     });
 
-    test('refreshSingle patches a card into the correct column', () async {
+    test('refreshSingle keeps Received sorted after replacing a card', () async {
       final notifier = container.read(kanbanProvider.notifier);
       await notifier.loadKanbanData();
       await _flushMicrotasks();
 
-      // Both INV-OLD and INV-NEW are in 'received' column from the fake service
-      await notifier.refreshSingle('INV-OLD');
+      await notifier.refreshSingle('INV-NEW');
       await _flushMicrotasks();
 
       final state = container.read(kanbanProvider);
-      // Card should still be in the received column since fake returns it there
       final received = state.invoices['received'] ?? [];
-      expect(received.any((c) => c.id == 'INV-OLD'), isTrue);
+      expect(received.map((card) => card.id).toList(), ['INV-NEW', 'INV-OLD']);
     });
 
     test('refreshSingle surfaces errors so callers can fallback to reload', () async {

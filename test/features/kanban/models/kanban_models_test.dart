@@ -247,6 +247,8 @@ void main() {
         'customer_phone': '12345',
         'sales_partner': 'Partner-X',
         'is_pickup': 1,
+        'posting_time': '18:45:00',
+        'creation': '2026-06-01 18:40:00',
       });
 
       final json = card.toJson();
@@ -257,8 +259,20 @@ void main() {
       expect(json['customer_phone'], '12345');
       expect(json['sales_partner'], 'Partner-X');
       expect(json['is_pickup'], isTrue);
+      expect(json['posting_time'], '18:45:00');
+      expect(json['creation'], '2026-06-01 18:40:00');
       expect(json['items'], hasLength(1));
       expect(json['items'][0]['item_code'], 'ITEM-001');
+    });
+
+    test('fromJson exposes posting timestamps for received ordering', () {
+      final card = buildCard(overrides: {
+        'posting_time': '18:45:00',
+        'creation': '2026-06-01 18:40:00',
+      });
+
+      expect(card.postingTime, '18:45:00');
+      expect(card.creation, '2026-06-01 18:40:00');
     });
 
     test('derived helpers expose canonically named fields', () {
@@ -310,6 +324,13 @@ void main() {
       expect(updated.shippingIncome, 5);
       expect(updated.invoiceIdShort, '0001');
       expect(updated.customerName, 'John Doe');
+
+      final timestamped = card.copyWith(
+        postingTime: '14:30:00',
+        creation: '2026-06-01 14:00:00',
+      );
+      expect(timestamped.postingTime, '14:30:00');
+      expect(timestamped.creation, '2026-06-01 14:00:00');
     });
   });
 
