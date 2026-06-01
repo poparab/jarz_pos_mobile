@@ -125,32 +125,30 @@ class DefaultShorebirdStatusReader implements ShorebirdStatusReader {
       );
     }
 
-    final codePush = ShorebirdCodePush();
-    if (!codePush.isShorebirdAvailable()) {
+    final updater = ShorebirdUpdater();
+    if (!updater.isAvailable) {
       // The app was not built with `shorebird release` (no Shorebird engine is
-      // embedded), so there is no updater to query. Report this as unavailable
-      // instead of letting the queries below throw and surface as "unknown".
+      // embedded), so there is no updater to query. Report unavailable instead
+      // of letting the queries below throw and surface as "unknown".
       return const ShorebirdDiagnostics(
         status: ShorebirdPatchStatus.unavailable,
       );
     }
 
     try {
-      final currentPatchNumber = await codePush.currentPatchNumber();
-      final nextPatchNumber = await codePush.nextPatchNumber();
-      final restartRequired = await codePush.isNewPatchReadyToInstall();
-      final updateAvailable = restartRequired
-          ? false
-          : await codePush.isNewPatchAvailableForDownload();
+      final updateStatus = await updater.checkForUpdate();
+      final currentPatch = await updater.readCurrentPatch();
+      final nextPatch = await updater.readNextPatch();
 
       return ShorebirdDiagnostics(
-        status: restartRequired
-            ? ShorebirdPatchStatus.restartRequired
-            : updateAvailable
-            ? ShorebirdPatchStatus.updateAvailable
-            : ShorebirdPatchStatus.upToDate,
-        currentPatchNumber: currentPatchNumber,
-        nextPatchNumber: nextPatchNumber,
+        status: switch (updateStatus) {
+          UpdateStatus.upToDate => ShorebirdPatchStatus.upToDate,
+          UpdateStatus.outdated => ShorebirdPatchStatus.updateAvailable,
+          UpdateStatus.restartRequired => ShorebirdPatchStatus.restartRequired,
+          UpdateStatus.unavailable => ShorebirdPatchStatus.unavailable,
+        },
+        currentPatchNumber: currentPatch?.number,
+        nextPatchNumber: nextPatch?.number,
       );
     } catch (error) {
       return ShorebirdDiagnostics(

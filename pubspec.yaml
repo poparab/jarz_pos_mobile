@@ -60,7 +60,7 @@ dependencies:
 
   # About page dependencies
   package_info_plus: ^9.0.1
-  shorebird_code_push: ^1.1.6
+  shorebird_code_push: ^2.0.0
 
 dev_dependencies:
   flutter_test:
