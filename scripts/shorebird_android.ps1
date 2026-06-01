@@ -104,6 +104,13 @@ if ($Action -eq 'release') {
     exit 0
 }
 
+if ($Environment -eq 'production' -and ([string]::IsNullOrWhiteSpace($ReleaseVersion) -or $ReleaseVersion -eq 'latest')) {
+    # A patch only reaches devices running the exact release version it targets. Patching
+    # 'latest' silently misses every production device still on an older release, so require
+    # an explicit version (the build production testers are running).
+    throw "Production patches require an explicit -ReleaseVersion (e.g. 1.4.0+182). Refusing to patch 'latest' for production."
+}
+
 $patchArgs = @('patch', 'android', '--flavor', $config.Flavor)
 if ($ReleaseVersion) {
     $patchArgs += @('--release-version', $ReleaseVersion)

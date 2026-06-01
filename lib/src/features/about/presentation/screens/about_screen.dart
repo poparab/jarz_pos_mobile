@@ -39,6 +39,9 @@ class AboutScreen extends ConsumerWidget {
         '${l10n.aboutReleaseDist}: ${_displayValue(info.releaseDist, l10n.aboutNotAvailable)}',
         '${l10n.aboutPatchNumber}: ${_patchNumberText(l10n, info.shorebird)}',
         '${l10n.aboutPatchStatus}: ${_patchStatusText(l10n, info.shorebird)}',
+        if (info.shorebird.status == ShorebirdPatchStatus.unknown &&
+            (info.shorebird.errorMessage?.trim().isNotEmpty ?? false))
+          '${l10n.aboutPatchStatusUnknownDetail}: ${info.shorebird.errorMessage!.trim()}',
         '${l10n.aboutLastChecked}: ${_formatTimestamp(context, info.lastCheckedAt)}',
       ].join('\n');
 
@@ -136,6 +139,12 @@ class AboutScreen extends ConsumerWidget {
                     label: l10n.aboutLastChecked,
                     value: _formatTimestamp(context, info.lastCheckedAt),
                   ),
+                  if (info.shorebird.status == ShorebirdPatchStatus.unknown &&
+                      (info.shorebird.errorMessage?.trim().isNotEmpty ?? false))
+                    _InfoRow(
+                      label: l10n.aboutPatchStatusUnknownDetail,
+                      value: info.shorebird.errorMessage!.trim(),
+                    ),
                 ],
               ),
             ],

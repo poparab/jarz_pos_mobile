@@ -70,7 +70,90 @@ void main() {
         expect(find.text('7'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'should render a healthy base release as up to date with no patch number',
+      (tester) async {
+        // Arrange
+        final repository = AboutReleaseInfoRepository(
+          loadPackageInfo: () async => PackageInfo(
+            appName: 'Jarz POS',
+            packageName: 'com.orderjarz.pos',
+            version: '1.2.3',
+            buildNumber: '42',
+          ),
+          shorebirdStatusReader: const _FakeShorebirdStatusReader(
+            ShorebirdDiagnostics(status: ShorebirdPatchStatus.upToDate),
+          ),
+          platformLabelReader: () => 'Android',
+          now: () => DateTime.utc(2026, 5, 30, 10, 30),
+          sentryConfigLoader: (appEnvironment) =>
+              const SentryRuntimeConfig.disabled(environment: 'production'),
+        );
+
+        // Act
+        await tester.pumpWidget(_wrap(repository));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Up to date'), findsOneWidget);
+        expect(find.text('Base release only'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'should surface the error detail when patch status is unknown',
+      (tester) async {
+        // Arrange
+        final repository = AboutReleaseInfoRepository(
+          loadPackageInfo: () async => PackageInfo(
+            appName: 'Jarz POS',
+            packageName: 'com.orderjarz.pos',
+            version: '1.2.3',
+            buildNumber: '42',
+          ),
+          shorebirdStatusReader: const _FakeShorebirdStatusReader(
+            ShorebirdDiagnostics(
+              status: ShorebirdPatchStatus.unknown,
+              errorMessage: 'updater offline',
+            ),
+          ),
+          platformLabelReader: () => 'Android',
+          now: () => DateTime.utc(2026, 5, 30, 10, 30),
+          sentryConfigLoader: (appEnvironment) =>
+              const SentryRuntimeConfig.disabled(environment: 'production'),
+        );
+
+        // Act
+        await tester.pumpWidget(_wrap(repository));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Unknown'), findsOneWidget);
+        expect(find.text('Patch check error'), findsOneWidget);
+        expect(find.text('updater offline'), findsOneWidget);
+      },
+    );
   });
+}
+
+Widget _wrap(AboutReleaseInfoRepository repository) {
+  return ProviderScope(
+    overrides: [
+      aboutReleaseInfoRepositoryProvider.overrideWithValue(repository),
+    ],
+    child: MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const AboutScreen(),
+    ),
+  );
 }
 
 class _FakeShorebirdStatusReader implements ShorebirdStatusReader {

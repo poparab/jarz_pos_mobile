@@ -125,8 +125,17 @@ class DefaultShorebirdStatusReader implements ShorebirdStatusReader {
       );
     }
 
+    final codePush = ShorebirdCodePush();
+    if (!codePush.isShorebirdAvailable()) {
+      // The app was not built with `shorebird release` (no Shorebird engine is
+      // embedded), so there is no updater to query. Report this as unavailable
+      // instead of letting the queries below throw and surface as "unknown".
+      return const ShorebirdDiagnostics(
+        status: ShorebirdPatchStatus.unavailable,
+      );
+    }
+
     try {
-      final codePush = ShorebirdCodePush();
       final currentPatchNumber = await codePush.currentPatchNumber();
       final nextPatchNumber = await codePush.nextPatchNumber();
       final restartRequired = await codePush.isNewPatchReadyToInstall();

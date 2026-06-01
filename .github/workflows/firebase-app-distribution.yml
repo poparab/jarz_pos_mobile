@@ -147,7 +147,12 @@ jobs:
               $envFile = '.env.staging'
               $sentryEnvironment = 'staging'
               $builtApk = 'build/app/outputs/flutter-apk/app-staging-release.apk'
-              $shorebirdTrack = 'staging'
+              # Firebase-distributed release builds always read the 'stable' track at
+              # runtime; the 'staging' Shorebird track is only reachable via `shorebird
+              # preview` on a dev machine. Staging/production isolation is provided by the
+              # separate flavor app_id in shorebird.yaml, not by the track, so both flavors
+              # patch their own app's 'stable' track.
+              $shorebirdTrack = 'stable'
             }
             'production' {
               $flavor = 'production'
@@ -354,11 +359,20 @@ jobs:
           SENTRY_RELEASE: ${{ steps.meta.outputs.release_id }}
           SENTRY_DIST: ${{ steps.meta.outputs.build_number }}
         run: |
+          $targetEnvironment = '${{ steps.plan.outputs.target_environment }}'
           $releaseVersion = '${{ inputs.release_version }}'
           if ([string]::IsNullOrWhiteSpace($releaseVersion)) {
+            if ($targetEnvironment -eq 'production') {
+              # A patch only reaches devices running the exact release version it targets.
+              # Defaulting to 'latest' silently misses every production device that has not
+              # upgraded to the newest release. Require the operator to name the release
+              # version testers are actually running (see the About screen / Firebase).
+              throw "release_version is required for production patches. Supply the build version production testers are running (e.g. 1.4.0+182); do not rely on 'latest'."
+            }
+            # Staging auto-releases on every push and testers track head, so 'latest' is safe there.
             $releaseVersion = 'latest'
           }
-          .\scripts\shorebird_android.ps1 -Environment '${{ steps.plan.outputs.target_environment }}' -Action patch -ReleaseVersion $releaseVersion -Track '${{ steps.plan.outputs.shorebird_track }}'
+          .\scripts\shorebird_android.ps1 -Environment $targetEnvironment -Action patch -ReleaseVersion $releaseVersion -Track '${{ steps.plan.outputs.shorebird_track }}'
 
       - name: Name APK artifact
         if: steps.plan.outputs.release_type == 'full_apk'

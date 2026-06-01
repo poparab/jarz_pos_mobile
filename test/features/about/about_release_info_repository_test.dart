@@ -85,6 +85,67 @@ void main() {
         expect(result.shorebird.currentPatchNumber, isNull);
       },
     );
+
+    test(
+      'should report a healthy base release (no patch) as up to date',
+      () async {
+        // Arrange
+        final repository = AboutReleaseInfoRepository(
+          loadPackageInfo: () async => PackageInfo(
+            appName: 'Jarz POS',
+            packageName: 'com.orderjarz.pos',
+            version: '1.2.3',
+            buildNumber: '42',
+          ),
+          shorebirdStatusReader: const _FakeShorebirdStatusReader(
+            ShorebirdDiagnostics(status: ShorebirdPatchStatus.upToDate),
+          ),
+          currentHostReader: () => 'erp.orderjarz.com',
+          platformLabelReader: () => 'Android',
+          sentryConfigLoader: (appEnvironment) =>
+              const SentryRuntimeConfig.disabled(environment: 'production'),
+        );
+
+        // Act
+        final result = await repository.fetchReleaseInfo();
+
+        // Assert
+        expect(result.shorebird.status, ShorebirdPatchStatus.upToDate);
+        expect(result.shorebird.currentPatchNumber, isNull);
+      },
+    );
+
+    test(
+      'should preserve the error message when patch status is unknown',
+      () async {
+        // Arrange
+        final repository = AboutReleaseInfoRepository(
+          loadPackageInfo: () async => PackageInfo(
+            appName: 'Jarz POS',
+            packageName: 'com.orderjarz.pos',
+            version: '1.2.3',
+            buildNumber: '42',
+          ),
+          shorebirdStatusReader: const _FakeShorebirdStatusReader(
+            ShorebirdDiagnostics(
+              status: ShorebirdPatchStatus.unknown,
+              errorMessage: 'boom',
+            ),
+          ),
+          currentHostReader: () => 'erp.orderjarz.com',
+          platformLabelReader: () => 'Android',
+          sentryConfigLoader: (appEnvironment) =>
+              const SentryRuntimeConfig.disabled(environment: 'production'),
+        );
+
+        // Act
+        final result = await repository.fetchReleaseInfo();
+
+        // Assert
+        expect(result.shorebird.status, ShorebirdPatchStatus.unknown);
+        expect(result.shorebird.errorMessage, 'boom');
+      },
+    );
   });
 }
 

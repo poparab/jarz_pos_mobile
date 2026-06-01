@@ -153,6 +153,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutPatchStatusUnknown => 'Unknown';
 
   @override
+  String get aboutPatchStatusUnknownDetail => 'Patch check error';
+
+  @override
   String get aboutRefresh => 'Refresh';
 
   @override

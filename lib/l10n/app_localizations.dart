@@ -380,6 +380,12 @@ abstract class AppLocalizations {
   /// **'Unknown'**
   String get aboutPatchStatusUnknown;
 
+  /// No description provided for @aboutPatchStatusUnknownDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Patch check error'**
+  String get aboutPatchStatusUnknownDetail;
+
   /// No description provided for @aboutRefresh.
   ///
   /// In en, this message translates to:

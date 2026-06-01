@@ -153,6 +153,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get aboutPatchStatusUnknown => 'غير معروف';
 
   @override
+  String get aboutPatchStatusUnknownDetail => 'خطأ في فحص التحديث';
+
+  @override
   String get aboutRefresh => 'تحديث';
 
   @override

@@ -52,6 +52,7 @@
   "aboutPatchStatusRestartRequired": "إعادة التشغيل مطلوبة",
   "aboutPatchStatusUnavailable": "غير متاح",
   "aboutPatchStatusUnknown": "غير معروف",
+  "aboutPatchStatusUnknownDetail": "خطأ في فحص التحديث",
   "aboutRefresh": "تحديث",
   "aboutCopyDiagnostics": "نسخ معلومات التشخيص",
   "aboutCopiedDiagnostics": "تم نسخ معلومات التشخيص",

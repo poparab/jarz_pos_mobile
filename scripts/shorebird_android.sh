@@ -98,6 +98,14 @@ case "${action,,}" in
     fi
     ;;
   patch)
+    if [ "$flavor" = "production" ] && { [ -z "$release_version" ] || [ "$release_version" = "latest" ]; }; then
+      # A patch only reaches devices running the exact release version it targets. Patching
+      # 'latest' silently misses every production device still on an older release, so require
+      # an explicit version (the build production testers are running).
+      echo "Production patches require an explicit release-version (e.g. 1.0.0+195). Refusing to patch 'latest' for production." >&2
+      exit 1
+    fi
+
     patch_args=(patch android --flavor "$flavor")
     if [ -n "$release_version" ]; then
       patch_args+=(--release-version "$release_version")

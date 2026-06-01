@@ -52,6 +52,7 @@
   "aboutPatchStatusRestartRequired": "Restart required",
   "aboutPatchStatusUnavailable": "Unavailable",
   "aboutPatchStatusUnknown": "Unknown",
+  "aboutPatchStatusUnknownDetail": "Patch check error",
   "aboutRefresh": "Refresh",
   "aboutCopyDiagnostics": "Copy diagnostics",
   "aboutCopiedDiagnostics": "Diagnostics copied",
