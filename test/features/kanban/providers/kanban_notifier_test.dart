@@ -25,6 +25,18 @@ class _FakeKanbanService extends KanbanService {
   String? lastUpdatedState;
   bool updateShouldSucceed = true;
   Object? fetchInvoicesError;
+  final Map<String, List<InvoiceNote>> notesByInvoice = {
+    'INV-OLD': [
+      InvoiceNote.fromJson({
+        'name': 'JIN-001',
+        'sales_invoice': 'INV-OLD',
+        'note': 'Initial note',
+        'added_by': 'tester@example.com',
+        'added_by_full_name': 'Tester',
+        'added_on': '2026-06-04 09:00:00',
+      }),
+    ],
+  };
 
   @override
   Future<List<KanbanColumn>> getKanbanColumns() async {
@@ -54,6 +66,7 @@ class _FakeKanbanService extends KanbanService {
       'net_total': 90,
       'total_taxes_and_charges': 10,
       'full_address': '123 Test',
+      'note_count': 1,
       'items': const [],
     });
     final newer = InvoiceCard.fromJson({
@@ -105,6 +118,30 @@ class _FakeKanbanService extends KanbanService {
     String? notes,
   }) async {
     return {'success': true};
+  }
+
+  @override
+  Future<List<InvoiceNote>> getInvoiceNotes(String invoiceId) async {
+    return List<InvoiceNote>.from(notesByInvoice[invoiceId] ?? const []);
+  }
+
+  @override
+  Future<InvoiceNoteSaveResult> addInvoiceNote({
+    required String invoiceId,
+    required String note,
+  }) async {
+    final saved = InvoiceNote.fromJson({
+      'name': 'JIN-${(notesByInvoice[invoiceId]?.length ?? 0) + 1}',
+      'sales_invoice': invoiceId,
+      'note': note,
+      'added_by': 'tester@example.com',
+      'added_by_full_name': 'Tester',
+      'added_on': '2026-06-04 10:30:00',
+    });
+    final items = List<InvoiceNote>.from(notesByInvoice[invoiceId] ?? const []);
+    items.add(saved);
+    notesByInvoice[invoiceId] = items;
+    return InvoiceNoteSaveResult(note: saved, noteCount: items.length);
   }
 
   @override
@@ -456,6 +493,41 @@ void main() {
       // but the cancel flow itself should not throw
       final state = container.read(kanbanProvider);
       expect(state.error, isNull);
+    });
+
+    test('addInvoiceNote patches note count on the existing card', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      final result = await notifier.addInvoiceNote(
+        invoiceId: 'INV-OLD',
+        note: 'Second note',
+      );
+
+      expect(result, isNotNull);
+      final state = container.read(kanbanProvider);
+      final card = state.invoices['received']!.firstWhere((entry) => entry.id == 'INV-OLD');
+      expect(card.noteCount, 2);
+      expect(card.hasNotes, isTrue);
+    });
+
+    test('realtime invoice_note_added updates card badge count without reload', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      final ws = container.read(webSocketServiceProvider) as _FakeWebSocketService;
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      ws._kanbanController.add({
+        'event': 'invoice_note_added',
+        'invoice_id': 'INV-OLD',
+        'note_count': 4,
+      });
+      await _flushMicrotasks();
+
+      final state = container.read(kanbanProvider);
+      final card = state.invoices['received']!.firstWhere((entry) => entry.id == 'INV-OLD');
+      expect(card.noteCount, 4);
     });
   });
 

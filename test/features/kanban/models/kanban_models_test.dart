@@ -144,6 +144,7 @@ void main() {
       final card = buildCard(overrides: {
         'shipping_income': 5,
         'shipping_expense': 3,
+        'note_count': '2',
         'customerPhone': '9999',
         'doc_status': 'Paid',
         'courier': 'Courier A',
@@ -166,6 +167,8 @@ void main() {
       expect(card.hasUnsettledCourierTxn, isTrue);
       expect(card.salesPartner, 'Partner-1');
       expect(card.isPickup, isTrue);
+      expect(card.noteCount, 2);
+      expect(card.hasNotes, isTrue);
     });
 
     test('prefers custom kanban profile over submitted pos profile', () {
@@ -331,6 +334,41 @@ void main() {
       );
       expect(timestamped.postingTime, '14:30:00');
       expect(timestamped.creation, '2026-06-01 14:00:00');
+    });
+
+    test('copyWith updates note count without disturbing other fields', () {
+      final card = buildCard(overrides: {
+        'status': 'Received',
+        'note_count': 0,
+      });
+
+      final updated = card.copyWith(noteCount: 3);
+
+      expect(updated.noteCount, 3);
+      expect(updated.hasNotes, isTrue);
+      expect(updated.id, card.id);
+      expect(updated.status, card.status);
+    });
+  });
+
+  group('InvoiceNote', () {
+    test('fromJson parses custom invoice note payload', () {
+      final note = InvoiceNote.fromJson({
+        'name': 'JIN-2026-00001',
+        'sales_invoice': 'SINV-0001',
+        'pos_profile': 'Main',
+        'note': 'Call customer before dispatch',
+        'added_by': 'test@example.com',
+        'added_by_full_name': 'Test User',
+        'added_on': '2026-06-04 13:15:00',
+      });
+
+      expect(note.name, 'JIN-2026-00001');
+      expect(note.salesInvoice, 'SINV-0001');
+      expect(note.posProfile, 'Main');
+      expect(note.note, 'Call customer before dispatch');
+      expect(note.addedByFullName, 'Test User');
+      expect(note.addedOnDateTime, DateTime.parse('2026-06-04 13:15:00'));
     });
   });
 

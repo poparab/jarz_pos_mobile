@@ -268,6 +268,70 @@ class KanbanService {
     }
   }
 
+  Future<List<InvoiceNote>> getInvoiceNotes(String invoiceId) async {
+    try {
+      _logger.info("Fetching notes for invoice: $invoiceId");
+      final response = await _dio.get(
+        ApiEndpoints.getInvoiceNotes,
+        queryParameters: {"invoice_id": invoiceId},
+      );
+
+      final message = response.data["message"];
+      if (message is Map && message["success"] == true) {
+        return (message["data"] as List? ?? const [])
+            .whereType<Map>()
+            .map((note) => InvoiceNote.fromJson(Map<String, dynamic>.from(note)))
+            .toList();
+      }
+
+      throw Exception(
+        message is Map
+            ? message["error"] ?? "Failed to load invoice notes"
+            : "Failed to load invoice notes",
+      );
+    } catch (e) {
+      _logger.error("Failed to get invoice notes", e);
+      throw _friendlyException(e, fallback: 'Failed to load invoice notes');
+    }
+  }
+
+  Future<InvoiceNoteSaveResult> addInvoiceNote({
+    required String invoiceId,
+    required String note,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.addInvoiceNote,
+        data: {
+          'invoice_id': invoiceId,
+          'note': note.trim(),
+        },
+      );
+
+      final message = response.data["message"];
+      if (message is Map && message["success"] == true) {
+        final noteCount = message["note_count"] is int
+            ? message["note_count"] as int
+            : int.tryParse((message["note_count"] ?? '').toString()) ?? 0;
+        return InvoiceNoteSaveResult(
+          note: InvoiceNote.fromJson(
+            Map<String, dynamic>.from((message["data"] as Map?) ?? const {}),
+          ),
+          noteCount: noteCount,
+        );
+      }
+
+      throw Exception(
+        message is Map
+            ? message["error"] ?? "Failed to add invoice note"
+            : "Failed to add invoice note",
+      );
+    } catch (e) {
+      _logger.error("Failed to add invoice note", e);
+      throw _friendlyException(e, fallback: 'Failed to add invoice note');
+    }
+  }
+
   /// Get filter options for the kanban board
   Future<KanbanFilterOptions> getKanbanFilters() async {
     try {
@@ -1220,4 +1284,3 @@ class KanbanService {
     }
   }
 }
-

@@ -1940,6 +1940,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get invoiceMoreOptions => 'خيارات إضافية';
 
   @override
+  String get invoiceAddNote => 'الملاحظات';
+
+  @override
+  String get invoiceNotesTitle => 'ملاحظات الفاتورة';
+
+  @override
+  String get invoiceNotesTooltip => 'عرض ملاحظات الفاتورة';
+
+  @override
+  String get invoiceNotesHint => 'أضف ملاحظة تشغيلية لهذه الفاتورة';
+
+  @override
+  String get invoiceNotesEmpty => 'لا توجد ملاحظات لهذه الفاتورة بعد.';
+
+  @override
+  String get invoiceAddingNote => 'جارٍ الإضافة...';
+
+  @override
+  String get invoiceNoteAdded => 'تمت إضافة الملاحظة';
+
+  @override
+  String invoiceNotesLoadFailed(Object error) {
+    return 'تعذر تحميل ملاحظات الفاتورة: $error';
+  }
+
+  @override
+  String invoiceNoteAddFailed(Object error) {
+    return 'تعذر إضافة الملاحظة: $error';
+  }
+
+  @override
   String get invoiceEditInvoice => 'تعديل الفاتورة';
 
   @override

@@ -3438,6 +3438,60 @@ abstract class AppLocalizations {
   /// **'More Options'**
   String get invoiceMoreOptions;
 
+  /// No description provided for @invoiceAddNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get invoiceAddNote;
+
+  /// No description provided for @invoiceNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice Notes'**
+  String get invoiceNotesTitle;
+
+  /// No description provided for @invoiceNotesTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'View invoice notes'**
+  String get invoiceNotesTooltip;
+
+  /// No description provided for @invoiceNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an operational note for this invoice'**
+  String get invoiceNotesHint;
+
+  /// No description provided for @invoiceNotesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet for this invoice.'**
+  String get invoiceNotesEmpty;
+
+  /// No description provided for @invoiceAddingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding...'**
+  String get invoiceAddingNote;
+
+  /// No description provided for @invoiceNoteAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Note added'**
+  String get invoiceNoteAdded;
+
+  /// No description provided for @invoiceNotesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load invoice notes: {error}'**
+  String invoiceNotesLoadFailed(Object error);
+
+  /// No description provided for @invoiceNoteAddFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add note: {error}'**
+  String invoiceNoteAddFailed(Object error);
+
   /// No description provided for @invoiceEditInvoice.
   ///
   /// In en, this message translates to:

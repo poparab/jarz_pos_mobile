@@ -1945,6 +1945,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invoiceMoreOptions => 'More Options';
 
   @override
+  String get invoiceAddNote => 'Notes';
+
+  @override
+  String get invoiceNotesTitle => 'Invoice Notes';
+
+  @override
+  String get invoiceNotesTooltip => 'View invoice notes';
+
+  @override
+  String get invoiceNotesHint => 'Add an operational note for this invoice';
+
+  @override
+  String get invoiceNotesEmpty => 'No notes yet for this invoice.';
+
+  @override
+  String get invoiceAddingNote => 'Adding...';
+
+  @override
+  String get invoiceNoteAdded => 'Note added';
+
+  @override
+  String invoiceNotesLoadFailed(Object error) {
+    return 'Failed to load invoice notes: $error';
+  }
+
+  @override
+  String invoiceNoteAddFailed(Object error) {
+    return 'Failed to add note: $error';
+  }
+
+  @override
   String get invoiceEditInvoice => 'Edit Invoice';
 
   @override

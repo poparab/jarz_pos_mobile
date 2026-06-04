@@ -24,6 +24,7 @@ import 'cancel_order_dialog.dart';
 import 'payment_collection_change_dialog.dart';
 import 'sub_territory_selection_sheet.dart';
 import 'custom_shipping_request_dialog.dart';
+import 'invoice_notes_sheet.dart';
 import '../../printing/pos_printer_provider.dart';
 import '../../printing/printable_invoice_mapper.dart';
 import '../../printing/pos_printer_service.dart'
@@ -530,6 +531,50 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       );
     }
 
+    if (widget.invoice.hasNotes) {
+      trailingWidgets.add(
+        Tooltip(
+          message: l10n.invoiceNotesTooltip,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              IconButton(
+                icon: Icon(Icons.comment_outlined, size: iconSize),
+                padding: EdgeInsets.all(ResponsiveUtils.getSpacing(context, small: 4, medium: 5, large: 6)),
+                constraints: BoxConstraints(
+                  minWidth: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
+                  minHeight: ResponsiveUtils.getIconSize(context, small: 32, medium: 34, large: 36),
+                ),
+                splashRadius: ResponsiveUtils.getIconSize(context, small: 16, medium: 18, large: 20),
+                onPressed: transitioning ? null : () => _openInvoiceNotes(context),
+              ),
+              PositionedDirectional(
+                top: 2,
+                end: 2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  constraints: const BoxConstraints(minWidth: 16),
+                  child: Text(
+                    widget.invoice.noteCount > 9 ? '9+' : widget.invoice.noteCount.toString(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final canShowPay = !hasPartner && widget.invoice.effectiveStatus.toLowerCase() != InvoiceStatus.paidLower && !hasUnsettled;
     if (canShowPay) {
       trailingWidgets.add(
@@ -589,7 +634,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           splashRadius: ResponsiveUtils.getIconSize(context, small: 16, medium: 18, large: 20),
           enabled: !transitioning,
           onSelected: (value) async {
-            if (value == 'edit_address') {
+            if (value == 'add_note') {
+              await _openInvoiceNotes(context);
+            } else if (value == 'edit_address') {
               await _editCustomerAddress(context);
             } else if (value == 'preview_receipt') {
               await _previewInvoiceReceipt(context);
@@ -610,6 +657,16 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             }
           },
           itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'add_note',
+              child: Row(
+                children: [
+                  const Icon(Icons.comment_outlined, size: 18),
+                  const SizedBox(width: 8),
+                  Text(l10n.invoiceAddNote),
+                ],
+              ),
+            ),
             PopupMenuItem(
               value: 'edit_address',
               child: Row(
@@ -2613,6 +2670,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ),
       );
     }
+  }
+
+  Future<void> _openInvoiceNotes(BuildContext context) async {
+    await InvoiceNotesSheet.show(
+      context,
+      invoice: widget.invoice,
+    );
   }
 
   /// Edit customer address dialog

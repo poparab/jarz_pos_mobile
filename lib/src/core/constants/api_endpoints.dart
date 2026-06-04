@@ -93,6 +93,10 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.kanban.cancel_invoice';
   static const getInvoiceDetails =
       '/api/method/jarz_pos.api.kanban.get_invoice_details';
+  static const getInvoiceNotes =
+      '/api/method/jarz_pos.api.kanban.get_invoice_notes';
+  static const addInvoiceNote =
+      '/api/method/jarz_pos.api.kanban.add_invoice_note';
   static const getKanbanFilters =
       '/api/method/jarz_pos.api.kanban.get_kanban_filters';
 

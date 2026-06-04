@@ -555,6 +555,67 @@ void main() {
       });
     });
 
+    group('Invoice Notes', () {
+      test('getInvoiceNotes - returns custom note history for the invoice', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.kanban.get_invoice_notes',
+          createSuccessResponse(data: {
+            'success': true,
+            'data': [
+              {
+                'name': 'JIN-001',
+                'sales_invoice': 'INV-001',
+                'note': 'Check customer gate code',
+                'added_by': 'user@example.com',
+                'added_by_full_name': 'User One',
+                'added_on': '2026-06-04 12:00:00',
+              },
+            ],
+            'note_count': 1,
+          }),
+        );
+
+        final notes = await service.getInvoiceNotes('INV-001');
+
+        expect(notes, hasLength(1));
+        expect(notes.first.salesInvoice, 'INV-001');
+        expect(notes.first.note, 'Check customer gate code');
+        expect(notes.first.addedByFullName, 'User One');
+        final requests = mockDio.requestLog;
+        expect(requests.last['queryParameters']['invoice_id'], equals('INV-001'));
+      });
+
+      test('addInvoiceNote - posts note text and returns updated count', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.kanban.add_invoice_note',
+          createSuccessResponse(data: {
+            'success': true,
+            'data': {
+              'name': 'JIN-002',
+              'sales_invoice': 'INV-001',
+              'note': 'Leave at reception',
+              'added_by': 'user@example.com',
+              'added_by_full_name': 'User One',
+              'added_on': '2026-06-04 12:10:00',
+            },
+            'note_count': 2,
+          }),
+        );
+
+        final result = await service.addInvoiceNote(
+          invoiceId: 'INV-001',
+          note: '  Leave at reception  ',
+        );
+
+        expect(result.note.salesInvoice, 'INV-001');
+        expect(result.note.note, 'Leave at reception');
+        expect(result.noteCount, 2);
+        final requests = mockDio.requestLog;
+        expect(requests.last['data']['invoice_id'], equals('INV-001'));
+        expect(requests.last['data']['note'], equals('Leave at reception'));
+      });
+    });
+
     group('Error Handling', () {
       test('throws exception on network error', () async {
         mockDio.setError(

@@ -71,6 +71,7 @@ class InvoiceCard {
   final String? paymentReceiptStatus;
   final String? paymentReceiptImageUrl;
   final String? posProfile; // Effective Kanban branch: custom_kanban_profile first, then pos_profile
+  final int noteCount;
   final double outstandingAmount;
   final int? docstatusValue;
   final bool isReturn;
@@ -127,6 +128,7 @@ class InvoiceCard {
   this.paymentReceiptStatus,
   this.paymentReceiptImageUrl,
   this.posProfile,
+    this.noteCount = 0,
     this.outstandingAmount = 0.0,
     this.docstatusValue,
     this.isReturn = false,
@@ -213,6 +215,9 @@ class InvoiceCard {
       paymentReceiptStatus: json['payment_receipt_status']?.toString(),
       paymentReceiptImageUrl: json['payment_receipt_image_url']?.toString(),
       posProfile: (json['custom_kanban_profile'] ?? json['pos_profile'])?.toString(),
+      noteCount: json['note_count'] is int
+          ? json['note_count'] as int
+          : int.tryParse((json['note_count'] ?? '').toString()) ?? 0,
       outstandingAmount: (double.tryParse((json['outstanding_amount'] ?? json['outstandingAmount'] ?? 0).toString()) ?? 0.0),
       docstatusValue: json['docstatus_value'] is int
           ? json['docstatus_value'] as int
@@ -274,6 +279,7 @@ class InvoiceCard {
   'payment_receipt_status': paymentReceiptStatus,
   'payment_receipt_image_url': paymentReceiptImageUrl,
   'pos_profile': posProfile,
+      'note_count': noteCount,
       'outstanding_amount': outstandingAmount,
       'docstatus_value': docstatusValue,
       'is_return': isReturn,
@@ -331,6 +337,7 @@ class InvoiceCard {
   String? paymentReceiptStatus,
   String? paymentReceiptImageUrl,
   String? posProfile,
+  int? noteCount,
   double? outstandingAmount,
   int? docstatusValue,
   bool? isReturn,
@@ -386,6 +393,7 @@ class InvoiceCard {
   paymentReceiptStatus: paymentReceiptStatus ?? this.paymentReceiptStatus,
   paymentReceiptImageUrl: paymentReceiptImageUrl ?? this.paymentReceiptImageUrl,
   posProfile: posProfile ?? this.posProfile,
+      noteCount: noteCount ?? this.noteCount,
       outstandingAmount: outstandingAmount ?? this.outstandingAmount,
       docstatusValue: docstatusValue ?? this.docstatusValue,
       isReturn: isReturn ?? this.isReturn,
@@ -421,6 +429,7 @@ class InvoiceCard {
   double get total => grandTotal;
   double get taxAmount => totalTaxesAndCharges;
   double get shippingIncomeDisplay => shippingIncome; // new helper
+  bool get hasNotes => noteCount > 0;
   double get shippingExpenseDisplay =>
       (shippingOverrideStatus == 'Approved' && shippingOverride != null && shippingOverride! > 0)
           ? shippingOverride!
@@ -613,6 +622,62 @@ class InvoiceCard {
       return postingDate;
     }
   }
+}
+
+class InvoiceNote {
+  final String name;
+  final String salesInvoice;
+  final String? posProfile;
+  final String note;
+  final String addedBy;
+  final String addedByFullName;
+  final String addedOn;
+
+  const InvoiceNote({
+    required this.name,
+    required this.salesInvoice,
+    this.posProfile,
+    required this.note,
+    required this.addedBy,
+    required this.addedByFullName,
+    required this.addedOn,
+  });
+
+  factory InvoiceNote.fromJson(Map<String, dynamic> json) {
+    return InvoiceNote(
+      name: json['name']?.toString() ?? '',
+      salesInvoice: json['sales_invoice']?.toString() ?? '',
+      posProfile: json['pos_profile']?.toString(),
+      note: json['note']?.toString() ?? '',
+      addedBy: json['added_by']?.toString() ?? '',
+      addedByFullName: (json['added_by_full_name'] ?? json['added_by'])?.toString() ?? '',
+      addedOn: json['added_on']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'sales_invoice': salesInvoice,
+      'pos_profile': posProfile,
+      'note': note,
+      'added_by': addedBy,
+      'added_by_full_name': addedByFullName,
+      'added_on': addedOn,
+    };
+  }
+
+  DateTime? get addedOnDateTime => DateTime.tryParse(addedOn);
+}
+
+class InvoiceNoteSaveResult {
+  final InvoiceNote note;
+  final int noteCount;
+
+  const InvoiceNoteSaveResult({
+    required this.note,
+    required this.noteCount,
+  });
 }
 
 class InvoiceItem {

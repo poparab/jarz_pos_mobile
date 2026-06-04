@@ -168,6 +168,22 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     return _kanbanService.getKanbanInvoices(filters: state.filters.toJson());
   }
 
+  Future<List<InvoiceNote>> getInvoiceNotes(String invoiceId) async {
+    return _kanbanService.getInvoiceNotes(invoiceId);
+  }
+
+  Future<InvoiceNoteSaveResult?> addInvoiceNote({
+    required String invoiceId,
+    required String note,
+  }) async {
+    final result = await _kanbanService.addInvoiceNote(
+      invoiceId: invoiceId,
+      note: note,
+    );
+    _patchInvoiceNoteCount(invoiceId, result.noteCount);
+    return result;
+  }
+
   void _autoSelectAllBranchesIfNeeded() {
     if (_autoBranchesInitialized || state.selectedBranches.isNotEmpty) return;
     final posState = _ref.read(posNotifierProvider);
@@ -236,6 +252,22 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     }
   }
 
+  void _patchInvoiceNoteCount(String invoiceId, int noteCount) {
+    final current = Map<String, List<InvoiceCard>>.from(state.invoices);
+    for (final entry in current.entries) {
+      final list = List<InvoiceCard>.from(entry.value);
+      final index =
+          list.indexWhere((card) => card.id == invoiceId || card.name == invoiceId);
+      if (index < 0) {
+        continue;
+      }
+      list[index] = list[index].copyWith(noteCount: noteCount);
+      current[entry.key] = list;
+      state = state.copyWith(invoices: _sortReceivedColumn(current));
+      return;
+    }
+  }
+
   Future<void> _initializeKanban() async {
     await loadColumns();
     await loadInvoices(immediate: true);
@@ -254,6 +286,18 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         final eventName = (event['event'] ?? '').toString().toLowerCase();
         final paymentChanged = const [true, 1, '1', 'true', 'True']
             .contains(event['payment_changed']);
+
+        if (eventName == 'invoice_note_added' && invoiceId != null) {
+          final noteCount = event['note_count'] is int
+              ? event['note_count'] as int
+              : int.tryParse((event['note_count'] ?? '').toString());
+          if (noteCount != null) {
+            _patchInvoiceNoteCount(invoiceId, noteCount);
+          } else {
+            refreshSingle(invoiceId);
+          }
+          return;
+        }
 
         if (eventName.contains('custom_shipping') || eventName.contains('trip_')) {
           loadInvoices();
