@@ -49,6 +49,7 @@ on:
         type: string
 
 permissions:
+  actions: read
   contents: read
 
 env:
@@ -351,6 +352,8 @@ jobs:
         if: steps.plan.outputs.release_type == 'shorebird_patch'
         shell: pwsh
         env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
           ANDROID_UPLOAD_KEYSTORE_PATH: ${{ steps.signing.outputs.keystore_path }}
           ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
@@ -361,16 +364,42 @@ jobs:
         run: |
           $targetEnvironment = '${{ steps.plan.outputs.target_environment }}'
           $releaseVersion = '${{ inputs.release_version }}'
-          if ([string]::IsNullOrWhiteSpace($releaseVersion)) {
+          if ([string]::IsNullOrWhiteSpace($releaseVersion) -or ($targetEnvironment -eq 'production' -and $releaseVersion -eq 'latest')) {
             if ($targetEnvironment -eq 'production') {
-              # A patch only reaches devices running the exact release version it targets.
-              # Defaulting to 'latest' silently misses every production device that has not
-              # upgraded to the newest release. Require the operator to name the release
-              # version testers are actually running (see the About screen / Firebase).
-              throw "release_version is required for production patches. Supply the build version production testers are running (e.g. 1.4.0+182); do not rely on 'latest'."
+              $runList = gh run list `
+                --repo $env:GITHUB_REPOSITORY `
+                --workflow 'Android Release' `
+                --branch main `
+                --limit 30 `
+                --json databaseId,displayTitle,event,status,conclusion | ConvertFrom-Json
+              $candidateRun = @(
+                @($runList) |
+                  Where-Object {
+                    $_.event -eq 'workflow_dispatch' -and
+                    $_.status -eq 'completed' -and
+                    $_.conclusion -eq 'success' -and
+                    $_.displayTitle -like '* / production / full_apk / *'
+                  } |
+                  Sort-Object -Property databaseId -Descending
+              ) | Select-Object -First 1
+              if (-not $candidateRun) {
+                throw "Could not find a successful production full APK workflow run to derive release_version for this production patch."
+              }
+              $runLog = gh run view $candidateRun.databaseId --repo $env:GITHUB_REPOSITORY --log
+              $releaseMatch = [regex]::Match(
+                $runLog,
+                'SENTRY_RELEASE:\s+production-v(?<version>[0-9A-Za-z.+_-]+)-[0-9a-f]{7,40}'
+              )
+              if (-not $releaseMatch.Success) {
+                throw "Could not parse release_version from production APK workflow run $($candidateRun.databaseId)."
+              }
+              $releaseVersion = $releaseMatch.Groups['version'].Value
+              Write-Host "Resolved production patch release version: $releaseVersion"
             }
-            # Staging auto-releases on every push and testers track head, so 'latest' is safe there.
-            $releaseVersion = 'latest'
+            else {
+              # Staging auto-releases on every push and testers track head, so 'latest' is safe there.
+              $releaseVersion = 'latest'
+            }
           }
           .\scripts\shorebird_android.ps1 -Environment $targetEnvironment -Action patch -ReleaseVersion $releaseVersion -Track '${{ steps.plan.outputs.shorebird_track }}'
 

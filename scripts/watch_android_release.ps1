@@ -3,10 +3,11 @@ param(
     [ValidateSet('staging', 'production')]
     [string]$Environment,
 
-    [ValidateSet('auto', 'apk', 'patch')]
+    [ValidateSet('auto', 'apk', 'patch', 'full_apk', 'shorebird_patch')]
     [string]$ReleaseType = 'auto',
 
     [string]$CommitSha,
+    [string]$ReleaseVersion,
     [string]$ReleaseNotes,
     [int]$TimeoutMinutes = 45,
     [int]$PollSeconds = 10,
@@ -70,7 +71,8 @@ function Invoke-ToolText {
 function Invoke-Git {
     param([string[]]$Arguments)
 
-    return Invoke-ToolText -CommandName 'git' -Arguments (@('-c', 'http.version=HTTP/1.1', '-C', $MobileRepoPath) + $Arguments)
+    $safeDirectory = $MobileRepoPath -replace '\\', '/'
+    return Invoke-ToolText -CommandName 'git' -Arguments (@('-c', "safe.directory=$safeDirectory", '-c', 'http.version=HTTP/1.1', '-C', $MobileRepoPath) + $Arguments)
 }
 
 function Invoke-Gh {
@@ -193,6 +195,54 @@ function Get-WorkflowRunState([string]$RunId) {
     )
 }
 
+function Resolve-ProductionPatchReleaseVersion([string]$ExplicitReleaseVersion) {
+    $requestedVersion = ''
+    if (-not [string]::IsNullOrWhiteSpace($ExplicitReleaseVersion)) {
+        $requestedVersion = $ExplicitReleaseVersion.Trim()
+    }
+    if ($requestedVersion -and $requestedVersion -ne 'latest') {
+        return $requestedVersion
+    }
+
+    Write-Step 'Resolving production patch release version from the latest successful production APK release...'
+    $runs = Invoke-GhJson -Arguments @(
+        'run', 'list',
+        '--workflow', $workflowName,
+        '--branch', 'main',
+        '--limit', '30',
+        '--json', 'databaseId,displayTitle,event,status,conclusion,url,createdAt'
+    )
+
+    $candidateRun = @(
+        @($runs) |
+            Where-Object {
+                $_.event -eq 'workflow_dispatch' -and
+                $_.status -eq 'completed' -and
+                $_.conclusion -eq 'success' -and
+                $_.displayTitle -like '* / production / full_apk / *'
+            } |
+            Sort-Object -Property databaseId -Descending
+    ) | Select-Object -First 1
+
+    if (-not $candidateRun) {
+        throw 'Could not find a successful production full APK workflow run to derive the Shorebird patch release version.'
+    }
+
+    Write-Info "Using production APK workflow run $($candidateRun.databaseId)"
+    $runLog = Invoke-Gh -Arguments @('run', 'view', "$($candidateRun.databaseId)", '--log')
+    $releaseMatch = [regex]::Match(
+        $runLog,
+        'SENTRY_RELEASE:\s+production-v(?<version>[0-9A-Za-z.+_-]+)-[0-9a-f]{7,40}'
+    )
+    if (-not $releaseMatch.Success) {
+        throw "Could not parse the production release version from workflow run $($candidateRun.databaseId)."
+    }
+
+    $resolvedVersion = $releaseMatch.Groups['version'].Value
+    Write-Info "Resolved production patch release version: $resolvedVersion"
+    return $resolvedVersion
+}
+
 function Get-ExpectedRunTitle([string]$EventName, [string]$ResolvedReleaseType) {
     if ($EventName -eq 'workflow_dispatch') {
         return $ResolvedReleaseType
@@ -230,15 +280,17 @@ $classifiedReason = $classifier['MOBILE_RELEASE_REASON']
 $effectiveReleaseType = switch ($ReleaseType) {
     'auto' {
         if ($classifiedType -eq 'shorebird_patch') {
-            'patch'
+            'shorebird_patch'
         }
         elseif ($classifiedType -eq 'none') {
             'none'
         }
         else {
-            'apk'
+            'full_apk'
         }
     }
+    'apk' { 'full_apk' }
+    'patch' { 'shorebird_patch' }
     default { $ReleaseType }
 }
 
@@ -272,6 +324,11 @@ Write-Info "Classifier: $classifiedReason"
 Write-Info "Commit: $CommitSha"
 Write-Host ''
 
+$resolvedReleaseVersion = $ReleaseVersion
+if ($Environment -eq 'production' -and $effectiveReleaseType -eq 'shorebird_patch') {
+    $resolvedReleaseVersion = Resolve-ProductionPatchReleaseVersion $ReleaseVersion
+}
+
 $run = $null
 if ($config.TriggerWorkflow) {
     if (-not $ForceTrigger) {
@@ -288,6 +345,9 @@ if ($config.TriggerWorkflow) {
         $workflowArgs = @('workflow', 'run', $workflowName, '--ref', 'main')
         $workflowArgs += @('-f', "environment=$Environment")
         $workflowArgs += @('-f', "release_type=$effectiveReleaseType")
+        if ($effectiveReleaseType -eq 'shorebird_patch' -and -not [string]::IsNullOrWhiteSpace($resolvedReleaseVersion)) {
+            $workflowArgs += @('-f', "release_version=$resolvedReleaseVersion")
+        }
         if ($ReleaseNotes) {
             $workflowArgs += @('-f', "release_notes=$ReleaseNotes")
         }

@@ -66,8 +66,9 @@ function Invoke-GitText {
 
     $previousNativeErrorPreference = $PSNativeCommandUseErrorActionPreference
     $PSNativeCommandUseErrorActionPreference = $false
+    $safeDirectory = $RepositoryPath -replace '\\', '/'
     try {
-        $output = & git -c http.version=HTTP/1.1 -C $RepositoryPath @Arguments 2>&1
+        $output = & git -c "safe.directory=$safeDirectory" -c http.version=HTTP/1.1 -C $RepositoryPath @Arguments 2>&1
     }
     finally {
         $PSNativeCommandUseErrorActionPreference = $previousNativeErrorPreference
@@ -382,14 +383,8 @@ if ($androidReleaseShouldRun) {
     $androidWatcherReleaseType = if ($Environment -eq 'staging') {
         'auto'
     }
-    elseif ($effectiveMobileType -eq 'shorebird_patch') {
-        'patch'
-    }
-    elseif ($effectiveMobileType -eq 'full_apk') {
-        'apk'
-    }
     else {
-        'auto'
+        $effectiveMobileType
     }
 
     $androidReleaseArgs = @(

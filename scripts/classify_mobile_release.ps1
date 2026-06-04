@@ -16,7 +16,8 @@ if (-not $RepoPath) {
 function Invoke-GitText {
     param([string[]]$Arguments)
 
-    $output = & git -C $RepoPath @Arguments 2>&1
+    $safeDirectory = $RepoPath -replace '\\', '/'
+    $output = & git -c "safe.directory=$safeDirectory" -C $RepoPath @Arguments 2>&1
     $exitCode = $LASTEXITCODE
     if ($exitCode -ne 0) {
         throw "git -C $RepoPath $($Arguments -join ' ') failed ($exitCode)`n$($output -join "`n")"

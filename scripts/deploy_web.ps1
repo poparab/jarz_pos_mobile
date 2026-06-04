@@ -76,11 +76,15 @@ function Invoke-Remote {
 }
 
 function Invoke-Git {
-    param([string[]]$Arguments)
+    param(
+        [string[]]$Arguments,
+        [switch]$IgnoreExitCode
+    )
 
-    $output = & git -C $repoRoot @Arguments 2>&1
+    $safeDirectory = $repoRoot -replace '\\', '/'
+    $output = & git -c "safe.directory=$safeDirectory" -C $repoRoot @Arguments 2>&1
     $exitCode = $LASTEXITCODE
-    if ($exitCode -ne 0) {
+    if ($exitCode -ne 0 -and -not $IgnoreExitCode) {
         throw "git -C $repoRoot $($Arguments -join ' ') failed ($exitCode)`n$($output -join "`n")"
     }
 
@@ -182,7 +186,7 @@ function Test-WebDeployRequired {
         }
     }
 
-    & git -C $repoRoot cat-file -e "$remoteCommit^{commit}" 2>$null
+    $null = Invoke-Git -Arguments @('cat-file', '-e', "$remoteCommit^{commit}") -IgnoreExitCode
     if ($LASTEXITCODE -ne 0) {
         return @{
             Required = $true
