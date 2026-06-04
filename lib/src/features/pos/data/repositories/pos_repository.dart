@@ -940,6 +940,8 @@ class PosRepository {
     }
     if (zeroShippingOverride) {
       requestData['zero_shipping_override'] = 1;
+      requestData['suppress_shipping_income'] = 1;
+      requestData['suppress_legacy_delivery_charges'] = 1;
     }
     return requestData;
   }

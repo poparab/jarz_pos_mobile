@@ -158,6 +158,60 @@ void main() {
         expect(request['data']['invoice_id'], equals('INV-ORIG-001'));
         expect(request['data']['pickup'], equals(1));
       });
+
+      test('submitInvoiceAmendment - sends zero-shipping suppression flags', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manager.submit_invoice_amendment',
+          createSuccessResponse(data: {
+            'replacement_invoice_id': 'INV-AMD-ZERO-001',
+          }),
+        );
+
+        await repository.submitInvoiceAmendment(
+          sourceInvoiceId: 'INV-ORIG-002',
+          posProfile: 'Main POS',
+          items: [
+            {'item_code': 'ITEM-001', 'quantity': 1, 'rate': 50.0},
+          ],
+          zeroShippingOverride: true,
+        );
+
+        final request = mockDio.requestLog.last;
+        expect(request['data']['zero_shipping_override'], equals(1));
+        expect(request['data']['suppress_shipping_income'], equals(1));
+        expect(request['data']['suppress_legacy_delivery_charges'], equals(1));
+        expect(request['data'].containsKey('delivery_charges_json'), isFalse);
+      });
+    });
+
+    group('Zero Shipping Override', () {
+      test('createInvoice - sends zero-shipping suppression flags', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.invoices.create_pos_invoice',
+          createSuccessResponse(data: {
+            'name': 'INV-ZERO-SHIP-001',
+          }),
+        );
+
+        await repository.createInvoice(
+          posProfile: 'Main POS',
+          items: [
+            {'item_code': 'ITEM-001', 'quantity': 1, 'rate': 50.0},
+          ],
+          customer: {
+            'name': 'CUST-001',
+            'delivery_income': 25.0,
+            'territory': 'Cairo',
+          },
+          zeroShippingOverride: true,
+        );
+
+        final request = mockDio.requestLog.last;
+        expect(request['data']['zero_shipping_override'], equals(1));
+        expect(request['data']['suppress_shipping_income'], equals(1));
+        expect(request['data']['suppress_legacy_delivery_charges'], equals(1));
+        expect(request['data'].containsKey('delivery_charges_json'), isFalse);
+      });
     });
 
     group('Payment Type - Cash vs Online', () {
