@@ -87,6 +87,7 @@ class InvoiceCard {
   final bool? canAmendFlag;
   final String? amendmentBlockCode;
   final String? amendmentBlockReason;
+  final double? customDeliveryIncome;
 
   InvoiceCard({
     required this.id,
@@ -143,6 +144,7 @@ class InvoiceCard {
     this.canAmendFlag,
     this.amendmentBlockCode,
     this.amendmentBlockReason,
+    this.customDeliveryIncome,
   });
 
   factory InvoiceCard.fromJson(Map<String, dynamic> json) {
@@ -236,6 +238,9 @@ class InvoiceCard {
       canAmendFlag: canAmendFlag,
       amendmentBlockCode: json['amendment_block_code']?.toString(),
       amendmentBlockReason: json['amendment_block_reason']?.toString(),
+      customDeliveryIncome: json['custom_delivery_income'] != null
+          ? (json['custom_delivery_income'] as num).toDouble()
+          : null,
     );
   }
 
@@ -294,6 +299,7 @@ class InvoiceCard {
       'can_amend': canAmendFlag,
       'amendment_block_code': amendmentBlockCode,
       'amendment_block_reason': amendmentBlockReason,
+      'custom_delivery_income': customDeliveryIncome,
     };
   }
 
@@ -352,6 +358,8 @@ class InvoiceCard {
   bool? canAmendFlag,
   String? amendmentBlockCode,
   String? amendmentBlockReason,
+  double? customDeliveryIncome,
+  bool clearCustomDeliveryIncome = false,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -408,6 +416,7 @@ class InvoiceCard {
       canAmendFlag: canAmendFlag ?? this.canAmendFlag,
       amendmentBlockCode: amendmentBlockCode ?? this.amendmentBlockCode,
       amendmentBlockReason: amendmentBlockReason ?? this.amendmentBlockReason,
+      customDeliveryIncome: clearCustomDeliveryIncome ? null : (customDeliveryIncome ?? this.customDeliveryIncome),
     );
   }
 

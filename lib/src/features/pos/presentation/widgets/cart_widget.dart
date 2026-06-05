@@ -322,18 +322,55 @@ class CartWidget extends ConsumerWidget {
 
                       if (state.selectedSalesPartner == null &&
                           state.selectedCustomer != null &&
-                          state.shippingCost > 0) ...[
+                          !state.isPickup) ...[
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              l10n.posDeliveryLabel,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: isPhone ? 14 : null),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Text(
+                                    l10n.posDeliveryLabel,
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: isPhone ? 14 : null),
+                                  ),
+                                  if (state.customDeliveryIncome != null) ...[
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.secondaryContainer,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        'custom',
+                                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSecondaryContainer,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
-                            Text(
-                              '\$${state.shippingCost.toStringAsFixed(2)}',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: isPhone ? 14 : null),
+                            Row(
+                              children: [
+                                Text(
+                                  state.customDeliveryIncome != null || state.shippingCost > 0
+                                      ? '\$${state.shippingCost.toStringAsFixed(2)}'
+                                      : '—',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: isPhone ? 14 : null),
+                                ),
+                                const SizedBox(width: 4),
+                                GestureDetector(
+                                  onTap: () => _showDeliveryIncomeDialog(context, ref),
+                                  child: Icon(
+                                    Icons.edit_outlined,
+                                    size: 16,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -1143,6 +1180,75 @@ class CartWidget extends ConsumerWidget {
       discountAmountController.dispose();
       discountPercentController.dispose();
     }
+  }
+
+  void _showDeliveryIncomeDialog(BuildContext context, WidgetRef ref) {
+    final state = ref.read(posNotifierProvider);
+    final controller = TextEditingController(
+      text: state.customDeliveryIncome != null
+          ? state.customDeliveryIncome!.toStringAsFixed(2)
+          : '',
+    );
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Set Delivery Income'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter a custom delivery amount. Leave blank to restore the territory default.',
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                labelText: 'Delivery amount',
+                prefixText: '\$',
+                hintText: '0.00',
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              ref.read(posNotifierProvider.notifier).setCustomDeliveryIncome(null);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Reset to Default'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final raw = controller.text.trim();
+              if (raw.isEmpty) {
+                ref.read(posNotifierProvider.notifier).setCustomDeliveryIncome(null);
+              } else {
+                final parsed = double.tryParse(raw);
+                if (parsed == null || parsed < 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Enter a valid non-negative amount')),
+                  );
+                  return;
+                }
+                ref.read(posNotifierProvider.notifier).setCustomDeliveryIncome(parsed);
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Set'),
+          ),
+        ],
+      ),
+    ).then((_) => controller.dispose());
   }
 
   void _showClearCartDialog(BuildContext context, WidgetRef ref) {

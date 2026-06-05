@@ -19,6 +19,9 @@ class DraftCart {
   final String? amendmentSourceInvoiceId;
   final double? amendmentSourceGrandTotal;
 
+  /// Custom delivery income override. null = use territory default; 0 = free delivery; >0 = custom amount.
+  final double? customDeliveryIncome;
+
   const DraftCart({
     required this.id,
     required this.label,
@@ -32,6 +35,7 @@ class DraftCart {
     required this.updatedAt,
     this.amendmentSourceInvoiceId,
     this.amendmentSourceGrandTotal,
+    this.customDeliveryIncome,
   });
 
   DraftCart copyWith({
@@ -49,6 +53,8 @@ class DraftCart {
     String? amendmentSourceInvoiceId,
     bool clearAmendmentContext = false,
     double? amendmentSourceGrandTotal,
+    double? customDeliveryIncome,
+    bool clearCustomDeliveryIncome = false,
   }) {
     return DraftCart(
       id: id,
@@ -70,6 +76,9 @@ class DraftCart {
       amendmentSourceGrandTotal: clearAmendmentContext
           ? null
           : (amendmentSourceGrandTotal ?? this.amendmentSourceGrandTotal),
+      customDeliveryIncome: clearCustomDeliveryIncome
+          ? null
+          : (customDeliveryIncome ?? this.customDeliveryIncome),
     );
   }
 
@@ -90,6 +99,7 @@ class DraftCart {
       'updated_at': updatedAt.toIso8601String(),
       'amendment_source_invoice_id': amendmentSourceInvoiceId,
       'amendment_source_grand_total': amendmentSourceGrandTotal,
+      'custom_delivery_income': customDeliveryIncome,
     };
   }
 
@@ -137,6 +147,9 @@ class DraftCart {
       amendmentSourceInvoiceId: map['amendment_source_invoice_id']?.toString(),
       amendmentSourceGrandTotal: map['amendment_source_grand_total'] != null
           ? double.tryParse(map['amendment_source_grand_total'].toString())
+          : null,
+      customDeliveryIncome: map['custom_delivery_income'] != null
+          ? double.tryParse(map['custom_delivery_income'].toString())
           : null,
     );
   }

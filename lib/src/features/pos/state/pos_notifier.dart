@@ -46,6 +46,9 @@ class PosState {
   /// True when the active cart has changes not yet persisted to Hive.
   final bool draftDirty;
 
+  /// Custom delivery income override. null = territory default; 0 = free; >0 = custom amount.
+  final double? customDeliveryIncome;
+
   PosState({
     this.profiles = const [],
     this.selectedProfile,
@@ -68,6 +71,7 @@ class PosState {
     this.drafts = const [],
     this.currentDraftId,
     this.draftDirty = false,
+    this.customDeliveryIncome,
   });
 
   PosState copyWith({
@@ -101,6 +105,8 @@ class PosState {
     String? currentDraftId,
     bool clearCurrentDraftId = false,
     bool? draftDirty,
+    double? customDeliveryIncome,
+    bool clearCustomDeliveryIncome = false,
   }) {
     return PosState(
       profiles: profiles ?? this.profiles,
@@ -140,6 +146,9 @@ class PosState {
           ? null
           : (currentDraftId ?? this.currentDraftId),
       draftDirty: draftDirty ?? this.draftDirty,
+      customDeliveryIncome: clearCustomDeliveryIncome
+          ? null
+          : (customDeliveryIncome ?? this.customDeliveryIncome),
     );
   }
 
@@ -157,9 +166,8 @@ class PosState {
   }
 
   double get shippingCost {
-    // If a Sales Partner is selected, we suppress delivery income entirely
+    // Hard suppressions always win, even over an explicit override.
     if (selectedSalesPartner != null) return 0.0;
-    // Pickup mode waives delivery
     if (isPickup) return 0.0;
     if (zeroShippingOverride) return 0.0;
     // If any bundle in cart has free_shipping=true, waive delivery income client-side
@@ -175,6 +183,9 @@ class PosState {
       });
       if (hasFreeShippingBundle) return 0.0;
     } catch (_) {}
+    // Custom override: replaces territory income. 0 = free delivery (return 0).
+    if (customDeliveryIncome != null) return customDeliveryIncome!;
+    // Territory default
     final deliveryIncome = _asDouble(
       selectedCustomer?['selected_shipping_address_delivery_income'] ??
           selectedCustomer?['delivery_income'],
@@ -318,6 +329,7 @@ class PosNotifier extends StateNotifier<PosState> {
       updatedAt: now,
       amendmentSourceInvoiceId: state.amendmentSourceInvoiceId,
       amendmentSourceGrandTotal: state.amendmentSourceGrandTotal,
+      customDeliveryIncome: state.customDeliveryIncome,
     );
 
     try {
@@ -362,6 +374,7 @@ class PosNotifier extends StateNotifier<PosState> {
       draftDirty: false,
       isAmendmentDraft: false,
       clearAmendmentSourceInvoiceId: true,
+      clearCustomDeliveryIncome: true,
     );
     if (state.selectedProfile != null) {
       unawaited(refreshCatalog());
@@ -442,6 +455,8 @@ class PosNotifier extends StateNotifier<PosState> {
         amendmentSourceInvoiceId: target.amendmentSourceInvoiceId,
         clearAmendmentSourceInvoiceId: target.amendmentSourceInvoiceId == null,
         amendmentSourceGrandTotal: target.amendmentSourceGrandTotal,
+        customDeliveryIncome: target.customDeliveryIncome,
+        clearCustomDeliveryIncome: target.customDeliveryIncome == null,
       );
       if (state.selectedProfile != null) {
         await refreshCatalog(showLoading: false);
@@ -1141,6 +1156,15 @@ class PosNotifier extends StateNotifier<PosState> {
 
   void setZeroShippingOverride(bool value) {
     state = state.copyWith(zeroShippingOverride: value, draftDirty: true);
+    _autoSaveDebounced();
+  }
+
+  void setCustomDeliveryIncome(double? value) {
+    state = state.copyWith(
+      customDeliveryIncome: value,
+      clearCustomDeliveryIncome: value == null,
+      draftDirty: true,
+    );
     _autoSaveDebounced();
   }
 
@@ -2381,6 +2405,7 @@ class PosNotifier extends StateNotifier<PosState> {
               zeroShippingOverride: state.zeroShippingOverride,
               posProfileOverride: posProfileOverride,
               expectedSourceGrandTotal: state.amendmentSourceGrandTotal,
+              customDeliveryIncome: state.customDeliveryIncome,
             )
           : await _repository.createInvoice(
               posProfile: effectivePosProfile,
@@ -2399,6 +2424,7 @@ class PosNotifier extends StateNotifier<PosState> {
               priceList: state.selectedPriceListName,
               zeroShippingOverride: state.zeroShippingOverride,
               posProfileOverride: posProfileOverride,
+              customDeliveryIncome: state.customDeliveryIncome,
             );
 
       if (kDebugMode) {

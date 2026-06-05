@@ -679,6 +679,7 @@ class PosRepository {
     String? priceList,
     bool zeroShippingOverride = false,
     bool posProfileOverride = false,
+    double? customDeliveryIncome,
   }) async {
     try {
       final requestData = _buildInvoiceRequestData(
@@ -694,6 +695,7 @@ class PosRepository {
         priceList: priceList,
         zeroShippingOverride: zeroShippingOverride,
         posProfileOverride: posProfileOverride,
+        customDeliveryIncome: customDeliveryIncome,
       );
 
       if (kDebugMode) {
@@ -742,6 +744,7 @@ class PosRepository {
     bool posProfileOverride = false,
     double? expectedSourceGrandTotal,
     int? expectedSourceItemCount,
+    double? customDeliveryIncome,
   }) async {
     try {
       final requestData = _buildInvoiceRequestData(
@@ -757,6 +760,7 @@ class PosRepository {
         priceList: priceList,
         zeroShippingOverride: zeroShippingOverride,
         posProfileOverride: posProfileOverride,
+        customDeliveryIncome: customDeliveryIncome,
       );
       requestData['invoice_id'] = sourceInvoiceId;
       // Propagate free-shipping suppression so the backend doesn't re-add
@@ -857,6 +861,7 @@ class PosRepository {
     String? priceList,
     bool zeroShippingOverride = false,
     bool posProfileOverride = false,
+    double? customDeliveryIncome,
   }) {
     final cartItems = _buildCartRequestItems(items);
 
@@ -898,7 +903,11 @@ class PosRepository {
           ]);
 
     final partnerActive = salesPartner != null && salesPartner.isNotEmpty;
-    if (!partnerActive &&
+    if (customDeliveryIncome != null) {
+      // Custom override: backend handles injection in STEP 7.4; suppress legacy STEP 7.5.
+      requestData['custom_delivery_income'] = customDeliveryIncome;
+      requestData['suppress_legacy_delivery_charges'] = 1;
+    } else if (!partnerActive &&
         !zeroShippingOverride &&
         customer != null &&
         deliveryIncome != null &&

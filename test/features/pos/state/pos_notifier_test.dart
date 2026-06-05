@@ -78,6 +78,7 @@ class _FakePosRepository extends PosRepository {
     String? priceList,
     bool zeroShippingOverride = false,
     bool posProfileOverride = false,
+    double? customDeliveryIncome,
   }) async {
     createInvoiceCalls += 1;
     return {'invoice_name': 'INV-NEW-001'};
@@ -101,6 +102,7 @@ class _FakePosRepository extends PosRepository {
     bool posProfileOverride = false,
     double? expectedSourceGrandTotal,
     int? expectedSourceItemCount,
+    double? customDeliveryIncome,
   }) async {
     submitInvoiceAmendmentCalls += 1;
     lastAmendmentSourceInvoiceId = sourceInvoiceId;

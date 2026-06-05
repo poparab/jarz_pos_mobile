@@ -1268,6 +1268,45 @@ class KanbanService {
     }
   }
 
+  /// Set a custom delivery income on an existing invoice via amendment.
+  /// Reconstructs cart_json from the invoice items and calls submit_invoice_amendment.
+  /// [customDeliveryIncome] null = revert to territory default; 0 = free; >0 = custom.
+  Future<Map<String, dynamic>> setDeliveryIncomeAmendment({
+    required InvoiceCard invoice,
+    required double? customDeliveryIncome,
+  }) async {
+    _logger.info(
+      'setDeliveryIncomeAmendment invoice=${invoice.id} override=$customDeliveryIncome',
+    );
+
+    // Reconstruct cart_json from the invoice items (non-bundle items only for v1;
+    // bundles are supported via the full amendment draft flow).
+    final cartItems = invoice.items.map((item) {
+      return {
+        'item_code': item.itemCode,
+        'qty': item.qty,
+        'rate': item.rate,
+        'is_bundle': item.isBundleParent,
+      };
+    }).toList();
+
+    final data = <String, dynamic>{
+      'invoice_id': invoice.id,
+      'cart_json': json.encode(cartItems),
+      // Always send the key: '' = clear override (revert to territory default); number = custom.
+      'custom_delivery_income': customDeliveryIncome ?? '',
+      'suppress_legacy_delivery_charges': 1,
+    };
+
+    final resp = await _dio.post(
+      ApiEndpoints.submitInvoiceAmendment,
+      data: data,
+    );
+    final msg = resp.data['message'];
+    if (msg is Map) return Map<String, dynamic>.from(msg);
+    throw Exception('Unexpected response from amendment');
+  }
+
   /// Get pending custom shipping requests (manager dashboard)
   Future<List<Map<String, dynamic>>> getPendingCustomShippingRequests() async {
     try {

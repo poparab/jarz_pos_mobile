@@ -648,6 +648,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               await _changeDeliverySlot(context);
             } else if (value == 'edit_invoice') {
               await _openAmendmentDraft(context);
+            } else if (value == 'set_delivery_income') {
+              await _setDeliveryIncome(context);
             } else if (value == 'cancel_order') {
               await _cancelOrder(context);
             } else if (value == 'change_collection_method') {
@@ -696,6 +698,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                     const Icon(Icons.edit_note, size: 18),
                     const SizedBox(width: 8),
                     Text(l10n.invoiceEditInvoice),
+                  ],
+                ),
+              ),
+            if (widget.invoice.canAmend)
+              PopupMenuItem(
+                value: 'set_delivery_income',
+                child: Row(
+                  children: [
+                    const Icon(Icons.local_shipping_outlined, size: 18),
+                    const SizedBox(width: 8),
+                    const Text('Set Delivery Income'),
                   ],
                 ),
               ),
@@ -2667,6 +2680,153 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             label: 'Retry',
             onPressed: () => _openAmendmentDraft(context),
           ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _setDeliveryIncome(BuildContext context) async {
+    if (!widget.invoice.canAmend) return;
+
+    final controller = TextEditingController(
+      text: widget.invoice.customDeliveryIncome != null
+          ? widget.invoice.customDeliveryIncome!.toStringAsFixed(2)
+          : '',
+    );
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Set Delivery Income'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter a custom delivery income for this order. '
+              'Leave blank to revert to the territory default. '
+              'This will create an amendment of the order.',
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                labelText: 'Delivery income',
+                prefixText: '\$',
+                hintText: '0.00',
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
+    // Capture text before disposing
+    final raw = controller.text.trim();
+    controller.dispose();
+
+    if (confirmed != true || !context.mounted) return;
+
+    // Parse the typed value (empty = revert to territory default = null on backend)
+    double? incomeOverride;
+    if (raw.isNotEmpty) {
+      incomeOverride = double.tryParse(raw);
+      if (incomeOverride == null || incomeOverride < 0) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Enter a valid non-negative amount')),
+          );
+        }
+        return;
+      }
+    }
+
+    // Load detailed invoice to get the items for cart reconstruction
+    try {
+      final details = await ref.read(invoiceDetailsProvider(widget.invoice.id).future);
+      if (!context.mounted) return;
+
+      if (details == null || !details.canAmend) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              details?.amendmentBlockReason?.isNotEmpty == true
+                  ? details!.amendmentBlockReason!
+                  : 'This order cannot be amended',
+            ),
+          ),
+        );
+        return;
+      }
+
+      // v1: bundle orders must use the full "Edit Invoice" amendment flow.
+      final hasBundles = details.items.any((i) => i.isBundleParent || i.isBundleChild);
+      if (hasBundles) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'This order has bundle items. Use "Edit Invoice" to change the delivery income.',
+            ),
+          ),
+        );
+        return;
+      }
+
+      // Show loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Updating delivery income…'),
+          duration: Duration(seconds: 30),
+        ),
+      );
+
+      final service = ref.read(kanbanServiceProvider);
+      final result = await service.setDeliveryIncomeAmendment(
+        invoice: details,
+        customDeliveryIncome: incomeOverride,
+      );
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              incomeOverride != null
+                  ? 'Delivery income updated to \$${incomeOverride.toStringAsFixed(2)}'
+                  : 'Delivery income reset to territory default',
+            ),
+          ),
+        );
+        // Refresh the Kanban board so the card re-targets the new invoice
+        ref.read(kanbanProvider.notifier).loadInvoices();
+      } else {
+        final error = result['error']?.toString() ?? 'Amendment failed';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
         ),
       );
     }
