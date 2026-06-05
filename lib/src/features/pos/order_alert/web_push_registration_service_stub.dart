@@ -36,4 +36,6 @@ class WebPushRegistrationService {
   }
 
   static Stream<String> tokenRefreshStream() => const Stream.empty();
+
+  static Future<void> initServiceWorker() async {}
 }

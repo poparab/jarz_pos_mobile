@@ -65,6 +65,17 @@ build_web() {
   dart --disable-dart-dev tool/write_web_push_config.dart \
     --env-file "$env_file" \
     --output-file build/web/firebase-web-config.js
+
+  # Bundle Firebase compat scripts locally so firebase-messaging-sw.js has no
+  # CDN dependency at service worker activation time (required for iOS PWA).
+  local firebase_version="10.12.5"
+  local firebase_cdn="https://www.gstatic.com/firebasejs/${firebase_version}"
+  echo "[build_release] Bundling Firebase compat scripts (v${firebase_version}) locally..."
+  curl -sSfL "${firebase_cdn}/firebase-app-compat.js" \
+    -o build/web/firebase-app-compat.js
+  curl -sSfL "${firebase_cdn}/firebase-messaging-compat.js" \
+    -o build/web/firebase-messaging-compat.js
+  echo "[build_release] Firebase scripts bundled."
 }
 
 build_apk() {

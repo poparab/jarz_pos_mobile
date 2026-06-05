@@ -61,18 +61,23 @@ class WebPushRegistrationService {
       );
     }
 
-    if (FirebaseRuntimeConfig.webVapidKey.isEmpty || Firebase.apps.isEmpty) {
+    if (!WebNotificationService.isSupported) {
       diagnostics = diagnostics.copyWith(
-        failingStep: 'firebase_ready',
-        failureReason: 'firebase_missing_config_or_init',
+        failingStep: 'browser_support',
+        notificationSupported: false,
+        serviceWorkerSupported: _serviceWorkerContainer() != null,
+        failureReason: 'notification_api_unsupported',
       );
       return WebPushRegistrationResult(
-        status: WebPushRegistrationStatus.missingConfig,
-        message: 'Web push notifications are not configured for this environment.',
+        status: WebPushRegistrationStatus.unsupported,
+        message: 'This browser does not support notification permission prompts.',
         diagnostics: diagnostics,
       );
     }
 
+    // iOS requires Notification.requestPermission() to be the very first async
+    // call triggered by a user tap. All Firebase checks come AFTER to preserve
+    // the browser's gesture-activation context.
     final permission = await WebNotificationService.requestPermissionStatus(
       timeout: _permissionTimeout,
     );
@@ -92,6 +97,35 @@ class WebPushRegistrationService {
 
   static Stream<String> tokenRefreshStream() {
     return const Stream.empty();
+  }
+
+  // Safely ensures Firebase is initialized, attempting init if needed.
+  // Never throws — returns false if Firebase cannot be made ready.
+  static Future<bool> _ensureFirebaseReady() async {
+    try {
+      if (Firebase.apps.isNotEmpty) return true;
+      final options = FirebaseRuntimeConfig.webOptions;
+      if (options == null) return false;
+      await Firebase.initializeApp(options: options);
+      return Firebase.apps.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Registers the Firebase messaging service worker at app startup so it is
+  // already in "active" state before the user taps Enable Notifications.
+  // Non-fatal: errors are swallowed and registration is retried later.
+  static Future<void> initServiceWorker() async {
+    if (!FirebaseRuntimeConfig.webPushEnabled) return;
+    try {
+      await _ensureServiceWorkerRegistration().timeout(
+        const Duration(seconds: 10),
+      );
+    } catch (_) {
+      // Non-fatal: service worker will be re-registered when the user taps
+      // Enable Notifications inside _getTokenDirectly().
+    }
   }
 
   static WebPushEnableDiagnostics captureEmergencyDiagnostics({
@@ -122,12 +156,13 @@ class WebPushRegistrationService {
       );
     }
 
-    if (FirebaseRuntimeConfig.webVapidKey.isEmpty || Firebase.apps.isEmpty) {
+    final firebaseReady = await _ensureFirebaseReady();
+    if (!firebaseReady || FirebaseRuntimeConfig.webVapidKey.isEmpty) {
       state = state.copyWith(
         failingStep: 'firebase_ready',
-        firebaseInitialized: Firebase.apps.isNotEmpty,
+        firebaseInitialized: _safeFirebaseInitialized(),
         firebaseOptionsReady: FirebaseRuntimeConfig.webOptions != null,
-        failureReason: 'firebase_missing_config_or_init',
+        failureReason: !firebaseReady ? 'firebase_missing_config_or_init' : 'vapid_key_missing',
       );
       return WebPushRegistrationResult(
         status: WebPushRegistrationStatus.missingConfig,
