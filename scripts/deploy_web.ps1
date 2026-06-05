@@ -303,7 +303,8 @@ $localMetaPath = Join-Path $repoRoot 'build\web\release-metadata.json'
 $releaseMetadata | ConvertTo-Json | Set-Content -Path $localMetaPath -Encoding UTF8
 
 Write-Step 'Uploading web bundle to server...'
-$remoteWebParentDir = Split-Path $remoteWebDir -Parent
+# Compute Linux parent path without PowerShell path manipulation (which converts / to \)
+$remoteWebParentDir = $remoteWebDir.Substring(0, $remoteWebDir.TrimEnd('/').LastIndexOf('/' ))
 $null = Invoke-Remote "rm -rf $remoteWebDir"
 & scp -o StrictHostKeyChecking=no -i $SshKeyPath -r "$repoRoot\build\web" "${sshTarget}:$remoteWebParentDir/" 2>&1 | ForEach-Object { Write-Host $_ }
 if ($LASTEXITCODE -ne 0) {
