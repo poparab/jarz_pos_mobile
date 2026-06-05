@@ -45,6 +45,8 @@ class PrintableInvoice {
   final String? orderDate;
   final String? deliveryTimeRange;
   final String? deliveryDateFormatted;
+  // True when outstanding moved to courier outstanding account but courier hasn't remitted yet.
+  final bool hasUnsettledCourierTxn;
   PrintableInvoice({
     required this.id,
     required this.date,
@@ -63,13 +65,14 @@ class PrintableInvoice {
     this.orderDate,
     this.deliveryTimeRange,
     this.deliveryDateFormatted,
+    this.hasUnsettledCourierTxn = false,
   });
 }
 
 /// Web stub for PosPrinterService.
 ///
 /// Bluetooth printing is not available in web browsers.
-/// All methods are safe no-ops that report "not available".
+/// All methods are safe no-ops that report not available.
 class PosPrinterService extends ChangeNotifier {
   PosPrinterService({Dio? dio, bool autoInit = true});
 
