@@ -15,6 +15,8 @@ import '../features/printing/pos_printer_provider.dart';
 import 'network/user_service.dart';
 import '../features/pos/order_alert/order_alert_bridge.dart';
 import '../features/pos/order_alert/presentation/order_alert_overlay.dart';
+import '../features/about/data/about_release_info_repository.dart';
+import '../features/about/state/shorebird_update_provider.dart';
 
 class JarzPosApp extends ConsumerWidget {
   const JarzPosApp({super.key});
@@ -84,7 +86,14 @@ class JarzPosApp extends ConsumerWidget {
                 }
               },
               behavior: HitTestBehavior.opaque,
-              child: LoadingOverlay(child: routed),
+              child: LoadingOverlay(
+                child: Column(
+                  children: [
+                    if (isAuthenticated) const _ShorebirdUpdateBanner(),
+                    Expanded(child: routed),
+                  ],
+                ),
+              ),
             ),
           ),
         );
@@ -93,20 +102,86 @@ class JarzPosApp extends ConsumerWidget {
   }
 }
 
-class _AuthenticatedServiceBootstrap extends ConsumerWidget {
+class _AuthenticatedServiceBootstrap extends ConsumerStatefulWidget {
   const _AuthenticatedServiceBootstrap({required this.child});
 
   final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AuthenticatedServiceBootstrap> createState() =>
+      _AuthenticatedServiceBootstrapState();
+}
+
+class _AuthenticatedServiceBootstrapState
+    extends ConsumerState<_AuthenticatedServiceBootstrap>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(shorebirdUpdateProvider.notifier).recheckStatus();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(posPrinterServiceProvider);
     ref.watch(webSocketServiceProvider);
     ref.watch(offlineSyncServiceProvider);
     ref.watch(userRolesFutureProvider);
     ref.watch(courierWsBridgeProvider);
     ref.watch(orderAlertBridgeProvider);
+    ref.watch(shorebirdUpdateProvider);
 
-    return child;
+    return widget.child;
+  }
+}
+
+class _ShorebirdUpdateBanner extends ConsumerWidget {
+  const _ShorebirdUpdateBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statusAsync = ref.watch(shorebirdUpdateProvider);
+    if (statusAsync.valueOrNull != ShorebirdPatchStatus.restartRequired) {
+      return const SizedBox.shrink();
+    }
+
+    return Material(
+      color: Colors.amber.shade700,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              const Icon(Icons.system_update, color: Colors.white, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  context.l10n.shorebirdUpdateBannerMessage,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

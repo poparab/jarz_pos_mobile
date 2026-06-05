@@ -6744,6 +6744,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No discrepancy'**
   String get shiftMonitorNoDiscrepancy;
+
+  /// No description provided for @shorebirdUpdateBannerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Update downloaded — restart the app to apply it.'**
+  String get shorebirdUpdateBannerMessage;
+
+  /// No description provided for @aboutRestartInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Force-close and reopen the app to apply the downloaded patch.'**
+  String get aboutRestartInstruction;
+
+  /// No description provided for @aboutPatchPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending patch (after restart)'**
+  String get aboutPatchPending;
 }
 
 class _AppLocalizationsDelegate

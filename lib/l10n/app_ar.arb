@@ -1610,5 +1610,8 @@
   "shiftMonitorDifference": "الفرق",
   "shiftMonitorDifferenceSurplus": "زيادة",
   "shiftMonitorDifferenceShortage": "عجز",
-  "shiftMonitorNoDiscrepancy": "لا يوجد فرق"
+  "shiftMonitorNoDiscrepancy": "لا يوجد فرق",
+  "shorebirdUpdateBannerMessage": "تم تنزيل تحديث — أعد تشغيل التطبيق لتطبيقه.",
+  "aboutRestartInstruction": "أغلق التطبيق تماماً وأعد فتحه لتطبيق التحديث المُنزَّل.",
+  "aboutPatchPending": "التصحيح المُعلَّق (بعد إعادة التشغيل)"
 }

@@ -3818,4 +3818,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shiftMonitorNoDiscrepancy => 'لا يوجد فرق';
+
+  @override
+  String get shorebirdUpdateBannerMessage =>
+      'تم تنزيل تحديث — أعد تشغيل التطبيق لتطبيقه.';
+
+  @override
+  String get aboutRestartInstruction =>
+      'أغلق التطبيق تماماً وأعد فتحه لتطبيق التحديث المُنزَّل.';
+
+  @override
+  String get aboutPatchPending => 'التصحيح المُعلَّق (بعد إعادة التشغيل)';
 }
