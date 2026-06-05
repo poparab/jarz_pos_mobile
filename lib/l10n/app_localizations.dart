@@ -6540,6 +6540,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'EGP'**
   String get masterOrdersCurrency;
+
+  /// No description provided for @menuShiftMonitor.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Monitor'**
+  String get menuShiftMonitor;
+
+  /// No description provided for @shiftMonitorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'POS Shift Monitor'**
+  String get shiftMonitorTitle;
+
+  /// No description provided for @shiftMonitorAccessRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager access required'**
+  String get shiftMonitorAccessRequired;
+
+  /// No description provided for @shiftMonitorAccessDeniedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This page is available to JARZ Manager roles and above.'**
+  String get shiftMonitorAccessDeniedBody;
+
+  /// No description provided for @shiftMonitorFiltersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get shiftMonitorFiltersTitle;
+
+  /// No description provided for @shiftMonitorToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get shiftMonitorToday;
+
+  /// No description provided for @shiftMonitorLast7Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 Days'**
+  String get shiftMonitorLast7Days;
+
+  /// No description provided for @shiftMonitorCustomRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Range'**
+  String get shiftMonitorCustomRange;
+
+  /// No description provided for @shiftMonitorPickDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick Date Range'**
+  String get shiftMonitorPickDateRange;
+
+  /// No description provided for @shiftMonitorDateRangeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String shiftMonitorDateRangeValue(Object from, Object to);
+
+  /// No description provided for @shiftMonitorProfileFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'POS Profile'**
+  String get shiftMonitorProfileFilter;
+
+  /// No description provided for @shiftMonitorStatusFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get shiftMonitorStatusFilter;
+
+  /// No description provided for @shiftMonitorStatusAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get shiftMonitorStatusAll;
+
+  /// No description provided for @shiftMonitorStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get shiftMonitorStatusOpen;
+
+  /// No description provided for @shiftMonitorStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get shiftMonitorStatusClosed;
+
+  /// No description provided for @shiftMonitorNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No shifts found for the selected filters.'**
+  String get shiftMonitorNoData;
+
+  /// No description provided for @shiftMonitorOpenCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Shifts'**
+  String get shiftMonitorOpenCount;
+
+  /// No description provided for @shiftMonitorClosedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed Shifts'**
+  String get shiftMonitorClosedCount;
+
+  /// No description provided for @shiftMonitorDiscrepancyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discrepancies'**
+  String get shiftMonitorDiscrepancyCount;
+
+  /// No description provided for @shiftMonitorDiscrepancyTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Discrepancy Total'**
+  String get shiftMonitorDiscrepancyTotal;
+
+  /// No description provided for @shiftMonitorLatestStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest start: {value}'**
+  String shiftMonitorLatestStart(Object value);
+
+  /// No description provided for @shiftMonitorShiftCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} shifts'**
+  String shiftMonitorShiftCount(Object count);
+
+  /// No description provided for @shiftMonitorOpenedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Opened At'**
+  String get shiftMonitorOpenedAt;
+
+  /// No description provided for @shiftMonitorOpenedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Opened By'**
+  String get shiftMonitorOpenedBy;
+
+  /// No description provided for @shiftMonitorClosedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed At'**
+  String get shiftMonitorClosedAt;
+
+  /// No description provided for @shiftMonitorClosedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed By'**
+  String get shiftMonitorClosedBy;
+
+  /// No description provided for @shiftMonitorCashAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Account'**
+  String get shiftMonitorCashAccount;
+
+  /// No description provided for @shiftMonitorOpeningCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening Cash'**
+  String get shiftMonitorOpeningCash;
+
+  /// No description provided for @shiftMonitorExpectedClosingCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected Closing'**
+  String get shiftMonitorExpectedClosingCash;
+
+  /// No description provided for @shiftMonitorActualClosingCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual Closing'**
+  String get shiftMonitorActualClosingCash;
+
+  /// No description provided for @shiftMonitorDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference'**
+  String get shiftMonitorDifference;
+
+  /// No description provided for @shiftMonitorDifferenceSurplus.
+  ///
+  /// In en, this message translates to:
+  /// **'Surplus'**
+  String get shiftMonitorDifferenceSurplus;
+
+  /// No description provided for @shiftMonitorDifferenceShortage.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortage'**
+  String get shiftMonitorDifferenceShortage;
+
+  /// No description provided for @shiftMonitorNoDiscrepancy.
+  ///
+  /// In en, this message translates to:
+  /// **'No discrepancy'**
+  String get shiftMonitorNoDiscrepancy;
 }
 
 class _AppLocalizationsDelegate

@@ -3725,4 +3725,113 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get masterOrdersCurrency => 'EGP';
+
+  @override
+  String get menuShiftMonitor => 'Shift Monitor';
+
+  @override
+  String get shiftMonitorTitle => 'POS Shift Monitor';
+
+  @override
+  String get shiftMonitorAccessRequired => 'Manager access required';
+
+  @override
+  String get shiftMonitorAccessDeniedBody =>
+      'This page is available to JARZ Manager roles and above.';
+
+  @override
+  String get shiftMonitorFiltersTitle => 'Filters';
+
+  @override
+  String get shiftMonitorToday => 'Today';
+
+  @override
+  String get shiftMonitorLast7Days => 'Last 7 Days';
+
+  @override
+  String get shiftMonitorCustomRange => 'Custom Range';
+
+  @override
+  String get shiftMonitorPickDateRange => 'Pick Date Range';
+
+  @override
+  String shiftMonitorDateRangeValue(Object from, Object to) {
+    return '$from to $to';
+  }
+
+  @override
+  String get shiftMonitorProfileFilter => 'POS Profile';
+
+  @override
+  String get shiftMonitorStatusFilter => 'Status';
+
+  @override
+  String get shiftMonitorStatusAll => 'All';
+
+  @override
+  String get shiftMonitorStatusOpen => 'Open';
+
+  @override
+  String get shiftMonitorStatusClosed => 'Closed';
+
+  @override
+  String get shiftMonitorNoData => 'No shifts found for the selected filters.';
+
+  @override
+  String get shiftMonitorOpenCount => 'Open Shifts';
+
+  @override
+  String get shiftMonitorClosedCount => 'Closed Shifts';
+
+  @override
+  String get shiftMonitorDiscrepancyCount => 'Discrepancies';
+
+  @override
+  String get shiftMonitorDiscrepancyTotal => 'Discrepancy Total';
+
+  @override
+  String shiftMonitorLatestStart(Object value) {
+    return 'Latest start: $value';
+  }
+
+  @override
+  String shiftMonitorShiftCount(Object count) {
+    return '$count shifts';
+  }
+
+  @override
+  String get shiftMonitorOpenedAt => 'Opened At';
+
+  @override
+  String get shiftMonitorOpenedBy => 'Opened By';
+
+  @override
+  String get shiftMonitorClosedAt => 'Closed At';
+
+  @override
+  String get shiftMonitorClosedBy => 'Closed By';
+
+  @override
+  String get shiftMonitorCashAccount => 'Cash Account';
+
+  @override
+  String get shiftMonitorOpeningCash => 'Opening Cash';
+
+  @override
+  String get shiftMonitorExpectedClosingCash => 'Expected Closing';
+
+  @override
+  String get shiftMonitorActualClosingCash => 'Actual Closing';
+
+  @override
+  String get shiftMonitorDifference => 'Difference';
+
+  @override
+  String get shiftMonitorDifferenceSurplus => 'Surplus';
+
+  @override
+  String get shiftMonitorDifferenceShortage => 'Shortage';
+
+  @override
+  String get shiftMonitorNoDiscrepancy => 'No discrepancy';
 }

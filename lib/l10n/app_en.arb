@@ -1564,5 +1564,55 @@
   "masterOrdersFilterDateFrom": "From",
   "masterOrdersFilterDateTo": "To",
   "masterOrdersOutstanding": "Outstanding",
-  "masterOrdersCurrency": "EGP"
+  "masterOrdersCurrency": "EGP",
+  "menuShiftMonitor": "Shift Monitor",
+  "shiftMonitorTitle": "POS Shift Monitor",
+  "shiftMonitorAccessRequired": "Manager access required",
+  "shiftMonitorAccessDeniedBody": "This page is available to JARZ Manager roles and above.",
+  "shiftMonitorFiltersTitle": "Filters",
+  "shiftMonitorToday": "Today",
+  "shiftMonitorLast7Days": "Last 7 Days",
+  "shiftMonitorCustomRange": "Custom Range",
+  "shiftMonitorPickDateRange": "Pick Date Range",
+  "shiftMonitorDateRangeValue": "{from} to {to}",
+  "@shiftMonitorDateRangeValue": {
+    "placeholders": {
+      "from": {},
+      "to": {}
+    }
+  },
+  "shiftMonitorProfileFilter": "POS Profile",
+  "shiftMonitorStatusFilter": "Status",
+  "shiftMonitorStatusAll": "All",
+  "shiftMonitorStatusOpen": "Open",
+  "shiftMonitorStatusClosed": "Closed",
+  "shiftMonitorNoData": "No shifts found for the selected filters.",
+  "shiftMonitorOpenCount": "Open Shifts",
+  "shiftMonitorClosedCount": "Closed Shifts",
+  "shiftMonitorDiscrepancyCount": "Discrepancies",
+  "shiftMonitorDiscrepancyTotal": "Discrepancy Total",
+  "shiftMonitorLatestStart": "Latest start: {value}",
+  "@shiftMonitorLatestStart": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "shiftMonitorShiftCount": "{count} shifts",
+  "@shiftMonitorShiftCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "shiftMonitorOpenedAt": "Opened At",
+  "shiftMonitorOpenedBy": "Opened By",
+  "shiftMonitorClosedAt": "Closed At",
+  "shiftMonitorClosedBy": "Closed By",
+  "shiftMonitorCashAccount": "Cash Account",
+  "shiftMonitorOpeningCash": "Opening Cash",
+  "shiftMonitorExpectedClosingCash": "Expected Closing",
+  "shiftMonitorActualClosingCash": "Actual Closing",
+  "shiftMonitorDifference": "Difference",
+  "shiftMonitorDifferenceSurplus": "Surplus",
+  "shiftMonitorDifferenceShortage": "Shortage",
+  "shiftMonitorNoDiscrepancy": "No discrepancy"
 }

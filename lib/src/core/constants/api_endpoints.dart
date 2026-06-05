@@ -13,8 +13,7 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.user.get_current_user_roles';
 
   // ── POS ───────────────────────────────────────────────────────────────
-  static const getPosProfiles =
-      '/api/method/jarz_pos.api.pos.get_pos_profiles';
+  static const getPosProfiles = '/api/method/jarz_pos.api.pos.get_pos_profiles';
   static const getProfileBundles =
       '/api/method/jarz_pos.api.pos.get_profile_bundles';
   static const getPosProfileAccountBalance =
@@ -55,8 +54,7 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.invoices.create_pos_invoice';
   static const submitInvoiceAmendment =
       '/api/method/jarz_pos.api.manager.submit_invoice_amendment';
-  static const payInvoice =
-      '/api/method/jarz_pos.api.invoices.pay_invoice';
+  static const payInvoice = '/api/method/jarz_pos.api.invoices.pay_invoice';
   static const getInvoiceSettlementPreview =
       '/api/method/jarz_pos.api.invoices.get_invoice_settlement_preview';
   static const updateInvoiceDeliverySlot =
@@ -73,12 +71,10 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.shift.get_active_shift';
   static const getShiftPaymentMethods =
       '/api/method/jarz_pos.api.shift.get_shift_payment_methods';
-  static const startShift =
-      '/api/method/jarz_pos.api.shift.start_shift';
+  static const startShift = '/api/method/jarz_pos.api.shift.start_shift';
   static const getShiftSummary =
       '/api/method/jarz_pos.api.shift.get_shift_summary';
-  static const endShift =
-      '/api/method/jarz_pos.api.shift.end_shift';
+  static const endShift = '/api/method/jarz_pos.api.shift.end_shift';
 
   // ── Kanban ────────────────────────────────────────────────────────────
   static const getKanbanColumns =
@@ -89,8 +85,7 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.kanban.update_invoice_state';
   static const previewInvoiceOutForDelivery =
       '/api/method/jarz_pos.api.kanban.preview_invoice_out_for_delivery';
-  static const cancelInvoice =
-      '/api/method/jarz_pos.api.kanban.cancel_invoice';
+  static const cancelInvoice = '/api/method/jarz_pos.api.kanban.cancel_invoice';
   static const getInvoiceDetails =
       '/api/method/jarz_pos.api.kanban.get_invoice_details';
   static const getInvoiceNotes =
@@ -151,12 +146,10 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.notifications.get_websocket_debug_info';
 
   // ── Purchase ──────────────────────────────────────────────────────────
-  static const getSuppliers =
-      '/api/method/jarz_pos.api.purchase.get_suppliers';
+  static const getSuppliers = '/api/method/jarz_pos.api.purchase.get_suppliers';
   static const getRecentSuppliers =
       '/api/method/jarz_pos.api.purchase.get_recent_suppliers';
-  static const searchItems =
-      '/api/method/jarz_pos.api.purchase.search_items';
+  static const searchItems = '/api/method/jarz_pos.api.purchase.search_items';
   static const getItemDetails =
       '/api/method/jarz_pos.api.purchase.get_item_details';
   static const getItemPrice =
@@ -169,6 +162,8 @@ abstract final class ApiEndpoints {
   // ── Manager ───────────────────────────────────────────────────────────
   static const getManagerDashboardSummary =
       '/api/method/jarz_pos.api.manager.get_manager_dashboard_summary';
+  static const getPosShiftMonitor =
+      '/api/method/jarz_pos.api.manager.get_pos_shift_monitor';
   static const getManagerTransferTargetBranches =
       '/api/method/jarz_pos.api.manager.get_transfer_target_branches';
   static const getManagerOrders =

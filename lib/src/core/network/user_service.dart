@@ -27,13 +27,22 @@ class UserRoles {
   bool get isJarzManager => roles.contains(RoleNames.jarzManager);
   bool get isManager => isJarzManager;
   bool get isLineManager => roles.contains(RoleNames.jarzLineManager);
-  bool get canAccessManagerDashboard => isJarzManager || isLineManager;
+  bool get isAdminManager =>
+      roles.contains(RoleNames.posManager) ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.administrator);
+  bool get canAccessManagerDashboard =>
+      isJarzManager || isLineManager || isAdminManager;
+  bool get canAccessShiftMonitor => isJarzManager || isAdminManager;
   bool get isModerator => roles.contains(RoleNames.moderator);
-  bool get canMuteNotifications => isJarzManager || isLineManager || isModerator;
+  bool get canMuteNotifications =>
+      isJarzManager || isLineManager || isModerator;
 
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
-    final rolesList = rolesRaw is List ? rolesRaw.map((e) => e.toString()).toList() : <String>[];
+    final rolesList = rolesRaw is List
+        ? rolesRaw.map((e) => e.toString()).toList()
+        : <String>[];
     return UserRoles(
       user: (json['user'] ?? '').toString(),
       fullName: json['full_name']?.toString(),
@@ -41,7 +50,8 @@ class UserRoles {
       employee: json['employee']?.toString(),
       employeeName: json['employee_name']?.toString(),
       branch: json['branch']?.toString(),
-      requirePosShift: json['require_pos_shift'] == true || json['require_pos_shift'] == 1,
+      requirePosShift:
+          json['require_pos_shift'] == true || json['require_pos_shift'] == 1,
     );
   }
 }
@@ -56,13 +66,12 @@ class UserService {
   UserService(this._dio);
 
   Future<UserRoles> getCurrentUserRoles() async {
-    final resp = await _dio.post(
-      ApiEndpoints.getCurrentUserRoles,
-      data: {},
-    );
+    final resp = await _dio.post(ApiEndpoints.getCurrentUserRoles, data: {});
     final data = resp.data;
     if (data is Map && data['message'] is Map) {
-      return UserRoles.fromJson(Map<String, dynamic>.from(data['message'] as Map));
+      return UserRoles.fromJson(
+        Map<String, dynamic>.from(data['message'] as Map),
+      );
     }
     if (data is Map) {
       return UserRoles.fromJson(Map<String, dynamic>.from(data));
@@ -93,6 +102,14 @@ final isLineManagerProvider = Provider<bool>((ref) {
   );
 });
 
+final canAccessManagerDashboardRoleProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessManagerDashboard,
+    orElse: () => false,
+  );
+});
+
 final isModeratorProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
@@ -105,6 +122,14 @@ final canMuteNotificationsProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canMuteNotifications,
+    orElse: () => false,
+  );
+});
+
+final canAccessShiftMonitorProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessShiftMonitor,
     orElse: () => false,
   );
 });
@@ -126,7 +151,9 @@ final requirePosShiftProvider = Provider<bool>((ref) {
     data: (roles) {
       if (!roles.requirePosShift) return false;
       // Line managers who chose manager mode skip shift requirement
-      if (roles.isLineManager && loginMode == LoginMode.lineManager) return false;
+      if (roles.isLineManager && loginMode == LoginMode.lineManager) {
+        return false;
+      }
       return true;
     },
     orElse: () => false,

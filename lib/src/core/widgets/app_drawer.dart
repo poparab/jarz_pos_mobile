@@ -17,10 +17,13 @@ class AppDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final isManager = ref.watch(isJarzManagerProvider);
     final isLineManager = ref.watch(isLineManagerProvider);
     final isModerator = ref.watch(isModeratorProvider);
-    final managerAccess = (isManager || isLineManager)
+    final canAccessManagerDashboardRole = ref.watch(
+      canAccessManagerDashboardRoleProvider,
+    );
+    final canAccessShiftMonitor = ref.watch(canAccessShiftMonitorProvider);
+    final managerAccess = canAccessManagerDashboardRole
         ? ref.watch(managerAccessProvider)
         : const AsyncValue<bool>.data(false);
     final requirePosShift = ref.watch(requirePosShiftProvider);
@@ -150,6 +153,15 @@ class AppDrawer extends ConsumerWidget {
                 context.go(AppRoutes.manager);
               },
             ),
+            if (canAccessShiftMonitor)
+              ListTile(
+                leading: const Icon(Icons.timeline),
+                title: Text(l10n.menuShiftMonitor),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go(AppRoutes.shiftMonitor);
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.receipt_long),
               title: Text(l10n.menuPurchaseInvoice),

@@ -62,6 +62,9 @@ abstract final class VoucherTypes {
 abstract final class RoleNames {
   static const jarzManager = 'JARZ Manager';
   static const jarzLineManager = 'JARZ line manager';
+  static const posManager = 'POS Manager';
+  static const systemManager = 'System Manager';
+  static const administrator = 'Administrator';
   static const moderator = 'Moderator';
 }
 

@@ -1560,5 +1560,55 @@
   "@tripsSameTerritory": {"placeholders":{"territory":{}}},
   "@tripsSendForDeliveryContent": {"placeholders":{"count":{},"courierName":{}}},
   "@tripsSubTerritoryRequired": {"placeholders":{"invoices":{}}},
-  "@tripsTripMarkedAsDelivered": {"placeholders":{"tripName":{}}}
+  "@tripsTripMarkedAsDelivered": {"placeholders":{"tripName":{}}},
+  "menuShiftMonitor": "متابعة الشيفتات",
+  "shiftMonitorTitle": "متابعة شيفتات نقاط البيع",
+  "shiftMonitorAccessRequired": "يلزم صلاحية مدير",
+  "shiftMonitorAccessDeniedBody": "هذه الصفحة متاحة لأدوار JARZ Manager وما فوق فقط.",
+  "shiftMonitorFiltersTitle": "الفلاتر",
+  "shiftMonitorToday": "اليوم",
+  "shiftMonitorLast7Days": "آخر 7 أيام",
+  "shiftMonitorCustomRange": "فترة مخصصة",
+  "shiftMonitorPickDateRange": "اختر الفترة",
+  "shiftMonitorDateRangeValue": "{from} إلى {to}",
+  "@shiftMonitorDateRangeValue": {
+    "placeholders": {
+      "from": {},
+      "to": {}
+    }
+  },
+  "shiftMonitorProfileFilter": "ملف نقطة البيع",
+  "shiftMonitorStatusFilter": "الحالة",
+  "shiftMonitorStatusAll": "الكل",
+  "shiftMonitorStatusOpen": "مفتوح",
+  "shiftMonitorStatusClosed": "مغلق",
+  "shiftMonitorNoData": "لا توجد شيفتات للفلاتر المحددة.",
+  "shiftMonitorOpenCount": "الشيفتات المفتوحة",
+  "shiftMonitorClosedCount": "الشيفتات المغلقة",
+  "shiftMonitorDiscrepancyCount": "حالات الفرق",
+  "shiftMonitorDiscrepancyTotal": "إجمالي الفروق",
+  "shiftMonitorLatestStart": "آخر بداية: {value}",
+  "@shiftMonitorLatestStart": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "shiftMonitorShiftCount": "{count} شيفت",
+  "@shiftMonitorShiftCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "shiftMonitorOpenedAt": "وقت الفتح",
+  "shiftMonitorOpenedBy": "تم الفتح بواسطة",
+  "shiftMonitorClosedAt": "وقت الإغلاق",
+  "shiftMonitorClosedBy": "تم الإغلاق بواسطة",
+  "shiftMonitorCashAccount": "الحساب النقدي",
+  "shiftMonitorOpeningCash": "نقدية البداية",
+  "shiftMonitorExpectedClosingCash": "إقفال متوقع",
+  "shiftMonitorActualClosingCash": "إقفال فعلي",
+  "shiftMonitorDifference": "الفرق",
+  "shiftMonitorDifferenceSurplus": "زيادة",
+  "shiftMonitorDifferenceShortage": "عجز",
+  "shiftMonitorNoDiscrepancy": "لا يوجد فرق"
 }

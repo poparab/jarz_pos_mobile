@@ -11,6 +11,7 @@ abstract final class AppRoutes {
   static const courierBalances = '/courier-balances';
   static const printers = '/printers';
   static const manager = '/manager';
+  static const shiftMonitor = '/shift-monitor';
   static const purchase = '/purchase';
   static const manufacturing = '/manufacturing';
   static const stockTransfer = '/stock-transfer';

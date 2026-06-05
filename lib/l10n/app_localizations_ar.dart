@@ -3709,4 +3709,113 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get masterOrdersCurrency => 'ج.م';
+
+  @override
+  String get menuShiftMonitor => 'متابعة الشيفتات';
+
+  @override
+  String get shiftMonitorTitle => 'متابعة شيفتات نقاط البيع';
+
+  @override
+  String get shiftMonitorAccessRequired => 'يلزم صلاحية مدير';
+
+  @override
+  String get shiftMonitorAccessDeniedBody =>
+      'هذه الصفحة متاحة لأدوار JARZ Manager وما فوق فقط.';
+
+  @override
+  String get shiftMonitorFiltersTitle => 'الفلاتر';
+
+  @override
+  String get shiftMonitorToday => 'اليوم';
+
+  @override
+  String get shiftMonitorLast7Days => 'آخر 7 أيام';
+
+  @override
+  String get shiftMonitorCustomRange => 'فترة مخصصة';
+
+  @override
+  String get shiftMonitorPickDateRange => 'اختر الفترة';
+
+  @override
+  String shiftMonitorDateRangeValue(Object from, Object to) {
+    return '$from إلى $to';
+  }
+
+  @override
+  String get shiftMonitorProfileFilter => 'ملف نقطة البيع';
+
+  @override
+  String get shiftMonitorStatusFilter => 'الحالة';
+
+  @override
+  String get shiftMonitorStatusAll => 'الكل';
+
+  @override
+  String get shiftMonitorStatusOpen => 'مفتوح';
+
+  @override
+  String get shiftMonitorStatusClosed => 'مغلق';
+
+  @override
+  String get shiftMonitorNoData => 'لا توجد شيفتات للفلاتر المحددة.';
+
+  @override
+  String get shiftMonitorOpenCount => 'الشيفتات المفتوحة';
+
+  @override
+  String get shiftMonitorClosedCount => 'الشيفتات المغلقة';
+
+  @override
+  String get shiftMonitorDiscrepancyCount => 'حالات الفرق';
+
+  @override
+  String get shiftMonitorDiscrepancyTotal => 'إجمالي الفروق';
+
+  @override
+  String shiftMonitorLatestStart(Object value) {
+    return 'آخر بداية: $value';
+  }
+
+  @override
+  String shiftMonitorShiftCount(Object count) {
+    return '$count شيفت';
+  }
+
+  @override
+  String get shiftMonitorOpenedAt => 'وقت الفتح';
+
+  @override
+  String get shiftMonitorOpenedBy => 'تم الفتح بواسطة';
+
+  @override
+  String get shiftMonitorClosedAt => 'وقت الإغلاق';
+
+  @override
+  String get shiftMonitorClosedBy => 'تم الإغلاق بواسطة';
+
+  @override
+  String get shiftMonitorCashAccount => 'الحساب النقدي';
+
+  @override
+  String get shiftMonitorOpeningCash => 'نقدية البداية';
+
+  @override
+  String get shiftMonitorExpectedClosingCash => 'إقفال متوقع';
+
+  @override
+  String get shiftMonitorActualClosingCash => 'إقفال فعلي';
+
+  @override
+  String get shiftMonitorDifference => 'الفرق';
+
+  @override
+  String get shiftMonitorDifferenceSurplus => 'زيادة';
+
+  @override
+  String get shiftMonitorDifferenceShortage => 'عجز';
+
+  @override
+  String get shiftMonitorNoDiscrepancy => 'لا يوجد فرق';
 }

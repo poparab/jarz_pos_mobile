@@ -8,6 +8,11 @@ const managerOnlyEndpoints = [
     deniedPattern: /Manager Dashboard access required/i,
   },
   {
+    name: 'shift monitor',
+    path: '/api/method/jarz_pos.api.manager.get_pos_shift_monitor',
+    deniedPattern: /Shift monitor access required/i,
+  },
+  {
     name: 'purchase suppliers',
     path: '/api/method/jarz_pos.api.purchase.get_suppliers',
     deniedPattern: /Managers only/i,
