@@ -46,6 +46,12 @@ call flutter build web --release --dart-define=ENV=%ENV_DEFINE% %SENTRY_ARGS% --
 if errorlevel 1 exit /b 1
 call dart --disable-dart-dev tool\write_web_push_config.dart --env-file %ENV_FILE% --output-file build\web\firebase-web-config.js
 if errorlevel 1 exit /b 1
+echo [build_release] Bundling Firebase compat scripts (v10.12.5) locally...
+curl -sSfL "https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js" -o build\web\firebase-app-compat.js
+if errorlevel 1 exit /b 1
+curl -sSfL "https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js" -o build\web\firebase-messaging-compat.js
+if errorlevel 1 exit /b 1
+echo [build_release] Firebase scripts bundled.
 goto :eof
 
 :build_apk
