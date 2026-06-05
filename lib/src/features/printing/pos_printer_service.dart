@@ -62,6 +62,8 @@ class PrintableInvoice {
   final String? orderDate;            // Posting date formatted as DD/MM/YYYY
   final String? deliveryTimeRange;    // e.g. "22:00 - 23:30"
   final String? deliveryDateFormatted; // e.g. "Wednesday, May 06, 2026"
+  // True when outstanding moved to courier outstanding account but courier hasn't remitted yet.
+  final bool hasUnsettledCourierTxn;
   PrintableInvoice({
     required this.id,
     required this.date,
@@ -80,6 +82,7 @@ class PrintableInvoice {
     this.orderDate,
     this.deliveryTimeRange,
     this.deliveryDateFormatted,
+    this.hasUnsettledCourierTxn = false,
   });
 }
 
@@ -410,7 +413,7 @@ class PosPrinterService extends ChangeNotifier {
   Future<String> buildReceiptPreview(PrintableInvoice inv) async {
     await _loadReceiptConfig();
     final sb = StringBuffer();
-    final bool isPaid = inv.outstanding <= 0.0001;
+    final bool isPaid = inv.outstanding <= 0.0001 && !inv.hasUnsettledCourierTxn;
 
     sb.writeln(_receiptHeader);
     sb.writeln('');
@@ -999,7 +1002,7 @@ class PosPrinterService extends ChangeNotifier {
     } else {
       await text(_labelVal('Total', _money(grand)), bold: true, big: true);
     }
-    final statusPaid = inv.outstanding <= 0.0001;
+    final statusPaid = inv.outstanding <= 0.0001 && !inv.hasUnsettledCourierTxn;
     await text(
       _labelVal(
         'Status',

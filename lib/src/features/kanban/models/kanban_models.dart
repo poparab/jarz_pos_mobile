@@ -444,7 +444,15 @@ class InvoiceCard {
           ? shippingOverride!
           : shippingExpense;
   String get address => fullAddress;
-  String get effectiveStatus => docStatus ?? status; // prefer real doc status
+  String get effectiveStatus {
+    // Don't let ERPNext's financial "Paid" override the operational state
+    // when the courier still owes cash to the branch.
+    if (hasUnsettledCourierTxn &&
+        (docStatus ?? '').toLowerCase() == InvoiceStatus.paidLower) {
+      return status;
+    }
+    return docStatus ?? status;
+  }
   int get itemsCount => items.length;
   String? get phone => customerPhone; // backward compatible alias if other code expects phone
   bool get pickup => isPickup;

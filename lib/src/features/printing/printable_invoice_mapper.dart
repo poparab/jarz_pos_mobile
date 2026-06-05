@@ -21,9 +21,10 @@ PrintableInvoice buildPrintableInvoiceFromCards({
           ),
         ];
 
-  final isPaid = (effective.docStatus ?? '').toLowerCase() ==
-          InvoiceStatus.paidLower ||
-      effective.effectiveStatus.toLowerCase() == InvoiceStatus.paidLower;
+  final isPaid = ((effective.docStatus ?? '').toLowerCase() ==
+              InvoiceStatus.paidLower ||
+          effective.effectiveStatus.toLowerCase() == InvoiceStatus.paidLower) &&
+      !effective.hasUnsettledCourierTxn;
   final rawOutstanding = effective.outstandingAmount > 0
       ? effective.outstandingAmount
       : (isPaid ? 0.0 : effective.total);
@@ -50,6 +51,7 @@ PrintableInvoice buildPrintableInvoiceFromCards({
     orderDate: _formatPostingDate(effective.postingDate),
     deliveryTimeRange: _buildDeliveryTimeRange(effective),
     deliveryDateFormatted: _buildDeliveryDateFormatted(effective),
+    hasUnsettledCourierTxn: effective.hasUnsettledCourierTxn,
   );
 }
 
