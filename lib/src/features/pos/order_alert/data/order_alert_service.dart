@@ -40,6 +40,35 @@ class OrderAlertService {
     );
   }
 
+  Future<String> fetchVapidPublicKey() async {
+    final response = await _dio.post(
+      ApiEndpoints.getVapidPublicKey,
+      data: const {},
+    );
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      final message = data['message'];
+      if (message is Map) {
+        final key = message['public_key']?.toString() ?? '';
+        if (key.isNotEmpty) return key;
+      }
+    }
+    throw Exception('VAPID public key not found in response');
+  }
+
+  Future<void> registerVapidSubscription({
+    required String subscriptionJson,
+    String? browser,
+  }) async {
+    await _dio.post(
+      ApiEndpoints.registerVapidSubscription,
+      data: {
+        'subscription_json': subscriptionJson,
+        if (browser != null) 'browser': browser,
+      },
+    );
+  }
+
   Future<void> acknowledgeInvoice(String invoiceName) async {
     try {
       await _dio.post(

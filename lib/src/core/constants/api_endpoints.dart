@@ -132,6 +132,10 @@ abstract final class ApiEndpoints {
   // ── Notifications ─────────────────────────────────────────────────────
   static const registerMobileDevice =
       '/api/method/jarz_pos.api.notifications.register_mobile_device';
+  static const getVapidPublicKey =
+      '/api/method/jarz_pos.api.notifications.get_vapid_public_key';
+  static const registerVapidSubscription =
+      '/api/method/jarz_pos.api.notifications.register_vapid_subscription';
   static const acknowledgeInvoice =
       '/api/method/jarz_pos.api.notifications.acknowledge_invoice';
   static const getPendingAlerts =

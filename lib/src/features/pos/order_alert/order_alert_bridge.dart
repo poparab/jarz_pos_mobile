@@ -19,6 +19,7 @@ import 'web_notification_click_service.dart';
 import 'web_notification_permission_policy.dart';
 import 'state/order_alert_controller.dart';
 import 'web_notification_service.dart';
+import 'vapid_subscription_service.dart';
 import 'web_push_registration_result.dart';
 import 'web_push_registration_service.dart';
 import '../../../core/constants/timing_config.dart';
@@ -136,6 +137,10 @@ class OrderAlertBridge {
           .notificationClicks()
           .listen(_handleWebNotificationClick);
 
+      // Register the Firebase messaging service worker early so it reaches
+      // "active" state before the user taps Enable Notifications.
+      unawaited(WebPushRegistrationService.initServiceWorker());
+
       final initialNotificationId =
           WebNotificationClickService.consumeInitialNotificationId();
       if (initialNotificationId != null) {
@@ -224,37 +229,79 @@ class OrderAlertBridge {
     }
 
     try {
-      final result = await WebPushRegistrationService.requestToken();
-      if (!result.hasToken) {
-        final diagnostics = result.diagnostics?.toCompactSummary();
-        _logger.warning(
-          diagnostics == null
-              ? 'Web push enable skipped: ${result.message}'
-              : 'Web push enable skipped: ${result.message}; $diagnostics',
+      // VAPID: standard W3C push — works on iOS Safari PWA, Chrome, Firefox, Edge.
+      // No Apple Developer account required.
+      final vapidResult = await VapidSubscriptionService.requestSubscription(
+        service: _ref.read(orderAlertServiceProvider),
+      );
+
+      if (vapidResult.status == VapidSubscriptionStatus.permissionDenied) {
+        return webPushPermissionNotGrantedResult('denied');
+      }
+
+      if (vapidResult.isSuccess && vapidResult.subscriptionJson != null) {
+        await _registerVapidSubscription(vapidResult.subscriptionJson!, vapidResult.browser);
+      } else if (!vapidResult.isSuccess) {
+        _logger.warning('VAPID subscription failed: ${vapidResult.message}');
+      }
+
+      // FCM: Android Chrome + desktop (may fail on iOS — non-fatal if VAPID succeeded)
+      final fcmResult = await WebPushRegistrationService.requestToken();
+      if (fcmResult.hasToken) {
+        try {
+          await _registerToken(fcmResult.token, force: true);
+        } catch (error, stackTrace) {
+          _logger.error('FCM token registration failed during web push enable', error, stackTrace);
+        }
+      } else {
+        _logger.debug('FCM token unavailable (expected on iOS): ${fcmResult.message}');
+      }
+
+      // Return success if either channel registered
+      if (vapidResult.isSuccess) {
+        return const WebPushRegistrationResult(
+          status: WebPushRegistrationStatus.registered,
+          message: 'Web push notifications enabled.',
         );
-        return result;
+      }
+      if (fcmResult.hasToken) {
+        return fcmResult.asRegistered();
       }
 
-      try {
-        await _registerToken(result.token, force: true);
-      } catch (error, stackTrace) {
-        _logger.error('Failed to register web push token', error, stackTrace);
-        return result.asFailed(error);
-      }
-
-      return result.asRegistered();
+      // Both failed — surface the VAPID failure message
+      return WebPushRegistrationResult(
+        status: WebPushRegistrationStatus.failed,
+        message: vapidResult.message,
+      );
     } catch (error, stackTrace) {
-      _logger.error('Failed to register web push token', error, stackTrace);
+      _logger.error('Failed to enable web push', error, stackTrace);
       final diagnostics = WebPushRegistrationService.captureEmergencyDiagnostics(
-        failingStep: 'request_token_exception',
-        failureReason: 'request_token_exception',
+        failingStep: 'vapid_enable_exception',
+        failureReason: 'vapid_enable_exception',
         error: error,
       );
       return webPushFailedFromException(error, diagnostics: diagnostics);
     }
   }
 
+  Future<void> _registerVapidSubscription(String subscriptionJson, String? browser) async {
+    try {
+      await _ref.read(orderAlertServiceProvider).registerVapidSubscription(
+        subscriptionJson: subscriptionJson,
+        browser: browser,
+      );
+      _logger.info('VAPID web push subscription registered with backend');
+    } catch (error, stackTrace) {
+      _logger.error('Failed to register VAPID subscription with backend', error, stackTrace);
+      rethrow;
+    }
+  }
+
   Future<void> _registerWebTokenIfPermissionGranted() async {
+    // Silently re-register VAPID subscription if permission was already granted
+    // (e.g. on app reload after the user previously tapped Enable Notifications).
+    unawaited(_resubscribeVapidIfPermissionGranted());
+
     final result = await WebPushRegistrationService.getTokenIfPermissionGranted();
     if (!result.hasToken) {
       _logger.debug('Web push token not registered on auth: ${result.message}');
@@ -262,6 +309,19 @@ class OrderAlertBridge {
     }
 
     await _registerToken(result.token);
+  }
+
+  Future<void> _resubscribeVapidIfPermissionGranted() async {
+    try {
+      final vapidResult = await VapidSubscriptionService.subscribeIfPermissionGranted(
+        service: _ref.read(orderAlertServiceProvider),
+      );
+      if (vapidResult.isSuccess && vapidResult.subscriptionJson != null) {
+        await _registerVapidSubscription(vapidResult.subscriptionJson!, vapidResult.browser);
+      }
+    } catch (error, stackTrace) {
+      _logger.error('Silent VAPID re-subscription failed', error, stackTrace);
+    }
   }
 
   Future<void> _onLoggedOut() async {
