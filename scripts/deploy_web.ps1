@@ -303,8 +303,9 @@ $localMetaPath = Join-Path $repoRoot 'build\web\release-metadata.json'
 $releaseMetadata | ConvertTo-Json | Set-Content -Path $localMetaPath -Encoding UTF8
 
 Write-Step 'Uploading web bundle to server...'
-$null = Invoke-Remote "rm -rf $remoteWebDir ; mkdir -p $remoteWebDir"
-& scp -o StrictHostKeyChecking=no -i $SshKeyPath -r "$repoRoot\build\web\*" "${sshTarget}:$remoteWebDir/" 2>&1 | ForEach-Object { Write-Host $_ }
+$remoteWebParentDir = Split-Path $remoteWebDir -Parent
+$null = Invoke-Remote "rm -rf $remoteWebDir"
+& scp -o StrictHostKeyChecking=no -i $SshKeyPath -r "$repoRoot\build\web" "${sshTarget}:$remoteWebParentDir/" 2>&1 | ForEach-Object { Write-Host $_ }
 if ($LASTEXITCODE -ne 0) {
     throw 'Web bundle upload failed'
 }
