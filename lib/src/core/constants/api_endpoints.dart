@@ -240,6 +240,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.reports.get_materials_report';
   static const getMasterOrders =
       '/api/method/jarz_pos.api.orders.get_master_orders';
+  static const getProductAnalytics =
+      '/api/method/jarz_pos.api.product_analytics.get_product_analytics';
 
   // ── Settings ──────────────────────────────────────────────────────────
   static const getReceiptConfig =
