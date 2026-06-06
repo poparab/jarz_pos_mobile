@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/frappe_error_message.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../manager/state/manager_providers.dart';
@@ -19,6 +20,7 @@ class ManufacturingScreen extends ConsumerStatefulWidget {
 class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
   String search = '';
   final List<_MfgLine> lines = [];
+  StateSetter? _sheetSetState;
 
   @override
   void dispose() {
@@ -44,44 +46,66 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.manufacturingTitle),
-        actions: [
-          IconButton(
-            tooltip: l10n.manufacturingRecentWorkOrdersTooltip,
-            icon: const Icon(Icons.history),
-            onPressed: _openRecentWorkOrders,
+    final isPhone = ResponsiveUtils.isPhone(context);
+    final padding = ResponsiveUtils.getResponsivePadding(context, small: 10, medium: 12, large: 12);
+
+    final appBar = AppBar(
+      title: Text(l10n.manufacturingTitle),
+      actions: [
+        IconButton(
+          tooltip: l10n.manufacturingRecentWorkOrdersTooltip,
+          icon: const Icon(Icons.history),
+          onPressed: _openRecentWorkOrders,
+        ),
+      ],
+    );
+
+    final leftPanel = Padding(
+      padding: padding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: l10n.manufacturingSearchDefaultBom),
+            onChanged: (v) => setState(() => search = v),
           ),
+          const SizedBox(height: 8),
+          Expanded(child: _buildItemResults()),
         ],
       ),
+    );
+
+    if (isPhone) {
+      return Scaffold(
+        appBar: appBar,
+        drawer: const AppDrawer(),
+        body: leftPanel,
+        floatingActionButton: Badge(
+          isLabelVisible: lines.isNotEmpty,
+          label: Text('${lines.length}'),
+          child: FloatingActionButton(
+            onPressed: _openWorkOrdersSheet,
+            tooltip: l10n.manufacturingWorkOrdersTitle(lines.length),
+            child: const Icon(Icons.factory),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: appBar,
       drawer: const AppDrawer(),
       body: Row(
         children: [
-          // Left: items with default BOM
           Expanded(
             flex: 3,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: l10n.manufacturingSearchDefaultBom),
-                    onChanged: (v) => setState(() => search = v),
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(child: _buildItemResults()),
-                ],
-              ),
-            ),
+            child: leftPanel,
           ),
           Container(width: 1, color: Colors.grey.shade300),
-          // Right: selected manufacturing lines
           Expanded(
             flex: 4,
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: padding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -129,6 +153,110 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
         ],
       ),
     );
+  }
+
+  void _openWorkOrdersSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return DraggableScrollableSheet(
+          initialChildSize: ResponsiveUtils.getCartBottomSheetInitialSize(context),
+          minChildSize: ResponsiveUtils.getCartBottomSheetMinSize(context),
+          maxChildSize: ResponsiveUtils.getCartBottomSheetMaxSize(context),
+          expand: false,
+          builder: (_, scrollController) {
+            return StatefulBuilder(
+              builder: (_, setSheetState) {
+                _sheetSetState = setSheetState;
+                final l10n = context.l10n;
+                final positiveLines = lines.where((l) => l.itemQty > 0).toList(growable: false);
+                final blockedLines = positiveLines.where((l) => l.hasKnownInventoryShortage).toList(growable: false);
+                final canSubmitAll = positiveLines.isNotEmpty && blockedLines.isEmpty;
+                final colorScheme = Theme.of(context).colorScheme;
+                return Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  child: Column(
+                    children: [
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Container(
+                            width: 36,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade400,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.factory),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                l10n.manufacturingWorkOrdersTitle(lines.length),
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ),
+                            if (canSubmitAll)
+                              ElevatedButton.icon(
+                                onPressed: () async {
+                                  await _submitAll();
+                                  setSheetState(() {});
+                                },
+                                icon: const Icon(Icons.send),
+                                label: Text(l10n.manufacturingSubmitAll),
+                              )
+                            else
+                              Tooltip(
+                                message: _submitAllDisabledReason(positiveLines, blockedLines),
+                                child: ElevatedButton.icon(
+                                  onPressed: null,
+                                  icon: const Icon(Icons.send),
+                                  label: Text(l10n.manufacturingSubmitAll),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      if (blockedLines.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                          child: _buildBlockedLinesBanner(blockedLines),
+                        ),
+                      Expanded(
+                        child: lines.isEmpty
+                            ? Center(child: Text(l10n.manufacturingNoItemsSelected))
+                            : ListView.separated(
+                                controller: scrollController,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                itemCount: lines.length,
+                                separatorBuilder: (context, index) => const SizedBox(height: 10),
+                                itemBuilder: (_, i) {
+                                  if (i >= lines.length) return const SizedBox.shrink();
+                                  return _buildLineCard(lines[i], i);
+                                },
+                              ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    ).whenComplete(() => _sheetSetState = null);
   }
 
   Widget _buildItemResults() {
@@ -231,6 +359,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
                       final removed = lines.removeAt(index);
                       removed.dispose();
                     });
+                    _sheetSetState?.call(() {});
                   },
                 )
               ],
@@ -575,7 +704,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
       builder: (_) => AlertDialog(
         title: Text(context.l10n.commonError),
         content: SizedBox(
-          width: 520,
+          width: ResponsiveUtils.getDialogWidth(context, small: 340, medium: 440, large: 520),
           child: SingleChildScrollView(
             child: Text(issues.join('\n\n')),
           ),
@@ -722,6 +851,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
             }
           }
         });
+        _sheetSetState?.call(() {});
       }
 
       if (issues.isNotEmpty) {
@@ -812,6 +942,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
         lines.remove(l);
         l.dispose();
       });
+      _sheetSetState?.call(() {});
     }
   }
 
@@ -833,8 +964,8 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen> {
         return AlertDialog(
       title: Text(context.l10n.manufacturingRecentWorkOrdersTitle),
           content: SizedBox(
-            width: 600,
-            height: 400,
+            width: ResponsiveUtils.getDialogWidth(context, small: 400, medium: 520, large: 600),
+            height: ResponsiveUtils.getDialogHeight(context, phoneFraction: 0.65, tabletFraction: 0.55, max: 400),
             child: rows.isEmpty
         ? Center(child: Text(context.l10n.manufacturingNoWorkOrders))
                 : ListView.separated(

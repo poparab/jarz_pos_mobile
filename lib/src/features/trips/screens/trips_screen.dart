@@ -156,7 +156,14 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(trip.courierDisplayName, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                  Flexible(
+                    child: Text(
+                      trip.courierDisplayName,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Text(formatDateString(context, trip.tripDate), style: TextStyle(fontSize: 12, color: Colors.grey[500])),
                 ],
               ),

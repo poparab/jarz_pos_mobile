@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../../core/network/user_service.dart';
 import '../state/login_notifier.dart';
 
@@ -64,11 +65,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.authLoginTitle)),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
+        padding: ResponsiveUtils.getResponsivePadding(context, small: 16, medium: 24, large: 32),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            SizedBox(height: MediaQuery.sizeOf(context).height * 0.12),
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(labelText: context.l10n.authUsernameLabel),
@@ -146,23 +148,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         final l10n = ctx.l10n;
         return AlertDialog(
           title: Text(l10n.loginModeDialogTitle),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _LoginModeOption(
-                icon: Icons.supervisor_account,
-                title: l10n.loginModeLineManager,
-                subtitle: l10n.loginModeLineManagerDesc,
-                onTap: () => Navigator.of(ctx).pop(LoginMode.lineManager),
-              ),
-              const SizedBox(height: 12),
-              _LoginModeOption(
-                icon: Icons.badge,
-                title: l10n.loginModeEmployee,
-                subtitle: l10n.loginModeEmployeeDesc,
-                onTap: () => Navigator.of(ctx).pop(LoginMode.employee),
-              ),
-            ],
+          content: SizedBox(
+            width: ResponsiveUtils.getDialogWidth(ctx, small: 300, medium: 380, large: 440),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _LoginModeOption(
+                  icon: Icons.supervisor_account,
+                  title: l10n.loginModeLineManager,
+                  subtitle: l10n.loginModeLineManagerDesc,
+                  onTap: () => Navigator.of(ctx).pop(LoginMode.lineManager),
+                ),
+                const SizedBox(height: 12),
+                _LoginModeOption(
+                  icon: Icons.badge,
+                  title: l10n.loginModeEmployee,
+                  subtitle: l10n.loginModeEmployeeDesc,
+                  onTap: () => Navigator.of(ctx).pop(LoginMode.employee),
+                ),
+              ],
+            ),
           ),
         );
       },

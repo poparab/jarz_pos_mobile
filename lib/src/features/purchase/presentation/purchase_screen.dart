@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../purchase/data/purchase_service.dart';
@@ -23,6 +24,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   double shippingAmount = 0.0;
 
   final List<Map<String, dynamic>> cart = [];
+  StateSetter? _sheetSetState;
   late final TextEditingController _itemSearchController;
   late final TextEditingController _shippingController;
 
@@ -67,125 +69,398 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   Widget _buildNewInvoiceTab() {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    return Row(
+    final isPhone = ResponsiveUtils.isPhone(context);
+    final padding = ResponsiveUtils.getResponsivePadding(context, small: 10, medium: 12, large: 12);
+
+    final leftPanel = Padding(
+      padding: padding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Left: suppliers + items
-          Expanded(
-            flex: 3,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.purchaseSupplierSectionTitle, style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  Row(children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => _openSupplierPicker(initialRecent: true),
-                        child: AbsorbPointer(
-                          child: TextField(
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.search),
-                              hintText: supplier ?? l10n.purchaseTapToPickSupplier,
-                            ),
-                            onChanged: (_) {},
-                          ),
-                        ),
-                      ),
+          Text(l10n.purchaseSupplierSectionTitle, style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Row(children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _openSupplierPicker(initialRecent: true),
+                child: AbsorbPointer(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search),
+                      hintText: supplier ?? l10n.purchaseTapToPickSupplier,
                     ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: () => _openSupplierPicker(initialRecent: false),
-                      child: Text(l10n.commonChoose),
-                    ),
-                  ]),
-                  const SizedBox(height: 16),
-                  Text(l10n.purchaseItemsSectionTitle, style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _itemSearchController,
-                    decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: l10n.commonSearchItems),
-                    onChanged: (v) => setState(() => itemQuery = v),
+                    onChanged: (_) {},
                   ),
-                  const SizedBox(height: 8),
-                  Expanded(child: _buildItemsList()),
-                ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: () => _openSupplierPicker(initialRecent: false),
+              child: Text(l10n.commonChoose),
+            ),
+          ]),
+          const SizedBox(height: 16),
+          Text(l10n.purchaseItemsSectionTitle, style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _itemSearchController,
+            decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: l10n.commonSearchItems),
+            onChanged: (v) => setState(() => itemQuery = v),
+          ),
+          const SizedBox(height: 8),
+          Expanded(child: _buildItemsList()),
+        ],
+      ),
+    );
+
+    if (isPhone) {
+      return Stack(
+        children: [
+          leftPanel,
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: Badge(
+              isLabelVisible: cart.isNotEmpty,
+              label: Text('${cart.length}'),
+              child: FloatingActionButton(
+                onPressed: _openCartSheet,
+                tooltip: l10n.purchaseSubmit,
+                child: const Icon(Icons.shopping_cart),
               ),
             ),
           ),
-          // Right: cart and summary
-          Container(width: 1, color: Colors.grey.shade300),
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    const Icon(Icons.calendar_today, size: 18),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: leftPanel,
+        ),
+        Container(width: 1, color: Colors.grey.shade300),
+        Expanded(
+          flex: 2,
+          child: Padding(
+            padding: padding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  const Icon(Icons.calendar_today, size: 18),
+                  const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: () async {
+                      final now = DateTime.now();
+                      final d = await showDatePicker(
+                        context: context,
+                        firstDate: DateTime(now.year - 1),
+                        lastDate: DateTime(now.year + 1),
+                        initialDate: postingDate,
+                      );
+                      if (d != null) setState(() => postingDate = d);
+                    },
+                    child: Text(_fmtDate(postingDate)),
+                  ),
+                  const Spacer(),
+                ]),
+                const SizedBox(height: 8),
+                Expanded(child: _buildCartList()),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(l10n.purchaseShippingLabel),
                     const SizedBox(width: 8),
-                    TextButton(
-                      onPressed: () async {
-                        final now = DateTime.now();
-                        final d = await showDatePicker(
-                          context: context,
-                          firstDate: DateTime(now.year - 1),
-                          lastDate: DateTime(now.year + 1),
-                          initialDate: postingDate,
-                        );
-                        if (d != null) setState(() => postingDate = d);
-                      },
-                      child: Text(_fmtDate(postingDate)),
+                    SizedBox(
+                      width: 140,
+                      child: TextField(
+                        controller: _shippingController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        onChanged: (v) {
+                          final parsed = double.tryParse(v);
+                          if (parsed == null) return;
+                          setState(() => shippingAmount = parsed);
+                        },
+                      ),
                     ),
                     const Spacer(),
-                  ]),
-                  const SizedBox(height: 8),
-                  // Payment will be marked paid automatically; no toggle shown
-                  Expanded(child: _buildCartList()),
-                  const SizedBox(height: 8),
-                  // Shipping input and summary
-                  Row(
+                    Builder(builder: (ctx) {
+                      final total = _cartSubtotal() + shippingAmount;
+                      return Text(l10n.commonTotalValue(total.toStringAsFixed(2)));
+                    }),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: cart.isEmpty || supplier == null ? null : _submit,
+                        icon: const Icon(Icons.check),
+                        label: Text(l10n.purchaseSubmit),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _openCartSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return DraggableScrollableSheet(
+          initialChildSize: ResponsiveUtils.getCartBottomSheetInitialSize(context),
+          minChildSize: ResponsiveUtils.getCartBottomSheetMinSize(context),
+          maxChildSize: ResponsiveUtils.getCartBottomSheetMaxSize(context),
+          expand: false,
+          builder: (_, scrollController) {
+            return StatefulBuilder(
+              builder: (_, setSheetState) {
+                _sheetSetState = setSheetState;
+                final l10n = context.l10n;
+                final colorScheme = Theme.of(context).colorScheme;
+                final total = _cartSubtotal() + shippingAmount;
+                return Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  child: Column(
                     children: [
-                      Text(l10n.purchaseShippingLabel),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        width: 140,
-                        child: TextField(
-                          controller: _shippingController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          onChanged: (v) {
-                            final parsed = double.tryParse(v);
-                            if (parsed == null) return;
-                            setState(() => shippingAmount = parsed);
-                          },
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Container(
+                            width: 36,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade400,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
                         ),
                       ),
-                      const Spacer(),
-                      Builder(builder: (ctx) {
-                        final total = _cartSubtotal() + (shippingAmount);
-                        return Text(l10n.commonTotalValue(total.toStringAsFixed(2)));
-                      })
+                      // Date + supplier row
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.calendar_today, size: 18),
+                            const SizedBox(width: 6),
+                            TextButton(
+                              onPressed: () async {
+                                final now = DateTime.now();
+                                final d = await showDatePicker(
+                                  context: context,
+                                  firstDate: DateTime(now.year - 1),
+                                  lastDate: DateTime(now.year + 1),
+                                  initialDate: postingDate,
+                                );
+                                if (d != null) {
+                                  setState(() => postingDate = d);
+                                  setSheetState(() {});
+                                }
+                              },
+                              child: Text(_fmtDate(postingDate)),
+                            ),
+                            const Spacer(),
+                            if (supplier != null)
+                              Flexible(
+                                child: Text(
+                                  supplier!,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      // Cart items
+                      Expanded(
+                        child: cart.isEmpty
+                            ? Center(child: Text(l10n.purchaseNoItemsInCart))
+                            : ListView.separated(
+                                controller: scrollController,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                itemCount: cart.length,
+                                separatorBuilder: (context, index) => const Divider(height: 1),
+                                itemBuilder: (_, i) {
+                                  if (i >= cart.length) return const SizedBox.shrink();
+                                  return _buildCartItemTile(cart[i], i, onChanged: () => setSheetState(() {}));
+                                },
+                              ),
+                      ),
+                      // Shipping + total + submit
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Text(l10n.purchaseShippingLabel),
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: 120,
+                                  child: TextField(
+                                    controller: _shippingController,
+                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    onChanged: (v) {
+                                      final parsed = double.tryParse(v);
+                                      if (parsed == null) return;
+                                      setState(() => shippingAmount = parsed);
+                                      setSheetState(() {});
+                                    },
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(l10n.commonTotalValue(total.toStringAsFixed(2))),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: cart.isEmpty || supplier == null
+                                    ? null
+                                    : () async {
+                                        await _submit();
+                                        setSheetState(() {});
+                                      },
+                                icon: const Icon(Icons.check),
+                                label: Text(l10n.purchaseSubmit),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: MediaQuery.of(sheetCtx).padding.bottom),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: cart.isEmpty || supplier == null ? null : _submit,
-                          icon: const Icon(Icons.check),
-                          label: Text(l10n.purchaseSubmit),
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
+                );
+              },
+            );
+          },
+        );
+      },
+    ).whenComplete(() => _sheetSetState = null);
+  }
+
+  Widget _buildCartItemTile(Map<String, dynamic> line, int i, {required VoidCallback onChanged}) {
+    final l10n = context.l10n;
+    final uoms = (line['uoms'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final uom = (line['uom'] ?? '').toString();
+    final qty = (line['qty'] as num).toDouble();
+    final rate = (line['rate'] as num).toDouble();
+    final amount = qty * rate;
+    line['qtyCtrl'] ??= TextEditingController(text: qty.toStringAsFixed(2));
+    final TextEditingController qtyCtrl = line['qtyCtrl'] as TextEditingController;
+    return ListTile(
+      title: Text(l10n.commonNameWithCode(line['item_name'] as String, line['item_code'] as String)),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Text(l10n.commonUomLabel),
+            const SizedBox(width: 6),
+            DropdownButton<String>(
+              value: uom.isEmpty && uoms.isNotEmpty ? uoms.first['uom'] : uom,
+              items: [
+                for (final u in uoms)
+                  DropdownMenuItem(value: u['uom'] as String, child: Text(_uomLabel(u, line['stock_uom'] as String?))),
+              ],
+              onChanged: (v) async {
+                if (v == null) return;
+                final String stockUom = (line['stock_uom'] as String? ?? '');
+                final double conv = _convForUom(uoms, v);
+                final prices = (line['prices'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+                final priceForSelected = prices.firstWhere((p) => (p['uom'] == v), orElse: () => {});
+                final priceForStock = prices.firstWhere((p) => (p['uom'] == stockUom), orElse: () => {});
+                double? newRate;
+                final selRate = priceForSelected['rate'];
+                if (selRate != null) {
+                  newRate = (selRate as num).toDouble();
+                } else if (priceForStock['rate'] != null) {
+                  newRate = ((priceForStock['rate'] as num).toDouble()) * conv;
+                }
+                if (newRate != null) {
+                  setState(() { line['uom'] = v; line['rate'] = newRate!; });
+                } else {
+                  try {
+                    final price = await ref.read(purchaseServiceProvider).getItemPrice(line['item_code'] as String, uom: v);
+                    var apiRate = (price['rate'] ?? 0).toDouble();
+                    final priceUom = (price['uom'] as String?);
+                    if (priceUom != null && priceUom != v && priceUom == stockUom) apiRate = apiRate * conv;
+                    setState(() { line['uom'] = v; line['rate'] = apiRate; });
+                  } catch (_) {
+                    setState(() => line['uom'] = v);
+                  }
+                }
+                onChanged();
+              },
             ),
-          )
+            const SizedBox(width: 8),
+            SizedBox(width: 28, height: 28, child: IconButton(
+              padding: EdgeInsets.zero, iconSize: 18, visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.remove),
+              onPressed: () {
+                final newQty = (qty - 1).clamp(0, double.infinity) as double;
+                setState(() { line['qty'] = newQty; qtyCtrl.text = newQty.toStringAsFixed(2); });
+                onChanged();
+              },
+            )),
+            const SizedBox(width: 4),
+            SizedBox(width: 80, child: TextFormField(
+              controller: qtyCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (v) { final q = double.tryParse(v) ?? qty; setState(() => line['qty'] = q); onChanged(); },
+            )),
+            const SizedBox(width: 4),
+            SizedBox(width: 28, height: 28, child: IconButton(
+              padding: EdgeInsets.zero, iconSize: 18, visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.add),
+              onPressed: () {
+                final newQty = qty + 1;
+                setState(() { line['qty'] = newQty; qtyCtrl.text = newQty.toStringAsFixed(2); });
+                onChanged();
+              },
+            )),
+          ]),
+          const SizedBox(height: 4),
+          Row(children: [
+            Text(l10n.commonRateLabel),
+            const SizedBox(width: 6),
+            SizedBox(width: 90, child: TextFormField(
+              initialValue: rate.toStringAsFixed(2),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (v) { final r = double.tryParse(v) ?? rate; setState(() => line['rate'] = r); onChanged(); },
+            )),
+            const SizedBox(width: 12),
+            Text(l10n.commonAmountValue(amount.toStringAsFixed(2))),
+          ]),
         ],
+      ),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete_outline),
+        onPressed: () {
+          setState(() {
+            try { (line['qtyCtrl'] as TextEditingController?)?.dispose(); } catch (_) {}
+            cart.removeAt(i);
+          });
+          onChanged();
+          _sheetSetState?.call(() {});
+        },
+      ),
     );
   }
 
@@ -196,8 +471,8 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
         insetPadding: const EdgeInsets.all(24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: SizedBox(
-          width: 700,
-          height: 500,
+          width: ResponsiveUtils.getDialogWidth(context, small: 380, medium: 560, large: 700),
+          height: ResponsiveUtils.getDialogHeight(context, phoneFraction: 0.78, tabletFraction: 0.65, max: 500),
           child: Column(
             children: [
               Padding(
@@ -254,8 +529,8 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
           return AlertDialog(
             title: Text(dialogL10n.purchaseSelectSupplier),
             content: SizedBox(
-              width: 480,
-              height: 520,
+              width: ResponsiveUtils.getDialogWidth(context, small: 340, medium: 420, large: 480),
+              height: ResponsiveUtils.getDialogHeight(context, phoneFraction: 0.75, tabletFraction: 0.65, max: 520),
               child: Column(
                 children: [
                   Row(children: [
@@ -536,12 +811,15 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
           ),
           trailing: IconButton(
             icon: const Icon(Icons.delete_outline),
-            onPressed: () => setState(() {
-              try {
-                (line['qtyCtrl'] as TextEditingController?)?.dispose();
-              } catch (_) {}
-              cart.removeAt(i);
-            }),
+            onPressed: () {
+              setState(() {
+                try {
+                  (line['qtyCtrl'] as TextEditingController?)?.dispose();
+                } catch (_) {}
+                cart.removeAt(i);
+              });
+              _sheetSetState?.call(() {});
+            },
           ),
         );
       },
@@ -576,6 +854,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       );
       if (!mounted) return;
       _resetForm();
+      _sheetSetState?.call(() {});
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.purchaseSubmitFailed('$e'))));
     }

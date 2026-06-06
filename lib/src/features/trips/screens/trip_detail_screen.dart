@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/ofd_shortage_dialog.dart';
 import '../models/trip_models.dart';
 import '../providers/trip_provider.dart';
@@ -46,7 +47,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
             ref.invalidate(tripDetailProvider(widget.tripName));
           },
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: ResponsiveUtils.getResponsivePadding(context, small: 10, medium: 14, large: 16),
             children: [
               _buildHeader(trip),
               const SizedBox(height: 16),
@@ -147,7 +148,15 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );

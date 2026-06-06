@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../manager/state/manager_providers.dart';
@@ -28,6 +29,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
   List<Map<String, dynamic>> currentItems = [];
 
   final List<Map<String, dynamic>> lines = [];
+  StateSetter? _sheetSetState;
 
   @override
   void dispose() {
@@ -52,48 +54,72 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
         body: Center(child: Text(l10n.stockTransferManagersOnly)),
       );
     }
+    final isPhone = ResponsiveUtils.isPhone(context);
+    final padding = ResponsiveUtils.getResponsivePadding(context, small: 10, medium: 12, large: 12);
+
+    final appBar = AppBar(title: Text(l10n.stockTransferTitle));
+
+    final leftPanel = Padding(
+      padding: padding,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _buildBranchSelectors(),
+        const SizedBox(height: 8),
+        _buildDatePickerRow(),
+        const SizedBox(height: 8),
+        Row(children: [
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: l10n.commonSearchItems),
+              onChanged: (v) => setState(() => search = v),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _GroupPicker(
+            onPicked: (g) => setState(() => itemGroup = g),
+            initial: itemGroup,
+          ),
+          const SizedBox(width: 8),
+          _BulkActionsButton(
+            onAddAll: _onAddAllResults,
+            onAddGroup: itemGroup == null ? null : _onAddGroup,
+          ),
+        ]),
+        const SizedBox(height: 8),
+        Expanded(child: _buildItemResults()),
+      ]),
+    );
+
+    if (isPhone) {
+      return Scaffold(
+        appBar: appBar,
+        drawer: const AppDrawer(),
+        body: leftPanel,
+        floatingActionButton: Badge(
+          isLabelVisible: lines.isNotEmpty,
+          label: Text('${lines.length}'),
+          child: FloatingActionButton(
+            onPressed: _openTransferLinesSheet,
+            tooltip: l10n.stockTransferLinesTitle(lines.length),
+            child: const Icon(Icons.inventory_2),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.stockTransferTitle)),
+      appBar: appBar,
       drawer: const AppDrawer(),
       body: Row(
         children: [
           Expanded(
             flex: 3,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _buildBranchSelectors(),
-                const SizedBox(height: 8),
-                _buildDatePickerRow(),
-                const SizedBox(height: 8),
-                Row(children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: l10n.commonSearchItems),
-                      onChanged: (v) => setState(() => search = v),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _GroupPicker(
-                    onPicked: (g) => setState(() => itemGroup = g),
-                    initial: itemGroup,
-                  ),
-                  const SizedBox(width: 8),
-                  _BulkActionsButton(
-                    onAddAll: _onAddAllResults,
-                    onAddGroup: itemGroup == null ? null : _onAddGroup,
-                  ),
-                ]),
-                const SizedBox(height: 8),
-                Expanded(child: _buildItemResults()),
-              ]),
-            ),
+            child: leftPanel,
           ),
           Container(width: 1, color: Colors.grey.shade300),
           Expanded(
             flex: 2,
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: padding,
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
                   const Icon(Icons.inventory_2),
@@ -117,6 +143,179 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _openTransferLinesSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return DraggableScrollableSheet(
+          initialChildSize: ResponsiveUtils.getCartBottomSheetInitialSize(context),
+          minChildSize: ResponsiveUtils.getCartBottomSheetMinSize(context),
+          maxChildSize: ResponsiveUtils.getCartBottomSheetMaxSize(context),
+          expand: false,
+          builder: (_, scrollController) {
+            return StatefulBuilder(
+              builder: (_, setSheetState) {
+                _sheetSetState = setSheetState;
+                final l10n = context.l10n;
+                final colorScheme = Theme.of(context).colorScheme;
+                return Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  child: Column(
+                    children: [
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Container(
+                            width: 36,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade400,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.inventory_2),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                l10n.stockTransferLinesTitle(lines.length),
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ),
+                            if (postingDate != null)
+                              Padding(
+                                padding: const EdgeInsetsDirectional.only(end: 8.0),
+                                child: Chip(label: Text(l10n.stockTransferPostingChip(DateFormat('yyyy-MM-dd').format(postingDate!)))),
+                              ),
+                            ElevatedButton.icon(
+                              onPressed: _canSubmit()
+                                  ? () async {
+                                      await _submit();
+                                      setSheetState(() {});
+                                    }
+                                  : null,
+                              icon: const Icon(Icons.send),
+                              label: Text(l10n.stockTransferSubmit),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: lines.isEmpty
+                            ? Center(child: Text(l10n.stockTransferNoLines))
+                            : ListView.separated(
+                                controller: scrollController,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                itemCount: lines.length,
+                                separatorBuilder: (context, index) => const Divider(height: 1),
+                                itemBuilder: (_, i) {
+                                  if (i >= lines.length) return const SizedBox.shrink();
+                                  return _buildTransferLineItem(lines[i], i, onChanged: () => setSheetState(() {}));
+                                },
+                              ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    ).whenComplete(() => _sheetSetState = null);
+  }
+
+  Widget _buildTransferLineItem(Map<String, dynamic> l, int i, {required VoidCallback onChanged}) {
+    final l10n = context.l10n;
+    final qty = (l['qty'] as num?)?.toDouble() ?? 0;
+    final srcB = (l['src_before'] as num?)?.toDouble() ?? 0;
+    final dstB = (l['dst_before'] as num?)?.toDouble() ?? 0;
+    final reservedSrc = (l['reserved_src'] as num?)?.toDouble() ?? 0;
+    final reservedDst = (l['reserved_dst'] as num?)?.toDouble() ?? 0;
+    l['qtyCtrl'] ??= TextEditingController(text: qty.toStringAsFixed(2));
+    final TextEditingController qtyCtrl = l['qtyCtrl'] as TextEditingController;
+    final srcAfter = srcB - qty;
+    final dstAfter = dstB + qty;
+    final beforeBuffer = StringBuffer(l10n.stockTransferBeforeBase(srcB.toStringAsFixed(2), dstB.toStringAsFixed(2)));
+    if (reservedSrc > 0) beforeBuffer.write(l10n.stockTransferReservedSource(reservedSrc.toStringAsFixed(2)));
+    if (reservedDst > 0) beforeBuffer.write(l10n.stockTransferReservedTarget(reservedDst.toStringAsFixed(2)));
+    return ListTile(
+      title: Text(l10n.commonNameWithCode(l['item_name'] as String, l['item_code'] as String)),
+      subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(beforeBuffer.toString()),
+        Text(l10n.stockTransferAfterBase(srcAfter.toStringAsFixed(2), dstAfter.toStringAsFixed(2))),
+        const SizedBox(height: 6),
+        Row(children: [
+          Text(l10n.commonQtyLabel),
+          const SizedBox(width: 6),
+          SizedBox(
+            width: 28, height: 28,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              iconSize: 18,
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.remove),
+              onPressed: () {
+                double newQty = qty - 1;
+                if (newQty < 0) newQty = 0;
+                setState(() { l['qty'] = newQty; qtyCtrl.text = newQty.toStringAsFixed(2); });
+                onChanged();
+              },
+            ),
+          ),
+          const SizedBox(width: 4),
+          SizedBox(
+            width: 90,
+            child: TextFormField(
+              controller: qtyCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (v) {
+                final q = double.tryParse(v) ?? qty; setState(() => l['qty'] = q); onChanged();
+              },
+            ),
+          ),
+          const SizedBox(width: 4),
+          SizedBox(
+            width: 28, height: 28,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              iconSize: 18,
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.add),
+              onPressed: () {
+                final newQty = qty + 1;
+                setState(() { l['qty'] = newQty; qtyCtrl.text = newQty.toStringAsFixed(2); });
+                onChanged();
+              },
+            ),
+          ),
+        ]),
+      ]),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete_outline),
+        onPressed: () {
+          setState(() {
+            try { (l['qtyCtrl'] as TextEditingController?)?.dispose(); } catch (_) {}
+            lines.removeAt(i);
+          });
+          onChanged();
+          _sheetSetState?.call(() {});
+        },
       ),
     );
   }
@@ -392,15 +591,18 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
           ]),
           trailing: IconButton(
             icon: const Icon(Icons.delete_outline),
-            onPressed: () => setState(() {
-              try {
-                (l['qtyCtrl'] as TextEditingController?)?.dispose();
-              } catch (e, stack) {
-                debugPrint('StockTransferScreen remove line dispose error: $e');
-                debugPrintStack(stackTrace: stack);
-              }
-              lines.removeAt(i);
-            }),
+            onPressed: () {
+              setState(() {
+                try {
+                  (l['qtyCtrl'] as TextEditingController?)?.dispose();
+                } catch (e, stack) {
+                  debugPrint('StockTransferScreen remove line dispose error: $e');
+                  debugPrintStack(stackTrace: stack);
+                }
+                lines.removeAt(i);
+              });
+              _sheetSetState?.call(() {});
+            },
           ),
         );
       },
@@ -445,6 +647,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
         }
         lines.clear();
       });
+      _sheetSetState?.call(() {});
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.stockTransferSubmitFailed('$e'))));
     }

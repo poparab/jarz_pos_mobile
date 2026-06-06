@@ -14,7 +14,7 @@ class ResponsiveUtils {
   /// True when the device is phone-sized. Uses shortestSide so tall/wide
   /// phones (e.g., S22/S25 Ultra) still count as phones even with large width.
   static bool isPhone(BuildContext context) {
-    return isPhoneSize(MediaQuery.of(context).size);
+    return isPhoneSize(MediaQuery.sizeOf(context));
   }
 
   static bool isPhoneSize(Size size) => size.shortestSide < phoneLandscape;
@@ -22,7 +22,7 @@ class ResponsiveUtils {
   static bool isTabletOrDesktop(BuildContext context) => !isPhone(context);
 
   static bool isUltraCompactPhone(BuildContext context) {
-    return isUltraCompactPhoneSize(MediaQuery.of(context).size);
+    return isUltraCompactPhoneSize(MediaQuery.sizeOf(context));
   }
 
   static bool isUltraCompactPhoneSize(Size size) {
@@ -30,27 +30,29 @@ class ResponsiveUtils {
   }
 
   static bool isPhonePortrait(BuildContext context) {
-    final media = MediaQuery.of(context);
-    return isPhoneSize(media.size) && media.orientation == Orientation.portrait;
+    final size = MediaQuery.sizeOf(context);
+    return isPhoneSize(size) &&
+        MediaQuery.orientationOf(context) == Orientation.portrait;
   }
 
   static bool isPhoneLandscape(BuildContext context) {
-    final media = MediaQuery.of(context);
-    return isPhoneSize(media.size) && media.orientation == Orientation.landscape;
+    final size = MediaQuery.sizeOf(context);
+    return isPhoneSize(size) &&
+        MediaQuery.orientationOf(context) == Orientation.landscape;
   }
 
   /// True when the device is in portrait orientation.
   static bool isPortrait(BuildContext context) =>
-      MediaQuery.of(context).orientation == Orientation.portrait;
+      MediaQuery.orientationOf(context) == Orientation.portrait;
 
   /// Get screen width from context
   static double screenWidth(BuildContext context) {
-    return MediaQuery.of(context).size.width;
+    return MediaQuery.sizeOf(context).width;
   }
 
   /// Get screen height from context
   static double screenHeight(BuildContext context) {
-    return MediaQuery.of(context).size.height;
+    return MediaQuery.sizeOf(context).height;
   }
 
   // ─── Grid columns ───────────────────────────────────────────────

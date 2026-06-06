@@ -4,6 +4,7 @@ import '../state/manager_providers.dart';
 import '../data/manager_api.dart';
 import '../../../core/network/frappe_error_message.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 
 String _normalizedManagerError(Object error) {
@@ -446,19 +447,26 @@ class _ChangeBranchButton extends ConsumerWidget {
               builder: (ctx, setState) => AlertDialog(
                 title: Text(l10n.managerAssignToBranch),
                 content: SizedBox(
-                  width: 400,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final b in branches)
-                        ListTile(
-                          title: Text(b.title),
-                          trailing: selected == b.name ? const Icon(Icons.check) : null,
-                          onTap: () => setState(() {
-                            selected = b.name;
-                          }),
-                        ),
-                    ],
+                  width: ResponsiveUtils.getDialogWidth(ctx, small: 320, medium: 380, large: 400),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: ResponsiveUtils.getDialogHeight(ctx, phoneFraction: 0.55, tabletFraction: 0.45, max: 400),
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final b in branches)
+                            ListTile(
+                              title: Text(b.title),
+                              trailing: selected == b.name ? const Icon(Icons.check) : null,
+                              onTap: () => setState(() {
+                                selected = b.name;
+                              }),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 actions: [

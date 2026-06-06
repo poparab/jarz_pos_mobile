@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../state/reports_providers.dart';
@@ -544,7 +545,7 @@ class _CompactItemGrid extends StatelessWidget {
     final theme = Theme.of(context);
 
     return LayoutBuilder(builder: (context, constraints) {
-      final crossCount = 4;
+      final crossCount = ResponsiveUtils.getGridColumns(context, min: 2, max: 4);
       final cardWidth = (constraints.maxWidth - 8 * (crossCount - 1)) / crossCount;
       return Wrap(
         spacing: 8,

@@ -5,6 +5,7 @@ import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/network/frappe_error_message.dart';
 import '../../../core/network/user_service.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../manager/state/manager_providers.dart';
 import '../models/shift_monitor_models.dart';
@@ -141,15 +142,13 @@ class _ShiftMonitorFilterBar extends ConsumerWidget {
               },
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                SizedBox(
-                  width: 240,
-                  child: DropdownButtonFormField<String?>(
+            if (ResponsiveUtils.isPhone(context))
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  DropdownButtonFormField<String?>(
                     initialValue: selectedProfile,
+                    isExpanded: true,
                     decoration: InputDecoration(
                       labelText: l10n.shiftMonitorProfileFilter,
                       border: const OutlineInputBorder(),
@@ -166,19 +165,13 @@ class _ShiftMonitorFilterBar extends ConsumerWidget {
                         ),
                     ],
                     onChanged: (value) {
-                      ref
-                              .read(
-                                shiftMonitorSelectedProfileProvider.notifier,
-                              )
-                              .state =
-                          value;
+                      ref.read(shiftMonitorSelectedProfileProvider.notifier).state = value;
                     },
                   ),
-                ),
-                SizedBox(
-                  width: 200,
-                  child: DropdownButtonFormField<ShiftMonitorStatusFilter>(
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<ShiftMonitorStatusFilter>(
                     initialValue: status,
+                    isExpanded: true,
                     decoration: InputDecoration(
                       labelText: l10n.shiftMonitorStatusFilter,
                       border: const OutlineInputBorder(),
@@ -199,40 +192,120 @@ class _ShiftMonitorFilterBar extends ConsumerWidget {
                     ],
                     onChanged: (value) {
                       if (value != null) {
-                        ref
-                                .read(shiftMonitorStatusFilterProvider.notifier)
-                                .state =
-                            value;
+                        ref.read(shiftMonitorStatusFilterProvider.notifier).state = value;
                       }
                     },
                   ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    final picked = await showDateRangePicker(
-                      context: context,
-                      firstDate: DateTime(2024),
-                      lastDate: DateTime.now().add(const Duration(days: 30)),
-                      initialDateRange: customRange,
-                    );
-                    if (picked == null) return;
-                    ref.read(shiftMonitorDateRangeProvider.notifier).state =
-                        picked;
-                    ref.read(shiftMonitorQuickRangeProvider.notifier).state =
-                        ShiftMonitorQuickRange.custom;
-                  },
-                  icon: const Icon(Icons.date_range),
-                  label: Text(
-                    customRange == null
-                        ? l10n.shiftMonitorPickDateRange
-                        : l10n.shiftMonitorDateRangeValue(
-                            formatDate(context, customRange.start),
-                            formatDate(context, customRange.end),
-                          ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final picked = await showDateRangePicker(
+                        context: context,
+                        firstDate: DateTime(2024),
+                        lastDate: DateTime.now().add(const Duration(days: 30)),
+                        initialDateRange: customRange,
+                      );
+                      if (picked == null) return;
+                      ref.read(shiftMonitorDateRangeProvider.notifier).state = picked;
+                      ref.read(shiftMonitorQuickRangeProvider.notifier).state =
+                          ShiftMonitorQuickRange.custom;
+                    },
+                    icon: const Icon(Icons.date_range),
+                    label: Text(
+                      customRange == null
+                          ? l10n.shiftMonitorPickDateRange
+                          : l10n.shiftMonitorDateRangeValue(
+                              formatDate(context, customRange.start),
+                              formatDate(context, customRange.end),
+                            ),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              )
+            else
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 240,
+                    child: DropdownButtonFormField<String?>(
+                      initialValue: selectedProfile,
+                      decoration: InputDecoration(
+                        labelText: l10n.shiftMonitorProfileFilter,
+                        border: const OutlineInputBorder(),
+                      ),
+                      items: [
+                        DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text(l10n.managerAll),
+                        ),
+                        for (final profile in response?.profiles ?? const [])
+                          DropdownMenuItem<String?>(
+                            value: profile.name,
+                            child: Text(profile.title),
+                          ),
+                      ],
+                      onChanged: (value) {
+                        ref.read(shiftMonitorSelectedProfileProvider.notifier).state = value;
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: 200,
+                    child: DropdownButtonFormField<ShiftMonitorStatusFilter>(
+                      initialValue: status,
+                      decoration: InputDecoration(
+                        labelText: l10n.shiftMonitorStatusFilter,
+                        border: const OutlineInputBorder(),
+                      ),
+                      items: [
+                        DropdownMenuItem(
+                          value: ShiftMonitorStatusFilter.all,
+                          child: Text(l10n.shiftMonitorStatusAll),
+                        ),
+                        DropdownMenuItem(
+                          value: ShiftMonitorStatusFilter.open,
+                          child: Text(l10n.shiftMonitorStatusOpen),
+                        ),
+                        DropdownMenuItem(
+                          value: ShiftMonitorStatusFilter.closed,
+                          child: Text(l10n.shiftMonitorStatusClosed),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          ref.read(shiftMonitorStatusFilterProvider.notifier).state = value;
+                        }
+                      },
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final picked = await showDateRangePicker(
+                        context: context,
+                        firstDate: DateTime(2024),
+                        lastDate: DateTime.now().add(const Duration(days: 30)),
+                        initialDateRange: customRange,
+                      );
+                      if (picked == null) return;
+                      ref.read(shiftMonitorDateRangeProvider.notifier).state = picked;
+                      ref.read(shiftMonitorQuickRangeProvider.notifier).state =
+                          ShiftMonitorQuickRange.custom;
+                    },
+                    icon: const Icon(Icons.date_range),
+                    label: Text(
+                      customRange == null
+                          ? l10n.shiftMonitorPickDateRange
+                          : l10n.shiftMonitorDateRangeValue(
+                              formatDate(context, customRange.start),
+                              formatDate(context, customRange.end),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -278,44 +351,57 @@ class _SummaryCards extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        _SummaryCard(
-          label: l10n.shiftMonitorOpenCount,
-          value: formatCount(context, summary.openCount),
-          color: Colors.blue,
-        ),
-        _SummaryCard(
-          label: l10n.shiftMonitorClosedCount,
-          value: formatCount(context, summary.closedCount),
-          color: Colors.green,
-        ),
-        _SummaryCard(
-          label: l10n.shiftMonitorDiscrepancyCount,
-          value: formatCount(context, summary.discrepancyCount),
-          color: Colors.orange,
-        ),
-        _SummaryCard(
-          label: l10n.shiftMonitorDiscrepancyTotal,
-          value: formatCurrency(context, summary.discrepancyTotal),
-          color: summary.discrepancyTotal == 0
-              ? Colors.grey
-              : Colors.deepOrange,
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final itemWidth = constraints.maxWidth > 480
+            ? 220.0
+            : (constraints.maxWidth - 12) / 2;
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            _SummaryCard(
+              width: itemWidth,
+              label: l10n.shiftMonitorOpenCount,
+              value: formatCount(context, summary.openCount),
+              color: Colors.blue,
+            ),
+            _SummaryCard(
+              width: itemWidth,
+              label: l10n.shiftMonitorClosedCount,
+              value: formatCount(context, summary.closedCount),
+              color: Colors.green,
+            ),
+            _SummaryCard(
+              width: itemWidth,
+              label: l10n.shiftMonitorDiscrepancyCount,
+              value: formatCount(context, summary.discrepancyCount),
+              color: Colors.orange,
+            ),
+            _SummaryCard(
+              width: itemWidth,
+              label: l10n.shiftMonitorDiscrepancyTotal,
+              value: formatCurrency(context, summary.discrepancyTotal),
+              color: summary.discrepancyTotal == 0
+                  ? Colors.grey
+                  : Colors.deepOrange,
+            ),
+          ],
+        );
+      },
     );
   }
 }
 
 class _SummaryCard extends StatelessWidget {
   const _SummaryCard({
+    required this.width,
     required this.label,
     required this.value,
     required this.color,
   });
 
+  final double width;
   final String label;
   final String value;
   final Color color;
@@ -323,7 +409,7 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 220,
+      width: width,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
