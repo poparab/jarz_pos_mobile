@@ -319,7 +319,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ),
         content: Text(
           l10n.invoiceAcceptOrderQuestion(
-            _shortInvoiceName(widget.invoice.name),
+            _displayId(widget.invoice),
             widget.invoice.customerName,
           ),
         ),
@@ -363,7 +363,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             children: [
               const Icon(Icons.check_circle, color: Colors.white),
               const SizedBox(width: 8),
-              Text(l10n.invoiceOrderAccepted(_shortInvoiceName(widget.invoice.name))),
+              Text(l10n.invoiceOrderAccepted(_displayId(widget.invoice))),
             ],
           ),
           backgroundColor: Colors.green[600],
@@ -403,12 +403,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     }
   }
 
-  String _shortInvoiceName(String full) {
+  String _displayId(InvoiceCard invoice) {
+    final wooId = invoice.wooOrderId;
+    if (wooId != null) return '#$wooId';
     const prefix = 'ACC-SINV-';
-    if (full.startsWith(prefix)) {
-      return full.substring(prefix.length);
-    }
-    return full;
+    return invoice.name.startsWith(prefix)
+        ? invoice.name.substring(prefix.length)
+        : invoice.name;
   }
 
   @override
@@ -833,7 +834,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                _shortInvoiceName(widget.invoice.name),
+                _displayId(widget.invoice),
                 style: TextStyle(
                   fontSize: fontSize,
                   fontWeight: FontWeight.bold,
@@ -923,7 +924,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                           ),
                         Expanded(
                           child: Text(
-                            _shortInvoiceName(widget.invoice.name),
+                            _displayId(widget.invoice),
                             style: TextStyle(
                               fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16),
                               fontWeight: FontWeight.bold,

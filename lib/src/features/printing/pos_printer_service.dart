@@ -857,7 +857,7 @@ class PosPrinterService extends ChangeNotifier {
     }
     // Delivery time will be rendered as its own full-width line after the columns, so omit from columns.
     final rightEntries = <MapEntry<String, String>>[];
-    rightEntries.add(MapEntry('Inv No', shortInv(inv.id)));
+    rightEntries.add(MapEntry('Order No', inv.orderNo ?? shortInv(inv.id)));
     final leftLines = <List<String>>[];
     for (final e in leftEntries) {
       leftLines.add(wrapColumn(e.key, e.value, leftWidthChars));

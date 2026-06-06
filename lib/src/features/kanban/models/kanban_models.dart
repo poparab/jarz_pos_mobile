@@ -88,6 +88,7 @@ class InvoiceCard {
   final String? amendmentBlockCode;
   final String? amendmentBlockReason;
   final double? customDeliveryIncome;
+  final int? wooOrderId;
 
   InvoiceCard({
     required this.id,
@@ -145,6 +146,7 @@ class InvoiceCard {
     this.amendmentBlockCode,
     this.amendmentBlockReason,
     this.customDeliveryIncome,
+    this.wooOrderId,
   });
 
   factory InvoiceCard.fromJson(Map<String, dynamic> json) {
@@ -241,6 +243,7 @@ class InvoiceCard {
       customDeliveryIncome: json['custom_delivery_income'] != null
           ? (json['custom_delivery_income'] as num).toDouble()
           : null,
+      wooOrderId: (json['woo_order_id'] as num?)?.toInt(),
     );
   }
 
@@ -300,6 +303,7 @@ class InvoiceCard {
       'amendment_block_code': amendmentBlockCode,
       'amendment_block_reason': amendmentBlockReason,
       'custom_delivery_income': customDeliveryIncome,
+      'woo_order_id': wooOrderId,
     };
   }
 
@@ -360,6 +364,8 @@ class InvoiceCard {
   String? amendmentBlockReason,
   double? customDeliveryIncome,
   bool clearCustomDeliveryIncome = false,
+  int? wooOrderId,
+  bool clearWooOrderId = false,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -417,6 +423,7 @@ class InvoiceCard {
       amendmentBlockCode: amendmentBlockCode ?? this.amendmentBlockCode,
       amendmentBlockReason: amendmentBlockReason ?? this.amendmentBlockReason,
       customDeliveryIncome: clearCustomDeliveryIncome ? null : (customDeliveryIncome ?? this.customDeliveryIncome),
+      wooOrderId: clearWooOrderId ? null : (wooOrderId ?? this.wooOrderId),
     );
   }
 

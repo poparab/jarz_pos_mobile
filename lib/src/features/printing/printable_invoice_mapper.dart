@@ -241,6 +241,7 @@ String _normalizeComparable(String value) {
 // ── New helpers for bitmap receipt fields ─────────────────────────────────────
 
 String? _resolveOrderNo(InvoiceCard card) {
+  if (card.wooOrderId != null) return '#${card.wooOrderId}';
   final short = _trimToNull(card.invoiceIdShort);
   if (short != null) return short;
   // Fallback: last 5 alphanumeric chars of invoice name
