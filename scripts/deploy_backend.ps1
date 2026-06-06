@@ -181,22 +181,31 @@ function Install-EditableApps {
     }
     $quotedContainers = ($containerNames | ForEach-Object { "'$_'" }) -join ' '
 
+    # NOTE: pip output is intentionally NOT redirected to /dev/null. A failed dependency
+    # install (e.g. a new runtime dep missing from requirements.txt) must surface in the
+    # deploy log and fail the deploy — never silently skip and break the feature at runtime.
     $installScript = @"
 set -euo pipefail
 containers=($quotedContainers)
 pids=()
 for container in "`${containers[@]}"; do
   (
-    docker exec -u root "$container" bash -lc "cd /home/frappe/frappe-bench && /home/frappe/frappe-bench/env/bin/pip install -q $editableArgs >/dev/null 2>/dev/null"
+    echo "[pip] installing editable apps in `$container ..."
+    docker exec -u root "`$container" bash -lc "cd /home/frappe/frappe-bench && /home/frappe/frappe-bench/env/bin/pip install $editableArgs" || { echo "[pip] FAILED in `$container" >&2; exit 1; }
   ) &
   pids+=("`$!")
 done
+fail=0
 for pid in "`${pids[@]}"; do
-  wait "$pid"
+  wait "`$pid" || fail=1
 done
+if [ "`$fail" -ne 0 ]; then
+  echo "[pip] one or more editable installs failed" >&2
+  exit 1
+fi
 "@
 
-    Invoke-Remote ("bash -lc " + (ConvertTo-BashLiteral $installScript)) | Out-Null
+    Invoke-Remote ("bash -lc " + (ConvertTo-BashLiteral $installScript))
 }
 
 function Get-RemoteHttpCode {
