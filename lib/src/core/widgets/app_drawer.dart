@@ -210,14 +210,6 @@ class AppDrawer extends ConsumerWidget {
                 context.go(AppRoutes.reports);
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.insights),
-              title: const Text('Product Analytics'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go(AppRoutes.productDashboard);
-              },
-            ),
           ],
           const Divider(),
           ListTile(

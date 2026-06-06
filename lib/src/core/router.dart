@@ -27,7 +27,6 @@ import '../features/shift/presentation/shift_start_screen.dart';
 import '../features/shift/presentation/shift_end_screen.dart';
 import '../features/trips/screens/trips_screen.dart';
 import '../features/reports/presentation/reports_screen.dart';
-import '../features/product_dashboard/presentation/product_dashboard_screen.dart';
 import '../features/master_orders/presentation/master_orders_screen.dart';
 import 'network/user_service.dart';
 import '../features/about/presentation/screens/about_screen.dart';
@@ -268,11 +267,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.reports,
         name: 'reports',
         builder: (context, state) => const ReportsScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.productDashboard,
-        name: 'product-dashboard',
-        builder: (context, state) => const ProductDashboardScreen(),
       ),
       GoRoute(
         path: AppRoutes.masterOrders,
