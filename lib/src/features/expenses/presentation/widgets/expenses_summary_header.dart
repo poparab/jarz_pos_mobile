@@ -49,13 +49,13 @@ class ExpensesSummaryHeader extends StatelessWidget {
                 crossAxisCount: 3,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 3.2,
+                mainAxisExtent: 82, // consistent fixed height across both delegates
               )
             : const SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent: 260,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 3.2,
+                mainAxisExtent: 82, // fixed height so CircleAvatar + text never clip
               );
 
         return GridView.builder(

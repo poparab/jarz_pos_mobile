@@ -1796,7 +1796,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                       crossAxisCount: crossAxisCount,
                                       crossAxisSpacing: 12,
                                       mainAxisSpacing: 12,
-                                      childAspectRatio: 2.8,
+                                      mainAxisExtent: 76, // fixed height: CircleAvatar(r:18)=36 + 12+12 padding + 2 text lines
                                     ),
                                     itemBuilder: (ctx, i) {
                                       final c = couriers[i];
