@@ -8,6 +8,7 @@ import 'localization/localization_extensions.dart';
 import 'localization/locale_notifier.dart';
 import 'router.dart';
 import 'ui/loading_overlay.dart';
+import 'widgets/global_orientation_enforcer.dart';
 import 'websocket/websocket_service.dart';
 import 'sync/offline_sync_service.dart';
 import '../features/pos/state/courier_ws_bridge.dart';
@@ -76,22 +77,24 @@ class JarzPosApp extends ConsumerWidget {
                 child: child ?? const SizedBox.shrink(),
               )
             : child ?? const SizedBox.shrink();
-        return AppErrorConsole(
-          child: OrderAlertOverlay(
-            child: GestureDetector(
-              onTap: () {
-                final currentScope = FocusScope.of(context);
-                if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                }
-              },
-              behavior: HitTestBehavior.opaque,
-              child: LoadingOverlay(
-                child: Column(
-                  children: [
-                    if (isAuthenticated) const _ShorebirdUpdateBanner(),
-                    Expanded(child: routed),
-                  ],
+        return GlobalOrientationEnforcer(
+          child: AppErrorConsole(
+            child: OrderAlertOverlay(
+              child: GestureDetector(
+                onTap: () {
+                  final currentScope = FocusScope.of(context);
+                  if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  }
+                },
+                behavior: HitTestBehavior.opaque,
+                child: LoadingOverlay(
+                  child: Column(
+                    children: [
+                      if (isAuthenticated) const _ShorebirdUpdateBanner(),
+                      Expanded(child: routed),
+                    ],
+                  ),
                 ),
               ),
             ),

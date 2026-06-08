@@ -34,7 +34,7 @@ import '../features/about/presentation/screens/about_screen.dart';
 import '../features/shift/state/shift_notifier.dart';
 import '../features/shift/models/shift_models.dart';
 import '../features/pos/state/pos_notifier.dart';
-import 'widgets/orientation_policy_scope.dart';
+import 'widgets/global_orientation_enforcer.dart';
 
 // Global RouteObserver for navigation lifecycle (used by Kanban to refresh on return)
 final RouteObserver<PageRoute<dynamic>> routeObserver =
@@ -189,10 +189,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final launchData = extra is Map
               ? Map<String, dynamic>.from(extra)
               : null;
-          return OrientationPolicyScope(
-            policy: AppOrientationPolicy.handsetAny,
-            child: PosScreen(launchData: launchData),
-          );
+          return PosScreen(launchData: launchData);
         },
       ),
       GoRoute(
@@ -203,10 +200,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.kanban,
         name: 'kanban',
-        builder: (context, state) => const OrientationPolicyScope(
-          policy: AppOrientationPolicy.handsetAny,
-          child: KanbanBoardScreen(),
-        ),
+        builder: (context, state) => const KanbanBoardScreen(),
       ),
       GoRoute(
         path: AppRoutes.courierBalances,
@@ -266,7 +260,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.reports,
         name: 'reports',
-        builder: (context, state) => const ReportsScreen(),
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: ReportsScreen()),
       ),
       GoRoute(
         path: AppRoutes.masterOrders,
