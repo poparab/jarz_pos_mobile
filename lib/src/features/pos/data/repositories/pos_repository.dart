@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/dio_provider.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../domain/models/delivery_slot.dart';
+import '../models/pos_models.dart';
 
 class PosRepository {
   PosRepository(this._dio);
@@ -456,6 +457,42 @@ class PosRepository {
     }
   }
 
+  /// Fetches the commercial policies (order purposes) configured for [posProfile].
+  ///
+  /// Manager-gated on the backend. Returns `[]` on error / for non-managers so
+  /// the caller can simply treat the absence of policies as "Standard only".
+  /// The "Standard" purpose is intentionally NOT returned — a null selection
+  /// in the UI means Standard.
+  Future<List<CommercialPolicy>> getCommercialPolicies(
+    String posProfile,
+  ) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.getCommercialPolicies,
+        data: {'profile': posProfile},
+      );
+
+      if (response.statusCode == 200 && response.data['message'] != null) {
+        final List<dynamic> policiesData = response.data['message'];
+        return policiesData
+            .whereType<Map>()
+            .map(
+              (raw) =>
+                  CommercialPolicy.fromJson(Map<String, dynamic>.from(raw)),
+            )
+            .where((policy) => policy.name.trim().isNotEmpty)
+            .toList();
+      }
+
+      return [];
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ Failed to fetch commercial policies: $e');
+      }
+      return [];
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getSalesPartners({
     String? search,
     int limit = 10,
@@ -559,6 +596,8 @@ class PosRepository {
     required String detailedAddress,
     String? locationLink,
     String? secondaryMobile,
+    String? customerType,
+    String? customerGroup,
   }) async {
     try {
       final response = await _dio.post(
@@ -572,6 +611,10 @@ class PosRepository {
             'location_link': locationLink,
           if (secondaryMobile != null && secondaryMobile.isNotEmpty)
             'secondary_mobile': secondaryMobile,
+          if (customerType != null && customerType.isNotEmpty)
+            'customer_type': customerType,
+          if (customerGroup != null && customerGroup.isNotEmpty)
+            'customer_group': customerGroup,
         }),
       );
 
@@ -680,6 +723,9 @@ class PosRepository {
     bool zeroShippingOverride = false,
     bool posProfileOverride = false,
     double? customDeliveryIncome,
+    String? orderPurpose,
+    String? commercialPolicy,
+    String? policyReason,
   }) async {
     try {
       final requestData = _buildInvoiceRequestData(
@@ -696,6 +742,9 @@ class PosRepository {
         zeroShippingOverride: zeroShippingOverride,
         posProfileOverride: posProfileOverride,
         customDeliveryIncome: customDeliveryIncome,
+        orderPurpose: orderPurpose,
+        commercialPolicy: commercialPolicy,
+        policyReason: policyReason,
       );
 
       if (kDebugMode) {
@@ -745,6 +794,9 @@ class PosRepository {
     double? expectedSourceGrandTotal,
     int? expectedSourceItemCount,
     double? customDeliveryIncome,
+    String? orderPurpose,
+    String? commercialPolicy,
+    String? policyReason,
   }) async {
     try {
       final requestData = _buildInvoiceRequestData(
@@ -761,6 +813,9 @@ class PosRepository {
         zeroShippingOverride: zeroShippingOverride,
         posProfileOverride: posProfileOverride,
         customDeliveryIncome: customDeliveryIncome,
+        orderPurpose: orderPurpose,
+        commercialPolicy: commercialPolicy,
+        policyReason: policyReason,
       );
       requestData['invoice_id'] = sourceInvoiceId;
       // Propagate free-shipping suppression so the backend doesn't re-add
@@ -862,6 +917,9 @@ class PosRepository {
     bool zeroShippingOverride = false,
     bool posProfileOverride = false,
     double? customDeliveryIncome,
+    String? orderPurpose,
+    String? commercialPolicy,
+    String? policyReason,
   }) {
     final cartItems = _buildCartRequestItems(items);
 
@@ -951,6 +1009,22 @@ class PosRepository {
       requestData['zero_shipping_override'] = 1;
       requestData['suppress_shipping_income'] = 1;
       requestData['suppress_legacy_delivery_charges'] = 1;
+    }
+    // Commercial policy (Order Purpose). When no policy is selected these fields
+    // are omitted entirely so the backend applies Standard (unchanged) behavior.
+    final normalizedCommercialPolicy = _normalizedOptionalString(
+      commercialPolicy,
+    );
+    if (normalizedCommercialPolicy != null) {
+      requestData['commercial_policy'] = normalizedCommercialPolicy;
+      final normalizedOrderPurpose = _normalizedOptionalString(orderPurpose);
+      if (normalizedOrderPurpose != null) {
+        requestData['order_purpose'] = normalizedOrderPurpose;
+      }
+      final normalizedPolicyReason = _normalizedOptionalString(policyReason);
+      if (normalizedPolicyReason != null) {
+        requestData['policy_reason'] = normalizedPolicyReason;
+      }
     }
     return requestData;
   }

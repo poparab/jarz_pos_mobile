@@ -64,6 +64,24 @@ class Customer with _$Customer {
 }
 
 @freezed
+class CommercialPolicy with _$CommercialPolicy {
+  const factory CommercialPolicy({
+    required String name,
+    @JsonKey(name: 'policy_name') required String policyName,
+    @JsonKey(name: 'order_purpose') required String orderPurpose,
+    @JsonKey(name: 'price_list') String? priceList,
+    @JsonKey(name: 'discount_percentage') double? discountPercentage,
+    @JsonKey(name: 'waives_shipping_income')
+    @Default(false)
+    bool waivesShippingIncome,
+    @JsonKey(name: 'no_courier') @Default(false) bool noCourier,
+  }) = _CommercialPolicy;
+
+  factory CommercialPolicy.fromJson(Map<String, dynamic> json) =>
+      _$CommercialPolicyFromJson(json);
+}
+
+@freezed
 class CartItem with _$CartItem {
   const CartItem._(); // Private constructor for getters
 

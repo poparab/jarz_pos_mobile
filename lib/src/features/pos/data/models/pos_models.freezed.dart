@@ -1152,6 +1152,325 @@ abstract class _Customer implements Customer {
       throw _privateConstructorUsedError;
 }
 
+CommercialPolicy _$CommercialPolicyFromJson(Map<String, dynamic> json) {
+  return _CommercialPolicy.fromJson(json);
+}
+
+/// @nodoc
+mixin _$CommercialPolicy {
+  String get name => throw _privateConstructorUsedError;
+  @JsonKey(name: 'policy_name')
+  String get policyName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'order_purpose')
+  String get orderPurpose => throw _privateConstructorUsedError;
+  @JsonKey(name: 'price_list')
+  String? get priceList => throw _privateConstructorUsedError;
+  @JsonKey(name: 'discount_percentage')
+  double? get discountPercentage => throw _privateConstructorUsedError;
+  @JsonKey(name: 'waives_shipping_income')
+  bool get waivesShippingIncome => throw _privateConstructorUsedError;
+  @JsonKey(name: 'no_courier')
+  bool get noCourier => throw _privateConstructorUsedError;
+
+  /// Serializes this CommercialPolicy to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of CommercialPolicy
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $CommercialPolicyCopyWith<CommercialPolicy> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $CommercialPolicyCopyWith<$Res> {
+  factory $CommercialPolicyCopyWith(
+    CommercialPolicy value,
+    $Res Function(CommercialPolicy) then,
+  ) = _$CommercialPolicyCopyWithImpl<$Res, CommercialPolicy>;
+  @useResult
+  $Res call({
+    String name,
+    @JsonKey(name: 'policy_name') String policyName,
+    @JsonKey(name: 'order_purpose') String orderPurpose,
+    @JsonKey(name: 'price_list') String? priceList,
+    @JsonKey(name: 'discount_percentage') double? discountPercentage,
+    @JsonKey(name: 'waives_shipping_income') bool waivesShippingIncome,
+    @JsonKey(name: 'no_courier') bool noCourier,
+  });
+}
+
+/// @nodoc
+class _$CommercialPolicyCopyWithImpl<$Res, $Val extends CommercialPolicy>
+    implements $CommercialPolicyCopyWith<$Res> {
+  _$CommercialPolicyCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of CommercialPolicy
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? name = null,
+    Object? policyName = null,
+    Object? orderPurpose = null,
+    Object? priceList = freezed,
+    Object? discountPercentage = freezed,
+    Object? waivesShippingIncome = null,
+    Object? noCourier = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            policyName: null == policyName
+                ? _value.policyName
+                : policyName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            orderPurpose: null == orderPurpose
+                ? _value.orderPurpose
+                : orderPurpose // ignore: cast_nullable_to_non_nullable
+                      as String,
+            priceList: freezed == priceList
+                ? _value.priceList
+                : priceList // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            discountPercentage: freezed == discountPercentage
+                ? _value.discountPercentage
+                : discountPercentage // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            waivesShippingIncome: null == waivesShippingIncome
+                ? _value.waivesShippingIncome
+                : waivesShippingIncome // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            noCourier: null == noCourier
+                ? _value.noCourier
+                : noCourier // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$CommercialPolicyImplCopyWith<$Res>
+    implements $CommercialPolicyCopyWith<$Res> {
+  factory _$$CommercialPolicyImplCopyWith(
+    _$CommercialPolicyImpl value,
+    $Res Function(_$CommercialPolicyImpl) then,
+  ) = __$$CommercialPolicyImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String name,
+    @JsonKey(name: 'policy_name') String policyName,
+    @JsonKey(name: 'order_purpose') String orderPurpose,
+    @JsonKey(name: 'price_list') String? priceList,
+    @JsonKey(name: 'discount_percentage') double? discountPercentage,
+    @JsonKey(name: 'waives_shipping_income') bool waivesShippingIncome,
+    @JsonKey(name: 'no_courier') bool noCourier,
+  });
+}
+
+/// @nodoc
+class __$$CommercialPolicyImplCopyWithImpl<$Res>
+    extends _$CommercialPolicyCopyWithImpl<$Res, _$CommercialPolicyImpl>
+    implements _$$CommercialPolicyImplCopyWith<$Res> {
+  __$$CommercialPolicyImplCopyWithImpl(
+    _$CommercialPolicyImpl _value,
+    $Res Function(_$CommercialPolicyImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of CommercialPolicy
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? name = null,
+    Object? policyName = null,
+    Object? orderPurpose = null,
+    Object? priceList = freezed,
+    Object? discountPercentage = freezed,
+    Object? waivesShippingIncome = null,
+    Object? noCourier = null,
+  }) {
+    return _then(
+      _$CommercialPolicyImpl(
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        policyName: null == policyName
+            ? _value.policyName
+            : policyName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        orderPurpose: null == orderPurpose
+            ? _value.orderPurpose
+            : orderPurpose // ignore: cast_nullable_to_non_nullable
+                  as String,
+        priceList: freezed == priceList
+            ? _value.priceList
+            : priceList // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        discountPercentage: freezed == discountPercentage
+            ? _value.discountPercentage
+            : discountPercentage // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        waivesShippingIncome: null == waivesShippingIncome
+            ? _value.waivesShippingIncome
+            : waivesShippingIncome // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        noCourier: null == noCourier
+            ? _value.noCourier
+            : noCourier // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$CommercialPolicyImpl implements _CommercialPolicy {
+  const _$CommercialPolicyImpl({
+    required this.name,
+    @JsonKey(name: 'policy_name') required this.policyName,
+    @JsonKey(name: 'order_purpose') required this.orderPurpose,
+    @JsonKey(name: 'price_list') this.priceList,
+    @JsonKey(name: 'discount_percentage') this.discountPercentage,
+    @JsonKey(name: 'waives_shipping_income') this.waivesShippingIncome = false,
+    @JsonKey(name: 'no_courier') this.noCourier = false,
+  });
+
+  factory _$CommercialPolicyImpl.fromJson(Map<String, dynamic> json) =>
+      _$$CommercialPolicyImplFromJson(json);
+
+  @override
+  final String name;
+  @override
+  @JsonKey(name: 'policy_name')
+  final String policyName;
+  @override
+  @JsonKey(name: 'order_purpose')
+  final String orderPurpose;
+  @override
+  @JsonKey(name: 'price_list')
+  final String? priceList;
+  @override
+  @JsonKey(name: 'discount_percentage')
+  final double? discountPercentage;
+  @override
+  @JsonKey(name: 'waives_shipping_income')
+  final bool waivesShippingIncome;
+  @override
+  @JsonKey(name: 'no_courier')
+  final bool noCourier;
+
+  @override
+  String toString() {
+    return 'CommercialPolicy(name: $name, policyName: $policyName, orderPurpose: $orderPurpose, priceList: $priceList, discountPercentage: $discountPercentage, waivesShippingIncome: $waivesShippingIncome, noCourier: $noCourier)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$CommercialPolicyImpl &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.policyName, policyName) ||
+                other.policyName == policyName) &&
+            (identical(other.orderPurpose, orderPurpose) ||
+                other.orderPurpose == orderPurpose) &&
+            (identical(other.priceList, priceList) ||
+                other.priceList == priceList) &&
+            (identical(other.discountPercentage, discountPercentage) ||
+                other.discountPercentage == discountPercentage) &&
+            (identical(other.waivesShippingIncome, waivesShippingIncome) ||
+                other.waivesShippingIncome == waivesShippingIncome) &&
+            (identical(other.noCourier, noCourier) ||
+                other.noCourier == noCourier));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    name,
+    policyName,
+    orderPurpose,
+    priceList,
+    discountPercentage,
+    waivesShippingIncome,
+    noCourier,
+  );
+
+  /// Create a copy of CommercialPolicy
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$CommercialPolicyImplCopyWith<_$CommercialPolicyImpl> get copyWith =>
+      __$$CommercialPolicyImplCopyWithImpl<_$CommercialPolicyImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$CommercialPolicyImplToJson(this);
+  }
+}
+
+abstract class _CommercialPolicy implements CommercialPolicy {
+  const factory _CommercialPolicy({
+    required final String name,
+    @JsonKey(name: 'policy_name') required final String policyName,
+    @JsonKey(name: 'order_purpose') required final String orderPurpose,
+    @JsonKey(name: 'price_list') final String? priceList,
+    @JsonKey(name: 'discount_percentage') final double? discountPercentage,
+    @JsonKey(name: 'waives_shipping_income') final bool waivesShippingIncome,
+    @JsonKey(name: 'no_courier') final bool noCourier,
+  }) = _$CommercialPolicyImpl;
+
+  factory _CommercialPolicy.fromJson(Map<String, dynamic> json) =
+      _$CommercialPolicyImpl.fromJson;
+
+  @override
+  String get name;
+  @override
+  @JsonKey(name: 'policy_name')
+  String get policyName;
+  @override
+  @JsonKey(name: 'order_purpose')
+  String get orderPurpose;
+  @override
+  @JsonKey(name: 'price_list')
+  String? get priceList;
+  @override
+  @JsonKey(name: 'discount_percentage')
+  double? get discountPercentage;
+  @override
+  @JsonKey(name: 'waives_shipping_income')
+  bool get waivesShippingIncome;
+  @override
+  @JsonKey(name: 'no_courier')
+  bool get noCourier;
+
+  /// Create a copy of CommercialPolicy
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$CommercialPolicyImplCopyWith<_$CommercialPolicyImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 /// @nodoc
 mixin _$CartItem {
   PosItem get item => throw _privateConstructorUsedError;

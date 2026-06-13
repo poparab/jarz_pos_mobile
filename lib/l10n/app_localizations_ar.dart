@@ -1193,6 +1193,29 @@ class AppLocalizationsAr extends AppLocalizations {
   String get posCartPriceListDefaultChip => 'افتراضي';
 
   @override
+  String get posCartOrderPurposeLabel => 'غرض الطلب';
+
+  @override
+  String get posCartOrderPurposeHint =>
+      'طبّق سياسة تجارية أو اترك الطلب عاديًا.';
+
+  @override
+  String get posCartOrderPurposeStandard => 'عادي';
+
+  @override
+  String get posCartOrderPurposeWaivesShipping => 'تم إعفاء إيراد الشحن';
+
+  @override
+  String get posCartOrderPurposeNoCourier => 'بدون مصروف مندوب';
+
+  @override
+  String get posCartOrderPurposeReasonLabel => 'السبب (اختياري)';
+
+  @override
+  String get posCartOrderPurposeReasonHint =>
+      'أضف ملاحظة توضّح سبب تطبيق هذا الغرض.';
+
+  @override
   String get posCartZeroShippingTitle => 'بدون إيراد شحن';
 
   @override
@@ -3550,6 +3573,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerNameRequired => 'اسم العميل مطلوب';
+
+  @override
+  String get customerTypeLabel => 'نوع العميل';
+
+  @override
+  String get customerTypeIndividual => 'فرد';
+
+  @override
+  String get customerTypeCompany => 'شركة';
+
+  @override
+  String get customerGroupLabel => 'مجموعة العميل';
+
+  @override
+  String get customerGroupRequired => 'يرجى اختيار مجموعة العميل';
 
   @override
   String get mobileNumberLabel => 'رقم الهاتف *';

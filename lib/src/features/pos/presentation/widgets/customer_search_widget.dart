@@ -792,6 +792,19 @@ class _QuickAddCustomerWidgetState
   String? _selectedTerritoryId;
   bool _isLoading = false;
 
+  // Customer type / group (Phase 2 commercial policy support).
+  static const _kIndividual = 'Individual';
+  static const _kCompany = 'Company';
+  // Company customer groups offered for B2B-style accounts.
+  static const _companyCustomerGroups = <String>[
+    'B2B',
+    'Distributor',
+    'Employee',
+    'Sample',
+  ];
+  String _customerType = _kIndividual;
+  String? _customerGroup;
+
   @override
   void initState() {
     super.initState();
@@ -913,6 +926,14 @@ class _QuickAddCustomerWidgetState
                     ),
                     const SizedBox(height: 16),
 
+                    // Customer type (Individual / Company) + group when Company
+                    _buildCustomerTypeSelector(),
+                    if (_customerType == _kCompany) ...[
+                      const SizedBox(height: 16),
+                      _buildCustomerGroupSelector(),
+                    ],
+                    const SizedBox(height: 16),
+
                     // Second row - Territory and Location Link
                     Row(
                       children: [
@@ -991,6 +1012,74 @@ class _QuickAddCustomerWidgetState
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCustomerTypeSelector() {
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.customerTypeLabel,
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          const SizedBox(height: 8),
+          SegmentedButton<String>(
+            segments: [
+              ButtonSegment<String>(
+                value: _kIndividual,
+                label: Text(context.l10n.customerTypeIndividual),
+                icon: const Icon(Icons.person_outline),
+              ),
+              ButtonSegment<String>(
+                value: _kCompany,
+                label: Text(context.l10n.customerTypeCompany),
+                icon: const Icon(Icons.business_outlined),
+              ),
+            ],
+            selected: {_customerType},
+            onSelectionChanged: (selection) {
+              setState(() {
+                _customerType = selection.first;
+                if (_customerType == _kIndividual) {
+                  _customerGroup = null;
+                }
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomerGroupSelector() {
+    return DropdownButtonFormField<String>(
+      initialValue: _customerGroup,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: context.l10n.customerGroupLabel,
+        border: const OutlineInputBorder(),
+        prefixIcon: const Icon(Icons.groups_outlined),
+      ),
+      items: _companyCustomerGroups
+          .map(
+            (group) =>
+                DropdownMenuItem<String>(value: group, child: Text(group)),
+          )
+          .toList(),
+      onChanged: (value) {
+        setState(() {
+          _customerGroup = value;
+        });
+      },
+      validator: (value) {
+        if (_customerType == _kCompany && (value == null || value.isEmpty)) {
+          return context.l10n.customerGroupRequired;
+        }
+        return null;
+      },
     );
   }
 
@@ -1106,6 +1195,8 @@ class _QuickAddCustomerWidgetState
             secondaryMobile: _secondaryMobileController.text.trim().isNotEmpty
                 ? _secondaryMobileController.text.trim()
                 : null,
+            customerType: _customerType,
+            customerGroup: _customerType == _kCompany ? _customerGroup : null,
           );
 
       if (mounted) {

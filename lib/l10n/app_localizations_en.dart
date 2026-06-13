@@ -1193,6 +1193,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get posCartPriceListDefaultChip => 'Default';
 
   @override
+  String get posCartOrderPurposeLabel => 'Order purpose';
+
+  @override
+  String get posCartOrderPurposeHint =>
+      'Apply a commercial policy or keep this a standard order.';
+
+  @override
+  String get posCartOrderPurposeStandard => 'Standard';
+
+  @override
+  String get posCartOrderPurposeWaivesShipping => 'Shipping income waived';
+
+  @override
+  String get posCartOrderPurposeNoCourier => 'No courier expense';
+
+  @override
+  String get posCartOrderPurposeReasonLabel => 'Reason (optional)';
+
+  @override
+  String get posCartOrderPurposeReasonHint =>
+      'Add a note explaining why this purpose applies.';
+
+  @override
   String get posCartZeroShippingTitle => 'Zero shipping income';
 
   @override
@@ -3565,6 +3588,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerNameRequired => 'Customer name is required';
+
+  @override
+  String get customerTypeLabel => 'Customer type';
+
+  @override
+  String get customerTypeIndividual => 'Individual';
+
+  @override
+  String get customerTypeCompany => 'Company';
+
+  @override
+  String get customerGroupLabel => 'Customer group';
+
+  @override
+  String get customerGroupRequired => 'Please select a customer group';
 
   @override
   String get mobileNumberLabel => 'Mobile Number *';

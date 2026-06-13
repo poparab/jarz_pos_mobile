@@ -19,17 +19,22 @@ class CartWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final state = ref.watch(posNotifierProvider);
-    final canManagePricing = ref.watch(userRolesFutureProvider).maybeWhen(
-      data: (roles) => roles.canAccessManagerDashboard,
-      orElse: () => false,
-    );
+    final canManagePricing = ref
+        .watch(userRolesFutureProvider)
+        .maybeWhen(
+          data: (roles) => roles.canAccessManagerDashboard,
+          orElse: () => false,
+        );
     final cartItems = state.cartItems;
     final hasAmendmentSource =
         !state.isAmendmentDraft ||
         ((state.amendmentSourceInvoiceId ?? '').trim().isNotEmpty);
-    final customerTerritory = state.selectedCustomer?['territory_name_ar']?.toString() ?? state.selectedCustomer?['territory_name']?.toString() ?? state.selectedCustomer?['territory']?.toString();
+    final customerTerritory =
+        state.selectedCustomer?['territory_name_ar']?.toString() ??
+        state.selectedCustomer?['territory_name']?.toString() ??
+        state.selectedCustomer?['territory']?.toString();
     final isPhone = ResponsiveUtils.isPhone(context);
-    
+
     // Responsive padding
     final headerPadding = ResponsiveUtils.getResponsivePadding(
       context,
@@ -43,474 +48,591 @@ class CartWidget extends ConsumerWidget {
       medium: 8,
       large: 8,
     );
-    
+
     final controller = scrollController ?? ScrollController();
 
     return Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          border: Border(
-            left: BorderSide(
-              color: Theme.of(context).colorScheme.outline,
-              width: 1,
-            ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          left: BorderSide(
+            color: Theme.of(context).colorScheme.outline,
+            width: 1,
           ),
         ),
-        child: CustomScrollView(
-          controller: controller,
-          slivers: [
-            // Header
+      ),
+      child: CustomScrollView(
+        controller: controller,
+        slivers: [
+          // Header
+          SliverToBoxAdapter(
+            child: Container(
+              padding: headerPadding,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.shopping_cart,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    size: isPhone
+                        ? 18
+                        : (ResponsiveUtils.isCompactLayout(context) ? 20 : 24),
+                  ),
+                  SizedBox(
+                    width: ResponsiveUtils.getSpacing(
+                      context,
+                      small: isPhone ? 4 : 6,
+                      medium: 8,
+                      large: 8,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      l10n.posCartHeader(cartItems.length),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        fontSize: isPhone
+                            ? 14
+                            : (ResponsiveUtils.isCompactLayout(context)
+                                  ? 14
+                                  : 16),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (cartItems.isNotEmpty)
+                    IconButton(
+                      icon: Icon(
+                        Icons.clear_all,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        size: isPhone
+                            ? 18
+                            : (ResponsiveUtils.isCompactLayout(context)
+                                  ? 20
+                                  : 24),
+                      ),
+                      onPressed: () => _showClearCartDialog(context, ref),
+                      tooltip: l10n.posCartClear,
+                      padding: EdgeInsets.all(
+                        isPhone
+                            ? 4
+                            : (ResponsiveUtils.isCompactLayout(context)
+                                  ? 6
+                                  : 8),
+                      ),
+                      constraints: const BoxConstraints(),
+                    ),
+                ],
+              ),
+            ),
+          ),
+
+          if (canManagePricing && state.selectedProfile != null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: contentPadding,
+                child: _buildManagerPricingControls(context, ref, state),
+              ),
+            ),
+
+          // Items or empty state
+          if (cartItems.isEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: _buildEmptyCart(context),
+            )
+          else
+            SliverList.builder(
+              itemCount: cartItems.length,
+              itemBuilder: (context, index) {
+                final cartItem = cartItems[index];
+                return Padding(
+                  padding: contentPadding,
+                  child: _buildCartItem(
+                    context,
+                    ref,
+                    cartItem,
+                    index,
+                    canManagePricing: canManagePricing,
+                  ),
+                );
+              },
+            ),
+
+          // Summary
+          if (cartItems.isNotEmpty)
             SliverToBoxAdapter(
               child: Container(
                 padding: headerPadding,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   border: Border(
-                    bottom: BorderSide(
+                    top: BorderSide(
                       color: Theme.of(context).colorScheme.outline,
                       width: 1,
                     ),
                   ),
                 ),
-                child: Row(
+                child: Column(
                   children: [
-                    Icon(
-                      Icons.shopping_cart,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      size: isPhone ? 18 : (ResponsiveUtils.isCompactLayout(context) ? 20 : 24),
-                    ),
-                    SizedBox(width: ResponsiveUtils.getSpacing(context, small: isPhone ? 4 : 6, medium: 8, large: 8)),
-                    Expanded(
-                      child: Text(
-                        l10n.posCartHeader(cartItems.length),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                          fontSize: isPhone ? 14 : (ResponsiveUtils.isCompactLayout(context) ? 14 : 16),
+                    // Customer info
+                    if (state.isAmendmentDraft)
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(isPhone ? 10 : 12),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.edit_note,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSecondaryContainer,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.posAmendmentDraftTitle,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSecondaryContainer,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    hasAmendmentSource
+                                        ? l10n.posAmendmentDraftMessage
+                                        : l10n.posAmendmentCheckoutBlocked,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSecondaryContainer,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (state.selectedCustomer != null)
+                      Container(
+                        padding: EdgeInsets.all(isPhone ? 10 : 12),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                state.selectedCustomer!['customer_name'] ??
+                                    l10n.posUnknownCustomer,
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Pickup toggle + Delivery Slot Selection
+                    if (state.selectedProfile != null) ...[
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isPhone ? 10 : 12,
+                          vertical: isPhone ? 6 : 8,
+                        ),
+                        margin: EdgeInsets.only(bottom: isPhone ? 6 : 8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Switch(
+                              value: state.isPickup,
+                              onChanged: (v) => ref
+                                  .read(posNotifierProvider.notifier)
+                                  .setPickup(v),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.posCartPickupTitle,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                  Text(
+                                    state.isPickup
+                                        ? l10n.posCartPickupDescription
+                                        : l10n.posCartDeliveryDescription,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.7),
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (state.isPickup)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.store_mall_directory,
+                                      size: 14,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      l10n.posCartPickupChip,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    if (!state.isPickup)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: DeliverySlotSelection(
+                          posProfile: state.selectedProfile!['name'],
+                          selectedSlot: state.selectedDeliverySlot,
+                          onSlotChanged: (slot) {
+                            ref
+                                .read(posNotifierProvider.notifier)
+                                .setDeliverySlot(slot);
+                          },
+                          isRequired: true,
+                        ),
+                      ),
+
+                    // Subtotal and delivery
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.posSubtotalLabel,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontSize: isPhone ? 14 : null),
+                        ),
+                        Text(
+                          '\$${state.cartTotal.toStringAsFixed(2)}',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontSize: isPhone ? 14 : null),
+                        ),
+                      ],
+                    ),
+
+                    if (state.selectedSalesPartner == null &&
+                        state.selectedCustomer != null &&
+                        !state.isPickup) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Text(
+                                  l10n.posDeliveryLabel,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontSize: isPhone ? 14 : null),
+                                ),
+                                if (state.customDeliveryIncome != null) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.secondaryContainer,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      'custom',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSecondaryContainer,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                state.customDeliveryIncome != null ||
+                                        state.shippingCost > 0
+                                    ? '\$${state.shippingCost.toStringAsFixed(2)}'
+                                    : '—',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontSize: isPhone ? 14 : null),
+                              ),
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: () =>
+                                    _showDeliveryIncomeDialog(context, ref),
+                                child: Icon(
+                                  Icons.edit_outlined,
+                                  size: 16,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    const SizedBox(height: 8),
+                    const Divider(),
+                    const SizedBox(height: 8),
+
+                    // Total
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.posTotalLabel,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: isPhone ? 18 : null,
+                              ),
+                        ),
+                        Text(
+                          '\$${state.totalWithShipping.toStringAsFixed(2)}',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: isPhone ? 18 : null,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Checkout button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: state.isLoading || !hasAmendmentSource
+                            ? null
+                            : () => _handleCheckout(context, ref),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: state.isAmendmentDraft
+                              ? Theme.of(context).colorScheme.secondaryContainer
+                              : Theme.of(context).colorScheme.primary,
+                          foregroundColor: state.isAmendmentDraft
+                              ? Theme.of(
+                                  context,
+                                ).colorScheme.onSecondaryContainer
+                              : Theme.of(context).colorScheme.onPrimary,
+                          padding: EdgeInsets.symmetric(
+                            vertical: isPhone ? 12 : 14,
+                          ),
+                        ),
+                        child: state.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                state.isAmendmentDraft
+                                    ? l10n.posAmendmentDraftButton
+                                    : l10n.posCheckoutButton,
+                                style: TextStyle(
+                                  fontSize: isPhone ? 14 : 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
-                    if (cartItems.isNotEmpty)
-                      IconButton(
-                        icon: Icon(
-                          Icons.clear_all,
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          size: isPhone ? 18 : (ResponsiveUtils.isCompactLayout(context) ? 20 : 24),
+
+                    // Shipping expense (operational info)
+                    if (state.selectedSalesPartner == null &&
+                        state.selectedCustomer != null &&
+                        state.selectedCustomer!['delivery_expense'] != null &&
+                        state.selectedCustomer!['delivery_expense'] > 0) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.errorContainer.withValues(alpha: 0.1),
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.outline.withValues(alpha: 0.3),
+                          ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        onPressed: () => _showClearCartDialog(context, ref),
-                        tooltip: l10n.posCartClear,
-                        padding: EdgeInsets.all(isPhone ? 4 : (ResponsiveUtils.isCompactLayout(context) ? 6 : 8)),
-                        constraints: const BoxConstraints(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.7),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  l10n.posOperationalInfoTitle,
+                                  style: Theme.of(context).textTheme.labelMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
+                                      ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  l10n.posDeliveryLabel,
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.8),
+                                      ),
+                                ),
+                                Text(
+                                  '\$${state.selectedCustomer!['delivery_expense'].toStringAsFixed(2)}',
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                      ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              customerTerritory != null
+                                  ? l10n.posDeliveryCostTo(customerTerritory)
+                                  : l10n.posDeliveryCostGeneric,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.6),
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
+                    ],
                   ],
                 ),
               ),
             ),
-
-            if (canManagePricing && state.selectedProfile != null)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: contentPadding,
-                  child: _buildManagerPricingControls(context, ref, state),
-                ),
-              ),
-
-            // Items or empty state
-            if (cartItems.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: _buildEmptyCart(context),
-              )
-            else
-              SliverList.builder(
-                itemCount: cartItems.length,
-                itemBuilder: (context, index) {
-                  final cartItem = cartItems[index];
-                  return Padding(
-                    padding: contentPadding,
-                    child: _buildCartItem(
-                      context,
-                      ref,
-                      cartItem,
-                      index,
-                      canManagePricing: canManagePricing,
-                    ),
-                  );
-                },
-              ),
-
-            // Summary
-            if (cartItems.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Container(
-                  padding: headerPadding,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    border: Border(
-                      top: BorderSide(
-                        color: Theme.of(context).colorScheme.outline,
-                        width: 1,
-                      ),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      // Customer info
-                      if (state.isAmendmentDraft)
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(isPhone ? 10 : 12),
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.secondaryContainer,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.edit_note,
-                                color: Theme.of(context).colorScheme.onSecondaryContainer,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      l10n.posAmendmentDraftTitle,
-                                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                            color: Theme.of(context).colorScheme.onSecondaryContainer,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      hasAmendmentSource
-                                          ? l10n.posAmendmentDraftMessage
-                                          : l10n.posAmendmentCheckoutBlocked,
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                            color: Theme.of(context).colorScheme.onSecondaryContainer,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      if (state.selectedCustomer != null)
-                        Container(
-                          padding: EdgeInsets.all(isPhone ? 10 : 12),
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.person,
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  state.selectedCustomer!['customer_name'] ??
-                                      l10n.posUnknownCustomer,
-                                  style: Theme.of(context).textTheme.titleSmall
-                                      ?.copyWith(
-                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                      // Pickup toggle + Delivery Slot Selection
-                      if (state.selectedProfile != null) ...[
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: isPhone ? 10 : 12, vertical: isPhone ? 6 : 8),
-                          margin: EdgeInsets.only(bottom: isPhone ? 6 : 8),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Switch(
-                                value: state.isPickup,
-                                onChanged: (v) => ref.read(posNotifierProvider.notifier).setPickup(v),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      l10n.posCartPickupTitle,
-                                      style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-                                    ),
-                                    Text(
-                                      state.isPickup
-                                          ? l10n.posCartPickupDescription
-                                          : l10n.posCartDeliveryDescription,
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (state.isPickup)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.store_mall_directory, size: 14, color: Theme.of(context).colorScheme.primary),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        l10n.posCartPickupChip,
-                                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                          color: Theme.of(context).colorScheme.primary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-
-                      if (!state.isPickup)
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          child: DeliverySlotSelection(
-                            posProfile: state.selectedProfile!['name'],
-                            selectedSlot: state.selectedDeliverySlot,
-                            onSlotChanged: (slot) {
-                              ref.read(posNotifierProvider.notifier).setDeliverySlot(slot);
-                            },
-                            isRequired: true,
-                          ),
-                        ),
-
-                      // Subtotal and delivery
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            l10n.posSubtotalLabel,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: isPhone ? 14 : null),
-                          ),
-                          Text(
-                            '\$${state.cartTotal.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: isPhone ? 14 : null),
-                          ),
-                        ],
-                      ),
-
-                      if (state.selectedSalesPartner == null &&
-                          state.selectedCustomer != null &&
-                          !state.isPickup) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  Text(
-                                    l10n.posDeliveryLabel,
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: isPhone ? 14 : null),
-                                  ),
-                                  if (state.customDeliveryIncome != null) ...[
-                                    const SizedBox(width: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.secondaryContainer,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        'custom',
-                                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                          color: Theme.of(context).colorScheme.onSecondaryContainer,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  state.customDeliveryIncome != null || state.shippingCost > 0
-                                      ? '\$${state.shippingCost.toStringAsFixed(2)}'
-                                      : '—',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: isPhone ? 14 : null),
-                                ),
-                                const SizedBox(width: 4),
-                                GestureDetector(
-                                  onTap: () => _showDeliveryIncomeDialog(context, ref),
-                                  child: Icon(
-                                    Icons.edit_outlined,
-                                    size: 16,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-
-                      const SizedBox(height: 8),
-                      const Divider(),
-                      const SizedBox(height: 8),
-
-                      // Total
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            l10n.posTotalLabel,
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: isPhone ? 18 : null,
-                                ),
-                          ),
-                          Text(
-                            '\$${state.totalWithShipping.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: isPhone ? 18 : null,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Checkout button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: state.isLoading || !hasAmendmentSource
-                              ? null
-                              : () => _handleCheckout(context, ref),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: state.isAmendmentDraft
-                                ? Theme.of(context).colorScheme.secondaryContainer
-                                : Theme.of(context).colorScheme.primary,
-                            foregroundColor: state.isAmendmentDraft
-                                ? Theme.of(context).colorScheme.onSecondaryContainer
-                                : Theme.of(context).colorScheme.onPrimary,
-                            padding: EdgeInsets.symmetric(vertical: isPhone ? 12 : 14),
-                          ),
-                          child: state.isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : Text(
-                                  state.isAmendmentDraft
-                                      ? l10n.posAmendmentDraftButton
-                                      : l10n.posCheckoutButton,
-                                  style: TextStyle(fontSize: isPhone ? 14 : 15, fontWeight: FontWeight.bold),
-                                ),
-                        ),
-                      ),
-
-                      // Shipping expense (operational info)
-                      if (state.selectedSalesPartner == null &&
-                          state.selectedCustomer != null &&
-                          state.selectedCustomer!['delivery_expense'] != null &&
-                          state.selectedCustomer!['delivery_expense'] > 0) ...[
-                        const SizedBox(height: 16),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.1),
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.info_outline,
-                                    size: 16,
-                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    l10n.posOperationalInfoTitle,
-                                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).colorScheme.onSurface,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    l10n.posDeliveryLabel,
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                                        ),
-                                  ),
-                                  Text(
-                                    '\$${state.selectedCustomer!['delivery_expense'].toStringAsFixed(2)}',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).colorScheme.error,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                customerTerritory != null
-                                    ? l10n.posDeliveryCostTo(customerTerritory)
-                                    : l10n.posDeliveryCostGeneric,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
-      );
+        ],
+      ),
+    );
   }
 
   Widget _buildEmptyCart(BuildContext context) {
@@ -524,7 +646,10 @@ class CartWidget extends ConsumerWidget {
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
         const SizedBox(height: 16),
-        Text(l10n.posCartEmptyTitle, style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          l10n.posCartEmptyTitle,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 8),
         Text(
           l10n.posCartEmptyBody,
@@ -539,9 +664,9 @@ class CartWidget extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     Map<String, dynamic> cartItem,
-    int index,
-    {required bool canManagePricing}
-  ) {
+    int index, {
+    required bool canManagePricing,
+  }) {
     final l10n = context.l10n;
     final isPhone = ResponsiveUtils.isPhone(context);
     double readAmount(dynamic value) {
@@ -553,7 +678,9 @@ class CartWidget extends ConsumerWidget {
 
     final quantity = (cartItem['quantity'] ?? 1) as int;
     final rate = readAmount(cartItem['rate']);
-    final baseRate = readAmount(cartItem['price_list_rate'] ?? cartItem['rate']);
+    final baseRate = readAmount(
+      cartItem['price_list_rate'] ?? cartItem['rate'],
+    );
     final customRate = cartItem.containsKey('custom_rate_override')
         ? readAmount(cartItem['custom_rate_override'])
         : null;
@@ -572,13 +699,18 @@ class CartWidget extends ConsumerWidget {
     final isShipping = cartItem['is_shipping'] == true;
     final itemName = cartItem['item_name']?.toString();
     final itemCode = cartItem['item_code']?.toString() ?? '';
-    final stockQty = ref.read(posNotifierProvider.notifier).getStockForItem(itemCode);
-    final exceedsStock = !isShipping && stockQty.isFinite && quantity > stockQty;
+    final stockQty = ref
+        .read(posNotifierProvider.notifier)
+        .getStockForItem(itemCode);
+    final exceedsStock =
+        !isShipping && stockQty.isFinite && quantity > stockQty;
 
     return Card(
       margin: EdgeInsets.only(bottom: isPhone ? 6 : 8),
       color: isShipping
-          ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
+          ? Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withValues(alpha: 0.3)
           : null,
       child: Padding(
         padding: EdgeInsets.all(isPhone ? 10 : 12),
@@ -700,9 +832,9 @@ class CartWidget extends ConsumerWidget {
                     '\$${baseRate.toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       decoration: TextDecoration.lineThrough,
-                      color: Theme.of(context).colorScheme.onSurface.withValues(
-                            alpha: 0.6,
-                          ),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -723,11 +855,16 @@ class CartWidget extends ConsumerWidget {
                         visualDensity: VisualDensity.compact,
                       ),
                       Container(
-                        constraints: BoxConstraints(minWidth: isPhone ? 34 : 40),
+                        constraints: BoxConstraints(
+                          minWidth: isPhone ? 34 : 40,
+                        ),
                         child: Text(
                           quantity.toString(),
                           style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold, fontSize: isPhone ? 14 : null),
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: isPhone ? 14 : null,
+                              ),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -769,14 +906,21 @@ class CartWidget extends ConsumerWidget {
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.orange.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.warning_amber_rounded, size: 16, color: Colors.orange),
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      size: 16,
+                      color: Colors.orange,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -800,7 +944,9 @@ class CartWidget extends ConsumerWidget {
               children: [
                 Text(
                   l10n.posTotalLabel,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: isPhone ? 13 : null),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: isPhone ? 13 : null,
+                  ),
                 ),
                 Text(
                   '\$${total.toStringAsFixed(2)}',
@@ -858,8 +1004,8 @@ class CartWidget extends ConsumerWidget {
                   child: Text(
                     l10n.posCartPricingTitle,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 if (selectedPriceList?['is_default'] == true)
@@ -875,9 +1021,9 @@ class CartWidget extends ConsumerWidget {
                     child: Text(
                       l10n.posCartPriceListDefaultChip,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
               ],
@@ -885,10 +1031,11 @@ class CartWidget extends ConsumerWidget {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               key: ValueKey(selectedPriceListName ?? 'default-price-list'),
-              initialValue: priceLists.any(
-                (priceList) =>
-                    priceList['name']?.toString() == selectedPriceListName,
-              )
+              initialValue:
+                  priceLists.any(
+                    (priceList) =>
+                        priceList['name']?.toString() == selectedPriceListName,
+                  )
                   ? selectedPriceListName
                   : null,
               isExpanded: true,
@@ -918,6 +1065,10 @@ class CartWidget extends ConsumerWidget {
                           .setSelectedPriceList(value);
                     },
             ),
+            if (state.availableCommercialPolicies.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildOrderPurposeControls(context, ref, state),
+            ],
             const SizedBox(height: 12),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
@@ -931,15 +1082,107 @@ class CartWidget extends ConsumerWidget {
                     },
               title: Text(
                 l10n.posCartZeroShippingTitle,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               subtitle: Text(helperText),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildOrderPurposeControls(
+    BuildContext context,
+    WidgetRef ref,
+    PosState state,
+  ) {
+    final l10n = context.l10n;
+    final policies = state.availableCommercialPolicies;
+    final selected = state.selectedCommercialPolicy;
+    // Empty-string sentinel represents the "Standard" (no policy) option.
+    const standardValue = '';
+    final selectedValue = selected?.name ?? standardValue;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<String>(
+          key: ValueKey('order-purpose-$selectedValue'),
+          initialValue: selectedValue,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: l10n.posCartOrderPurposeLabel,
+            helperText: l10n.posCartOrderPurposeHint,
+            border: const OutlineInputBorder(),
+          ),
+          items: [
+            DropdownMenuItem<String>(
+              value: standardValue,
+              child: Text(
+                l10n.posCartOrderPurposeStandard,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            ...policies.map(
+              (policy) => DropdownMenuItem<String>(
+                value: policy.name,
+                child: Text(policy.policyName, overflow: TextOverflow.ellipsis),
+              ),
+            ),
+          ],
+          onChanged: state.isLoading
+              ? null
+              : (value) {
+                  final notifier = ref.read(posNotifierProvider.notifier);
+                  if (value == null || value == standardValue) {
+                    notifier.setCommercialPolicy(null);
+                    return;
+                  }
+                  final policy = policies.firstWhere(
+                    (p) => p.name == value,
+                    orElse: () => policies.first,
+                  );
+                  notifier.setCommercialPolicy(policy);
+                },
+        ),
+        if (selected != null &&
+            (selected.waivesShippingIncome || selected.noCourier)) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              if (selected.waivesShippingIncome)
+                _buildPricingChip(
+                  context,
+                  l10n.posCartOrderPurposeWaivesShipping,
+                ),
+              if (selected.noCourier)
+                _buildPricingChip(context, l10n.posCartOrderPurposeNoCourier),
+            ],
+          ),
+        ],
+        if (selected != null) ...[
+          const SizedBox(height: 12),
+          TextFormField(
+            key: ValueKey('policy-reason-${selected.name}'),
+            initialValue: state.policyReason ?? '',
+            minLines: 1,
+            maxLines: 2,
+            decoration: InputDecoration(
+              labelText: l10n.posCartOrderPurposeReasonLabel,
+              helperText: l10n.posCartOrderPurposeReasonHint,
+              border: const OutlineInputBorder(),
+            ),
+            onChanged: (value) {
+              ref.read(posNotifierProvider.notifier).setPolicyReason(value);
+            },
+          ),
+        ],
+      ],
     );
   }
 
@@ -954,9 +1197,9 @@ class CartWidget extends ConsumerWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSecondaryContainer,
-              fontWeight: FontWeight.w600,
-            ),
+          color: colorScheme.onSecondaryContainer,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -1016,16 +1259,22 @@ class CartWidget extends ConsumerWidget {
           return StatefulBuilder(
             builder: (context, setStateDialog) {
               void savePricing() {
-                final customRate =
-                    _parseNullableAmount(customRateController.text);
-                final discountAmount =
-                    _parseNullableAmount(discountAmountController.text);
-                final discountPercentage =
-                    _parseNullableAmount(discountPercentController.text);
+                final customRate = _parseNullableAmount(
+                  customRateController.text,
+                );
+                final discountAmount = _parseNullableAmount(
+                  discountAmountController.text,
+                );
+                final discountPercentage = _parseNullableAmount(
+                  discountPercentController.text,
+                );
 
-                if ((customRateController.text.trim().isNotEmpty && customRate == null) ||
-                    (discountAmountController.text.trim().isNotEmpty && discountAmount == null) ||
-                    (discountPercentController.text.trim().isNotEmpty && discountPercentage == null)) {
+                if ((customRateController.text.trim().isNotEmpty &&
+                        customRate == null) ||
+                    (discountAmountController.text.trim().isNotEmpty &&
+                        discountAmount == null) ||
+                    (discountPercentController.text.trim().isNotEmpty &&
+                        discountPercentage == null)) {
                   setStateDialog(() {
                     validationError = l10n.posCartItemPricingInvalidNumber;
                   });
@@ -1039,20 +1288,24 @@ class CartWidget extends ConsumerWidget {
                 }
                 if (discountAmount != null && discountAmount < 0) {
                   setStateDialog(() {
-                    validationError = l10n.posCartItemPricingInvalidDiscountAmount;
+                    validationError =
+                        l10n.posCartItemPricingInvalidDiscountAmount;
                   });
                   return;
                 }
                 if (discountPercentage != null &&
                     (discountPercentage < 0 || discountPercentage > 100)) {
                   setStateDialog(() {
-                    validationError = l10n.posCartItemPricingInvalidDiscountPercent;
+                    validationError =
+                        l10n.posCartItemPricingInvalidDiscountPercent;
                   });
                   return;
                 }
-                if ((discountAmount ?? 0) > 0 && (discountPercentage ?? 0) > 0) {
+                if ((discountAmount ?? 0) > 0 &&
+                    (discountPercentage ?? 0) > 0) {
                   setStateDialog(() {
-                    validationError = l10n.posCartItemPricingChooseSingleDiscount;
+                    validationError =
+                        l10n.posCartItemPricingChooseSingleDiscount;
                   });
                   return;
                 }
@@ -1065,7 +1318,9 @@ class CartWidget extends ConsumerWidget {
                   return;
                 }
 
-                ref.read(posNotifierProvider.notifier).applyCartItemPricing(
+                ref
+                    .read(posNotifierProvider.notifier)
+                    .applyCartItemPricing(
                       index,
                       customRateOverride: customRate,
                       discountAmount: discountAmount,
@@ -1082,10 +1337,11 @@ class CartWidget extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        cartItem['item_name']?.toString() ?? l10n.posUnknownItem,
+                        cartItem['item_name']?.toString() ??
+                            l10n.posUnknownItem,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -1123,7 +1379,8 @@ class CartWidget extends ConsumerWidget {
                           decimal: true,
                         ),
                         decoration: InputDecoration(
-                          labelText: l10n.posCartItemPricingDiscountPercentLabel,
+                          labelText:
+                              l10n.posCartItemPricingDiscountPercentLabel,
                           border: const OutlineInputBorder(),
                         ),
                       ),
@@ -1131,17 +1388,17 @@ class CartWidget extends ConsumerWidget {
                       Text(
                         l10n.posCartItemPricingDiscountHint,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.7),
-                            ),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
                       ),
                       if (validationError != null) ...[
                         const SizedBox(height: 12),
                         Text(
                           validationError!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
                                 color: Theme.of(context).colorScheme.error,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1204,7 +1461,9 @@ class CartWidget extends ConsumerWidget {
             const SizedBox(height: 12),
             TextField(
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(
                 labelText: 'Delivery amount',
                 prefixText: '\$',
@@ -1218,7 +1477,9 @@ class CartWidget extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () {
-              ref.read(posNotifierProvider.notifier).setCustomDeliveryIncome(null);
+              ref
+                  .read(posNotifierProvider.notifier)
+                  .setCustomDeliveryIncome(null);
               Navigator.pop(ctx);
             },
             child: const Text('Reset to Default'),
@@ -1231,16 +1492,22 @@ class CartWidget extends ConsumerWidget {
             onPressed: () {
               final raw = controller.text.trim();
               if (raw.isEmpty) {
-                ref.read(posNotifierProvider.notifier).setCustomDeliveryIncome(null);
+                ref
+                    .read(posNotifierProvider.notifier)
+                    .setCustomDeliveryIncome(null);
               } else {
                 final parsed = double.tryParse(raw);
                 if (parsed == null || parsed < 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Enter a valid non-negative amount')),
+                    const SnackBar(
+                      content: Text('Enter a valid non-negative amount'),
+                    ),
                   );
                   return;
                 }
-                ref.read(posNotifierProvider.notifier).setCustomDeliveryIncome(parsed);
+                ref
+                    .read(posNotifierProvider.notifier)
+                    .setCustomDeliveryIncome(parsed);
               }
               Navigator.pop(ctx);
             },
@@ -1325,7 +1592,11 @@ class CartWidget extends ConsumerWidget {
 
     // Territory → POS profile preflight
     if (!context.mounted) return;
-    final profileResolution = await _resolveProfileForCheckout(context, ref, state);
+    final profileResolution = await _resolveProfileForCheckout(
+      context,
+      ref,
+      state,
+    );
     if (profileResolution == null) return; // user cancelled
 
     await ref
@@ -1375,7 +1646,8 @@ class CartWidget extends ConsumerWidget {
               Text(l10n.posCheckoutStockExceedMessage),
               const SizedBox(height: 12),
               ...overages.map((item) {
-                final itemName = item['item_name']?.toString() ??
+                final itemName =
+                    item['item_name']?.toString() ??
                     item['item_code']?.toString() ??
                     l10n.posUnknownItem;
                 return Padding(
@@ -1416,8 +1688,6 @@ class CartWidget extends ConsumerWidget {
         : qty.toStringAsFixed(2);
   }
 
-
-
   Widget _buildBundleDetails(
     BuildContext context,
     Map<String, dynamic> bundleDetails,
@@ -1438,7 +1708,7 @@ class CartWidget extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Theme.of(
           context,
-  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -1464,9 +1734,11 @@ class CartWidget extends ConsumerWidget {
               final name = (item['name'] ?? '').toString();
               counts[name] = (counts[name] ?? 0) + 1;
             }
-            final summary = counts.entries.map((e) {
-              return e.value > 1 ? '${e.key} x${e.value}' : e.key;
-            }).join(', ');
+            final summary = counts.entries
+                .map((e) {
+                  return e.value > 1 ? '${e.key} x${e.value}' : e.key;
+                })
+                .join(', ');
             return Padding(
               padding: const EdgeInsets.only(bottom: 2),
               child: Text(
@@ -1529,15 +1801,15 @@ class CartWidget extends ConsumerWidget {
   }
 
   String _bundleGroupKey(Map<String, dynamic> group, int fallbackIndex) {
-    final rawKey =
-        (group['group_key'] ?? group['group_id'] ?? group['name'])
-            ?.toString()
-            .trim();
+    final rawKey = (group['group_key'] ?? group['group_id'] ?? group['name'])
+        ?.toString()
+        .trim();
     if (rawKey != null && rawKey.isNotEmpty) {
       return rawKey;
     }
 
-    final rawIndex = group['group_index'] ?? group['idx'] ?? (fallbackIndex + 1);
+    final rawIndex =
+        group['group_index'] ?? group['idx'] ?? (fallbackIndex + 1);
     return '${_bundleLegacyGroupLabel((group['group_name'] ?? group['item_group'] ?? group['title'] ?? 'Group').toString())}::$rawIndex';
   }
 
