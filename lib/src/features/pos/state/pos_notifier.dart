@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../data/models/draft_cart.dart';
 import '../data/models/pos_cart_item.dart';
+import '../data/models/pos_models.dart';
 import '../data/repositories/draft_cart_repository.dart';
 import '../data/repositories/pos_repository.dart';
 import '../domain/models/delivery_slot.dart';
@@ -19,6 +20,12 @@ class PosState {
   final List<Map<String, dynamic>> bundles;
   final List<Map<String, dynamic>> availablePriceLists;
   final Map<String, dynamic>? selectedPriceList;
+  // Commercial policy (Order Purpose). Empty list = Standard only.
+  final List<CommercialPolicy> availableCommercialPolicies;
+  // null = Standard (no policy applied).
+  final CommercialPolicy? selectedCommercialPolicy;
+  // Optional free-text reason captured when a non-Standard purpose is selected.
+  final String? policyReason;
   final List<Map<String, dynamic>> cartItems;
   final Map<String, dynamic>? selectedCustomer;
   final DeliverySlot? selectedDeliverySlot;
@@ -56,6 +63,9 @@ class PosState {
     this.bundles = const [],
     this.availablePriceLists = const [],
     this.selectedPriceList,
+    this.availableCommercialPolicies = const [],
+    this.selectedCommercialPolicy,
+    this.policyReason,
     this.cartItems = const [],
     this.selectedCustomer,
     this.selectedDeliverySlot,
@@ -82,6 +92,11 @@ class PosState {
     List<Map<String, dynamic>>? availablePriceLists,
     Map<String, dynamic>? selectedPriceList,
     bool clearSelectedPriceList = false,
+    List<CommercialPolicy>? availableCommercialPolicies,
+    CommercialPolicy? selectedCommercialPolicy,
+    bool clearSelectedCommercialPolicy = false,
+    String? policyReason,
+    bool clearPolicyReason = false,
     List<Map<String, dynamic>>? cartItems,
     Map<String, dynamic>? selectedCustomer,
     DeliverySlot? selectedDeliverySlot,
@@ -117,6 +132,14 @@ class PosState {
       selectedPriceList: clearSelectedPriceList
           ? null
           : (selectedPriceList ?? this.selectedPriceList),
+      availableCommercialPolicies:
+          availableCommercialPolicies ?? this.availableCommercialPolicies,
+      selectedCommercialPolicy: clearSelectedCommercialPolicy
+          ? null
+          : (selectedCommercialPolicy ?? this.selectedCommercialPolicy),
+      policyReason: clearPolicyReason
+          ? null
+          : (policyReason ?? this.policyReason),
       cartItems: cartItems ?? this.cartItems,
       selectedCustomer: clearSelectedCustomer
           ? null
@@ -369,6 +392,8 @@ class PosNotifier extends StateNotifier<PosState> {
       isPickup: false,
       selectedPriceList: defaultPriceList,
       clearSelectedPriceList: defaultPriceList == null,
+      clearSelectedCommercialPolicy: true,
+      clearPolicyReason: true,
       zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
       clearCurrentDraftId: true,
       draftDirty: false,
@@ -443,6 +468,8 @@ class PosNotifier extends StateNotifier<PosState> {
         clearSelectedSalesPartner: target.salesPartner == null,
         selectedPriceList: target.selectedPriceList,
         clearSelectedPriceList: target.selectedPriceList == null,
+        clearSelectedCommercialPolicy: true,
+        clearPolicyReason: true,
         zeroShippingOverride: target.zeroShippingOverride,
         isPickup: target.isPickup,
         // Delivery slot is intentionally cleared on load; must be re-picked at checkout.
@@ -494,6 +521,8 @@ class PosNotifier extends StateNotifier<PosState> {
           isPickup: false,
           selectedPriceList: defaultPriceList,
           clearSelectedPriceList: defaultPriceList == null,
+          clearSelectedCommercialPolicy: true,
+          clearPolicyReason: true,
           zeroShippingOverride: _zeroShippingDefaultForPriceList(
             defaultPriceList,
           ),
@@ -594,6 +623,7 @@ class PosNotifier extends StateNotifier<PosState> {
       final selectedPriceList = _clonePriceListOption(
         catalogData['selected_price_list'] as Map<String, dynamic>?,
       );
+      final commercialPolicies = _commercialPoliciesFromCatalog(catalogData);
       final repricedCart = state.cartItems.isEmpty
           ? state.cartItems
           : _repriceCartItemsForCatalog(state.cartItems, items, bundles);
@@ -604,6 +634,10 @@ class PosNotifier extends StateNotifier<PosState> {
         availablePriceLists: priceLists,
         selectedPriceList: selectedPriceList,
         clearSelectedPriceList: selectedPriceList == null,
+        availableCommercialPolicies: commercialPolicies,
+        selectedCommercialPolicy: _reconcileSelectedPolicy(commercialPolicies),
+        clearSelectedCommercialPolicy:
+            _reconcileSelectedPolicy(commercialPolicies) == null,
         cartItems: repricedCart,
         isLoading: false,
       );
@@ -614,6 +648,33 @@ class PosNotifier extends StateNotifier<PosState> {
         clearError: false,
       );
     }
+  }
+
+  /// Extracts the typed commercial policy list from a `_loadCatalogData` map.
+  List<CommercialPolicy> _commercialPoliciesFromCatalog(
+    Map<String, dynamic> catalogData,
+  ) {
+    final raw = catalogData['commercial_policies'];
+    if (raw is List<CommercialPolicy>) {
+      return raw;
+    }
+    if (raw is List) {
+      return raw.whereType<CommercialPolicy>().toList();
+    }
+    return const [];
+  }
+
+  /// Keeps the currently selected policy only if it still exists in the freshly
+  /// loaded list (matched by `name`); otherwise returns null (Standard).
+  CommercialPolicy? _reconcileSelectedPolicy(List<CommercialPolicy> policies) {
+    final current = state.selectedCommercialPolicy;
+    if (current == null) return null;
+    for (final policy in policies) {
+      if (policy.name == current.name) {
+        return policy;
+      }
+    }
+    return null;
   }
 
   Future<void> loadProfiles() async {
@@ -639,6 +700,7 @@ class PosNotifier extends StateNotifier<PosState> {
         final selectedPriceList = _clonePriceListOption(
           catalogData['selected_price_list'] as Map<String, dynamic>?,
         );
+        final commercialPolicies = _commercialPoliciesFromCatalog(catalogData);
 
         state = state.copyWith(
           profiles: profiles,
@@ -648,6 +710,9 @@ class PosNotifier extends StateNotifier<PosState> {
           availablePriceLists: priceLists,
           selectedPriceList: selectedPriceList,
           clearSelectedPriceList: selectedPriceList == null,
+          availableCommercialPolicies: commercialPolicies,
+          clearSelectedCommercialPolicy: true,
+          clearPolicyReason: true,
           zeroShippingOverride: _zeroShippingDefaultForPriceList(
             selectedPriceList,
           ),
@@ -675,6 +740,9 @@ class PosNotifier extends StateNotifier<PosState> {
       clearSelectedDeliverySlot: true,
       clearSelectedPriceList: true,
       availablePriceLists: const [],
+      availableCommercialPolicies: const [],
+      clearSelectedCommercialPolicy: true,
+      clearPolicyReason: true,
       zeroShippingOverride: false,
     );
     try {
@@ -693,6 +761,7 @@ class PosNotifier extends StateNotifier<PosState> {
       final selectedPriceList = _clonePriceListOption(
         catalogData['selected_price_list'] as Map<String, dynamic>?,
       );
+      final commercialPolicies = _commercialPoliciesFromCatalog(catalogData);
       final repricedCart = state.cartItems.isEmpty
           ? state.cartItems
           : _repriceCartItemsForCatalog(state.cartItems, items, bundles);
@@ -703,6 +772,9 @@ class PosNotifier extends StateNotifier<PosState> {
         availablePriceLists: priceLists,
         selectedPriceList: selectedPriceList,
         clearSelectedPriceList: selectedPriceList == null,
+        availableCommercialPolicies: commercialPolicies,
+        clearSelectedCommercialPolicy: true,
+        clearPolicyReason: true,
         zeroShippingOverride: _zeroShippingDefaultForPriceList(
           selectedPriceList,
         ),
@@ -907,11 +979,14 @@ class PosNotifier extends StateNotifier<PosState> {
 
       overages.add({
         'item_code': itemCode,
-        'item_name': cartItem['item_name'] ?? catalogItem?['item_name'] ?? itemCode,
+        'item_name':
+            cartItem['item_name'] ?? catalogItem?['item_name'] ?? itemCode,
         'requested_qty': requestedQty,
         'available_qty': availableQty,
         'shortage_qty': requestedQty - availableQty,
-        'allow_negative_stock': _coerceBool(catalogItem?['allow_negative_stock']),
+        'allow_negative_stock': _coerceBool(
+          catalogItem?['allow_negative_stock'],
+        ),
         'source': 'item',
       });
     }
@@ -933,7 +1008,8 @@ class PosNotifier extends StateNotifier<PosState> {
     }
 
     final bundleQuantity = _coerceDouble(cartItem['quantity'], fallback: 1);
-    final catalogBundle = _catalogBundleForCartItem(cartItem, state.bundles) ??
+    final catalogBundle =
+        _catalogBundleForCartItem(cartItem, state.bundles) ??
         (bundleDetails['bundle_info'] is Map
             ? Map<String, dynamic>.from(bundleDetails['bundle_info'] as Map)
             : null);
@@ -950,14 +1026,16 @@ class PosNotifier extends StateNotifier<PosState> {
         }
 
         final entry = Map<String, dynamic>.from(rawEntry);
-        final itemCode = (entry['id'] ?? entry['item_code'])?.toString().trim() ?? '';
+        final itemCode =
+            (entry['id'] ?? entry['item_code'])?.toString().trim() ?? '';
         if (itemCode.isEmpty) {
           continue;
         }
 
         final catalogChild = _findBundleCatalogChild(catalogBundle, itemCode);
         final aggregate = selectedByItem.putIfAbsent(itemCode, () {
-          final rawAvailableQty = entry['actual_qty'] ??
+          final rawAvailableQty =
+              entry['actual_qty'] ??
               entry['qty'] ??
               catalogChild?['actual_qty'] ??
               catalogChild?['qty'];
@@ -969,7 +1047,8 @@ class PosNotifier extends StateNotifier<PosState> {
                 ? double.infinity
                 : _coerceDouble(rawAvailableQty),
             'allow_negative_stock': _coerceBool(
-              entry['allow_negative_stock'] ?? catalogChild?['allow_negative_stock'],
+              entry['allow_negative_stock'] ??
+                  catalogChild?['allow_negative_stock'],
             ),
             'source': 'bundle',
           };
@@ -1154,6 +1233,39 @@ class PosNotifier extends StateNotifier<PosState> {
     }
   }
 
+  /// Selects a commercial policy (Order Purpose). Passing null resets to
+  /// Standard. When the policy carries a price list, the catalog reprices via
+  /// [setSelectedPriceList] so the change mirrors the manual price-list flow.
+  Future<void> setCommercialPolicy(CommercialPolicy? policy) async {
+    if (policy == null) {
+      state = state.copyWith(
+        clearSelectedCommercialPolicy: true,
+        clearPolicyReason: true,
+        draftDirty: true,
+      );
+      _autoSaveDebounced();
+      return;
+    }
+
+    state = state.copyWith(selectedCommercialPolicy: policy, draftDirty: true);
+    _autoSaveDebounced();
+
+    final policyPriceList = policy.priceList?.trim() ?? '';
+    if (policyPriceList.isNotEmpty) {
+      await setSelectedPriceList(policyPriceList);
+    }
+  }
+
+  void setPolicyReason(String? reason) {
+    final normalized = reason?.trim() ?? '';
+    state = state.copyWith(
+      policyReason: normalized.isEmpty ? null : normalized,
+      clearPolicyReason: normalized.isEmpty,
+      draftDirty: true,
+    );
+    _autoSaveDebounced();
+  }
+
   void setZeroShippingOverride(bool value) {
     state = state.copyWith(zeroShippingOverride: value, draftDirty: true);
     _autoSaveDebounced();
@@ -1211,7 +1323,12 @@ class PosNotifier extends StateNotifier<PosState> {
 
   void clearCart() {
     // Simply clear the cart - shipping is handled separately, not as cart items
-    state = state.copyWith(cartItems: [], draftDirty: true);
+    state = state.copyWith(
+      cartItems: [],
+      clearSelectedCommercialPolicy: true,
+      clearPolicyReason: true,
+      draftDirty: true,
+    );
     _autoSaveDebounced();
   }
 
@@ -1499,12 +1616,16 @@ class PosNotifier extends StateNotifier<PosState> {
             : requestedPriceListName,
       ),
       _repository.getPosPriceLists(profileName),
+      _repository.getCommercialPolicies(profileName),
     ]);
 
     var items = List<Map<String, dynamic>>.from(initialResults[0] as List);
     var bundles = List<Map<String, dynamic>>.from(initialResults[1] as List);
     final priceLists = List<Map<String, dynamic>>.from(
       initialResults[2] as List,
+    );
+    final commercialPolicies = List<CommercialPolicy>.from(
+      initialResults[3] as List,
     );
 
     final selectedPriceList =
@@ -1528,6 +1649,7 @@ class PosNotifier extends StateNotifier<PosState> {
       'bundles': bundles,
       'price_lists': priceLists,
       'selected_price_list': selectedPriceList,
+      'commercial_policies': commercialPolicies,
     };
   }
 
@@ -2148,6 +2270,7 @@ class PosNotifier extends StateNotifier<PosState> {
       final selectedPriceList = _clonePriceListOption(
         catalogData['selected_price_list'] as Map<String, dynamic>?,
       );
+      final commercialPolicies = _commercialPoliciesFromCatalog(catalogData);
 
       final customer = _buildAmendmentCustomer(invoiceData);
       final deliverySlot = _buildAmendmentDeliverySlot(invoiceData);
@@ -2218,6 +2341,9 @@ class PosNotifier extends StateNotifier<PosState> {
         availablePriceLists: priceLists,
         selectedPriceList: selectedPriceList,
         clearSelectedPriceList: selectedPriceList == null,
+        availableCommercialPolicies: commercialPolicies,
+        clearSelectedCommercialPolicy: true,
+        clearPolicyReason: true,
         cartItems: builtCartItems,
         selectedCustomer: customer,
         clearSelectedCustomer: customer == null,
@@ -2406,6 +2532,9 @@ class PosNotifier extends StateNotifier<PosState> {
               posProfileOverride: posProfileOverride,
               expectedSourceGrandTotal: state.amendmentSourceGrandTotal,
               customDeliveryIncome: state.customDeliveryIncome,
+              orderPurpose: state.selectedCommercialPolicy?.orderPurpose,
+              commercialPolicy: state.selectedCommercialPolicy?.name,
+              policyReason: state.policyReason,
             )
           : await _repository.createInvoice(
               posProfile: effectivePosProfile,
@@ -2425,6 +2554,9 @@ class PosNotifier extends StateNotifier<PosState> {
               zeroShippingOverride: state.zeroShippingOverride,
               posProfileOverride: posProfileOverride,
               customDeliveryIncome: state.customDeliveryIncome,
+              orderPurpose: state.selectedCommercialPolicy?.orderPurpose,
+              commercialPolicy: state.selectedCommercialPolicy?.name,
+              policyReason: state.policyReason,
             );
 
       if (kDebugMode) {
@@ -2461,6 +2593,8 @@ class PosNotifier extends StateNotifier<PosState> {
         isPickup: false,
         selectedPriceList: defaultPriceList,
         clearSelectedPriceList: defaultPriceList == null,
+        clearSelectedCommercialPolicy: true,
+        clearPolicyReason: true,
         zeroShippingOverride: _zeroShippingDefaultForPriceList(
           defaultPriceList,
         ),
@@ -2526,6 +2660,8 @@ class PosNotifier extends StateNotifier<PosState> {
       isPickup: false,
       selectedPriceList: defaultPriceList,
       clearSelectedPriceList: defaultPriceList == null,
+      clearSelectedCommercialPolicy: true,
+      clearPolicyReason: true,
       zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
       isAmendmentDraft: false,
       clearAmendmentSourceInvoiceId: true,

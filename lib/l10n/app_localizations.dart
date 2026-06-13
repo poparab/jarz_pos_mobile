@@ -2170,6 +2170,48 @@ abstract class AppLocalizations {
   /// **'Default'**
   String get posCartPriceListDefaultChip;
 
+  /// No description provided for @posCartOrderPurposeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order purpose'**
+  String get posCartOrderPurposeLabel;
+
+  /// No description provided for @posCartOrderPurposeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply a commercial policy or keep this a standard order.'**
+  String get posCartOrderPurposeHint;
+
+  /// No description provided for @posCartOrderPurposeStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get posCartOrderPurposeStandard;
+
+  /// No description provided for @posCartOrderPurposeWaivesShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping income waived'**
+  String get posCartOrderPurposeWaivesShipping;
+
+  /// No description provided for @posCartOrderPurposeNoCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'No courier expense'**
+  String get posCartOrderPurposeNoCourier;
+
+  /// No description provided for @posCartOrderPurposeReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get posCartOrderPurposeReasonLabel;
+
+  /// No description provided for @posCartOrderPurposeReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note explaining why this purpose applies.'**
+  String get posCartOrderPurposeReasonHint;
+
   /// No description provided for @posCartZeroShippingTitle.
   ///
   /// In en, this message translates to:
@@ -6234,6 +6276,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Customer name is required'**
   String get customerNameRequired;
+
+  /// No description provided for @customerTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer type'**
+  String get customerTypeLabel;
+
+  /// No description provided for @customerTypeIndividual.
+  ///
+  /// In en, this message translates to:
+  /// **'Individual'**
+  String get customerTypeIndividual;
+
+  /// No description provided for @customerTypeCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get customerTypeCompany;
+
+  /// No description provided for @customerGroupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer group'**
+  String get customerGroupLabel;
+
+  /// No description provided for @customerGroupRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a customer group'**
+  String get customerGroupRequired;
 
   /// No description provided for @mobileNumberLabel.
   ///

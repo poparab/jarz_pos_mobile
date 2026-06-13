@@ -83,3 +83,27 @@ Map<String, dynamic> _$$CustomerImplToJson(_$CustomerImpl instance) =>
       'mobile_no': instance.mobileNo,
       'email_id': instance.emailId,
     };
+
+_$CommercialPolicyImpl _$$CommercialPolicyImplFromJson(
+  Map<String, dynamic> json,
+) => _$CommercialPolicyImpl(
+  name: json['name'] as String,
+  policyName: json['policy_name'] as String,
+  orderPurpose: json['order_purpose'] as String,
+  priceList: json['price_list'] as String?,
+  discountPercentage: (json['discount_percentage'] as num?)?.toDouble(),
+  waivesShippingIncome: json['waives_shipping_income'] as bool? ?? false,
+  noCourier: json['no_courier'] as bool? ?? false,
+);
+
+Map<String, dynamic> _$$CommercialPolicyImplToJson(
+  _$CommercialPolicyImpl instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'policy_name': instance.policyName,
+  'order_purpose': instance.orderPurpose,
+  'price_list': instance.priceList,
+  'discount_percentage': instance.discountPercentage,
+  'waives_shipping_income': instance.waivesShippingIncome,
+  'no_courier': instance.noCourier,
+};
