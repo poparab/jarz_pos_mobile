@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/dio_provider.dart';
+import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../domain/models/delivery_slot.dart';
 import '../models/pos_models.dart';
@@ -772,7 +773,11 @@ class PosRepository {
       if (kDebugMode) {
         debugPrint('❌ INVOICE CREATION ERROR: $e');
       }
-      throw Exception('Failed to create invoice: $e');
+      // Surface the real Frappe server message (e.g. a missing-price-list error)
+      // instead of a bare DioException / 417 status code.
+      throw Exception(
+        extractFrappeErrorMessage(e, fallback: 'Failed to create invoice'),
+      );
     }
   }
 
@@ -854,7 +859,9 @@ class PosRepository {
       if (kDebugMode) {
         debugPrint('❌ INVOICE AMENDMENT ERROR: $e');
       }
-      throw Exception('Failed to submit invoice amendment: $e');
+      throw Exception(
+        extractFrappeErrorMessage(e, fallback: 'Failed to submit invoice amendment'),
+      );
     }
   }
 
