@@ -494,6 +494,45 @@ class PosRepository {
     }
   }
 
+  /// Resolves the effective price list for [customer] (B2B tier).
+  ///
+  /// Mirrors [getCommercialPolicies]: manager-gated on the backend, best-effort
+  /// on the client. The backend walks Customer.default_price_list →
+  /// Customer Group.default_price_list and returns the resolved name, or null
+  /// when the customer has no tier price list configured.
+  ///
+  /// Returns the resolved price-list name, or `null` when none is configured /
+  /// on any error (non-manager, network failure, etc.) so the caller can simply
+  /// fall back to the POS default price list.
+  Future<String?> getCustomerPriceList(
+    String customer,
+    String posProfile,
+  ) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.resolveCustomerPriceList,
+        data: {
+          'customer': customer,
+          if (posProfile.trim().isNotEmpty) 'pos_profile': posProfile,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data['message'] != null) {
+        final message = Map<String, dynamic>.from(
+          response.data['message'] as Map,
+        );
+        return _normalizedOptionalString(message['price_list']);
+      }
+
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ Failed to resolve customer price list: $e');
+      }
+      return null;
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getSalesPartners({
     String? search,
     int limit = 10,

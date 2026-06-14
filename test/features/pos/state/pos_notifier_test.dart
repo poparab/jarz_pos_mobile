@@ -117,6 +117,12 @@ class _FakePosRepository extends PosRepository {
 
   @override
   Future<String?> getTerritoryPosProfile(String customerName) async => null;
+
+  @override
+  Future<String?> getCustomerPriceList(
+    String customer,
+    String posProfile,
+  ) async => null;
 }
 
 /// Fake DraftCartRepository that skips Hive initialisation in unit tests.

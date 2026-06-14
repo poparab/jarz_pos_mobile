@@ -24,6 +24,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.pos.get_pos_price_lists';
   static const getCommercialPolicies =
       '/api/method/jarz_pos.api.pos.get_commercial_policies';
+  static const resolveCustomerPriceList =
+      '/api/method/jarz_pos.api.pos.resolve_customer_price_list';
   static const getSalesPartners =
       '/api/method/jarz_pos.api.pos.get_sales_partners';
   static const isPosProfileOpen =

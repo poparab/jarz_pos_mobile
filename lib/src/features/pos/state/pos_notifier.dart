@@ -26,6 +26,10 @@ class PosState {
   final CommercialPolicy? selectedCommercialPolicy;
   // Optional free-text reason captured when a non-Standard purpose is selected.
   final String? policyReason;
+  // True when a customer-group-driven policy (e.g. B2B Supply) is active and the
+  // selected customer has NO tier price list configured on the backend. Lets the
+  // UI hint "this customer has no B2B price tier set". Always false otherwise.
+  final bool customerHasNoTierPriceList;
   final List<Map<String, dynamic>> cartItems;
   final Map<String, dynamic>? selectedCustomer;
   final DeliverySlot? selectedDeliverySlot;
@@ -66,6 +70,7 @@ class PosState {
     this.availableCommercialPolicies = const [],
     this.selectedCommercialPolicy,
     this.policyReason,
+    this.customerHasNoTierPriceList = false,
     this.cartItems = const [],
     this.selectedCustomer,
     this.selectedDeliverySlot,
@@ -97,6 +102,7 @@ class PosState {
     bool clearSelectedCommercialPolicy = false,
     String? policyReason,
     bool clearPolicyReason = false,
+    bool? customerHasNoTierPriceList,
     List<Map<String, dynamic>>? cartItems,
     Map<String, dynamic>? selectedCustomer,
     DeliverySlot? selectedDeliverySlot,
@@ -140,6 +146,8 @@ class PosState {
       policyReason: clearPolicyReason
           ? null
           : (policyReason ?? this.policyReason),
+      customerHasNoTierPriceList:
+          customerHasNoTierPriceList ?? this.customerHasNoTierPriceList,
       cartItems: cartItems ?? this.cartItems,
       selectedCustomer: clearSelectedCustomer
           ? null
@@ -246,6 +254,10 @@ class PosNotifier extends StateNotifier<PosState> {
   final PosRepository _repository;
   final DraftCartRepository _draftRepo;
   bool _isPrefetchingSlots = false; // Guard against concurrent prefetch
+  // Monotonic token for the customer-group-driven price-list resolution.
+  // Incremented on every customer/policy change so a stale async resolution
+  // (slow network + rapid re-selection) can detect it is outdated and bail.
+  int _priceListResolutionToken = 0;
 
   // ── Draft auto-save debounce ──────────────────────────────────────────
   static const _kAutoSaveDebounce = Duration(milliseconds: 400);
@@ -394,6 +406,7 @@ class PosNotifier extends StateNotifier<PosState> {
       clearSelectedPriceList: defaultPriceList == null,
       clearSelectedCommercialPolicy: true,
       clearPolicyReason: true,
+      customerHasNoTierPriceList: false,
       zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
       clearCurrentDraftId: true,
       draftDirty: false,
@@ -401,6 +414,8 @@ class PosNotifier extends StateNotifier<PosState> {
       clearAmendmentSourceInvoiceId: true,
       clearCustomDeliveryIncome: true,
     );
+    // Invalidate any in-flight tier resolution from the previous cart.
+    _priceListResolutionToken++;
     if (state.selectedProfile != null) {
       unawaited(refreshCatalog());
     }
@@ -460,6 +475,8 @@ class PosNotifier extends StateNotifier<PosState> {
         }
       }
 
+      // Invalidate any in-flight tier resolution from the previous cart.
+      _priceListResolutionToken++;
       state = state.copyWith(
         cartItems: List<Map<String, dynamic>>.from(target.cartItems),
         selectedCustomer: target.customer,
@@ -470,6 +487,7 @@ class PosNotifier extends StateNotifier<PosState> {
         clearSelectedPriceList: target.selectedPriceList == null,
         clearSelectedCommercialPolicy: true,
         clearPolicyReason: true,
+        customerHasNoTierPriceList: false,
         zeroShippingOverride: target.zeroShippingOverride,
         isPickup: target.isPickup,
         // Delivery slot is intentionally cleared on load; must be re-picked at checkout.
@@ -523,6 +541,7 @@ class PosNotifier extends StateNotifier<PosState> {
           clearSelectedPriceList: defaultPriceList == null,
           clearSelectedCommercialPolicy: true,
           clearPolicyReason: true,
+          customerHasNoTierPriceList: false,
           zeroShippingOverride: _zeroShippingDefaultForPriceList(
             defaultPriceList,
           ),
@@ -1195,8 +1214,16 @@ class PosNotifier extends StateNotifier<PosState> {
   void selectCustomer(Map<String, dynamic> customer) {
     // Simply select the customer without adding shipping to cart
     // Shipping will be handled separately in the UI total calculation
-    state = state.copyWith(selectedCustomer: customer, draftDirty: true);
+    state = state.copyWith(
+      selectedCustomer: customer,
+      // The previous customer's tier-missing hint no longer applies.
+      customerHasNoTierPriceList: false,
+      draftDirty: true,
+    );
     _autoSaveDebounced();
+    // Resolve the effective price list for the active policy now that we know
+    // which customer is selected (customer-group-driven tiers, e.g. B2B Supply).
+    unawaited(_applyEffectivePriceListForPolicy());
     // Trigger background prefetch of delivery slots (only if profile selected & not already cached)
     if (state.selectedProfile != null && state.deliverySlots.isEmpty) {
       _prefetchDeliverySlots();
@@ -1234,25 +1261,106 @@ class PosNotifier extends StateNotifier<PosState> {
   }
 
   /// Selects a commercial policy (Order Purpose). Passing null resets to
-  /// Standard. When the policy carries a price list, the catalog reprices via
-  /// [setSelectedPriceList] so the change mirrors the manual price-list flow.
+  /// Standard. The effective price list is resolved via
+  /// [_applyEffectivePriceListForPolicy] so fixed-price-list policies
+  /// (Employee/Sample) and customer-group-driven policies (B2B Supply) both
+  /// reprice the catalog correctly.
   Future<void> setCommercialPolicy(CommercialPolicy? policy) async {
     if (policy == null) {
       state = state.copyWith(
         clearSelectedCommercialPolicy: true,
         clearPolicyReason: true,
+        customerHasNoTierPriceList: false,
         draftDirty: true,
       );
       _autoSaveDebounced();
+      // Standard: reset to the POS default price list (drop any stale tier list).
+      await _applyEffectivePriceListForPolicy();
       return;
     }
 
-    state = state.copyWith(selectedCommercialPolicy: policy, draftDirty: true);
+    state = state.copyWith(
+      selectedCommercialPolicy: policy,
+      customerHasNoTierPriceList: false,
+      draftDirty: true,
+    );
     _autoSaveDebounced();
 
+    await _applyEffectivePriceListForPolicy();
+  }
+
+  /// Resolves and applies the effective price list for the currently selected
+  /// commercial policy. Called from both [setCommercialPolicy] and
+  /// [selectCustomer] so a price tier is applied whichever changes last.
+  ///
+  /// Rules:
+  ///  - No policy (Standard) → reset to the POS default price list.
+  ///  - Policy with a fixed `priceList` (Employee/Sample) → apply that list.
+  ///  - Policy with no `priceList` (customer-group-driven, e.g. B2B Supply):
+  ///      * customer selected → resolve via the backend; apply the resolved
+  ///        list, or fall back to the POS default and flag
+  ///        [PosState.customerHasNoTierPriceList] when none is configured.
+  ///      * no customer yet → no-op; resolution happens when a customer is set.
+  ///
+  /// Race-safe: captures a resolution token up front and ignores its async
+  /// result if the customer/policy changed in the meantime.
+  Future<void> _applyEffectivePriceListForPolicy() async {
+    final token = ++_priceListResolutionToken;
+    final policy = state.selectedCommercialPolicy;
+
+    // Standard (no policy): reset to default and clear any tier-missing hint.
+    if (policy == null) {
+      if (state.customerHasNoTierPriceList) {
+        state = state.copyWith(customerHasNoTierPriceList: false);
+      }
+      await setSelectedPriceList(null);
+      return;
+    }
+
     final policyPriceList = policy.priceList?.trim() ?? '';
+
+    // Fixed-price-list policy (Employee/Sample): apply it directly.
     if (policyPriceList.isNotEmpty) {
+      if (state.customerHasNoTierPriceList) {
+        state = state.copyWith(customerHasNoTierPriceList: false);
+      }
       await setSelectedPriceList(policyPriceList);
+      return;
+    }
+
+    // Customer-group-driven policy (e.g. B2B Supply): resolve per customer.
+    final customer = state.selectedCustomer;
+    final customerName = customer?['name']?.toString().trim() ?? '';
+    if (customerName.isEmpty) {
+      // No customer yet — defer; selectCustomer will re-trigger resolution.
+      return;
+    }
+
+    final posProfileName = state.selectedProfile?['name']?.toString() ?? '';
+    final resolved = await _repository.getCustomerPriceList(
+      customerName,
+      posProfileName,
+    );
+
+    // A newer customer/policy selection superseded this resolution — bail.
+    if (token != _priceListResolutionToken) {
+      return;
+    }
+    // The active policy is no longer customer-group-driven (changed mid-flight).
+    final currentPolicy = state.selectedCommercialPolicy;
+    if (currentPolicy == null ||
+        (currentPolicy.priceList?.trim().isNotEmpty ?? false)) {
+      return;
+    }
+
+    final resolvedList = resolved?.trim() ?? '';
+    if (resolvedList.isNotEmpty) {
+      state = state.copyWith(customerHasNoTierPriceList: false);
+      await setSelectedPriceList(resolvedList);
+    } else {
+      // No tier configured: keep the POS default and flag for the UI hint.
+      state = state.copyWith(customerHasNoTierPriceList: true);
+      await setSelectedPriceList(null);
     }
   }
 
@@ -1311,7 +1419,13 @@ class PosNotifier extends StateNotifier<PosState> {
     }
 
     // Simply clear the customer - no need to modify cart since shipping is not in cart anymore
-    state = state.copyWith(clearSelectedCustomer: true, draftDirty: true);
+    // Invalidate any in-flight tier resolution and drop the tier-missing hint.
+    _priceListResolutionToken++;
+    state = state.copyWith(
+      clearSelectedCustomer: true,
+      customerHasNoTierPriceList: false,
+      draftDirty: true,
+    );
     _autoSaveDebounced();
 
     if (kDebugMode) {
@@ -1323,10 +1437,12 @@ class PosNotifier extends StateNotifier<PosState> {
 
   void clearCart() {
     // Simply clear the cart - shipping is handled separately, not as cart items
+    _priceListResolutionToken++;
     state = state.copyWith(
       cartItems: [],
       clearSelectedCommercialPolicy: true,
       clearPolicyReason: true,
+      customerHasNoTierPriceList: false,
       draftDirty: true,
     );
     _autoSaveDebounced();
@@ -2649,6 +2765,7 @@ class PosNotifier extends StateNotifier<PosState> {
 
   // Explicit public method to start a new invoice manually (also clears sales partner)
   void startNewInvoice() {
+    _priceListResolutionToken++;
     final defaultPriceList = _defaultPriceListSelection();
     state = state.copyWith(
       cartItems: [],
@@ -2662,6 +2779,7 @@ class PosNotifier extends StateNotifier<PosState> {
       clearSelectedPriceList: defaultPriceList == null,
       clearSelectedCommercialPolicy: true,
       clearPolicyReason: true,
+      customerHasNoTierPriceList: false,
       zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
       isAmendmentDraft: false,
       clearAmendmentSourceInvoiceId: true,
