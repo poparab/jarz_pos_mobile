@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/app_routes.dart';
+import '../../../core/router.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/network/user_service.dart';
@@ -122,7 +122,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           if (chosen == null) return; // dismissed
                           ref.read(loginModeProvider.notifier).state = chosen;
                         }
-                        router.go(AppRoutes.pos);
+                        // Resolve the correct home (Kanban for Jarz POS Staff,
+                        // POS otherwise) before navigating.
+                        final roles =
+                            await ref.read(userRolesFutureProvider.future);
+                        if (!mounted) return;
+                        router.go(homeRouteFor(roles));
                       }
                     },
                     child: Text(context.l10n.authLoginTitle),

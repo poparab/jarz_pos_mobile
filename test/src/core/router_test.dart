@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/core/constants/app_routes.dart';
+import 'package:jarz_pos/src/core/constants/business_constants.dart';
+import 'package:jarz_pos/src/core/network/user_service.dart';
 import 'package:jarz_pos/src/core/router.dart';
 import 'package:jarz_pos/src/features/shift/models/shift_models.dart';
 
@@ -111,7 +113,7 @@ void main() {
     });
 
     test(
-      'should redirect authenticated login to POS before reading shift state',
+      'should redirect authenticated login to the root gate before reading shift state',
       () {
         var readAuthenticatedProvider = false;
 
@@ -132,7 +134,7 @@ void main() {
           },
         );
 
-        expect(result, AppRoutes.pos);
+        expect(result, AppRoutes.root);
         expect(readAuthenticatedProvider, isFalse);
       },
     );
@@ -151,5 +153,28 @@ void main() {
         expect(result, AppRoutes.shiftStart);
       },
     );
+  });
+
+  group('home route resolution', () {
+    UserRoles rolesWith(List<String> roles) =>
+        UserRoles(user: 'u@x.com', roles: roles);
+
+    test('staff without a manager role lands on Kanban', () {
+      final roles = rolesWith([RoleNames.jarzPosStaff]);
+      expect(roles.landsOnKanban, isTrue);
+      expect(homeRouteFor(roles), AppRoutes.kanban);
+    });
+
+    test('staff who is also a manager keeps POS (manager wins)', () {
+      final roles = rolesWith([RoleNames.jarzPosStaff, RoleNames.jarzManager]);
+      expect(roles.landsOnKanban, isFalse);
+      expect(homeRouteFor(roles), AppRoutes.pos);
+    });
+
+    test('non-staff lands on POS', () {
+      final roles = rolesWith([RoleNames.posManager]);
+      expect(roles.landsOnKanban, isFalse);
+      expect(homeRouteFor(roles), AppRoutes.pos);
+    });
   });
 }

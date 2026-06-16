@@ -100,7 +100,9 @@ String? resolveRouterRedirect({
   final isOnProfileSelection = location == AppRoutes.selectProfile;
 
   if (!isAuthenticated && !isOnLogin) return AppRoutes.login;
-  if (isAuthenticated && isOnLogin) return AppRoutes.pos;
+  // Send freshly-authenticated users to the root landing gate, which resolves
+  // the correct home (Kanban for Jarz POS Staff, POS otherwise) once roles load.
+  if (isAuthenticated && isOnLogin) return AppRoutes.root;
 
   if (!isAuthenticated) return null;
 
@@ -144,9 +146,20 @@ String? resolveRouterRedirect({
   return null;
 }
 
+/// The home route for a user based on their roles: Kanban for Jarz POS Staff
+/// (who are not managers), POS for everyone else.
+String homeRouteFor(UserRoles roles) =>
+    roles.landsOnKanban ? AppRoutes.kanban : AppRoutes.pos;
+
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(currentAuthStateProvider);
   final isAuthenticated = authState;
+
+  // Re-run redirects when the user's roles finish loading (e.g. on cold start
+  // with a saved session) so the landing gate can resolve the correct home.
+  final rolesRefresh = ValueNotifier<int>(0);
+  ref.listen(userRolesFutureProvider, (_, _) => rolesRefresh.value++);
+  ref.onDispose(rolesRefresh.dispose);
 
   // Expose a RouteObserver so screens can respond to navigation lifecycle (e.g., refresh on return)
   // Keep a single observer instance; safe to reuse across router rebuilds
@@ -154,8 +167,10 @@ final routerProvider = Provider<GoRouter>((ref) {
   // (Declared outside function in actual file scope)
 
   return GoRouter(
-    // On startup: if authenticated, land on POS main screen
-    initialLocation: isAuthenticated ? AppRoutes.pos : AppRoutes.login,
+    // On startup: if authenticated, land on the root gate which resolves the
+    // correct home (Kanban for Jarz POS Staff, POS otherwise) once roles load.
+    initialLocation: isAuthenticated ? AppRoutes.root : AppRoutes.login,
+    refreshListenable: rolesRefresh,
     redirect: (context, state) {
       // NOTE: We do NOT redirect non-POS/shift screens when no profile is selected.
       // Kanban, Trips, Expenses, and Courier screens can operate across all accessible
@@ -285,9 +300,28 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.root,
-        redirect: (context, state) => AppRoutes.pos,
+        builder: (context, state) => const _LandingGateScreen(),
+        redirect: (context, state) {
+          if (!ref.read(currentAuthStateProvider)) return AppRoutes.login;
+          final rolesAsync = ref.read(userRolesFutureProvider);
+          // Stay on the gate (spinner) until roles are known.
+          if (!rolesAsync.hasValue) return null;
+          return homeRouteFor(rolesAsync.requireValue);
+        },
       ),
     ],
     navigatorKey: rootNavigatorKey,
   );
 });
+
+/// Minimal splash shown while the landing gate resolves the user's home route.
+class _LandingGateScreen extends StatelessWidget {
+  const _LandingGateScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+}

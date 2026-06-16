@@ -66,6 +66,7 @@ abstract final class RoleNames {
   static const systemManager = 'System Manager';
   static const administrator = 'Administrator';
   static const moderator = 'Moderator';
+  static const jarzPosStaff = 'Jarz POS Staff';
 }
 
 // ── Cancel reasons (defaults — will later be fetched from backend) ─────

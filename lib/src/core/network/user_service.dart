@@ -33,6 +33,11 @@ class UserRoles {
       roles.contains(RoleNames.administrator);
   bool get canAccessManagerDashboard =>
       isJarzManager || isLineManager || isAdminManager;
+  bool get isJarzPosStaff => roles.contains(RoleNames.jarzPosStaff);
+
+  /// Lands on the Kanban board (instead of POS) only when the user is
+  /// Jarz POS Staff AND not a manager — managers keep the POS home.
+  bool get landsOnKanban => isJarzPosStaff && !canAccessManagerDashboard;
   bool get canAccessShiftMonitor => isJarzManager || isAdminManager;
   bool get isModerator => roles.contains(RoleNames.moderator);
   bool get canMuteNotifications =>
