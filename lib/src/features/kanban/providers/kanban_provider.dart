@@ -268,6 +268,22 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     }
   }
 
+  void _patchInvoiceWooOrderId(String invoiceId, int wooOrderId) {
+    final current = Map<String, List<InvoiceCard>>.from(state.invoices);
+    for (final entry in current.entries) {
+      final list = List<InvoiceCard>.from(entry.value);
+      final index =
+          list.indexWhere((card) => card.id == invoiceId || card.name == invoiceId);
+      if (index < 0) {
+        continue;
+      }
+      list[index] = list[index].copyWith(wooOrderId: wooOrderId);
+      current[entry.key] = list;
+      state = state.copyWith(invoices: _sortReceivedColumn(current));
+      return;
+    }
+  }
+
   Future<void> _initializeKanban() async {
     await loadColumns();
     await loadInvoices(immediate: true);
@@ -286,6 +302,12 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         final eventName = (event['event'] ?? '').toString().toLowerCase();
         final paymentChanged = const [true, 1, '1', 'true', 'True']
             .contains(event['payment_changed']);
+
+        final wooId = event['woo_order_id'];
+        if (wooId != null && invoiceId != null) {
+          _patchInvoiceWooOrderId(invoiceId, (wooId as num).toInt());
+          return;
+        }
 
         if (eventName == 'invoice_note_added' && invoiceId != null) {
           final noteCount = event['note_count'] is int
