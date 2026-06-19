@@ -7,6 +7,7 @@ param(
     [switch]$SkipMigrate,
     [switch]$SkipBackup,
     [switch]$ForceReinstallApps,
+    [switch]$ForceMigrate,
     [switch]$Yes,
     [string]$SshKeyPath
 )
@@ -314,11 +315,15 @@ Write-Host ''
 $changedApps = @($gitTargets | Where-Object { $_.Changed })
 $changedAppNames = @($changedApps | ForEach-Object { $_.AppName })
 
-if ($changedAppNames.Count -eq 0) {
+if ($changedAppNames.Count -eq 0 -and -not $ForceMigrate) {
     Write-Info 'No custom app commits changed on the target server. Skipping reinstall, asset relink, migrate, cache clear, and service restart.'
     Write-Host ''
 }
 else {
+    if ($changedAppNames.Count -eq 0) {
+        Write-Info 'No custom app commits changed, but -ForceMigrate was set: running migrate, cache clear, and service restart (e.g. fixture/schema changes already on the server but not yet migrated).'
+        Write-Host ''
+    }
     Write-Step 'Installing custom apps in backend and workers...'
     $appsNeedingInstall = @($gitTargets | Where-Object { $_.RequiresPipInstall } | ForEach-Object { $_.AppName })
     if ($appsNeedingInstall.Count -gt 0) {
