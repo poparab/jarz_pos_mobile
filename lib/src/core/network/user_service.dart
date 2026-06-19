@@ -13,6 +13,8 @@ class UserRoles {
   final String? employeeName;
   final String? branch;
   final bool requirePosShift;
+  final bool isB2bSalesRep;
+  final bool canAccessB2b;
 
   const UserRoles({
     required this.user,
@@ -22,6 +24,8 @@ class UserRoles {
     this.employeeName,
     this.branch,
     this.requirePosShift = false,
+    this.isB2bSalesRep = false,
+    this.canAccessB2b = false,
   });
 
   bool get isJarzManager => roles.contains(RoleNames.jarzManager);
@@ -43,6 +47,19 @@ class UserRoles {
   bool get canMuteNotifications =>
       isJarzManager || isLineManager || isModerator;
 
+  /// Whether this user is a dedicated B2B sales rep (lands in B2B mode and is
+  /// blocked from the B2C POS/Kanban flows). Falls back to the role name when
+  /// the backend flag is absent.
+  bool get isB2bRep =>
+      isB2bSalesRep || roles.contains(RoleNames.b2bSalesRep);
+
+  /// Whether this user can use B2B mode at all (sales reps + managers).
+  bool get canUseB2b => canAccessB2b || isB2bRep;
+
+  /// A B2B rep who is NOT a manager lands in B2B mode and cannot reach the
+  /// B2C POS/Kanban flows. Managers keep their normal landing but get a switch.
+  bool get landsOnB2b => isB2bRep && !canAccessManagerDashboard;
+
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
     final rolesList = rolesRaw is List
@@ -57,6 +74,10 @@ class UserRoles {
       branch: json['branch']?.toString(),
       requirePosShift:
           json['require_pos_shift'] == true || json['require_pos_shift'] == 1,
+      isB2bSalesRep:
+          json['is_b2b_sales_rep'] == true || json['is_b2b_sales_rep'] == 1,
+      canAccessB2b:
+          json['can_access_b2b'] == true || json['can_access_b2b'] == 1,
     );
   }
 }
@@ -135,6 +156,15 @@ final canAccessShiftMonitorProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canAccessShiftMonitor,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user can access B2B mode (sales reps + managers).
+final canAccessB2bProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canUseB2b,
     orElse: () => false,
   );
 });

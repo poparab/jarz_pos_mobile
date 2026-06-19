@@ -25,4 +25,10 @@ abstract final class AppRoutes {
   static const shiftStart = '/shift/start';
   static const shiftEnd = '/shift/end';
   static const root = '/';
+
+  // ── B2B Mode ──────────────────────────────────────────────────────────
+  static const b2b = '/b2b';
+  static const b2bToday = '/b2b/today';
+  static const b2bLeadAdd = '/b2b/lead/add';
+  static const b2bAccount = '/b2b/account';
 }

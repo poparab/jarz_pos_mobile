@@ -269,6 +269,19 @@ abstract final class ApiEndpoints {
   static const markTripAsDelivered =
       '/api/method/jarz_pos.api.trips.mark_trip_as_delivered';
 
+  // ── B2B CRM ───────────────────────────────────────────────────────────
+  static const getB2bPipeline =
+      '/api/method/jarz_pos.api.crm.get_b2b_pipeline';
+  static const getB2bAccount = '/api/method/jarz_pos.api.crm.get_account';
+  static const b2bAdvanceStage = '/api/method/jarz_pos.api.crm.advance_stage';
+  static const b2bCreateLead = '/api/method/jarz_pos.api.crm.create_lead';
+  static const b2bLogActivity = '/api/method/jarz_pos.api.crm.log_activity';
+  static const getB2bFollowups =
+      '/api/method/jarz_pos.api.crm.get_my_followups';
+  static const getB2bReorderDue = '/api/method/jarz_pos.api.crm.get_reorder_due';
+  static const b2bRequestSample = '/api/method/jarz_pos.api.crm.request_sample';
+  static const b2bPlaceOrder = '/api/method/jarz_pos.api.crm.place_b2b_order';
+
   // ── Custom Shipping ───────────────────────────────────────────────────
   static const requestCustomShipping =
       '/api/method/jarz_pos.api.custom_shipping.request_custom_shipping';

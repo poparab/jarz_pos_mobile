@@ -28,8 +28,12 @@ final dynamicCustomerSearchProvider =
       // final isPhoneSearch = RegExp(r'^[0-9+\-\s()]+$').hasMatch(query.trim());
 
       try {
-        // Use the same search method but the backend will handle different search types
-        return await repository.searchCustomers(query);
+        // B2C POS must only surface Individual customers; Company (B2B)
+        // accounts are handled exclusively in B2B mode.
+        return await repository.searchCustomers(
+          query,
+          customerType: 'Individual',
+        );
       } catch (e) {
         return [];
       }

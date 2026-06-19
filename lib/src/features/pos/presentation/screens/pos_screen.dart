@@ -17,6 +17,7 @@ import '../../state/courier_balances_provider.dart';
 // Merged system status: connectivity, realtime, sync, couriers, partner chip
 // Removed unused system status imports (connectivity, sync, websocket) to satisfy analyzer.
 import '../../state/pos_notifier.dart';
+import '../../data/models/pos_models.dart';
 import '../widgets/customer_search_widget.dart';
 import '../widgets/draft_tabs_bar.dart';
 import '../widgets/sales_partner_selector.dart';
@@ -91,6 +92,45 @@ class _PosScreenState extends ConsumerState<PosScreen>
     );
   }
 
+  /// Applies a B2B binding passed via [PosScreen.launchData]:
+  /// `{mode: 'b2b_order', customer, order_purpose, price_list}`.
+  /// Preselects the customer and selects the
+  /// commercial policy whose order purpose matches the binding, so the order is
+  /// placed through the normal invoice-creation path (and lands on the dispatch
+  /// Kanban automatically).
+  void _applyB2bBinding() {
+    final launchData = widget.launchData;
+    if (launchData?['mode']?.toString() != 'b2b_order') return;
+
+    final customer = launchData?['customer']?.toString().trim() ?? '';
+    final orderPurpose = launchData?['order_purpose']?.toString().trim() ?? '';
+    if (customer.isEmpty) return;
+
+    final notifier = ref.read(posNotifierProvider.notifier);
+
+    notifier.selectCustomer({
+      'name': customer,
+      'customer_name': launchData?['customer_name']?.toString() ?? customer,
+      if (launchData?['mobile_no'] != null)
+        'mobile_no': launchData!['mobile_no'].toString(),
+    });
+
+    if (orderPurpose.isNotEmpty) {
+      final policies = ref.read(posNotifierProvider).availableCommercialPolicies;
+      CommercialPolicy? match;
+      for (final policy in policies) {
+        if (policy.orderPurpose.trim().toLowerCase() ==
+            orderPurpose.toLowerCase()) {
+          match = policy;
+          break;
+        }
+      }
+      if (match != null) {
+        unawaited(notifier.setCommercialPolicy(match));
+      }
+    }
+  }
+
   Widget _wrapWithAmendmentCleanupGuard(Widget child) {
     if (_amendmentInvoiceId() == null) {
       return child;
@@ -153,6 +193,10 @@ class _PosScreenState extends ConsumerState<PosScreen>
       } else {
         ref.read(posNotifierProvider.notifier).refreshCatalog();
       }
+
+      // B2B binding: a sample/order started from B2B mode preselects the
+      // customer and applies the matching commercial policy (order purpose).
+      _applyB2bBinding();
     });
   }
 

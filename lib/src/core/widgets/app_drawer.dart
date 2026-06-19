@@ -19,6 +19,7 @@ class AppDrawer extends ConsumerWidget {
     final l10n = context.l10n;
     final isLineManager = ref.watch(isLineManagerProvider);
     final isModerator = ref.watch(isModeratorProvider);
+    final canAccessB2b = ref.watch(canAccessB2bProvider);
     final canAccessManagerDashboardRole = ref.watch(
       canAccessManagerDashboardRoleProvider,
     );
@@ -111,6 +112,15 @@ class AppDrawer extends ConsumerWidget {
               context.go(AppRoutes.kanban);
             },
           ),
+          if (canAccessB2b)
+            ListTile(
+              leading: const Icon(Icons.handshake_outlined),
+              title: const Text('B2B Mode'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go(AppRoutes.b2b);
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.local_shipping_outlined),
             title: Text(l10n.menuDeliveryTrips),

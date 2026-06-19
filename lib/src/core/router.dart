@@ -30,6 +30,10 @@ import '../features/reports/presentation/reports_screen.dart';
 import '../features/master_orders/presentation/master_orders_screen.dart';
 import 'network/user_service.dart';
 import '../features/about/presentation/screens/about_screen.dart';
+import '../features/b2b/presentation/screens/b2b_pipeline_screen.dart';
+import '../features/b2b/presentation/screens/b2b_account_screen.dart';
+import '../features/b2b/presentation/screens/b2b_lead_add_screen.dart';
+import '../features/b2b/presentation/screens/b2b_today_screen.dart';
 
 import '../features/shift/state/shift_notifier.dart';
 import '../features/shift/models/shift_models.dart';
@@ -146,10 +150,44 @@ String? resolveRouterRedirect({
   return null;
 }
 
-/// The home route for a user based on their roles: Kanban for Jarz POS Staff
-/// (who are not managers), POS for everyone else.
-String homeRouteFor(UserRoles roles) =>
-    roles.landsOnKanban ? AppRoutes.kanban : AppRoutes.pos;
+/// The home route for a user based on their roles:
+///  - dedicated B2B sales reps (non-managers) land in B2B mode,
+///  - Jarz POS Staff (non-managers) land on the dispatch Kanban,
+///  - everyone else (incl. managers) lands on POS.
+String homeRouteFor(UserRoles roles) {
+  if (roles.landsOnB2b) return AppRoutes.b2b;
+  if (roles.landsOnKanban) return AppRoutes.kanban;
+  return AppRoutes.pos;
+}
+
+/// Enforces B2B/B2C separation by role once roles are known:
+///  - A dedicated B2B rep (non-manager) cannot reach the B2C POS/Kanban flows
+///    and is redirected to B2B mode.
+///  - A non-B2B user (e.g. a cashier) cannot reach `/b2b` and is sent home.
+/// Managers can reach both (they own the mode switch), so no redirect applies.
+/// Returns null when no redirect is needed.
+@visibleForTesting
+String? resolveB2bRedirect({
+  required UserRoles roles,
+  required String location,
+}) {
+  final isOnB2b = location.startsWith(AppRoutes.b2b);
+  final isOnB2c = location == AppRoutes.pos ||
+      location == AppRoutes.kanban ||
+      location == AppRoutes.selectProfile;
+
+  // Dedicated B2B rep: locked out of the B2C flows.
+  if (roles.landsOnB2b && isOnB2c) {
+    return AppRoutes.b2b;
+  }
+
+  // Non-B2B user trying to open B2B mode → send to their home.
+  if (isOnB2b && !roles.canUseB2b) {
+    return homeRouteFor(roles);
+  }
+
+  return null;
+}
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(currentAuthStateProvider);
@@ -176,7 +214,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Kanban, Trips, Expenses, and Courier screens can operate across all accessible
       // profiles without requiring a single selection. Profile selection is only mandatory
       // for POS order creation and authenticated shift management.
-      return resolveRouterRedirect(
+      final baseRedirect = resolveRouterRedirect(
         isAuthenticated: isAuthenticated,
         location: state.matchedLocation,
         readRequirePosShift: () => ref.read(requirePosShiftProvider),
@@ -184,6 +222,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         readSelectedProfile: () =>
             ref.read(posNotifierProvider.select((s) => s.selectedProfile)),
       );
+      if (baseRedirect != null) return baseRedirect;
+
+      // Enforce B2B/B2C separation once roles are known.
+      if (isAuthenticated) {
+        final rolesAsync = ref.read(userRolesFutureProvider);
+        final roles = rolesAsync.valueOrNull;
+        if (roles != null) {
+          return resolveB2bRedirect(
+            roles: roles,
+            location: state.matchedLocation,
+          );
+        }
+      }
+      return null;
     },
     observers: [routeObserver],
     routes: [
@@ -287,6 +339,35 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.profile,
         name: 'profile',
         builder: (context, state) => const UserProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.b2b,
+        name: 'b2b',
+        builder: (context, state) => const B2bPipelineScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.b2bToday,
+        name: 'b2b-today',
+        builder: (context, state) => const B2bTodayScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.b2bLeadAdd,
+        name: 'b2b-lead-add',
+        builder: (context, state) => const B2bLeadAddScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.b2bAccount,
+        name: 'b2b-account',
+        builder: (context, state) {
+          final extra = state.extra;
+          final data = extra is Map
+              ? Map<String, dynamic>.from(extra)
+              : const <String, dynamic>{};
+          return B2bAccountScreen(
+            doctype: (data['doctype'] ?? 'Lead').toString(),
+            name: (data['name'] ?? '').toString(),
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.shiftStart,

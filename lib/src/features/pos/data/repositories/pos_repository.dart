@@ -555,14 +555,25 @@ class PosRepository {
     }
   }
 
-  Future<List<Map<String, dynamic>>> searchCustomers(String query) async {
+  /// Searches customers. [customerType] (optional) constrains results to
+  /// "Individual" or "Company"; pass null for all. The B2C POS customer search
+  /// passes "Individual" so Company (B2B) accounts never appear in POS, while
+  /// B2B mode passes "Company".
+  Future<List<Map<String, dynamic>>> searchCustomers(
+    String query, {
+    String? customerType,
+  }) async {
     try {
       // Check if query contains only digits/phone characters (phone search) or contains letters (name search)
       final isPhoneSearch = RegExp(r'^[0-9+\-\s()]+$').hasMatch(query.trim());
 
       final response = await _dio.post(
         ApiEndpoints.searchCustomers,
-        data: isPhoneSearch ? {'phone': query} : {'name': query},
+        data: {
+          ...(isPhoneSearch ? {'phone': query} : {'name': query}),
+          if (customerType != null && customerType.isNotEmpty)
+            'customer_type': customerType,
+        },
       );
 
       if (response.statusCode == 200 && response.data['message'] != null) {
