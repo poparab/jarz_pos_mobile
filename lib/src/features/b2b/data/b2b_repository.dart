@@ -10,6 +10,11 @@ final b2bRepositoryProvider = Provider<B2bRepository>((ref) {
   return B2bRepository(dio);
 });
 
+/// Lead Source name strings for the lead-add Source dropdown.
+final b2bLeadSourcesProvider = FutureProvider<List<String>>((ref) async {
+  return ref.watch(b2bRepositoryProvider).getLeadSources();
+});
+
 /// HTTP repository for the B2B CRM (`jarz_pos.api.crm.*`). Every call requires
 /// B2B access on the backend, which throws otherwise.
 class B2bRepository {
@@ -96,6 +101,16 @@ class B2bRepository {
     );
     final payload = _asMap(_unwrap(response));
     return (payload['name'] ?? '').toString();
+  }
+
+  /// Returns the list of Lead Source name strings for the source dropdown.
+  Future<List<String>> getLeadSources() async {
+    final response = await _dio.post(ApiEndpoints.getLeadSources, data: {});
+    final raw = _unwrap(response);
+    return (raw as List? ?? const [])
+        .map((e) => e.toString())
+        .where((e) => e.isNotEmpty)
+        .toList();
   }
 
   /// Logs an activity note against an account.

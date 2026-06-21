@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../pos/presentation/widgets/customer_search_widget.dart'
+    show territoriesProvider;
 import '../../data/b2b_repository.dart';
 import '../../data/models/b2b_models.dart';
 import '../b2b_order_launch.dart';
@@ -225,73 +227,147 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
   Future<_LeadCustomerFields?> _promptLeadCustomerFields(
     B2bAccount account,
   ) {
-    final nameCtrl = TextEditingController(text: account.title);
-    final mobileCtrl =
-        TextEditingController(text: account.contact.mobileNo ?? '');
-    final addressCtrl = TextEditingController();
-    final territoryCtrl = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
     return showDialog<_LeadCustomerFields>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Create customer for lead'),
-        content: SingleChildScrollView(
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Customer name'),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-                TextFormField(
-                  controller: mobileCtrl,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(labelText: 'Mobile'),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-                TextFormField(
-                  controller: addressCtrl,
-                  decoration: const InputDecoration(labelText: 'Address'),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-                TextFormField(
-                  controller: territoryCtrl,
-                  decoration: const InputDecoration(labelText: 'Territory'),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-              ],
-            ),
+      builder: (ctx) => _LeadCustomerDialog(account: account),
+    );
+  }
+}
+
+/// Create-customer dialog for a Lead with no linked Customer. Territory is a
+/// dropdown sourced from [territoriesProvider]; all fields are required.
+class _LeadCustomerDialog extends ConsumerStatefulWidget {
+  final B2bAccount account;
+  const _LeadCustomerDialog({required this.account});
+
+  @override
+  ConsumerState<_LeadCustomerDialog> createState() =>
+      _LeadCustomerDialogState();
+}
+
+class _LeadCustomerDialogState extends ConsumerState<_LeadCustomerDialog> {
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _mobileCtrl;
+  final _addressCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  String? _territory;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.account.title);
+    _mobileCtrl =
+        TextEditingController(text: widget.account.contact.mobileNo ?? '');
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _mobileCtrl.dispose();
+    _addressCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Create customer for lead'),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nameCtrl,
+                decoration: const InputDecoration(labelText: 'Customer name'),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+              ),
+              TextFormField(
+                controller: _mobileCtrl,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(labelText: 'Mobile'),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+              ),
+              TextFormField(
+                controller: _addressCtrl,
+                decoration: const InputDecoration(labelText: 'Address'),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+              ),
+              _buildTerritoryField(),
+            ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (!(formKey.currentState?.validate() ?? false)) return;
-              Navigator.pop(
-                ctx,
-                _LeadCustomerFields(
-                  customerName: nameCtrl.text.trim(),
-                  mobileNo: mobileCtrl.text.trim(),
-                  address: addressCtrl.text.trim(),
-                  territoryId: territoryCtrl.text.trim(),
-                ),
-              );
-            },
-            child: const Text('Continue'),
-          ),
-        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (!(_formKey.currentState?.validate() ?? false)) return;
+            Navigator.pop(
+              context,
+              _LeadCustomerFields(
+                customerName: _nameCtrl.text.trim(),
+                mobileNo: _mobileCtrl.text.trim(),
+                address: _addressCtrl.text.trim(),
+                territoryId: _territory!.trim(),
+              ),
+            );
+          },
+          child: const Text('Continue'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTerritoryField() {
+    final territoriesAsync = ref.watch(territoriesProvider(null));
+    return territoriesAsync.when(
+      data: (territories) => DropdownButtonFormField<String>(
+        initialValue: _territory,
+        isExpanded: true,
+        menuMaxHeight: 320,
+        decoration: const InputDecoration(labelText: 'Territory'),
+        items: territories.map<DropdownMenuItem<String>>((territory) {
+          final name = territory['name']?.toString() ?? '';
+          final label = (territory['territory_name_ar'] ??
+                  territory['territory_name'] ??
+                  name)
+              .toString();
+          return DropdownMenuItem<String>(
+            value: name,
+            child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+          );
+        }).toList(),
+        onChanged: (value) => setState(() => _territory = value),
+        validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+      ),
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Row(
+          children: [
+            SizedBox(
+              height: 18,
+              width: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 12),
+            Text('Loading territories…'),
+          ],
+        ),
+      ),
+      error: (_, _) => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Text(
+          'Failed to load territories',
+          style: TextStyle(color: Colors.red),
+        ),
       ),
     );
   }
@@ -330,6 +406,10 @@ class _AccountBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Reserve room for the pinned action bar plus the bottom system inset so
+    // the last list content is never hidden behind the bar.
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    final trailingSpacer = 80.0 + bottomInset;
     return Stack(
       children: [
         ListView(
@@ -404,7 +484,7 @@ class _AccountBody extends StatelessWidget {
                       )
                       .toList(),
             ),
-            const SizedBox(height: 80),
+            SizedBox(height: trailingSpacer),
           ],
         ),
         Positioned(
@@ -413,34 +493,37 @@ class _AccountBody extends StatelessWidget {
           bottom: 0,
           child: Material(
             elevation: 8,
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                alignment: WrapAlignment.center,
-                children: [
-                  FilledButton.icon(
-                    onPressed: busy ? null : onSendSample,
-                    icon: const Icon(Icons.science_outlined),
-                    label: const Text('Send sample'),
-                  ),
-                  FilledButton.icon(
-                    onPressed: busy ? null : onPlaceOrder,
-                    icon: const Icon(Icons.shopping_cart_outlined),
-                    label: const Text('Place order'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: busy ? null : onLogCall,
-                    icon: const Icon(Icons.call),
-                    label: const Text('Log call'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: busy ? null : onMarkLost,
-                    icon: const Icon(Icons.block),
-                    label: const Text('Mark lost'),
-                  ),
-                ],
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    FilledButton.icon(
+                      onPressed: busy ? null : onSendSample,
+                      icon: const Icon(Icons.science_outlined),
+                      label: const Text('Send sample'),
+                    ),
+                    FilledButton.icon(
+                      onPressed: busy ? null : onPlaceOrder,
+                      icon: const Icon(Icons.shopping_cart_outlined),
+                      label: const Text('Place order'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: busy ? null : onLogCall,
+                      icon: const Icon(Icons.call),
+                      label: const Text('Log call'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: busy ? null : onMarkLost,
+                      icon: const Icon(Icons.block),
+                      label: const Text('Mark lost'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

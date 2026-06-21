@@ -281,6 +281,8 @@ abstract final class ApiEndpoints {
   static const getB2bReorderDue = '/api/method/jarz_pos.api.crm.get_reorder_due';
   static const b2bRequestSample = '/api/method/jarz_pos.api.crm.request_sample';
   static const b2bPlaceOrder = '/api/method/jarz_pos.api.crm.place_b2b_order';
+  static const getLeadSources =
+      '/api/method/jarz_pos.api.crm.get_lead_sources';
 
   // ── Custom Shipping ───────────────────────────────────────────────────
   static const requestCustomShipping =
