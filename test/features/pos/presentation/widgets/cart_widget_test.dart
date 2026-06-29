@@ -120,7 +120,14 @@ void main() {
           findsOneWidget,
         );
 
-        final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        // The promo section also renders an ElevatedButton ("Apply"), so scope
+        // the lookup to the amendment/checkout button via its label.
+        final button = tester.widget<ElevatedButton>(
+          find.ancestor(
+            of: find.text('Submit Amendment'),
+            matching: find.byType(ElevatedButton),
+          ),
+        );
         expect(button.onPressed, isNotNull);
       },
     );
@@ -141,7 +148,14 @@ void main() {
           findsOneWidget,
         );
 
-        final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        // The promo section also renders an ElevatedButton ("Apply"), so scope
+        // the lookup to the amendment/checkout button via its label.
+        final button = tester.widget<ElevatedButton>(
+          find.ancestor(
+            of: find.text('Submit Amendment'),
+            matching: find.byType(ElevatedButton),
+          ),
+        );
         expect(button.onPressed, isNull);
       },
     );

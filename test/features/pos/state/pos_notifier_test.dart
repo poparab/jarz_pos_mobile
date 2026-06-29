@@ -82,6 +82,7 @@ class _FakePosRepository extends PosRepository {
     String? orderPurpose,
     String? commercialPolicy,
     String? policyReason,
+    List<String> promoCodes = const [],
   }) async {
     createInvoiceCalls += 1;
     return {'invoice_name': 'INV-NEW-001'};
