@@ -56,6 +56,8 @@ abstract final class ApiEndpoints {
   // ── Invoices ──────────────────────────────────────────────────────────
   static const createPosInvoice =
       '/api/method/jarz_pos.api.invoices.create_pos_invoice';
+  static const validatePromoCodes =
+      '/api/method/jarz_pos.api.promo.validate_promo_codes';
   static const submitInvoiceAmendment =
       '/api/method/jarz_pos.api.manager.submit_invoice_amendment';
   static const payInvoice = '/api/method/jarz_pos.api.invoices.pay_invoice';

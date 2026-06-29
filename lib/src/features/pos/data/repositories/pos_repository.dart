@@ -760,6 +760,55 @@ class PosRepository {
     }
   }
 
+  /// Preview promo-code discounts for the current cart.
+  ///
+  /// Returns the Frappe `message` envelope:
+  /// `{ results: [...], total_discount, free_delivery, eligible_net_total, capped }`.
+  /// The preview is DISPLAY-ONLY — the server re-computes authoritatively at
+  /// invoice creation.
+  Future<Map<String, dynamic>> validatePromoCodes({
+    required List<String> codes,
+    required List<Map<String, dynamic>> items,
+    String? customer,
+    required String posProfile,
+    bool isPickup = false,
+  }) async {
+    try {
+      final cartItems = _buildCartRequestItems(items);
+      final requestData = <String, dynamic>{
+        'codes': jsonEncode(codes),
+        'cart_json': jsonEncode(cartItems),
+        'pos_profile': posProfile,
+        'channel': 'flutter',
+        'pickup': isPickup,
+      };
+      if (customer != null && customer.trim().isNotEmpty) {
+        requestData['customer'] = customer;
+      }
+
+      final response = await _dio.post(
+        ApiEndpoints.validatePromoCodes,
+        data: requestData,
+      );
+
+      if (response.statusCode == 200) {
+        final message = response.data['message'];
+        if (message is Map<String, dynamic>) {
+          return message;
+        }
+        return Map<String, dynamic>.from(message as Map);
+      }
+      throw Exception('Failed to validate promo codes');
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ PROMO VALIDATION ERROR: $e');
+      }
+      throw Exception(
+        extractFrappeErrorMessage(e, fallback: 'Failed to validate promo codes'),
+      );
+    }
+  }
+
   Future<Map<String, dynamic>> createInvoice({
     required String posProfile,
     required List<Map<String, dynamic>> items,
@@ -777,6 +826,7 @@ class PosRepository {
     String? orderPurpose,
     String? commercialPolicy,
     String? policyReason,
+    List<String> promoCodes = const [],
   }) async {
     try {
       final requestData = _buildInvoiceRequestData(
@@ -796,6 +846,7 @@ class PosRepository {
         orderPurpose: orderPurpose,
         commercialPolicy: commercialPolicy,
         policyReason: policyReason,
+        promoCodes: promoCodes,
       );
 
       if (kDebugMode) {
@@ -977,6 +1028,7 @@ class PosRepository {
     String? orderPurpose,
     String? commercialPolicy,
     String? policyReason,
+    List<String> promoCodes = const [],
   }) {
     final cartItems = _buildCartRequestItems(items);
 
@@ -1082,6 +1134,12 @@ class PosRepository {
       if (normalizedPolicyReason != null) {
         requestData['policy_reason'] = normalizedPolicyReason;
       }
+    }
+    // Promo codes. The server re-computes the discount authoritatively; the
+    // preview is display-only. Always tag the channel when promos are present.
+    if (promoCodes.isNotEmpty) {
+      requestData['promo_codes'] = jsonEncode(promoCodes);
+      requestData['channel'] = 'flutter';
     }
     return requestData;
   }

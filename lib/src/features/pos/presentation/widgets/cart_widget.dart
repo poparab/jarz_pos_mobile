@@ -472,6 +472,61 @@ class CartWidget extends ConsumerWidget {
                     const Divider(),
                     const SizedBox(height: 8),
 
+                    // Promo codes
+                    const _PromoCodeSection(),
+
+                    if (state.promoDiscount > 0) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Promo discount',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontSize: isPhone ? 14 : null),
+                          ),
+                          Text(
+                            '−\$${state.promoDiscount.toStringAsFixed(2)}',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  fontSize: isPhone ? 14 : null,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    if (state.promoFreeDelivery) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.local_shipping_outlined,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Free delivery',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  fontSize: isPhone ? 14 : null,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    if (state.promoDiscount > 0 || state.promoFreeDelivery) ...[
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                    ],
+
                     // Total
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -485,7 +540,7 @@ class CartWidget extends ConsumerWidget {
                               ),
                         ),
                         Text(
-                          '\$${state.totalWithShipping.toStringAsFixed(2)}',
+                          '\$${state.displayTotalWithPromo.toStringAsFixed(2)}',
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
@@ -2015,5 +2070,153 @@ class CartWidget extends ConsumerWidget {
         ),
       );
     }
+  }
+}
+
+/// Promo-code entry + applied-code chips for the cart totals block.
+///
+/// Owns its own [TextEditingController]. The discount itself is display-only —
+/// the backend re-computes authoritatively at invoice creation.
+class _PromoCodeSection extends ConsumerStatefulWidget {
+  const _PromoCodeSection();
+
+  @override
+  ConsumerState<_PromoCodeSection> createState() => _PromoCodeSectionState();
+}
+
+class _PromoCodeSectionState extends ConsumerState<_PromoCodeSection> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _apply() async {
+    final code = _controller.text.trim();
+    if (code.isEmpty) return;
+    await ref.read(posNotifierProvider.notifier).applyPromoCode(code);
+    _controller.clear();
+  }
+
+  /// Find the preview result entry for [code] (rejected codes carry a reason).
+  Map<String, dynamic>? _resultFor(
+    List<Map<String, dynamic>> results,
+    String code,
+  ) {
+    for (final r in results) {
+      if (r['code']?.toString().toUpperCase() == code.toUpperCase()) {
+        return r;
+      }
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(posNotifierProvider);
+    final theme = Theme.of(context);
+    final isPhone = ResponsiveUtils.isPhone(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                textCapitalization: TextCapitalization.characters,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _apply(),
+                decoration: const InputDecoration(
+                  labelText: 'Promo code',
+                  hintText: 'e.g. EGY2026',
+                  isDense: true,
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              height: isPhone ? 44 : 48,
+              child: ElevatedButton(
+                onPressed: state.promoLoading ? null : _apply,
+                child: state.promoLoading
+                    ? const SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Apply'),
+              ),
+            ),
+          ],
+        ),
+        if (state.appliedPromoCodes.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: state.appliedPromoCodes.map((code) {
+              final result = _resultFor(state.promoResults, code);
+              final accepted = result?['accepted'] == true;
+              final reason = result?['reason']?.toString();
+              return Tooltip(
+                message: accepted
+                    ? (reason ?? 'Applied')
+                    : (reason ?? 'Not eligible'),
+                child: Chip(
+                  label: Text(
+                    code,
+                    style: TextStyle(
+                      color: accepted
+                          ? theme.colorScheme.onSecondaryContainer
+                          : theme.colorScheme.onErrorContainer,
+                      fontSize: 12,
+                    ),
+                  ),
+                  avatar: Icon(
+                    accepted ? Icons.check_circle : Icons.error_outline,
+                    size: 16,
+                    color: accepted
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.error,
+                  ),
+                  backgroundColor: accepted
+                      ? theme.colorScheme.secondaryContainer
+                      : theme.colorScheme.errorContainer,
+                  onDeleted: () => ref
+                      .read(posNotifierProvider.notifier)
+                      .removePromoCode(code),
+                  deleteIconColor: accepted
+                      ? theme.colorScheme.onSecondaryContainer
+                      : theme.colorScheme.onErrorContainer,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
+              );
+            }).toList(),
+          ),
+          // Surface the reason for any rejected code as an inline subtitle.
+          ...state.promoResults
+              .where((r) => r['accepted'] != true)
+              .map((r) {
+            final code = r['code']?.toString() ?? '';
+            final reason = r['reason']?.toString() ?? 'Not eligible';
+            return Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '$code: $reason',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            );
+          }),
+        ],
+      ],
+    );
   }
 }

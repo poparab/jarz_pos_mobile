@@ -60,6 +60,24 @@ class PosState {
   /// Custom delivery income override. null = territory default; 0 = free; >0 = custom amount.
   final double? customDeliveryIncome;
 
+  // ── Promo codes ────────────────────────────────────────────────────
+  /// Codes the user has applied (includes rejected ones so the UI can show
+  /// the reason). Mirror with [promoResults] for per-code outcome.
+  final List<String> appliedPromoCodes;
+
+  /// Total discount from the last preview (display-only; server re-computes).
+  final double promoDiscount;
+
+  /// Whether the applied promos grant free delivery (display-only).
+  final bool promoFreeDelivery;
+
+  /// Per-code preview results: each entry is
+  /// `{code, accepted, discount_type, discount_amount, free_delivery, reason}`.
+  final List<Map<String, dynamic>> promoResults;
+
+  /// True while a promo preview request is in flight.
+  final bool promoLoading;
+
   PosState({
     this.profiles = const [],
     this.selectedProfile,
@@ -87,6 +105,11 @@ class PosState {
     this.currentDraftId,
     this.draftDirty = false,
     this.customDeliveryIncome,
+    this.appliedPromoCodes = const [],
+    this.promoDiscount = 0,
+    this.promoFreeDelivery = false,
+    this.promoResults = const [],
+    this.promoLoading = false,
   });
 
   PosState copyWith({
@@ -128,6 +151,13 @@ class PosState {
     bool? draftDirty,
     double? customDeliveryIncome,
     bool clearCustomDeliveryIncome = false,
+    // Promo fields
+    List<String>? appliedPromoCodes,
+    double? promoDiscount,
+    bool? promoFreeDelivery,
+    List<Map<String, dynamic>>? promoResults,
+    bool? promoLoading,
+    bool clearPromos = false,
   }) {
     return PosState(
       profiles: profiles ?? this.profiles,
@@ -180,6 +210,19 @@ class PosState {
       customDeliveryIncome: clearCustomDeliveryIncome
           ? null
           : (customDeliveryIncome ?? this.customDeliveryIncome),
+      appliedPromoCodes: clearPromos
+          ? const []
+          : (appliedPromoCodes ?? this.appliedPromoCodes),
+      promoDiscount: clearPromos ? 0 : (promoDiscount ?? this.promoDiscount),
+      promoFreeDelivery: clearPromos
+          ? false
+          : (promoFreeDelivery ?? this.promoFreeDelivery),
+      promoResults: clearPromos
+          ? const []
+          : (promoResults ?? this.promoResults),
+      promoLoading: clearPromos
+          ? false
+          : (promoLoading ?? this.promoLoading),
     );
   }
 
@@ -236,6 +279,27 @@ class PosState {
 
   double get totalWithShipping {
     return cartTotal + shippingCost;
+  }
+
+  /// Display-only grand total with the promo preview discount subtracted.
+  /// The server re-computes the authoritative discount at invoice creation,
+  /// so this is for UI presentation only and never sent as a total.
+  double get displayTotalWithPromo {
+    return (totalWithShipping - promoDiscount).clamp(0, double.infinity);
+  }
+
+  /// Codes whose preview entry was accepted by the backend.
+  List<String> get acceptedPromoCodes {
+    final accepted = <String>[];
+    for (final result in promoResults) {
+      if (result['accepted'] == true) {
+        final code = result['code']?.toString();
+        if (code != null && code.isNotEmpty) {
+          accepted.add(code);
+        }
+      }
+    }
+    return accepted;
   }
 
   int get cartItemCount {
@@ -881,6 +945,7 @@ class PosNotifier extends StateNotifier<PosState> {
 
     state = state.copyWith(cartItems: updatedCart, draftDirty: true);
     _autoSaveDebounced();
+    unawaited(_revalidatePromosIfAny());
     return true;
   }
 
@@ -920,6 +985,7 @@ class PosNotifier extends StateNotifier<PosState> {
     final updatedCart = [...state.cartItems, bundleCartItem];
     state = state.copyWith(cartItems: updatedCart, draftDirty: true);
     _autoSaveDebounced();
+    unawaited(_revalidatePromosIfAny());
   }
 
   void updateBundleInCart(
@@ -933,6 +999,7 @@ class PosNotifier extends StateNotifier<PosState> {
       bundleItem['bundle_details']['selected_items'] = newSelectedItems;
       state = state.copyWith(cartItems: updatedCart, draftDirty: true);
       _autoSaveDebounced();
+      unawaited(_revalidatePromosIfAny());
     }
   }
 
@@ -1146,6 +1213,7 @@ class PosNotifier extends StateNotifier<PosState> {
     updatedCart[index] = {...updatedCart[index], 'quantity': newQuantity};
     state = state.copyWith(cartItems: updatedCart, draftDirty: true);
     _autoSaveDebounced();
+    unawaited(_revalidatePromosIfAny());
   }
 
   void removeFromCart(int index) {
@@ -1153,6 +1221,7 @@ class PosNotifier extends StateNotifier<PosState> {
     updatedCart.removeAt(index);
     state = state.copyWith(cartItems: updatedCart, draftDirty: true);
     _autoSaveDebounced();
+    unawaited(_revalidatePromosIfAny());
   }
 
   void applyCartItemPricing(
@@ -1205,6 +1274,7 @@ class PosNotifier extends StateNotifier<PosState> {
 
     state = state.copyWith(cartItems: updatedCart, draftDirty: true);
     _autoSaveDebounced();
+    unawaited(_revalidatePromosIfAny());
   }
 
   void clearCartItemPricing(int index) {
@@ -1221,6 +1291,8 @@ class PosNotifier extends StateNotifier<PosState> {
       draftDirty: true,
     );
     _autoSaveDebounced();
+    // Promo eligibility can depend on the customer; refresh the preview.
+    unawaited(_revalidatePromosIfAny());
     // Resolve the effective price list for the active policy now that we know
     // which customer is selected (customer-group-driven tiers, e.g. B2B Supply).
     unawaited(_applyEffectivePriceListForPolicy());
@@ -1396,6 +1468,8 @@ class PosNotifier extends StateNotifier<PosState> {
       draftDirty: true,
     );
     _autoSaveDebounced();
+    // Free-delivery promos depend on pickup vs delivery; refresh the preview.
+    unawaited(_revalidatePromosIfAny());
   }
 
   void setSalesPartner(Map<String, dynamic>? partner) {
@@ -2502,6 +2576,166 @@ class PosNotifier extends StateNotifier<PosState> {
     }
   }
 
+  // ── Promo codes ──────────────────────────────────────────────────────
+  // Cart-change strategy: re-validate on the fly when the cart mutates.
+  // `_revalidatePromosIfAny()` re-runs the preview against the current cart so
+  // the displayed discount never goes stale. If re-validation fails (e.g. the
+  // network drops) we conservatively clear the promo discount/results so the
+  // UI never shows an out-of-date discount; the codes remain applied and the
+  // user can re-apply. The server re-computes authoritatively at checkout, so a
+  // stale preview can never produce an incorrect invoice.
+
+  /// Effective POS profile name used for promo validation, mirroring checkout.
+  String? get _effectivePosProfileName {
+    final name = state.selectedProfile?['name']?.toString();
+    return (name != null && name.isNotEmpty) ? name : null;
+  }
+
+  /// Apply a promo [code] to the current cart and refresh the preview.
+  Future<void> applyPromoCode(String code) async {
+    final normalized = code.trim().toUpperCase();
+    if (normalized.isEmpty) return;
+    if (state.appliedPromoCodes.contains(normalized)) return;
+
+    final posProfile = _effectivePosProfileName;
+    if (posProfile == null) {
+      state = state.copyWith(
+        error: 'Select a POS profile before applying a promo code',
+        clearError: false,
+      );
+      return;
+    }
+
+    final newList = [...state.appliedPromoCodes, normalized];
+    state = state.copyWith(promoLoading: true, clearError: true);
+    try {
+      final preview = await _repository.validatePromoCodes(
+        codes: newList,
+        items: state.cartItems,
+        customer: state.selectedCustomer?['name']?.toString(),
+        posProfile: posProfile,
+        isPickup: state.isPickup,
+      );
+      _applyPromoPreview(submittedCodes: newList, preview: preview);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ APPLY PROMO ERROR: $e');
+      }
+      state = state.copyWith(
+        promoLoading: false,
+        error: e.toString(),
+        clearError: false,
+      );
+    }
+  }
+
+  /// Remove a promo [code] and re-validate the remaining codes.
+  Future<void> removePromoCode(String code) async {
+    final normalized = code.trim().toUpperCase();
+    final remaining =
+        state.appliedPromoCodes.where((c) => c != normalized).toList();
+    if (remaining.length == state.appliedPromoCodes.length) return;
+
+    if (remaining.isEmpty) {
+      state = state.copyWith(clearPromos: true);
+      return;
+    }
+
+    final posProfile = _effectivePosProfileName;
+    if (posProfile == null) {
+      // No profile to validate against; keep the trimmed list but drop the
+      // stale preview numbers.
+      state = state.copyWith(
+        appliedPromoCodes: remaining,
+        promoDiscount: 0,
+        promoFreeDelivery: false,
+        promoResults: const [],
+      );
+      return;
+    }
+
+    state = state.copyWith(promoLoading: true, clearError: true);
+    try {
+      final preview = await _repository.validatePromoCodes(
+        codes: remaining,
+        items: state.cartItems,
+        customer: state.selectedCustomer?['name']?.toString(),
+        posProfile: posProfile,
+        isPickup: state.isPickup,
+      );
+      _applyPromoPreview(submittedCodes: remaining, preview: preview);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ REMOVE PROMO ERROR: $e');
+      }
+      state = state.copyWith(
+        promoLoading: false,
+        error: e.toString(),
+        clearError: false,
+      );
+    }
+  }
+
+  /// Re-validate currently applied promos against the current cart. Called
+  /// after material cart mutations so the preview stays fresh. No-op when no
+  /// codes are applied.
+  Future<void> _revalidatePromosIfAny() async {
+    if (state.appliedPromoCodes.isEmpty) return;
+    final posProfile = _effectivePosProfileName;
+    if (posProfile == null) return;
+
+    final codes = List<String>.from(state.appliedPromoCodes);
+    state = state.copyWith(promoLoading: true);
+    try {
+      final preview = await _repository.validatePromoCodes(
+        codes: codes,
+        items: state.cartItems,
+        customer: state.selectedCustomer?['name']?.toString(),
+        posProfile: posProfile,
+        isPickup: state.isPickup,
+      );
+      _applyPromoPreview(submittedCodes: codes, preview: preview);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ PROMO REVALIDATION FAILED (clearing discount): $e');
+      }
+      // Conservatively drop the stale discount; keep the codes applied.
+      state = state.copyWith(
+        promoLoading: false,
+        promoDiscount: 0,
+        promoFreeDelivery: false,
+        promoResults: const [],
+      );
+    }
+  }
+
+  /// Fold a preview response into state. Keeps ALL submitted codes (including
+  /// rejected ones) so the UI can show each code's reason.
+  void _applyPromoPreview({
+    required List<String> submittedCodes,
+    required Map<String, dynamic> preview,
+  }) {
+    final rawResults = preview['results'];
+    final results = <Map<String, dynamic>>[];
+    if (rawResults is List) {
+      for (final entry in rawResults) {
+        if (entry is Map) {
+          results.add(Map<String, dynamic>.from(entry));
+        }
+      }
+    }
+    final totalDiscount = (preview['total_discount'] as num?)?.toDouble() ?? 0.0;
+    final freeDelivery = preview['free_delivery'] == true;
+
+    state = state.copyWith(
+      appliedPromoCodes: submittedCodes,
+      promoResults: results,
+      promoDiscount: totalDiscount,
+      promoFreeDelivery: freeDelivery,
+      promoLoading: false,
+    );
+  }
+
   Future<void> checkout({
     String? paymentType,
     String? overridePosProfileName,
@@ -2673,6 +2907,8 @@ class PosNotifier extends StateNotifier<PosState> {
               orderPurpose: state.selectedCommercialPolicy?.orderPurpose,
               commercialPolicy: state.selectedCommercialPolicy?.name,
               policyReason: state.policyReason,
+              // Pass every applied code; the server re-validates authoritatively.
+              promoCodes: state.appliedPromoCodes,
             );
 
       if (kDebugMode) {
@@ -2720,6 +2956,7 @@ class PosNotifier extends StateNotifier<PosState> {
         clearCurrentDraftId: true,
         draftDirty: false,
         drafts: remainingDrafts,
+        clearPromos: true,
       );
       if (state.selectedProfile != null) {
         unawaited(refreshCatalog());
@@ -2819,6 +3056,7 @@ class PosNotifier extends StateNotifier<PosState> {
     final updated = [...state.cartItems, cartEntry];
     state = state.copyWith(cartItems: updated, draftDirty: true);
     _autoSaveDebounced();
+    unawaited(_revalidatePromosIfAny());
   }
 
   /// Fetches the POS profile mapped to [customerName]'s territory.
