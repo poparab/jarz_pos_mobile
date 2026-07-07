@@ -7,8 +7,20 @@ import '../leads_theme.dart';
 /// maps) used by lead cards, the detail screen, and branch rows.
 abstract final class LeadActions {
   static Future<void> _open(Uri uri) async {
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    // Launch directly. Do NOT gate on canLaunchUrl: on Android 11+ it returns
+    // false unless every scheme is declared in the manifest <queries>, which
+    // silently blocks the launch. Prefer an external app, fall back to the
+    // platform default handler.
+    try {
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (launched) return;
+    } catch (_) {
+      // externalApplication may be unavailable for this URI; fall through.
+    }
+    try {
+      await launchUrl(uri);
+    } catch (_) {
+      // No handler available; nothing more we can do.
     }
   }
 
