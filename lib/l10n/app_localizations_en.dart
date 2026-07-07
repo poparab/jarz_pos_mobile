@@ -3883,4 +3883,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutPatchPending => 'Pending patch (after restart)';
+
+  @override
+  String get menuLeads => 'Leads';
 }

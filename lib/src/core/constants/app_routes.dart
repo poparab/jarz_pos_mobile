@@ -31,4 +31,10 @@ abstract final class AppRoutes {
   static const b2bToday = '/b2b/today';
   static const b2bLeadAdd = '/b2b/lead/add';
   static const b2bAccount = '/b2b/account';
+
+  // ── Leads (B2B prospect research) ─────────────────────────────────────
+  static const leads = '/leads';
+  static const leadsMap = '/leads/map';
+  static const leadForm = '/leads/new';
+  static const leadDetail = '/leads/:id';
 }

@@ -1629,5 +1629,6 @@
   "shiftMonitorNoDiscrepancy": "No discrepancy",
   "shorebirdUpdateBannerMessage": "Update downloaded — restart the app to apply it.",
   "aboutRestartInstruction": "Force-close and reopen the app to apply the downloaded patch.",
-  "aboutPatchPending": "Pending patch (after restart)"
+  "aboutPatchPending": "Pending patch (after restart)",
+  "menuLeads": "Leads"
 }

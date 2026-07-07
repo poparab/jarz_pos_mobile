@@ -286,6 +286,17 @@ abstract final class ApiEndpoints {
   static const getLeadSources =
       '/api/method/jarz_pos.api.crm.get_lead_sources';
 
+  // ── Leads (B2B prospect research) ─────────────────────────────────────
+  static const getLeads = '/api/method/jarz_pos.api.leads.get_leads';
+  static const getLead = '/api/method/jarz_pos.api.leads.get_lead';
+  static const saveLead = '/api/method/jarz_pos.api.leads.save_lead';
+  static const setLeadAddress =
+      '/api/method/jarz_pos.api.leads.set_lead_address';
+  static const getLeadCategories =
+      '/api/method/jarz_pos.api.leads.get_lead_categories';
+  static const saveLeadCategory =
+      '/api/method/jarz_pos.api.leads.save_lead_category';
+
   // ── Custom Shipping ───────────────────────────────────────────────────
   static const requestCustomShipping =
       '/api/method/jarz_pos.api.custom_shipping.request_custom_shipping';

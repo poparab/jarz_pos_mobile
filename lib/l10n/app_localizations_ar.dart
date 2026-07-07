@@ -3867,4 +3867,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutPatchPending => 'التصحيح المُعلَّق (بعد إعادة التشغيل)';
+
+  @override
+  String get menuLeads => 'العملاء المحتملون';
 }

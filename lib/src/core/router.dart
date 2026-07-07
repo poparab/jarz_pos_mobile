@@ -34,6 +34,10 @@ import '../features/b2b/presentation/screens/b2b_pipeline_screen.dart';
 import '../features/b2b/presentation/screens/b2b_account_screen.dart';
 import '../features/b2b/presentation/screens/b2b_lead_add_screen.dart';
 import '../features/b2b/presentation/screens/b2b_today_screen.dart';
+import '../features/leads/presentation/screens/leads_list_screen.dart';
+import '../features/leads/presentation/screens/leads_map_screen.dart';
+import '../features/leads/presentation/screens/lead_detail_screen.dart';
+import '../features/leads/presentation/screens/lead_form_screen.dart';
 
 import '../features/shift/state/shift_notifier.dart';
 import '../features/shift/models/shift_models.dart';
@@ -367,6 +371,32 @@ final routerProvider = Provider<GoRouter>((ref) {
             doctype: (data['doctype'] ?? 'Lead').toString(),
             name: (data['name'] ?? '').toString(),
           );
+        },
+      ),
+      // ── Leads (B2B prospect research) ─────────────────────────────────
+      // Note: the literal `/leads/map` and `/leads/new` routes must be
+      // declared before `/leads/:id` so the static segments win the match.
+      GoRoute(
+        path: AppRoutes.leads,
+        name: 'leads',
+        builder: (context, state) => const LeadsListScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.leadsMap,
+        name: 'leads-map',
+        builder: (context, state) => const LeadsMapScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.leadForm,
+        name: 'lead-form',
+        builder: (context, state) => const LeadFormScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.leadDetail,
+        name: 'lead-detail',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return LeadDetailScreen(leadName: Uri.decodeComponent(id));
         },
       ),
       GoRoute(

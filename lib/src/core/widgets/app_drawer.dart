@@ -121,6 +121,15 @@ class AppDrawer extends ConsumerWidget {
                 context.go(AppRoutes.b2b);
               },
             ),
+          if (canAccessB2b)
+            ListTile(
+              leading: const Icon(Icons.travel_explore),
+              title: Text(l10n.menuLeads),
+              onTap: () {
+                Navigator.pop(context);
+                context.go(AppRoutes.leads);
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.local_shipping_outlined),
             title: Text(l10n.menuDeliveryTrips),

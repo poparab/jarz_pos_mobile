@@ -16,6 +16,7 @@ abstract final class HiveBoxes {
   static const inventoryCount = 'inventory_count';
   static const appSettings = 'app_settings';
   static const draftCarts = 'draft_carts';
+  static const leadsCache = 'leads_cache';
 }
 
 // ── Hive keys (within their boxes) ──────────────────────────────────────

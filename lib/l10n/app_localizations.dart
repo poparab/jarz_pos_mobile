@@ -6834,6 +6834,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pending patch (after restart)'**
   String get aboutPatchPending;
+
+  /// No description provided for @menuLeads.
+  ///
+  /// In en, this message translates to:
+  /// **'Leads'**
+  String get menuLeads;
 }
 
 class _AppLocalizationsDelegate
