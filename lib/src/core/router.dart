@@ -27,6 +27,12 @@ import '../features/shift/presentation/shift_start_screen.dart';
 import '../features/shift/presentation/shift_end_screen.dart';
 import '../features/trips/screens/trips_screen.dart';
 import '../features/reports/presentation/reports_screen.dart';
+import '../features/reports/presentation/screens/shipping_analytics_screen.dart';
+import '../features/reports/presentation/screens/inventory_intelligence_screen.dart';
+import '../features/reports/presentation/screens/product_analytics_screen.dart';
+import '../features/reports/presentation/screens/customer_analytics_screen.dart';
+import '../features/reports/presentation/screens/executive_overview_screen.dart';
+import '../features/reports/presentation/screens/b2b_sales_clients_screen.dart';
 import '../features/master_orders/presentation/master_orders_screen.dart';
 import 'network/user_service.dart';
 import '../features/about/presentation/screens/about_screen.dart';
@@ -332,6 +338,42 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'reports',
         builder: (context, state) =>
             const PhoneLandscapeScope(child: ReportsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsShipping,
+        name: 'reports-shipping',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: ShippingAnalyticsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsInventory,
+        name: 'reports-inventory',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: InventoryIntelligenceScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsProduct,
+        name: 'reports-product',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: ProductAnalyticsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsCustomer,
+        name: 'reports-customer',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: CustomerAnalyticsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsExecutive,
+        name: 'reports-executive',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: ExecutiveOverviewScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsB2b,
+        name: 'reports-b2b',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: B2bSalesClientsScreen()),
       ),
       GoRoute(
         path: AppRoutes.masterOrders,

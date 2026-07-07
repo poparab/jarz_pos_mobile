@@ -20,6 +20,12 @@ abstract final class AppRoutes {
   static const expenses = '/expenses';
   static const trips = '/trips';
   static const reports = '/reports';
+  static const reportsShipping = '/reports/shipping';
+  static const reportsInventory = '/reports/inventory';
+  static const reportsProduct = '/reports/product';
+  static const reportsCustomer = '/reports/customer';
+  static const reportsExecutive = '/reports/executive';
+  static const reportsB2b = '/reports/b2b';
   static const masterOrders = '/master-orders';
   static const profile = '/profile';
   static const shiftStart = '/shift/start';

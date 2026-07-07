@@ -3726,6 +3726,304 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reportsRetry => 'إعادة المحاولة';
 
   @override
+  String get reportsComingSoon => 'قريباً';
+
+  @override
+  String get reportsFrom => 'من';
+
+  @override
+  String get reportsTo => 'إلى';
+
+  @override
+  String get reportsRangeThisMonth => 'هذا الشهر';
+
+  @override
+  String get reportsRangeLast30Days => 'آخر 30 يوماً';
+
+  @override
+  String get reportsRangeLast90Days => 'آخر 90 يوماً';
+
+  @override
+  String get reportShippingTitle => 'تحليلات الشحن';
+
+  @override
+  String get reportShippingSubtitle =>
+      'تكلفة التوصيل وتسويات المندوبين وأرباح الشحن';
+
+  @override
+  String get reportInventoryTitle => 'ذكاء المخزون';
+
+  @override
+  String get reportInventorySubtitle =>
+      'سرعة دوران المخزون والأصناف الحرجة والأكثر حركة';
+
+  @override
+  String get reportProductTitle => 'تحليلات المنتجات';
+
+  @override
+  String get reportProductSubtitle =>
+      'الإيرادات والربح الإجمالي والأكثر مبيعاً حسب المنتج';
+
+  @override
+  String get reportCustomerTitle => 'تحليلات العملاء';
+
+  @override
+  String get reportCustomerSubtitle =>
+      'الشرائح والاحتفاظ والعملاء المعرضون للخطر';
+
+  @override
+  String get reportExecutiveTitle => 'النظرة التنفيذية';
+
+  @override
+  String get reportExecutiveSubtitle => 'أهم مؤشرات الأداء عبر النشاط بالكامل';
+
+  @override
+  String get reportB2bTitle => 'مبيعات وعملاء الجملة';
+
+  @override
+  String get reportB2bSubtitle => 'إيرادات الجملة وخط الأنابيب وصحة العملاء';
+
+  @override
+  String get reportNoData => 'لا توجد بيانات لهذه الفترة';
+
+  @override
+  String get reportError => 'تعذّر تحميل التقرير';
+
+  @override
+  String get reportAlerts => 'التنبيهات';
+
+  @override
+  String get reportShipKpiTotalOrders => 'إجمالي الطلبات';
+
+  @override
+  String get reportShipKpiDeliveryOrders => 'طلبات التوصيل';
+
+  @override
+  String get reportShipKpiPickupOrders => 'طلبات الاستلام';
+
+  @override
+  String get reportShipKpiExpense => 'مصروف الشحن';
+
+  @override
+  String get reportShipKpiIncome => 'إيراد التوصيل';
+
+  @override
+  String get reportShipKpiNetPl => 'صافي الربح/الخسارة';
+
+  @override
+  String get reportShipKpiAvgCost => 'متوسط التكلفة لكل طلب';
+
+  @override
+  String get reportShipKpiPendingOverrides => 'التعديلات المعلقة';
+
+  @override
+  String get reportShipKpiUnsettled => 'غير مسوّى';
+
+  @override
+  String get reportCostByTerritory => 'التكلفة حسب المنطقة';
+
+  @override
+  String get reportCostBySubTerritory => 'التكلفة حسب المنطقة الفرعية';
+
+  @override
+  String get reportCostByBranch => 'التكلفة حسب الفرع';
+
+  @override
+  String get reportCostByCourier => 'التكلفة حسب المندوب';
+
+  @override
+  String get reportShippingOverrides => 'تعديلات الشحن';
+
+  @override
+  String get reportDoubleShipping => 'أثر ازدواج الشحن';
+
+  @override
+  String get reportDailyTrend => 'الاتجاه اليومي';
+
+  @override
+  String get reportPickupVsDelivery => 'الاستلام مقابل التوصيل';
+
+  @override
+  String get reportUnsettledBalances => 'أرصدة المندوبين غير المسوّاة';
+
+  @override
+  String get reportPickupDeliveryTrend => 'اتجاه الاستلام / التوصيل';
+
+  @override
+  String get reportInvKpiStockItems => 'أصناف المخزون';
+
+  @override
+  String get reportInvKpiCritical => 'حرجة';
+
+  @override
+  String get reportInvKpiWatch => 'قائمة المراقبة';
+
+  @override
+  String get reportInvKpiSlow => 'بطيئة الحركة';
+
+  @override
+  String get reportInvKpiOverstock => 'مخزون زائد';
+
+  @override
+  String get reportInvKpiStockValue => 'قيمة المخزون';
+
+  @override
+  String get reportStockVelocity => 'سرعة دوران المخزون';
+
+  @override
+  String get reportTopMovers => 'الأكثر حركة';
+
+  @override
+  String get reportRestockAlerts => 'تنبيهات إعادة التخزين';
+
+  @override
+  String get reportCriticalItems => 'حرجة';
+
+  @override
+  String get reportWatchList => 'قائمة المراقبة';
+
+  @override
+  String get reportSlowMovers => 'بطيئة الحركة';
+
+  @override
+  String get reportOverstocked => 'مخزون زائد';
+
+  @override
+  String get reportTopSellers => 'الأكثر مبيعاً';
+
+  @override
+  String get reportKpiTotalRevenue => 'إجمالي الإيرادات';
+
+  @override
+  String get reportKpiTotalOrders => 'إجمالي الطلبات';
+
+  @override
+  String get reportKpiGrossProfit => 'إجمالي الربح';
+
+  @override
+  String get reportKpiGrossMargin => 'هامش الربح الإجمالي';
+
+  @override
+  String get reportKpiAov => 'متوسط قيمة الطلب';
+
+  @override
+  String get reportKpiBestSeller => 'الأكثر مبيعاً';
+
+  @override
+  String get reportKpiTopTerritory => 'أعلى منطقة';
+
+  @override
+  String get reportRevenueByType => 'الإيرادات حسب النوع';
+
+  @override
+  String get reportTopProducts => 'أفضل المنتجات';
+
+  @override
+  String get reportByTerritory => 'حسب المنطقة';
+
+  @override
+  String get reportRevenueTrend => 'اتجاه الإيرادات';
+
+  @override
+  String get reportBundleComposition => 'تكوين الباقات';
+
+  @override
+  String get reportKpiTotalCustomers => 'إجمالي العملاء';
+
+  @override
+  String get reportKpiActive => 'نشط';
+
+  @override
+  String get reportKpiNew => 'جديد';
+
+  @override
+  String get reportKpiRepeatRate => 'معدل تكرار الشراء';
+
+  @override
+  String get reportKpiChampions => 'العملاء المميزون';
+
+  @override
+  String get reportKpiAtRisk => 'معرضون للخطر';
+
+  @override
+  String get reportKpiLost => 'مفقودون';
+
+  @override
+  String get reportSegmentDistribution => 'توزيع الشرائح';
+
+  @override
+  String get reportSegmentDetail => 'تفاصيل الشريحة';
+
+  @override
+  String get reportTopCustomers => 'أفضل العملاء';
+
+  @override
+  String get reportAtRiskWinBack => 'المعرضون للخطر / الاستعادة';
+
+  @override
+  String get reportNewCustomerAcquisition => 'اكتساب عملاء جدد';
+
+  @override
+  String get reportKpiRevenue => 'الإيرادات';
+
+  @override
+  String get reportKpiOrders => 'الطلبات';
+
+  @override
+  String get reportKpiNetShippingPl => 'صافي ربح/خسارة الشحن';
+
+  @override
+  String get reportKpiCustomers => 'العملاء';
+
+  @override
+  String get reportKpiCriticalStock => 'المخزون الحرج';
+
+  @override
+  String get reportProductMix => 'مزيج المنتجات';
+
+  @override
+  String get reportCustomerSegments => 'شرائح العملاء';
+
+  @override
+  String get reportTopTerritories => 'أعلى المناطق';
+
+  @override
+  String get reportKpiB2bRevenue => 'إيرادات الجملة';
+
+  @override
+  String get reportKpiB2bOrders => 'طلبات الجملة';
+
+  @override
+  String get reportKpiActiveClients => 'العملاء النشطون';
+
+  @override
+  String get reportKpiNewClients => 'عملاء جدد';
+
+  @override
+  String get reportKpiReorderDue => 'إعادة الطلب مستحقة';
+
+  @override
+  String get reportSalesPipeline => 'خط أنابيب المبيعات';
+
+  @override
+  String get reportTopClients => 'أفضل العملاء';
+
+  @override
+  String get reportRevenueByPolicy => 'الإيرادات حسب السياسة التجارية';
+
+  @override
+  String get reportClientsByGroup => 'العملاء حسب المجموعة';
+
+  @override
+  String get reportReorderDue => 'إعادة الطلب مستحقة';
+
+  @override
+  String get reportAtRiskClients => 'العملاء المعرضون للخطر';
+
+  @override
+  String get reportConversion => 'التحويل';
+
+  @override
   String get menuMasterOrders => 'جميع الطلبات';
 
   @override
@@ -3900,6 +4198,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get leadFieldTerritory => 'المنطقة';
+
+  @override
+  String get leadB2bStage => 'مرحلة B2B';
+
+  @override
+  String get leadFitScore => 'درجة الملاءمة';
 
   @override
   String get b2bMoveTo => 'نقل إلى';

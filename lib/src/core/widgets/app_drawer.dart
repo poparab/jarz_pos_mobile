@@ -237,6 +237,12 @@ class AppDrawer extends ConsumerWidget {
       AppRoutes.manager,
       AppRoutes.shiftMonitor,
       AppRoutes.reports,
+      AppRoutes.reportsShipping,
+      AppRoutes.reportsInventory,
+      AppRoutes.reportsProduct,
+      AppRoutes.reportsCustomer,
+      AppRoutes.reportsExecutive,
+      AppRoutes.reportsB2b,
     ];
     final anyGroupMatches = [
       posRoutes,

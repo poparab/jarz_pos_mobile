@@ -3742,6 +3742,305 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportsRetry => 'Retry';
 
   @override
+  String get reportsComingSoon => 'Coming soon';
+
+  @override
+  String get reportsFrom => 'From';
+
+  @override
+  String get reportsTo => 'To';
+
+  @override
+  String get reportsRangeThisMonth => 'This Month';
+
+  @override
+  String get reportsRangeLast30Days => 'Last 30 Days';
+
+  @override
+  String get reportsRangeLast90Days => 'Last 90 Days';
+
+  @override
+  String get reportShippingTitle => 'Shipping Analytics';
+
+  @override
+  String get reportShippingSubtitle =>
+      'Delivery cost, courier settlements & shipping P&L';
+
+  @override
+  String get reportInventoryTitle => 'Inventory Intelligence';
+
+  @override
+  String get reportInventorySubtitle =>
+      'Stock velocity, critical items & movers';
+
+  @override
+  String get reportProductTitle => 'Product Analytics';
+
+  @override
+  String get reportProductSubtitle =>
+      'Revenue, gross profit & best sellers by product';
+
+  @override
+  String get reportCustomerTitle => 'Customer Analytics';
+
+  @override
+  String get reportCustomerSubtitle =>
+      'Segments, retention & at-risk customers';
+
+  @override
+  String get reportExecutiveTitle => 'Executive Overview';
+
+  @override
+  String get reportExecutiveSubtitle =>
+      'Top-line KPIs across the whole business';
+
+  @override
+  String get reportB2bTitle => 'B2B Sales & Clients';
+
+  @override
+  String get reportB2bSubtitle => 'B2B revenue, pipeline & client health';
+
+  @override
+  String get reportNoData => 'No data for this period';
+
+  @override
+  String get reportError => 'Couldn\'t load report';
+
+  @override
+  String get reportAlerts => 'Alerts';
+
+  @override
+  String get reportShipKpiTotalOrders => 'Total Orders';
+
+  @override
+  String get reportShipKpiDeliveryOrders => 'Delivery Orders';
+
+  @override
+  String get reportShipKpiPickupOrders => 'Pickup Orders';
+
+  @override
+  String get reportShipKpiExpense => 'Shipping Expense';
+
+  @override
+  String get reportShipKpiIncome => 'Delivery Income';
+
+  @override
+  String get reportShipKpiNetPl => 'Net P&L';
+
+  @override
+  String get reportShipKpiAvgCost => 'Avg Cost / Order';
+
+  @override
+  String get reportShipKpiPendingOverrides => 'Pending Overrides';
+
+  @override
+  String get reportShipKpiUnsettled => 'Unsettled';
+
+  @override
+  String get reportCostByTerritory => 'Cost by Territory';
+
+  @override
+  String get reportCostBySubTerritory => 'Cost by Sub-Territory';
+
+  @override
+  String get reportCostByBranch => 'Cost by Branch';
+
+  @override
+  String get reportCostByCourier => 'Cost by Courier';
+
+  @override
+  String get reportShippingOverrides => 'Shipping Overrides';
+
+  @override
+  String get reportDoubleShipping => 'Double-Shipping Impact';
+
+  @override
+  String get reportDailyTrend => 'Daily Trend';
+
+  @override
+  String get reportPickupVsDelivery => 'Pickup vs Delivery';
+
+  @override
+  String get reportUnsettledBalances => 'Unsettled Courier Balances';
+
+  @override
+  String get reportPickupDeliveryTrend => 'Pickup / Delivery Trend';
+
+  @override
+  String get reportInvKpiStockItems => 'Stock Items';
+
+  @override
+  String get reportInvKpiCritical => 'Critical';
+
+  @override
+  String get reportInvKpiWatch => 'Watch List';
+
+  @override
+  String get reportInvKpiSlow => 'Slow Movers';
+
+  @override
+  String get reportInvKpiOverstock => 'Overstocked';
+
+  @override
+  String get reportInvKpiStockValue => 'Stock Value';
+
+  @override
+  String get reportStockVelocity => 'Stock Velocity';
+
+  @override
+  String get reportTopMovers => 'Top Movers';
+
+  @override
+  String get reportRestockAlerts => 'Restock Alerts';
+
+  @override
+  String get reportCriticalItems => 'Critical';
+
+  @override
+  String get reportWatchList => 'Watch List';
+
+  @override
+  String get reportSlowMovers => 'Slow Movers';
+
+  @override
+  String get reportOverstocked => 'Overstocked';
+
+  @override
+  String get reportTopSellers => 'Top Sellers';
+
+  @override
+  String get reportKpiTotalRevenue => 'Total Revenue';
+
+  @override
+  String get reportKpiTotalOrders => 'Total Orders';
+
+  @override
+  String get reportKpiGrossProfit => 'Gross Profit';
+
+  @override
+  String get reportKpiGrossMargin => 'Gross Margin';
+
+  @override
+  String get reportKpiAov => 'Avg Order Value';
+
+  @override
+  String get reportKpiBestSeller => 'Best Seller';
+
+  @override
+  String get reportKpiTopTerritory => 'Top Territory';
+
+  @override
+  String get reportRevenueByType => 'Revenue by Type';
+
+  @override
+  String get reportTopProducts => 'Top Products';
+
+  @override
+  String get reportByTerritory => 'By Territory';
+
+  @override
+  String get reportRevenueTrend => 'Revenue Trend';
+
+  @override
+  String get reportBundleComposition => 'Bundle Composition';
+
+  @override
+  String get reportKpiTotalCustomers => 'Total Customers';
+
+  @override
+  String get reportKpiActive => 'Active';
+
+  @override
+  String get reportKpiNew => 'New';
+
+  @override
+  String get reportKpiRepeatRate => 'Repeat Rate';
+
+  @override
+  String get reportKpiChampions => 'Champions';
+
+  @override
+  String get reportKpiAtRisk => 'At Risk';
+
+  @override
+  String get reportKpiLost => 'Lost';
+
+  @override
+  String get reportSegmentDistribution => 'Segment Distribution';
+
+  @override
+  String get reportSegmentDetail => 'Segment Detail';
+
+  @override
+  String get reportTopCustomers => 'Top Customers';
+
+  @override
+  String get reportAtRiskWinBack => 'At-Risk / Win-Back';
+
+  @override
+  String get reportNewCustomerAcquisition => 'New Customer Acquisition';
+
+  @override
+  String get reportKpiRevenue => 'Revenue';
+
+  @override
+  String get reportKpiOrders => 'Orders';
+
+  @override
+  String get reportKpiNetShippingPl => 'Net Shipping P&L';
+
+  @override
+  String get reportKpiCustomers => 'Customers';
+
+  @override
+  String get reportKpiCriticalStock => 'Critical Stock';
+
+  @override
+  String get reportProductMix => 'Product Mix';
+
+  @override
+  String get reportCustomerSegments => 'Customer Segments';
+
+  @override
+  String get reportTopTerritories => 'Top Territories';
+
+  @override
+  String get reportKpiB2bRevenue => 'B2B Revenue';
+
+  @override
+  String get reportKpiB2bOrders => 'B2B Orders';
+
+  @override
+  String get reportKpiActiveClients => 'Active Clients';
+
+  @override
+  String get reportKpiNewClients => 'New Clients';
+
+  @override
+  String get reportKpiReorderDue => 'Reorder Due';
+
+  @override
+  String get reportSalesPipeline => 'Sales Pipeline';
+
+  @override
+  String get reportTopClients => 'Top Clients';
+
+  @override
+  String get reportRevenueByPolicy => 'Revenue by Commercial Policy';
+
+  @override
+  String get reportClientsByGroup => 'Clients by Group';
+
+  @override
+  String get reportReorderDue => 'Reorder Due';
+
+  @override
+  String get reportAtRiskClients => 'At-Risk Clients';
+
+  @override
+  String get reportConversion => 'Conversion';
+
+  @override
   String get menuMasterOrders => 'Master Orders';
 
   @override
@@ -3916,6 +4215,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leadFieldTerritory => 'Territory';
+
+  @override
+  String get leadB2bStage => 'B2B Stage';
+
+  @override
+  String get leadFitScore => 'Fit Score';
 
   @override
   String get b2bMoveTo => 'Move to';

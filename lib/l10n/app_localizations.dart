@@ -6571,6 +6571,594 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get reportsRetry;
 
+  /// No description provided for @reportsComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get reportsComingSoon;
+
+  /// No description provided for @reportsFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get reportsFrom;
+
+  /// No description provided for @reportsTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get reportsTo;
+
+  /// No description provided for @reportsRangeThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get reportsRangeThisMonth;
+
+  /// No description provided for @reportsRangeLast30Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 Days'**
+  String get reportsRangeLast30Days;
+
+  /// No description provided for @reportsRangeLast90Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 90 Days'**
+  String get reportsRangeLast90Days;
+
+  /// No description provided for @reportShippingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping Analytics'**
+  String get reportShippingTitle;
+
+  /// No description provided for @reportShippingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery cost, courier settlements & shipping P&L'**
+  String get reportShippingSubtitle;
+
+  /// No description provided for @reportInventoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory Intelligence'**
+  String get reportInventoryTitle;
+
+  /// No description provided for @reportInventorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock velocity, critical items & movers'**
+  String get reportInventorySubtitle;
+
+  /// No description provided for @reportProductTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Analytics'**
+  String get reportProductTitle;
+
+  /// No description provided for @reportProductSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue, gross profit & best sellers by product'**
+  String get reportProductSubtitle;
+
+  /// No description provided for @reportCustomerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Analytics'**
+  String get reportCustomerTitle;
+
+  /// No description provided for @reportCustomerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Segments, retention & at-risk customers'**
+  String get reportCustomerSubtitle;
+
+  /// No description provided for @reportExecutiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Executive Overview'**
+  String get reportExecutiveTitle;
+
+  /// No description provided for @reportExecutiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Top-line KPIs across the whole business'**
+  String get reportExecutiveSubtitle;
+
+  /// No description provided for @reportB2bTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B Sales & Clients'**
+  String get reportB2bTitle;
+
+  /// No description provided for @reportB2bSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B revenue, pipeline & client health'**
+  String get reportB2bSubtitle;
+
+  /// Empty state on an analytics dashboard when the selected period has no data
+  ///
+  /// In en, this message translates to:
+  /// **'No data for this period'**
+  String get reportNoData;
+
+  /// Error state shown when an analytics dashboard fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t load report'**
+  String get reportError;
+
+  /// Section header for alerts/warnings on an analytics dashboard
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts'**
+  String get reportAlerts;
+
+  /// Shipping analytics KPI: total number of orders
+  ///
+  /// In en, this message translates to:
+  /// **'Total Orders'**
+  String get reportShipKpiTotalOrders;
+
+  /// Shipping analytics KPI: number of delivery orders
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Orders'**
+  String get reportShipKpiDeliveryOrders;
+
+  /// Shipping analytics KPI: number of pickup orders
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup Orders'**
+  String get reportShipKpiPickupOrders;
+
+  /// Shipping analytics KPI: total shipping/courier expense
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping Expense'**
+  String get reportShipKpiExpense;
+
+  /// Shipping analytics KPI: total delivery income charged
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Income'**
+  String get reportShipKpiIncome;
+
+  /// Shipping analytics KPI: net shipping profit and loss
+  ///
+  /// In en, this message translates to:
+  /// **'Net P&L'**
+  String get reportShipKpiNetPl;
+
+  /// Shipping analytics KPI: average shipping cost per order
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Cost / Order'**
+  String get reportShipKpiAvgCost;
+
+  /// Shipping analytics KPI: number of pending shipping overrides
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Overrides'**
+  String get reportShipKpiPendingOverrides;
+
+  /// Shipping analytics KPI: unsettled courier balances amount
+  ///
+  /// In en, this message translates to:
+  /// **'Unsettled'**
+  String get reportShipKpiUnsettled;
+
+  /// Shipping analytics section: shipping cost broken down by territory
+  ///
+  /// In en, this message translates to:
+  /// **'Cost by Territory'**
+  String get reportCostByTerritory;
+
+  /// Shipping analytics section: shipping cost broken down by sub-territory
+  ///
+  /// In en, this message translates to:
+  /// **'Cost by Sub-Territory'**
+  String get reportCostBySubTerritory;
+
+  /// Shipping analytics section: shipping cost broken down by branch
+  ///
+  /// In en, this message translates to:
+  /// **'Cost by Branch'**
+  String get reportCostByBranch;
+
+  /// Shipping analytics section: shipping cost broken down by courier
+  ///
+  /// In en, this message translates to:
+  /// **'Cost by Courier'**
+  String get reportCostByCourier;
+
+  /// Shipping analytics section: list of shipping fee overrides
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping Overrides'**
+  String get reportShippingOverrides;
+
+  /// Shipping analytics section: financial impact of double-shipping
+  ///
+  /// In en, this message translates to:
+  /// **'Double-Shipping Impact'**
+  String get reportDoubleShipping;
+
+  /// Shipping analytics section: daily trend chart
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Trend'**
+  String get reportDailyTrend;
+
+  /// Shipping analytics section: pickup versus delivery comparison
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup vs Delivery'**
+  String get reportPickupVsDelivery;
+
+  /// Shipping analytics section: unsettled courier balances list
+  ///
+  /// In en, this message translates to:
+  /// **'Unsettled Courier Balances'**
+  String get reportUnsettledBalances;
+
+  /// Shipping analytics section: pickup and delivery trend over time
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup / Delivery Trend'**
+  String get reportPickupDeliveryTrend;
+
+  /// Inventory analytics KPI: total number of stock items
+  ///
+  /// In en, this message translates to:
+  /// **'Stock Items'**
+  String get reportInvKpiStockItems;
+
+  /// Inventory analytics KPI: number of critical stock items
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get reportInvKpiCritical;
+
+  /// Inventory analytics KPI: number of watch-list items
+  ///
+  /// In en, this message translates to:
+  /// **'Watch List'**
+  String get reportInvKpiWatch;
+
+  /// Inventory analytics KPI: number of slow-moving items
+  ///
+  /// In en, this message translates to:
+  /// **'Slow Movers'**
+  String get reportInvKpiSlow;
+
+  /// Inventory analytics KPI: number of overstocked items
+  ///
+  /// In en, this message translates to:
+  /// **'Overstocked'**
+  String get reportInvKpiOverstock;
+
+  /// Inventory analytics KPI: total valuation of stock on hand
+  ///
+  /// In en, this message translates to:
+  /// **'Stock Value'**
+  String get reportInvKpiStockValue;
+
+  /// Inventory analytics section: stock velocity chart
+  ///
+  /// In en, this message translates to:
+  /// **'Stock Velocity'**
+  String get reportStockVelocity;
+
+  /// Inventory analytics section: fastest-moving items
+  ///
+  /// In en, this message translates to:
+  /// **'Top Movers'**
+  String get reportTopMovers;
+
+  /// Inventory analytics section: items needing restock
+  ///
+  /// In en, this message translates to:
+  /// **'Restock Alerts'**
+  String get reportRestockAlerts;
+
+  /// Inventory analytics section header: critical items
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get reportCriticalItems;
+
+  /// Inventory analytics section header: watch-list items
+  ///
+  /// In en, this message translates to:
+  /// **'Watch List'**
+  String get reportWatchList;
+
+  /// Inventory analytics section header: slow-moving items
+  ///
+  /// In en, this message translates to:
+  /// **'Slow Movers'**
+  String get reportSlowMovers;
+
+  /// Inventory analytics section header: overstocked items
+  ///
+  /// In en, this message translates to:
+  /// **'Overstocked'**
+  String get reportOverstocked;
+
+  /// Inventory analytics section: best-selling items
+  ///
+  /// In en, this message translates to:
+  /// **'Top Sellers'**
+  String get reportTopSellers;
+
+  /// Product analytics KPI: total revenue
+  ///
+  /// In en, this message translates to:
+  /// **'Total Revenue'**
+  String get reportKpiTotalRevenue;
+
+  /// Product analytics KPI: total number of orders
+  ///
+  /// In en, this message translates to:
+  /// **'Total Orders'**
+  String get reportKpiTotalOrders;
+
+  /// Product analytics KPI: gross profit
+  ///
+  /// In en, this message translates to:
+  /// **'Gross Profit'**
+  String get reportKpiGrossProfit;
+
+  /// Product analytics KPI: gross margin percentage
+  ///
+  /// In en, this message translates to:
+  /// **'Gross Margin'**
+  String get reportKpiGrossMargin;
+
+  /// Product analytics KPI: average order value
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Order Value'**
+  String get reportKpiAov;
+
+  /// Product analytics KPI: best-selling product
+  ///
+  /// In en, this message translates to:
+  /// **'Best Seller'**
+  String get reportKpiBestSeller;
+
+  /// Product analytics KPI: top territory by revenue
+  ///
+  /// In en, this message translates to:
+  /// **'Top Territory'**
+  String get reportKpiTopTerritory;
+
+  /// Product analytics section: revenue split by product type
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue by Type'**
+  String get reportRevenueByType;
+
+  /// Product analytics section: top products by revenue
+  ///
+  /// In en, this message translates to:
+  /// **'Top Products'**
+  String get reportTopProducts;
+
+  /// Product analytics section: breakdown by territory
+  ///
+  /// In en, this message translates to:
+  /// **'By Territory'**
+  String get reportByTerritory;
+
+  /// Revenue trend chart, shared by Product/Executive/B2B dashboards
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue Trend'**
+  String get reportRevenueTrend;
+
+  /// Product analytics section: composition of bundle sales
+  ///
+  /// In en, this message translates to:
+  /// **'Bundle Composition'**
+  String get reportBundleComposition;
+
+  /// Customer analytics KPI: total number of customers
+  ///
+  /// In en, this message translates to:
+  /// **'Total Customers'**
+  String get reportKpiTotalCustomers;
+
+  /// Customer analytics KPI: number of active customers
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get reportKpiActive;
+
+  /// Customer analytics KPI: number of new customers
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get reportKpiNew;
+
+  /// Customer analytics KPI: repeat purchase rate
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat Rate'**
+  String get reportKpiRepeatRate;
+
+  /// Customer analytics KPI: number of champion customers
+  ///
+  /// In en, this message translates to:
+  /// **'Champions'**
+  String get reportKpiChampions;
+
+  /// Customer analytics KPI: number of at-risk customers
+  ///
+  /// In en, this message translates to:
+  /// **'At Risk'**
+  String get reportKpiAtRisk;
+
+  /// Customer analytics KPI: number of lost customers
+  ///
+  /// In en, this message translates to:
+  /// **'Lost'**
+  String get reportKpiLost;
+
+  /// Customer analytics section: distribution across segments
+  ///
+  /// In en, this message translates to:
+  /// **'Segment Distribution'**
+  String get reportSegmentDistribution;
+
+  /// Customer analytics section: detail for a customer segment
+  ///
+  /// In en, this message translates to:
+  /// **'Segment Detail'**
+  String get reportSegmentDetail;
+
+  /// Customer analytics section: top customers by revenue
+  ///
+  /// In en, this message translates to:
+  /// **'Top Customers'**
+  String get reportTopCustomers;
+
+  /// Customer analytics section: at-risk and win-back customers
+  ///
+  /// In en, this message translates to:
+  /// **'At-Risk / Win-Back'**
+  String get reportAtRiskWinBack;
+
+  /// Customer analytics section: new customer acquisition trend
+  ///
+  /// In en, this message translates to:
+  /// **'New Customer Acquisition'**
+  String get reportNewCustomerAcquisition;
+
+  /// Executive analytics KPI: total revenue
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get reportKpiRevenue;
+
+  /// Executive analytics KPI: total orders
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get reportKpiOrders;
+
+  /// Executive analytics KPI: net shipping profit and loss
+  ///
+  /// In en, this message translates to:
+  /// **'Net Shipping P&L'**
+  String get reportKpiNetShippingPl;
+
+  /// Executive analytics KPI: total customers
+  ///
+  /// In en, this message translates to:
+  /// **'Customers'**
+  String get reportKpiCustomers;
+
+  /// Executive analytics KPI: number of critical-stock items
+  ///
+  /// In en, this message translates to:
+  /// **'Critical Stock'**
+  String get reportKpiCriticalStock;
+
+  /// Executive analytics section: product mix breakdown
+  ///
+  /// In en, this message translates to:
+  /// **'Product Mix'**
+  String get reportProductMix;
+
+  /// Executive analytics section: customer segment breakdown
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Segments'**
+  String get reportCustomerSegments;
+
+  /// Executive analytics section: top territories by revenue
+  ///
+  /// In en, this message translates to:
+  /// **'Top Territories'**
+  String get reportTopTerritories;
+
+  /// B2B analytics KPI: total B2B revenue
+  ///
+  /// In en, this message translates to:
+  /// **'B2B Revenue'**
+  String get reportKpiB2bRevenue;
+
+  /// B2B analytics KPI: total B2B orders
+  ///
+  /// In en, this message translates to:
+  /// **'B2B Orders'**
+  String get reportKpiB2bOrders;
+
+  /// B2B analytics KPI: number of active clients
+  ///
+  /// In en, this message translates to:
+  /// **'Active Clients'**
+  String get reportKpiActiveClients;
+
+  /// B2B analytics KPI: number of new clients
+  ///
+  /// In en, this message translates to:
+  /// **'New Clients'**
+  String get reportKpiNewClients;
+
+  /// B2B analytics KPI: number of clients due for reorder
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder Due'**
+  String get reportKpiReorderDue;
+
+  /// B2B analytics section: sales pipeline by stage
+  ///
+  /// In en, this message translates to:
+  /// **'Sales Pipeline'**
+  String get reportSalesPipeline;
+
+  /// B2B analytics section: top clients by revenue
+  ///
+  /// In en, this message translates to:
+  /// **'Top Clients'**
+  String get reportTopClients;
+
+  /// B2B analytics section: revenue split by commercial policy
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue by Commercial Policy'**
+  String get reportRevenueByPolicy;
+
+  /// B2B analytics section: clients grouped by customer group
+  ///
+  /// In en, this message translates to:
+  /// **'Clients by Group'**
+  String get reportClientsByGroup;
+
+  /// B2B analytics section header: clients due for reorder
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder Due'**
+  String get reportReorderDue;
+
+  /// B2B analytics section: at-risk clients
+  ///
+  /// In en, this message translates to:
+  /// **'At-Risk Clients'**
+  String get reportAtRiskClients;
+
+  /// B2B analytics section: lead-to-client conversion
+  ///
+  /// In en, this message translates to:
+  /// **'Conversion'**
+  String get reportConversion;
+
   /// No description provided for @menuMasterOrders.
   ///
   /// In en, this message translates to:
@@ -6900,6 +7488,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Territory'**
   String get leadFieldTerritory;
+
+  /// No description provided for @leadB2bStage.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B Stage'**
+  String get leadB2bStage;
+
+  /// No description provided for @leadFitScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Fit Score'**
+  String get leadFitScore;
 
   /// No description provided for @b2bMoveTo.
   ///

@@ -64,6 +64,9 @@ dependencies:
   package_info_plus: ^9.0.1
   shorebird_code_push: ^2.0.0
 
+  # Charts for analytics dashboards
+  fl_chart: ^0.69.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

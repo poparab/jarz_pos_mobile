@@ -247,6 +247,20 @@ abstract final class ApiEndpoints {
   static const getMasterOrders =
       '/api/method/jarz_pos.api.orders.get_master_orders';
 
+  // ── Reports · Analytics dashboards ────────────────────────────────────
+  static const getShippingAnalytics =
+      '/api/method/jarz_pos.api.shipping_analytics.get_shipping_analytics';
+  static const getInventoryAnalytics =
+      '/api/method/jarz_pos.api.inventory_analytics.get_inventory_analytics';
+  static const getProductAnalytics =
+      '/api/method/jarz_pos.api.product_analytics.get_product_analytics';
+  static const getCustomerAnalytics =
+      '/api/method/jarz_pos.api.customer_analytics.get_customer_analytics';
+  static const getExecutiveOverview =
+      '/api/method/jarz_pos.api.executive_analytics.get_executive_overview';
+  static const getB2bAnalytics =
+      '/api/method/jarz_pos.api.b2b_analytics.get_b2b_analytics';
+
   // ── Settings ──────────────────────────────────────────────────────────
   static const getReceiptConfig =
       '/api/method/jarz_pos.api.pos.get_receipt_config';
