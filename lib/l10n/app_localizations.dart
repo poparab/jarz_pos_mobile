@@ -116,6 +116,48 @@ abstract class AppLocalizations {
   /// **'Mobile Point of Sale'**
   String get drawerHeaderSubtitle;
 
+  /// No description provided for @menuB2bMode.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B Mode'**
+  String get menuB2bMode;
+
+  /// No description provided for @drawerGroupPosSales.
+  ///
+  /// In en, this message translates to:
+  /// **'POS / Sales'**
+  String get drawerGroupPosSales;
+
+  /// No description provided for @drawerGroupCrm.
+  ///
+  /// In en, this message translates to:
+  /// **'CRM / B2B'**
+  String get drawerGroupCrm;
+
+  /// No description provided for @drawerGroupDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery / Logistics'**
+  String get drawerGroupDelivery;
+
+  /// No description provided for @drawerGroupFinance.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance / Expenses'**
+  String get drawerGroupFinance;
+
+  /// No description provided for @drawerGroupPurchasing.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchasing / Inventory'**
+  String get drawerGroupPurchasing;
+
+  /// No description provided for @drawerGroupManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Management / Reports'**
+  String get drawerGroupManagement;
+
   /// No description provided for @menuPointOfSale.
   ///
   /// In en, this message translates to:
@@ -6840,6 +6882,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Leads'**
   String get menuLeads;
+
+  /// No description provided for @leadFieldEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get leadFieldEmail;
+
+  /// No description provided for @leadFieldSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get leadFieldSource;
+
+  /// No description provided for @leadFieldTerritory.
+  ///
+  /// In en, this message translates to:
+  /// **'Territory'**
+  String get leadFieldTerritory;
+
+  /// No description provided for @b2bMoveTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to'**
+  String get b2bMoveTo;
 }
 
 class _AppLocalizationsDelegate

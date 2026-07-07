@@ -32,7 +32,6 @@ import 'network/user_service.dart';
 import '../features/about/presentation/screens/about_screen.dart';
 import '../features/b2b/presentation/screens/b2b_pipeline_screen.dart';
 import '../features/b2b/presentation/screens/b2b_account_screen.dart';
-import '../features/b2b/presentation/screens/b2b_lead_add_screen.dart';
 import '../features/b2b/presentation/screens/b2b_today_screen.dart';
 import '../features/leads/presentation/screens/leads_list_screen.dart';
 import '../features/leads/presentation/screens/leads_map_screen.dart';
@@ -353,11 +352,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.b2bToday,
         name: 'b2b-today',
         builder: (context, state) => const B2bTodayScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.b2bLeadAdd,
-        name: 'b2b-lead-add',
-        builder: (context, state) => const B2bLeadAddScreen(),
       ),
       GoRoute(
         path: AppRoutes.b2bAccount,

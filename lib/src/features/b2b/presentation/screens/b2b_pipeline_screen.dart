@@ -58,7 +58,7 @@ class B2bPipelineScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.b2bLeadAdd),
+        onPressed: () => context.push(AppRoutes.leadForm),
         icon: const Icon(Icons.add),
         label: const Text('New lead'),
       ),
@@ -160,14 +160,34 @@ class _Board extends StatelessWidget {
           for (final stage in pipeline.stages)
             B2bPipelineColumn(
               stage: stage,
-              cards: pipeline.columns[stage] ?? const [],
+              cards: _sortByScoreDesc(pipeline.columns[stage] ?? const []),
+              stages: pipeline.stages,
               onAccept: (card) => onAdvance(card, stage),
+              onMove: onAdvance,
               onCardTap: onCardTap,
             ),
         ],
       ),
     );
   }
+}
+
+/// Sorts a column's cards by lead score descending, keeping cards with no score
+/// LAST. The sort is stable: cards that tie (or share the "no score" bucket)
+/// keep their original server order. Done client-side so the board is robust
+/// even before the backend score sort ships.
+List<B2bCard> _sortByScoreDesc(List<B2bCard> cards) {
+  final entries = cards.asMap().entries.toList();
+  entries.sort((a, b) {
+    final sa = a.value.leadScore;
+    final sb = b.value.leadScore;
+    if (sa == null && sb == null) return a.key.compareTo(b.key);
+    if (sa == null) return 1; // a has no score → after b
+    if (sb == null) return -1; // b has no score → after a
+    final byScore = sb.compareTo(sa); // descending
+    return byScore != 0 ? byScore : a.key.compareTo(b.key);
+  });
+  return [for (final e in entries) e.value];
 }
 
 class _ErrorView extends StatelessWidget {

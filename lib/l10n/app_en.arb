@@ -3,6 +3,13 @@
   "appTitle": "Jarz POS",
   "drawerHeaderTitle": "Jarz POS",
   "drawerHeaderSubtitle": "Mobile Point of Sale",
+  "menuB2bMode": "B2B Mode",
+  "drawerGroupPosSales": "POS / Sales",
+  "drawerGroupCrm": "CRM / B2B",
+  "drawerGroupDelivery": "Delivery / Logistics",
+  "drawerGroupFinance": "Finance / Expenses",
+  "drawerGroupPurchasing": "Purchasing / Inventory",
+  "drawerGroupManagement": "Management / Reports",
   "menuPointOfSale": "Point of Sale",
   "menuSalesKanban": "Sales Kanban",
   "menuExpenses": "Expenses",
@@ -1630,5 +1637,9 @@
   "shorebirdUpdateBannerMessage": "Update downloaded — restart the app to apply it.",
   "aboutRestartInstruction": "Force-close and reopen the app to apply the downloaded patch.",
   "aboutPatchPending": "Pending patch (after restart)",
-  "menuLeads": "Leads"
+  "menuLeads": "Leads",
+  "leadFieldEmail": "Email",
+  "leadFieldSource": "Source",
+  "leadFieldTerritory": "Territory",
+  "b2bMoveTo": "Move to"
 }

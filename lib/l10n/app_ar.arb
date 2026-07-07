@@ -3,6 +3,13 @@
   "appTitle": "جارز لنقاط البيع",
   "drawerHeaderTitle": "جارز لنقاط البيع",
   "drawerHeaderSubtitle": "منصة نقاط البيع المحمولة",
+  "menuB2bMode": "وضع الأعمال (B2B)",
+  "drawerGroupPosSales": "نقاط البيع / المبيعات",
+  "drawerGroupCrm": "إدارة العملاء / B2B",
+  "drawerGroupDelivery": "التوصيل / الخدمات اللوجستية",
+  "drawerGroupFinance": "المالية / المصروفات",
+  "drawerGroupPurchasing": "المشتريات / المخزون",
+  "drawerGroupManagement": "الإدارة / التقارير",
   "menuPointOfSale": "نقطة البيع",
   "menuSalesKanban": "لوحة المبيعات",
   "menuExpenses": "المصروفات",
@@ -1626,5 +1633,9 @@
   "shorebirdUpdateBannerMessage": "تم تنزيل تحديث — أعد تشغيل التطبيق لتطبيقه.",
   "aboutRestartInstruction": "أغلق التطبيق تماماً وأعد فتحه لتطبيق التحديث المُنزَّل.",
   "aboutPatchPending": "التصحيح المُعلَّق (بعد إعادة التشغيل)",
-  "menuLeads": "العملاء المحتملون"
+  "menuLeads": "العملاء المحتملون",
+  "leadFieldEmail": "البريد الإلكتروني",
+  "leadFieldSource": "المصدر",
+  "leadFieldTerritory": "المنطقة",
+  "b2bMoveTo": "نقل إلى"
 }

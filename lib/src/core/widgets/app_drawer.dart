@@ -75,6 +75,233 @@ class AppDrawer extends ConsumerWidget {
       );
     }
 
+    // Navigate helper: preserve the existing behavior (close drawer, then go).
+    void navigate(String route) {
+      Navigator.pop(context);
+      context.go(route);
+    }
+
+    ListTile navTile({
+      required IconData icon,
+      required String title,
+      required VoidCallback onTap,
+    }) {
+      return ListTile(
+        leading: Icon(icon),
+        title: Text(title),
+        onTap: onTap,
+      );
+    }
+
+    // Current location, used to auto-expand the group holding the active route.
+    String currentLocation;
+    try {
+      currentLocation = GoRouterState.of(context).uri.toString();
+    } catch (_) {
+      currentLocation = '';
+    }
+    bool matchesRoute(List<String> routes) => routes.any(
+      (r) => currentLocation == r || currentLocation.startsWith('$r/'),
+    );
+
+    // ── Group child lists (each item keeps its original route/gate/icon) ──
+    final posChildren = <Widget>[
+      navTile(
+        icon: Icons.point_of_sale,
+        title: l10n.menuPointOfSale,
+        onTap: () => navigate(AppRoutes.pos),
+      ),
+      if (requirePosShift && hasActiveShift)
+        navTile(
+          icon: Icons.timer_off,
+          title: l10n.menuEndShift,
+          onTap: () => navigate(AppRoutes.shiftEnd),
+        ),
+      navTile(
+        icon: Icons.view_kanban,
+        title: l10n.menuSalesKanban,
+        onTap: () => navigate(AppRoutes.kanban),
+      ),
+    ];
+
+    final crmChildren = <Widget>[
+      if (canAccessB2b)
+        navTile(
+          icon: Icons.handshake_outlined,
+          title: l10n.menuB2bMode,
+          onTap: () => navigate(AppRoutes.b2b),
+        ),
+      if (canAccessB2b)
+        navTile(
+          icon: Icons.travel_explore,
+          title: l10n.menuLeads,
+          onTap: () => navigate(AppRoutes.leads),
+        ),
+    ];
+
+    final deliveryChildren = <Widget>[
+      navTile(
+        icon: Icons.local_shipping_outlined,
+        title: l10n.menuDeliveryTrips,
+        onTap: () => navigate(AppRoutes.trips),
+      ),
+      navTile(
+        icon: Icons.local_shipping,
+        title: l10n.menuCourierBalances,
+        onTap: () {
+          Navigator.pop(context);
+          showCourierBalancesDialog(context);
+        },
+      ),
+    ];
+
+    final financeChildren = <Widget>[
+      navTile(
+        icon: Icons.receipt_long,
+        title: l10n.menuExpenses,
+        onTap: () => navigate(AppRoutes.expenses),
+      ),
+      if (hasManagerAccess)
+        navTile(
+          icon: Icons.account_balance_wallet,
+          title: l10n.menuCashTransfer,
+          onTap: () => navigate(AppRoutes.cashTransfer),
+        ),
+    ];
+
+    final purchasingChildren = <Widget>[
+      if (hasManagerAccess) ...[
+        navTile(
+          icon: Icons.receipt_long,
+          title: l10n.menuPurchaseInvoice,
+          onTap: () => navigate(AppRoutes.purchase),
+        ),
+        navTile(
+          icon: Icons.factory,
+          title: l10n.menuManufacturing,
+          onTap: () => navigate(AppRoutes.manufacturing),
+        ),
+        navTile(
+          icon: Icons.swap_horiz,
+          title: l10n.menuStockTransfer,
+          onTap: () => navigate(AppRoutes.stockTransfer),
+        ),
+        navTile(
+          icon: Icons.inventory,
+          title: l10n.menuInventoryCount,
+          onTap: () => navigate(AppRoutes.inventoryCount),
+        ),
+      ],
+    ];
+
+    final managementChildren = <Widget>[
+      if (hasElevatedAccess)
+        navTile(
+          icon: Icons.list_alt,
+          title: l10n.menuMasterOrders,
+          onTap: () => navigate(AppRoutes.masterOrders),
+        ),
+      if (hasManagerAccess)
+        navTile(
+          icon: Icons.dashboard,
+          title: l10n.menuManagerDashboard,
+          onTap: () => navigate(AppRoutes.manager),
+        ),
+      if (hasManagerAccess && canAccessShiftMonitor)
+        navTile(
+          icon: Icons.timeline,
+          title: l10n.menuShiftMonitor,
+          onTap: () => navigate(AppRoutes.shiftMonitor),
+        ),
+      if (hasManagerAccess)
+        navTile(
+          icon: Icons.bar_chart,
+          title: l10n.menuReports,
+          onTap: () => navigate(AppRoutes.reports),
+        ),
+    ];
+
+    // Auto-expand the group containing the active route; fall back to POS/Sales.
+    const posRoutes = [AppRoutes.pos, AppRoutes.shiftEnd, AppRoutes.kanban];
+    const crmRoutes = [AppRoutes.b2b, AppRoutes.leads];
+    const deliveryRoutes = [AppRoutes.trips];
+    const financeRoutes = [AppRoutes.expenses, AppRoutes.cashTransfer];
+    const purchasingRoutes = [
+      AppRoutes.purchase,
+      AppRoutes.manufacturing,
+      AppRoutes.stockTransfer,
+      AppRoutes.inventoryCount,
+    ];
+    const managementRoutes = [
+      AppRoutes.masterOrders,
+      AppRoutes.manager,
+      AppRoutes.shiftMonitor,
+      AppRoutes.reports,
+    ];
+    final anyGroupMatches = [
+      posRoutes,
+      crmRoutes,
+      deliveryRoutes,
+      financeRoutes,
+      purchasingRoutes,
+      managementRoutes,
+    ].any(matchesRoute);
+
+    Widget? group({
+      required IconData icon,
+      required String label,
+      required List<Widget> children,
+      required bool expanded,
+    }) {
+      if (children.isEmpty) return null;
+      return ExpansionTile(
+        leading: Icon(icon),
+        title: Text(label),
+        initiallyExpanded: expanded,
+        childrenPadding: const EdgeInsets.only(left: 16),
+        children: children,
+      );
+    }
+
+    final groups = <Widget?>[
+      group(
+        icon: Icons.point_of_sale,
+        label: l10n.drawerGroupPosSales,
+        children: posChildren,
+        expanded: matchesRoute(posRoutes) || !anyGroupMatches,
+      ),
+      group(
+        icon: Icons.handshake_outlined,
+        label: l10n.drawerGroupCrm,
+        children: crmChildren,
+        expanded: matchesRoute(crmRoutes),
+      ),
+      group(
+        icon: Icons.local_shipping_outlined,
+        label: l10n.drawerGroupDelivery,
+        children: deliveryChildren,
+        expanded: matchesRoute(deliveryRoutes),
+      ),
+      group(
+        icon: Icons.account_balance_wallet,
+        label: l10n.drawerGroupFinance,
+        children: financeChildren,
+        expanded: matchesRoute(financeRoutes),
+      ),
+      group(
+        icon: Icons.inventory,
+        label: l10n.drawerGroupPurchasing,
+        children: purchasingChildren,
+        expanded: matchesRoute(purchasingRoutes),
+      ),
+      group(
+        icon: Icons.insights,
+        label: l10n.drawerGroupManagement,
+        children: managementChildren,
+        expanded: matchesRoute(managementRoutes),
+      ),
+    ].whereType<Widget>().toList();
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -87,149 +314,7 @@ class AppDrawer extends ConsumerWidget {
               children: [_DrawerHeaderTitle()],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.point_of_sale),
-            title: Text(l10n.menuPointOfSale),
-            onTap: () {
-              Navigator.pop(context);
-              context.go(AppRoutes.pos);
-            },
-          ),
-          if (requirePosShift && hasActiveShift)
-            ListTile(
-              leading: const Icon(Icons.timer_off),
-              title: Text(l10n.menuEndShift),
-              onTap: () {
-                Navigator.pop(context);
-                context.go(AppRoutes.shiftEnd);
-              },
-            ),
-          ListTile(
-            leading: const Icon(Icons.view_kanban),
-            title: Text(l10n.menuSalesKanban),
-            onTap: () {
-              Navigator.pop(context);
-              context.go(AppRoutes.kanban);
-            },
-          ),
-          if (canAccessB2b)
-            ListTile(
-              leading: const Icon(Icons.handshake_outlined),
-              title: const Text('B2B Mode'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go(AppRoutes.b2b);
-              },
-            ),
-          if (canAccessB2b)
-            ListTile(
-              leading: const Icon(Icons.travel_explore),
-              title: Text(l10n.menuLeads),
-              onTap: () {
-                Navigator.pop(context);
-                context.go(AppRoutes.leads);
-              },
-            ),
-          ListTile(
-            leading: const Icon(Icons.local_shipping_outlined),
-            title: Text(l10n.menuDeliveryTrips),
-            onTap: () {
-              Navigator.pop(context);
-              context.go(AppRoutes.trips);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.receipt_long),
-            title: Text(l10n.menuExpenses),
-            onTap: () {
-              Navigator.pop(context);
-              context.go(AppRoutes.expenses);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.local_shipping),
-            title: Text(l10n.menuCourierBalances),
-            onTap: () {
-              Navigator.pop(context);
-              showCourierBalancesDialog(context);
-            },
-          ),
-          if (hasElevatedAccess)
-            ListTile(
-              leading: const Icon(Icons.list_alt),
-              title: Text(l10n.menuMasterOrders),
-              onTap: () {
-                Navigator.pop(context);
-                context.go(AppRoutes.masterOrders);
-              },
-            ),
-          if (hasManagerAccess) ...[
-            ListTile(
-              leading: const Icon(Icons.dashboard),
-              title: Text(l10n.menuManagerDashboard),
-              onTap: () {
-                Navigator.pop(context);
-                context.go(AppRoutes.manager);
-              },
-            ),
-            if (canAccessShiftMonitor)
-              ListTile(
-                leading: const Icon(Icons.timeline),
-                title: Text(l10n.menuShiftMonitor),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.go(AppRoutes.shiftMonitor);
-                },
-              ),
-            ListTile(
-              leading: const Icon(Icons.receipt_long),
-              title: Text(l10n.menuPurchaseInvoice),
-              onTap: () {
-                Navigator.pop(context);
-                context.go(AppRoutes.purchase);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.factory),
-              title: Text(l10n.menuManufacturing),
-              onTap: () {
-                Navigator.pop(context);
-                context.go(AppRoutes.manufacturing);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.swap_horiz),
-              title: Text(l10n.menuStockTransfer),
-              onTap: () {
-                Navigator.pop(context);
-                context.go(AppRoutes.stockTransfer);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.account_balance_wallet),
-              title: Text(l10n.menuCashTransfer),
-              onTap: () {
-                Navigator.pop(context);
-                context.go(AppRoutes.cashTransfer);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.inventory),
-              title: Text(l10n.menuInventoryCount),
-              onTap: () {
-                Navigator.pop(context);
-                context.go(AppRoutes.inventoryCount);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.bar_chart),
-              title: Text(l10n.menuReports),
-              onTap: () {
-                Navigator.pop(context);
-                context.go(AppRoutes.reports);
-              },
-            ),
-          ],
+          ...groups,
           const Divider(),
           ListTile(
             leading: const Icon(Icons.info_outline),

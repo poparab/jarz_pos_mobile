@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../b2b/data/b2b_repository.dart' show b2bLeadSourcesProvider;
+import '../../../b2b/state/b2b_pipeline_notifier.dart' show b2bPipelineProvider;
+import '../../../pos/presentation/widgets/customer_search_widget.dart'
+    show territoriesProvider;
 import '../../data/leads_repository.dart';
 import '../../data/models/lead.dart';
 import '../../state/lead_categories_notifier.dart';
@@ -29,6 +34,10 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
   bool _isSpecialty = false;
   bool _saving = false;
 
+  // B2B CRM fields (shared with the former quick-add form).
+  String? _source;
+  String? _territory;
+
   // Address sub-forms.
   late final Map<String, TextEditingController> _primary;
   late final Map<String, TextEditingController> _shipping;
@@ -44,6 +53,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
       'company_name': TextEditingController(text: e?.sourceBrandId ?? ''),
       'phone': TextEditingController(text: e?.phone ?? ''),
       'mobile': TextEditingController(text: ''),
+      'email': TextEditingController(text: ''),
       'website': TextEditingController(text: e?.website ?? ''),
       'instagram': TextEditingController(text: e?.instagram ?? ''),
       'facebook': TextEditingController(text: e?.facebook ?? ''),
@@ -109,6 +119,9 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         'facebook': _c['facebook']!.text.trim(),
         'primary_area': _c['primary_area']!.text.trim(),
         'is_specialty': _isSpecialty,
+        'email_id': _c['email']!.text.trim(),
+        if (_source != null && _source!.isNotEmpty) 'source': _source,
+        if (_territory != null && _territory!.isNotEmpty) 'territory': _territory,
       };
       final name = await repo.saveLead(payload, name: widget.existing?.name);
 
@@ -123,8 +136,20 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
             name: name, kind: 'shipping', address: shipping);
       }
 
-      // Refresh the catalog so the new lead appears in the list.
-      await ref.read(leadsProvider.notifier).refresh();
+      // Refresh BOTH catalogs so the new lead shows everywhere it is listed:
+      // the Leads research list and the B2B pipeline board. Each refresh is
+      // guarded so an environment where one provider is not initialised (or the
+      // caller lacks access to it) never breaks the save flow.
+      try {
+        await ref.read(leadsProvider.notifier).refresh();
+      } catch (_) {
+        // Leads catalog not available in this context; ignore.
+      }
+      try {
+        await ref.read(b2bPipelineProvider.notifier).refresh();
+      } catch (_) {
+        // B2B pipeline not available in this context; ignore.
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -216,6 +241,9 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
                 onChanged: (v) => setState(() => _tier = v ?? 'B'),
               ),
               const SizedBox(height: 12),
+              _sourceField(),
+              _territoryField(),
+              const SizedBox(height: 4),
               _text('primary_area', 'Primary area'),
               TextFormField(
                 initialValue: _priceBand,
@@ -234,6 +262,11 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
             ]),
             const SizedBox(height: 16),
             _card('Contact', [
+              _text(
+                'email',
+                context.l10n.leadFieldEmail,
+                keyboard: TextInputType.emailAddress,
+              ),
               _text('phone', 'Phone', keyboard: TextInputType.phone),
               _text('mobile', 'Mobile', keyboard: TextInputType.phone),
               _text('website', 'Website'),
@@ -339,6 +372,79 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
       onChanged: onChanged,
     );
   }
+
+  /// Lead Source dropdown fed by the shared [b2bLeadSourcesProvider]. Optional.
+  Widget _sourceField() {
+    final label = context.l10n.leadFieldSource;
+    final sourcesAsync = ref.watch(b2bLeadSourcesProvider);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: sourcesAsync.when(
+        data: (sources) => DropdownButtonFormField<String>(
+          initialValue: sources.contains(_source) ? _source : null,
+          isExpanded: true,
+          decoration: _dec(label),
+          style: LeadsTheme.body,
+          items: [
+            for (final s in sources)
+              DropdownMenuItem<String>(value: s, child: Text(s)),
+          ],
+          onChanged: (v) => setState(() => _source = v),
+        ),
+        loading: () => _loadingField(label),
+        error: (_, _) => _loadingField(label, spinner: false),
+      ),
+    );
+  }
+
+  /// Territory dropdown fed by the shared [territoriesProvider]. Optional.
+  Widget _territoryField() {
+    final label = context.l10n.leadFieldTerritory;
+    final territoriesAsync = ref.watch(territoriesProvider(null));
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: territoriesAsync.when(
+        data: (territories) {
+          final names = territories
+              .map((t) => t['name']?.toString() ?? '')
+              .toSet();
+          return DropdownButtonFormField<String>(
+            initialValue: names.contains(_territory) ? _territory : null,
+            isExpanded: true,
+            menuMaxHeight: 320,
+            decoration: _dec(label),
+            style: LeadsTheme.body,
+            items: territories.map<DropdownMenuItem<String>>((territory) {
+              final name = territory['name']?.toString() ?? '';
+              final text = (territory['territory_name_ar'] ??
+                      territory['territory_name'] ??
+                      name)
+                  .toString();
+              return DropdownMenuItem<String>(
+                value: name,
+                child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
+              );
+            }).toList(),
+            onChanged: (v) => setState(() => _territory = v),
+          );
+        },
+        loading: () => _loadingField(label),
+        error: (_, _) => _loadingField(label, spinner: false),
+      ),
+    );
+  }
+
+  /// Disabled placeholder shown while a dropdown's options load (or fail).
+  Widget _loadingField(String label, {bool spinner = true}) => InputDecorator(
+        decoration: _dec(label),
+        child: spinner
+            ? const SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const SizedBox(height: 18),
+      );
 
   Widget _card(String title, List<Widget> children) {
     return Container(

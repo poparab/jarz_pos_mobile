@@ -18,6 +18,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get drawerHeaderSubtitle => 'منصة نقاط البيع المحمولة';
 
   @override
+  String get menuB2bMode => 'وضع الأعمال (B2B)';
+
+  @override
+  String get drawerGroupPosSales => 'نقاط البيع / المبيعات';
+
+  @override
+  String get drawerGroupCrm => 'إدارة العملاء / B2B';
+
+  @override
+  String get drawerGroupDelivery => 'التوصيل / الخدمات اللوجستية';
+
+  @override
+  String get drawerGroupFinance => 'المالية / المصروفات';
+
+  @override
+  String get drawerGroupPurchasing => 'المشتريات / المخزون';
+
+  @override
+  String get drawerGroupManagement => 'الإدارة / التقارير';
+
+  @override
   String get menuPointOfSale => 'نقطة البيع';
 
   @override
@@ -3870,4 +3891,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get menuLeads => 'العملاء المحتملون';
+
+  @override
+  String get leadFieldEmail => 'البريد الإلكتروني';
+
+  @override
+  String get leadFieldSource => 'المصدر';
+
+  @override
+  String get leadFieldTerritory => 'المنطقة';
+
+  @override
+  String get b2bMoveTo => 'نقل إلى';
 }

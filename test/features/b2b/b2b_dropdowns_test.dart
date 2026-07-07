@@ -1,11 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/b2b/data/b2b_repository.dart';
 import 'package:jarz_pos/src/features/b2b/data/models/b2b_models.dart';
 import 'package:jarz_pos/src/features/b2b/presentation/screens/b2b_account_screen.dart';
-import 'package:jarz_pos/src/features/b2b/presentation/screens/b2b_lead_add_screen.dart';
+import 'package:jarz_pos/src/features/leads/data/leads_repository.dart';
+import 'package:jarz_pos/src/features/leads/data/models/lead.dart';
+import 'package:jarz_pos/src/features/leads/presentation/screens/lead_form_screen.dart';
 import 'package:jarz_pos/src/features/pos/presentation/widgets/customer_search_widget.dart'
     show territoriesProvider;
 
@@ -37,26 +41,46 @@ class _FakeB2bRepository extends B2bRepository {
   }
 }
 
+/// Minimal leads repository so [LeadFormScreen]'s category dropdown resolves
+/// without hitting the network.
+class _FakeLeadsRepository extends LeadsRepository {
+  _FakeLeadsRepository() : super(Dio());
+
+  @override
+  Future<List<LeadCategory>> getLeadCategories() async => const [];
+}
+
 Widget _wrap(Widget child, {required List<Override> overrides}) {
   return ProviderScope(
     overrides: overrides,
-    child: MaterialApp(home: child),
+    child: MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: child,
+    ),
   );
 }
 
 void main() {
-  group('B2bLeadAddScreen dropdowns', () {
+  // The Source/Territory dropdowns now live on the single shared add-lead form
+  // (LeadFormScreen), which both the Leads list and the B2B pipeline open.
+  group('LeadFormScreen B2B dropdowns', () {
     testWidgets('Source dropdown renders options from get_lead_sources',
         (tester) async {
       await tester.pumpWidget(
         _wrap(
-          const B2bLeadAddScreen(),
+          const LeadFormScreen(),
           overrides: [
+            leadsRepositoryProvider.overrideWithValue(_FakeLeadsRepository()),
             b2bRepositoryProvider.overrideWithValue(_FakeB2bRepository()),
-            b2bLeadSourcesProvider
-                .overrideWith((ref) async => _leadSources),
-            territoriesProvider(null)
-                .overrideWith((ref) async => _territories),
+            b2bLeadSourcesProvider.overrideWith((ref) async => _leadSources),
+            territoriesProvider(null).overrideWith((ref) async => _territories),
           ],
         ),
       );
@@ -77,13 +101,12 @@ void main() {
         (tester) async {
       await tester.pumpWidget(
         _wrap(
-          const B2bLeadAddScreen(),
+          const LeadFormScreen(),
           overrides: [
+            leadsRepositoryProvider.overrideWithValue(_FakeLeadsRepository()),
             b2bRepositoryProvider.overrideWithValue(_FakeB2bRepository()),
-            b2bLeadSourcesProvider
-                .overrideWith((ref) async => _leadSources),
-            territoriesProvider(null)
-                .overrideWith((ref) async => _territories),
+            b2bLeadSourcesProvider.overrideWith((ref) async => _leadSources),
+            territoriesProvider(null).overrideWith((ref) async => _territories),
           ],
         ),
       );
@@ -105,8 +128,7 @@ void main() {
           const B2bAccountScreen(doctype: 'Lead', name: 'LEAD-001'),
           overrides: [
             b2bRepositoryProvider.overrideWithValue(_FakeB2bRepository()),
-            territoriesProvider(null)
-                .overrideWith((ref) async => _territories),
+            territoriesProvider(null).overrideWith((ref) async => _territories),
           ],
         ),
       );

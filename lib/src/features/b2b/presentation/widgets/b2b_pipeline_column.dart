@@ -9,7 +9,14 @@ import 'b2b_stage_chip.dart';
 class B2bPipelineColumn extends StatelessWidget {
   final String stage;
   final List<B2bCard> cards;
+
+  /// All pipeline stages, in order, used to populate each card's explicit
+  /// "Move to" menu.
+  final List<String> stages;
   final void Function(B2bCard card) onAccept;
+
+  /// Explicit (tap-based) stage move for a card. Mirrors the drag path.
+  final void Function(B2bCard card, String stage)? onMove;
   final void Function(B2bCard card) onCardTap;
   final double width;
 
@@ -17,7 +24,9 @@ class B2bPipelineColumn extends StatelessWidget {
     super.key,
     required this.stage,
     required this.cards,
+    this.stages = const [],
     required this.onAccept,
+    this.onMove,
     required this.onCardTap,
     this.width = 260,
   });
@@ -99,6 +108,8 @@ class B2bPipelineColumn extends StatelessWidget {
                             ),
                             child: B2bPipelineCard(
                               card: card,
+                              stages: stages,
+                              onMove: onMove,
                               onTap: () => onCardTap(card),
                             ),
                           );

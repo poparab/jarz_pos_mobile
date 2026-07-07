@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../leads/data/leads_repository.dart';
+import '../../../leads/data/models/lead.dart';
+import '../../../leads/presentation/leads_theme.dart';
+import '../../../leads/presentation/widgets/category_chip.dart';
+import '../../../leads/presentation/widgets/lead_actions.dart';
+import '../../../leads/presentation/widgets/sahel_badge.dart';
+import '../../../leads/presentation/widgets/score_bar.dart';
+import '../../../leads/presentation/widgets/tier_pill.dart';
 import '../../../pos/presentation/widgets/customer_search_widget.dart'
     show territoriesProvider;
 import '../../data/b2b_repository.dart';
@@ -437,6 +445,8 @@ class _AccountBody extends StatelessWidget {
               if (account.customer != null)
                 _kv(context, 'Customer', account.customer!),
             ]),
+            if (account.doctype == 'Lead')
+              _LeadProfileSection(leadName: account.name),
             _section(context, 'Insights', [
               if (account.predictedNextOrder != null)
                 _kv(context, 'Predicted next order',
@@ -572,5 +582,323 @@ class _AccountBody extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Read-only "Lead profile" enrichment for a Lead-backed B2B account. Fetches
+/// the rich lead (`leads.get_lead`) independently of the main account load and
+/// silently omits itself if the fetch fails or returns an empty record.
+class _LeadProfileSection extends ConsumerStatefulWidget {
+  const _LeadProfileSection({required this.leadName});
+
+  final String leadName;
+
+  @override
+  ConsumerState<_LeadProfileSection> createState() =>
+      _LeadProfileSectionState();
+}
+
+class _LeadProfileSectionState extends ConsumerState<_LeadProfileSection> {
+  late final Future<Lead?> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<Lead?> _load() async {
+    try {
+      final lead =
+          await ref.read(leadsRepositoryProvider).getLead(widget.leadName);
+      // Treat an empty record (no name / no display name) as "nothing to show".
+      if (lead.name.trim().isEmpty && lead.leadName.trim().isEmpty) return null;
+      return lead;
+    } catch (_) {
+      // Resilient by design: never break the account view if the lead is
+      // unavailable.
+      return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Lead?>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 16),
+            child: Row(
+              children: [
+                SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                SizedBox(width: 12),
+                Text('Loading lead profile…'),
+              ],
+            ),
+          );
+        }
+        final lead = snapshot.data;
+        if (lead == null) return const SizedBox.shrink();
+        return _LeadProfileCard(lead: lead);
+      },
+    );
+  }
+}
+
+/// The compact, read-only lead card: score + tier/category/sahel chips, a
+/// metrics row, contact quick-actions, addresses, and a branches summary.
+class _LeadProfileCard extends StatelessWidget {
+  const _LeadProfileCard({required this.lead});
+
+  final Lead lead;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final metrics = <Widget>[
+      _metric(Icons.storefront_outlined, '${lead.branchCount} branches'),
+      if (lead.avgRating != null)
+        _metric(
+          Icons.star_rounded,
+          '${lead.avgRating!.toStringAsFixed(1)} (${lead.totalReviews})',
+          iconColor: LeadsTheme.gold,
+        ),
+      if (lead.primaryArea.trim().isNotEmpty)
+        _metric(Icons.place_outlined, lead.primaryArea),
+      if (lead.priceBand.trim().isNotEmpty)
+        _metric(Icons.sell_outlined, lead.priceBand),
+    ];
+
+    final primaryAddress = _formatAddress(lead.primaryAddress);
+    final shippingAddress = _formatAddress(lead.shippingAddress);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Text('Lead profile', style: theme.textTheme.titleMedium),
+        const Divider(),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: LeadsTheme.line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ScoreBar(lead.score, width: 52),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        TierPill(lead.tier),
+                        if (lead.category != null &&
+                            lead.category!.trim().isNotEmpty)
+                          CategoryChip(
+                            category: LeadCategory(
+                              name: lead.category!,
+                              categoryName: lead.category!,
+                            ),
+                            selected: false,
+                            onTap: () {},
+                          ),
+                        if (lead.sahelBranches > 0)
+                          SahelBadge(lead.sahelBranches),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (metrics.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(spacing: 8, runSpacing: 8, children: metrics),
+              ],
+              const SizedBox(height: 12),
+              _contactActions(),
+              if (primaryAddress != null || shippingAddress != null) ...[
+                const SizedBox(height: 12),
+                if (primaryAddress != null)
+                  _addressRow(context, 'Primary address', primaryAddress),
+                if (shippingAddress != null)
+                  _addressRow(context, 'Shipping address', shippingAddress),
+              ],
+              if (lead.branches.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Branches (${lead.branches.length})',
+                  style: theme.textTheme.titleSmall,
+                ),
+                const SizedBox(height: 6),
+                for (final branch in lead.branches.take(5))
+                  _branchRow(context, branch),
+                if (lead.branches.length > 5)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '+ ${lead.branches.length - 5} more',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _contactActions() {
+    final hasPhone = lead.phone.trim().isNotEmpty;
+    final hasWebsite = lead.website.trim().isNotEmpty;
+    final hasInstagram = lead.instagram.trim().isNotEmpty;
+    final hasMaps = lead.mapsUrl.trim().isNotEmpty ||
+        (lead.latitude != null && lead.longitude != null);
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        LeadActionButton(
+          icon: Icons.call,
+          tooltip: 'Call',
+          enabled: hasPhone,
+          onTap: () => LeadActions.call(lead.phone),
+        ),
+        LeadActionButton(
+          icon: Icons.language,
+          tooltip: 'Website',
+          enabled: hasWebsite,
+          onTap: () => LeadActions.website(lead.website),
+        ),
+        LeadActionButton(
+          icon: Icons.camera_alt_outlined,
+          tooltip: 'Instagram',
+          color: LeadsTheme.berryPink,
+          enabled: hasInstagram,
+          onTap: () => LeadActions.instagram(lead.instagram),
+        ),
+        LeadActionButton(
+          icon: Icons.map_outlined,
+          tooltip: 'Map',
+          enabled: hasMaps,
+          onTap: () {
+            if (lead.mapsUrl.trim().isNotEmpty) {
+              LeadActions.maps(lead.mapsUrl);
+            } else if (lead.latitude != null && lead.longitude != null) {
+              LeadActions.mapsAt(lead.latitude!, lead.longitude!);
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _metric(
+    IconData icon,
+    String text, {
+    Color iconColor = LeadsTheme.muted,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: LeadsTheme.bg,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: LeadsTheme.line),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: iconColor),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: const TextStyle(fontSize: 12, color: LeadsTheme.deepPlum),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _addressRow(BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Text(value, style: theme.textTheme.bodyMedium),
+        ],
+      ),
+    );
+  }
+
+  Widget _branchRow(BuildContext context, LeadBranch branch) {
+    final theme = Theme.of(context);
+    final location = [
+      if (branch.area.trim().isNotEmpty) branch.area,
+      if (branch.region.trim().isNotEmpty) branch.region,
+    ].join(' · ');
+    final hasName = branch.branchName.trim().isNotEmpty;
+    final label = hasName
+        ? (location.isNotEmpty ? '${branch.branchName} — $location' : branch.branchName)
+        : (location.isNotEmpty ? location : '—');
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          const Icon(Icons.storefront_outlined,
+              size: 14, color: LeadsTheme.muted),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (branch.rating != null) ...[
+            const Icon(Icons.star_rounded, size: 14, color: LeadsTheme.gold),
+            const SizedBox(width: 2),
+            Text(
+              '${branch.rating!.toStringAsFixed(1)} (${branch.reviews})',
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String? _formatAddress(LeadAddress? address) {
+    if (address == null) return null;
+    final parts = [
+      address.addressLine1,
+      address.addressLine2,
+      address.city,
+      address.state,
+      address.country,
+      address.pincode,
+    ].where((s) => s.trim().isNotEmpty).toList();
+    if (parts.isEmpty) return null;
+    return parts.join(', ');
   }
 }

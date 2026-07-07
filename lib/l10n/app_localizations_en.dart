@@ -18,6 +18,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerHeaderSubtitle => 'Mobile Point of Sale';
 
   @override
+  String get menuB2bMode => 'B2B Mode';
+
+  @override
+  String get drawerGroupPosSales => 'POS / Sales';
+
+  @override
+  String get drawerGroupCrm => 'CRM / B2B';
+
+  @override
+  String get drawerGroupDelivery => 'Delivery / Logistics';
+
+  @override
+  String get drawerGroupFinance => 'Finance / Expenses';
+
+  @override
+  String get drawerGroupPurchasing => 'Purchasing / Inventory';
+
+  @override
+  String get drawerGroupManagement => 'Management / Reports';
+
+  @override
   String get menuPointOfSale => 'Point of Sale';
 
   @override
@@ -3886,4 +3907,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuLeads => 'Leads';
+
+  @override
+  String get leadFieldEmail => 'Email';
+
+  @override
+  String get leadFieldSource => 'Source';
+
+  @override
+  String get leadFieldTerritory => 'Territory';
+
+  @override
+  String get b2bMoveTo => 'Move to';
 }
