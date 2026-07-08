@@ -31,6 +31,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
   String? _category;
   String _tier = 'B';
   String _priceBand = '';
+  int? _score;
   bool _isSpecialty = false;
   bool _saving = false;
 
@@ -62,6 +63,10 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
     _category = e?.category;
     _tier = e?.tier.isNotEmpty == true ? e!.tier : 'B';
     _priceBand = e?.priceBand ?? '';
+    // Null-safe: `score` defaults to 0 in the model. Treat a 0 on a brand-new
+    // form as "unset" so we don't force a zero score, but preserve an existing
+    // lead's score when editing.
+    _score = (e != null && e.score > 0) ? e.score : null;
     _isSpecialty = e?.isSpecialty ?? false;
     _primary = _addressControllers(e?.primaryAddress);
     _shipping = _addressControllers(e?.shippingAddress);
@@ -119,6 +124,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         'facebook': _c['facebook']!.text.trim(),
         'primary_area': _c['primary_area']!.text.trim(),
         'is_specialty': _isSpecialty,
+        if (_score != null) 'score': _score,
         'email_id': _c['email']!.text.trim(),
         if (_source != null && _source!.isNotEmpty) 'source': _source,
         if (_territory != null && _territory!.isNotEmpty) 'territory': _territory,
@@ -225,53 +231,55 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
             _card('Brand', [
-              _text('lead_name', 'Lead name *', required: true),
-              _text('company_name', 'Company name'),
-              _CategoryField(
-                categoriesAsync: categoriesAsync,
-                value: _category,
-                onChanged: (v) => setState(() => _category = v),
-                onAddNew: _addCategory,
-              ),
-              const SizedBox(height: 12),
-              _dropdown(
-                label: 'Tier',
-                value: _tier,
-                items: _tiers,
-                onChanged: (v) => setState(() => _tier = v ?? 'B'),
-              ),
-              const SizedBox(height: 12),
-              _sourceField(),
-              _territoryField(),
-              const SizedBox(height: 4),
-              _text('primary_area', 'Primary area'),
-              TextFormField(
-                initialValue: _priceBand,
-                style: LeadsTheme.body,
-                decoration: _dec('Price band'),
-                onChanged: (v) => _priceBand = v,
-              ),
-              SwitchListTile.adaptive(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                activeThumbColor: LeadsTheme.berryPink,
-                title: const Text('Specialty', style: LeadsTheme.body),
-                value: _isSpecialty,
-                onChanged: (v) => setState(() => _isSpecialty = v),
-              ),
+              _grid([
+                _Field.full(_text('lead_name', 'Lead name *', required: true)),
+                _Field.half(_text('company_name', 'Company name')),
+                _Field.half(_CategoryField(
+                  categoriesAsync: categoriesAsync,
+                  value: _category,
+                  onChanged: (v) => setState(() => _category = v),
+                  onAddNew: _addCategory,
+                )),
+              ]),
+            ]),
+            const SizedBox(height: 16),
+            _card('Classification', [
+              _grid([
+                _Field.half(_dropdown(
+                  label: 'Tier',
+                  value: _tier,
+                  items: _tiers,
+                  onChanged: (v) => setState(() => _tier = v ?? 'B'),
+                )),
+                _Field.half(_priceBandField()),
+                _Field.half(_sourceField()),
+                _Field.half(_territoryField()),
+                _Field.half(_text('primary_area', 'Primary area')),
+                _Field.half(_scoreField()),
+                _Field.full(SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  activeThumbColor: LeadsTheme.berryPink,
+                  title: const Text('Specialty', style: LeadsTheme.body),
+                  value: _isSpecialty,
+                  onChanged: (v) => setState(() => _isSpecialty = v),
+                )),
+              ]),
             ]),
             const SizedBox(height: 16),
             _card('Contact', [
-              _text(
-                'email',
-                context.l10n.leadFieldEmail,
-                keyboard: TextInputType.emailAddress,
-              ),
-              _text('phone', 'Phone', keyboard: TextInputType.phone),
-              _text('mobile', 'Mobile', keyboard: TextInputType.phone),
-              _text('website', 'Website'),
-              _text('instagram', 'Instagram'),
-              _text('facebook', 'Facebook'),
+              _grid([
+                _Field.half(_text(
+                  'email',
+                  context.l10n.leadFieldEmail,
+                  keyboard: TextInputType.emailAddress,
+                )),
+                _Field.half(_text('phone', 'Phone', keyboard: TextInputType.phone)),
+                _Field.half(_text('mobile', 'Mobile', keyboard: TextInputType.phone)),
+                _Field.half(_text('website', 'Website')),
+                _Field.half(_text('instagram', 'Instagram')),
+                _Field.half(_text('facebook', 'Facebook')),
+              ]),
             ]),
             const SizedBox(height: 16),
             _card('Primary address', _addressFields(_primary)),
@@ -300,24 +308,71 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
   }
 
   List<Widget> _addressFields(Map<String, TextEditingController> src) => [
-        _addrField(src, 'line1', 'Address line 1'),
-        _addrField(src, 'line2', 'Address line 2'),
-        Row(
-          children: [
-            Expanded(child: _addrField(src, 'city', 'City')),
-            const SizedBox(width: 8),
-            Expanded(child: _addrField(src, 'state', 'State')),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(child: _addrField(src, 'country', 'Country')),
-            const SizedBox(width: 8),
-            Expanded(child: _addrField(src, 'pincode', 'Pincode')),
-          ],
-        ),
-        _addrField(src, 'phone', 'Phone', keyboard: TextInputType.phone),
+        _grid([
+          _Field.full(_addrField(src, 'line1', 'Address line 1')),
+          _Field.full(_addrField(src, 'line2', 'Address line 2')),
+          _Field.half(_addrField(src, 'city', 'City')),
+          _Field.half(_addrField(src, 'state', 'State')),
+          _Field.half(_addrField(src, 'country', 'Country')),
+          _Field.half(_addrField(src, 'pincode', 'Pincode')),
+          _Field.half(
+              _addrField(src, 'phone', 'Phone', keyboard: TextInputType.phone)),
+        ]),
       ];
+
+  /// Responsive grid: two columns when the available width is comfortable
+  /// (tablets / landscape), one column on narrow phones. Full-span fields
+  /// always take the whole row. Spacing is owned here so field builders stay
+  /// padding-free. RTL-safe: `Wrap` follows the ambient text direction.
+  Widget _grid(List<_Field> fields) {
+    const spacing = 12.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxW = constraints.maxWidth;
+        final twoCol = maxW >= 560;
+        // floorToDouble guards against sub-pixel rounding pushing a pair onto
+        // a second run (which would look like an overflow-driven wrap).
+        final halfW =
+            twoCol ? ((maxW - spacing) / 2).floorToDouble() : maxW;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (final f in fields)
+              SizedBox(
+                width: f.span == _Span.full ? maxW : halfW,
+                child: f.child,
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _priceBandField() => TextFormField(
+        initialValue: _priceBand,
+        style: LeadsTheme.body,
+        decoration: _dec('Price band'),
+        onChanged: (v) => _priceBand = v,
+      );
+
+  Widget _scoreField() => TextFormField(
+        initialValue: _score?.toString() ?? '',
+        style: LeadsTheme.body,
+        keyboardType: TextInputType.number,
+        decoration: _dec('${context.l10n.leadFitScore} (0–100)'),
+        validator: (v) {
+          final text = v?.trim() ?? '';
+          if (text.isEmpty) return null; // optional
+          final n = int.tryParse(text);
+          if (n == null || n < 0 || n > 100) return '0–100';
+          return null;
+        },
+        onChanged: (v) {
+          final text = v.trim();
+          _score = text.isEmpty ? null : int.tryParse(text);
+        },
+      );
 
   Widget _addrField(
     Map<String, TextEditingController> src,
@@ -325,14 +380,11 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
     String label, {
     TextInputType? keyboard,
   }) =>
-      Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: TextField(
-          controller: src[key],
-          keyboardType: keyboard,
-          style: LeadsTheme.body,
-          decoration: _dec(label),
-        ),
+      TextField(
+        controller: src[key],
+        keyboardType: keyboard,
+        style: LeadsTheme.body,
+        decoration: _dec(label),
       );
 
   Widget _text(
@@ -341,17 +393,14 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
     bool required = false,
     TextInputType? keyboard,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: TextFormField(
-        controller: _c[key],
-        keyboardType: keyboard,
-        style: LeadsTheme.body,
-        decoration: _dec(label),
-        validator: required
-            ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null
-            : null,
-      ),
+    return TextFormField(
+      controller: _c[key],
+      keyboardType: keyboard,
+      style: LeadsTheme.body,
+      decoration: _dec(label),
+      validator: required
+          ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null
+          : null,
     );
   }
 
@@ -363,6 +412,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
   }) {
     return DropdownButtonFormField<String>(
       initialValue: value,
+      isExpanded: true,
       decoration: _dec(label),
       style: LeadsTheme.body,
       items: [
@@ -377,23 +427,20 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
   Widget _sourceField() {
     final label = context.l10n.leadFieldSource;
     final sourcesAsync = ref.watch(b2bLeadSourcesProvider);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: sourcesAsync.when(
-        data: (sources) => DropdownButtonFormField<String>(
-          initialValue: sources.contains(_source) ? _source : null,
-          isExpanded: true,
-          decoration: _dec(label),
-          style: LeadsTheme.body,
-          items: [
-            for (final s in sources)
-              DropdownMenuItem<String>(value: s, child: Text(s)),
-          ],
-          onChanged: (v) => setState(() => _source = v),
-        ),
-        loading: () => _loadingField(label),
-        error: (_, _) => _loadingField(label, spinner: false),
+    return sourcesAsync.when(
+      data: (sources) => DropdownButtonFormField<String>(
+        initialValue: sources.contains(_source) ? _source : null,
+        isExpanded: true,
+        decoration: _dec(label),
+        style: LeadsTheme.body,
+        items: [
+          for (final s in sources)
+            DropdownMenuItem<String>(value: s, child: Text(s)),
+        ],
+        onChanged: (v) => setState(() => _source = v),
       ),
+      loading: () => _loadingField(label),
+      error: (_, _) => _loadingField(label, spinner: false),
     );
   }
 
@@ -401,36 +448,33 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
   Widget _territoryField() {
     final label = context.l10n.leadFieldTerritory;
     final territoriesAsync = ref.watch(territoriesProvider(null));
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: territoriesAsync.when(
-        data: (territories) {
-          final names = territories
-              .map((t) => t['name']?.toString() ?? '')
-              .toSet();
-          return DropdownButtonFormField<String>(
-            initialValue: names.contains(_territory) ? _territory : null,
-            isExpanded: true,
-            menuMaxHeight: 320,
-            decoration: _dec(label),
-            style: LeadsTheme.body,
-            items: territories.map<DropdownMenuItem<String>>((territory) {
-              final name = territory['name']?.toString() ?? '';
-              final text = (territory['territory_name_ar'] ??
-                      territory['territory_name'] ??
-                      name)
-                  .toString();
-              return DropdownMenuItem<String>(
-                value: name,
-                child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
-              );
-            }).toList(),
-            onChanged: (v) => setState(() => _territory = v),
-          );
-        },
-        loading: () => _loadingField(label),
-        error: (_, _) => _loadingField(label, spinner: false),
-      ),
+    return territoriesAsync.when(
+      data: (territories) {
+        final names = territories
+            .map((t) => t['name']?.toString() ?? '')
+            .toSet();
+        return DropdownButtonFormField<String>(
+          initialValue: names.contains(_territory) ? _territory : null,
+          isExpanded: true,
+          menuMaxHeight: 320,
+          decoration: _dec(label),
+          style: LeadsTheme.body,
+          items: territories.map<DropdownMenuItem<String>>((territory) {
+            final name = territory['name']?.toString() ?? '';
+            final text = (territory['territory_name_ar'] ??
+                    territory['territory_name'] ??
+                    name)
+                .toString();
+            return DropdownMenuItem<String>(
+              value: name,
+              child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
+            );
+          }).toList(),
+          onChanged: (v) => setState(() => _territory = v),
+        );
+      },
+      loading: () => _loadingField(label),
+      error: (_, _) => _loadingField(label, spinner: false),
     );
   }
 
@@ -470,6 +514,18 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         isDense: true,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       );
+}
+
+/// Column span for a field inside [_LeadFormScreenState._grid].
+enum _Span { full, half }
+
+/// A single grid cell: its widget plus how many columns it should occupy.
+class _Field {
+  const _Field.full(this.child) : span = _Span.full;
+  const _Field.half(this.child) : span = _Span.half;
+
+  final Widget child;
+  final _Span span;
 }
 
 class _CategoryField extends StatelessWidget {

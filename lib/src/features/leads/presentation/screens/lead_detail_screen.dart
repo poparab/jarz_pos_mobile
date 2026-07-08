@@ -1,14 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../b2b/data/b2b_repository.dart' show b2bRepositoryProvider;
+import '../../../b2b/presentation/widgets/b2b_stage_chip.dart';
+import '../../../b2b/state/b2b_pipeline_notifier.dart' show b2bPipelineProvider;
 import '../../data/models/lead.dart';
 import '../../state/lead_categories_notifier.dart';
 import '../../state/lead_detail_notifier.dart';
+import '../../state/leads_notifier.dart' show leadsProvider;
 import '../leads_theme.dart';
 import '../widgets/lead_actions.dart';
 import '../widgets/sahel_badge.dart';
 import '../widgets/score_bar.dart';
 import '../widgets/tier_pill.dart';
+
+/// The 8 valid B2B pipeline stages, in order. Mirrors the backend
+/// `custom_b2b_stage` select options so the Leads detail and the B2B kanban
+/// stay consistent.
+const _kB2bStages = <String>[
+  'Lead',
+  'Qualify',
+  'Sample',
+  'Approved',
+  'Trial',
+  'Check-up',
+  'Active',
+  'Lost/On-hold',
+];
 
 /// Full detail view for a single lead: brand header + contacts, branches list,
 /// and editable status / notes / category + primary/shipping addresses.
@@ -75,6 +94,10 @@ class _DetailBody extends ConsumerWidget {
         _ContactRow(lead: lead),
         const SizedBox(height: 20),
         _EditableSection(lead: lead, leadName: leadName),
+        const SizedBox(height: 20),
+        _FitScoreSection(lead: lead, leadName: leadName),
+        const SizedBox(height: 20),
+        _B2bStageSection(lead: lead, leadName: leadName),
         const SizedBox(height: 20),
         _AddressesSection(lead: lead, leadName: leadName),
         const SizedBox(height: 20),
@@ -364,6 +387,261 @@ class _EditableSectionState extends ConsumerState<_EditableSection> {
         isDense: true,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       );
+}
+
+/// Editable fit score (0–100). Saved back through the detail notifier's
+/// `save({'score': ...})`, which routes to `save_lead` → `custom_fit_score`.
+/// A slider keeps the control compact and consistent with the other editors;
+/// on save it refreshes the detail + Leads catalog (via the notifier) and,
+/// guardedly, the B2B pipeline board so every surface reflects the new score.
+class _FitScoreSection extends ConsumerStatefulWidget {
+  const _FitScoreSection({required this.lead, required this.leadName});
+
+  final Lead lead;
+  final String leadName;
+
+  @override
+  ConsumerState<_FitScoreSection> createState() => _FitScoreSectionState();
+}
+
+class _FitScoreSectionState extends ConsumerState<_FitScoreSection> {
+  late int _score;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Null/'' safe: `score` defaults to 0 in the model, but clamp defensively
+    // so a missing or out-of-range value never breaks the slider.
+    _score = widget.lead.score.clamp(0, 100);
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      await ref
+          .read(leadDetailProvider(widget.leadName).notifier)
+          .save({'score': _score});
+
+      // The notifier's save() already refreshes this detail and the Leads
+      // catalog. Guardedly keep the B2B pipeline board in sync too so a fit
+      // score edit is reflected wherever the lead is shown.
+      try {
+        await ref.read(b2bPipelineProvider.notifier).refresh();
+      } catch (_) {
+        // B2B pipeline not available in this context; ignore.
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Fit score updated')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _SectionCard(
+      title: context.l10n.leadFitScore,
+      children: [
+        Row(
+          children: [
+            ScoreBar(_score, width: 44),
+            const SizedBox(width: 12),
+            Text(
+              '$_score / 100',
+              style: LeadsTheme.body.copyWith(
+                fontWeight: FontWeight.w700,
+                fontFeatures: LeadsTheme.tabular,
+              ),
+            ),
+          ],
+        ),
+        Slider(
+          value: _score.toDouble(),
+          min: 0,
+          max: 100,
+          divisions: 100,
+          label: '$_score',
+          activeColor: LeadsTheme.berryPink,
+          onChanged: _saving
+              ? null
+              : (v) => setState(() => _score = v.round()),
+        ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: FilledButton.icon(
+            onPressed: _saving ? null : _save,
+            icon: _saving
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.save_outlined, size: 18),
+            label: const Text('Save'),
+            style:
+                FilledButton.styleFrom(backgroundColor: LeadsTheme.berryPink),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Editable B2B pipeline stage. Setting it here keeps the Leads detail in sync
+/// with the B2B kanban: it calls the shared `advance_stage` endpoint (via
+/// [b2bRepositoryProvider]) and then refreshes the detail, the Leads catalog,
+/// and the B2B pipeline board so every surface reflects the new stage.
+class _B2bStageSection extends ConsumerStatefulWidget {
+  const _B2bStageSection({required this.lead, required this.leadName});
+
+  final Lead lead;
+  final String leadName;
+
+  @override
+  ConsumerState<_B2bStageSection> createState() => _B2bStageSectionState();
+}
+
+class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
+  bool _saving = false;
+
+  /// The lead's effective stage: an empty backend value is treated as the
+  /// initial `Lead` stage.
+  String get _currentStage {
+    final raw = widget.lead.b2bStage.trim();
+    return raw.isEmpty ? 'Lead' : raw;
+  }
+
+  Future<void> _onSelect(String stage) async {
+    if (stage == _currentStage) return;
+
+    String? reason;
+    if (stage == 'Lost/On-hold') {
+      reason = await _promptReason();
+      if (reason == null) return; // cancelled
+    }
+
+    setState(() => _saving = true);
+    try {
+      await ref.read(b2bRepositoryProvider).advanceStage(
+            doctype: 'Lead',
+            name: widget.lead.name,
+            stage: stage,
+            reason: reason,
+          );
+
+      // Re-fetch this lead so the control reflects the server-confirmed stage.
+      await ref.read(leadDetailProvider(widget.leadName).notifier).refresh();
+
+      // Guardedly keep the Leads list and the B2B kanban in sync. Each refresh
+      // is wrapped so a context where one provider is not initialised (or the
+      // caller lacks access to it) never breaks the update flow.
+      try {
+        await ref.read(leadsProvider.notifier).refresh();
+      } catch (_) {
+        // Leads catalog not available in this context; ignore.
+      }
+      try {
+        await ref.read(b2bPipelineProvider.notifier).refresh();
+      } catch (_) {
+        // B2B pipeline not available in this context; ignore.
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Stage updated to $stage')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<String?> _promptReason() {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reason'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Why is this lost / on hold?',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final current = _currentStage;
+    // Only preselect a value the dropdown knows about; an unknown/legacy stage
+    // renders the chip but leaves the dropdown unselected (no crash).
+    final selected = _kB2bStages.contains(current) ? current : null;
+    return _SectionCard(
+      title: context.l10n.leadB2bStage,
+      children: [
+        Row(
+          children: [
+            B2bStageChip(stage: current),
+            const Spacer(),
+            if (_saving)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          initialValue: selected,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: context.l10n.leadB2bStage,
+            isDense: true,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          style: LeadsTheme.body,
+          items: [
+            for (final stage in _kB2bStages)
+              DropdownMenuItem<String>(value: stage, child: Text(stage)),
+          ],
+          onChanged: _saving
+              ? null
+              : (value) {
+                  if (value != null) _onSelect(value);
+                },
+        ),
+      ],
+    );
+  }
 }
 
 /// Primary + shipping address editors.
