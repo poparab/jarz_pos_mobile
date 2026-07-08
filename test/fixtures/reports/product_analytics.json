@@ -1,0 +1,1161 @@
+{
+ "bundle_composition": [
+  {
+   "item_code": "Blueberry Medium",
+   "item_group": "Medium",
+   "item_name": "Blueberry Medium",
+   "revenue": 58950.05,
+   "times_in_bundle": 556.0
+  },
+  {
+   "item_code": "Chocolate Hazelnut Medium",
+   "item_group": "Medium",
+   "item_name": "Chocolate Hazelnut Medium",
+   "revenue": 49893.39,
+   "times_in_bundle": 469.0
+  },
+  {
+   "item_code": "Strawberry Medium",
+   "item_group": "Medium",
+   "item_name": "Strawberry Medium",
+   "revenue": 42087.18,
+   "times_in_bundle": 397.0
+  },
+  {
+   "item_code": "Redvelvet Medium",
+   "item_group": "Medium",
+   "item_name": "Redvelvet Medium",
+   "revenue": 30096.0,
+   "times_in_bundle": 284.0
+  },
+  {
+   "item_code": "Blueberry Large",
+   "item_group": "Large",
+   "item_name": "Blueberry Large",
+   "revenue": 37272.0,
+   "times_in_bundle": 276.0
+  },
+  {
+   "item_code": "Lotus Medium",
+   "item_group": "Medium",
+   "item_name": "Lotus Medium",
+   "revenue": 27717.38,
+   "times_in_bundle": 265.0
+  },
+  {
+   "item_code": "Chocolate Hazelnut Large",
+   "item_group": "Large",
+   "item_name": "Chocolate Hazelnut Large",
+   "revenue": 35192.0,
+   "times_in_bundle": 260.0
+  },
+  {
+   "item_code": "Tiramisu Medium",
+   "item_group": "Medium",
+   "item_name": "Tiramisu Medium",
+   "revenue": 26254.0,
+   "times_in_bundle": 246.0
+  },
+  {
+   "item_code": "Mango Medium",
+   "item_group": "Medium",
+   "item_name": "Mango Medium",
+   "revenue": 26000.0,
+   "times_in_bundle": 245.0
+  },
+  {
+   "item_code": "Molten Medium",
+   "item_group": "Medium",
+   "item_name": "Molten Medium",
+   "revenue": 20068.0,
+   "times_in_bundle": 189.0
+  },
+  {
+   "item_code": "Strawberry Large",
+   "item_group": "Large",
+   "item_name": "Strawberry Large",
+   "revenue": 24336.0,
+   "times_in_bundle": 184.0
+  },
+  {
+   "item_code": "Pistachio Medium",
+   "item_group": "Medium",
+   "item_name": "Pistachio Medium",
+   "revenue": 19132.0,
+   "times_in_bundle": 179.0
+  },
+  {
+   "item_code": "Tiramisu Large",
+   "item_group": "Large",
+   "item_name": "Tiramisu Large",
+   "revenue": 22392.0,
+   "times_in_bundle": 165.0
+  },
+  {
+   "item_code": "Mango Kunafa Medium",
+   "item_group": "Medium",
+   "item_name": "Mango Kunafa Medium",
+   "revenue": 14900.0,
+   "times_in_bundle": 140.0
+  },
+  {
+   "item_code": "Redvelvet Large",
+   "item_group": "Large",
+   "item_name": "Redvelvet Large",
+   "revenue": 17464.0,
+   "times_in_bundle": 131.0
+  },
+  {
+   "item_code": "Lotus Large",
+   "item_group": "Large",
+   "item_name": "Lotus Large",
+   "revenue": 17080.0,
+   "times_in_bundle": 129.0
+  },
+  {
+   "item_code": "Mango Large",
+   "item_group": "Large",
+   "item_name": "Mango Large",
+   "revenue": 16880.0,
+   "times_in_bundle": 126.0
+  },
+  {
+   "item_code": "Pistachio Large",
+   "item_group": "Large",
+   "item_name": "Pistachio Large",
+   "revenue": 15704.0,
+   "times_in_bundle": 118.0
+  },
+  {
+   "item_code": "Molten Large",
+   "item_group": "Large",
+   "item_name": "Molten Large",
+   "revenue": 14555.0,
+   "times_in_bundle": 110.0
+  },
+  {
+   "item_code": "Qamar El Deen ( Apricot ) Kunafa Large",
+   "item_group": "Large",
+   "item_name": "Qamar El Deen ( Apricot ) Kunafa Large",
+   "revenue": 9528.0,
+   "times_in_bundle": 73.0
+  },
+  {
+   "item_code": "Mango Kunafa Large",
+   "item_group": "Large",
+   "item_name": "Mango Kunafa Large",
+   "revenue": 5016.0,
+   "times_in_bundle": 38.0
+  },
+  {
+   "item_code": "Carrot cake Medium",
+   "item_group": "Medium",
+   "item_name": "Carrot cake Medium",
+   "revenue": 3564.0,
+   "times_in_bundle": 34.0
+  },
+  {
+   "item_code": "Pistachio Kunafa Medium",
+   "item_group": "Medium",
+   "item_name": "Pistachio Kunafa Medium",
+   "revenue": 3708.0,
+   "times_in_bundle": 34.0
+  },
+  {
+   "item_code": "Qamar El Deen ( Apricot ) Kunafa Medium",
+   "item_group": "Medium",
+   "item_name": "Qamar El Deen ( Apricot ) Kunafa Medium",
+   "revenue": 3424.0,
+   "times_in_bundle": 33.0
+  },
+  {
+   "item_code": "Hibiscus Kunafa Medium",
+   "item_group": "Medium",
+   "item_name": "Hibiscus Kunafa Medium",
+   "revenue": 2348.0,
+   "times_in_bundle": 24.0
+  },
+  {
+   "item_code": "Pistachio Kunafa Large",
+   "item_group": "Large",
+   "item_name": "Pistachio Kunafa Large",
+   "revenue": 3016.0,
+   "times_in_bundle": 22.0
+  },
+  {
+   "item_code": "Carrot cake Large",
+   "item_group": "Large",
+   "item_name": "Carrot cake Large",
+   "revenue": 1232.0,
+   "times_in_bundle": 9.0
+  },
+  {
+   "item_code": "Hibiscus Kunafa Large",
+   "item_group": "Large",
+   "item_name": "Hibiscus Kunafa Large",
+   "revenue": 888.0,
+   "times_in_bundle": 7.0
+  },
+  {
+   "item_code": "Oriental Fusion Deal",
+   "item_group": "Bundles",
+   "item_name": "Oriental Fusion Deal",
+   "revenue": 0.0,
+   "times_in_bundle": 3.0
+  }
+ ],
+ "by_product_type": [
+  {
+   "cost": 151103.33,
+   "margin_pct": 72.5,
+   "profit": 397593.67,
+   "revenue": 548697.0,
+   "type": "Bundle",
+   "units": 887
+  },
+  {
+   "cost": 97920.48,
+   "margin_pct": 77.2,
+   "profit": 331205.32,
+   "revenue": 429125.8,
+   "type": "Medium",
+   "units": 4244
+  },
+  {
+   "cost": 75174.14,
+   "margin_pct": 74.0,
+   "profit": 214436.49,
+   "revenue": 289610.63,
+   "type": "Large",
+   "units": 2251
+  }
+ ],
+ "by_territory": [
+  {
+   "orders": 199,
+   "profit": 90887.19,
+   "revenue": 119959.0,
+   "territory": "EG6OCT"
+  },
+  {
+   "orders": 193,
+   "profit": 82658.31,
+   "revenue": 110218.08,
+   "territory": "EGTAGAMMO"
+  },
+  {
+   "orders": 211,
+   "profit": 79148.59,
+   "revenue": 107756.99,
+   "territory": "EGNASRCITY"
+  },
+  {
+   "orders": 154,
+   "profit": 61747.76,
+   "revenue": 83923.06,
+   "territory": "EGMAADI"
+  },
+  {
+   "orders": 132,
+   "profit": 51707.78,
+   "revenue": 68008.07,
+   "territory": "EGHADAYEQAH"
+  },
+  {
+   "orders": 110,
+   "profit": 50835.2,
+   "revenue": 67552.02,
+   "territory": "EGFAYSAL"
+  },
+  {
+   "orders": 112,
+   "profit": 45946.27,
+   "revenue": 61831.98,
+   "territory": "EGMASRJD"
+  },
+  {
+   "orders": 76,
+   "profit": 39100.01,
+   "revenue": 52408.04,
+   "territory": "EGHARAM"
+  },
+  {
+   "orders": 82,
+   "profit": 36328.67,
+   "revenue": 48414.99,
+   "territory": "EGZAYED"
+  },
+  {
+   "orders": 70,
+   "profit": 32057.98,
+   "revenue": 43399.03,
+   "territory": "EGGIZA"
+  },
+  {
+   "orders": 63,
+   "profit": 26235.16,
+   "revenue": 34695.99,
+   "territory": "EGHADAYEQOCT"
+  },
+  {
+   "orders": 61,
+   "profit": 24294.11,
+   "revenue": 34404.0,
+   "territory": "EGDOKKI"
+  },
+  {
+   "orders": 59,
+   "profit": 24973.94,
+   "revenue": 33268.05,
+   "territory": "EGMOQATTAM"
+  },
+  {
+   "orders": 42,
+   "profit": 21461.22,
+   "revenue": 29648.0,
+   "territory": "EGOBOUR"
+  },
+  {
+   "orders": 41,
+   "profit": 19325.05,
+   "revenue": 25354.98,
+   "territory": "EGHADAYEQ"
+  },
+  {
+   "orders": 40,
+   "profit": 18555.51,
+   "revenue": 24646.01,
+   "territory": "EGMADINATY"
+  },
+  {
+   "orders": 44,
+   "profit": 18648.8,
+   "revenue": 24396.03,
+   "territory": "EGDOWNTOWN"
+  },
+  {
+   "orders": 46,
+   "profit": 17091.41,
+   "revenue": 23178.01,
+   "territory": "EGMOHANDSEEN"
+  },
+  {
+   "orders": 40,
+   "profit": 17725.34,
+   "revenue": 23028.04,
+   "territory": "EGMATARIYA"
+  },
+  {
+   "orders": 32,
+   "profit": 17631.98,
+   "revenue": 21788.02,
+   "territory": "EGMASROLD"
+  },
+  {
+   "orders": 38,
+   "profit": 15520.23,
+   "revenue": 21248.01,
+   "territory": "EGRSHEROUK"
+  },
+  {
+   "orders": 36,
+   "profit": 14393.73,
+   "revenue": 19574.02,
+   "territory": "EGSHOBRAKH"
+  },
+  {
+   "orders": 42,
+   "profit": 14607.13,
+   "revenue": 19491.99,
+   "territory": "EGIMBABA"
+  },
+  {
+   "orders": 33,
+   "profit": 12791.94,
+   "revenue": 16916.0,
+   "territory": "EGREHAB"
+  },
+  {
+   "orders": 28,
+   "profit": 11689.84,
+   "revenue": 16120.01,
+   "territory": "EGSALAM"
+  },
+  {
+   "orders": 23,
+   "profit": 9759.06,
+   "revenue": 14400.01,
+   "territory": "EGBOLAK"
+  },
+  {
+   "orders": 28,
+   "profit": 10384.88,
+   "revenue": 14368.01,
+   "territory": "EGSHOBRA"
+  },
+  {
+   "orders": 37,
+   "profit": 9473.88,
+   "revenue": 13800.0,
+   "territory": "EGGARDENCITY"
+  },
+  {
+   "orders": 26,
+   "profit": 9630.44,
+   "revenue": 12884.0,
+   "territory": "Unassigned"
+  },
+  {
+   "orders": 18,
+   "profit": 9565.42,
+   "revenue": 12788.0,
+   "territory": "EGISM"
+  },
+  {
+   "orders": 19,
+   "profit": 8989.39,
+   "revenue": 11879.97,
+   "territory": "EGOMRANIYA"
+  },
+  {
+   "orders": 20,
+   "profit": 7516.12,
+   "revenue": 10380.0,
+   "territory": "EGABBASSIYA"
+  },
+  {
+   "orders": 19,
+   "profit": 6875.07,
+   "revenue": 10040.0,
+   "territory": "EGSHAMS"
+  },
+  {
+   "orders": 14,
+   "profit": 5509.67,
+   "revenue": 7780.0,
+   "territory": "EGKATAMYA"
+  },
+  {
+   "orders": 13,
+   "profit": 4712.95,
+   "revenue": 6600.0,
+   "territory": "EGMARG"
+  },
+  {
+   "orders": 16,
+   "profit": 4588.08,
+   "revenue": 6068.01,
+   "territory": "EGMANIAL"
+  },
+  {
+   "orders": 10,
+   "profit": 4199.54,
+   "revenue": 5960.0,
+   "territory": "EGZAWYA"
+  },
+  {
+   "orders": 9,
+   "profit": 3172.27,
+   "revenue": 4309.0,
+   "territory": "EGAWGAZA"
+  },
+  {
+   "orders": 9,
+   "profit": 1904.75,
+   "revenue": 3040.0,
+   "territory": "( \u0627 - \u0628 - \u0632 - \u062d - \u062f - \u062c)\u0648 \u0645\u062f\u064a\u0646\u0629 \u0627\u0644\u0638\u0628\u0627\u0637 \u0648 \u0627\u0644\u0631\u0645\u0627\u064a\u0629"
+  },
+  {
+   "orders": 4,
+   "profit": 1590.81,
+   "revenue": 1908.01,
+   "territory": "EGZAMALEK"
+  }
+ ],
+ "period": {
+  "date_from": "2026-04-09",
+  "date_to": "2026-07-08"
+ },
+ "summary": {
+  "avg_order_value": 563.55,
+  "best_selling_product": {
+   "item_name": "Blueberry Medium",
+   "total_qty": 1240.0
+  },
+  "top_territory": {
+   "revenue": 119959.0,
+   "territory": "EG6OCT"
+  },
+  "total_gross_profit": 943235.48,
+  "total_orders": 2249,
+  "total_revenue": 1267433.43
+ },
+ "top_products": [
+  {
+   "bom_cost_per_unit": 29.14,
+   "gross_profit": 94406.44,
+   "item_code": "Blueberry Medium",
+   "item_name": "Blueberry Medium",
+   "margin_pct": 72.3,
+   "total_cost": 36133.6,
+   "total_qty": 1240.0,
+   "total_revenue": 130540.04,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 28.58,
+   "gross_profit": 82952.48,
+   "item_code": "Chocolate Hazelnut Medium",
+   "item_name": "Chocolate Hazelnut Medium",
+   "margin_pct": 72.9,
+   "total_cost": 30894.98,
+   "total_qty": 1081.0,
+   "total_revenue": 113847.46,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 28.61,
+   "gross_profit": 71134.9,
+   "item_code": "Strawberry Medium",
+   "item_name": "Strawberry Medium",
+   "margin_pct": 73.8,
+   "total_cost": 25262.63,
+   "total_qty": 883.0,
+   "total_revenue": 96397.53,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 44.96,
+   "gross_profit": 59440.64,
+   "item_code": "Blueberry Large",
+   "item_name": "Blueberry Large",
+   "margin_pct": 67.9,
+   "total_cost": 28144.96,
+   "total_qty": 626.0,
+   "total_revenue": 87585.6,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 0.0,
+   "gross_profit": 81767.21,
+   "item_code": "Mango Kunafa Medium",
+   "item_name": "Mango Kunafa Medium",
+   "margin_pct": 100.0,
+   "total_cost": 0.0,
+   "total_qty": 961.0,
+   "total_revenue": 81767.21,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 44.2,
+   "gross_profit": 47213.4,
+   "item_code": "Chocolate Hazelnut Large",
+   "item_name": "Chocolate Hazelnut Large",
+   "margin_pct": 68.2,
+   "total_cost": 21967.4,
+   "total_qty": 497.0,
+   "total_revenue": 69180.8,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 28.89,
+   "gross_profit": 46702.84,
+   "item_code": "Redvelvet Medium",
+   "item_name": "Redvelvet Medium",
+   "margin_pct": 72.7,
+   "total_cost": 17507.34,
+   "total_qty": 606.0,
+   "total_revenue": 64210.18,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 25.86,
+   "gross_profit": 45513.06,
+   "item_code": "Lotus Medium",
+   "item_name": "Lotus Medium",
+   "margin_pct": 75.3,
+   "total_cost": 14921.22,
+   "total_qty": 577.0,
+   "total_revenue": 60434.28,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 0.0,
+   "gross_profit": 60061.23,
+   "item_code": "Qamar El Deen ( Apricot ) Kunafa Large",
+   "item_name": "Qamar El Deen ( Apricot ) Kunafa Large",
+   "margin_pct": 100.0,
+   "total_cost": 0.0,
+   "total_qty": 669.0,
+   "total_revenue": 60061.23,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 45.41,
+   "gross_profit": 39283.91,
+   "item_code": "Strawberry Large",
+   "item_name": "Strawberry Large",
+   "margin_pct": 66.8,
+   "total_cost": 19480.89,
+   "total_qty": 429.0,
+   "total_revenue": 58764.8,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 25.71,
+   "gross_profit": 41428.33,
+   "item_code": "Mango Medium",
+   "item_name": "Mango Medium",
+   "margin_pct": 75.4,
+   "total_cost": 13523.46,
+   "total_qty": 526.0,
+   "total_revenue": 54951.79,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 24.74,
+   "gross_profit": 41062.52,
+   "item_code": "Tiramisu Medium",
+   "item_name": "Tiramisu Medium",
+   "margin_pct": 76.9,
+   "total_cost": 12320.52,
+   "total_qty": 498.0,
+   "total_revenue": 53383.04,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 44.47,
+   "gross_profit": 25707.84,
+   "item_code": "Pistachio Medium",
+   "item_name": "Pistachio Medium",
+   "margin_pct": 57.8,
+   "total_cost": 18766.34,
+   "total_qty": 422.0,
+   "total_revenue": 44474.18,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 50.71,
+   "gross_profit": 27832.81,
+   "item_code": "Molten Large",
+   "item_name": "Molten Large",
+   "margin_pct": 65.5,
+   "total_cost": 14655.19,
+   "total_qty": 289.0,
+   "total_revenue": 42488.0,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 47.58,
+   "gross_profit": 27707.9,
+   "item_code": "Tiramisu Large",
+   "item_name": "Tiramisu Large",
+   "margin_pct": 66.4,
+   "total_cost": 14036.1,
+   "total_qty": 295.0,
+   "total_revenue": 41744.0,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 32.4,
+   "gross_profit": 25690.89,
+   "item_code": "Molten Medium",
+   "item_name": "Molten Medium",
+   "margin_pct": 69.9,
+   "total_cost": 11080.8,
+   "total_qty": 342.0,
+   "total_revenue": 36771.69,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 40.58,
+   "gross_profit": 25452.26,
+   "item_code": "Lotus Large",
+   "item_name": "Lotus Large",
+   "margin_pct": 70.5,
+   "total_cost": 10672.54,
+   "total_qty": 263.0,
+   "total_revenue": 36124.8,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 43.62,
+   "gross_profit": 24090.78,
+   "item_code": "Redvelvet Large",
+   "item_name": "Redvelvet Large",
+   "margin_pct": 67.9,
+   "total_cost": 11384.82,
+   "total_qty": 261.0,
+   "total_revenue": 35475.6,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 65.38,
+   "gross_profit": 17292.36,
+   "item_code": "Pistachio Large",
+   "item_name": "Pistachio Large",
+   "margin_pct": 52.6,
+   "total_cost": 15560.44,
+   "total_qty": 238.0,
+   "total_revenue": 32852.8,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 33.84,
+   "gross_profit": 24406.48,
+   "item_code": "Mango Large",
+   "item_name": "Mango Large",
+   "margin_pct": 75.6,
+   "total_cost": 7884.72,
+   "total_qty": 233.0,
+   "total_revenue": 32291.2,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 0.0,
+   "gross_profit": 8370.4,
+   "item_code": "Carrot cake Medium",
+   "item_name": "Carrot cake Medium",
+   "margin_pct": 100.0,
+   "total_cost": 0.0,
+   "total_qty": 82.0,
+   "total_revenue": 8370.4,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 0.0,
+   "gross_profit": 5656.0,
+   "item_code": "Mango Kunafa Large",
+   "item_name": "Mango Kunafa Large",
+   "margin_pct": 100.0,
+   "total_cost": 0.0,
+   "total_qty": 42.0,
+   "total_revenue": 5656.0,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 0.0,
+   "gross_profit": 4504.0,
+   "item_code": "Qamar El Deen ( Apricot ) Kunafa Medium",
+   "item_name": "Qamar El Deen ( Apricot ) Kunafa Medium",
+   "margin_pct": 100.0,
+   "total_cost": 0.0,
+   "total_qty": 47.0,
+   "total_revenue": 4504.0,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 0.0,
+   "gross_profit": 3908.0,
+   "item_code": "Hibiscus Kunafa Medium",
+   "item_name": "Hibiscus Kunafa Medium",
+   "margin_pct": 100.0,
+   "total_cost": 0.0,
+   "total_qty": 40.0,
+   "total_revenue": 3908.0,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 0.0,
+   "gross_profit": 3708.0,
+   "item_code": "Pistachio Kunafa Medium",
+   "item_name": "Pistachio Kunafa Medium",
+   "margin_pct": 100.0,
+   "total_cost": 0.0,
+   "total_qty": 34.0,
+   "total_revenue": 3708.0,
+   "type": "Medium"
+  },
+  {
+   "bom_cost_per_unit": 0.0,
+   "gross_profit": 3496.0,
+   "item_code": "Pistachio Kunafa Large",
+   "item_name": "Pistachio Kunafa Large",
+   "margin_pct": 100.0,
+   "total_cost": 0.0,
+   "total_qty": 25.0,
+   "total_revenue": 3496.0,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 0.0,
+   "gross_profit": 2916.8,
+   "item_code": "Carrot cake Large",
+   "item_name": "Carrot cake Large",
+   "margin_pct": 100.0,
+   "total_cost": 0.0,
+   "total_qty": 21.0,
+   "total_revenue": 2916.8,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 0.0,
+   "gross_profit": 1528.0,
+   "item_code": "Hibiscus Kunafa Large",
+   "item_name": "Hibiscus Kunafa Large",
+   "margin_pct": 100.0,
+   "total_cost": 0.0,
+   "total_qty": 11.0,
+   "total_revenue": 1528.0,
+   "type": "Large"
+  },
+  {
+   "bom_cost_per_unit": 0.0,
+   "gross_profit": 0.0,
+   "item_code": "Oriental Fusion Deal",
+   "item_name": "Oriental Fusion Deal",
+   "margin_pct": 0.0,
+   "total_cost": 0.0,
+   "total_qty": 3.0,
+   "total_revenue": 0.0,
+   "type": "Bundle"
+  }
+ ],
+ "trend": [
+  {
+   "date": "2026-04-09",
+   "orders": 11,
+   "revenue": 3940.0
+  },
+  {
+   "date": "2026-04-10",
+   "orders": 8,
+   "revenue": 2600.0
+  },
+  {
+   "date": "2026-04-11",
+   "orders": 6,
+   "revenue": 2280.0
+  },
+  {
+   "date": "2026-04-12",
+   "orders": 6,
+   "revenue": 2515.0
+  },
+  {
+   "date": "2026-04-13",
+   "orders": 13,
+   "revenue": 5120.0
+  },
+  {
+   "date": "2026-04-14",
+   "orders": 9,
+   "revenue": 2400.0
+  },
+  {
+   "date": "2026-04-15",
+   "orders": 2,
+   "revenue": 360.0
+  },
+  {
+   "date": "2026-04-16",
+   "orders": 3,
+   "revenue": 960.0
+  },
+  {
+   "date": "2026-04-17",
+   "orders": 992,
+   "revenue": 648993.44
+  },
+  {
+   "date": "2026-04-19",
+   "orders": 18,
+   "revenue": 8453.0
+  },
+  {
+   "date": "2026-04-20",
+   "orders": 18,
+   "revenue": 10104.0
+  },
+  {
+   "date": "2026-04-21",
+   "orders": 20,
+   "revenue": 7968.0
+  },
+  {
+   "date": "2026-04-22",
+   "orders": 14,
+   "revenue": 7204.0
+  },
+  {
+   "date": "2026-04-23",
+   "orders": 10,
+   "revenue": 4440.0
+  },
+  {
+   "date": "2026-04-24",
+   "orders": 23,
+   "revenue": 14563.0
+  },
+  {
+   "date": "2026-04-25",
+   "orders": 1,
+   "revenue": 960.0
+  },
+  {
+   "date": "2026-04-26",
+   "orders": 24,
+   "revenue": 9868.0
+  },
+  {
+   "date": "2026-04-27",
+   "orders": 30,
+   "revenue": 13927.0
+  },
+  {
+   "date": "2026-04-28",
+   "orders": 14,
+   "revenue": 7024.0
+  },
+  {
+   "date": "2026-04-29",
+   "orders": 15,
+   "revenue": 7116.0
+  },
+  {
+   "date": "2026-04-30",
+   "orders": 20,
+   "revenue": 9671.0
+  },
+  {
+   "date": "2026-05-01",
+   "orders": 32,
+   "revenue": 13714.0
+  },
+  {
+   "date": "2026-05-02",
+   "orders": 9,
+   "revenue": 4376.0
+  },
+  {
+   "date": "2026-05-03",
+   "orders": 22,
+   "revenue": 11120.0
+  },
+  {
+   "date": "2026-05-04",
+   "orders": 17,
+   "revenue": 9320.0
+  },
+  {
+   "date": "2026-05-05",
+   "orders": 19,
+   "revenue": 9160.0
+  },
+  {
+   "date": "2026-05-06",
+   "orders": 25,
+   "revenue": 10280.0
+  },
+  {
+   "date": "2026-05-07",
+   "orders": 22,
+   "revenue": 11480.0
+  },
+  {
+   "date": "2026-05-08",
+   "orders": 12,
+   "revenue": 4840.0
+  },
+  {
+   "date": "2026-05-09",
+   "orders": 12,
+   "revenue": 6520.0
+  },
+  {
+   "date": "2026-05-10",
+   "orders": 16,
+   "revenue": 5960.0
+  },
+  {
+   "date": "2026-05-11",
+   "orders": 27,
+   "revenue": 12120.0
+  },
+  {
+   "date": "2026-05-12",
+   "orders": 9,
+   "revenue": 4440.0
+  },
+  {
+   "date": "2026-05-13",
+   "orders": 27,
+   "revenue": 18360.0
+  },
+  {
+   "date": "2026-05-14",
+   "orders": 11,
+   "revenue": 6320.0
+  },
+  {
+   "date": "2026-05-15",
+   "orders": 17,
+   "revenue": 6440.0
+  },
+  {
+   "date": "2026-05-16",
+   "orders": 18,
+   "revenue": 7440.0
+  },
+  {
+   "date": "2026-05-17",
+   "orders": 13,
+   "revenue": 7480.0
+  },
+  {
+   "date": "2026-05-18",
+   "orders": 7,
+   "revenue": 2080.0
+  },
+  {
+   "date": "2026-05-19",
+   "orders": 12,
+   "revenue": 5160.0
+  },
+  {
+   "date": "2026-05-20",
+   "orders": 9,
+   "revenue": 3360.0
+  },
+  {
+   "date": "2026-05-21",
+   "orders": 28,
+   "revenue": 17952.0
+  },
+  {
+   "date": "2026-05-22",
+   "orders": 22,
+   "revenue": 10760.0
+  },
+  {
+   "date": "2026-05-23",
+   "orders": 20,
+   "revenue": 10320.0
+  },
+  {
+   "date": "2026-05-24",
+   "orders": 17,
+   "revenue": 8400.0
+  },
+  {
+   "date": "2026-05-25",
+   "orders": 27,
+   "revenue": 16280.0
+  },
+  {
+   "date": "2026-05-26",
+   "orders": 33,
+   "revenue": 20480.0
+  },
+  {
+   "date": "2026-05-27",
+   "orders": 12,
+   "revenue": 7320.0
+  },
+  {
+   "date": "2026-05-28",
+   "orders": 15,
+   "revenue": 6040.0
+  },
+  {
+   "date": "2026-05-29",
+   "orders": 15,
+   "revenue": 4680.0
+  },
+  {
+   "date": "2026-05-30",
+   "orders": 13,
+   "revenue": 5720.0
+  },
+  {
+   "date": "2026-05-31",
+   "orders": 11,
+   "revenue": 3280.0
+  },
+  {
+   "date": "2026-06-01",
+   "orders": 148,
+   "revenue": 78919.99
+  },
+  {
+   "date": "2026-06-02",
+   "orders": 28,
+   "revenue": 16040.0
+  },
+  {
+   "date": "2026-06-03",
+   "orders": 19,
+   "revenue": 8360.0
+  },
+  {
+   "date": "2026-06-04",
+   "orders": 33,
+   "revenue": 18805.0
+  },
+  {
+   "date": "2026-06-05",
+   "orders": 33,
+   "revenue": 19080.0
+  },
+  {
+   "date": "2026-06-06",
+   "orders": 21,
+   "revenue": 9360.0
+  },
+  {
+   "date": "2026-06-07",
+   "orders": 25,
+   "revenue": 11800.0
+  },
+  {
+   "date": "2026-06-08",
+   "orders": 19,
+   "revenue": 8080.0
+  },
+  {
+   "date": "2026-06-09",
+   "orders": 24,
+   "revenue": 11880.0
+  },
+  {
+   "date": "2026-06-10",
+   "orders": 14,
+   "revenue": 8760.0
+  },
+  {
+   "date": "2026-06-11",
+   "orders": 21,
+   "revenue": 11840.0
+  },
+  {
+   "date": "2026-06-12",
+   "orders": 12,
+   "revenue": 6080.0
+  },
+  {
+   "date": "2026-06-13",
+   "orders": 1,
+   "revenue": 560.0
+  },
+  {
+   "date": "2026-06-16",
+   "orders": 1,
+   "revenue": 840.0
+  },
+  {
+   "date": "2026-06-29",
+   "orders": 35,
+   "revenue": 12320.0
+  },
+  {
+   "date": "2026-07-07",
+   "orders": 4,
+   "revenue": 1600.0
+  },
+  {
+   "date": "2026-07-08",
+   "orders": 5,
+   "revenue": 1440.0
+  }
+ ]
+}

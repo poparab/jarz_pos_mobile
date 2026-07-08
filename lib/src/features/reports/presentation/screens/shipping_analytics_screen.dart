@@ -10,6 +10,7 @@ import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/shipping_analytics.dart';
 import '../../state/reports_providers.dart';
 import '../widgets/kpi_card.dart';
+import '../widgets/report_alert_text.dart';
 import '../widgets/report_chart_card.dart';
 import '../widgets/report_date_range_bar.dart';
 
@@ -173,19 +174,19 @@ class _KpiGrid extends StatelessWidget {
       ),
       KpiCard(
         label: l10n.reportShipKpiExpense,
-        value: formatCurrency(context, kpis.totalExpense),
+        value: formatCompactCurrency(context, kpis.totalExpense),
         icon: Icons.trending_down,
         color: negative,
       ),
       KpiCard(
         label: l10n.reportShipKpiIncome,
-        value: formatCurrency(context, kpis.totalIncome),
+        value: formatCompactCurrency(context, kpis.totalIncome),
         icon: Icons.trending_up,
         color: positive,
       ),
       KpiCard(
         label: l10n.reportShipKpiNetPl,
-        value: formatCurrency(context, kpis.netPl),
+        value: formatCompactCurrency(context, kpis.netPl),
         icon: Icons.account_balance_wallet_outlined,
         color: netColor,
       ),
@@ -286,7 +287,7 @@ class _AlertsCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        a.message,
+                        stripHtml(a.message),
                         style: theme.textTheme.bodySmall,
                       ),
                     ),

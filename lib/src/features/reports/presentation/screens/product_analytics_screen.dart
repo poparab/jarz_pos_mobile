@@ -141,7 +141,7 @@ class _KpiGrid extends StatelessWidget {
     final tiles = <Widget>[
       _kpi(
         l10n.reportKpiTotalRevenue,
-        formatCurrency(context, revenue),
+        formatCompactCurrency(context, revenue),
         Icons.payments_outlined,
         theme.colorScheme.primary,
       ),
@@ -153,7 +153,7 @@ class _KpiGrid extends StatelessWidget {
       ),
       _kpi(
         l10n.reportKpiGrossProfit,
-        formatCurrency(context, grossProfit),
+        formatCompactCurrency(context, grossProfit),
         Icons.trending_up,
         Colors.green.shade700,
       ),
@@ -321,11 +321,11 @@ class _TopProductsCard extends StatelessWidget {
         (
           code: _str(r, const ['item_code'], fallback: ''),
           name: _str(r, const ['item_name', 'item_code'], fallback: '—'),
-          revenue: _num(r, const ['revenue']),
-          qty: _num(r, const ['qty']),
+          revenue: _num(r, const ['total_revenue', 'revenue']),
+          qty: _num(r, const ['total_qty', 'qty']),
           grossProfit: _num(r, const ['gross_profit']),
           margin: _num(r, const ['margin_pct']),
-          bomCost: _num(r, const ['bom_cost']),
+          bomCost: _num(r, const ['bom_cost_per_unit', 'bom_cost']),
         ),
     ]..sort((a, b) => b.revenue.compareTo(a.revenue));
 
@@ -397,7 +397,7 @@ class _ByTerritoryCard extends StatelessWidget {
         (
           territory: _str(r, const ['territory'], fallback: '—'),
           revenue: _num(r, const ['revenue']),
-          profit: _num(r, const ['gross_profit']),
+          profit: _num(r, const ['profit', 'gross_profit']),
           orders: _num(r, const ['orders']),
         ),
     ]..sort((a, b) => b.revenue.compareTo(a.revenue));
@@ -525,7 +525,7 @@ class _RevenueTrendCard extends StatelessWidget {
     final data = [
       for (final r in rows)
         (
-          date: _str(r, const ['posting_date'], fallback: ''),
+          date: _str(r, const ['date', 'posting_date'], fallback: ''),
           revenue: _num(r, const ['revenue']),
           orders: _num(r, const ['orders']),
         ),
@@ -670,15 +670,15 @@ class _BundleCompositionCard extends StatelessWidget {
     final data = [
       for (final r in rows)
         [
-          _str(r, const ['bundle', 'parent'], fallback: '—'),
-          _str(r, const ['component', 'flavor'], fallback: '—'),
-          formatCount(context, _num(r, const ['qty'])),
+          _str(r, const ['item_name', 'item_code'], fallback: '—'),
+          formatCount(context, _num(r, const ['times_in_bundle', 'qty'])),
+          formatCurrency(context, _num(r, const ['revenue'])),
         ],
     ];
 
     return _TableCard(
       title: l10n.reportBundleComposition,
-      headers: const ['Bundle', 'Component', 'Qty'],
+      headers: const ['Component', 'Times in Bundle', 'Revenue'],
       rows: data,
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/inventory_intelligence.dart';
 import '../../data/models/report_json.dart';
 import '../../state/reports_providers.dart';
@@ -99,7 +100,7 @@ class _Body extends StatelessWidget {
           ),
           KpiCard(
             label: l10n.reportInvKpiStockValue,
-            value: _fmtMoney(s.totalStockValue),
+            value: formatCompactCurrency(context, s.totalStockValue),
             icon: Icons.attach_money,
           ),
         ]),
@@ -175,11 +176,9 @@ class _Body extends StatelessWidget {
           hideIfEmpty: false,
           columns: [
             _Column('Item', (r) => _itemLabel(r)),
-            _Column('Velocity', (r) => _fmtNum(_n(r, _velocity30)),
-                numeric: true),
             _Column('Stock', (r) => _fmtNum(_n(r, _currentStock)),
                 numeric: true),
-            _Column('Value', (r) => _fmtMoney(_n(r, _stockValue)),
+            _Column('Trend', (r) => _text(r, const ['trend']),
                 numeric: true),
           ],
           rows: data.alerts.slowMovers,
@@ -196,8 +195,6 @@ class _Body extends StatelessWidget {
                 numeric: true),
             _Column('Cover', (r) => _fmtNum(_n(r, _daysCover)),
                 numeric: true),
-            _Column('Value', (r) => _fmtMoney(_n(r, _stockValue)),
-                numeric: true),
           ],
           rows: data.alerts.overstocked,
         ),
@@ -210,7 +207,8 @@ class _Body extends StatelessWidget {
           columns: [
             _Column('Item', (r) => _itemLabel(r)),
             _Column('Sold', (r) => _fmtNum(_n(r, _qtySold)), numeric: true),
-            _Column('Value', (r) => _fmtMoney(_n(r, _stockValue)),
+            _Column('Revenue',
+                (r) => _fmtMoney(_n(r, const ['revenue', 'stock_value', 'value'])),
                 numeric: true),
           ],
           rows: data.topSoldInRange,
@@ -272,7 +270,7 @@ class _VelocityDonut extends StatelessWidget {
       final r = rows[i];
       final label = _text(
         r,
-        const ['label', 'bucket', 'velocity_band'],
+        const ['trend', 'label', 'bucket', 'velocity_band'],
         fallback: '—',
       );
       final value = _n(r, const ['count', 'value', 'qty']);
@@ -626,11 +624,12 @@ class _ErrorBody extends StatelessWidget {
 
 // ── Row / value helpers (null-safe) ────────────────────────────────────
 
-const _velocity30 = ['velocity_30d', 'velocity', 'velocity_30'];
-const _currentStock = ['current_stock', 'qty', 'stock_qty'];
-const _stockValue = ['stock_value', 'value'];
-const _daysCover = ['days_of_cover', 'days_left', 'days_cover'];
-const _qtySold = ['qty_sold', 'qty', 'sold_qty'];
+// Movers rows expose `velocity_30d`; alert rows (critical/watch) expose
+// `daily_velocity` — both are covered so a single list works for every table.
+const _velocity30 = ['velocity_30d', 'velocity', 'velocity_30', 'daily_velocity'];
+const _currentStock = ['stock_on_hand', 'current_stock', 'qty', 'stock_qty'];
+const _daysCover = ['days_remaining', 'days_of_cover', 'days_left', 'days_cover'];
+const _qtySold = ['qty', 'qty_sold', 'sold_qty'];
 
 /// A display label for an item row: name preferred, else code.
 String _itemLabel(JsonMap r) =>

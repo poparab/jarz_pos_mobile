@@ -1,0 +1,1021 @@
+{
+ "acquisition_trend": [
+  {
+   "date": "2026-04-09",
+   "new_customers": 5
+  },
+  {
+   "date": "2026-04-10",
+   "new_customers": 4
+  },
+  {
+   "date": "2026-04-11",
+   "new_customers": 4
+  },
+  {
+   "date": "2026-04-12",
+   "new_customers": 3
+  },
+  {
+   "date": "2026-04-13",
+   "new_customers": 4
+  },
+  {
+   "date": "2026-04-14",
+   "new_customers": 3
+  },
+  {
+   "date": "2026-04-15",
+   "new_customers": 1
+  },
+  {
+   "date": "2026-04-17",
+   "new_customers": 307
+  },
+  {
+   "date": "2026-04-19",
+   "new_customers": 5
+  },
+  {
+   "date": "2026-04-20",
+   "new_customers": 7
+  },
+  {
+   "date": "2026-04-21",
+   "new_customers": 5
+  },
+  {
+   "date": "2026-04-22",
+   "new_customers": 4
+  },
+  {
+   "date": "2026-04-23",
+   "new_customers": 5
+  },
+  {
+   "date": "2026-04-24",
+   "new_customers": 6
+  },
+  {
+   "date": "2026-04-26",
+   "new_customers": 11
+  },
+  {
+   "date": "2026-04-27",
+   "new_customers": 10
+  },
+  {
+   "date": "2026-04-28",
+   "new_customers": 1
+  },
+  {
+   "date": "2026-04-29",
+   "new_customers": 8
+  },
+  {
+   "date": "2026-04-30",
+   "new_customers": 7
+  },
+  {
+   "date": "2026-05-01",
+   "new_customers": 14
+  },
+  {
+   "date": "2026-05-02",
+   "new_customers": 6
+  },
+  {
+   "date": "2026-05-03",
+   "new_customers": 13
+  },
+  {
+   "date": "2026-05-04",
+   "new_customers": 6
+  },
+  {
+   "date": "2026-05-05",
+   "new_customers": 8
+  },
+  {
+   "date": "2026-05-06",
+   "new_customers": 8
+  },
+  {
+   "date": "2026-05-07",
+   "new_customers": 16
+  },
+  {
+   "date": "2026-05-08",
+   "new_customers": 10
+  },
+  {
+   "date": "2026-05-09",
+   "new_customers": 8
+  },
+  {
+   "date": "2026-05-10",
+   "new_customers": 14
+  },
+  {
+   "date": "2026-05-11",
+   "new_customers": 17
+  },
+  {
+   "date": "2026-05-12",
+   "new_customers": 9
+  },
+  {
+   "date": "2026-05-13",
+   "new_customers": 22
+  },
+  {
+   "date": "2026-05-14",
+   "new_customers": 9
+  },
+  {
+   "date": "2026-05-15",
+   "new_customers": 13
+  },
+  {
+   "date": "2026-05-16",
+   "new_customers": 16
+  },
+  {
+   "date": "2026-05-17",
+   "new_customers": 10
+  },
+  {
+   "date": "2026-05-18",
+   "new_customers": 6
+  },
+  {
+   "date": "2026-05-19",
+   "new_customers": 7
+  },
+  {
+   "date": "2026-05-20",
+   "new_customers": 7
+  },
+  {
+   "date": "2026-05-21",
+   "new_customers": 25
+  },
+  {
+   "date": "2026-05-22",
+   "new_customers": 19
+  },
+  {
+   "date": "2026-05-23",
+   "new_customers": 14
+  },
+  {
+   "date": "2026-05-24",
+   "new_customers": 13
+  },
+  {
+   "date": "2026-05-25",
+   "new_customers": 21
+  },
+  {
+   "date": "2026-05-26",
+   "new_customers": 27
+  },
+  {
+   "date": "2026-05-27",
+   "new_customers": 9
+  },
+  {
+   "date": "2026-05-28",
+   "new_customers": 13
+  },
+  {
+   "date": "2026-05-29",
+   "new_customers": 14
+  },
+  {
+   "date": "2026-05-30",
+   "new_customers": 11
+  },
+  {
+   "date": "2026-05-31",
+   "new_customers": 10
+  },
+  {
+   "date": "2026-06-01",
+   "new_customers": 107
+  },
+  {
+   "date": "2026-06-02",
+   "new_customers": 20
+  },
+  {
+   "date": "2026-06-03",
+   "new_customers": 16
+  },
+  {
+   "date": "2026-06-04",
+   "new_customers": 24
+  },
+  {
+   "date": "2026-06-05",
+   "new_customers": 26
+  },
+  {
+   "date": "2026-06-06",
+   "new_customers": 19
+  },
+  {
+   "date": "2026-06-07",
+   "new_customers": 21
+  },
+  {
+   "date": "2026-06-08",
+   "new_customers": 15
+  },
+  {
+   "date": "2026-06-09",
+   "new_customers": 18
+  },
+  {
+   "date": "2026-06-10",
+   "new_customers": 12
+  },
+  {
+   "date": "2026-06-11",
+   "new_customers": 15
+  },
+  {
+   "date": "2026-06-12",
+   "new_customers": 7
+  },
+  {
+   "date": "2026-06-16",
+   "new_customers": 1
+  },
+  {
+   "date": "2026-07-07",
+   "new_customers": 1
+  }
+ ],
+ "at_risk_customers": [
+  {
+   "avg_aov": 2592.0,
+   "customer": "mazmazashop",
+   "customer_name": "mazmazashop",
+   "frequency": 2,
+   "recency_days": 34,
+   "segment": "At Risk",
+   "territory": "EGMAADI"
+  },
+  {
+   "avg_aov": 1435.06,
+   "customer": "\u0645\u062d\u0633\u0646",
+   "customer_name": "\u0645\u062d\u0633\u0646",
+   "frequency": 2,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGNASRCITY"
+  },
+  {
+   "avg_aov": 1304.33,
+   "customer": "\u0627\u062d\u0645\u062f \u063a\u0631\u064a\u0628",
+   "customer_name": "\u0627\u062d\u0645\u062f \u063a\u0631\u064a\u0628",
+   "frequency": 2,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGDOWNTOWN"
+  },
+  {
+   "avg_aov": 1266.41,
+   "customer": "\u062d\u0633\u0627\u0645 \u062e\u0627\u0644\u062f \u0633\u0639\u064a\u062f",
+   "customer_name": "\u062d\u0633\u0627\u0645 \u062e\u0627\u0644\u062f \u0633\u0639\u064a\u062f",
+   "frequency": 5,
+   "recency_days": 75,
+   "segment": "Can't Lose Them",
+   "territory": "EGMASROLD"
+  },
+  {
+   "avg_aov": 1140.52,
+   "customer": "\u0639\u0644\u0649",
+   "customer_name": "\u0639\u0644\u0649",
+   "frequency": 1,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGFAYSAL"
+  },
+  {
+   "avg_aov": 1101.2,
+   "customer": "\u0645\u062d\u0645\u062f \u0648\u0647\u064a\u0628 \u0623\u0628\u0648 \u0627\u0644\u0633\u0639\u0648\u062f",
+   "customer_name": "\u0645\u062d\u0645\u062f \u0648\u0647\u064a\u0628 \u0623\u0628\u0648 \u0627\u0644\u0633\u0639\u0648\u062f",
+   "frequency": 2,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGHADAYEQOCT"
+  },
+  {
+   "avg_aov": 1045.0,
+   "customer": "\u0645\u062d\u0645\u062f \u0645\u062d\u0631\u0648\u0633",
+   "customer_name": "\u0645\u062d\u0645\u062f",
+   "frequency": 2,
+   "recency_days": 44,
+   "segment": "At Risk",
+   "territory": "EGMASRJD"
+  },
+  {
+   "avg_aov": 1033.23,
+   "customer": "\u0632\u064a\u0627\u062f \u0631\u062c\u0628",
+   "customer_name": "\u0632\u064a\u0627\u062f \u0631\u062c\u0628",
+   "frequency": 1,
+   "recency_days": 56,
+   "segment": "At Risk",
+   "territory": "EGFAYSAL"
+  },
+  {
+   "avg_aov": 1029.0,
+   "customer": "Roll zone-15223",
+   "customer_name": "Roll zone-15223",
+   "frequency": 2,
+   "recency_days": 34,
+   "segment": "At Risk",
+   "territory": "EGHARAM"
+  },
+  {
+   "avg_aov": 1026.67,
+   "customer": "Yousef - 2",
+   "customer_name": "Yousef",
+   "frequency": 3,
+   "recency_days": 36,
+   "segment": "At Risk",
+   "territory": "EGHADAYEQ"
+  },
+  {
+   "avg_aov": 1000.0,
+   "customer": "Mohammed - 2",
+   "customer_name": "Mohammed",
+   "frequency": 2,
+   "recency_days": 34,
+   "segment": "At Risk",
+   "territory": "EGBOLAK"
+  },
+  {
+   "avg_aov": 1000.0,
+   "customer": "Christine - 1",
+   "customer_name": "Christine",
+   "frequency": 2,
+   "recency_days": 56,
+   "segment": "At Risk",
+   "territory": "EGSHOBRA"
+  },
+  {
+   "avg_aov": 985.0,
+   "customer": "Amany Reda",
+   "customer_name": "Amany Reda",
+   "frequency": 2,
+   "recency_days": 37,
+   "segment": "At Risk",
+   "territory": "EGNASRCITY"
+  },
+  {
+   "avg_aov": 953.33,
+   "customer": "Eyad ehab - 1",
+   "customer_name": "Eyad ehab",
+   "frequency": 3,
+   "recency_days": 37,
+   "segment": "At Risk",
+   "territory": "EG6OCT"
+  },
+  {
+   "avg_aov": 940.0,
+   "customer": "Nahla Mohsen",
+   "customer_name": "Nahla Mohsen",
+   "frequency": 2,
+   "recency_days": 45,
+   "segment": "At Risk",
+   "territory": "EGMAADI"
+  },
+  {
+   "avg_aov": 871.39,
+   "customer": "Salma Hishme",
+   "customer_name": "Salma Hishme",
+   "frequency": 0,
+   "recency_days": 184,
+   "segment": "Can't Lose Them",
+   "territory": "EGHARAM"
+  },
+  {
+   "avg_aov": 848.96,
+   "customer": "Kanza Hassan",
+   "customer_name": "Kanza Hassan",
+   "frequency": 2,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGTAGAMMO"
+  },
+  {
+   "avg_aov": 840.0,
+   "customer": "\u0647\u0628\u0629 \u0627\u062d\u0645\u062f-15095",
+   "customer_name": "\u0647\u0628\u0629 \u0627\u062d\u0645\u062f-15095",
+   "frequency": 2,
+   "recency_days": 37,
+   "segment": "At Risk",
+   "territory": "EGMAADI"
+  },
+  {
+   "avg_aov": 839.26,
+   "customer": "Cafe 24",
+   "customer_name": "Cafe 24",
+   "frequency": 0,
+   "recency_days": 192,
+   "segment": "Can't Lose Them",
+   "territory": "EGISM"
+  },
+  {
+   "avg_aov": 830.0,
+   "customer": "Mina Atef",
+   "customer_name": "Mina Atef",
+   "frequency": 5,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGOBOUR"
+  },
+  {
+   "avg_aov": 817.17,
+   "customer": "Mohga Bassam Mostafa",
+   "customer_name": "Mohga Bassam Mostafa",
+   "frequency": 3,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGFAYSAL"
+  },
+  {
+   "avg_aov": 816.67,
+   "customer": "\u0627\u0645 \u0639\u0644\u0627",
+   "customer_name": "\u0627\u0645 \u0639\u0644\u0627",
+   "frequency": 3,
+   "recency_days": 60,
+   "segment": "At Risk",
+   "territory": "EGNASRCITY"
+  },
+  {
+   "avg_aov": 815.0,
+   "customer": "Radwa - 1",
+   "customer_name": "Radwa",
+   "frequency": 2,
+   "recency_days": 43,
+   "segment": "At Risk",
+   "territory": "EGMASRJD"
+  },
+  {
+   "avg_aov": 809.0,
+   "customer": "Ismilia brunch",
+   "customer_name": "Ismilia brunch",
+   "frequency": 2,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGISM"
+  },
+  {
+   "avg_aov": 801.67,
+   "customer": "\u0625\u064a\u0645\u0627\u0646 - 1",
+   "customer_name": "\u0625\u064a\u0645\u0627\u0646",
+   "frequency": 3,
+   "recency_days": 33,
+   "segment": "At Risk",
+   "territory": "EGOMRANIYA"
+  },
+  {
+   "avg_aov": 801.2,
+   "customer": "\u0645\u062d\u0645\u062f \u0633\u0639\u064a\u062f",
+   "customer_name": "\u0645\u062d\u0645\u062f \u0633\u0639\u064a\u062f",
+   "frequency": 2,
+   "recency_days": 65,
+   "segment": "Can't Lose Them",
+   "territory": "EGOMRANIYA"
+  },
+  {
+   "avg_aov": 783.1,
+   "customer": "\u0627\u0628\u0648 \u0639\u0628\u062f\u0627\u0644\u0644\u0647",
+   "customer_name": "\u0627\u0628\u0648 \u0639\u0628\u062f\u0627\u0644\u0644\u0647",
+   "frequency": 1,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGGIZA"
+  },
+  {
+   "avg_aov": 775.0,
+   "customer": "Mai - 3",
+   "customer_name": "Mai",
+   "frequency": 2,
+   "recency_days": 33,
+   "segment": "At Risk",
+   "territory": "EGHADAYEQOCT"
+  },
+  {
+   "avg_aov": 763.3,
+   "customer": "\u0639\u0644\u0649 \u0639\u0644\u0627\u0621",
+   "customer_name": "\u0639\u0644\u0649 \u0639\u0644\u0627\u0621",
+   "frequency": 1,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGFAYSAL"
+  },
+  {
+   "avg_aov": 750.0,
+   "customer": "Ashraf fahmy",
+   "customer_name": "Ashraf",
+   "frequency": 2,
+   "recency_days": 34,
+   "segment": "At Risk",
+   "territory": "EGREHAB"
+  },
+  {
+   "avg_aov": 723.36,
+   "customer": "\u0647\u0646\u062f \u0623\u0628\u0648 \u0627\u0644\u0633\u0639\u0648\u062f",
+   "customer_name": "\u0647\u0646\u062f \u0623\u0628\u0648 \u0627\u0644\u0633\u0639\u0648\u062f",
+   "frequency": 1,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EG6OCT"
+  },
+  {
+   "avg_aov": 720.0,
+   "customer": "\u0645\u0646\u064a \u062d\u0633\u0646",
+   "customer_name": "\u0645\u0646\u064a \u062d\u0633\u0646",
+   "frequency": 2,
+   "recency_days": 35,
+   "segment": "At Risk",
+   "territory": "EGOBOUR"
+  },
+  {
+   "avg_aov": 720.0,
+   "customer": "Hossam El Amin",
+   "customer_name": "Hossam El Amin",
+   "frequency": 2,
+   "recency_days": 55,
+   "segment": "At Risk",
+   "territory": "EGMAADI"
+  },
+  {
+   "avg_aov": 712.66,
+   "customer": "\u0639\u0627\u0628\u062f\u0647",
+   "customer_name": "\u0639\u0627\u0628\u062f\u0647",
+   "frequency": 1,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGHARAM"
+  },
+  {
+   "avg_aov": 709.22,
+   "customer": "\u062f. \u0645\u0646\u0649",
+   "customer_name": "\u062f. \u0645\u0646\u0649",
+   "frequency": 3,
+   "recency_days": 43,
+   "segment": "At Risk",
+   "territory": "EGTAGAMMO"
+  },
+  {
+   "avg_aov": 704.69,
+   "customer": "\u0639\u0645\u0627\u0631 \u0645\u0635\u0637\u0641\u0649",
+   "customer_name": "\u0639\u0645\u0627\u0631 \u0645\u0635\u0637\u0641\u0649",
+   "frequency": 1,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGMOQATTAM"
+  },
+  {
+   "avg_aov": 701.8,
+   "customer": "\u0627\u0644\u0641\u062a \u0645\u062d\u0645\u062f",
+   "customer_name": "\u0627\u0644\u0641\u062a \u0645\u062d\u0645\u062f",
+   "frequency": 4,
+   "recency_days": 34,
+   "segment": "At Risk",
+   "territory": "EGMAADI"
+  },
+  {
+   "avg_aov": 700.36,
+   "customer": "Monia",
+   "customer_name": "Monia",
+   "frequency": 0,
+   "recency_days": 312,
+   "segment": "Can't Lose Them",
+   "territory": "EGMASROLD"
+  },
+  {
+   "avg_aov": 690.0,
+   "customer": "Ahmed dawood",
+   "customer_name": "Ahmed dawood",
+   "frequency": 2,
+   "recency_days": 33,
+   "segment": "At Risk",
+   "territory": "EG6OCT"
+  },
+  {
+   "avg_aov": 689.0,
+   "customer": "MODATHER",
+   "customer_name": "MODATHER",
+   "frequency": 4,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGGIZA"
+  },
+  {
+   "avg_aov": 683.13,
+   "customer": "Ali Mamdouh",
+   "customer_name": "Alu Mamdouh",
+   "frequency": 1,
+   "recency_days": 36,
+   "segment": "At Risk",
+   "territory": "EGIMBABA"
+  },
+  {
+   "avg_aov": 677.0,
+   "customer": "\u0645\u0627\u0632\u0646 \u0627\u0633\u0627\u0645\u0629",
+   "customer_name": "\u0645\u0627\u0632\u0646 \u0627\u0633\u0627\u0645\u0629",
+   "frequency": 1,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGFAYSAL"
+  },
+  {
+   "avg_aov": 672.0,
+   "customer": "\u0623\u062d\u0645\u062f",
+   "customer_name": "\u0623\u062d\u0645\u062f",
+   "frequency": 4,
+   "recency_days": 64,
+   "segment": "Can't Lose Them",
+   "territory": "EGRSHEROUK"
+  },
+  {
+   "avg_aov": 668.09,
+   "customer": "\u0634\u064a\u0645\u0627\u0621",
+   "customer_name": "\u0634\u064a\u0645\u0627\u0621",
+   "frequency": 2,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EGRSHEROUK"
+  },
+  {
+   "avg_aov": 665.0,
+   "customer": "\u062f \u0645\u0646\u0627\u0644 \u0627\u0644\u0645\u0635\u0631\u0649",
+   "customer_name": "\u062f \u0645\u0646\u0627\u0644 \u0627\u0644\u0645\u0635\u0631\u064a \u0645\u0646\u0627\u0644 \u0627\u0644\u0645\u0635\u0631\u0649",
+   "frequency": 2,
+   "recency_days": 34,
+   "segment": "At Risk",
+   "territory": "EGNASRCITY"
+  },
+  {
+   "avg_aov": 664.86,
+   "customer": "Asmaa",
+   "customer_name": "Asmaa",
+   "frequency": 14,
+   "recency_days": 80,
+   "segment": "Can't Lose Them",
+   "territory": "EGSHOBRA"
+  },
+  {
+   "avg_aov": 662.92,
+   "customer": "Rim Lamloum",
+   "customer_name": "Rim Lamloum",
+   "frequency": 4,
+   "recency_days": 78,
+   "segment": "Can't Lose Them",
+   "territory": "EGGIZA"
+  },
+  {
+   "avg_aov": 662.57,
+   "customer": "\u0627\u062d\u0645\u062f",
+   "customer_name": "\u0627\u062d\u0645\u062f",
+   "frequency": 6,
+   "recency_days": 78,
+   "segment": "Can't Lose Them",
+   "territory": "EG6OCT"
+  },
+  {
+   "avg_aov": 655.11,
+   "customer": "\u0646\u064a\u0641\u064a\u0646 \u062f\u0633\u0648\u0642\u0649",
+   "customer_name": "\u0646\u064a\u0641\u064a\u0646 \u062f\u0633\u0648\u0642\u0649",
+   "frequency": 2,
+   "recency_days": 82,
+   "segment": "Can't Lose Them",
+   "territory": "EG6OCT"
+  },
+  {
+   "avg_aov": 652.64,
+   "customer": "Mona",
+   "customer_name": "Mona",
+   "frequency": 6,
+   "recency_days": 75,
+   "segment": "Can't Lose Them",
+   "territory": "EGRSHEROUK"
+  }
+ ],
+ "period": {
+  "date_from": "2026-04-09",
+  "date_to": "2026-07-08"
+ },
+ "segment_distribution": [
+  {
+   "count": 2,
+   "segment": "Champion"
+  },
+  {
+   "count": 375,
+   "segment": "Loyal"
+  },
+  {
+   "count": 2,
+   "segment": "Potential Loyalist"
+  },
+  {
+   "count": 121,
+   "segment": "At Risk"
+  },
+  {
+   "count": 277,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "count": 781,
+   "segment": "Lost"
+  },
+  {
+   "count": 3279,
+   "segment": "One-Time"
+  },
+  {
+   "count": 1533,
+   "segment": "Unclassified"
+  },
+  {
+   "count": 33,
+   "segment": ""
+  }
+ ],
+ "segment_table": [
+  {
+   "active_customers": 2,
+   "avg_aov": 369.11,
+   "avg_frequency": 20.0,
+   "avg_recency": 5.0,
+   "customers": 2,
+   "orders": 45,
+   "revenue": 15216.0,
+   "segment": "Champion"
+  },
+  {
+   "active_customers": 375,
+   "avg_aov": 543.82,
+   "avg_frequency": 1.5,
+   "avg_recency": 77.2,
+   "customers": 375,
+   "orders": 552,
+   "revenue": 350389.8,
+   "segment": "Loyal"
+  },
+  {
+   "active_customers": 2,
+   "avg_aov": 511.38,
+   "avg_frequency": 1.0,
+   "avg_recency": 27.0,
+   "customers": 2,
+   "orders": 2,
+   "revenue": 1625.0,
+   "segment": "Potential Loyalist"
+  },
+  {
+   "active_customers": 121,
+   "avg_aov": 526.72,
+   "avg_frequency": 2.3,
+   "avg_recency": 41.9,
+   "customers": 121,
+   "orders": 273,
+   "revenue": 157169.02,
+   "segment": "At Risk"
+  },
+  {
+   "active_customers": 177,
+   "avg_aov": 431.33,
+   "avg_frequency": 1.5,
+   "avg_recency": 132.2,
+   "customers": 277,
+   "orders": 412,
+   "revenue": 279845.55,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "active_customers": 1,
+   "avg_aov": 383.2,
+   "avg_frequency": 0.0,
+   "avg_recency": 293.8,
+   "customers": 781,
+   "orders": 1,
+   "revenue": 200.0,
+   "segment": "Lost"
+  },
+  {
+   "active_customers": 966,
+   "avg_aov": 420.26,
+   "avg_frequency": 0.3,
+   "avg_recency": 259.8,
+   "customers": 3279,
+   "orders": 966,
+   "revenue": 546576.26,
+   "segment": "One-Time"
+  },
+  {
+   "active_customers": 0,
+   "avg_aov": 0.0,
+   "avg_frequency": 0.0,
+   "avg_recency": 0.0,
+   "customers": 1533,
+   "orders": 0,
+   "revenue": 0.0,
+   "segment": "Unclassified"
+  },
+  {
+   "active_customers": 0,
+   "avg_aov": 0.0,
+   "avg_frequency": 0.0,
+   "avg_recency": 0.0,
+   "customers": 33,
+   "orders": 0,
+   "revenue": 0.0,
+   "segment": ""
+  }
+ ],
+ "summary": {
+  "active_in_period": 1644,
+  "at_risk": 398,
+  "avg_order_value": 600.19,
+  "champions": 2,
+  "lost": 781,
+  "new_customers": 1097,
+  "period_orders": 2251,
+  "period_revenue": 1351021.63,
+  "repeat_rate": 33.3,
+  "returning_customers": 547,
+  "total_customers": 6403
+ },
+ "top_customers": [
+  {
+   "customer": "Ahmed",
+   "customer_name": "Ahmed",
+   "orders": 22,
+   "recency_days": 64,
+   "revenue": 13208.01,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "customer": "ali mamdouh - 1",
+   "customer_name": "ali mamdouh",
+   "orders": 36,
+   "recency_days": 9,
+   "revenue": 12176.0,
+   "segment": "Champion"
+  },
+  {
+   "customer": "Mohamed",
+   "customer_name": "Mohamed",
+   "orders": 18,
+   "recency_days": 67,
+   "revenue": 11610.0,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "customer": "Asmaa",
+   "customer_name": "Asmaa",
+   "orders": 14,
+   "recency_days": 80,
+   "revenue": 11038.02,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "customer": "\u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646",
+   "customer_name": "\u0641\u0631\u0639 \u0645\u062f\u064a\u0646\u0629 \u0646\u0635\u0631",
+   "orders": 20,
+   "recency_days": 29,
+   "revenue": 10998.0,
+   "segment": "Loyal"
+  },
+  {
+   "customer": "\u062d\u0633\u0627\u0645 \u062e\u0627\u0644\u062f \u0633\u0639\u064a\u062f",
+   "customer_name": "\u062d\u0633\u0627\u0645 \u062e\u0627\u0644\u062f \u0633\u0639\u064a\u062f",
+   "orders": 5,
+   "recency_days": 75,
+   "revenue": 8530.0,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "customer": "Rania Adel",
+   "customer_name": "Rania",
+   "orders": 15,
+   "recency_days": 26,
+   "revenue": 8020.0,
+   "segment": "Loyal"
+  },
+  {
+   "customer": "\u0641\u0631\u0639 \u0627\u0644\u062f\u0642\u064a",
+   "customer_name": "\u0641\u0631\u0639 \u0627\u0644\u062f\u0642\u064a \u0627\u0644\u062f\u0642\u064a",
+   "orders": 11,
+   "recency_days": 58,
+   "revenue": 6906.0,
+   "segment": "At Risk"
+  },
+  {
+   "customer": "Mohammed",
+   "customer_name": "mohammed",
+   "orders": 11,
+   "recency_days": 54,
+   "revenue": 6480.0,
+   "segment": "At Risk"
+  },
+  {
+   "customer": "alaaalimossa",
+   "customer_name": "alaaalimossa",
+   "orders": 9,
+   "recency_days": 69,
+   "revenue": 5760.0,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "customer": "\u0645\u062d\u0645\u062f",
+   "customer_name": "\u0645\u062d\u0645\u062f",
+   "orders": 8,
+   "recency_days": 82,
+   "revenue": 5655.01,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "customer": "mazmazashop",
+   "customer_name": "mazmazashop",
+   "orders": 2,
+   "recency_days": 34,
+   "revenue": 5184.0,
+   "segment": "At Risk"
+  },
+  {
+   "customer": "\u0627\u062d\u0645\u062f",
+   "customer_name": "\u0627\u062d\u0645\u062f",
+   "orders": 6,
+   "recency_days": 78,
+   "revenue": 5017.98,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "customer": "\u0627\u062d\u0645\u062f - 5",
+   "customer_name": "\u0627\u062d\u0645\u062f",
+   "orders": 1,
+   "recency_days": 56,
+   "revenue": 4800.0,
+   "segment": "One-Time"
+  },
+  {
+   "customer": "Islam sayed",
+   "customer_name": "Islam sayed",
+   "orders": 4,
+   "recency_days": 82,
+   "revenue": 4260.0,
+   "segment": "Loyal"
+  },
+  {
+   "customer": "Heba",
+   "customer_name": "Heba",
+   "orders": 5,
+   "recency_days": 70,
+   "revenue": 4249.99,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "customer": "\u0635\u0641\u0627\u0621",
+   "customer_name": "\u0635\u0641\u0627\u0621",
+   "orders": 8,
+   "recency_days": 52,
+   "revenue": 4173.0,
+   "segment": "At Risk"
+  },
+  {
+   "customer": "\u0641\u0631\u0639 \u0627\u0633\u0645\u0627\u0639\u064a\u0644\u064a\u0647",
+   "customer_name": "\u0641\u0631\u0639 \u0627\u0633\u0645\u0627\u0639\u064a\u0644\u064a\u0647",
+   "orders": 5,
+   "recency_days": 82,
+   "revenue": 4114.0,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "customer": "Alaa",
+   "customer_name": "Alaa",
+   "orders": 3,
+   "recency_days": 82,
+   "revenue": 4048.0,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "customer": "Nada Bakier",
+   "customer_name": "Nada Bakier",
+   "orders": 2,
+   "recency_days": 27,
+   "revenue": 4020.0,
+   "segment": "Loyal"
+  }
+ ]
+}

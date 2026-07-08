@@ -61,8 +61,14 @@ _$ProductAnalyticsSummaryImpl _$$ProductAnalyticsSummaryImplFromJson(
   totalOrders: (json['total_orders'] as num?)?.toInt() ?? 0,
   totalGrossProfit: (json['total_gross_profit'] as num?)?.toDouble() ?? 0,
   avgOrderValue: (json['avg_order_value'] as num?)?.toDouble() ?? 0,
-  bestSellingProduct: json['best_selling_product'] as String? ?? '',
-  topTerritory: json['top_territory'] as String? ?? '',
+  bestSellingProduct: json['best_selling_product'] == null
+      ? ''
+      : const _BestSellingProductConverter().fromJson(
+          json['best_selling_product'],
+        ),
+  topTerritory: json['top_territory'] == null
+      ? ''
+      : const _TopTerritoryConverter().fromJson(json['top_territory']),
 );
 
 Map<String, dynamic> _$$ProductAnalyticsSummaryImplToJson(
@@ -72,6 +78,8 @@ Map<String, dynamic> _$$ProductAnalyticsSummaryImplToJson(
   'total_orders': instance.totalOrders,
   'total_gross_profit': instance.totalGrossProfit,
   'avg_order_value': instance.avgOrderValue,
-  'best_selling_product': instance.bestSellingProduct,
-  'top_territory': instance.topTerritory,
+  'best_selling_product': const _BestSellingProductConverter().toJson(
+    instance.bestSellingProduct,
+  ),
+  'top_territory': const _TopTerritoryConverter().toJson(instance.topTerritory),
 };

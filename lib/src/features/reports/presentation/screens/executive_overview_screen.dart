@@ -11,6 +11,7 @@ import '../../data/models/executive_overview.dart';
 import '../../data/models/report_json.dart';
 import '../../state/reports_providers.dart';
 import '../widgets/kpi_card.dart';
+import '../widgets/report_alert_text.dart';
 import '../widgets/report_chart_card.dart';
 import '../widgets/report_date_range_bar.dart';
 
@@ -190,7 +191,7 @@ class _AlertsSection extends StatelessWidget {
               dense: true,
               leading: Icon(_alertIcon(type), color: color),
               title: Text(
-                message,
+                stripHtml(message),
                 style: theme.textTheme.bodyMedium,
               ),
             ),

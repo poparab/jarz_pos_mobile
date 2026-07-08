@@ -54,24 +54,24 @@ Map<String, dynamic> _$$ExecutiveOverviewImplToJson(
 
 _$ExecutiveKpisImpl _$$ExecutiveKpisImplFromJson(Map<String, dynamic> json) =>
     _$ExecutiveKpisImpl(
-      revenue: (json['revenue'] as num?)?.toDouble() ?? 0,
-      orders: (json['orders'] as num?)?.toInt() ?? 0,
+      revenue: (json['total_revenue'] as num?)?.toDouble() ?? 0,
+      orders: (json['total_orders'] as num?)?.toInt() ?? 0,
       grossProfit: (json['gross_profit'] as num?)?.toDouble() ?? 0,
-      grossMarginPct: (json['gross_margin_pct'] as num?)?.toDouble() ?? 0,
+      grossMarginPct: (json['gross_margin'] as num?)?.toDouble() ?? 0,
       avgOrderValue: (json['avg_order_value'] as num?)?.toDouble() ?? 0,
       netShippingPl: (json['net_shipping_pl'] as num?)?.toDouble() ?? 0,
-      customers: (json['customers'] as num?)?.toInt() ?? 0,
+      customers: (json['total_customers'] as num?)?.toInt() ?? 0,
       criticalStock: (json['critical_stock'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$$ExecutiveKpisImplToJson(_$ExecutiveKpisImpl instance) =>
     <String, dynamic>{
-      'revenue': instance.revenue,
-      'orders': instance.orders,
+      'total_revenue': instance.revenue,
+      'total_orders': instance.orders,
       'gross_profit': instance.grossProfit,
-      'gross_margin_pct': instance.grossMarginPct,
+      'gross_margin': instance.grossMarginPct,
       'avg_order_value': instance.avgOrderValue,
       'net_shipping_pl': instance.netShippingPl,
-      'customers': instance.customers,
+      'total_customers': instance.customers,
       'critical_stock': instance.criticalStock,
     };

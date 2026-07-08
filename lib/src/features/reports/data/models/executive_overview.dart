@@ -34,13 +34,13 @@ class ExecutiveOverview with _$ExecutiveOverview {
 @freezed
 class ExecutiveKpis with _$ExecutiveKpis {
   const factory ExecutiveKpis({
-    @Default(0) double revenue,
-    @Default(0) int orders,
+    @JsonKey(name: 'total_revenue') @Default(0) double revenue,
+    @JsonKey(name: 'total_orders') @Default(0) int orders,
     @JsonKey(name: 'gross_profit') @Default(0) double grossProfit,
-    @JsonKey(name: 'gross_margin_pct') @Default(0) double grossMarginPct,
+    @JsonKey(name: 'gross_margin') @Default(0) double grossMarginPct,
     @JsonKey(name: 'avg_order_value') @Default(0) double avgOrderValue,
     @JsonKey(name: 'net_shipping_pl') @Default(0) double netShippingPl,
-    @Default(0) int customers,
+    @JsonKey(name: 'total_customers') @Default(0) int customers,
     @JsonKey(name: 'critical_stock') @Default(0) int criticalStock,
   }) = _ExecutiveKpis;
 

@@ -1,0 +1,1087 @@
+{
+ "alerts": {
+  "critical": [
+   {
+    "daily_velocity": 3.85,
+    "days_remaining": -6,
+    "item_code": "Chocolate Hazelnut Large",
+    "item_group": "Large",
+    "item_name": "Chocolate Hazelnut Large",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": -25.0
+   },
+   {
+    "daily_velocity": 3.333,
+    "days_remaining": -3,
+    "item_code": "Mango Medium",
+    "item_group": "Medium",
+    "item_name": "Mango Medium",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": -10.0
+   },
+   {
+    "daily_velocity": 2.3,
+    "days_remaining": -2,
+    "item_code": "Molten Medium",
+    "item_group": "Medium",
+    "item_name": "Molten Medium",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": -5.0
+   },
+   {
+    "daily_velocity": 3.35,
+    "days_remaining": -1,
+    "item_code": "Pistachio Medium",
+    "item_group": "Medium",
+    "item_name": "Pistachio Medium",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": -2.0
+   },
+   {
+    "daily_velocity": 7.167,
+    "days_remaining": 0,
+    "item_code": "Blueberry Medium",
+    "item_group": "Medium",
+    "item_name": "Blueberry Medium",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": 3.0
+   },
+   {
+    "daily_velocity": 5.483,
+    "days_remaining": 0,
+    "item_code": "Strawberry Medium",
+    "item_group": "Medium",
+    "item_name": "Strawberry Medium",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": 0.0
+   },
+   {
+    "daily_velocity": 5.217,
+    "days_remaining": 0,
+    "item_code": "Chocolate Hazelnut Medium",
+    "item_group": "Medium",
+    "item_name": "Chocolate Hazelnut Medium",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": 2.0
+   },
+   {
+    "daily_velocity": 4.75,
+    "days_remaining": 2,
+    "item_code": "Blueberry Large",
+    "item_group": "Large",
+    "item_name": "Blueberry Large",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": 8.0
+   },
+   {
+    "daily_velocity": 1.983,
+    "days_remaining": 5,
+    "item_code": "Redvelvet Large",
+    "item_group": "Large",
+    "item_name": "Redvelvet Large",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": 10.0
+   }
+  ],
+  "overstocked": [],
+  "slow_movers": [
+   {
+    "item_code": "Tiramisu Large",
+    "item_group": "Large",
+    "item_name": "Tiramisu Large",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": 53.0,
+    "trend": "Declining"
+   },
+   {
+    "item_code": "Lotus Jar label 212",
+    "item_group": "Raw Material",
+    "item_name": "Lotus Jar label 212",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 235.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Expiry Label",
+    "item_group": "Consumable",
+    "item_name": "Expiry Label",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 1000.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "sugar",
+    "item_group": "Raw Material",
+    "item_name": "sugar",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 17.4,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Carrot cake Jar Label 212",
+    "item_group": "Raw Material",
+    "item_name": "Carrot cake Jar Label 212",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 347.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Puratos Blueberry",
+    "item_group": "Raw Material",
+    "item_name": "Puratos Blueberry",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 20.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "dish soap",
+    "item_group": "Consumable",
+    "item_name": "dish soap",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 5.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Savoiardi",
+    "item_group": "Sub Assemblies",
+    "item_name": "Savoiardi",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 1.25,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Blueberry Jar label 212",
+    "item_group": "Raw Material",
+    "item_name": "Blueberry Jar label 212",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 404.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Pistachio Jar Label 212",
+    "item_group": "Raw Material",
+    "item_name": "Pistachio Jar Label 212",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 180.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Jar Lid",
+    "item_group": "Raw Material",
+    "item_name": "Jar Lid 212",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 3745.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "RedVelvet Jar Label 212",
+    "item_group": "Raw Material",
+    "item_name": "RedVelvet Jar Label 212",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 280.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "aldia blueberry",
+    "item_group": "Raw Material",
+    "item_name": "aldia blueberry",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 3.547,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Mango mix",
+    "item_group": "Sub Assemblies",
+    "item_name": "Mango mix",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 3.248,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "gloves",
+    "item_group": "Consumable",
+    "item_name": "gloves",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 50.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "\u062a\u0648\u0628 \u0634\u064a\u0641 \u0643\u064a\u0633 \u062d\u0644\u0648\u0627\u0646\u064a",
+    "item_group": "Consumable",
+    "item_name": "\u062a\u0648\u0628 \u0634\u064a\u0641 \u0643\u064a\u0633 \u062d\u0644\u0648\u0627\u0646\u064a",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 9.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "coco powder",
+    "item_group": "Raw Material",
+    "item_name": "coco powder",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 0.3,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Lotus Jar Label 330",
+    "item_group": "Raw Material",
+    "item_name": "Lotus Jar Label 330",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 1049.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "face mask",
+    "item_group": "Consumable",
+    "item_name": "face mask",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 50.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Tiramisu Jar Label 212",
+    "item_group": "Raw Material",
+    "item_name": "Tiramisu Jar Label 212",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 61.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Carrot cake Jar Label 330",
+    "item_group": "Raw Material",
+    "item_name": "Carrot cake Jar Label 330",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 213.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Puratos Blueberry KG",
+    "item_group": "Raw Material",
+    "item_name": "Puratos Blueberry",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 10.87,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Dr baker blueberry",
+    "item_group": "Raw Material",
+    "item_name": "Dr baker blueberry",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 3.7,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Sponge Cake",
+    "item_group": "Sub Assemblies",
+    "item_name": "Sponge Cake",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 6.866,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Blueberry Jar Label 330",
+    "item_group": "Raw Material",
+    "item_name": "Blueberry Jar Label 330",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 457.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Pistachio Jar Label 330",
+    "item_group": "Raw Material",
+    "item_name": "Pistachio Jar Label 330",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 222.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Jar Lid 330",
+    "item_group": "Raw Material",
+    "item_name": "Jar Lid 330",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 1464.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Coffee beans",
+    "item_group": "Raw Material",
+    "item_name": "Coffee beans",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 3.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "RedVelvet Jar Label 330",
+    "item_group": "Raw Material",
+    "item_name": "RedVelvet Jar Label 330",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 894.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "aldia Strawberry",
+    "item_group": "Raw Material",
+    "item_name": "aldia Strawberry",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 16.88,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Mango zebdeia",
+    "item_group": "Raw Material",
+    "item_name": "Mango zebdeia",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 5.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "gloves one use",
+    "item_group": "Consumable",
+    "item_name": "gloves one use",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 50.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "lotus Spread",
+    "item_group": "Raw Material",
+    "item_name": "lotus Spread",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 12.155,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "flour",
+    "item_group": "Raw Material",
+    "item_name": "flour",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 36.788,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Tiramisu Jar Label 330",
+    "item_group": "Raw Material",
+    "item_name": "Tiramisu Jar Label 330",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 190.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Chocolate ganache",
+    "item_group": "Sub Assemblies",
+    "item_name": "Chocolate ganache",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 2.534,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "puratos raspberry",
+    "item_group": "Raw Material",
+    "item_name": "puratos raspberry",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 4.26,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "dr baker cream",
+    "item_group": "Raw Material",
+    "item_name": "dr baker cream",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 76.1,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Strawberry Jar Label 212",
+    "item_group": "Raw Material",
+    "item_name": "Strawberry Jar Label 212",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 73.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Blueberry mix",
+    "item_group": "Sub Assemblies",
+    "item_name": "Blueberry mix",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 0.85,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Pistachio spread",
+    "item_group": "Raw Material",
+    "item_name": "Pistachio spread",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 0.96,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "jelly",
+    "item_group": "Raw Material",
+    "item_name": "jelly",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 9.89,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "colored bag",
+    "item_group": "Consumable",
+    "item_name": "colored bag",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 2250.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Remas cheese",
+    "item_group": "Raw Material",
+    "item_name": "Remas cheese",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 70.917,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "baking powder",
+    "item_group": "Raw Material",
+    "item_name": "baking powder",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 0.45,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "milkana cheese",
+    "item_group": "Raw Material",
+    "item_name": "milkana cheese",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 65.271,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Glucose honey",
+    "item_group": "Raw Material",
+    "item_name": "Glucose honey",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 18.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Mango  Jar Label 330",
+    "item_group": "Raw Material",
+    "item_name": "Mango Jar Label 330",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 94.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Fudge Cake",
+    "item_group": "Sub Assemblies",
+    "item_name": "Fudge Cake",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": 77.296,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Chocolate Hazelnut Jar Label 212",
+    "item_group": "Raw Material",
+    "item_name": "Chocolate Hazelnut Jar Label 212",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 206.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "reciept roll 50mm",
+    "item_group": "Consumable",
+    "item_name": "reciept roll 50mm",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 25.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "kamina vanilla",
+    "item_group": "Consumable",
+    "item_name": "kamina vanilla",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 0.465,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Dr baker Strawberry",
+    "item_group": "Raw Material",
+    "item_name": "Dr baker Strawberry",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 3.7,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Strawberry Jar Label 330",
+    "item_group": "Raw Material",
+    "item_name": "Strawberry Jar Label 330",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 590.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Butter Biscuit",
+    "item_group": "Sub Assemblies",
+    "item_name": "Butter Biscuit",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 15.873,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "powder sugar",
+    "item_group": "Raw Material",
+    "item_name": "powder sugar",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 42.238,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Cornstarch",
+    "item_group": "Raw Material",
+    "item_name": "Cornstarch",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 6.96,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Round Seal Label",
+    "item_group": "Consumable",
+    "item_name": "Round Seal Label",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 20.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Belcolade Belgian chocolate 60%",
+    "item_group": "Raw Material",
+    "item_name": "Belcolade Belgian chocolate 60%",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 7.23,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Molten Jar Label 330",
+    "item_group": "Raw Material",
+    "item_name": "Molten Jar Label 330",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 92.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "hair net",
+    "item_group": "Consumable",
+    "item_name": "hair net",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 270.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Mango Jar Label 212",
+    "item_group": "Raw Material",
+    "item_name": "Mango Jar Label 212",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 196.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Glass Jar",
+    "item_group": "Raw Material",
+    "item_name": "Glass Jar 212",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 1139.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Tissue",
+    "item_group": "Consumable",
+    "item_name": "Tissue",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 3499.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Chocolate Hazelnut Jar Label 330",
+    "item_group": "Raw Material",
+    "item_name": "Chocolate Hazelnut Jar Label 330",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 572.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "red color",
+    "item_group": "Raw Material",
+    "item_name": "red color",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 0.11,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Lotus Biscuit",
+    "item_group": "Raw Material",
+    "item_name": "Lotus Biscuit",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 1248.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "eggs",
+    "item_group": "Raw Material",
+    "item_name": "eggs",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 266.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "strawberry mix",
+    "item_group": "Sub Assemblies",
+    "item_name": "strawberry mix",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 0.84,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "butter fern",
+    "item_group": "Raw Material",
+    "item_name": "butter fern",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 6.16,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Printing rolls reciept",
+    "item_group": "Consumable",
+    "item_name": "Printing rolls reciept",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 38.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "covier",
+    "item_group": "Consumable",
+    "item_name": "covier",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 6987.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Salt",
+    "item_group": "Raw Material",
+    "item_name": "Salt",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 1.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Belcolade Milk Chocolate",
+    "item_group": "Raw Material",
+    "item_name": "Belcolade Milk Chocolate",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 4.6,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "oil",
+    "item_group": "Raw Material",
+    "item_name": "oil",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 19.5,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Hand sanitizer",
+    "item_group": "Consumable",
+    "item_name": "Hand sanitizer",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 5.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Red Velvet Cake",
+    "item_group": "Sub Assemblies",
+    "item_name": "Red Velvet Cake",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 5.951,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "30*30 carton",
+    "item_group": "Consumable",
+    "item_name": "30*30 carton",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 200.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Mango kate",
+    "item_group": "Raw Material",
+    "item_name": "Mango kate",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 4.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Glass Jar 330",
+    "item_group": "Raw Material",
+    "item_name": "Glass Jar 330",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 419.0,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Water",
+    "item_group": "Raw Material",
+    "item_name": "Water",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 1999957.75,
+    "trend": "No Sales"
+   },
+   {
+    "item_code": "Chocolate Hazelnut Spread",
+    "item_group": "Raw Material",
+    "item_name": "Chocolate Hazelnut Spread",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 10.82,
+    "trend": "No Sales"
+   }
+  ],
+  "watch_list": [
+   {
+    "daily_velocity": 1.9,
+    "days_remaining": 6,
+    "item_code": "Lotus Large",
+    "item_group": "Large",
+    "item_name": "Lotus Large",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": 11.0
+   },
+   {
+    "daily_velocity": 2.75,
+    "days_remaining": 6,
+    "item_code": "Lotus Medium",
+    "item_group": "Medium",
+    "item_name": "Lotus Medium",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": 16.0
+   },
+   {
+    "daily_velocity": 2.867,
+    "days_remaining": 7,
+    "item_code": "Redvelvet Medium",
+    "item_group": "Medium",
+    "item_name": "Redvelvet Medium",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": 21.0
+   },
+   {
+    "daily_velocity": 2.983,
+    "days_remaining": 8,
+    "item_code": "Molten Large",
+    "item_group": "Large",
+    "item_name": "Molten Large",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": 25.0
+   },
+   {
+    "daily_velocity": 2.117,
+    "days_remaining": 9,
+    "item_code": "Pistachio Large",
+    "item_group": "Large",
+    "item_name": "Pistachio Large",
+    "replenishment_type": "Purchase",
+    "stock_on_hand": 18.0
+   },
+   {
+    "daily_velocity": 3.467,
+    "days_remaining": 9,
+    "item_code": "Strawberry Large",
+    "item_group": "Large",
+    "item_name": "Strawberry Large",
+    "replenishment_type": "Manufacture",
+    "stock_on_hand": 12.0
+   }
+  ]
+ },
+ "period": {
+  "date_from": "2026-04-09",
+  "date_to": "2026-07-08"
+ },
+ "summary": {
+  "critical_count": 9,
+  "overstock_count": 0,
+  "slow_count": 82,
+  "total_stock_items": 110,
+  "total_stock_value": 40952.91,
+  "watch_count": 6
+ },
+ "top_movers": [
+  {
+   "days_of_stock": 0,
+   "item_code": "Blueberry Medium",
+   "item_group": "Medium",
+   "item_name": "Blueberry Medium",
+   "stock_on_hand": 3.0,
+   "trend": "Declining",
+   "velocity_30d": 2.933,
+   "velocity_60d": 7.167
+  },
+  {
+   "days_of_stock": 0,
+   "item_code": "Strawberry Medium",
+   "item_group": "Medium",
+   "item_name": "Strawberry Medium",
+   "stock_on_hand": 0.0,
+   "trend": "Declining",
+   "velocity_30d": 2.433,
+   "velocity_60d": 5.483
+  },
+  {
+   "days_of_stock": 0,
+   "item_code": "Chocolate Hazelnut Medium",
+   "item_group": "Medium",
+   "item_name": "Chocolate Hazelnut Medium",
+   "stock_on_hand": 2.0,
+   "trend": "Declining",
+   "velocity_30d": 2.4,
+   "velocity_60d": 5.217
+  },
+  {
+   "days_of_stock": 2,
+   "item_code": "Blueberry Large",
+   "item_group": "Large",
+   "item_name": "Blueberry Large",
+   "stock_on_hand": 8.0,
+   "trend": "Declining",
+   "velocity_30d": 2.167,
+   "velocity_60d": 4.75
+  },
+  {
+   "days_of_stock": -6,
+   "item_code": "Chocolate Hazelnut Large",
+   "item_group": "Large",
+   "item_name": "Chocolate Hazelnut Large",
+   "stock_on_hand": -25.0,
+   "trend": "Declining",
+   "velocity_30d": 1.067,
+   "velocity_60d": 3.85
+  },
+  {
+   "days_of_stock": 9,
+   "item_code": "Strawberry Large",
+   "item_group": "Large",
+   "item_name": "Strawberry Large",
+   "stock_on_hand": 12.0,
+   "trend": "Declining",
+   "velocity_30d": 1.267,
+   "velocity_60d": 3.467
+  },
+  {
+   "days_of_stock": 20,
+   "item_code": "Tiramisu Medium",
+   "item_group": "Medium",
+   "item_name": "Tiramisu Medium",
+   "stock_on_hand": 70.0,
+   "trend": "Declining",
+   "velocity_30d": 0.833,
+   "velocity_60d": 3.433
+  },
+  {
+   "days_of_stock": -1,
+   "item_code": "Pistachio Medium",
+   "item_group": "Medium",
+   "item_name": "Pistachio Medium",
+   "stock_on_hand": -2.0,
+   "trend": "Declining",
+   "velocity_30d": 1.433,
+   "velocity_60d": 3.35
+  },
+  {
+   "days_of_stock": -3,
+   "item_code": "Mango Medium",
+   "item_group": "Medium",
+   "item_name": "Mango Medium",
+   "stock_on_hand": -10.0,
+   "trend": "Declining",
+   "velocity_30d": 1.6,
+   "velocity_60d": 3.333
+  },
+  {
+   "days_of_stock": 8,
+   "item_code": "Molten Large",
+   "item_group": "Large",
+   "item_name": "Molten Large",
+   "stock_on_hand": 25.0,
+   "trend": "Accelerating",
+   "velocity_30d": 3.433,
+   "velocity_60d": 2.983
+  },
+  {
+   "days_of_stock": 7,
+   "item_code": "Redvelvet Medium",
+   "item_group": "Medium",
+   "item_name": "Redvelvet Medium",
+   "stock_on_hand": 21.0,
+   "trend": "Declining",
+   "velocity_30d": 1.133,
+   "velocity_60d": 2.867
+  },
+  {
+   "days_of_stock": 6,
+   "item_code": "Lotus Medium",
+   "item_group": "Medium",
+   "item_name": "Lotus Medium",
+   "stock_on_hand": 16.0,
+   "trend": "Declining",
+   "velocity_30d": 0.9,
+   "velocity_60d": 2.75
+  },
+  {
+   "days_of_stock": -2,
+   "item_code": "Molten Medium",
+   "item_group": "Medium",
+   "item_name": "Molten Medium",
+   "stock_on_hand": -5.0,
+   "trend": "Declining",
+   "velocity_30d": 0.667,
+   "velocity_60d": 2.3
+  },
+  {
+   "days_of_stock": 23,
+   "item_code": "Tiramisu Large",
+   "item_group": "Large",
+   "item_name": "Tiramisu Large",
+   "stock_on_hand": 53.0,
+   "trend": "Declining",
+   "velocity_30d": 0.833,
+   "velocity_60d": 2.283
+  },
+  {
+   "days_of_stock": 9,
+   "item_code": "Pistachio Large",
+   "item_group": "Large",
+   "item_name": "Pistachio Large",
+   "stock_on_hand": 18.0,
+   "trend": "Declining",
+   "velocity_30d": 0.8,
+   "velocity_60d": 2.117
+  }
+ ],
+ "top_sold_in_range": [
+  {
+   "item_code": "Blueberry Medium",
+   "item_group": "Medium",
+   "item_name": "Blueberry Medium",
+   "qty": 1240.0,
+   "revenue": 130540.04
+  },
+  {
+   "item_code": "Chocolate Hazelnut Medium",
+   "item_group": "Medium",
+   "item_name": "Chocolate Hazelnut Medium",
+   "qty": 1081.0,
+   "revenue": 113847.46
+  },
+  {
+   "item_code": "Mango Kunafa Medium",
+   "item_group": "Medium",
+   "item_name": "Mango Kunafa Medium",
+   "qty": 961.0,
+   "revenue": 81767.21
+  },
+  {
+   "item_code": "Strawberry Medium",
+   "item_group": "Medium",
+   "item_name": "Strawberry Medium",
+   "qty": 883.0,
+   "revenue": 96397.53
+  },
+  {
+   "item_code": "Qamar El Deen ( Apricot ) Kunafa Large",
+   "item_group": "Large",
+   "item_name": "Qamar El Deen ( Apricot ) Kunafa Large",
+   "qty": 669.0,
+   "revenue": 60061.23
+  },
+  {
+   "item_code": "Blueberry Large",
+   "item_group": "Large",
+   "item_name": "Blueberry Large",
+   "qty": 626.0,
+   "revenue": 87585.6
+  },
+  {
+   "item_code": "Redvelvet Medium",
+   "item_group": "Medium",
+   "item_name": "Redvelvet Medium",
+   "qty": 606.0,
+   "revenue": 64210.18
+  },
+  {
+   "item_code": "Lotus Medium",
+   "item_group": "Medium",
+   "item_name": "Lotus Medium",
+   "qty": 577.0,
+   "revenue": 60434.28
+  },
+  {
+   "item_code": "Mango Medium",
+   "item_group": "Medium",
+   "item_name": "Mango Medium",
+   "qty": 526.0,
+   "revenue": 54951.79
+  },
+  {
+   "item_code": "Tiramisu Medium",
+   "item_group": "Medium",
+   "item_name": "Tiramisu Medium",
+   "qty": 498.0,
+   "revenue": 53383.04
+  },
+  {
+   "item_code": "Chocolate Hazelnut Large",
+   "item_group": "Large",
+   "item_name": "Chocolate Hazelnut Large",
+   "qty": 497.0,
+   "revenue": 69180.8
+  },
+  {
+   "item_code": "Strawberry Large",
+   "item_group": "Large",
+   "item_name": "Strawberry Large",
+   "qty": 429.0,
+   "revenue": 58764.8
+  },
+  {
+   "item_code": "Pistachio Medium",
+   "item_group": "Medium",
+   "item_name": "Pistachio Medium",
+   "qty": 422.0,
+   "revenue": 44474.18
+  },
+  {
+   "item_code": "Molten Medium",
+   "item_group": "Medium",
+   "item_name": "Molten Medium",
+   "qty": 342.0,
+   "revenue": 36771.69
+  },
+  {
+   "item_code": "Tiramisu Large",
+   "item_group": "Large",
+   "item_name": "Tiramisu Large",
+   "qty": 295.0,
+   "revenue": 41744.0
+  }
+ ],
+ "velocity_distribution": [
+  {
+   "count": 1,
+   "trend": "Accelerating"
+  },
+  {
+   "count": 17,
+   "trend": "Declining"
+  },
+  {
+   "count": 92,
+   "trend": "No Sales"
+  }
+ ]
+}

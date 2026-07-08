@@ -8,6 +8,7 @@ import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/b2b_sales_clients.dart';
 import '../../state/reports_providers.dart';
 import '../widgets/kpi_card.dart';
+import '../widgets/report_alert_text.dart';
 import '../widgets/report_chart_card.dart';
 import '../widgets/report_date_range_bar.dart';
 
@@ -264,7 +265,7 @@ class _AlertRow extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              alert.message,
+              stripHtml(alert.message),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),

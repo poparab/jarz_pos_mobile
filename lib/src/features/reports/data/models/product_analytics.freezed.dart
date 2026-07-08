@@ -412,10 +412,12 @@ mixin _$ProductAnalyticsSummary {
   @JsonKey(name: 'total_gross_profit')
   double get totalGrossProfit => throw _privateConstructorUsedError;
   @JsonKey(name: 'avg_order_value')
-  double get avgOrderValue => throw _privateConstructorUsedError;
+  double get avgOrderValue => throw _privateConstructorUsedError; // Backend emits an object `{item_name, total_qty}`; extract the name.
   @JsonKey(name: 'best_selling_product')
-  String get bestSellingProduct => throw _privateConstructorUsedError;
+  @_BestSellingProductConverter()
+  String get bestSellingProduct => throw _privateConstructorUsedError; // Backend emits an object `{territory, revenue}`; extract the territory.
   @JsonKey(name: 'top_territory')
+  @_TopTerritoryConverter()
   String get topTerritory => throw _privateConstructorUsedError;
 
   /// Serializes this ProductAnalyticsSummary to a JSON map.
@@ -440,8 +442,12 @@ abstract class $ProductAnalyticsSummaryCopyWith<$Res> {
     @JsonKey(name: 'total_orders') int totalOrders,
     @JsonKey(name: 'total_gross_profit') double totalGrossProfit,
     @JsonKey(name: 'avg_order_value') double avgOrderValue,
-    @JsonKey(name: 'best_selling_product') String bestSellingProduct,
-    @JsonKey(name: 'top_territory') String topTerritory,
+    @JsonKey(name: 'best_selling_product')
+    @_BestSellingProductConverter()
+    String bestSellingProduct,
+    @JsonKey(name: 'top_territory')
+    @_TopTerritoryConverter()
+    String topTerritory,
   });
 }
 
@@ -516,8 +522,12 @@ abstract class _$$ProductAnalyticsSummaryImplCopyWith<$Res>
     @JsonKey(name: 'total_orders') int totalOrders,
     @JsonKey(name: 'total_gross_profit') double totalGrossProfit,
     @JsonKey(name: 'avg_order_value') double avgOrderValue,
-    @JsonKey(name: 'best_selling_product') String bestSellingProduct,
-    @JsonKey(name: 'top_territory') String topTerritory,
+    @JsonKey(name: 'best_selling_product')
+    @_BestSellingProductConverter()
+    String bestSellingProduct,
+    @JsonKey(name: 'top_territory')
+    @_TopTerritoryConverter()
+    String topTerritory,
   });
 }
 
@@ -585,8 +595,12 @@ class _$ProductAnalyticsSummaryImpl implements _ProductAnalyticsSummary {
     @JsonKey(name: 'total_orders') this.totalOrders = 0,
     @JsonKey(name: 'total_gross_profit') this.totalGrossProfit = 0,
     @JsonKey(name: 'avg_order_value') this.avgOrderValue = 0,
-    @JsonKey(name: 'best_selling_product') this.bestSellingProduct = '',
-    @JsonKey(name: 'top_territory') this.topTerritory = '',
+    @JsonKey(name: 'best_selling_product')
+    @_BestSellingProductConverter()
+    this.bestSellingProduct = '',
+    @JsonKey(name: 'top_territory')
+    @_TopTerritoryConverter()
+    this.topTerritory = '',
   });
 
   factory _$ProductAnalyticsSummaryImpl.fromJson(Map<String, dynamic> json) =>
@@ -604,11 +618,15 @@ class _$ProductAnalyticsSummaryImpl implements _ProductAnalyticsSummary {
   @override
   @JsonKey(name: 'avg_order_value')
   final double avgOrderValue;
+  // Backend emits an object `{item_name, total_qty}`; extract the name.
   @override
   @JsonKey(name: 'best_selling_product')
+  @_BestSellingProductConverter()
   final String bestSellingProduct;
+  // Backend emits an object `{territory, revenue}`; extract the territory.
   @override
   @JsonKey(name: 'top_territory')
+  @_TopTerritoryConverter()
   final String topTerritory;
 
   @override
@@ -670,8 +688,12 @@ abstract class _ProductAnalyticsSummary implements ProductAnalyticsSummary {
     @JsonKey(name: 'total_orders') final int totalOrders,
     @JsonKey(name: 'total_gross_profit') final double totalGrossProfit,
     @JsonKey(name: 'avg_order_value') final double avgOrderValue,
-    @JsonKey(name: 'best_selling_product') final String bestSellingProduct,
-    @JsonKey(name: 'top_territory') final String topTerritory,
+    @JsonKey(name: 'best_selling_product')
+    @_BestSellingProductConverter()
+    final String bestSellingProduct,
+    @JsonKey(name: 'top_territory')
+    @_TopTerritoryConverter()
+    final String topTerritory,
   }) = _$ProductAnalyticsSummaryImpl;
 
   factory _ProductAnalyticsSummary.fromJson(Map<String, dynamic> json) =
@@ -688,12 +710,14 @@ abstract class _ProductAnalyticsSummary implements ProductAnalyticsSummary {
   double get totalGrossProfit;
   @override
   @JsonKey(name: 'avg_order_value')
-  double get avgOrderValue;
+  double get avgOrderValue; // Backend emits an object `{item_name, total_qty}`; extract the name.
   @override
   @JsonKey(name: 'best_selling_product')
-  String get bestSellingProduct;
+  @_BestSellingProductConverter()
+  String get bestSellingProduct; // Backend emits an object `{territory, revenue}`; extract the territory.
   @override
   @JsonKey(name: 'top_territory')
+  @_TopTerritoryConverter()
   String get topTerritory;
 
   /// Create a copy of ProductAnalyticsSummary

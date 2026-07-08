@@ -1,0 +1,563 @@
+{
+ "alerts": [
+  {
+   "message": "Territory <b>( \u0627 - \u0628 - \u0632 - \u062d - \u062f - \u062c)\u0648 \u0645\u062f\u064a\u0646\u0629 \u0627\u0644\u0638\u0628\u0627\u0637 \u0648 \u0627\u0644\u0631\u0645\u0627\u064a\u0629</b> lost <b>EGP 10</b> on shipping (cost exceeds income charged)",
+   "type": "danger"
+  },
+  {
+   "message": "Courier <b>HR-EMP-000001</b> has <b>EGP 350</b> unsettled for <b>34 days</b>",
+   "type": "warning"
+  },
+  {
+   "message": "Courier <b>abo ganaa</b> has <b>EGP 300</b> unsettled for <b>33 days</b>",
+   "type": "warning"
+  },
+  {
+   "message": "Courier <b>HR-EMP-000005</b> has <b>EGP 410</b> unsettled for <b>33 days</b>",
+   "type": "warning"
+  },
+  {
+   "message": "Courier <b>\u0627\u062d\u0645\u062f \u0645\u062d\u0645\u062f</b> has <b>EGP 65</b> unsettled for <b>22 days</b>",
+   "type": "warning"
+  },
+  {
+   "message": "Override request <b>CSR-00016</b> on invoice <b>ACC-SINV-2026-16241</b> (EGGIZA) has been pending for <b>522h</b> \u2014 needs manager decision",
+   "type": "warning"
+  },
+  {
+   "message": "Large override approved on <b>ACC-SINV-2026-16027-2</b> (EGSALAM): EGP 80 \u2192 EGP 160 (<b>+100%</b> above territory rate)",
+   "type": "info"
+  },
+  {
+   "message": "Large override approved on <b>ACC-SINV-2026-16439</b> (EGSALAM): EGP 80 \u2192 EGP 160 (<b>+100%</b> above territory rate)",
+   "type": "info"
+  },
+  {
+   "message": "Large override approved on <b>ACC-SINV-2026-16055</b> (EGOBOUR): EGP 85 \u2192 EGP 160 (<b>+88%</b> above territory rate)",
+   "type": "info"
+  },
+  {
+   "message": "Large override approved on <b>ACC-SINV-2026-16124</b> (EGRSHEROUK): EGP 85 \u2192 EGP 160 (<b>+88%</b> above territory rate)",
+   "type": "info"
+  },
+  {
+   "message": "Large override approved on <b>ACC-SINV-2026-16125</b> (EGOBOUR): EGP 85 \u2192 EGP 160 (<b>+88%</b> above territory rate)",
+   "type": "info"
+  },
+  {
+   "message": "Large override approved on <b>ACC-SINV-2026-16434</b> (EGOBOUR): EGP 85 \u2192 EGP 160 (<b>+88%</b> above territory rate)",
+   "type": "info"
+  },
+  {
+   "message": "Large override approved on <b>ACC-SINV-2026-16465</b> (EGRSHEROUK): EGP 85 \u2192 EGP 160 (<b>+88%</b> above territory rate)",
+   "type": "info"
+  },
+  {
+   "message": "Large override approved on <b>ACC-SINV-2026-16455</b> (EGREHAB): EGP 65 \u2192 EGP 130 (<b>+100%</b> above territory rate)",
+   "type": "info"
+  },
+  {
+   "message": "Large override approved on <b>ACC-SINV-2026-16048-1</b> (EGMARG): EGP 65 \u2192 EGP 120 (<b>+85%</b> above territory rate)",
+   "type": "info"
+  },
+  {
+   "message": "Large override approved on <b>ACC-SINV-2026-15985</b> (EGNASRCITY): EGP 25 \u2192 EGP 60 (<b>+140%</b> above territory rate)",
+   "type": "info"
+  },
+  {
+   "message": "Stock alert: <b>Chocolate Hazelnut Large</b> has <b>-6 days</b> of stock left (3.9/day)",
+   "type": "danger"
+  },
+  {
+   "message": "Stock alert: <b>Mango Medium</b> has <b>-3 days</b> of stock left (3.3/day)",
+   "type": "danger"
+  },
+  {
+   "message": "Stock alert: <b>Molten Medium</b> has <b>-2 days</b> of stock left (2.3/day)",
+   "type": "danger"
+  },
+  {
+   "message": "Stock alert: <b>Pistachio Medium</b> has <b>-1 days</b> of stock left (3.4/day)",
+   "type": "danger"
+  },
+  {
+   "message": "Stock alert: <b>Blueberry Medium</b> has <b>0 days</b> of stock left (7.2/day)",
+   "type": "danger"
+  },
+  {
+   "message": "Stock alert: <b>Strawberry Medium</b> has <b>0 days</b> of stock left (5.5/day)",
+   "type": "danger"
+  },
+  {
+   "message": "Stock alert: <b>Chocolate Hazelnut Medium</b> has <b>0 days</b> of stock left (5.2/day)",
+   "type": "danger"
+  },
+  {
+   "message": "Stock alert: <b>Blueberry Large</b> has <b>2 days</b> of stock left (4.8/day)",
+   "type": "danger"
+  }
+ ],
+ "kpis": {
+  "avg_cost_per_order": 51.8065693430657,
+  "avg_order_value": 563.55,
+  "critical_stock": 9,
+  "delivery_income": 110505.0,
+  "gross_margin": 74.4,
+  "gross_profit": 943235.48,
+  "net_shipping_pl": 67920.0,
+  "pending_overrides": 1,
+  "shipping_expense": 42585.0,
+  "total_customers": 6403,
+  "total_orders": 2249,
+  "total_revenue": 1267433.43,
+  "unsettled_courier_total": 1125.0,
+  "watch_stock": 6
+ },
+ "period": {
+  "date_from": "2026-04-09",
+  "date_to": "2026-07-08"
+ },
+ "product_mix": [
+  {
+   "cost": 151103.33,
+   "margin_pct": 72.5,
+   "profit": 397593.67,
+   "revenue": 548697.0,
+   "type": "Bundle",
+   "units": 887
+  },
+  {
+   "cost": 97920.48,
+   "margin_pct": 77.2,
+   "profit": 331205.32,
+   "revenue": 429125.8,
+   "type": "Medium",
+   "units": 4244
+  },
+  {
+   "cost": 75174.14,
+   "margin_pct": 74.0,
+   "profit": 214436.49,
+   "revenue": 289610.63,
+   "type": "Large",
+   "units": 2251
+  }
+ ],
+ "revenue_trend": [
+  {
+   "date": "2026-04-09",
+   "orders": 11,
+   "revenue": 3940.0
+  },
+  {
+   "date": "2026-04-10",
+   "orders": 8,
+   "revenue": 2600.0
+  },
+  {
+   "date": "2026-04-11",
+   "orders": 6,
+   "revenue": 2280.0
+  },
+  {
+   "date": "2026-04-12",
+   "orders": 6,
+   "revenue": 2515.0
+  },
+  {
+   "date": "2026-04-13",
+   "orders": 13,
+   "revenue": 5120.0
+  },
+  {
+   "date": "2026-04-14",
+   "orders": 9,
+   "revenue": 2400.0
+  },
+  {
+   "date": "2026-04-15",
+   "orders": 2,
+   "revenue": 360.0
+  },
+  {
+   "date": "2026-04-16",
+   "orders": 3,
+   "revenue": 960.0
+  },
+  {
+   "date": "2026-04-17",
+   "orders": 992,
+   "revenue": 648993.44
+  },
+  {
+   "date": "2026-04-19",
+   "orders": 18,
+   "revenue": 8453.0
+  },
+  {
+   "date": "2026-04-20",
+   "orders": 18,
+   "revenue": 10104.0
+  },
+  {
+   "date": "2026-04-21",
+   "orders": 20,
+   "revenue": 7968.0
+  },
+  {
+   "date": "2026-04-22",
+   "orders": 14,
+   "revenue": 7204.0
+  },
+  {
+   "date": "2026-04-23",
+   "orders": 10,
+   "revenue": 4440.0
+  },
+  {
+   "date": "2026-04-24",
+   "orders": 23,
+   "revenue": 14563.0
+  },
+  {
+   "date": "2026-04-25",
+   "orders": 1,
+   "revenue": 960.0
+  },
+  {
+   "date": "2026-04-26",
+   "orders": 24,
+   "revenue": 9868.0
+  },
+  {
+   "date": "2026-04-27",
+   "orders": 30,
+   "revenue": 13927.0
+  },
+  {
+   "date": "2026-04-28",
+   "orders": 14,
+   "revenue": 7024.0
+  },
+  {
+   "date": "2026-04-29",
+   "orders": 15,
+   "revenue": 7116.0
+  },
+  {
+   "date": "2026-04-30",
+   "orders": 20,
+   "revenue": 9671.0
+  },
+  {
+   "date": "2026-05-01",
+   "orders": 32,
+   "revenue": 13714.0
+  },
+  {
+   "date": "2026-05-02",
+   "orders": 9,
+   "revenue": 4376.0
+  },
+  {
+   "date": "2026-05-03",
+   "orders": 22,
+   "revenue": 11120.0
+  },
+  {
+   "date": "2026-05-04",
+   "orders": 17,
+   "revenue": 9320.0
+  },
+  {
+   "date": "2026-05-05",
+   "orders": 19,
+   "revenue": 9160.0
+  },
+  {
+   "date": "2026-05-06",
+   "orders": 25,
+   "revenue": 10280.0
+  },
+  {
+   "date": "2026-05-07",
+   "orders": 22,
+   "revenue": 11480.0
+  },
+  {
+   "date": "2026-05-08",
+   "orders": 12,
+   "revenue": 4840.0
+  },
+  {
+   "date": "2026-05-09",
+   "orders": 12,
+   "revenue": 6520.0
+  },
+  {
+   "date": "2026-05-10",
+   "orders": 16,
+   "revenue": 5960.0
+  },
+  {
+   "date": "2026-05-11",
+   "orders": 27,
+   "revenue": 12120.0
+  },
+  {
+   "date": "2026-05-12",
+   "orders": 9,
+   "revenue": 4440.0
+  },
+  {
+   "date": "2026-05-13",
+   "orders": 27,
+   "revenue": 18360.0
+  },
+  {
+   "date": "2026-05-14",
+   "orders": 11,
+   "revenue": 6320.0
+  },
+  {
+   "date": "2026-05-15",
+   "orders": 17,
+   "revenue": 6440.0
+  },
+  {
+   "date": "2026-05-16",
+   "orders": 18,
+   "revenue": 7440.0
+  },
+  {
+   "date": "2026-05-17",
+   "orders": 13,
+   "revenue": 7480.0
+  },
+  {
+   "date": "2026-05-18",
+   "orders": 7,
+   "revenue": 2080.0
+  },
+  {
+   "date": "2026-05-19",
+   "orders": 12,
+   "revenue": 5160.0
+  },
+  {
+   "date": "2026-05-20",
+   "orders": 9,
+   "revenue": 3360.0
+  },
+  {
+   "date": "2026-05-21",
+   "orders": 28,
+   "revenue": 17952.0
+  },
+  {
+   "date": "2026-05-22",
+   "orders": 22,
+   "revenue": 10760.0
+  },
+  {
+   "date": "2026-05-23",
+   "orders": 20,
+   "revenue": 10320.0
+  },
+  {
+   "date": "2026-05-24",
+   "orders": 17,
+   "revenue": 8400.0
+  },
+  {
+   "date": "2026-05-25",
+   "orders": 27,
+   "revenue": 16280.0
+  },
+  {
+   "date": "2026-05-26",
+   "orders": 33,
+   "revenue": 20480.0
+  },
+  {
+   "date": "2026-05-27",
+   "orders": 12,
+   "revenue": 7320.0
+  },
+  {
+   "date": "2026-05-28",
+   "orders": 15,
+   "revenue": 6040.0
+  },
+  {
+   "date": "2026-05-29",
+   "orders": 15,
+   "revenue": 4680.0
+  },
+  {
+   "date": "2026-05-30",
+   "orders": 13,
+   "revenue": 5720.0
+  },
+  {
+   "date": "2026-05-31",
+   "orders": 11,
+   "revenue": 3280.0
+  },
+  {
+   "date": "2026-06-01",
+   "orders": 148,
+   "revenue": 78919.99
+  },
+  {
+   "date": "2026-06-02",
+   "orders": 28,
+   "revenue": 16040.0
+  },
+  {
+   "date": "2026-06-03",
+   "orders": 19,
+   "revenue": 8360.0
+  },
+  {
+   "date": "2026-06-04",
+   "orders": 33,
+   "revenue": 18805.0
+  },
+  {
+   "date": "2026-06-05",
+   "orders": 33,
+   "revenue": 19080.0
+  },
+  {
+   "date": "2026-06-06",
+   "orders": 21,
+   "revenue": 9360.0
+  },
+  {
+   "date": "2026-06-07",
+   "orders": 25,
+   "revenue": 11800.0
+  },
+  {
+   "date": "2026-06-08",
+   "orders": 19,
+   "revenue": 8080.0
+  },
+  {
+   "date": "2026-06-09",
+   "orders": 24,
+   "revenue": 11880.0
+  },
+  {
+   "date": "2026-06-10",
+   "orders": 14,
+   "revenue": 8760.0
+  },
+  {
+   "date": "2026-06-11",
+   "orders": 21,
+   "revenue": 11840.0
+  },
+  {
+   "date": "2026-06-12",
+   "orders": 12,
+   "revenue": 6080.0
+  },
+  {
+   "date": "2026-06-13",
+   "orders": 1,
+   "revenue": 560.0
+  },
+  {
+   "date": "2026-06-16",
+   "orders": 1,
+   "revenue": 840.0
+  },
+  {
+   "date": "2026-06-29",
+   "orders": 35,
+   "revenue": 12320.0
+  },
+  {
+   "date": "2026-07-07",
+   "orders": 4,
+   "revenue": 1600.0
+  },
+  {
+   "date": "2026-07-08",
+   "orders": 5,
+   "revenue": 1440.0
+  }
+ ],
+ "segment_mix": [
+  {
+   "count": 3279,
+   "segment": "One-Time"
+  },
+  {
+   "count": 1533,
+   "segment": "Unclassified"
+  },
+  {
+   "count": 781,
+   "segment": "Lost"
+  },
+  {
+   "count": 375,
+   "segment": "Loyal"
+  },
+  {
+   "count": 277,
+   "segment": "Can't Lose Them"
+  },
+  {
+   "count": 121,
+   "segment": "At Risk"
+  },
+  {
+   "count": 33,
+   "segment": ""
+  },
+  {
+   "count": 2,
+   "segment": "Champion"
+  },
+  {
+   "count": 2,
+   "segment": "Potential Loyalist"
+  }
+ ],
+ "top_territories": [
+  {
+   "orders": 199,
+   "profit": 90887.19,
+   "revenue": 119959.0,
+   "territory": "EG6OCT"
+  },
+  {
+   "orders": 193,
+   "profit": 82658.31,
+   "revenue": 110218.08,
+   "territory": "EGTAGAMMO"
+  },
+  {
+   "orders": 211,
+   "profit": 79148.59,
+   "revenue": 107756.99,
+   "territory": "EGNASRCITY"
+  },
+  {
+   "orders": 154,
+   "profit": 61747.76,
+   "revenue": 83923.06,
+   "territory": "EGMAADI"
+  },
+  {
+   "orders": 132,
+   "profit": 51707.78,
+   "revenue": 68008.07,
+   "territory": "EGHADAYEQAH"
+  }
+ ]
+}

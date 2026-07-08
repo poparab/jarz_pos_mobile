@@ -402,16 +402,19 @@ ExecutiveKpis _$ExecutiveKpisFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$ExecutiveKpis {
+  @JsonKey(name: 'total_revenue')
   double get revenue => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_orders')
   int get orders => throw _privateConstructorUsedError;
   @JsonKey(name: 'gross_profit')
   double get grossProfit => throw _privateConstructorUsedError;
-  @JsonKey(name: 'gross_margin_pct')
+  @JsonKey(name: 'gross_margin')
   double get grossMarginPct => throw _privateConstructorUsedError;
   @JsonKey(name: 'avg_order_value')
   double get avgOrderValue => throw _privateConstructorUsedError;
   @JsonKey(name: 'net_shipping_pl')
   double get netShippingPl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_customers')
   int get customers => throw _privateConstructorUsedError;
   @JsonKey(name: 'critical_stock')
   int get criticalStock => throw _privateConstructorUsedError;
@@ -434,13 +437,13 @@ abstract class $ExecutiveKpisCopyWith<$Res> {
   ) = _$ExecutiveKpisCopyWithImpl<$Res, ExecutiveKpis>;
   @useResult
   $Res call({
-    double revenue,
-    int orders,
+    @JsonKey(name: 'total_revenue') double revenue,
+    @JsonKey(name: 'total_orders') int orders,
     @JsonKey(name: 'gross_profit') double grossProfit,
-    @JsonKey(name: 'gross_margin_pct') double grossMarginPct,
+    @JsonKey(name: 'gross_margin') double grossMarginPct,
     @JsonKey(name: 'avg_order_value') double avgOrderValue,
     @JsonKey(name: 'net_shipping_pl') double netShippingPl,
-    int customers,
+    @JsonKey(name: 'total_customers') int customers,
     @JsonKey(name: 'critical_stock') int criticalStock,
   });
 }
@@ -519,13 +522,13 @@ abstract class _$$ExecutiveKpisImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    double revenue,
-    int orders,
+    @JsonKey(name: 'total_revenue') double revenue,
+    @JsonKey(name: 'total_orders') int orders,
     @JsonKey(name: 'gross_profit') double grossProfit,
-    @JsonKey(name: 'gross_margin_pct') double grossMarginPct,
+    @JsonKey(name: 'gross_margin') double grossMarginPct,
     @JsonKey(name: 'avg_order_value') double avgOrderValue,
     @JsonKey(name: 'net_shipping_pl') double netShippingPl,
-    int customers,
+    @JsonKey(name: 'total_customers') int customers,
     @JsonKey(name: 'critical_stock') int criticalStock,
   });
 }
@@ -596,13 +599,13 @@ class __$$ExecutiveKpisImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ExecutiveKpisImpl implements _ExecutiveKpis {
   const _$ExecutiveKpisImpl({
-    this.revenue = 0,
-    this.orders = 0,
+    @JsonKey(name: 'total_revenue') this.revenue = 0,
+    @JsonKey(name: 'total_orders') this.orders = 0,
     @JsonKey(name: 'gross_profit') this.grossProfit = 0,
-    @JsonKey(name: 'gross_margin_pct') this.grossMarginPct = 0,
+    @JsonKey(name: 'gross_margin') this.grossMarginPct = 0,
     @JsonKey(name: 'avg_order_value') this.avgOrderValue = 0,
     @JsonKey(name: 'net_shipping_pl') this.netShippingPl = 0,
-    this.customers = 0,
+    @JsonKey(name: 'total_customers') this.customers = 0,
     @JsonKey(name: 'critical_stock') this.criticalStock = 0,
   });
 
@@ -610,16 +613,16 @@ class _$ExecutiveKpisImpl implements _ExecutiveKpis {
       _$$ExecutiveKpisImplFromJson(json);
 
   @override
-  @JsonKey()
+  @JsonKey(name: 'total_revenue')
   final double revenue;
   @override
-  @JsonKey()
+  @JsonKey(name: 'total_orders')
   final int orders;
   @override
   @JsonKey(name: 'gross_profit')
   final double grossProfit;
   @override
-  @JsonKey(name: 'gross_margin_pct')
+  @JsonKey(name: 'gross_margin')
   final double grossMarginPct;
   @override
   @JsonKey(name: 'avg_order_value')
@@ -628,7 +631,7 @@ class _$ExecutiveKpisImpl implements _ExecutiveKpis {
   @JsonKey(name: 'net_shipping_pl')
   final double netShippingPl;
   @override
-  @JsonKey()
+  @JsonKey(name: 'total_customers')
   final int customers;
   @override
   @JsonKey(name: 'critical_stock')
@@ -690,13 +693,13 @@ class _$ExecutiveKpisImpl implements _ExecutiveKpis {
 
 abstract class _ExecutiveKpis implements ExecutiveKpis {
   const factory _ExecutiveKpis({
-    final double revenue,
-    final int orders,
+    @JsonKey(name: 'total_revenue') final double revenue,
+    @JsonKey(name: 'total_orders') final int orders,
     @JsonKey(name: 'gross_profit') final double grossProfit,
-    @JsonKey(name: 'gross_margin_pct') final double grossMarginPct,
+    @JsonKey(name: 'gross_margin') final double grossMarginPct,
     @JsonKey(name: 'avg_order_value') final double avgOrderValue,
     @JsonKey(name: 'net_shipping_pl') final double netShippingPl,
-    final int customers,
+    @JsonKey(name: 'total_customers') final int customers,
     @JsonKey(name: 'critical_stock') final int criticalStock,
   }) = _$ExecutiveKpisImpl;
 
@@ -704,14 +707,16 @@ abstract class _ExecutiveKpis implements ExecutiveKpis {
       _$ExecutiveKpisImpl.fromJson;
 
   @override
+  @JsonKey(name: 'total_revenue')
   double get revenue;
   @override
+  @JsonKey(name: 'total_orders')
   int get orders;
   @override
   @JsonKey(name: 'gross_profit')
   double get grossProfit;
   @override
-  @JsonKey(name: 'gross_margin_pct')
+  @JsonKey(name: 'gross_margin')
   double get grossMarginPct;
   @override
   @JsonKey(name: 'avg_order_value')
@@ -720,6 +725,7 @@ abstract class _ExecutiveKpis implements ExecutiveKpis {
   @JsonKey(name: 'net_shipping_pl')
   double get netShippingPl;
   @override
+  @JsonKey(name: 'total_customers')
   int get customers;
   @override
   @JsonKey(name: 'critical_stock')

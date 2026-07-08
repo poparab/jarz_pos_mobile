@@ -105,7 +105,10 @@ class _CustomerAnalyticsBody extends StatelessWidget {
       children: [
         _KpiSection(summary: data.summary),
         const SizedBox(height: 12),
-        _SegmentDistributionCard(distribution: data.segmentDistribution),
+        _SegmentDistributionCard(
+          distribution: data.segmentDistribution,
+          segmentTable: data.segmentTable,
+        ),
         const SizedBox(height: 12),
         _SegmentDetailCard(rows: data.segmentTable),
         const SizedBox(height: 12),
@@ -231,18 +234,33 @@ class _Kpi {
 
 class _SegmentDistributionCard extends StatelessWidget {
   final List<JsonMap> distribution;
-  const _SegmentDistributionCard({required this.distribution});
+  final List<JsonMap> segmentTable;
+  const _SegmentDistributionCard({
+    required this.distribution,
+    required this.segmentTable,
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    // segment_distribution only carries {segment, count}; per-segment revenue
+    // lives in segment_table. Build a lookup so the revenue bar has real data.
+    final revenueBySegment = <String, double>{
+      for (final m in segmentTable)
+        _readStr(m, ['segment'], 'Unclassified').toLowerCase():
+            _readNum(m, ['revenue']),
+    };
     final rows = distribution
         .map(
-          (m) => _SegSlice(
-            segment: _readStr(m, ['segment'], 'Unclassified'),
-            count: _readNum(m, ['count']),
-            revenue: _readNum(m, ['revenue']),
-          ),
+          (m) {
+            final segment = _readStr(m, ['segment'], 'Unclassified');
+            return _SegSlice(
+              segment: segment,
+              count: _readNum(m, ['count']),
+              revenue: revenueBySegment[segment.toLowerCase()] ??
+                  _readNum(m, ['revenue']),
+            );
+          },
         )
         .toList();
 
@@ -424,15 +442,15 @@ class _SegmentDetailCard extends StatelessWidget {
                 ))),
                 DataCell(Text(formatCount(
                   context,
-                  _readNum(m, ['recency', 'avg_recency_days']),
+                  _readNum(m, ['avg_recency', 'recency', 'avg_recency_days']),
                 ))),
                 DataCell(Text(formatCount(
                   context,
-                  _readNum(m, ['frequency', 'avg_frequency']),
+                  _readNum(m, ['avg_frequency', 'frequency']),
                 ))),
                 DataCell(Text(formatCurrency(
                   context,
-                  _readNum(m, ['avg_order_value']),
+                  _readNum(m, ['avg_aov', 'avg_order_value']),
                 ))),
                 DataCell(Text(formatCurrency(
                   context,
@@ -469,7 +487,7 @@ class _TopCustomersCard extends StatelessWidget {
           DataColumn(label: Text('Segment')),
           DataColumn(label: Text('Revenue'), numeric: true),
           DataColumn(label: Text('Orders'), numeric: true),
-          DataColumn(label: Text('Last Order')),
+          DataColumn(label: Text('Recency (d)'), numeric: true),
         ],
         rows: [
           for (final m in rows)
@@ -494,9 +512,9 @@ class _TopCustomersCard extends StatelessWidget {
                   context,
                   _readNum(m, ['orders']),
                 ))),
-                DataCell(Text(formatDateString(
+                DataCell(Text(formatCount(
                   context,
-                  _readStr(m, ['last_order_date'], ''),
+                  _readNum(m, ['recency_days']),
                 ))),
               ],
             ),
@@ -528,7 +546,7 @@ class _AtRiskCard extends StatelessWidget {
           DataColumn(label: Text('Customer')),
           DataColumn(label: Text('Segment')),
           DataColumn(label: Text('Recency (d)'), numeric: true),
-          DataColumn(label: Text('Revenue'), numeric: true),
+          DataColumn(label: Text('AOV'), numeric: true),
         ],
         rows: [
           for (final m in rows)
@@ -547,7 +565,7 @@ class _AtRiskCard extends StatelessWidget {
                 ))),
                 DataCell(Text(formatCurrency(
                   context,
-                  _readNum(m, ['revenue']),
+                  _readNum(m, ['avg_aov']),
                 ))),
               ],
             ),
@@ -571,7 +589,7 @@ class _AcquisitionCard extends StatelessWidget {
       for (final m in trend)
         _Bar(
           label: _periodLabel(
-            _readStr(m, ['period', 'posting_date', 'month'], ''),
+            _readStr(m, ['date', 'period', 'posting_date', 'month'], ''),
           ),
           value: _readNum(m, ['new_customers', 'count']),
           color: theme.colorScheme.primary,
