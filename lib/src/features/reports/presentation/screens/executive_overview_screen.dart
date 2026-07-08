@@ -150,7 +150,7 @@ class _NavChip extends StatelessWidget {
       avatar: Icon(icon, size: 16),
       label: Text(label),
       visualDensity: VisualDensity.compact,
-      onPressed: () => context.go(route),
+      onPressed: () => context.push(route),
     );
   }
 }
@@ -594,35 +594,44 @@ class _DonutWithLegend extends StatelessWidget {
     final theme = Theme.of(context);
     final total = slices.fold<double>(0, (s, e) => s + e.value);
 
-    final sections = <PieChartSectionData>[];
-    for (var i = 0; i < slices.length; i++) {
-      final s = slices[i];
-      final pct = total <= 0 ? 0.0 : (s.value / total) * 100;
-      final color = _palette[i % _palette.length];
-      sections.add(
-        PieChartSectionData(
-          value: s.value,
-          color: color,
-          radius: 55,
-          title: pct >= 6 ? '${pct.toStringAsFixed(0)}%' : '',
-          titleStyle: theme.textTheme.labelSmall?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      );
-    }
-
     return Row(
       children: [
         Expanded(
           flex: 3,
-          child: PieChart(
-            PieChartData(
-              sections: sections,
-              sectionsSpace: 2,
-              centerSpaceRadius: 42,
-            ),
+          // Adaptive radii so the donut always fits its (narrow) slot on small
+          // phones instead of clipping at a fixed pixel radius.
+          child: LayoutBuilder(
+            builder: (context, c) {
+              final d = c.maxWidth < c.maxHeight ? c.maxWidth : c.maxHeight;
+              final outer = (d / 2) - 2;
+              final sectionRadius = (outer * 0.6).clamp(22.0, 55.0);
+              final center = (outer * 0.4).clamp(12.0, 42.0);
+              final sections = <PieChartSectionData>[
+                for (var i = 0; i < slices.length; i++)
+                  PieChartSectionData(
+                    value: slices[i].value,
+                    color: _palette[i % _palette.length],
+                    radius: sectionRadius,
+                    title: (total <= 0
+                                ? 0.0
+                                : (slices[i].value / total) * 100) >=
+                            6
+                        ? '${(slices[i].value / total * 100).toStringAsFixed(0)}%'
+                        : '',
+                    titleStyle: theme.textTheme.labelSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+              ];
+              return PieChart(
+                PieChartData(
+                  sections: sections,
+                  sectionsSpace: 2,
+                  centerSpaceRadius: center,
+                ),
+              );
+            },
           ),
         ),
         const SizedBox(width: 8),

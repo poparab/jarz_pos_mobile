@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/network/user_service.dart';
+import '../../../../core/widgets/app_drawer.dart';
 import '../../data/models/b2b_models.dart';
 import '../../state/b2b_pipeline_notifier.dart';
 import '../widgets/b2b_pipeline_column.dart';
@@ -25,6 +26,7 @@ class B2bPipelineScreen extends ConsumerWidget {
     );
 
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(
         title: const Text('B2B Pipeline'),
         actions: [

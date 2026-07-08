@@ -281,37 +281,47 @@ class _SegmentDistributionCard extends StatelessWidget {
   Widget _donut(BuildContext context, List<_SegSlice> rows) {
     final total = rows.fold<double>(0, (a, r) => a + r.count);
     final theme = Theme.of(context);
-
-    final sections = <PieChartSectionData>[
-      for (final r in rows)
-        if (r.count > 0)
-          PieChartSectionData(
-            value: r.count,
-            color: _segmentColor(r.segment),
-            radius: 50,
-            title: total > 0 && r.count / total >= 0.06
-                ? '${(r.count / total * 100).round()}%'
-                : '',
-            titleStyle: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-    ];
+    final hasSlices = rows.any((r) => r.count > 0);
 
     return Row(
       children: [
         Expanded(
           flex: 5,
-          child: sections.isEmpty
+          // Adaptive radii keep the donut inside its slot on narrow phones.
+          child: !hasSlices
               ? const SizedBox.shrink()
-              : PieChart(
-                  PieChartData(
-                    sectionsSpace: 2,
-                    centerSpaceRadius: 34,
-                    sections: sections,
-                  ),
+              : LayoutBuilder(
+                  builder: (context, c) {
+                    final d =
+                        c.maxWidth < c.maxHeight ? c.maxWidth : c.maxHeight;
+                    final outer = (d / 2) - 2;
+                    final sectionRadius = (outer * 0.6).clamp(20.0, 50.0);
+                    final center = (outer * 0.4).clamp(12.0, 34.0);
+                    final sections = <PieChartSectionData>[
+                      for (final r in rows)
+                        if (r.count > 0)
+                          PieChartSectionData(
+                            value: r.count,
+                            color: _segmentColor(r.segment),
+                            radius: sectionRadius,
+                            title: total > 0 && r.count / total >= 0.06
+                                ? '${(r.count / total * 100).round()}%'
+                                : '',
+                            titleStyle: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                    ];
+                    return PieChart(
+                      PieChartData(
+                        sectionsSpace: 2,
+                        centerSpaceRadius: center,
+                        sections: sections,
+                      ),
+                    );
+                  },
                 ),
         ),
         const SizedBox(width: 8),

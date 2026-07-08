@@ -8,9 +8,10 @@ import '../../../core/widgets/app_drawer.dart';
 import '../../../core/localization/localization_extensions.dart';
 import 'screens/stock_reports_screen.dart';
 
-/// The Reports hub: a responsive grid of destination cards. Six of them open
-/// the new analytics dashboards (via `context.go`); the two stock reports
-/// (Final Products, Materials) open the preserved [StockReportsScreen].
+/// The Reports hub: a responsive grid of destination cards. Six of them push
+/// the new analytics dashboards (via `context.push`, so each keeps a back
+/// button and returns here); the two stock reports (Final Products, Materials)
+/// open the preserved [StockReportsScreen].
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
 
@@ -30,42 +31,42 @@ class ReportsScreen extends ConsumerWidget {
         color: Colors.indigo,
         title: l10n.reportShippingTitle,
         subtitle: l10n.reportShippingSubtitle,
-        onTap: () => context.go(AppRoutes.reportsShipping),
+        onTap: () => context.push(AppRoutes.reportsShipping),
       ),
       _ReportDestination(
         icon: Icons.inventory_2_outlined,
         color: Colors.teal,
         title: l10n.reportInventoryTitle,
         subtitle: l10n.reportInventorySubtitle,
-        onTap: () => context.go(AppRoutes.reportsInventory),
+        onTap: () => context.push(AppRoutes.reportsInventory),
       ),
       _ReportDestination(
         icon: Icons.category_outlined,
         color: Colors.deepPurple,
         title: l10n.reportProductTitle,
         subtitle: l10n.reportProductSubtitle,
-        onTap: () => context.go(AppRoutes.reportsProduct),
+        onTap: () => context.push(AppRoutes.reportsProduct),
       ),
       _ReportDestination(
         icon: Icons.groups_outlined,
         color: Colors.orange,
         title: l10n.reportCustomerTitle,
         subtitle: l10n.reportCustomerSubtitle,
-        onTap: () => context.go(AppRoutes.reportsCustomer),
+        onTap: () => context.push(AppRoutes.reportsCustomer),
       ),
       _ReportDestination(
         icon: Icons.insights_outlined,
         color: Colors.blueGrey,
         title: l10n.reportExecutiveTitle,
         subtitle: l10n.reportExecutiveSubtitle,
-        onTap: () => context.go(AppRoutes.reportsExecutive),
+        onTap: () => context.push(AppRoutes.reportsExecutive),
       ),
       _ReportDestination(
         icon: Icons.handshake_outlined,
         color: Colors.brown,
         title: l10n.reportB2bTitle,
         subtitle: l10n.reportB2bSubtitle,
-        onTap: () => context.go(AppRoutes.reportsB2b),
+        onTap: () => context.push(AppRoutes.reportsB2b),
       ),
       _ReportDestination(
         icon: Icons.widgets_outlined,
