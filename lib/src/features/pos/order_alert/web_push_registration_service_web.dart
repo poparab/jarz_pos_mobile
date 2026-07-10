@@ -24,7 +24,16 @@ class WebPushRegistrationService {
   static String get _serviceWorkerUrl =>
       buildWebAppAssetUrl(_webAppBasePath, 'firebase-messaging-sw.js');
 
-  static String get _serviceWorkerScope => _webAppBasePath;
+  // Register the Firebase messaging worker at a dedicated sub-scope so it is its
+  // own registration and never competes with Flutter's root service worker at
+  // the app base path. A push subscription is delivered to the worker that owns
+  // it regardless of which worker controls the page, so a narrower scope is fine
+  // and keeps Flutter's offline worker intact. Kept in sync with
+  // VapidSubscriptionService and the `push/` suffix firebase-messaging-sw.js strips.
+  static String get _serviceWorkerScope {
+    final base = _webAppBasePath;
+    return base == '/' ? '/push/' : '${base}push/';
+  }
 
   static Future<WebPushRegistrationResult> getTokenIfPermissionGranted() async {
     var diagnostics = _newDiagnostics();

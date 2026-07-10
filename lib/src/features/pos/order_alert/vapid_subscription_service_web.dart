@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import '../../../core/utils/logger.dart';
 import 'data/order_alert_service.dart';
 import 'vapid_subscription_result.dart';
+import 'web_push_paths.dart';
 
 class VapidSubscriptionService {
   static final Logger _logger = Logger('VapidSubscriptionService');
@@ -66,17 +67,24 @@ class VapidSubscriptionService {
       final publicKey = await service.fetchVapidPublicKey()
           .timeout(const Duration(seconds: 10));
 
-      // 3. Await the service worker becoming active
-      final readyPromise = js_util.getProperty<Object?>(swContainer, 'ready');
-      if (readyPromise == null) {
+      // 3. Get the dedicated Firebase messaging service worker registration.
+      // The VAPID subscription MUST belong to firebase-messaging-sw.js — the only
+      // worker with a `push` handler that calls showNotification. Flutter's own
+      // flutter_service_worker.js controls the app scope and has no push handler,
+      // so a subscription created against `navigator.serviceWorker.ready`
+      // (Flutter's worker) is delivered there and silently dropped — the push
+      // service returns 201 but nothing appears. Registering the Firebase worker
+      // at a dedicated sub-scope makes it its own registration that is never
+      // clobbered by Flutter's root worker and still receives pushes regardless
+      // of which worker controls the page.
+      final registration = await _ensurePushRegistration(swContainer)
+          .timeout(const Duration(seconds: 15));
+      if (registration == null) {
         return const VapidSubscriptionResult(
           status: VapidSubscriptionStatus.unsupported,
-          message: 'Service worker ready state unavailable.',
+          message: 'Notification service worker is unavailable. On iOS, reopen the Home Screen app and try again.',
         );
       }
-      final registration = await js_util
-          .promiseToFuture<Object>(readyPromise)
-          .timeout(const Duration(seconds: 15));
 
       // 4. Get PushManager
       final pushManager = js_util.getProperty<Object?>(registration, 'pushManager');
@@ -178,6 +186,52 @@ class VapidSubscriptionService {
     } catch (_) {
       return null;
     }
+  }
+
+  /// Dedicated sub-scope for the Firebase push worker so it never collides with
+  /// Flutter's root service worker at the app base path. Kept in sync with the
+  /// `push/` suffix that `firebase-messaging-sw.js` strips when resolving the
+  /// app base path for notification icons and click URLs.
+  static const _pushScopeSuffix = 'push/';
+  static const _pushServiceWorkerFile = 'firebase-messaging-sw.js';
+
+  static String get _basePath {
+    try {
+      return normalizeWebAppBasePath(Uri.base.path);
+    } catch (_) {
+      return '/';
+    }
+  }
+
+  /// Registers (or reuses) firebase-messaging-sw.js at the dedicated push scope
+  /// and returns the registration once it has an active worker. Returns null on
+  /// failure. `register()` is idempotent for the same script+scope, so calling
+  /// this on every subscribe is safe.
+  static Future<Object?> _ensurePushRegistration(Object swContainer) async {
+    final base = _basePath;
+    final swUrl = buildWebAppAssetUrl(base, _pushServiceWorkerFile);
+    final scope = base == '/' ? '/$_pushScopeSuffix' : '$base$_pushScopeSuffix';
+
+    Object? registration;
+    try {
+      final options = js_util.newObject<Object>();
+      js_util.setProperty(options, 'scope', scope);
+      registration = await _promiseOrNull(
+        js_util.callMethod<Object?>(swContainer, 'register', [swUrl, options]),
+      );
+    } catch (error) {
+      _logger.error('Failed registering push service worker at $scope', error, StackTrace.current);
+      return null;
+    }
+    if (registration == null) return null;
+
+    // A fresh sub-scope has no existing controller, so the worker activates
+    // without waiting. Poll briefly until `active` is populated.
+    for (var i = 0; i < 50; i++) {
+      if (js_util.getProperty<Object?>(registration, 'active') != null) break;
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    return registration;
   }
 
   /// Awaits a JS promise, tolerating a null (no-op) handle.
