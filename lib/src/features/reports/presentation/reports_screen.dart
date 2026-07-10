@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
+import '../../../core/network/user_service.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/localization/localization_extensions.dart';
@@ -18,6 +19,7 @@ class ReportsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final roles = ref.watch(userRolesFutureProvider).valueOrNull;
 
     void openStock(int tab) => Navigator.of(context).push(
           MaterialPageRoute<void>(
@@ -84,33 +86,44 @@ class ReportsScreen extends ConsumerWidget {
       ),
     ];
 
+    // Full managers/admins see every report. A line-manager-only user (line
+    // manager but neither JARZ Manager nor admin manager) sees only the
+    // Materials & Consumables tile (the last destination).
+    final canSeeAllReports =
+        (roles?.isJarzManager ?? false) || (roles?.isAdminManager ?? false);
+    final visibleDestinations = canSeeAllReports
+        ? destinations
+        : <_ReportDestination>[destinations.last];
+
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(title: Text(l10n.reportsTitle)),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final crossCount =
-              ResponsiveUtils.getGridColumns(context, min: 1, max: 4);
-          const spacing = 12.0;
-          final cardWidth =
-              (constraints.maxWidth - 16 - spacing * (crossCount - 1)) /
-                  crossCount;
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(8),
-            child: Wrap(
-              spacing: spacing,
-              runSpacing: spacing,
-              children: [
-                for (final d in destinations)
-                  SizedBox(
-                    width: cardWidth,
-                    child: _ReportCard(destination: d),
+      body: roles == null
+          ? const Center(child: CircularProgressIndicator())
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final crossCount =
+                    ResponsiveUtils.getGridColumns(context, min: 1, max: 4);
+                const spacing = 12.0;
+                final cardWidth =
+                    (constraints.maxWidth - 16 - spacing * (crossCount - 1)) /
+                        crossCount;
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(8),
+                  child: Wrap(
+                    spacing: spacing,
+                    runSpacing: spacing,
+                    children: [
+                      for (final d in visibleDestinations)
+                        SizedBox(
+                          width: cardWidth,
+                          child: _ReportCard(destination: d),
+                        ),
+                    ],
                   ),
-              ],
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }

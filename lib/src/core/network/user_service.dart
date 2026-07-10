@@ -42,7 +42,8 @@ class UserRoles {
   /// Lands on the Kanban board (instead of POS) only when the user is
   /// Jarz POS Staff AND not a manager — managers keep the POS home.
   bool get landsOnKanban => isJarzPosStaff && !canAccessManagerDashboard;
-  bool get canAccessShiftMonitor => isJarzManager || isAdminManager;
+  bool get canAccessShiftMonitor =>
+      isJarzManager || isAdminManager || isLineManager;
   bool get isModerator => roles.contains(RoleNames.moderator);
   bool get canMuteNotifications =>
       isJarzManager || isLineManager || isModerator;

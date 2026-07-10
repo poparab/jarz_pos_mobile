@@ -645,7 +645,7 @@ class _ErrorBody extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(error, textAlign: TextAlign.center),
+            Text(l10n.reportError, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: onRetry,
