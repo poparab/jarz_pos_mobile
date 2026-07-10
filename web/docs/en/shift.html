@@ -55,7 +55,7 @@
         <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
         <div>
           <p class="font-semibold">Enter the cash drawer opening balance only</p>
-          <p class="text-sm text-stone-600 mt-1">Count only the physical cash in your drawer for this BOS/POS profile and type that amount. Staff do not enter InstaPay, mobile wallet, bank, or other digital-account balances during shift start. If you see a non-cash field and are unsure what to do, leave it unchanged/zero and contact your manager.</p>
+          <p class="text-sm text-stone-600 mt-1">Count only the physical cash in your drawer for this POS profile and type that amount. Staff do not enter InstaPay, mobile wallet, bank, or other digital-account balances during shift start. If you see a non-cash field and are unsure what to do, leave it unchanged/zero and contact your manager.</p>
         </div>
       </div>
 
@@ -78,7 +78,7 @@
         <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
         <div>
           <p class="font-semibold">Finish all pending orders first</p>
-          <p class="text-sm text-stone-600 mt-1">Before closing, confirm that all orders for the day are in the correct state on the Kanban board. Settle any outstanding payments.</p>
+          <p class="text-sm text-stone-600 mt-1">Before closing, confirm every order for the day is in its correct state on the Kanban board and any customer payments are recorded.</p>
         </div>
       </div>
 
@@ -86,31 +86,31 @@
         <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
         <div>
           <p class="font-semibold">Open the End Shift screen</p>
-          <p class="text-sm text-stone-600 mt-1">From the POS or Kanban screen, tap the <strong>☰ Menu</strong> → <strong>End Shift</strong>. You can also tap <strong>"Go to End Shift"</strong> if shown on the shift status banner.</p>
+          <p class="text-sm text-stone-600 mt-1">From the POS or Kanban screen, tap the <strong>☰ Menu</strong> → <strong>End Shift</strong> (or the <strong>End Shift</strong> button in the top bar). The screen shows your shift number and how many invoices it contains.</p>
         </div>
       </div>
 
       <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
         <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
         <div>
-          <p class="font-semibold">Review the shift summary</p>
-          <p class="text-sm text-stone-600 mt-1">The screen shows the total sales and a breakdown of invoices for the shift. For staff reconciliation, focus on the cash drawer amount for your BOS/POS profile.</p>
+          <p class="font-semibold">Settle courier balances if you are prompted</p>
+          <p class="text-sm text-stone-600 mt-1">If any courier still owes cash (or is owed cash) for the shift, a <strong>"Settle courier balances before ending the shift"</strong> notice appears with the courier name and net balance, and the End Shift button stays disabled. Tap <strong>"Review &amp; Settle Couriers"</strong>, then <strong>Settle</strong> next to each courier and confirm <em>"Pay Courier …"</em>. Once the list shows <em>"No couriers found"</em>, the notice clears and you can continue. See <a href="courier-balances.html" class="text-brand underline">Courier Balances</a> for details.</p>
         </div>
       </div>
 
       <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
         <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">4</span>
         <div>
-          <p class="font-semibold">Enter the cash drawer closing balance only</p>
-          <p class="text-sm text-stone-600 mt-1">Count the physical cash in your drawer and type the actual amount under <strong>Closing Amount</strong>. Do not enter InstaPay, mobile wallet, bank, or other digital-account balances. The app calculates the difference (variance) between expected and actual cash automatically.</p>
+          <p class="font-semibold">Count the drawer and enter the closing cash (blind count)</p>
+          <p class="text-sm text-stone-600 mt-1">Count the physical cash in your drawer and type it under <strong>Counted Closing Cash</strong>. You will <strong>not</strong> see the expected amount while you type — this is a blind count, so enter exactly what you counted. Enter cash only; do not add InstaPay, mobile wallet, or bank balances.</p>
         </div>
       </div>
 
       <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
         <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">5</span>
         <div>
-          <p class="font-semibold">Tap <strong>"End Shift"</strong></p>
-          <p class="text-sm text-stone-600 mt-1">Confirms the closing balance. The app shows <em>"Shift ended successfully."</em> If there is a cash discrepancy, a journal entry is automatically created. The shift is now archived.</p>
+          <p class="font-semibold">Tap <strong>"End Shift"</strong> and review the summary</p>
+          <p class="text-sm text-stone-600 mt-1">The app shows <em>"Shift ended successfully"</em> and a summary that now reveals the <strong>Expected</strong>, <strong>Counted</strong>, and <strong>Difference</strong> for cash, plus the closing entry number. If the counted cash differs from expected, the system records the over/short automatically. The shift is now closed.</p>
         </div>
       </div>
 
@@ -131,6 +131,7 @@
     <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
       <h3 class="font-bold text-red-800 mb-2">⚠️ Common Issues</h3>
       <ul class="list-disc list-inside space-y-1 text-red-900">
+        <li><strong>End Shift button is disabled / "Settle courier balances…":</strong> You still have unsettled courier balances. Open <strong>Review &amp; Settle Couriers</strong>, settle each courier, then end the shift.</li>
         <li><strong>"No active shift found":</strong> You are on the End Shift screen but the shift was never started. Go back and start a shift first.</li>
         <li><strong>Shift start fails:</strong> Check internet connectivity. If the error persists, contact your manager to check if a shift is already open for your profile.</li>
         <li><strong>Large variance / difference:</strong> Recount the cash. If the discrepancy is real, inform your manager before submitting.</li>

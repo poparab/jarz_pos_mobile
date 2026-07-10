@@ -32,10 +32,10 @@
       <span class="text-3xl">⚖️</span>
       <h1 class="text-2xl font-bold text-brand">Courier Balances</h1>
     </div>
-    <p class="text-stone-500 mb-8">A read-only view of the outstanding cash balance for each courier — how much each courier owes us (or we owe them).</p>
+    <p class="text-stone-500 mb-8">See the outstanding cash balance for each courier — how much each courier still owes the branch (or the branch owes them) — and settle it.</p>
 
     <div class="bg-brand-light border-l-4 border-brand rounded-r-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">When to use:</strong> Before assigning a new delivery trip, to check if a courier has an unusually large outstanding balance that should be settled first.
+      <strong class="text-brand">When to use:</strong> Any time you want to see what each courier is holding — and, most importantly, when you <strong>end your shift</strong>: you must settle every courier's balance before the shift can be closed.
     </div>
 
     <h2 class="text-lg font-semibold mb-4">Understanding the Balances Screen</h2>
@@ -45,7 +45,7 @@
 
       <div class="grid sm:grid-cols-3 gap-3 mt-2">
         <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-          <div class="font-bold text-green-800 text-xs uppercase mb-1">Courier Pays Us</div>
+          <div class="font-bold text-green-800 text-xs uppercase mb-1">Collect From Courier</div>
           <p class="text-green-700 text-xs">Cash the courier collected from customers and has not yet handed back to the branch.</p>
         </div>
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
@@ -61,15 +61,15 @@
       <p class="text-stone-600">The <strong>Invoices</strong> count shows how many unsettled deliveries are linked to each courier.</p>
     </div>
 
-    <h2 class="text-lg font-semibold mb-4">How to Open Courier Balances</h2>
+    <h2 class="text-lg font-semibold mb-4">Viewing &amp; Settling Courier Balances</h2>
 
     <div class="space-y-4 step-block">
 
       <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
         <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
         <div>
-          <p class="font-semibold">Open via the Kanban menu</p>
-          <p class="text-sm text-stone-600 mt-1">On the Kanban Board, tap the <strong>☰ Menu</strong> icon → <strong>Courier Balances</strong>. The balances overlay appears.</p>
+          <p class="font-semibold">Open the balances screen</p>
+          <p class="text-sm text-stone-600 mt-1">Two ways: on the Kanban Board tap <strong>☰ Menu</strong> → <strong>Courier Balances</strong> to review at any time, or from the <strong>End Shift</strong> screen tap <strong>"Review &amp; Settle Couriers"</strong> when you are closing the shift. Both open the same <strong>Courier Balances</strong> overlay.</p>
         </div>
       </div>
 
@@ -77,15 +77,23 @@
         <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
         <div>
           <p class="font-semibold">Review each courier's balance</p>
-          <p class="text-sm text-stone-600 mt-1">The table shows all couriers. Look at the <strong>Net</strong> column. A high positive net means the courier is holding a lot of customer cash that has not been handed back.</p>
+          <p class="text-sm text-stone-600 mt-1">Each courier is listed with a label such as <strong>"Collect From Courier"</strong> and the amount they are holding. A large amount means the courier is still holding a lot of customer cash that has not been handed back.</p>
         </div>
       </div>
 
       <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
         <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
         <div>
+          <p class="font-semibold">Settle the courier</p>
+          <p class="text-sm text-stone-600 mt-1">Once you have taken the cash from the courier, tap <strong>Settle</strong> next to their name and confirm <em>"Pay Courier … — Settle all N invoices?"</em>. The row clears and a <em>"Settled"</em> message appears. When the list shows <em>"No couriers found"</em>, every balance is settled and you can go ahead and end the shift.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">4</span>
+        <div>
           <p class="font-semibold">Close the overlay</p>
-          <p class="text-sm text-stone-600 mt-1">Tap outside the overlay or the X button to return to the Kanban Board. This screen is read-only for staff — no actions can be taken from here. Settlement is performed by managers.</p>
+          <p class="text-sm text-stone-600 mt-1">Tap the <strong>X</strong> (or outside the overlay) to go back. If you opened it from End Shift, the courier notice is now gone and the <strong>End Shift</strong> button is enabled.</p>
         </div>
       </div>
 
@@ -94,7 +102,7 @@
     <!-- Note for staff -->
     <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-5 text-sm">
       <h3 class="font-bold text-blue-800 mb-2">ℹ️ Staff Role Note</h3>
-      <p class="text-blue-900">As a staff member, you can <strong>view</strong> courier balances but you cannot settle them. Settlement (creating a payment against the courier) is a manager action. If you see an unusually large balance, inform your manager.</p>
+      <p class="text-blue-900">Settling couriers is part of your end-of-day: you <strong>must</strong> settle every courier's balance before you can close your shift. Only settle a courier <strong>after</strong> you have physically received their cash. If a balance looks wrong or unusually large, settle what is correct and tell your manager about the rest.</p>
     </div>
 
     <!-- Tips -->
