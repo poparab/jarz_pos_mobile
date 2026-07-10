@@ -57,6 +57,14 @@ class UserRoles {
   /// Whether this user can use B2B mode at all (sales reps + managers).
   bool get canUseB2b => canAccessB2b || isB2bRep;
 
+  /// Whether this user may EDIT prices (create lists, set category/flavor
+  /// prices, assign customers to lists). The backend
+  /// `_ensure_full_manager_pricing_access` requires manager-pricing access AND
+  /// B2B access, which nets out to the JARZ Manager (Administrator holds that
+  /// role implicitly). Line managers lack B2B and B2B reps lack pricing, so both
+  /// get the read-only pricing view.
+  bool get canEditPricing => isJarzManager;
+
   /// A B2B rep who is NOT a manager lands in B2B mode and cannot reach the
   /// B2C POS/Kanban flows. Managers keep their normal landing but get a switch.
   bool get landsOnB2b => isB2bRep && !canAccessManagerDashboard;
@@ -166,6 +174,27 @@ final canAccessB2bProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canUseB2b,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user can VIEW the Pricing (Price Lists) page.
+/// Managers get full edit access; B2B sales reps get a read-only view.
+final canViewPricingProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessManagerDashboard || roles.canUseB2b,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user can EDIT pricing (create lists, set category prices,
+/// set/remove overrides, assign customers). Managers only; B2B reps are
+/// read-only.
+final canEditPricingProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canEditPricing,
     orElse: () => false,
   );
 });

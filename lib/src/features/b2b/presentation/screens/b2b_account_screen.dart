@@ -11,6 +11,7 @@ import '../../../leads/presentation/widgets/score_bar.dart';
 import '../../../leads/presentation/widgets/tier_pill.dart';
 import '../../../pos/presentation/widgets/customer_search_widget.dart'
     show territoriesProvider;
+import '../../../pricing/presentation/screens/customer_pricing_screen.dart';
 import '../../data/b2b_repository.dart';
 import '../../data/models/b2b_models.dart';
 import '../b2b_order_launch.dart';
@@ -82,6 +83,7 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
             );
           }
           final account = snapshot.requireData;
+          final customer = account.customer;
           return _AccountBody(
             account: account,
             busy: _busy,
@@ -89,6 +91,14 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
             onPlaceOrder: () => _bindAndOrder(account, isSample: false),
             onLogCall: () => _logCall(account),
             onMarkLost: () => _markLost(account),
+            onViewPricing: (customer != null && customer.isNotEmpty)
+                ? () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            CustomerPricingScreen(customer: customer),
+                      ),
+                    )
+                : null,
           );
         },
       ),
@@ -401,6 +411,7 @@ class _AccountBody extends StatelessWidget {
   final VoidCallback onPlaceOrder;
   final VoidCallback onLogCall;
   final VoidCallback onMarkLost;
+  final VoidCallback? onViewPricing;
 
   const _AccountBody({
     required this.account,
@@ -409,6 +420,7 @@ class _AccountBody extends StatelessWidget {
     required this.onPlaceOrder,
     required this.onLogCall,
     required this.onMarkLost,
+    this.onViewPricing,
   });
 
   @override
@@ -532,6 +544,12 @@ class _AccountBody extends StatelessWidget {
                       icon: const Icon(Icons.block),
                       label: const Text('Mark lost'),
                     ),
+                    if (onViewPricing != null)
+                      OutlinedButton.icon(
+                        onPressed: busy ? null : onViewPricing,
+                        icon: const Icon(Icons.sell_outlined),
+                        label: const Text('View pricing'),
+                      ),
                   ],
                 ),
               ),

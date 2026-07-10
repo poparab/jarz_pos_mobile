@@ -87,6 +87,17 @@ class B2bPipelineScreen extends ConsumerWidget {
     );
   }
 
+  /// The forward stages that warrant a follow-up reminder, with a smart default
+  /// number of days from today for each.
+  static const Map<String, int> _forwardStageDefaults = {
+    'Qualify': 2,
+    'Sample': 3,
+    'Approved': 5,
+    'Trial': 7,
+    'Check-up': 7,
+    'Active': 14,
+  };
+
   Future<void> _advance(
     BuildContext context,
     WidgetRef ref,
@@ -95,14 +106,23 @@ class B2bPipelineScreen extends ConsumerWidget {
   ) async {
     final messenger = ScaffoldMessenger.of(context);
     String? reason;
+    String? followUpDate;
     if (stage == 'Lost/On-hold') {
       reason = await _promptReason(context);
       if (reason == null) return; // cancelled
+    } else if (_forwardStageDefaults.containsKey(stage)) {
+      if (!context.mounted) return;
+      final result = await _promptFollowUpDate(context, stage);
+      if (result.cancelled) return; // aborted
+      followUpDate = result.date; // may be null when the rep skips
     }
     try {
-      await ref
-          .read(b2bPipelineProvider.notifier)
-          .advanceStage(card, stage, reason: reason);
+      await ref.read(b2bPipelineProvider.notifier).advanceStage(
+            card,
+            stage,
+            reason: reason,
+            followUpDate: followUpDate,
+          );
       messenger.showSnackBar(
         SnackBar(content: Text('Moved "${card.title}" to $stage')),
       );
@@ -111,6 +131,77 @@ class B2bPipelineScreen extends ConsumerWidget {
         SnackBar(content: Text('Failed to advance stage: $e')),
       );
     }
+  }
+
+  /// Formats a [DateTime] as the backend-expected ISO `yyyy-MM-dd`.
+  static String _isoDate(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
+
+  /// Prompts for an optional follow-up reminder date, pre-filled with a smart
+  /// default for the target [stage]. Returns `(cancelled, date)`:
+  ///  - cancelled == true  → abort the whole advance,
+  ///  - cancelled == false, date == null → proceed WITHOUT a reminder (skip),
+  ///  - cancelled == false, date != null → proceed WITH that reminder.
+  Future<({bool cancelled, String? date})> _promptFollowUpDate(
+    BuildContext context,
+    String stage,
+  ) async {
+    final now = DateTime.now();
+    final defaultDays = _forwardStageDefaults[stage] ?? 3;
+    var selected = DateTime(now.year, now.month, now.day)
+        .add(Duration(days: defaultDays));
+
+    final result = await showDialog<({bool cancelled, String? date})>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: const Text('Follow-up reminder'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('When should you follow up after moving to "$stage"?'),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.event),
+                label: Text(_isoDate(selected)),
+                onPressed: () async {
+                  final picked = await showDatePicker(
+                    context: ctx,
+                    initialDate: selected,
+                    firstDate: DateTime(now.year, now.month, now.day),
+                    lastDate: DateTime(now.year + 1, now.month, now.day),
+                  );
+                  if (picked != null) setState(() => selected = picked);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.pop(ctx, (cancelled: true, date: null)),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.pop(ctx, (cancelled: false, date: null)),
+              child: const Text('Skip'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(
+                ctx,
+                (cancelled: false, date: _isoDate(selected)),
+              ),
+              child: const Text('Set reminder'),
+            ),
+          ],
+        ),
+      ),
+    );
+    return result ?? (cancelled: true, date: null);
   }
 
   Future<String?> _promptReason(BuildContext context) {

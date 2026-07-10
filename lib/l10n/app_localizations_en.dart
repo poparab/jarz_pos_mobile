@@ -39,6 +39,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerGroupManagement => 'Management / Reports';
 
   @override
+  String get drawerGroupPricing => 'Pricing';
+
+  @override
+  String get menuPriceLists => 'Price Lists';
+
+  @override
   String get menuPointOfSale => 'Point of Sale';
 
   @override

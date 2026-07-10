@@ -37,6 +37,9 @@ abstract final class AppRoutes {
   static const b2bToday = '/b2b/today';
   static const b2bAccount = '/b2b/account';
 
+  // ── Pricing (Price Lists) ─────────────────────────────────────────────
+  static const pricing = '/pricing';
+
   // ── Leads (B2B prospect research) ─────────────────────────────────────
   static const leads = '/leads';
   static const leadsMap = '/leads/map';

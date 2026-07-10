@@ -39,6 +39,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get drawerGroupManagement => 'الإدارة / التقارير';
 
   @override
+  String get drawerGroupPricing => 'التسعير';
+
+  @override
+  String get menuPriceLists => 'قوائم الأسعار';
+
+  @override
   String get menuPointOfSale => 'نقطة البيع';
 
   @override

@@ -39,6 +39,7 @@ import '../features/about/presentation/screens/about_screen.dart';
 import '../features/b2b/presentation/screens/b2b_pipeline_screen.dart';
 import '../features/b2b/presentation/screens/b2b_account_screen.dart';
 import '../features/b2b/presentation/screens/b2b_today_screen.dart';
+import '../features/pricing/presentation/screens/pricing_screen.dart';
 import '../features/leads/presentation/screens/leads_list_screen.dart';
 import '../features/leads/presentation/screens/leads_map_screen.dart';
 import '../features/leads/presentation/screens/lead_detail_screen.dart';
@@ -408,6 +409,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             name: (data['name'] ?? '').toString(),
           );
         },
+      ),
+      GoRoute(
+        path: AppRoutes.pricing,
+        name: 'pricing',
+        builder: (context, state) => const PricingScreen(),
       ),
       // ── Leads (B2B prospect research) ─────────────────────────────────
       // Note: the literal `/leads/map` and `/leads/new` routes must be

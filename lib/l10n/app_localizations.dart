@@ -158,6 +158,18 @@ abstract class AppLocalizations {
   /// **'Management / Reports'**
   String get drawerGroupManagement;
 
+  /// No description provided for @drawerGroupPricing.
+  ///
+  /// In en, this message translates to:
+  /// **'Pricing'**
+  String get drawerGroupPricing;
+
+  /// No description provided for @menuPriceLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Lists'**
+  String get menuPriceLists;
+
   /// No description provided for @menuPointOfSale.
   ///
   /// In en, this message translates to:

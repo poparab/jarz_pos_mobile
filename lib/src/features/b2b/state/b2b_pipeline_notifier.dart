@@ -29,6 +29,7 @@ class B2bPipelineNotifier extends AsyncNotifier<B2bPipeline> {
     B2bCard card,
     String stage, {
     String? reason,
+    String? followUpDate,
   }) async {
     final current = state.valueOrNull;
     if (current == null) return;
@@ -43,6 +44,7 @@ class B2bPipelineNotifier extends AsyncNotifier<B2bPipeline> {
         name: card.name,
         stage: stage,
         reason: reason,
+        followUpDate: followUpDate,
       );
     } catch (error, stack) {
       // Roll back to the pre-move pipeline and surface the error.

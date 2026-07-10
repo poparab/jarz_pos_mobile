@@ -10,6 +10,8 @@
   "drawerGroupFinance": "المالية / المصروفات",
   "drawerGroupPurchasing": "المشتريات / المخزون",
   "drawerGroupManagement": "الإدارة / التقارير",
+  "drawerGroupPricing": "التسعير",
+  "menuPriceLists": "قوائم الأسعار",
   "menuPointOfSale": "نقطة البيع",
   "menuSalesKanban": "لوحة المبيعات",
   "menuExpenses": "المصروفات",

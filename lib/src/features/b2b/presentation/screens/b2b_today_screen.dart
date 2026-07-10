@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
+import '../../data/b2b_repository.dart';
 import '../../data/models/b2b_models.dart';
 import '../../state/b2b_today_notifier.dart';
 
@@ -74,22 +75,91 @@ class B2bTodayScreen extends ConsumerWidget {
   }
 }
 
-class _TodoTile extends StatelessWidget {
+/// Whether [date] (ISO `yyyy-MM-dd`) is strictly before today.
+bool isFollowupOverdue(String? date, {DateTime? now}) {
+  if (date == null || date.trim().isEmpty) return false;
+  final parsed = DateTime.tryParse(date.trim());
+  if (parsed == null) return false;
+  final today = now ?? DateTime.now();
+  final startOfToday = DateTime(today.year, today.month, today.day);
+  final due = DateTime(parsed.year, parsed.month, parsed.day);
+  return due.isBefore(startOfToday);
+}
+
+class _TodoTile extends ConsumerStatefulWidget {
   final FollowupItem todo;
   const _TodoTile({required this.todo});
 
   @override
+  ConsumerState<_TodoTile> createState() => _TodoTileState();
+}
+
+class _TodoTileState extends ConsumerState<_TodoTile> {
+  bool _busy = false;
+
+  bool get _canReference =>
+      widget.todo.referenceType != null &&
+      widget.todo.referenceName != null &&
+      (widget.todo.referenceType == 'Lead' ||
+          widget.todo.referenceType == 'Opportunity');
+
+  Future<void> _complete() async {
+    final todo = widget.todo;
+    if (todo.referenceType == null || todo.referenceName == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      await ref.read(b2bRepositoryProvider).completeFollowup(
+            doctype: todo.referenceType!,
+            name: todo.referenceName!,
+          );
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Follow-up marked done')),
+      );
+      ref.invalidate(b2bTodayProvider);
+    } catch (e) {
+      if (mounted) setState(() => _busy = false);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Could not complete follow-up: $e')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final canOpen = todo.referenceType != null &&
-        todo.referenceName != null &&
-        (todo.referenceType == 'Lead' || todo.referenceType == 'Opportunity');
+    final todo = widget.todo;
+    final overdue = isFollowupOverdue(todo.date);
+    final scheme = Theme.of(context).colorScheme;
     return Card(
+      color: overdue ? scheme.errorContainer : null,
       child: ListTile(
-        leading: const Icon(Icons.event_note),
+        leading: Icon(
+          overdue ? Icons.warning_amber : Icons.event_note,
+          color: overdue ? scheme.error : null,
+        ),
         title: Text(todo.description ?? todo.name),
-        subtitle: todo.date != null ? Text(todo.date!) : null,
-        trailing: canOpen ? const Icon(Icons.chevron_right) : null,
-        onTap: canOpen
+        subtitle: todo.date != null
+            ? Text(overdue ? '${todo.date!} · overdue' : todo.date!)
+            : null,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (todo.referenceType != null && todo.referenceName != null)
+              _busy
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : TextButton.icon(
+                      icon: const Icon(Icons.check, size: 18),
+                      label: const Text('Done'),
+                      onPressed: _complete,
+                    ),
+            if (_canReference) const Icon(Icons.chevron_right),
+          ],
+        ),
+        onTap: _canReference
             ? () => context.push(
                   AppRoutes.b2bAccount,
                   extra: <String, dynamic>{

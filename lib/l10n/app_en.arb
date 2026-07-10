@@ -10,6 +10,8 @@
   "drawerGroupFinance": "Finance / Expenses",
   "drawerGroupPurchasing": "Purchasing / Inventory",
   "drawerGroupManagement": "Management / Reports",
+  "drawerGroupPricing": "Pricing",
+  "menuPriceLists": "Price Lists",
   "menuPointOfSale": "Point of Sale",
   "menuSalesKanban": "Sales Kanban",
   "menuExpenses": "Expenses",

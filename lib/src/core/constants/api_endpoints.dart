@@ -299,6 +299,28 @@ abstract final class ApiEndpoints {
   static const b2bPlaceOrder = '/api/method/jarz_pos.api.crm.place_b2b_order';
   static const getLeadSources =
       '/api/method/jarz_pos.api.crm.get_lead_sources';
+  static const completeFollowup =
+      '/api/method/jarz_pos.api.crm.complete_followup';
+
+  // ── Pricing (Price Lists) ─────────────────────────────────────────────
+  static const getPriceLists =
+      '/api/method/jarz_pos.api.price_lists.get_price_lists';
+  static const getPriceListDetail =
+      '/api/method/jarz_pos.api.price_lists.get_price_list_detail';
+  static const getCustomerPricing =
+      '/api/method/jarz_pos.api.price_lists.get_customer_pricing';
+  static const listPricingCategories =
+      '/api/method/jarz_pos.api.price_lists.list_pricing_categories';
+  static const searchB2bCustomers =
+      '/api/method/jarz_pos.api.price_lists.search_b2b_customers';
+  static const createPriceList =
+      '/api/method/jarz_pos.api.price_lists.create_price_list';
+  static const setCategoryPrice =
+      '/api/method/jarz_pos.api.price_lists.set_category_price';
+  static const setItemOverride =
+      '/api/method/jarz_pos.api.price_lists.set_item_override';
+  static const assignCustomerToPriceList =
+      '/api/method/jarz_pos.api.price_lists.assign_customer_to_price_list';
 
   // ── Leads (B2B prospect research) ─────────────────────────────────────
   static const getLeads = '/api/method/jarz_pos.api.leads.get_leads';

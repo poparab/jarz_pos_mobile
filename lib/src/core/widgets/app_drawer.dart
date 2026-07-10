@@ -139,6 +139,16 @@ class AppDrawer extends ConsumerWidget {
         ),
     ];
 
+    final canViewPricing = canAccessManagerDashboardRole || canAccessB2b;
+    final pricingChildren = <Widget>[
+      if (canViewPricing)
+        navTile(
+          icon: Icons.sell_outlined,
+          title: l10n.menuPriceLists,
+          onTap: () => navigate(AppRoutes.pricing),
+        ),
+    ];
+
     final deliveryChildren = <Widget>[
       navTile(
         icon: Icons.local_shipping_outlined,
@@ -224,6 +234,7 @@ class AppDrawer extends ConsumerWidget {
     // Auto-expand the group containing the active route; fall back to POS/Sales.
     const posRoutes = [AppRoutes.pos, AppRoutes.shiftEnd, AppRoutes.kanban];
     const crmRoutes = [AppRoutes.b2b, AppRoutes.leads];
+    const pricingRoutes = [AppRoutes.pricing];
     const deliveryRoutes = [AppRoutes.trips];
     const financeRoutes = [AppRoutes.expenses, AppRoutes.cashTransfer];
     const purchasingRoutes = [
@@ -247,6 +258,7 @@ class AppDrawer extends ConsumerWidget {
     final anyGroupMatches = [
       posRoutes,
       crmRoutes,
+      pricingRoutes,
       deliveryRoutes,
       financeRoutes,
       purchasingRoutes,
@@ -281,6 +293,12 @@ class AppDrawer extends ConsumerWidget {
         label: l10n.drawerGroupCrm,
         children: crmChildren,
         expanded: matchesRoute(crmRoutes),
+      ),
+      group(
+        icon: Icons.sell_outlined,
+        label: l10n.drawerGroupPricing,
+        children: pricingChildren,
+        expanded: matchesRoute(pricingRoutes),
       ),
       group(
         icon: Icons.local_shipping_outlined,

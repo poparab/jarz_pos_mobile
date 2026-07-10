@@ -58,8 +58,9 @@ class _FakeB2bRepository extends B2bRepository {
     required String name,
     required String stage,
     String? reason,
+    String? followUpDate,
   }) async {
-    advanceCalls.add('$doctype:$name:$stage:$reason');
+    advanceCalls.add('$doctype:$name:$stage:$reason:$followUpDate');
     if (advanceShouldThrow) throw Exception('advance failed');
     return B2bCard(
       doctype: doctype,
@@ -128,7 +129,7 @@ void main() {
           .firstWhere((c) => c.name == 'LEAD-001');
       expect(moved.stage, 'Qualify');
 
-      expect(repo.advanceCalls.single, 'Lead:LEAD-001:Qualify:null');
+      expect(repo.advanceCalls.single, 'Lead:LEAD-001:Qualify:null:null');
     });
 
     test('passes the reason through to the server', () async {
@@ -141,7 +142,26 @@ void main() {
           .read(b2bPipelineProvider.notifier)
           .advanceStage(card, 'Lost/On-hold', reason: 'No budget');
 
-      expect(repo.advanceCalls.single, 'Lead:LEAD-001:Lost/On-hold:No budget');
+      expect(
+        repo.advanceCalls.single,
+        'Lead:LEAD-001:Lost/On-hold:No budget:null',
+      );
+    });
+
+    test('passes the follow_up_date through to the server', () async {
+      final repo = _FakeB2bRepository();
+      final container = _container(repo);
+      final pipeline = await container.read(b2bPipelineProvider.future);
+      final card = pipeline.columns['Lead']!.first;
+
+      await container
+          .read(b2bPipelineProvider.notifier)
+          .advanceStage(card, 'Qualify', followUpDate: '2026-07-13');
+
+      expect(
+        repo.advanceCalls.single,
+        'Lead:LEAD-001:Qualify:null:2026-07-13',
+      );
     });
 
     test('rolls back the optimistic move when the server throws', () async {

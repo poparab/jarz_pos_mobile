@@ -56,6 +56,7 @@ class B2bRepository {
     required String name,
     required String stage,
     String? reason,
+    String? followUpDate,
   }) async {
     final response = await _dio.post(
       ApiEndpoints.b2bAdvanceStage,
@@ -64,6 +65,8 @@ class B2bRepository {
         'name': name,
         'stage': stage,
         if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
+        if (followUpDate != null && followUpDate.trim().isNotEmpty)
+          'follow_up_date': followUpDate.trim(),
       },
     );
     final payload = _asMap(_unwrap(response));
@@ -111,6 +114,18 @@ class B2bRepository {
         .map((e) => e.toString())
         .where((e) => e.isNotEmpty)
         .toList();
+  }
+
+  /// Marks a follow-up as done: closes the reminder loop so it stops being
+  /// regenerated daily. [doctype]/[name] come from the ToDo's reference.
+  Future<void> completeFollowup({
+    required String doctype,
+    required String name,
+  }) async {
+    await _dio.post(
+      ApiEndpoints.completeFollowup,
+      data: {'doctype': doctype, 'name': name},
+    );
   }
 
   /// Logs an activity note against an account.
