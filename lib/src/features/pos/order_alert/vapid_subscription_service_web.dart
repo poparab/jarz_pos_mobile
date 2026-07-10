@@ -20,7 +20,7 @@ class VapidSubscriptionService {
   static Future<VapidSubscriptionResult> requestSubscription({
     required OrderAlertService service,
   }) async {
-    return _doSubscribe(service: service);
+    return _doSubscribe(service: service, forceResubscribe: true);
   }
 
   /// Silently re-registers a VAPID subscription if permission is already granted.
@@ -50,6 +50,7 @@ class VapidSubscriptionService {
 
   static Future<VapidSubscriptionResult> _doSubscribe({
     required OrderAlertService service,
+    bool forceResubscribe = false,
   }) async {
     // 1. Verify Push API support
     final swContainer = _serviceWorkerContainer();
@@ -84,6 +85,31 @@ class VapidSubscriptionService {
           status: VapidSubscriptionStatus.unsupported,
           message: 'Push API not supported in this browser. On iOS, install the app to the Home Screen first.',
         );
+      }
+
+      // 4b. On an explicit user re-enable, drop any existing subscription first
+      // so we always bind to the CURRENT VAPID application server key. A
+      // subscription created against a previous key (e.g. after a server re-key
+      // or AMI clone) is rejected by the push service with VapidPkHashMismatch,
+      // and subscribe() cannot overwrite a subscription bound to a different
+      // key — it must be unsubscribed first. Silent re-registration keeps the
+      // existing subscription (forceResubscribe = false) to avoid endpoint churn.
+      if (forceResubscribe) {
+        try {
+          final existing = await _promiseOrNull(
+            js_util.callMethod<Object?>(pushManager, 'getSubscription', const []),
+          );
+          if (existing != null) {
+            await _promiseOrNull(
+              js_util.callMethod<Object?>(existing, 'unsubscribe', const []),
+            );
+            _logger.info('Cleared existing push subscription before re-subscribing');
+          }
+        } catch (error) {
+          // Non-fatal: proceed to subscribe. A leftover stale subscription will
+          // be auto-disabled by the backend when the push service returns 410.
+          _logger.warning('Failed clearing stale push subscription: $error');
+        }
       }
 
       // 5. Convert VAPID public key (base64url) to JS Uint8Array
@@ -152,6 +178,12 @@ class VapidSubscriptionService {
     } catch (_) {
       return null;
     }
+  }
+
+  /// Awaits a JS promise, tolerating a null (no-op) handle.
+  static Future<Object?> _promiseOrNull(Object? maybePromise) async {
+    if (maybePromise == null) return null;
+    return js_util.promiseToFuture<Object?>(maybePromise);
   }
 
   /// Decodes a base64url string (with or without padding) to bytes.
