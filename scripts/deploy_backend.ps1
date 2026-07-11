@@ -360,7 +360,12 @@ else {
     Write-Step 'Clearing cache and restarting services...'
     Invoke-Remote "docker exec $backendContainer bench --site frontend clear-cache" | Out-Null
     Invoke-Remote "cd $remoteDir && docker compose restart backend queue-short queue-long scheduler >/dev/null 2>&1 || docker-compose restart backend queue-short queue-long scheduler >/dev/null 2>&1" | Out-Null
-    Write-Info 'Services restarted'
+    # Restart the frontend nginx AFTER the backend is back up so it re-resolves the
+    # backend's (possibly new) Docker network IP. Without this, nginx keeps the old
+    # upstream IP cached and every edge/API request returns 502 (connect refused)
+    # until the frontend is manually restarted. See the 2026-07-11 prod incident.
+    Invoke-Remote "cd $remoteDir && docker compose restart frontend >/dev/null 2>&1 || docker-compose restart frontend >/dev/null 2>&1" | Out-Null
+    Write-Info 'Services restarted (incl. frontend nginx)'
     Write-Host ''
 }
 
