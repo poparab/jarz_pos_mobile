@@ -170,6 +170,57 @@ class DefaultShorebirdStatusReader implements ShorebirdStatusReader {
   }
 }
 
+/// Read + download surface used by the in-app auto-updater.
+///
+/// Kept separate from [ShorebirdStatusReader] (read-only, used by the About
+/// screen) so that adding a download capability here never forces the
+/// read-only fakes to implement it.
+abstract class ShorebirdUpdateGateway {
+  Future<ShorebirdDiagnostics> readStatus();
+
+  /// Downloads the newest available patch immediately (instead of waiting for
+  /// the next app launch). Returns `true` when a patch was downloaded, so the
+  /// caller can re-read status — which will then report
+  /// [ShorebirdPatchStatus.restartRequired]. Never throws.
+  Future<bool> downloadUpdate();
+}
+
+class DefaultShorebirdUpdateGateway implements ShorebirdUpdateGateway {
+  const DefaultShorebirdUpdateGateway();
+
+  @override
+  Future<ShorebirdDiagnostics> readStatus() =>
+      const DefaultShorebirdStatusReader().readStatus();
+
+  @override
+  Future<bool> downloadUpdate() async {
+    if (kIsWeb) {
+      return false;
+    }
+    final supported = switch (defaultTargetPlatform) {
+      TargetPlatform.android || TargetPlatform.iOS => true,
+      _ => false,
+    };
+    if (!supported) {
+      return false;
+    }
+
+    final updater = ShorebirdUpdater();
+    if (!updater.isAvailable) {
+      return false;
+    }
+
+    try {
+      await updater.update();
+      return true;
+    } catch (_) {
+      // Network hiccup, no-longer-available race, or engine error: stay on the
+      // current patch and let the next check retry. Never surface to the UI.
+      return false;
+    }
+  }
+}
+
 String readAboutPlatformLabel() {
   if (kIsWeb) {
     return 'Web';

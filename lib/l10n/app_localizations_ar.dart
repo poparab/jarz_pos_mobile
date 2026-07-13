@@ -4184,7 +4184,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shorebirdUpdateBannerMessage =>
-      'تم تنزيل تحديث — أعد تشغيل التطبيق لتطبيقه.';
+      'يتوفر إصدار جديد — أغلق التطبيق تمامًا ثم أعد فتحه لتطبيقه.';
 
   @override
   String get aboutRestartInstruction =>

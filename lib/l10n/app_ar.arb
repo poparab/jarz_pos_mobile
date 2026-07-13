@@ -1737,7 +1737,7 @@
   "shiftMonitorDifferenceSurplus": "زيادة",
   "shiftMonitorDifferenceShortage": "عجز",
   "shiftMonitorNoDiscrepancy": "لا يوجد فرق",
-  "shorebirdUpdateBannerMessage": "تم تنزيل تحديث — أعد تشغيل التطبيق لتطبيقه.",
+  "shorebirdUpdateBannerMessage": "يتوفر إصدار جديد — أغلق التطبيق تمامًا ثم أعد فتحه لتطبيقه.",
   "aboutRestartInstruction": "أغلق التطبيق تماماً وأعد فتحه لتطبيق التحديث المُنزَّل.",
   "aboutPatchPending": "التصحيح المُعلَّق (بعد إعادة التشغيل)",
   "menuLeads": "العملاء المحتملون",

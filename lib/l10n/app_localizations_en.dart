@@ -4201,7 +4201,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shorebirdUpdateBannerMessage =>
-      'Update downloaded — restart the app to apply it.';
+      'A new version is ready — fully close and reopen the app to apply it.';
 
   @override
   String get aboutRestartInstruction =>

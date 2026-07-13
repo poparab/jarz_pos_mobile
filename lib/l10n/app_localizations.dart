@@ -7462,7 +7462,7 @@ abstract class AppLocalizations {
   /// No description provided for @shorebirdUpdateBannerMessage.
   ///
   /// In en, this message translates to:
-  /// **'Update downloaded — restart the app to apply it.'**
+  /// **'A new version is ready — fully close and reopen the app to apply it.'**
   String get shorebirdUpdateBannerMessage;
 
   /// No description provided for @aboutRestartInstruction.
