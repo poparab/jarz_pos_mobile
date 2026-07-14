@@ -2956,12 +2956,20 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         invoice: widget.invoice.name,
         addressName: result['address_name'],
         address: result['address'],
+        // Forward the territory the user picked so a brand-new address is
+        // stamped with the chosen territory (not the customer's old default).
+        territory: result['territory'],
       );
 
       // Step 2: If we have a resolved address_name, recompute shipping on the
       // submitted invoice (territory change detection + expense update).
-      final resolvedAddressName =
-          (saveResult['address_name'] ?? result['address_name'])?.toString();
+      // The backend returns the resolved/created address under
+      // `selected_address_name`; a brand-new address has no `address_name` in
+      // the dialog result, so relying on that key skipped the recompute and
+      // left the invoice on its old territory/shipping cost.
+      final resolvedAddressName = (saveResult['selected_address_name'] ??
+              result['address_name'])
+          ?.toString();
 
       if (resolvedAddressName != null && resolvedAddressName.isNotEmpty) {
         try {

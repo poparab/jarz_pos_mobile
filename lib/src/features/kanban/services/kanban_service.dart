@@ -782,6 +782,7 @@ class KanbanService {
     String? invoice,
     String? addressName,
     String? address,
+    String? territory,
   }) async {
     try {
       _logger.info('Saving shipping address for $customer (invoice: $invoice)');
@@ -794,6 +795,7 @@ class KanbanService {
           if (addressName != null && addressName.isNotEmpty)
             'address_name': addressName,
           if (address != null && address.isNotEmpty) 'address': address,
+          if (territory != null && territory.isNotEmpty) 'territory': territory,
           'set_as_primary': 1,
         },
       );

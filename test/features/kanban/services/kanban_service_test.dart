@@ -655,5 +655,53 @@ void main() {
         );
       });
     });
+
+    group('Customer Shipping Address', () {
+      const savePath =
+          '/api/method/jarz_pos.api.customer.save_customer_shipping_address';
+
+      test('saveCustomerShippingAddress forwards the picked territory for a new address', () async {
+        mockDio.setResponse(
+          savePath,
+          createSuccessResponse(data: {
+            'success': true,
+            'selected_address_name': 'ADDR-NEW',
+          }),
+        );
+
+        await service.saveCustomerShippingAddress(
+          customer: 'CUST-001',
+          phone: '01000000000',
+          invoice: 'INV-001',
+          address: '12 New Street',
+          territory: 'Maadi',
+        );
+
+        final data = mockDio.requestLog.last['data'] as Map;
+        expect(data['territory'], equals('Maadi'));
+        expect(data['address'], equals('12 New Street'));
+        expect(data['invoice'], equals('INV-001'));
+      });
+
+      test('saveCustomerShippingAddress omits territory when not provided', () async {
+        mockDio.setResponse(
+          savePath,
+          createSuccessResponse(data: {
+            'success': true,
+            'selected_address_name': 'ADDR-1',
+          }),
+        );
+
+        await service.saveCustomerShippingAddress(
+          customer: 'CUST-001',
+          phone: '01000000000',
+          addressName: 'ADDR-1',
+        );
+
+        final data = mockDio.requestLog.last['data'] as Map;
+        expect(data.containsKey('territory'), isFalse);
+        expect(data['address_name'], equals('ADDR-1'));
+      });
+    });
   });
 }
