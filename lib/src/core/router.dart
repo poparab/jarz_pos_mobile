@@ -34,6 +34,7 @@ import '../features/reports/presentation/screens/customer_analytics_screen.dart'
 import '../features/reports/presentation/screens/executive_overview_screen.dart';
 import '../features/reports/presentation/screens/b2b_sales_clients_screen.dart';
 import '../features/master_orders/presentation/master_orders_screen.dart';
+import '../features/instapay_reconciliation/presentation/instapay_reconciliation_screen.dart';
 import 'network/user_service.dart';
 import '../features/about/presentation/screens/about_screen.dart';
 import '../features/b2b/presentation/screens/b2b_pipeline_screen.dart';
@@ -380,6 +381,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.masterOrders,
         name: 'master-orders',
         builder: (context, state) => const MasterOrdersScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.instapayReconciliation,
+        name: 'instapay-reconciliation',
+        builder: (context, state) => const InstapayReconciliationScreen(),
       ),
       GoRoute(
         path: AppRoutes.profile,

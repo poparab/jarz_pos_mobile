@@ -125,6 +125,16 @@ abstract final class ApiEndpoints {
   static const confirmSettlement =
       '/api/method/jarz_pos.api.couriers.confirm_settlement';
 
+  // ── InstaPay-on-delivery reconciliation (online payment assurance) ─────
+  static const deliverOnlineUnconfirmed =
+      '/api/method/jarz_pos.api.couriers.deliver_online_unconfirmed';
+  static const listUnconfirmedOnlineOrders =
+      '/api/method/jarz_pos.api.couriers.list_unconfirmed_online_orders';
+  static const confirmOnlinePayment =
+      '/api/method/jarz_pos.api.couriers.confirm_online_payment';
+  static const convertOnlineOrderToCod =
+      '/api/method/jarz_pos.api.couriers.convert_online_order_to_cod';
+
   // ── Delivery Handling (service-level endpoints) ───────────────────────
   static const settleDeliveryParty =
       '/api/method/jarz_pos.jarz_pos.services.delivery_handling.settle_delivery_party';

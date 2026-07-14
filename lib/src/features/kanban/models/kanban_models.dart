@@ -66,6 +66,7 @@ class InvoiceCard {
   final bool? requiresAcceptanceFlag; // optional flag directly from backend
   final String? paymentMethod; // new: Cash, Instapay, or Mobile Wallet
   final String? actualPaymentMethod; // actual payment method from Payment Entry when paid
+  final String? paymentConfirmationStatus; // InstaPay-on-delivery: Awaiting Payment / Payment Confirmed / Converted to Cash
   final String? paymentReceiptName;
   final String? paymentReceiptMethod;
   final String? paymentReceiptStatus;
@@ -125,6 +126,7 @@ class InvoiceCard {
   this.requiresAcceptanceFlag,
   this.paymentMethod,
   this.actualPaymentMethod,
+  this.paymentConfirmationStatus,
   this.paymentReceiptName,
   this.paymentReceiptMethod,
   this.paymentReceiptStatus,
@@ -214,6 +216,9 @@ class InvoiceCard {
       requiresAcceptanceFlag: requiresAcceptanceFlag,
       paymentMethod: (json['payment_method'] ?? json['custom_payment_method'])?.toString(),
       actualPaymentMethod: json['actual_payment_method']?.toString(),
+      paymentConfirmationStatus: (json['payment_confirmation_status'] ??
+              json['custom_payment_confirmation_status'])
+          ?.toString(),
       paymentReceiptName: json['payment_receipt_name']?.toString(),
       paymentReceiptMethod: json['payment_receipt_method']?.toString(),
       paymentReceiptStatus: json['payment_receipt_status']?.toString(),
@@ -282,6 +287,7 @@ class InvoiceCard {
   'requires_acceptance': requiresAcceptanceFlag,
   'payment_method': paymentMethod,
   'actual_payment_method': actualPaymentMethod,
+  'payment_confirmation_status': paymentConfirmationStatus,
   'payment_receipt_name': paymentReceiptName,
   'payment_receipt_method': paymentReceiptMethod,
   'payment_receipt_status': paymentReceiptStatus,
@@ -342,6 +348,7 @@ class InvoiceCard {
   bool? requiresAcceptanceFlag,
   String? paymentMethod,
   String? actualPaymentMethod,
+  String? paymentConfirmationStatus,
   String? paymentReceiptName,
   String? paymentReceiptMethod,
   String? paymentReceiptStatus,
@@ -402,6 +409,7 @@ class InvoiceCard {
   requiresAcceptanceFlag: requiresAcceptanceFlag ?? this.requiresAcceptanceFlag,
   paymentMethod: paymentMethod ?? this.paymentMethod,
   actualPaymentMethod: actualPaymentMethod ?? this.actualPaymentMethod,
+  paymentConfirmationStatus: paymentConfirmationStatus ?? this.paymentConfirmationStatus,
   paymentReceiptName: paymentReceiptName ?? this.paymentReceiptName,
   paymentReceiptMethod: paymentReceiptMethod ?? this.paymentReceiptMethod,
   paymentReceiptStatus: paymentReceiptStatus ?? this.paymentReceiptStatus,
@@ -490,6 +498,12 @@ class InvoiceCard {
     final imageUrl = (paymentReceiptImageUrl ?? '').trim();
     return name.isNotEmpty && imageUrl.isNotEmpty;
   }
+
+  /// True for an InstaPay-on-delivery order that is out for delivery but whose
+  /// bank transfer has not yet been confirmed by a manager.
+  bool get isAwaitingOnlinePayment =>
+      (paymentConfirmationStatus ?? '').trim().toLowerCase() ==
+      'awaiting payment';
 
   bool get isFullyUnpaid {
     if (grandTotal.abs() <= _cancellationTolerance) {

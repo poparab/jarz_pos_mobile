@@ -229,6 +229,12 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuReports,
           onTap: () => navigate(AppRoutes.reports),
         ),
+      if (hasManagerAccess)
+        navTile(
+          icon: Icons.account_balance_outlined,
+          title: 'InstaPay Reconciliation',
+          onTap: () => navigate(AppRoutes.instapayReconciliation),
+        ),
     ];
 
     // Auto-expand the group containing the active route; fall back to POS/Sales.
@@ -254,6 +260,7 @@ class AppDrawer extends ConsumerWidget {
       AppRoutes.reportsCustomer,
       AppRoutes.reportsExecutive,
       AppRoutes.reportsB2b,
+      AppRoutes.instapayReconciliation,
     ];
     final anyGroupMatches = [
       posRoutes,

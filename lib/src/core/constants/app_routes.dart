@@ -27,6 +27,7 @@ abstract final class AppRoutes {
   static const reportsExecutive = '/reports/executive';
   static const reportsB2b = '/reports/b2b';
   static const masterOrders = '/master-orders';
+  static const instapayReconciliation = '/instapay-reconciliation';
   static const profile = '/profile';
   static const shiftStart = '/shift/start';
   static const shiftEnd = '/shift/end';

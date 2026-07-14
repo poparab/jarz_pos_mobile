@@ -15,6 +15,7 @@ import '../../pos/state/pos_notifier.dart';
 import '../../../core/router.dart';
 import '../../pos/presentation/widgets/courier_balances_dialog.dart';
 import '../../../core/network/courier_service.dart';
+import '../../instapay_reconciliation/data/instapay_reconciliation_service.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../widgets/settlement_preview_dialog.dart';
 import '../../printing/pos_printer_provider.dart';
@@ -1206,7 +1207,56 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         await ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, 'Out For Delivery');
         return;
       }
-      
+
+      // InstaPay-on-delivery: an UNPAID online order (Instapay / Mobile Wallet),
+      // non-partner and non-pickup, must NOT go through the courier settlement
+      // dialog (which would wrongly mark it paid via the outstanding path). It
+      // simply goes Out for Delivery as "Awaiting Payment" and is reconciled
+      // later on the manager reconciliation screen.
+      if (!isPaid && !hasPartner && !isPickup && _isOnlineIntent(inv)) {
+        final posProfile = _getEffectiveProfileForInvoice(inv);
+        if (posProfile == null) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.kanbanSelectPosProfileFirst)),
+          );
+          final fromCol = ref.read(kanbanProvider).columns.firstWhere(
+            (c) => c.id == fromColumnId,
+            orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
+          );
+          ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
+          return;
+        }
+        try {
+          await ref
+              .read(instapayReconciliationServiceProvider)
+              .deliverOnlineUnconfirmed(
+                invoiceName: invoiceId,
+                posProfile: posProfile,
+              );
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Out for delivery — awaiting InstaPay')),
+          );
+          try {
+            await ref.read(kanbanProvider.notifier).refreshSingle(invoiceId);
+          } catch (_) {
+            try {
+              await ref.read(kanbanProvider.notifier).loadInvoices();
+            } catch (_) {}
+          }
+        } catch (e) {
+          final errorMessage =
+              extractFrappeErrorMessage(e, fallback: l10n.commonError);
+          messenger.showSnackBar(SnackBar(content: Text(errorMessage)));
+          // Revert the optimistic move on failure.
+          final fromCol = ref.read(kanbanProvider).columns.firstWhere(
+            (c) => c.id == fromColumnId,
+            orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
+          );
+          ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
+        }
+        return;
+      }
+
       // Launch courier/mode dialog for regular delivery orders
       // Show "Settle Later" for non-partner, non-pickup only (per business rule)
       final showSettleLater = !hasPartner && !isPickup;
@@ -1641,6 +1691,21 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     final invProfile = (inv?.posProfile ?? '').trim();
     if (invProfile.isNotEmpty) return invProfile;
     return _getPosProfile();
+  }
+
+  /// True when the invoice's requested payment method (or its resolved
+  /// collection method) is an online method — Instapay or Mobile Wallet —
+  /// meaning it should follow the InstaPay-on-delivery awaiting-payment flow
+  /// instead of the courier settlement dialog. Case-insensitive.
+  bool _isOnlineIntent(InvoiceCard? inv) {
+    if (inv == null) return false;
+    bool isOnline(String? method) {
+      final normalized = (method ?? '').trim().toLowerCase();
+      return normalized == 'instapay' || normalized == 'mobile wallet';
+    }
+
+    return isOnline(inv.paymentMethod) ||
+        isOnline(inv.effectiveCollectionMethod);
   }
 
   void _handlePosStateChange(PosState state) {

@@ -1006,6 +1006,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                 const SizedBox(height: 4),
                                 _buildPaymentMethodBadge(widget.invoice.effectiveCollectionMethod!),
                               ],
+                              // Awaiting InstaPay confirmation badge (online order
+                              // out for delivery, transfer not yet confirmed)
+                              if (widget.invoice.isAwaitingOnlinePayment) ...[
+                                const SizedBox(height: 4),
+                                _buildAwaitingInstapayBadge(),
+                              ],
                             ],
                           ),
                         ),
@@ -2498,6 +2504,36 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           const SizedBox(width: 4),
           Text(
             localizedPaymentMethodLabel(context, paymentMethod),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Badge shown on InstaPay-on-delivery orders that are out for delivery but
+  /// still awaiting the manager's bank-transfer confirmation. Reuses the
+  /// [_buildPaymentMethodBadge] visual style with an amber "awaiting" accent.
+  Widget _buildAwaitingInstapayBadge() {
+    final bgColor = Colors.amber[50]!;
+    final textColor = Colors.amber[900]!;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.hourglass_top, size: 10, color: textColor),
+          const SizedBox(width: 4),
+          Text(
+            'Awaiting InstaPay',
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
