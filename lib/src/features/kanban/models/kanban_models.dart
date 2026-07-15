@@ -73,6 +73,9 @@ class InvoiceCard {
   final String? paymentReceiptImageUrl;
   final String? posProfile; // Effective Kanban branch: custom_kanban_profile first, then pos_profile
   final int noteCount;
+  // Most recent note's text, sanitised + truncated to 300 chars server-side.
+  // Null/absent when the invoice has no notes.
+  final String? latestNote;
   final double outstandingAmount;
   final int? docstatusValue;
   final bool isReturn;
@@ -133,6 +136,7 @@ class InvoiceCard {
   this.paymentReceiptImageUrl,
   this.posProfile,
     this.noteCount = 0,
+    this.latestNote,
     this.outstandingAmount = 0.0,
     this.docstatusValue,
     this.isReturn = false,
@@ -177,6 +181,12 @@ class InvoiceCard {
         canAmendFlag = ['1', 'true', 'yes', 'y'].contains(normalized);
       }
     }
+
+    // Treat blank/whitespace-only latest_note as "no note" so the card body
+    // never renders an empty note strip.
+    final rawLatestNote = json['latest_note']?.toString().trim();
+    final latestNote =
+        (rawLatestNote == null || rawLatestNote.isEmpty) ? null : rawLatestNote;
 
     return InvoiceCard(
       id: json['name'] ?? '',
@@ -227,6 +237,7 @@ class InvoiceCard {
       noteCount: json['note_count'] is int
           ? json['note_count'] as int
           : int.tryParse((json['note_count'] ?? '').toString()) ?? 0,
+      latestNote: latestNote,
       outstandingAmount: (double.tryParse((json['outstanding_amount'] ?? json['outstandingAmount'] ?? 0).toString()) ?? 0.0),
       docstatusValue: json['docstatus_value'] is int
           ? json['docstatus_value'] as int
@@ -294,6 +305,7 @@ class InvoiceCard {
   'payment_receipt_image_url': paymentReceiptImageUrl,
   'pos_profile': posProfile,
       'note_count': noteCount,
+      'latest_note': latestNote,
       'outstanding_amount': outstandingAmount,
       'docstatus_value': docstatusValue,
       'is_return': isReturn,
@@ -355,6 +367,8 @@ class InvoiceCard {
   String? paymentReceiptImageUrl,
   String? posProfile,
   int? noteCount,
+  String? latestNote,
+  bool clearLatestNote = false,
   double? outstandingAmount,
   int? docstatusValue,
   bool? isReturn,
@@ -416,6 +430,7 @@ class InvoiceCard {
   paymentReceiptImageUrl: paymentReceiptImageUrl ?? this.paymentReceiptImageUrl,
   posProfile: posProfile ?? this.posProfile,
       noteCount: noteCount ?? this.noteCount,
+      latestNote: clearLatestNote ? null : (latestNote ?? this.latestNote),
       outstandingAmount: outstandingAmount ?? this.outstandingAmount,
       docstatusValue: docstatusValue ?? this.docstatusValue,
       isReturn: isReturn ?? this.isReturn,
@@ -454,6 +469,13 @@ class InvoiceCard {
   double get taxAmount => totalTaxesAndCharges;
   double get shippingIncomeDisplay => shippingIncome; // new helper
   bool get hasNotes => noteCount > 0;
+
+  /// Trimmed latest-note text for the card-face preview strip, or null when
+  /// there is nothing worth rendering.
+  String? get latestNotePreview {
+    final text = latestNote?.trim();
+    return (text == null || text.isEmpty) ? null : text;
+  }
   double get shippingExpenseDisplay =>
       (shippingOverrideStatus == 'Approved' && shippingOverride != null && shippingOverride! > 0)
           ? shippingOverride!

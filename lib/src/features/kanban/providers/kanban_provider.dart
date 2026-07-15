@@ -180,7 +180,14 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       invoiceId: invoiceId,
       note: note,
     );
-    _patchInvoiceNoteCount(invoiceId, result.noteCount);
+    // The note we just saved is by definition the latest one, so patch the
+    // card-face preview too instead of waiting for a refetch.
+    final savedNote = result.note.note.trim();
+    _patchInvoiceNoteCount(
+      invoiceId,
+      result.noteCount,
+      latestNote: savedNote.isEmpty ? null : savedNote,
+    );
     return result;
   }
 
@@ -252,7 +259,17 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     }
   }
 
-  void _patchInvoiceNoteCount(String invoiceId, int noteCount) {
+  /// Patches the note badge count and the card-face note preview in place so the
+  /// board reflects a new note without a refetch.
+  ///
+  /// [latestNote] null means "leave the existing preview alone" — except when
+  /// [noteCount] drops to zero, where the preview is explicitly cleared (a
+  /// hand-written copyWith cannot set a field back to null on its own).
+  void _patchInvoiceNoteCount(
+    String invoiceId,
+    int noteCount, {
+    String? latestNote,
+  }) {
     final current = Map<String, List<InvoiceCard>>.from(state.invoices);
     for (final entry in current.entries) {
       final list = List<InvoiceCard>.from(entry.value);
@@ -261,7 +278,11 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       if (index < 0) {
         continue;
       }
-      list[index] = list[index].copyWith(noteCount: noteCount);
+      list[index] = list[index].copyWith(
+        noteCount: noteCount,
+        latestNote: latestNote,
+        clearLatestNote: noteCount <= 0,
+      );
       current[entry.key] = list;
       state = state.copyWith(invoices: _sortReceivedColumn(current));
       return;
@@ -313,8 +334,15 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
           final noteCount = event['note_count'] is int
               ? event['note_count'] as int
               : int.tryParse((event['note_count'] ?? '').toString());
+          final rawLatestNote = event['latest_note']?.toString().trim();
           if (noteCount != null) {
-            _patchInvoiceNoteCount(invoiceId, noteCount);
+            _patchInvoiceNoteCount(
+              invoiceId,
+              noteCount,
+              latestNote: (rawLatestNote == null || rawLatestNote.isEmpty)
+                  ? null
+                  : rawLatestNote,
+            );
           } else {
             refreshSingle(invoiceId);
           }

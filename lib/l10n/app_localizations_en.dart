@@ -2010,6 +2010,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invoiceNotesEmpty => 'No notes yet for this invoice.';
 
   @override
+  String get invoiceLatestNoteLabel => 'LATEST NOTE';
+
+  @override
+  String invoiceLatestNoteLabelWithCount(Object count) {
+    return 'LATEST NOTE ($count)';
+  }
+
+  @override
+  String get invoiceLatestNoteTapToRead =>
+      'Tap to read the notes on this order';
+
+  @override
   String get invoiceAddingNote => 'Adding...';
 
   @override
@@ -2671,6 +2683,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kanbanCannotMoveBackward => 'Cannot move backward';
+
+  @override
+  String get kanbanCancelViaMenuOnly =>
+      'Orders can\'t be cancelled by dragging. Use the card menu and pick \"Cancel Order\".';
 
   @override
   String get kanbanMoveOneStage => 'Can only move one stage at a time';

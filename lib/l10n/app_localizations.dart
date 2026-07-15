@@ -3564,6 +3564,24 @@ abstract class AppLocalizations {
   /// **'No notes yet for this invoice.'**
   String get invoiceNotesEmpty;
 
+  /// No description provided for @invoiceLatestNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'LATEST NOTE'**
+  String get invoiceLatestNoteLabel;
+
+  /// No description provided for @invoiceLatestNoteLabelWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'LATEST NOTE ({count})'**
+  String invoiceLatestNoteLabelWithCount(Object count);
+
+  /// No description provided for @invoiceLatestNoteTapToRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to read the notes on this order'**
+  String get invoiceLatestNoteTapToRead;
+
   /// No description provided for @invoiceAddingNote.
   ///
   /// In en, this message translates to:
@@ -4719,6 +4737,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cannot move backward'**
   String get kanbanCannotMoveBackward;
+
+  /// No description provided for @kanbanCancelViaMenuOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders can\'\'t be cancelled by dragging. Use the card menu and pick \"Cancel Order\".'**
+  String get kanbanCancelViaMenuOnly;
 
   /// No description provided for @kanbanMoveOneStage.
   ///

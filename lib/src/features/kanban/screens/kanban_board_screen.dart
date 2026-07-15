@@ -1629,66 +1629,36 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     return false;
   }
 
+  /// Resolves the block reason for a move, then maps it to a user-facing string.
+  ///
+  /// Returns null when the move is allowed, `''` to block silently, and a
+  /// non-empty message to block with a snackbar. The decision itself lives in
+  /// [evaluateCardMoveBlock] so the guard ordering can be unit-tested.
   String? _cardMoveBlockMessage(String invoiceId, String fromColumnId, String toColumnId) {
     final columns = ref.read(kanbanProvider).columns;
-    if (columns.isEmpty) return null;
+    final reason = evaluateCardMoveBlock(
+      columns: columns,
+      fromColumnId: fromColumnId,
+      toColumnId: toColumnId,
+      // Lazy: only resolved when the target is the settlement column, so a plain
+      // hover over other columns does not scan the whole board.
+      isPickupLookup: () => _findInvoice(invoiceId)?.isPickup ?? false,
+    );
 
-    int resolveIndex(String candidate) {
-      final normalized = candidate.trim().toLowerCase();
-      var idx = columns.indexWhere((c) => c.id.trim().toLowerCase() == normalized);
-      if (idx != -1) return idx;
-      idx = columns.indexWhere((c) => c.name.trim().toLowerCase() == normalized);
-      return idx;
-    }
-
-    final fromIndex = resolveIndex(fromColumnId);
-    final toIndex = resolveIndex(toColumnId);
-    if (fromIndex == -1 || toIndex == -1) {
-      return null; // Unknown columns; do not block the move
-    }
-
-    if (fromIndex == toIndex) {
-      return '';
-    }
-
-    // PICKUP ORDER VALIDATION: Prevent pickup orders from going to Courier Settlement
-    final targetColumn = columns[toIndex];
-    final targetName = targetColumn.name.trim().toLowerCase();
-    final targetId = targetColumn.id.trim().toLowerCase();
-    final isMovingToSettlement = targetName.contains('courier') && targetName.contains('settlement') ||
-                                  targetId.contains('courier') && targetId.contains('settlement');
-    
-    if (isMovingToSettlement) {
-      final inv = _findInvoice(invoiceId);
-      final isPickup = (inv?.isPickup ?? false);
-      if (isPickup) {
+    switch (reason) {
+      case null:
+        return null;
+      case CardMoveBlockReason.sameColumn:
+        return '';
+      case CardMoveBlockReason.pickupNoSettlement:
         return context.l10n.kanbanPickupNoSettlement;
-      }
-    }
-
-    final isBackward = toIndex < fromIndex;
-    final cancelledIndex = columns.indexWhere(_isCancelledColumn);
-    final movingToCancelled = cancelledIndex != -1 && toIndex == cancelledIndex;
-    final allowBackwardToCancelled = isBackward && movingToCancelled && fromIndex > cancelledIndex;
-
-    if (isBackward && !allowBackwardToCancelled) {
-      return context.l10n.kanbanCannotMoveBackward;
-    }
-
-    if (!isBackward) {
-      final step = toIndex - fromIndex;
-      if (step > 1) {
+      case CardMoveBlockReason.cancelViaMenuOnly:
+        return context.l10n.kanbanCancelViaMenuOnly;
+      case CardMoveBlockReason.cannotMoveBackward:
+        return context.l10n.kanbanCannotMoveBackward;
+      case CardMoveBlockReason.moveOneStage:
         return context.l10n.kanbanMoveOneStage;
-      }
     }
-
-    return null;
-  }
-
-  bool _isCancelledColumn(KanbanColumn column) {
-    final id = column.id.toLowerCase();
-    final name = column.name.toLowerCase();
-    return id.contains('cancelled') || name.contains('cancelled');
   }
 
   InvoiceCard? _findInvoice(String id) {
@@ -2274,4 +2244,93 @@ class _BranchFilterButton extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Why a kanban card move was rejected. Mapped to a localised string by
+/// `_cardMoveBlockMessage`; [sameColumn] blocks silently.
+enum CardMoveBlockReason {
+  sameColumn,
+  pickupNoSettlement,
+  cancelViaMenuOnly,
+  cannotMoveBackward,
+  moveOneStage,
+}
+
+/// True when [column] is the Cancelled column.
+bool isCancelledKanbanColumn(KanbanColumn column) {
+  final id = column.id.toLowerCase();
+  final name = column.name.toLowerCase();
+  return id.contains('cancelled') || name.contains('cancelled');
+}
+
+/// Pure move-validation for the kanban board. Returns null when the move is
+/// allowed, otherwise the reason it is blocked.
+///
+/// Guard order matters and is asserted by tests:
+///  1. same column          -> silent no-op
+///  2. pickup -> settlement -> pickup orders never settle
+///  3. -> Cancelled         -> ALWAYS blocked, any direction. Cancelling has to
+///     capture a reason + notes and honour canCancel / hasPartialPayment, which
+///     only the card's "Cancel Order" menu action does. This must stay ahead of
+///     the backward guard, otherwise a backward drag into Cancelled would report
+///     the unhelpful "Cannot move backward" instead.
+///  4. backward             -> not allowed
+///  5. forward > 1 stage    -> one stage at a time
+///
+/// [isPickupLookup] is called lazily, only when the target is the settlement
+/// column, so hovering other columns stays cheap during a drag.
+CardMoveBlockReason? evaluateCardMoveBlock({
+  required List<KanbanColumn> columns,
+  required String fromColumnId,
+  required String toColumnId,
+  required bool Function() isPickupLookup,
+}) {
+  if (columns.isEmpty) return null;
+
+  int resolveIndex(String candidate) {
+    final normalized = candidate.trim().toLowerCase();
+    var idx = columns.indexWhere((c) => c.id.trim().toLowerCase() == normalized);
+    if (idx != -1) return idx;
+    idx = columns.indexWhere((c) => c.name.trim().toLowerCase() == normalized);
+    return idx;
+  }
+
+  final fromIndex = resolveIndex(fromColumnId);
+  final toIndex = resolveIndex(toColumnId);
+  if (fromIndex == -1 || toIndex == -1) {
+    return null; // Unknown columns; do not block the move
+  }
+
+  if (fromIndex == toIndex) {
+    return CardMoveBlockReason.sameColumn;
+  }
+
+  // PICKUP ORDER VALIDATION: Prevent pickup orders from going to Courier Settlement
+  final targetColumn = columns[toIndex];
+  final targetName = targetColumn.name.trim().toLowerCase();
+  final targetId = targetColumn.id.trim().toLowerCase();
+  final isMovingToSettlement =
+      targetName.contains('courier') && targetName.contains('settlement') ||
+          targetId.contains('courier') && targetId.contains('settlement');
+
+  if (isMovingToSettlement && isPickupLookup()) {
+    return CardMoveBlockReason.pickupNoSettlement;
+  }
+
+  // CANCELLATION GUARD — see doc comment above for why this precedes the
+  // backward guard.
+  if (isCancelledKanbanColumn(targetColumn)) {
+    return CardMoveBlockReason.cancelViaMenuOnly;
+  }
+
+  final isBackward = toIndex < fromIndex;
+  if (isBackward) {
+    return CardMoveBlockReason.cannotMoveBackward;
+  }
+
+  if (toIndex - fromIndex > 1) {
+    return CardMoveBlockReason.moveOneStage;
+  }
+
+  return null;
 }

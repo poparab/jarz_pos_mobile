@@ -349,6 +349,75 @@ void main() {
       expect(updated.id, card.id);
       expect(updated.status, card.status);
     });
+
+    test('fromJson parses latest_note for the card face preview', () {
+      final card = buildCard(overrides: {
+        'note_count': 2,
+        'latest_note': 'Customer wants the bell, not the doorknock',
+      });
+
+      expect(card.latestNote, 'Customer wants the bell, not the doorknock');
+      expect(card.latestNotePreview, 'Customer wants the bell, not the doorknock');
+      expect(card.hasNotes, isTrue);
+    });
+
+    test('fromJson trims latest_note and treats blank as absent', () {
+      final padded = buildCard(overrides: {
+        'note_count': 1,
+        'latest_note': '  Ring twice  ',
+      });
+      expect(padded.latestNote, 'Ring twice');
+
+      final blank = buildCard(overrides: {
+        'note_count': 1,
+        'latest_note': '   ',
+      });
+      expect(blank.latestNote, isNull);
+      expect(blank.latestNotePreview, isNull);
+    });
+
+    test('fromJson leaves latestNote null when backend omits latest_note', () {
+      final card = buildCard(overrides: {'note_count': 0});
+
+      expect(card.latestNote, isNull);
+      expect(card.latestNotePreview, isNull);
+      expect(card.hasNotes, isFalse);
+    });
+
+    test('toJson round-trips latest_note', () {
+      final card = buildCard(overrides: {
+        'note_count': 1,
+        'latest_note': 'Fragile — handle with care',
+      });
+
+      expect(card.toJson()['latest_note'], 'Fragile — handle with care');
+    });
+
+    test('copyWith sets latestNote and preserves it when unspecified', () {
+      final card = buildCard(overrides: {'note_count': 0});
+
+      final withNote = card.copyWith(noteCount: 1, latestNote: 'Call on arrival');
+      expect(withNote.latestNote, 'Call on arrival');
+
+      final untouched = withNote.copyWith(status: 'Preparing');
+      expect(untouched.latestNote, 'Call on arrival');
+      expect(untouched.status, 'Preparing');
+    });
+
+    test('copyWith clears latestNote only when clearLatestNote is set', () {
+      final card = buildCard(overrides: {
+        'note_count': 1,
+        'latest_note': 'Call on arrival',
+      });
+
+      // Passing null must NOT clear — that is the hand-written copyWith contract.
+      expect(card.copyWith(latestNote: null).latestNote, 'Call on arrival');
+
+      final cleared = card.copyWith(noteCount: 0, clearLatestNote: true);
+      expect(cleared.latestNote, isNull);
+      expect(cleared.latestNotePreview, isNull);
+      expect(cleared.hasNotes, isFalse);
+    });
   });
 
   group('InvoiceNote', () {

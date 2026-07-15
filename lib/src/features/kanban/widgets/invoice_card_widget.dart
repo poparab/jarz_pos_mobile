@@ -143,6 +143,88 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     await launchUrl(uri);
   }
 
+  /// Accent used for every "this card has notes" affordance (card wash, card
+  /// border, body preview strip) so they read as one signal.
+  static const Color _noteAccentColor = Color(0xFFB26A00); // amber 900-ish
+
+  /// Note preview strip shown on the card body. Renders the latest note's text
+  /// when the backend supplied it, and otherwise degrades to a count-only
+  /// prompt (older payloads / pre-`latest_note` backends). Tapping opens the
+  /// existing notes sheet.
+  Widget _buildNotePreviewStrip(BuildContext context, bool transitioning) {
+    final l10n = context.l10n;
+    final preview = widget.invoice.latestNotePreview;
+    final count = widget.invoice.noteCount;
+
+    return InkWell(
+      onTap: transitioning ? null : () => _openInvoiceNotes(context),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: _noteAccentColor.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(8),
+          border: Border(
+            // Leading accent bar — reads like a sticky note without needing a
+            // new icon glyph.
+            left: BorderSide(color: _noteAccentColor, width: 3),
+            top: BorderSide(color: _noteAccentColor.withValues(alpha: 0.25)),
+            right: BorderSide(color: _noteAccentColor.withValues(alpha: 0.25)),
+            bottom: BorderSide(color: _noteAccentColor.withValues(alpha: 0.25)),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Reuses the glyph already on this card — do not swap for a new
+            // icon, it would break the production Shorebird patch.
+            Padding(
+              padding: const EdgeInsetsDirectional.only(top: 1),
+              child: Icon(
+                Icons.comment_outlined,
+                size: ResponsiveUtils.getIconSize(context, small: 12, medium: 13, large: 14),
+                color: _noteAccentColor,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    count > 1
+                        ? l10n.invoiceLatestNoteLabelWithCount(count)
+                        : l10n.invoiceLatestNoteLabel,
+                    style: TextStyle(
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, 10),
+                      fontWeight: FontWeight.w700,
+                      color: _noteAccentColor,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    preview ?? l10n.invoiceLatestNoteTapToRead,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, 12),
+                      height: 1.25,
+                      color: Colors.black87,
+                      fontStyle: preview == null ? FontStyle.italic : FontStyle.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPaymentReceiptPreview(BuildContext context) {
     final resolvedUrl = _resolvePaymentReceiptUrl(widget.invoice.paymentReceiptImageUrl);
     if (resolvedUrl == null) {
@@ -868,18 +950,39 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       );
     }
 
+    // Cards carrying notes get an amber wash + border so they are spottable from
+    // across the board. Accepted / dragging treatments still win — this is the
+    // lowest-priority accent.
+    final hasNotes = widget.invoice.hasNotes;
+    final isAcceptedTreatment = widget.invoice.isAccepted || _isAccepting;
+
+    Color borderColor;
+    double borderWidth;
+    if (isAcceptedTreatment) {
+      borderColor = Colors.green[600]!;
+      borderWidth = 2;
+    } else if (widget.isDragging) {
+      borderColor = Colors.blue;
+      borderWidth = 2;
+    } else if (hasNotes) {
+      borderColor = _noteAccentColor;
+      borderWidth = 2;
+    } else {
+      borderColor = Colors.grey[300]!;
+      borderWidth = 1;
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Card(
         elevation: widget.isDragging ? 8 : 2,
         shadowColor: widget.isDragging ? Colors.blue.withValues(alpha: 0.3) : null,
+        color: hasNotes ? _noteAccentColor.withValues(alpha: 0.06) : null,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: (widget.invoice.isAccepted || _isAccepting)
-                ? Colors.green[600]!
-                : (widget.isDragging ? Colors.blue : Colors.grey[300]!),
-            width: (widget.invoice.isAccepted || _isAccepting) ? 2 : (widget.isDragging ? 2 : 1),
+            color: borderColor,
+            width: borderWidth,
           ),
         ),
         child: Column(
@@ -1117,6 +1220,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                         ),
                       ],
                     ),
+
+                    // Latest note preview, on the card body so staff can read it
+                    // without opening the notes sheet.
+                    if (widget.invoice.hasNotes) ...[
+                      const SizedBox(height: 8),
+                      _buildNotePreviewStrip(context, transitioning),
+                    ],
 
                     if (widget.invoice.hasUploadedPaymentReceipt)
                       _buildPaymentReceiptPreview(context),

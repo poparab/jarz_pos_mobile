@@ -2005,6 +2005,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get invoiceNotesEmpty => 'لا توجد ملاحظات لهذه الفاتورة بعد.';
 
   @override
+  String get invoiceLatestNoteLabel => 'آخر ملاحظة';
+
+  @override
+  String invoiceLatestNoteLabelWithCount(Object count) {
+    return 'آخر ملاحظة (من $count)';
+  }
+
+  @override
+  String get invoiceLatestNoteTapToRead => 'اضغط تقرأ ملاحظات الطلب';
+
+  @override
   String get invoiceAddingNote => 'جارٍ الإضافة...';
 
   @override
@@ -2666,6 +2677,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get kanbanCannotMoveBackward => 'لا يمكن التراجع للخلف';
+
+  @override
+  String get kanbanCancelViaMenuOnly =>
+      'مش هينفع تلغي الطلب بالسحب. افتح قائمة الكارت واختار \"إلغاء الطلب\".';
 
   @override
   String get kanbanMoveOneStage => 'يمكن التقدم مرحلة واحدة فقط';

@@ -512,6 +512,22 @@ void main() {
       expect(card.hasNotes, isTrue);
     });
 
+    test('addInvoiceNote patches the card face preview with the saved note', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      await notifier.addInvoiceNote(
+        invoiceId: 'INV-OLD',
+        note: 'Second note',
+      );
+
+      final state = container.read(kanbanProvider);
+      final card = state.invoices['received']!.firstWhere((entry) => entry.id == 'INV-OLD');
+      expect(card.latestNote, 'Second note');
+      expect(card.latestNotePreview, 'Second note');
+    });
+
     test('realtime invoice_note_added updates card badge count without reload', () async {
       final notifier = container.read(kanbanProvider.notifier);
       final ws = container.read(webSocketServiceProvider) as _FakeWebSocketService;
@@ -528,6 +544,82 @@ void main() {
       final state = container.read(kanbanProvider);
       final card = state.invoices['received']!.firstWhere((entry) => entry.id == 'INV-OLD');
       expect(card.noteCount, 4);
+    });
+
+    test('realtime invoice_note_added patches latest_note onto the card', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      final ws = container.read(webSocketServiceProvider) as _FakeWebSocketService;
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      ws._kanbanController.add({
+        'event': 'invoice_note_added',
+        'invoice_id': 'INV-OLD',
+        'note_count': 4,
+        'latest_note': 'Courier is at the gate',
+      });
+      await _flushMicrotasks();
+
+      final state = container.read(kanbanProvider);
+      final card = state.invoices['received']!.firstWhere((entry) => entry.id == 'INV-OLD');
+      expect(card.noteCount, 4);
+      expect(card.latestNote, 'Courier is at the gate');
+    });
+
+    test('realtime invoice_note_added without latest_note keeps the existing preview', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      final ws = container.read(webSocketServiceProvider) as _FakeWebSocketService;
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      ws._kanbanController.add({
+        'event': 'invoice_note_added',
+        'invoice_id': 'INV-OLD',
+        'note_count': 2,
+        'latest_note': 'First realtime note',
+      });
+      await _flushMicrotasks();
+
+      // Older backend / partial payload: no latest_note key at all.
+      ws._kanbanController.add({
+        'event': 'invoice_note_added',
+        'invoice_id': 'INV-OLD',
+        'note_count': 3,
+      });
+      await _flushMicrotasks();
+
+      final state = container.read(kanbanProvider);
+      final card = state.invoices['received']!.firstWhere((entry) => entry.id == 'INV-OLD');
+      expect(card.noteCount, 3);
+      expect(card.latestNote, 'First realtime note');
+    });
+
+    test('realtime invoice_note_added clears the preview when note count drops to zero', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      final ws = container.read(webSocketServiceProvider) as _FakeWebSocketService;
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      ws._kanbanController.add({
+        'event': 'invoice_note_added',
+        'invoice_id': 'INV-OLD',
+        'note_count': 1,
+        'latest_note': 'Note to be removed',
+      });
+      await _flushMicrotasks();
+
+      ws._kanbanController.add({
+        'event': 'invoice_note_added',
+        'invoice_id': 'INV-OLD',
+        'note_count': 0,
+      });
+      await _flushMicrotasks();
+
+      final state = container.read(kanbanProvider);
+      final card = state.invoices['received']!.firstWhere((entry) => entry.id == 'INV-OLD');
+      expect(card.noteCount, 0);
+      expect(card.hasNotes, isFalse);
+      expect(card.latestNote, isNull);
     });
   });
 
