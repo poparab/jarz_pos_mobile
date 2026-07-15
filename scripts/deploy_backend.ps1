@@ -195,7 +195,14 @@ function Assert-AppRepoIntegrity($GitTarget) {
     # untracked files are inert and expected. A MODIFIED TRACKED file is the real
     # signal: it means the deployed code on disk is not the deployed commit, and a
     # `git pull` below would fail anyway.
-    $dirty = (Invoke-Remote "sudo git -c safe.directory=$($GitTarget.AppPath) -C $($GitTarget.AppPath) status --porcelain -uno" -IgnoreExitCode).Trim()
+    #
+    # --no-optional-locks is load-bearing, not a micro-optimisation: plain `git status`
+    # REFRESHES .git/index as a side effect, and we run it under sudo, so it would
+    # rewrite the index as root:root on every deploy. CI then execs git as `frappe`
+    # (uid 1000) and its restore step would fail on the unwritable index — this guard
+    # would quietly break the very CI job whose regressions it exists to catch.
+    # GIT_OPTIONAL_LOCKS=0 makes status skip that write and stay genuinely read-only.
+    $dirty = (Invoke-Remote "sudo git --no-optional-locks -c safe.directory=$($GitTarget.AppPath) -C $($GitTarget.AppPath) status --porcelain -uno" -IgnoreExitCode).Trim()
     if ($dirty) {
         $fingerprints += "tracked files differ from the deployed commit (a CI run left code behind, or someone edited the server by hand):`n$dirty"
     }
@@ -389,6 +396,15 @@ foreach ($gitTarget in $gitTargets) {
     $gitTarget.Changed = $gitTarget.HeadBefore -ne $gitTarget.HeadAfter
     $gitTarget.RequiresPipInstall = Test-AppRequiresEditableReinstall $gitTarget
     Write-Info "$($gitTarget.AppName) updated to $($gitTarget.HeadAfter)"
+
+    # Normalise ownership to uid 1000 after every pull. The pull runs under sudo
+    # (unavoidable — /var/lib/docker/volumes is only traversable by root), so every
+    # file it rewrites lands as root:root. Nothing noticed while the deploy was the
+    # only writer, but staging's CI execs as 'frappe' (uid 1000 = host 'ubuntu') and
+    # cannot write root-owned files, so an un-normalised pull would break the test
+    # gate on exactly the files a release just changed. The stray root-owned file on
+    # the woo volume is a fossil of this. Idempotent, and cheap next to the pull.
+    Invoke-Remote "sudo chown -R ubuntu:ubuntu $($gitTarget.AppPath)" | Out-Null
 
     if ($gitTarget.RequiresPipInstall) {
         Write-Info "$($gitTarget.AppName) queued for editable reinstall"
