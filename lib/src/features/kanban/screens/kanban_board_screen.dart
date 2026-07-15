@@ -1209,10 +1209,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       }
 
       // InstaPay-on-delivery: an UNPAID online order (Instapay / Mobile Wallet),
-      // non-partner and non-pickup, must NOT go through the courier settlement
-      // dialog (which would wrongly mark it paid via the outstanding path). It
-      // simply goes Out for Delivery as "Awaiting Payment" and is reconciled
-      // later on the manager reconciliation screen.
+      // non-partner and non-pickup, still needs a courier assigned but must NOT
+      // go through courier settlement (which would wrongly mark it paid via the
+      // outstanding path). It goes Out for Delivery as "Awaiting Payment" and is
+      // reconciled later on the manager reconciliation screen.
       if (!isPaid && !hasPartner && !isPickup && _isOnlineIntent(inv)) {
         final posProfile = _getEffectiveProfileForInvoice(inv);
         if (posProfile == null) {
@@ -1226,15 +1226,39 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
           return;
         }
+        final courierResult = await _showCourierSettlementDialog(
+          courierOnly: true,
+          invoicePosProfile: inv?.posProfile,
+        );
+        if (courierResult == null) {
+          final fromCol = ref.read(kanbanProvider).columns.firstWhere(
+            (c) => c.id == fromColumnId,
+            orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
+          );
+          ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
+          return;
+        }
+        final courierPartyType = courierResult['party_type'] as String?;
+        final courierParty = courierResult['party'] as String?;
+        final courierDisplay =
+            (courierResult['display_name'] as String?) ?? courierParty;
         try {
           await ref
               .read(instapayReconciliationServiceProvider)
               .deliverOnlineUnconfirmed(
                 invoiceName: invoiceId,
                 posProfile: posProfile,
+                partyType: courierPartyType,
+                party: courierParty,
               );
           messenger.showSnackBar(
-            const SnackBar(content: Text('Out for delivery — awaiting InstaPay')),
+            SnackBar(
+              content: Text(
+                (courierDisplay != null && courierDisplay.isNotEmpty)
+                    ? l10n.kanbanOfdAwaitingInstapayWithCourier(courierDisplay)
+                    : l10n.kanbanOfdAwaitingInstapay,
+              ),
+            ),
           );
           try {
             await ref.read(kanbanProvider.notifier).refreshSingle(invoiceId);
@@ -1781,6 +1805,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
 
   Future<Map<String, dynamic>?> _showCourierSettlementDialog({
     bool hideSettleLater = false,
+    // Courier attribution only: hides every settlement option and returns just
+    // the courier selection. Used by flows that must not settle the invoice.
+    bool courierOnly = false,
     String? invoicePosProfile, // The specific invoice's POS profile (branch)
   }) async {
     String? courier;
@@ -2071,7 +2098,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                             ),
                             const SizedBox(height: 8),
                           ],
-                          if (OutForDeliverySettlement.showModePicker) ...[
+                          if (OutForDeliverySettlement.showModePicker && !courierOnly) ...[
                             const SizedBox(height: 14),
                             Align(
                               alignment: AlignmentDirectional.centerStart,
@@ -2112,7 +2139,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                         ? null
                         : () => Navigator.pop(ctx, {
                               'courier': 'UNKNOWN',
-                              'mode': mode,
+                              if (!courierOnly) 'mode': mode,
                               'no_courier': true,
                             }),
                     child: Text(context.l10n.kanbanContinue),
@@ -2125,7 +2152,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                               final selected = couriers.firstWhere((c) => c['party'] == courier, orElse: () => {});
                               Navigator.pop(ctx, {
                                 'courier': courier,
-                                'mode': mode,
+                                if (!courierOnly) 'mode': mode,
                                 'party_type': selected['party_type'],
                                 'party': selected['party'],
                                 'display_name': selected['display_name'],

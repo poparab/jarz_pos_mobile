@@ -5899,6 +5899,18 @@ abstract class AppLocalizations {
   /// **'This order is part of trip {tripName}. Send the entire trip for delivery from the Trips screen.'**
   String kanbanPartOfTripWarning(Object tripName);
 
+  /// No description provided for @kanbanOfdAwaitingInstapay.
+  ///
+  /// In en, this message translates to:
+  /// **'Out for delivery — awaiting InstaPay'**
+  String get kanbanOfdAwaitingInstapay;
+
+  /// No description provided for @kanbanOfdAwaitingInstapayWithCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'Out for delivery with {courier} — awaiting InstaPay'**
+  String kanbanOfdAwaitingInstapayWithCourier(Object courier);
+
   /// No description provided for @kanbanDeliveryPartnerCourier.
   ///
   /// In en, this message translates to:

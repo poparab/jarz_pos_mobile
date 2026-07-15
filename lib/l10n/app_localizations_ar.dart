@@ -3357,6 +3357,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get kanbanOfdAwaitingInstapay => 'خرج للتوصيل — في انتظار إنستاباي';
+
+  @override
+  String kanbanOfdAwaitingInstapayWithCourier(Object courier) {
+    return 'خرج للتوصيل مع $courier — في انتظار إنستاباي';
+  }
+
+  @override
   String get kanbanDeliveryPartnerCourier => 'ساعي شريك التوصيل';
 
   @override

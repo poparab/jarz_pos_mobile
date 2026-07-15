@@ -58,6 +58,8 @@ class InstapayReconciliationService {
   Future<Map<String, dynamic>> deliverOnlineUnconfirmed({
     required String invoiceName,
     required String posProfile,
+    String? partyType,
+    String? party,
   }) async {
     try {
       final resp = await _dio.post(
@@ -65,6 +67,9 @@ class InstapayReconciliationService {
         data: {
           'invoice_name': invoiceName,
           'pos_profile': posProfile,
+          if (partyType != null && partyType.trim().isNotEmpty)
+            'party_type': partyType.trim(),
+          if (party != null && party.trim().isNotEmpty) 'party': party.trim(),
         },
       );
       return _parseMethodResponse(

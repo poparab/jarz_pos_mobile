@@ -3367,6 +3367,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get kanbanOfdAwaitingInstapay =>
+      'Out for delivery — awaiting InstaPay';
+
+  @override
+  String kanbanOfdAwaitingInstapayWithCourier(Object courier) {
+    return 'Out for delivery with $courier — awaiting InstaPay';
+  }
+
+  @override
   String get kanbanDeliveryPartnerCourier => 'Delivery Partner Courier';
 
   @override
