@@ -29,12 +29,21 @@ if (-not (Test-Path $SshKeyPath)) {
     throw "SSH key not found at $SshKeyPath"
 }
 
+# Apps pulled on every deploy. This list is deliberately SHARED by staging and
+# production: an app production pulls must be exercised on staging first, or its
+# upstream commits reach production having never run anywhere else. Until
+# 2026-07-15 staging's list omitted hrms while production's included it, so 24
+# upstream frappe/hrms commits shipped straight to production — and any hrms
+# schema change would have hit `bench migrate` for the first time on prod.
+# Keep this single list; do not re-introduce a per-environment variant.
+$deployedApps = @('jarz_pos', 'jarz_woocommerce_integration', 'hrms')
+
 $config = switch ($Environment) {
     'staging' {
         @{
             ServerIp = '13.36.219.136'
             Domain = 'erpstg.orderjarz.com'
-            CustomApps = @('jarz_pos', 'jarz_woocommerce_integration')
+            CustomApps = $deployedApps
             RequiresBackup = $false
         }
     }
@@ -42,7 +51,7 @@ $config = switch ($Environment) {
         @{
             ServerIp = '13.36.132.13'
             Domain = 'erp.orderjarz.com'
-            CustomApps = @('jarz_pos', 'jarz_woocommerce_integration', 'hrms')
+            CustomApps = $deployedApps
             RequiresBackup = $true
         }
     }
@@ -150,6 +159,80 @@ function Get-RemoteBranchHead($GitTarget) {
     return ($lsRemote -split '\s+')[0]
 }
 
+function Assert-AppRepoIntegrity($GitTarget) {
+    # The deploy trigger further down is `HeadBefore -ne RemoteHead`, read from the
+    # app's on-disk git state. That is only a meaningful signal while THIS script is
+    # the only thing that ever moves HEAD.
+    #
+    # It wasn't. Until 2026-07-15 the staging CI job
+    # (jarz_pos/.github/workflows/backend-tests.yml) synced the branch under test with
+    # `docker cp . <backend>:/home/frappe/frappe-bench/apps/jarz_pos/`. That container
+    # path IS the live erp_apps volume, and `docker cp .` copies the runner's whole
+    # checkout — `.git` included. So CI silently advanced on-disk HEAD to the tip of
+    # main without ever pulling: every subsequent deploy computed PendingUpdate=false
+    # and skipped pip/migrate/cache-clear/restart while reporting success. Because
+    # gunicorn runs with --preload (the app is imported in the master and workers fork
+    # from it), the new code sat on disk and was NOT being served until a restart.
+    # Disk looked deployed, CI was green, and the running code was two commits stale.
+    #
+    # CI no longer copies .git. This guard is the regression detector: it fails the
+    # deploy loudly if the live repo ever again looks like a CI checkout rather than a
+    # deploy clone. A hard failure here is always preferable to the silent false-green.
+    $fingerprints = @()
+
+    $isShallow = (Invoke-Remote "sudo test -f $($GitTarget.AppPath)/.git/shallow && echo yes || echo no" -IgnoreExitCode).Trim()
+    if ($isShallow -eq 'yes') {
+        $fingerprints += 'shallow clone (.git/shallow present) — deploys clone with full history; actions/checkout uses fetch-depth 1'
+    }
+
+    $extraHeader = (Invoke-Remote "sudo git -c safe.directory=$($GitTarget.AppPath) -C $($GitTarget.AppPath) config --get-regexp '^http\..*\.extraheader' || true" -IgnoreExitCode).Trim()
+    if ($extraHeader) {
+        $fingerprints += 'git config carries an actions/checkout AUTHORIZATION extraheader — a CI token was written into the live volume'
+    }
+
+    # -uno: tracked files only. CI's restore intentionally leaves untracked leftovers
+    # rather than risk a version-dependent `git clean -d` against the live volume, so
+    # untracked files are inert and expected. A MODIFIED TRACKED file is the real
+    # signal: it means the deployed code on disk is not the deployed commit, and a
+    # `git pull` below would fail anyway.
+    $dirty = (Invoke-Remote "sudo git -c safe.directory=$($GitTarget.AppPath) -C $($GitTarget.AppPath) status --porcelain -uno" -IgnoreExitCode).Trim()
+    if ($dirty) {
+        $fingerprints += "tracked files differ from the deployed commit (a CI run left code behind, or someone edited the server by hand):`n$dirty"
+    }
+
+    if ($fingerprints.Count -eq 0) {
+        return
+    }
+
+    $detail = ($fingerprints | ForEach-Object { "  - $_" }) -join "`n"
+    throw @"
+$($GitTarget.AppName) at $($GitTarget.AppPath) is not a clean deploy clone:
+$detail
+
+Something other than this script is writing to the live app volume, which makes the
+'already at target commit' fast-path unsafe (see the 2026-07-15 false-green above).
+Refusing to deploy rather than report a green over a stale runtime.
+
+To repair the repo in place — run as the 'ubuntu' account, the only one with sudo
+(the CI runner deliberately has none). All code still comes from GitHub; nothing here
+hand-edits an application file:
+  ssh -i <key> ubuntu@$($config.ServerIp)
+  APP=$($GitTarget.AppPath)
+  # Drop the CI token and actions/checkout's leftovers, restore full history.
+  sudo git -c safe.directory=`$APP -C `$APP config --unset-all 'http.https://github.com/.extraheader' || true
+  sudo git -c safe.directory=`$APP -C `$APP config --unset core.worktree || true
+  sudo git -c safe.directory=`$APP -C `$APP config --unset gc.auto || true
+  sudo git -c safe.directory=`$APP -C `$APP checkout -- .
+  sudo GIT_SSH_COMMAND='$gitSshCommand' git -c safe.directory=`$APP -C `$APP fetch --unshallow $($GitTarget.RemoteName) || true
+  # Re-own to uid 1000. This is REQUIRED, not cosmetic: the CI runner is uid 1001
+  # (github-runner) and stamped that uid on every file it copied, but the backend
+  # container execs as 'frappe' = uid 1000 = host 'ubuntu'. Until this runs, CI's
+  # non-root sync cannot write here at all. hrms/woo are already 1000:1000 — match them.
+  sudo chown -R ubuntu:ubuntu `$APP
+Then re-run this deploy.
+"@
+}
+
 function Test-AppRequiresEditableReinstall($GitTarget) {
     if ($ForceReinstallApps) {
         return $true
@@ -249,6 +332,7 @@ Write-Host ''
 
 $gitTargets = foreach ($appName in $config.CustomApps) {
     $gitTarget = Resolve-GitTarget $appName
+    Assert-AppRepoIntegrity $gitTarget
     $remoteUrl = Convert-GitHubRemoteToSsh $gitTarget
     $gitTarget.RemoteUrl = $remoteUrl
     $gitTarget.RemoteHead = Get-RemoteBranchHead $gitTarget
