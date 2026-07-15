@@ -192,9 +192,12 @@ function Assert-AppRepoIntegrity($GitTarget) {
 
     # -uno: tracked files only. CI's restore intentionally leaves untracked leftovers
     # rather than risk a version-dependent `git clean -d` against the live volume, so
-    # untracked files are inert and expected. A MODIFIED TRACKED file is the real
-    # signal: it means the deployed code on disk is not the deployed commit, and a
-    # `git pull` below would fail anyway.
+    # untracked files must not fail this guard. They are NOT entirely inert, though —
+    # an untracked leftover blocks the pull outright once a later commit adds a tracked
+    # file at the same path. The pull step handles that case by removing only the
+    # colliding paths; see the comment there. A MODIFIED TRACKED file is the signal
+    # this guard exists for: it means the deployed code on disk is not the deployed
+    # commit, and a `git pull` below would fail anyway.
     #
     # --no-optional-locks is load-bearing, not a micro-optimisation: plain `git status`
     # REFRESHES .git/index as a side effect, and we run it under sudo, so it would
@@ -384,6 +387,37 @@ foreach ($gitTarget in $gitTargets) {
     if (-not $gitTarget.PendingUpdate) {
         Write-Info "$($gitTarget.AppName) already at target commit $($gitTarget.HeadBefore)"
         continue
+    }
+
+    # Clear CI's untracked leftovers before pulling, but ONLY where they collide.
+    #
+    # backend-tests.yml runs on the self-hosted staging-docker runner and syncs the
+    # branch under test straight into this live volume, then restores with
+    # `git checkout -- .` — which only restores TRACKED files. Anything new in the
+    # tested commit survives as an untracked leftover. That is genuinely inert until a
+    # release adds a tracked file at the same path: `git pull` then aborts with
+    # "untracked working tree files would be overwritten by merge" and the deploy dies
+    # at the pull. f851371 hit exactly this — its new tests/test_v16_query_compat.py
+    # collided with the copy CI had already left behind. It recurs on any release that
+    # adds a file, because CI tests that commit against this volume first.
+    #
+    # Delete only untracked paths the incoming commit ADDS. That is provably
+    # convergent: the pull writes the authoritative version at that exact path a
+    # second later. Deliberately not `git clean` — this is a live volume and a broad
+    # clean could take out anything else living here. --exclude-standard is correct:
+    # ignored files are overwritten by merge without complaint and never block a pull.
+    Invoke-Remote "sudo GIT_SSH_COMMAND='$gitSshCommand' git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) fetch --quiet $($gitTarget.RemoteName) $($gitTarget.BranchName)" | Out-Null
+
+    $splitLines = { param($text) ($text -split "`r?`n") | ForEach-Object { $_.Trim() } | Where-Object { $_ } }
+    $addedPaths = & $splitLines (Invoke-Remote "sudo git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) diff --diff-filter=A --name-only HEAD FETCH_HEAD" -IgnoreExitCode)
+    $untrackedPaths = & $splitLines (Invoke-Remote "sudo git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) ls-files --others --exclude-standard" -IgnoreExitCode)
+
+    $collisions = @($addedPaths | Where-Object { $untrackedPaths -contains $_ })
+    if ($collisions.Count -gt 0) {
+        Write-Info "Removing $($collisions.Count) untracked file(s) colliding with paths added by the incoming commit (CI leftovers):"
+        $collisions | ForEach-Object { Write-Info "  - $_" }
+        $quotedPaths = ($collisions | ForEach-Object { "'$($gitTarget.AppPath)/$_'" }) -join ' '
+        Invoke-Remote "sudo rm -f $quotedPaths" | Out-Null
     }
 
     Write-Info "Pulling $($gitTarget.AppName) from $($gitTarget.RemoteName)/$($gitTarget.BranchName)"
