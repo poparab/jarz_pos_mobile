@@ -6199,6 +6199,12 @@ abstract class AppLocalizations {
   /// **'Alarm sound changed to {title}'**
   String settingsAlarmSoundChanged(Object title);
 
+  /// No description provided for @settingsAlarmSoundUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} can\'\'t be used on this device. Keeping the default alarm sound.'**
+  String settingsAlarmSoundUnavailable(Object title);
+
   /// No description provided for @settingsCustomAlarmSoundSet.
   ///
   /// In en, this message translates to:

@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/timing_config.dart';
+import '../monitoring/sentry_service.dart';
 import '../session/session_manager.dart';
 import 'cookie_manager.dart';
 import '../offline/offline_queue.dart';
@@ -149,6 +150,41 @@ final dioProvider = Provider<Dio>((ref) {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+      },
+    ),
+  );
+
+  // Record every request/response/error as a Sentry breadcrumb. Without this,
+  // events raised from this Dio instance (which serves most of the app) arrive
+  // with no trace of which endpoint failed or what it returned.
+  dio.interceptors.add(
+    InterceptorsWrapper(
+      onRequest: (options, handler) {
+        SentryService.instance.addHttpBreadcrumb(
+          method: options.method,
+          path: options.path,
+          category: 'http.request',
+        );
+        handler.next(options);
+      },
+      onResponse: (response, handler) {
+        SentryService.instance.addHttpBreadcrumb(
+          method: response.requestOptions.method,
+          path: response.requestOptions.path,
+          statusCode: response.statusCode,
+          category: 'http.response',
+        );
+        handler.next(response);
+      },
+      onError: (error, handler) {
+        SentryService.instance.addHttpBreadcrumb(
+          method: error.requestOptions.method,
+          path: error.requestOptions.path,
+          statusCode: error.response?.statusCode,
+          category: 'http.error',
+          failed: true,
+        );
+        handler.next(error);
       },
     ),
   );

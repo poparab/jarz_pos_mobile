@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -266,7 +267,15 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
         state = state.copyWith(isMuted: false, clearError: true);
       }
     } catch (error, stackTrace) {
-      _logger.error('Failed to sync pending alerts', error, stackTrace);
+      // This runs on a poll loop, so an offline device would otherwise report
+      // the same "Failed host lookup" thousands of times per session and bury
+      // real issues. Expected connectivity failures are logged and retried on
+      // the next tick; anything else is still reported.
+      if (_isExpectedOfflineFailure(error)) {
+        _logger.debug('Skipping alert sync while offline: $error');
+      } else {
+        _logger.error('Failed to sync pending alerts', error, stackTrace);
+      }
       state = state.copyWith(
         error: error.toString(),
         lastSynced: DateTime.now(),
@@ -274,6 +283,32 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     } finally {
       _loadingPending = false;
     }
+  }
+
+  /// True when [error] means "the device could not reach the server", which is
+  /// a normal condition for a mobile POS rather than a bug worth reporting.
+  bool _isExpectedOfflineFailure(Object error) {
+    if (error is DioException) {
+      // A real server response (any 4xx/5xx) is still worth reporting.
+      if (error.type == DioExceptionType.badResponse) {
+        return false;
+      }
+      const transportFailures = <DioExceptionType>{
+        DioExceptionType.connectionError,
+        DioExceptionType.connectionTimeout,
+        DioExceptionType.sendTimeout,
+        DioExceptionType.receiveTimeout,
+      };
+      if (transportFailures.contains(error.type)) {
+        return true;
+      }
+    }
+
+    final text = error.toString().toLowerCase();
+    return text.contains('failed host lookup') ||
+        text.contains('socketexception') ||
+        text.contains('xmlhttprequest error') ||
+        text.contains('cannot reach server');
   }
 
   Future<void> handleInvoiceAccepted(String invoiceId) async {

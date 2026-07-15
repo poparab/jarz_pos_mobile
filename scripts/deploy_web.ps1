@@ -252,6 +252,39 @@ if (-not $webDecision.Required) {
     exit 0
 }
 
+Write-Step 'Resolving Sentry release id...'
+# Web builds shipped without SENTRY_RELEASE, so every web event landed in Sentry as
+# the pubspec default "jarz_pos@1.0.0+1" — indistinguishable across builds and
+# impossible to tie an error back to a commit. Reuse the same release_metadata tool
+# the Android workflow uses so web and Android share one release scheme
+# (e.g. staging-v1.0.0+327-c994c5f). build_release.bat forwards these as
+# --dart-define when they are present in the environment.
+Push-Location $repoRoot
+try {
+    $releaseMetaRaw = & dart run tool/release_metadata.dart --channel $Environment 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to resolve release metadata:`n$($releaseMetaRaw -join "`n")"
+    }
+}
+finally {
+    Pop-Location
+}
+
+$sentryRelease = ''
+$sentryDist = ''
+foreach ($line in $releaseMetaRaw) {
+    if ("$line" -match '^RELEASE_ID=(.+)$') { $sentryRelease = $Matches[1].Trim() }
+    elseif ("$line" -match '^BUILD_NUMBER=(.+)$') { $sentryDist = $Matches[1].Trim() }
+}
+if (-not $sentryRelease) {
+    throw "Could not parse RELEASE_ID from release metadata output:`n$($releaseMetaRaw -join "`n")"
+}
+
+$env:SENTRY_RELEASE = $sentryRelease
+$env:SENTRY_DIST = $sentryDist
+Write-Info "sentry_release=$sentryRelease"
+Write-Info "sentry_dist=$sentryDist"
+
 Write-Step 'Building Flutter web release...'
 $buildStdoutPath = [System.IO.Path]::GetTempFileName()
 $buildStderrPath = [System.IO.Path]::GetTempFileName()

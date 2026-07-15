@@ -3543,6 +3543,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String settingsAlarmSoundUnavailable(Object title) {
+    return '$title can\'t be used on this device. Keeping the default alarm sound.';
+  }
+
+  @override
   String settingsCustomAlarmSoundSet(Object title) {
     return 'Custom alarm sound set: $title';
   }

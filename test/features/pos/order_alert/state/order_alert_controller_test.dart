@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:jarz_pos/src/core/debug/app_error_reporter.dart';
 import 'package:jarz_pos/src/features/pos/order_alert/data/order_alert_service.dart';
 import 'package:jarz_pos/src/features/pos/order_alert/domain/invoice_alert.dart';
 import 'package:jarz_pos/src/features/pos/order_alert/state/order_alert_controller.dart';
@@ -17,6 +18,10 @@ class _FakeOrderAlertService extends OrderAlertService {
   List<InvoiceAlert> pendingAlerts = [];
   bool shouldThrow = false;
 
+  /// When set, `getPendingAlerts` throws exactly this instead of a generic
+  /// Exception, so tests can drive the offline-vs-real-fault branches.
+  Object? pendingAlertsError;
+
   @override
   Future<void> acknowledgeInvoice(String invoiceName) async {
     if (shouldThrow) throw Exception('ack failed');
@@ -25,6 +30,8 @@ class _FakeOrderAlertService extends OrderAlertService {
 
   @override
   Future<List<InvoiceAlert>> getPendingAlerts() async {
+    final error = pendingAlertsError;
+    if (error != null) throw error;
     if (shouldThrow) throw Exception('sync failed');
     return pendingAlerts;
   }
@@ -274,6 +281,83 @@ void main() {
       await controller.syncPendingAlerts();
       await controller.syncPendingAlerts();
       expect(controller.state.queue, hasLength(1));
+    });
+
+    // This poll runs continuously; reporting expected offline failures made it
+    // the single highest-volume Sentry issue (5673 events of "Failed host
+    // lookup") and evicted real diagnostics. Logger.error is what forwards to
+    // Sentry, and it records into AppErrorReporter, so assert on that.
+    group('offline failures are not reported', () {
+      setUp(AppErrorReporter.instance.clear);
+      tearDown(AppErrorReporter.instance.clear);
+
+      RequestOptions requestOptions() =>
+          RequestOptions(path: '/api/method/get_pending_alerts');
+
+      test('does not report a "Failed host lookup" while offline', () async {
+        service.pendingAlertsError = DioException(
+          requestOptions: requestOptions(),
+          type: DioExceptionType.connectionError,
+          error: "Failed host lookup: 'erpstg.orderjarz.com'",
+        );
+
+        await controller.syncPendingAlerts();
+
+        expect(AppErrorReporter.instance.records, isEmpty);
+        // The poll still surfaces the state so the UI can react, and retries.
+        expect(controller.state.error, isNotNull);
+        expect(controller.state.lastSynced, isNotNull);
+      });
+
+      test('does not report connection timeouts', () async {
+        service.pendingAlertsError = DioException(
+          requestOptions: requestOptions(),
+          type: DioExceptionType.connectionTimeout,
+        );
+
+        await controller.syncPendingAlerts();
+
+        expect(AppErrorReporter.instance.records, isEmpty);
+      });
+
+      test('does not report a raw SocketException', () async {
+        service.pendingAlertsError = Exception(
+          'SocketException: Failed host lookup',
+        );
+
+        await controller.syncPendingAlerts();
+
+        expect(AppErrorReporter.instance.records, isEmpty);
+      });
+
+      test('still reports genuine server faults', () async {
+        // Do not over-filter: a 500 from the backend is a real bug.
+        final options = requestOptions();
+        service.pendingAlertsError = DioException(
+          requestOptions: options,
+          type: DioExceptionType.badResponse,
+          response: Response<dynamic>(
+            requestOptions: options,
+            statusCode: 500,
+          ),
+        );
+
+        await controller.syncPendingAlerts();
+
+        expect(AppErrorReporter.instance.records, hasLength(1));
+        expect(
+          AppErrorReporter.instance.records.single.source,
+          'Logger:OrderAlertController',
+        );
+      });
+
+      test('still reports unexpected programming errors', () async {
+        service.pendingAlertsError = StateError('bad state');
+
+        await controller.syncPendingAlerts();
+
+        expect(AppErrorReporter.instance.records, hasLength(1));
+      });
     });
   });
 

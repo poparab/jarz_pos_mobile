@@ -77,6 +77,35 @@ Future<void> _pumpCartWidget(WidgetTester tester, PosState state) async {
   await tester.pumpAndSettle();
 }
 
+/// Builds a bundle cart item whose `bundle_details` came back through JSON, as
+/// happens for a restored draft / offline-cached cart. The decoded value is a
+/// `Map<String, dynamic>` holding `List<dynamic>`, NOT the
+/// `Map<String, List<Map<String, dynamic>>>` the widget used to hard-cast to.
+PosState _buildBundleState({required Object? selectedItems}) {
+  return PosState(
+    selectedProfile: const {'name': 'Main'},
+    cartItems: [
+      {
+        'item_code': 'BUNDLE-1',
+        'item_name': 'Family Box',
+        'quantity': 1,
+        'rate': 500,
+        'type': 'bundle',
+        'bundle_details': <String, dynamic>{
+          'bundle_id': 'BUNDLE-1',
+          'bundle_info': <String, dynamic>{
+            'item_groups': <dynamic>[
+              <String, dynamic>{'group_name': 'Flavours', 'group_key': 'g1'},
+            ],
+          },
+          'selected_items': selectedItems,
+        },
+      },
+    ],
+    isPickup: true,
+  );
+}
+
 PosState _buildState({
   required bool isAmendmentDraft,
   String? amendmentSourceInvoiceId,
@@ -159,5 +188,74 @@ void main() {
         expect(button.onPressed, isNull);
       },
     );
+  });
+
+  group('CartWidget bundle details rendering', () {
+    testWidgets(
+      'renders JSON-decoded bundle selections without a cast error',
+      (tester) async {
+        // Regression: a hard `as Map<String, List<Map<String, dynamic>>>?` cast
+        // threw "_Map<String, dynamic> is not a subtype of ..." during build.
+        await _pumpCartWidget(
+          tester,
+          _buildBundleState(
+            selectedItems: <String, dynamic>{
+              'g1': <dynamic>[
+                <String, dynamic>{'name': 'Blueberry'},
+                <String, dynamic>{'name': 'Blueberry'},
+                <String, dynamic>{'name': 'Mango'},
+              ],
+            },
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+        // Identical items are collapsed into a count.
+        expect(find.text('Flavours: Blueberry x2, Mango'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'renders the strongly typed in-memory bundle shape unchanged',
+      (tester) async {
+        await _pumpCartWidget(
+          tester,
+          _buildBundleState(
+            selectedItems: <String, List<Map<String, dynamic>>>{
+              'g1': <Map<String, dynamic>>[
+                <String, dynamic>{'name': 'Mango'},
+              ],
+            },
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Flavours: Mango'), findsOneWidget);
+      },
+    );
+
+    for (final malformed in <(String, Object?)>[
+      ('null selections', null),
+      ('a string instead of a map', 'not-a-map'),
+      ('a list instead of a map', <dynamic>[]),
+      ('non-map entries', <String, dynamic>{
+        'g1': <dynamic>['just a string', 42],
+      }),
+      ('a non-list group value', <String, dynamic>{'g1': 'oops'}),
+    ]) {
+      testWidgets(
+        'survives malformed bundle selections: ${malformed.$1}',
+        (tester) async {
+          // The cart must degrade to hiding the details, never throw at build.
+          await _pumpCartWidget(
+            tester,
+            _buildBundleState(selectedItems: malformed.$2),
+          );
+
+          expect(tester.takeException(), isNull);
+          expect(find.text('Family Box'), findsOneWidget);
+        },
+      );
+    }
   });
 }

@@ -35,17 +35,20 @@ void main() {
       final sut = await createService();
 
       // Act
-      await sut.setSelectedSound(
+      final result = await sut.setSelectedSound(
         'file:///storage/emulated/0/Download/custom.mp3',
         'Custom tone',
       );
 
       // Assert
+      expect(result.isApplied, isTrue);
+      expect(result.status, AlarmSoundSelectionStatus.applied);
+      expect(result.uri, 'content://media/external/audio/media/42');
       expect(sut.getSelectedSoundUri(), 'content://media/external/audio/media/42');
       expect(sut.getSelectedSoundTitle(), 'Custom tone');
     });
 
-    test('should leave prefs untouched when native rejects the selected sound', () async {
+    test('should report fallback instead of throwing when native rejects the selected sound', () async {
       // Arrange
       messenger.setMockMethodCallHandler(channel, (MethodCall call) async {
         expect(call.method, 'setAlarmSound');
@@ -54,12 +57,50 @@ void main() {
       final sut = await createService();
 
       // Act
-      final future = sut.setSelectedSound('file:///missing.mp3', 'Broken tone');
+      final result = await sut.setSelectedSound('file:///missing.mp3', 'Broken tone');
 
       // Assert
-      await expectLater(future, throwsStateError);
+      expect(result.isApplied, isFalse);
+      expect(result.status, AlarmSoundSelectionStatus.fallbackToDefault);
       expect(sut.getSelectedSoundUri(), isNull);
       expect(sut.getSelectedSoundTitle(), isNull);
+    });
+
+    test('should keep the previous working sound when native rejects a new selection', () async {
+      // Arrange
+      messenger.setMockMethodCallHandler(channel, (MethodCall call) async {
+        expect(call.method, 'setAlarmSound');
+        return null;
+      });
+      final sut = await createService({
+        PrefKeys.alarmSoundUri: 'content://media/external/audio/media/7',
+        PrefKeys.alarmSoundTitle: 'Working tone',
+      });
+
+      // Act
+      final result = await sut.setSelectedSound('file:///missing.mp3', 'Broken tone');
+
+      // Assert
+      expect(result.isApplied, isFalse);
+      expect(sut.getSelectedSoundUri(), 'content://media/external/audio/media/7');
+      expect(sut.getSelectedSoundTitle(), 'Working tone');
+    });
+
+    test('should fall back to the default sound when the native channel throws', () async {
+      // Arrange — a device that raises rather than returning null must not crash
+      // the app or reach Sentry as a fatal error.
+      messenger.setMockMethodCallHandler(channel, (MethodCall call) async {
+        throw PlatformException(code: 'RINGTONE_UNAVAILABLE');
+      });
+      final sut = await createService();
+
+      // Act
+      final result = await sut.setSelectedSound('file:///missing.mp3', 'Broken tone');
+
+      // Assert
+      expect(result.isApplied, isFalse);
+      expect(result.status, AlarmSoundSelectionStatus.fallbackToDefault);
+      expect(sut.getSelectedSoundUri(), isNull);
     });
   });
 
@@ -114,9 +155,10 @@ void main() {
       final sut = AlarmSoundService.inMemory();
 
       // Act
-      await sut.setSelectedSound('file:///tmp/custom.mp3', 'Session tone');
+      final result = await sut.setSelectedSound('file:///tmp/custom.mp3', 'Session tone');
 
       // Assert
+      expect(result.isApplied, isTrue);
       expect(sut.getSelectedSoundUri(), 'content://media/external/audio/media/99');
       expect(sut.getSelectedSoundTitle(), 'Session tone');
     });

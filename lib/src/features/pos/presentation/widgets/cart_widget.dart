@@ -1274,6 +1274,9 @@ class CartWidget extends ConsumerWidget {
     int index,
   ) async {
     final l10n = context.l10n;
+    // Resolved before `showDialog`: the dialog's callbacks fire after an async
+    // gap, when this widget (and therefore `ref`) may already be disposed.
+    final posNotifier = ref.read(posNotifierProvider.notifier);
     double readAmount(dynamic value) {
       if (value is num) {
         return value.toDouble();
@@ -1373,14 +1376,12 @@ class CartWidget extends ConsumerWidget {
                   return;
                 }
 
-                ref
-                    .read(posNotifierProvider.notifier)
-                    .applyCartItemPricing(
-                      index,
-                      customRateOverride: customRate,
-                      discountAmount: discountAmount,
-                      discountPercentage: discountPercentage,
-                    );
+                posNotifier.applyCartItemPricing(
+                  index,
+                  customRateOverride: customRate,
+                  discountAmount: discountAmount,
+                  discountPercentage: discountPercentage,
+                );
                 Navigator.of(dialogContext).pop();
               }
 
@@ -1466,9 +1467,7 @@ class CartWidget extends ConsumerWidget {
                   if (hasOverrides)
                     TextButton(
                       onPressed: () {
-                        ref
-                            .read(posNotifierProvider.notifier)
-                            .clearCartItemPricing(index);
+                        posNotifier.clearCartItemPricing(index);
                         Navigator.of(dialogContext).pop();
                       },
                       child: Text(l10n.posCartItemPricingReset),
@@ -1496,6 +1495,9 @@ class CartWidget extends ConsumerWidget {
 
   void _showDeliveryIncomeDialog(BuildContext context, WidgetRef ref) {
     final state = ref.read(posNotifierProvider);
+    // Resolved before `showDialog`: the dialog's actions run after an async gap.
+    final posNotifier = ref.read(posNotifierProvider.notifier);
+    final messenger = ScaffoldMessenger.of(context);
     final controller = TextEditingController(
       text: state.customDeliveryIncome != null
           ? state.customDeliveryIncome!.toStringAsFixed(2)
@@ -1532,9 +1534,7 @@ class CartWidget extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () {
-              ref
-                  .read(posNotifierProvider.notifier)
-                  .setCustomDeliveryIncome(null);
+              posNotifier.setCustomDeliveryIncome(null);
               Navigator.pop(ctx);
             },
             child: const Text('Reset to Default'),
@@ -1547,22 +1547,18 @@ class CartWidget extends ConsumerWidget {
             onPressed: () {
               final raw = controller.text.trim();
               if (raw.isEmpty) {
-                ref
-                    .read(posNotifierProvider.notifier)
-                    .setCustomDeliveryIncome(null);
+                posNotifier.setCustomDeliveryIncome(null);
               } else {
                 final parsed = double.tryParse(raw);
                 if (parsed == null || parsed < 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Enter a valid non-negative amount'),
                     ),
                   );
                   return;
                 }
-                ref
-                    .read(posNotifierProvider.notifier)
-                    .setCustomDeliveryIncome(parsed);
+                posNotifier.setCustomDeliveryIncome(parsed);
               }
               Navigator.pop(ctx);
             },
@@ -1575,6 +1571,8 @@ class CartWidget extends ConsumerWidget {
 
   void _showClearCartDialog(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    // Resolved before `showDialog`: the confirm action runs after an async gap.
+    final posNotifier = ref.read(posNotifierProvider.notifier);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1587,7 +1585,7 @@ class CartWidget extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
-              ref.read(posNotifierProvider.notifier).clearCart();
+              posNotifier.clearCart();
               Navigator.pop(context);
             },
             child: Text(l10n.posCartClearConfirm),
@@ -1600,6 +1598,13 @@ class CartWidget extends ConsumerWidget {
   Future<void> _handleCheckout(BuildContext context, WidgetRef ref) async {
     final state = ref.read(posNotifierProvider);
     final l10n = context.l10n;
+    // Checkout spans several dialogs and a network round-trip. This widget can
+    // be disposed at any of those async gaps, after which `ref` throws
+    // ("Cannot use ref after the widget was disposed"), so capture everything
+    // that depends on `ref` up front and re-check `context.mounted` before any
+    // post-await `ref`/UI use. For a ConsumerWidget `context.mounted` tracks the
+    // exact same element that backs `ref`.
+    final posNotifier = ref.read(posNotifierProvider.notifier);
 
     // Validate delivery slot is selected
     if (!state.isPickup && state.selectedDeliverySlot == null) {
@@ -1612,9 +1617,7 @@ class CartWidget extends ConsumerWidget {
       return;
     }
 
-    final stockOverages = ref
-        .read(posNotifierProvider.notifier)
-        .getCartItemsExceedingStock();
+    final stockOverages = posNotifier.getCartItemsExceedingStock();
     if (stockOverages.isNotEmpty) {
       final proceed = await _confirmStockOverageCheckout(
         context,
@@ -1649,38 +1652,38 @@ class CartWidget extends ConsumerWidget {
     if (!context.mounted) return;
     final profileResolution = await _resolveProfileForCheckout(
       context,
-      ref,
+      posNotifier,
       state,
     );
     if (profileResolution == null) return; // user cancelled
 
-    await ref
-        .read(posNotifierProvider.notifier)
-        .checkout(
-          paymentType: paymentType,
-          overridePosProfileName: profileResolution.profileName,
-          paymentMethod: paymentMethod,
-          posProfileOverride: profileResolution.override,
-        );
+    await posNotifier.checkout(
+      paymentType: paymentType,
+      overridePosProfileName: profileResolution.profileName,
+      paymentMethod: paymentMethod,
+      posProfileOverride: profileResolution.override,
+    );
+
+    // The checkout itself is already committed; the snackbar is best-effort, so
+    // bail out instead of touching a disposed `ref`/context.
+    if (!context.mounted) return;
     final updatedState = ref.read(posNotifierProvider);
 
-    if (context.mounted) {
-      if (updatedState.error == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.posCheckoutSuccess),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        final failure = updatedState.error ?? l10n.commonError;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.posCheckoutFailed(failure)),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+    if (updatedState.error == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.posCheckoutSuccess),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      final failure = updatedState.error ?? l10n.commonError;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.posCheckoutFailed(failure)),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
@@ -1743,17 +1746,47 @@ class CartWidget extends ConsumerWidget {
         : qty.toStringAsFixed(2);
   }
 
-  Widget _buildBundleDetails(
-    BuildContext context,
-    Map<String, dynamic> bundleDetails,
+  /// Rebuilds `selected_items` into the strongly typed shape the UI needs.
+  ///
+  /// The raw value is only a `Map<String, List<Map<String, dynamic>>>` when the
+  /// cart was built in-memory this session. Once it round-trips through JSON
+  /// (draft restore, offline cache) it comes back as `_Map<String, dynamic>`
+  /// holding `List<dynamic>`, so a hard cast throws during build. Entries that
+  /// don't match the expected shape are skipped rather than crashing the cart.
+  Map<String, List<Map<String, dynamic>>> _normalizeBundleSelections(
+    Object? rawSelections,
   ) {
+    if (rawSelections is! Map) {
+      return const <String, List<Map<String, dynamic>>>{};
+    }
+
+    final normalized = <String, List<Map<String, dynamic>>>{};
+    rawSelections.forEach((key, value) {
+      if (value is! Iterable) return;
+      normalized[key.toString()] = value
+          .whereType<Map>()
+          .map((entry) => Map<String, dynamic>.from(entry))
+          .toList(growable: false);
+    });
+    return normalized;
+  }
+
+  /// Defensively coerces a JSON-decoded value into a `Map<String, dynamic>`.
+  Map<String, dynamic>? _asStringKeyedMap(Object? value) {
+    if (value is! Map) return null;
+    return Map<String, dynamic>.from(value);
+  }
+
+  Widget _buildBundleDetails(BuildContext context, Object? rawBundleDetails) {
     final l10n = context.l10n;
-    final bundleInfo = bundleDetails['bundle_info'] as Map<String, dynamic>?;
+    final bundleDetails = _asStringKeyedMap(rawBundleDetails);
+    if (bundleDetails == null) return const SizedBox.shrink();
+
+    final bundleInfo = _asStringKeyedMap(bundleDetails['bundle_info']);
     final groupLabels = _bundleGroupLabels(bundleInfo);
-    final selectedItems =
-        bundleDetails['selected_items']
-            as Map<String, List<Map<String, dynamic>>>? ??
-        {};
+    final selectedItems = _normalizeBundleSelections(
+      bundleDetails['selected_items'],
+    );
 
     if (selectedItems.isEmpty) return const SizedBox.shrink();
 
@@ -1951,9 +1984,12 @@ class CartWidget extends ConsumerWidget {
   ///
   /// Returns `null` when the user cancels, or a record with the chosen profile
   /// name and whether `pos_profile_override` should be sent.
+  ///
+  /// Takes an already-resolved [posNotifier] rather than a [WidgetRef]: this
+  /// runs after the payment dialogs, so `ref` may no longer be usable.
   Future<({String profileName, bool override})?> _resolveProfileForCheckout(
     BuildContext context,
-    WidgetRef ref,
+    PosNotifier posNotifier,
     PosState state,
   ) async {
     final selectedProfileName =
@@ -1978,9 +2014,9 @@ class CartWidget extends ConsumerWidget {
     }
 
     // Fetch the POS profile mapped to the customer's territory (null = none)
-    final territoryProfile = await ref
-        .read(posNotifierProvider.notifier)
-        .getTerritoryPosProfile(customerName);
+    final territoryProfile = await posNotifier.getTerritoryPosProfile(
+      customerName,
+    );
 
     // Profiles match → proceed silently, no override needed
     if (territoryProfile != null &&
@@ -2006,17 +2042,21 @@ class CartWidget extends ConsumerWidget {
     Map<String, dynamic> cartItem,
     int index,
   ) {
-    final bundleDetails = cartItem['bundle_details'] as Map<String, dynamic>?;
+    final bundleDetails = _asStringKeyedMap(cartItem['bundle_details']);
     if (bundleDetails == null) return;
 
-    final bundleInfo = bundleDetails['bundle_info'] as Map<String, dynamic>?;
-    final currentSelections =
-        bundleDetails['selected_items']
-            as Map<String, List<Map<String, dynamic>>>? ??
-        {};
+    final bundleInfo = _asStringKeyedMap(bundleDetails['bundle_info']);
+    final currentSelections = _normalizeBundleSelections(
+      bundleDetails['selected_items'],
+    );
 
     if (bundleInfo == null) return;
 
+    // Captured before the dialog opens: these callbacks run after an async gap,
+    // by which point `ref` may already be disposed.
+    final posNotifier = ref.read(posNotifierProvider.notifier);
+    final messenger = ScaffoldMessenger.of(context);
+    final bundleUpdatedMessage = context.l10n.posBundleUpdated;
     final isPhone = ResponsiveUtils.isPhone(context);
 
     final bundleWidget = BundleSelectionWidget(
@@ -2026,12 +2066,10 @@ class CartWidget extends ConsumerWidget {
       onCancel: () => Navigator.of(context).pop(),
       onBundleSelected: (selectedItems) {
         Navigator.of(context).pop();
-        ref
-            .read(posNotifierProvider.notifier)
-            .updateBundleInCart(index, selectedItems);
-        ScaffoldMessenger.of(context).showSnackBar(
+        posNotifier.updateBundleInCart(index, selectedItems);
+        messenger.showSnackBar(
           SnackBar(
-            content: Text(context.l10n.posBundleUpdated),
+            content: Text(bundleUpdatedMessage),
             backgroundColor: Colors.green,
           ),
         );
@@ -2097,6 +2135,9 @@ class _PromoCodeSectionState extends ConsumerState<_PromoCodeSection> {
     final code = _controller.text.trim();
     if (code.isEmpty) return;
     await ref.read(posNotifierProvider.notifier).applyPromoCode(code);
+    // `_controller` is disposed with this State; clearing it after the await
+    // would throw if the user left the screen while the code was applying.
+    if (!mounted) return;
     _controller.clear();
   }
 

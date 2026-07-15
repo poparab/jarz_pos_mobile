@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -93,6 +94,89 @@ class SentryRuntimeConfig {
   }
 }
 
+/// Decides which events are expected, non-actionable noise.
+///
+/// The client polls a Frappe backend from phones that are frequently offline or
+/// on flaky mobile data. Those failures are a normal operating condition, not
+/// bugs: reporting them burns the Sentry quota and buries real crashes. Genuine
+/// server faults (any `badResponse`, i.e. a 4xx/5xx the server actually
+/// returned) are always kept.
+class SentryNoiseFilter {
+  const SentryNoiseFilter._();
+
+  /// Dio failures that mean "the network/server was unreachable", never "the
+  /// app or the backend is broken".
+  static const Set<DioExceptionType> _transportFailureTypes =
+      <DioExceptionType>{
+        DioExceptionType.connectionError,
+        DioExceptionType.connectionTimeout,
+        DioExceptionType.sendTimeout,
+        DioExceptionType.receiveTimeout,
+      };
+
+  /// Connectivity signatures that surface as plain messages/exceptions rather
+  /// than a typed [DioException] (dart:io, dart:html, and our own wrappers).
+  static const List<String> _noiseMessageFragments = <String>[
+    'failed host lookup',
+    'socketexception',
+    'xmlhttprequest error',
+    'cannot reach server',
+    // A user mistyping their password is not an application error.
+    'invalid credentials',
+  ];
+
+  /// Returns true when [event] should not be sent to Sentry.
+  static bool isNoise(SentryEvent event) {
+    final throwable = event.throwable;
+
+    if (throwable is DioException) {
+      // A real server response is always actionable, even a 4xx.
+      if (throwable.type == DioExceptionType.badResponse) {
+        return false;
+      }
+      if (_transportFailureTypes.contains(throwable.type)) {
+        return true;
+      }
+    }
+
+    return _containsNoiseFragment(_eventText(event));
+  }
+
+  /// Collects the places a connectivity signature can hide.
+  static String _eventText(SentryEvent event) {
+    final buffer = StringBuffer()..write(event.throwable?.toString() ?? '');
+
+    final message = event.message;
+    if (message != null) {
+      buffer
+        ..write(' ')
+        ..write(message.formatted);
+    }
+
+    for (final exception in event.exceptions ?? const <SentryException>[]) {
+      buffer
+        ..write(' ')
+        ..write(exception.type ?? '')
+        ..write(' ')
+        ..write(exception.value ?? '');
+    }
+
+    return buffer.toString().toLowerCase();
+  }
+
+  static bool _containsNoiseFragment(String text) {
+    if (text.isEmpty) {
+      return false;
+    }
+    for (final fragment in _noiseMessageFragments) {
+      if (text.contains(fragment)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
 class SentryService {
   SentryService._();
 
@@ -128,6 +212,9 @@ class SentryService {
         options.sendDefaultPii = false;
         options.tracesSampleRate = config.tracesSampleRate;
         options.profilesSampleRate = config.profilesSampleRate;
+        // Drop expected offline/connectivity noise before it leaves the device.
+        options.beforeSend = (event, hint) =>
+            SentryNoiseFilter.isNoise(event) ? null : event;
       },
       appRunner: () async {
         _initialized = true;

@@ -1490,6 +1490,8 @@
   "@settingsFailedToLoadAlarmSounds": { "placeholders": { "error": {} } },
   "settingsAlarmSoundChanged": "Alarm sound changed to {title}",
   "@settingsAlarmSoundChanged": { "placeholders": { "title": {} } },
+  "settingsAlarmSoundUnavailable": "{title} can''t be used on this device. Keeping the default alarm sound.",
+  "@settingsAlarmSoundUnavailable": { "placeholders": { "title": {} } },
   "settingsCustomAlarmSoundSet": "Custom alarm sound set: {title}",
   "@settingsCustomAlarmSoundSet": { "placeholders": { "title": {} } },
   "settingsNoFileSelected": "No file selected",

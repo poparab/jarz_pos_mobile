@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../network/frappe_error_message.dart';
+import '../router.dart';
 import 'app_error_reporter.dart';
 
 class AppErrorConsole extends StatelessWidget {
@@ -73,9 +74,33 @@ class AppErrorConsole extends StatelessWidget {
     );
   }
 
+  /// Resolves a context that actually sits under a [Navigator].
+  ///
+  /// This widget is mounted from `MaterialApp.builder`, so its own context is an
+  /// *ancestor* of the router's navigator. Passing it to [showModalBottomSheet]
+  /// makes `Navigator.of` find nothing and blow up on its internal `navigator!`
+  /// ("Null check operator used on a null value") in release builds, where the
+  /// friendlier debug assert is compiled out. Prefer the router's navigator and
+  /// fall back to any navigator above us; never assert.
+  BuildContext? _navigatorContext(BuildContext context) {
+    final routerContext = rootNavigatorKey.currentContext;
+    if (routerContext != null) {
+      return routerContext;
+    }
+    return Navigator.maybeOf(context)?.context;
+  }
+
   Future<void> _showDiagnosticsSheet(BuildContext context) async {
+    // The diagnostics UI must never be the thing that crashes the app: if there
+    // is no navigator to host the sheet, silently do nothing.
+    final sheetContext = _navigatorContext(context);
+    if (sheetContext == null) {
+      return;
+    }
+
     await showModalBottomSheet<void>(
-      context: context,
+      context: sheetContext,
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (context) {

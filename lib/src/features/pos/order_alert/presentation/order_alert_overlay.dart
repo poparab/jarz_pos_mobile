@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -51,7 +52,9 @@ class _OrderAlertOverlayState extends ConsumerState<OrderAlertOverlay> {
       try {
         _overlayEntry?.remove();
       } catch (e) {
-        debugPrint('🔔 OVERLAY: Error removing overlay during dispose: $e');
+        if (kDebugMode) {
+          debugPrint('🔔 OVERLAY: Error removing overlay during dispose: $e');
+        }
       }
       _overlayEntry = null;
     }
@@ -82,24 +85,36 @@ class _OrderAlertOverlayState extends ConsumerState<OrderAlertOverlay> {
     try {
       final state = ref.read(orderAlertControllerProvider);
       final nextActive = state.active;
-      
-      debugPrint(
-        '🔔 OVERLAY: Checking alerts - '
-        'active=${nextActive?.invoiceId} '
-        'current=$_currentInvoiceId '
-        'overlayShowing=${_overlayEntry != null} '
-        'queueLen=${state.queue.length}'
-      );
-      
+
+      // Debug-only: this runs on every poll tick, and `debugPrint` is NOT
+      // stripped in release. Sentry turns each line into a breadcrumb, so an
+      // unconditional log here fills the whole 100-entry buffer and evicts the
+      // navigation/http breadcrumbs we actually need to diagnose crashes.
+      if (kDebugMode) {
+        debugPrint(
+          '🔔 OVERLAY: Checking alerts - '
+          'active=${nextActive?.invoiceId} '
+          'current=$_currentInvoiceId '
+          'overlayShowing=${_overlayEntry != null} '
+          'queueLen=${state.queue.length}'
+        );
+      }
+
       if (nextActive != null && nextActive.invoiceId != _currentInvoiceId) {
-        debugPrint('🔔 OVERLAY: SHOWING for ${nextActive.invoiceId}');
+        if (kDebugMode) {
+          debugPrint('🔔 OVERLAY: SHOWING for ${nextActive.invoiceId}');
+        }
         _showOverlay(nextActive.invoiceId);
       } else if (nextActive == null && _overlayEntry != null) {
-        debugPrint('🔔 OVERLAY: REMOVING - no active alerts');
+        if (kDebugMode) {
+          debugPrint('🔔 OVERLAY: REMOVING - no active alerts');
+        }
         _removeOverlay();
       }
     } catch (e, stack) {
-      debugPrint('🔔 OVERLAY: Error in _checkForAlerts: $e\n$stack');
+      if (kDebugMode) {
+        debugPrint('🔔 OVERLAY: Error in _checkForAlerts: $e\n$stack');
+      }
     }
   }
 
@@ -128,9 +143,13 @@ class _OrderAlertOverlayState extends ConsumerState<OrderAlertOverlay> {
           try {
             final overlay = Overlay.of(context, rootOverlay: true);
             overlay.insert(_overlayEntry!);
-            debugPrint('🔔 OVERLAY: Successfully inserted overlay for $invoiceId');
+            if (kDebugMode) {
+              debugPrint('🔔 OVERLAY: Successfully inserted overlay for $invoiceId');
+            }
           } catch (e) {
-            debugPrint('🔔 OVERLAY: Error inserting overlay: $e');
+            if (kDebugMode) {
+              debugPrint('🔔 OVERLAY: Error inserting overlay: $e');
+            }
             _overlayEntry = null;
             _currentInvoiceId = null;
           }
@@ -138,7 +157,9 @@ class _OrderAlertOverlayState extends ConsumerState<OrderAlertOverlay> {
         _isShowingOverlay = false;
       });
     } catch (e) {
-      debugPrint('🔔 OVERLAY: Error creating overlay: $e');
+      if (kDebugMode) {
+        debugPrint('🔔 OVERLAY: Error creating overlay: $e');
+      }
       _overlayEntry = null;
       _currentInvoiceId = null;
       _isShowingOverlay = false;
@@ -151,10 +172,14 @@ class _OrderAlertOverlayState extends ConsumerState<OrderAlertOverlay> {
     }
 
     try {
-      debugPrint('🔔 OVERLAY: Removing overlay for $_currentInvoiceId');
+      if (kDebugMode) {
+        debugPrint('🔔 OVERLAY: Removing overlay for $_currentInvoiceId');
+      }
       _overlayEntry?.remove();
     } catch (e) {
-      debugPrint('🔔 OVERLAY: Error removing overlay: $e');
+      if (kDebugMode) {
+        debugPrint('🔔 OVERLAY: Error removing overlay: $e');
+      }
     } finally {
       _overlayEntry = null;
       _currentInvoiceId = null;

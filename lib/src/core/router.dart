@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'constants/app_routes.dart';
 
@@ -248,7 +249,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
       return null;
     },
-    observers: [routeObserver],
+    // SentryNavigatorObserver records a breadcrumb per navigation, so events
+    // show the screen the user was on when they crashed.
+    observers: [routeObserver, SentryNavigatorObserver()],
     routes: [
       GoRoute(
         path: AppRoutes.login,

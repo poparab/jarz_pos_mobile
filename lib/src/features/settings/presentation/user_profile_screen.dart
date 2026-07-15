@@ -340,15 +340,19 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                               return InkWell(
                                 onTap: () async {
                                   final service = ref.read(alarmSoundServiceProvider);
-                                  await service.setSelectedSound(sound.uri, sound.title);
-                                  
+                                  final result = await service.setSelectedSound(sound.uri, sound.title);
+
                                   // Refresh the provider
                                   ref.invalidate(selectedAlarmSoundProvider);
-                                  
+
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(context.l10n.settingsAlarmSoundChanged(sound.title)),
+                                        content: Text(
+                                          result.isApplied
+                                              ? context.l10n.settingsAlarmSoundChanged(sound.title)
+                                              : context.l10n.settingsAlarmSoundUnavailable(sound.title),
+                                        ),
                                         duration: const Duration(seconds: 2),
                                       ),
                                     );
@@ -458,15 +462,19 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                               }
                             
                               if (customSound != null) {
-                                await service.setSelectedSound(customSound.uri, customSound.title);
-                              
+                                final result = await service.setSelectedSound(customSound.uri, customSound.title);
+
                                 // Refresh the provider
                                 ref.invalidate(selectedAlarmSoundProvider);
-                              
+
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(context.l10n.settingsCustomAlarmSoundSet(customSound.title)),
+                                      content: Text(
+                                        result.isApplied
+                                            ? context.l10n.settingsCustomAlarmSoundSet(customSound.title)
+                                            : context.l10n.settingsAlarmSoundUnavailable(customSound.title),
+                                      ),
                                       duration: const Duration(seconds: 2),
                                     ),
                                   );

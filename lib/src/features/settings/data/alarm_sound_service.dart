@@ -6,6 +6,43 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../core/constants/storage_keys.dart';
 import '../../pos/order_alert/order_alert_native_channel.dart';
 
+/// Outcome of applying an alarm sound selection.
+///
+/// Devices legitimately refuse a sound (ringtone removed, URI permission
+/// revoked, OEM restriction). That is an expected user-facing condition, so it
+/// is reported as a value instead of an exception.
+enum AlarmSoundSelectionStatus {
+  /// The device applied the requested sound.
+  applied,
+
+  /// The device could not apply the sound; the previously effective sound
+  /// (the device default when nothing was stored) remains active.
+  fallbackToDefault,
+}
+
+class AlarmSoundSelectionResult {
+  const AlarmSoundSelectionResult._(this.status, {this.uri, this.title});
+
+  const AlarmSoundSelectionResult.applied({
+    required String uri,
+    required String title,
+  }) : this._(AlarmSoundSelectionStatus.applied, uri: uri, title: title);
+
+  const AlarmSoundSelectionResult.fallbackToDefault()
+    : this._(AlarmSoundSelectionStatus.fallbackToDefault);
+
+  final AlarmSoundSelectionStatus status;
+
+  /// The uri the device actually applied (it may canonicalise what we asked
+  /// for). Null when the selection fell back to the default sound.
+  final String? uri;
+
+  /// The title stored for the applied sound. Null on fallback.
+  final String? title;
+
+  bool get isApplied => status == AlarmSoundSelectionStatus.applied;
+}
+
 class AlarmSoundService {
   static const String _alarmSoundUriKey = PrefKeys.alarmSoundUri;
   static const String _alarmSoundTitleKey = PrefKeys.alarmSoundTitle;
@@ -26,15 +63,40 @@ class AlarmSoundService {
     return _prefs.getString(_alarmSoundTitleKey);
   }
 
-  /// Set the alarm sound preference
-  Future<void> setSelectedSound(String uri, String title) async {
-    final appliedUri = await OrderAlertNativeChannel.setAlarmSound(uri);
+  /// Set the alarm sound preference.
+  ///
+  /// Never throws for a sound the device simply cannot apply: that is a normal
+  /// device condition, not a crash. The caller gets an
+  /// [AlarmSoundSelectionResult] and the stored preference is left untouched so
+  /// the last working sound (or the device default) keeps ringing.
+  Future<AlarmSoundSelectionResult> setSelectedSound(
+    String uri,
+    String title,
+  ) async {
+    String? appliedUri;
+    try {
+      appliedUri = await OrderAlertNativeChannel.setAlarmSound(uri);
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Failed to apply alarm sound "$title": $error');
+        debugPrint('Stack trace: $stackTrace');
+      }
+      appliedUri = null;
+    }
+
     if (appliedUri == null || appliedUri.isEmpty) {
-      throw StateError('Selected alarm sound could not be applied on this device');
+      if (kDebugMode) {
+        debugPrint(
+          'Alarm sound "$title" could not be applied on this device; '
+          'keeping the current default sound.',
+        );
+      }
+      return const AlarmSoundSelectionResult.fallbackToDefault();
     }
 
     await _prefs.setString(_alarmSoundUriKey, appliedUri);
     await _prefs.setString(_alarmSoundTitleKey, title);
+    return AlarmSoundSelectionResult.applied(uri: appliedUri, title: title);
   }
 
   /// Reapply the saved sound to native Android after app restart.

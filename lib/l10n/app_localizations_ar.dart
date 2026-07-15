@@ -3528,6 +3528,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String settingsAlarmSoundUnavailable(Object title) {
+    return 'لا يمكن استخدام $title على هذا الجهاز. سيتم الإبقاء على صوت التنبيه الافتراضي.';
+  }
+
+  @override
   String settingsCustomAlarmSoundSet(Object title) {
     return 'تم تعيين صوت التنبيه المخصص: $title';
   }

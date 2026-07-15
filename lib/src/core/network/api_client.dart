@@ -1,4 +1,5 @@
 import "package:dio/dio.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:flutter_dotenv/flutter_dotenv.dart";
 import "../constants/timing_config.dart";
@@ -67,10 +68,16 @@ class ApiClient {
         },
       ),
     );
-    // Add interceptors for logging
-    _dio.interceptors.add(
-      LogInterceptor(requestBody: true, responseBody: true),
-    );
+    // Debug-only: LogInterceptor prints whole request/response bodies through
+    // `print`, which is not stripped in release. Sentry converts each line into
+    // a breadcrumb, so leaving this on floods the breadcrumb buffer (and risks
+    // leaking payloads into events). The structured breadcrumbs added above
+    // already cover method/path/status in release.
+    if (kDebugMode) {
+      _dio.interceptors.add(
+        LogInterceptor(requestBody: true, responseBody: true),
+      );
+    }
   }
 
   Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) {
