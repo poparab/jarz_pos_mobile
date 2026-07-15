@@ -614,7 +614,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       );
     }
 
-    if (widget.invoice.hasNotes) {
+    // The icon is the "there are notes — open them" affordance and follows the
+    // combined signal, so note text alone keeps the entry point on the card.
+    // The count badge is the one piece that genuinely needs a real count: it is
+    // rendered only when noteCount > 0, so a broken/absent count drops the badge
+    // rather than painting a misleading "0" over a card that demonstrably has
+    // notes. Icon-without-badge degrades to "notes exist, quantity unknown",
+    // which is exactly what we know in that case.
+    if (widget.invoice.hasNoteSignal) {
+      final noteCount = widget.invoice.noteCount;
       trailingWidgets.add(
         Tooltip(
           message: l10n.invoiceNotesTooltip,
@@ -631,27 +639,28 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 splashRadius: ResponsiveUtils.getIconSize(context, small: 16, medium: 18, large: 20),
                 onPressed: transitioning ? null : () => _openInvoiceNotes(context),
               ),
-              PositionedDirectional(
-                top: 2,
-                end: 2,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  constraints: const BoxConstraints(minWidth: 16),
-                  child: Text(
-                    widget.invoice.noteCount > 9 ? '9+' : widget.invoice.noteCount.toString(),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
+              if (noteCount > 0)
+                PositionedDirectional(
+                  top: 2,
+                  end: 2,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(minWidth: 16),
+                    child: Text(
+                      noteCount > 9 ? '9+' : noteCount.toString(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -952,8 +961,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
     // Cards carrying notes get an amber wash + border so they are spottable from
     // across the board. Accepted / dragging treatments still win — this is the
-    // lowest-priority accent.
-    final hasNotes = widget.invoice.hasNotes;
+    // lowest-priority accent. Follows the same combined signal as the preview
+    // strip so a card with note text is flagged even with a broken count.
+    final hasNoteSignal = widget.invoice.hasNoteSignal;
     final isAcceptedTreatment = widget.invoice.isAccepted || _isAccepting;
 
     Color borderColor;
@@ -964,7 +974,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     } else if (widget.isDragging) {
       borderColor = Colors.blue;
       borderWidth = 2;
-    } else if (hasNotes) {
+    } else if (hasNoteSignal) {
       borderColor = _noteAccentColor;
       borderWidth = 2;
     } else {
@@ -977,7 +987,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       child: Card(
         elevation: widget.isDragging ? 8 : 2,
         shadowColor: widget.isDragging ? Colors.blue.withValues(alpha: 0.3) : null,
-        color: hasNotes ? _noteAccentColor.withValues(alpha: 0.06) : null,
+        color: hasNoteSignal ? _noteAccentColor.withValues(alpha: 0.06) : null,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
@@ -1222,8 +1232,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                     ),
 
                     // Latest note preview, on the card body so staff can read it
-                    // without opening the notes sheet.
-                    if (widget.invoice.hasNotes) ...[
+                    // without opening the notes sheet. Gated on the combined
+                    // signal: note text alone is enough to draw this, even if
+                    // the count is broken or absent.
+                    if (widget.invoice.hasNoteSignal) ...[
                       const SizedBox(height: 8),
                       _buildNotePreviewStrip(context, transitioning),
                     ],

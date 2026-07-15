@@ -418,6 +418,92 @@ void main() {
       expect(cleared.latestNotePreview, isNull);
       expect(cleared.hasNotes, isFalse);
     });
+
+    group('hasNoteSignal', () {
+      // The live staging bug: backend swallowed a query error and returned
+      // note_count 0 on every card while latest_note was present and correct.
+      // The note affordances must survive that on the text alone.
+      test('is true when latest_note is present but note_count is zero', () {
+        final card = buildCard(overrides: {
+          'note_count': 0,
+          'latest_note': 'Customer will pay cash on delivery',
+        });
+
+        expect(card.hasNotes, isFalse, reason: 'count is genuinely 0');
+        expect(card.latestNotePreview, 'Customer will pay cash on delivery');
+        expect(card.hasNoteSignal, isTrue,
+            reason: 'note text alone must keep the affordances alive');
+      });
+
+      test('is true when latest_note is present but note_count is absent', () {
+        final card = buildCard(overrides: {'latest_note': 'Leave at reception'});
+
+        expect(card.noteCount, 0);
+        expect(card.hasNotes, isFalse);
+        expect(card.hasNoteSignal, isTrue);
+      });
+
+      // Mirror case: count says notes exist, text missing (older payloads).
+      test('is true when note_count is positive but latest_note is absent', () {
+        final card = buildCard(overrides: {'note_count': 3});
+
+        expect(card.latestNotePreview, isNull);
+        expect(card.hasNotes, isTrue);
+        expect(card.hasNoteSignal, isTrue,
+            reason: 'count alone still warrants the tap-to-read prompt');
+      });
+
+      test('is false when there is neither a count nor note text', () {
+        final card = buildCard(overrides: {'note_count': 0});
+
+        expect(card.hasNotes, isFalse);
+        expect(card.latestNotePreview, isNull);
+        expect(card.hasNoteSignal, isFalse);
+      });
+
+      test('is false when latest_note is blank and note_count is zero', () {
+        final card = buildCard(overrides: {
+          'note_count': 0,
+          'latest_note': '   ',
+        });
+
+        expect(card.hasNoteSignal, isFalse,
+            reason: 'whitespace-only text is not a signal');
+      });
+
+      test('both signals present still reads as a single true', () {
+        final card = buildCard(overrides: {
+          'note_count': 2,
+          'latest_note': 'Ring the bell twice',
+        });
+
+        expect(card.hasNotes, isTrue);
+        expect(card.hasNoteSignal, isTrue);
+      });
+
+      test('hasNotes keeps its strict count-only meaning', () {
+        // Guards the split: hasNotes must not be repurposed into the combined
+        // signal — the count badge relies on it meaning "we have a real count".
+        final textOnly = buildCard(overrides: {
+          'note_count': 0,
+          'latest_note': 'Text but no count',
+        });
+
+        expect(textOnly.hasNotes, isFalse);
+        expect(textOnly.hasNoteSignal, isTrue);
+      });
+
+      test('clearing notes via copyWith drops the combined signal too', () {
+        final card = buildCard(overrides: {
+          'note_count': 1,
+          'latest_note': 'Call on arrival',
+        });
+        expect(card.hasNoteSignal, isTrue);
+
+        final cleared = card.copyWith(noteCount: 0, clearLatestNote: true);
+        expect(cleared.hasNoteSignal, isFalse);
+      });
+    });
   });
 
   group('InvoiceNote', () {

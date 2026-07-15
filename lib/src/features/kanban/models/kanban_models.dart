@@ -468,6 +468,9 @@ class InvoiceCard {
   double get total => grandTotal;
   double get taxAmount => totalTaxesAndCharges;
   double get shippingIncomeDisplay => shippingIncome; // new helper
+  /// Strictly "the backend counted at least one note". Kept deliberately narrow
+  /// — callers that need a real count (e.g. the badge) must use this. Prefer
+  /// [hasNoteSignal] for deciding whether to show a note affordance at all.
   bool get hasNotes => noteCount > 0;
 
   /// Trimmed latest-note text for the card-face preview strip, or null when
@@ -476,6 +479,13 @@ class InvoiceCard {
     final text = latestNote?.trim();
     return (text == null || text.isEmpty) ? null : text;
   }
+
+  /// True when *anything* tells us this invoice has notes: either the backend
+  /// counted them, or it handed us note text. The two fields fail independently
+  /// (a broken/absent `note_count` must not blank a `latest_note` we already
+  /// hold, and vice versa), so every "does this card have notes?" affordance
+  /// gates on this rather than on [hasNotes] alone.
+  bool get hasNoteSignal => noteCount > 0 || latestNotePreview != null;
   double get shippingExpenseDisplay =>
       (shippingOverrideStatus == 'Approved' && shippingOverride != null && shippingOverride! > 0)
           ? shippingOverride!
