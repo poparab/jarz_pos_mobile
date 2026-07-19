@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/network/frappe_error_message.dart';
+import '../../../core/widgets/app_drawer.dart';
 import '../../kanban/providers/kanban_provider.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../data/instapay_reconciliation_service.dart';
@@ -25,9 +28,26 @@ class InstapayReconciliationScreen extends ConsumerWidget {
     final async = ref.watch(unconfirmedOnlineOrdersProvider(posProfile));
 
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.pos);
+            }
+          },
+        ),
         title: const Text('InstaPay Reconciliation'),
         actions: [
+          Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
           IconButton(
             tooltip: context.l10n.commonRetry,
             icon: const Icon(Icons.refresh),
