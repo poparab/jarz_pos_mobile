@@ -987,7 +987,18 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       child: Card(
         elevation: widget.isDragging ? 8 : 2,
         shadowColor: widget.isDragging ? Colors.blue.withValues(alpha: 0.3) : null,
-        color: hasNoteSignal ? _noteAccentColor.withValues(alpha: 0.06) : null,
+        // Note cards get an amber wash so they are spottable from across the
+        // board. It MUST stay opaque: passing the accent at low alpha straight
+        // to Card.color made the whole card surface ~94% transparent, letting
+        // the column gradient bleed through and dimming the card so its text was
+        // hard to read. Blend the low-alpha accent over the theme card color so
+        // the wash is preserved but the card renders at full opacity.
+        color: hasNoteSignal
+            ? Color.alphaBlend(
+                _noteAccentColor.withValues(alpha: 0.06),
+                Theme.of(context).cardColor,
+              )
+            : null,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(

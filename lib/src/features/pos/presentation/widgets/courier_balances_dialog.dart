@@ -25,7 +25,7 @@ Future<void> showCourierBalancesDialog(
   );
 }
 
-class CourierBalancesDialog extends ConsumerWidget {
+class CourierBalancesDialog extends ConsumerStatefulWidget {
   const CourierBalancesDialog({
     super.key,
     this.allowedPartyKeys,
@@ -34,14 +34,30 @@ class CourierBalancesDialog extends ConsumerWidget {
   final Set<String>? allowedPartyKeys;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CourierBalancesDialog> createState() =>
+      _CourierBalancesDialogState();
+}
+
+class _CourierBalancesDialogState extends ConsumerState<CourierBalancesDialog> {
+  @override
+  void initState() {
+    super.initState();
+    // Always fetch fresh balances whenever the popup opens. The provider is a
+    // session-scoped singleton, so relying on its cached `hasLoaded` flag (as the
+    // old build-time microtask did) meant every reopen showed stale figures until
+    // the user manually hit refresh. load() has its own concurrency guard, so a
+    // redundant call while a fetch is already in flight is a safe no-op.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(courierBalancesProvider.notifier).load();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(courierBalancesProvider);
     // Activate websocket bridge for auto-refresh while dialog is open
     ref.watch(courierWsBridgeProvider);
-    // Auto-load on first open if not yet loaded
-    if (!state.loading && !state.hasLoaded) {
-      Future.microtask(() => ref.read(courierBalancesProvider.notifier).load());
-    }
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -61,7 +77,7 @@ class CourierBalancesDialog extends ConsumerWidget {
             Expanded(
               child: _DialogBody(
                 state: state,
-                allowedPartyKeys: allowedPartyKeys,
+                allowedPartyKeys: widget.allowedPartyKeys,
               ),
             ),
           ],
@@ -423,11 +439,17 @@ class _InlineSettleAllButtonState extends ConsumerState<_InlineSettleAllButton> 
       return;
     }
     final amount = b.balance.abs().toStringAsFixed(2);
-    final payCourier = b.balance > 0;
+    // Mirror _CourierTile / _SettleAllButtonState: a POSITIVE balance means the
+    // courier owes the store, so we COLLECT from them; negative means we pay them.
+    // The label was previously inverted here, which is why inline "Settle All"
+    // disagreed with the single-settle wording.
+    final collectFromCourier = b.balance > 0;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(payCourier ? context.l10n.courierPayCourierAmount(amount) : context.l10n.courierCollectAmount(amount)),
+        title: Text(collectFromCourier
+            ? context.l10n.courierCollectAmount(amount)
+            : context.l10n.courierPayCourierAmount(amount)),
         content: Text(context.l10n.courierSettleAllInvoicesQuestion(b.details.length)),
         actions: [
           TextButton(onPressed: ()=>Navigator.of(ctx).pop(false), child: Text(context.l10n.commonCancel)),
