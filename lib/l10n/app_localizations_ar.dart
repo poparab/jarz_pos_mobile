@@ -4241,4 +4241,57 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get b2bMoveTo => 'نقل إلى';
+
+  @override
+  String get shiftMonitorForceCloseAction => 'إقفال هذه الوردية';
+
+  @override
+  String shiftMonitorForceCloseTitle(String user) {
+    return 'إقفال وردية $user';
+  }
+
+  @override
+  String shiftMonitorForceCloseIntro(String user, String branch) {
+    return 'أنت تقوم بإقفال وردية فتحها $user في $branch. أدخل النقدية المعدودة فعليًا في الدرج — أي فرق هيتسجل في حساب العجز/الزيادة، زي الإقفال العادي بالظبط.';
+  }
+
+  @override
+  String get shiftMonitorForceCloseReasonLabel => 'السبب (مطلوب)';
+
+  @override
+  String get shiftMonitorForceCloseReasonHint =>
+      'مثلاً: الموظف مشي من غير ما يقفل';
+
+  @override
+  String get shiftMonitorForceCloseReasonRequired =>
+      'من فضلك اكتب سبب إقفال وردية شخص تاني.';
+
+  @override
+  String shiftMonitorForceCloseCountLabel(String mode) {
+    return 'المبلغ المعدود — $mode';
+  }
+
+  @override
+  String shiftMonitorForceCloseCountRequired(String mode) {
+    return 'أدخل المبلغ المعدود لـ $mode.';
+  }
+
+  @override
+  String shiftMonitorForceCloseExpected(String amount) {
+    return 'المتوقع من النظام: $amount';
+  }
+
+  @override
+  String shiftMonitorForceCloseCourierWarning(int transactions, int invoices) {
+    return 'الفرع لسه عنده $transactions معاملة مندوب غير مسواة على $invoices طلب. هتفضل مفتوحة بعد الإقفال ولازم تتسوى.';
+  }
+
+  @override
+  String get shiftMonitorForceCloseCourierAck => 'أنا فاهم وعايز أقفل برضه';
+
+  @override
+  String get shiftMonitorForceCloseConfirm => 'إقفال الوردية';
+
+  @override
+  String get shiftMonitorForceCloseSuccess => 'تم إقفال الوردية.';
 }

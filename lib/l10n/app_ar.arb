@@ -255,7 +255,7 @@
   "commonUomLabel": "الوحدة:",
   "commonUomValue": "الوحدة: {uom}",
   "commonContinue": "متابعة",
-  "commonOk": "حسنًا",
+  "commonOk": "حسناً",
   "commonOnline": "متصل",
   "commonOffline": "غير متصل",
   "commonError": "خطأ",
@@ -282,10 +282,18 @@
   "ofdShortageLine": "{item}: المطلوب {required}، المتاح {available}، المخزن {warehouse}",
   "@ofdShortageLine": {
     "placeholders": {
-      "item": { "type": "String" },
-      "required": { "type": "String" },
-      "available": { "type": "String" },
-      "warehouse": { "type": "String" }
+      "item": {
+        "type": "String"
+      },
+      "required": {
+        "type": "String"
+      },
+      "available": {
+        "type": "String"
+      },
+      "warehouse": {
+        "type": "String"
+      }
     }
   },
   "ofdShortageReasonHint": "اشرح لماذا يجب متابعة الإرسال رغم العجز",
@@ -596,9 +604,15 @@
   "posCheckoutStockExceedLine": "{item}: المطلوب {requested}، المتاح {available}",
   "@posCheckoutStockExceedLine": {
     "placeholders": {
-      "item": { "type": "String" },
-      "requested": { "type": "String" },
-      "available": { "type": "String" }
+      "item": {
+        "type": "String"
+      },
+      "requested": {
+        "type": "String"
+      },
+      "available": {
+        "type": "String"
+      }
     }
   },
   "posCheckoutProceedAnyway": "متابعة الطلب",
@@ -606,15 +620,27 @@
   "posTerritoryMismatchBody": "منطقة العميل مرتبطة بفرع POS مختلف.",
   "posTerritoryMismatchUseSelected": "الاستمرار بالفرع المحدد: {profile}",
   "@posTerritoryMismatchUseSelected": {
-    "placeholders": { "profile": { "type": "String" } }
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      }
+    }
   },
   "posTerritoryMismatchUseTerritory": "التحويل لفرع المنطقة: {profile}",
   "@posTerritoryMismatchUseTerritory": {
-    "placeholders": { "profile": { "type": "String" } }
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      }
+    }
   },
   "posTerritoryMismatchNoTerritory": "لا يوجد فرع مرتبط بالمنطقة — الاستمرار بالفرع المحدد: {profile}",
   "@posTerritoryMismatchNoTerritory": {
-    "placeholders": { "profile": { "type": "String" } }
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      }
+    }
   },
   "posTerritoryMismatchCancel": "إلغاء",
   "posTerritoryMismatchConfirm": "متابعة",
@@ -628,7 +654,11 @@
   "posCartItemPricingDialogTitle": "تعديل تسعير السطر",
   "posCartItemPricingBaseRate": "سعر الكتالوج الحالي: {amount}",
   "@posCartItemPricingBaseRate": {
-    "placeholders": { "amount": { "type": "String" } }
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "posCartItemPricingCustomRateLabel": "سعر وحدة مخصص",
   "posCartItemPricingDiscountAmountLabel": "قيمة الخصم",
@@ -638,15 +668,27 @@
   "posCartItemPricingSave": "تطبيق",
   "posCartItemCustomPriceApplied": "سعر مخصص {amount}",
   "@posCartItemCustomPriceApplied": {
-    "placeholders": { "amount": { "type": "String" } }
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "posCartItemDiscountAmountApplied": "خصم {amount}",
   "@posCartItemDiscountAmountApplied": {
-    "placeholders": { "amount": { "type": "String" } }
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "posCartItemDiscountPercentApplied": "خصم {amount}%",
   "@posCartItemDiscountPercentApplied": {
-    "placeholders": { "amount": { "type": "String" } }
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "posCartItemPricingInvalidNumber": "أدخل رقمًا صالحًا.",
   "posCartItemPricingInvalidCustomRate": "يجب أن يكون السعر المخصص صفرًا أو أكثر.",
@@ -971,14 +1013,26 @@
   "invoiceNotesEmpty": "لا توجد ملاحظات لهذه الفاتورة بعد.",
   "invoiceLatestNoteLabel": "آخر ملاحظة",
   "invoiceLatestNoteLabelWithCount": "آخر ملاحظة (من {count})",
-  "@invoiceLatestNoteLabelWithCount": { "placeholders": { "count": {} } },
+  "@invoiceLatestNoteLabelWithCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "invoiceLatestNoteTapToRead": "اضغط تقرأ ملاحظات الطلب",
   "invoiceAddingNote": "جارٍ الإضافة...",
   "invoiceNoteAdded": "تمت إضافة الملاحظة",
   "invoiceNotesLoadFailed": "تعذر تحميل ملاحظات الفاتورة: {error}",
-  "@invoiceNotesLoadFailed": { "placeholders": { "error": {} } },
+  "@invoiceNotesLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "invoiceNoteAddFailed": "تعذر إضافة الملاحظة: {error}",
-  "@invoiceNoteAddFailed": { "placeholders": { "error": {} } },
+  "@invoiceNoteAddFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "invoiceEditInvoice": "تعديل الفاتورة",
   "invoiceEditInvoiceFailed": "تعذر فتح مسودة تعديل الفاتورة. حاول مرة أخرى.",
   "invoiceAmendmentUnavailable": "تعديل الفاتورة غير متاح لهذا الطلب.",
@@ -1052,34 +1106,23 @@
   "stockTransferAllGroups": "كل المجموعات",
   "stockTransferAddAll": "إضافة الكل",
   "stockTransferAddGroup": "إضافة المجموعة",
-
-  "commonCancel": "إلغاء",
   "commonClear": "مسح",
-  "commonClose": "إغلاق",
-  "commonConfirm": "تأكيد",
   "commonDismiss": "تجاهل",
-  "commonError": "خطأ",
-  "commonOk": "حسناً",
-  "commonRetry": "إعادة المحاولة",
   "commonSave": "حفظ",
-
   "paymentMethodSelectTitle": "اختر طريقة الدفع",
   "paymentMethodCash": "نقدي",
   "paymentMethodCard": "بطاقة",
   "paymentMethodInstapay": "إنستاباي",
   "paymentMethodMobileWallet": "محفظة إلكترونية",
   "paymentMethodSettleLater": "سداد لاحق",
-
   "checkoutTotal": "الإجمالي:",
   "checkoutPay": "ادفع",
   "checkoutSelectProfileFirst": "اختر ملف نقطة البيع أولاً",
   "checkoutOrderSuccess": "تم إتمام الطلب بنجاح!",
   "checkoutFailed": "فشل الدفع: {error}",
-
   "salesPartnerTitle": "شريك المبيعات",
   "salesPartnerSearchHint": "بحث عن شريك",
   "salesPartnerNotFound": "لا يوجد شركاء",
-
   "itemGridBundles": "حزم",
   "itemGridAll": "الكل",
   "itemGridUncategorized": "بدون تصنيف",
@@ -1095,7 +1138,6 @@
   "itemGridSelectCustomerFirst": "اختر عميلاً أولاً",
   "itemGridOutOfStock": "نفدت الكمية",
   "itemGridCannotAdd": "لا يمكن إضافة الصنف",
-
   "kanbanFilterTitle": "الفلاتر",
   "kanbanFilterActiveCount": "{count} نشط",
   "kanbanFilterClearAll": "مسح الكل",
@@ -1120,7 +1162,6 @@
   "kanbanFilterFromAmount": "من مبلغ",
   "kanbanFilterToAmount": "إلى مبلغ",
   "kanbanFilterApply": "تطبيق",
-
   "kanbanRefreshOrders": "تحديث الطلبات",
   "kanbanOrdersRefreshed": "تم تحديث الطلبات",
   "kanbanHideFilters": "إخفاء الفلاتر",
@@ -1187,7 +1228,6 @@
   "kanbanLoadingBranches": "جارٍ تحميل الفروع...",
   "kanbanTapToRefreshBalance": "اضغط لتحديث الرصيد",
   "kanbanPressBackAgain": "اضغط رجوع مرة أخرى للخروج",
-
   "invoiceDeliveryAddress": "عنوان التوصيل",
   "invoiceItems": "الأصناف",
   "invoiceNetTotal": "الإجمالي الصافي",
@@ -1218,9 +1258,17 @@
   "invoiceCollectionReferenceRequired": "التحصيل الإلكتروني يتطلب رقم مرجع.",
   "invoiceChangingCollectionMethod": "جارٍ تغيير طريقة التحصيل...",
   "invoiceCollectionMethodChanged": "تم تغيير طريقة التحصيل إلى {method}",
-  "@invoiceCollectionMethodChanged": {"placeholders":{"method":{}}},
+  "@invoiceCollectionMethodChanged": {
+    "placeholders": {
+      "method": {}
+    }
+  },
   "invoiceCollectionMethodChangeError": "خطأ في تغيير طريقة التحصيل: {error}",
-  "@invoiceCollectionMethodChangeError": {"placeholders":{"error":{}}},
+  "@invoiceCollectionMethodChangeError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "invoiceCollectingCashPartner": "جارٍ تحصيل النقد والإرسال (شريك مبيعات)...",
   "invoiceCashCollectedOfd": "تم تحصيل النقد وإرسال الطلب للتوصيل",
   "invoiceOfdFailed": "فشل: {error}",
@@ -1270,7 +1318,6 @@
   "invoiceNothingToSettle": "لا يوجد شيء للتسوية",
   "invoiceSettlementComplete": "اكتملت التسوية",
   "invoiceEditAddress": "تعديل عنوان العميل",
-  "invoiceCustomerLabel": "العميل",
   "invoicePhoneNumber": "رقم الهاتف",
   "invoiceDeliveryAddressLabel": "عنوان التوصيل",
   "invoiceAddressHelper": "أدخل عنوان التوصيل الكامل",
@@ -1279,7 +1326,12 @@
   "invoiceUpdatingAddress": "جارٍ تحديث عنوان العميل...",
   "invoiceAddressUpdated": "تم تحديث عنوان العميل بنجاح",
   "invoiceAddressUpdatedWithShipping": "تم تحديث العنوان. الشحن: {oldExpense} ← {newExpense} ج.م",
-  "@invoiceAddressUpdatedWithShipping": { "placeholders": { "oldExpense": {}, "newExpense": {} } },
+  "@invoiceAddressUpdatedWithShipping": {
+    "placeholders": {
+      "oldExpense": {},
+      "newExpense": {}
+    }
+  },
   "invoiceAddressUpdateFailed": "فشل تحديث العنوان",
   "invoiceCopiedNumber": "تم النسخ: {number}",
   "invoiceCopy": "نسخ",
@@ -1307,7 +1359,6 @@
   "invoiceUpdatingSlot": "جارٍ تحديث موعد التوصيل...",
   "invoiceSlotUpdated": "تم تحديث موعد التوصيل إلى {slot}",
   "invoiceSlotUpdateFailed": "فشل تحديث موعد التوصيل",
-
   "tripsDeliveryTripsTitle": "رحلات التوصيل",
   "tripsActiveTab": "نشطة",
   "tripsCompletedTab": "مكتملة",
@@ -1321,7 +1372,11 @@
   "tripsSelectCourier": "اختر الساعي",
   "tripsNoTrips": "لا توجد رحلات",
   "tripsOrdersCount": "{count} طلب",
-  "@tripsOrdersCount": { "placeholders": { "count": {} } },
+  "@tripsOrdersCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "tripsDoubleShippingLabel": "شحن مضاعف",
   "tripsNotesLabel": "ملاحظات",
   "tripsMarkTripAsDeliveredTitle": "تعليم الرحلة كمسلمة",
@@ -1346,7 +1401,6 @@
   "customShippingBadgeApproved": "تمت الموافقة على الشحن المخصص",
   "customShippingBadgeAmount": "شحن مخصص {amount}",
   "customShippingBadgeRejected": "تم رفض الشحن المخصص",
-
   "receiptSelectImageSource": "اختر مصدر الصورة",
   "receiptCamera": "الكاميرا",
   "receiptGallery": "المعرض",
@@ -1365,7 +1419,6 @@
   "receiptPreviewTitle": "معاينة الإيصال",
   "receiptPreviewButton": "معاينة الإيصال",
   "commonPrint": "طباعة",
-
   "statusCreated": "تم الإنشاء",
   "statusOutForDelivery": "خارج للتوصيل",
   "statusCompleted": "مكتمل",
@@ -1383,7 +1436,6 @@
   "statusApproved": "معتمد",
   "statusRejected": "مرفوض",
   "statusDraft": "مسودة",
-
   "kanbanNoInvoices": "لا توجد فواتير",
   "kanbanTripCreatedSuccess": "تم إنشاء رحلة التوصيل بنجاح",
   "kanbanPartOfTripWarning": "هذا الطلب جزء من رحلة {tripName}. أرسل الرحلة كاملة للتوصيل من شاشة الرحلات.",
@@ -1401,19 +1453,17 @@
   "customShippingSubmitRequest": "إرسال الطلب",
   "kanbanCustomShippingSubmitted": "تم تقديم طلب الشحن المخصص",
   "kanbanCustomShippingFailed": "فشل تقديم الطلب: {error}",
-
   "settlementPartnerDeliveryTitle": "تسوية شريك التوصيل",
   "settlementPartnerInfoTitle": "معلومات تسوية الشريك",
   "settlementPartnerLabel": "الشريك: {name}",
   "settlementPartnerCollectFull": "استلم كامل مبلغ الطلب من الساعي:",
-  "settlementPartnerOnlinePaid": "مدفوع إلكترونياً \u2014 لا يوجد تبادل نقدي مع الساعي",
+  "settlementPartnerOnlinePaid": "مدفوع إلكترونياً — لا يوجد تبادل نقدي مع الساعي",
   "settlementPartnerCollectFullChip": "استلام (المبلغ الكامل)",
   "settlementNoExchange": "لا يوجد تبادل نقدي",
   "settlementPartnerFeeTracked": "رسوم الشريك (محسوبة): {amount}",
   "settlementPartnerCollectedFull": "تم تحصيل مبلغ الطلب كاملاً من السائق",
   "settlementPartnerFullAmountChip": "المبلغ الكامل",
   "settlementPartnerOnlinePaidInfo": "دفع إلكتروني — لا تبادل نقدي",
-
   "managerPendingCustomShipping": "طلبات الشحن المخصص المعلقة",
   "managerNoPendingRequests": "لا توجد طلبات معلقة",
   "managerReasonLabel": "السبب: {reason}",
@@ -1428,14 +1478,11 @@
   "managerTransferBranchesLoadFailed": "فشل تحميل فروع التحويل",
   "managerApproveDefaultError": "تعذر اعتماد الطلب.",
   "managerRejectDefaultError": "تعذر رفض الطلب.",
-
   "purchaseNoInvoicesYet": "لا توجد فواتير شراء بعد",
   "purchaseReorderFromSupplier": "إعادة الطلب من نفس المورد",
   "purchaseHistoryTitle": "سجل المشتريات",
-
   "posCreateCustomer": "إنشاء عميل",
   "posCustomerCreatedSuccess": "تم إنشاء العميل بنجاح!",
-
   "settingsUserProfileTitle": "الملف الشخصي",
   "settingsRolesTitle": "الأدوار",
   "settingsNoRolesAssigned": "لا توجد أدوار مخصصة",
@@ -1449,22 +1496,18 @@
   "settingsNoFileSelected": "لم يتم اختيار ملف",
   "settingsBrowseCustomSoundFile": "استعراض ملف صوت مخصص",
   "settingsCustomSoundTitle": "الصوت المخصص",
-
   "itemGridStockLimitReached": "تم الوصول لحد المخزون. المتوفر {stockQty} فقط.",
-
   "menuDeliveryTrips": "رحلات التوصيل",
   "authLoginTitle": "تسجيل الدخول",
   "printingPrintersTitle": "الطابعات",
   "printingUseBitmapReceipt": "استخدام الإيصال النقطي الجديد",
   "printingUseBitmapReceiptHint": "يعرض الإيصال الكامل كصورة ويساعد في حل مشاكل العربية والبيانات الناقصة والنص غير المقروء.",
   "kanbanOrdersSelectedCount": "{count} طلبات محددة",
-
   "loginModeDialogTitle": "اختر وضع الدخول",
   "loginModeLineManager": "مدير خط",
   "loginModeLineManagerDesc": "تخطي فتح الوردية — إدارة العمليات مباشرة",
   "loginModeEmployee": "موظف",
   "loginModeEmployeeDesc": "فتح وردية قبل بدء العمل",
-
   "customerSearchByPhone": "...بحث برقم الهاتف",
   "customerSearchByName": "...بحث باسم العميل",
   "quickAddCustomerTitle": "إضافة عميل سريع",
@@ -1499,7 +1542,6 @@
   "authCannotReachServer": "تعذر الوصول إلى الخادم. تحقق من شبكة Wi-Fi أو الـ VPN وعنوان الخادم ثم حاول مرة أخرى.",
   "authConnectionFailed": "فشل الاتصال. يرجى التحقق من الشبكة وتوفر الخادم.",
   "authLoginFailed": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
-
   "menuReports": "التقارير",
   "reportsTitle": "التقارير",
   "reportsFinalProducts": "المنتجات النهائية",
@@ -1532,11 +1574,9 @@
   "reportExecutiveSubtitle": "أهم مؤشرات الأداء عبر النشاط بالكامل",
   "reportB2bTitle": "مبيعات وعملاء الجملة",
   "reportB2bSubtitle": "إيرادات الجملة وخط الأنابيب وصحة العملاء",
-
   "reportNoData": "لا توجد بيانات لهذه الفترة",
   "reportError": "تعذّر تحميل التقرير",
   "reportAlerts": "التنبيهات",
-
   "reportShipKpiTotalOrders": "إجمالي الطلبات",
   "reportShipKpiDeliveryOrders": "طلبات التوصيل",
   "reportShipKpiPickupOrders": "طلبات الاستلام",
@@ -1556,7 +1596,6 @@
   "reportPickupVsDelivery": "الاستلام مقابل التوصيل",
   "reportUnsettledBalances": "أرصدة المندوبين غير المسوّاة",
   "reportPickupDeliveryTrend": "اتجاه الاستلام / التوصيل",
-
   "reportInvKpiStockItems": "أصناف المخزون",
   "reportInvKpiCritical": "حرجة",
   "reportInvKpiWatch": "قائمة المراقبة",
@@ -1571,7 +1610,6 @@
   "reportSlowMovers": "بطيئة الحركة",
   "reportOverstocked": "مخزون زائد",
   "reportTopSellers": "الأكثر مبيعاً",
-
   "reportKpiTotalRevenue": "إجمالي الإيرادات",
   "reportKpiTotalOrders": "إجمالي الطلبات",
   "reportKpiGrossProfit": "إجمالي الربح",
@@ -1584,7 +1622,6 @@
   "reportByTerritory": "حسب المنطقة",
   "reportRevenueTrend": "اتجاه الإيرادات",
   "reportBundleComposition": "تكوين الباقات",
-
   "reportKpiTotalCustomers": "إجمالي العملاء",
   "reportKpiActive": "نشط",
   "reportKpiNew": "جديد",
@@ -1597,7 +1634,6 @@
   "reportTopCustomers": "أفضل العملاء",
   "reportAtRiskWinBack": "المعرضون للخطر / الاستعادة",
   "reportNewCustomerAcquisition": "اكتساب عملاء جدد",
-
   "reportKpiRevenue": "الإيرادات",
   "reportKpiOrders": "الطلبات",
   "reportKpiNetShippingPl": "صافي ربح/خسارة الشحن",
@@ -1606,7 +1642,6 @@
   "reportProductMix": "مزيج المنتجات",
   "reportCustomerSegments": "شرائح العملاء",
   "reportTopTerritories": "أعلى المناطق",
-
   "reportKpiB2bRevenue": "إيرادات الجملة",
   "reportKpiB2bOrders": "طلبات الجملة",
   "reportKpiActiveClients": "العملاء النشطون",
@@ -1619,7 +1654,6 @@
   "reportReorderDue": "إعادة الطلب مستحقة",
   "reportAtRiskClients": "العملاء المعرضون للخطر",
   "reportConversion": "التحويل",
-
   "menuMasterOrders": "جميع الطلبات",
   "masterOrdersTitle": "جميع الطلبات",
   "masterOrdersSearchHint": "بحث برقم الطلب أو العميل...",
@@ -1628,7 +1662,9 @@
   "masterOrdersResultCount": "{count} طلب",
   "@masterOrdersResultCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "masterOrdersFilterStatus": "الحالة",
@@ -1639,64 +1675,301 @@
   "masterOrdersFilterDateTo": "إلى",
   "masterOrdersOutstanding": "المتبقي",
   "masterOrdersCurrency": "ج.م",
-  "@checkoutFailed": {"placeholders":{"error":{}}},
-  "@customShippingBadgeAmount": {"placeholders":{"amount":{}}},
-  "@invoiceActionFailed": {"placeholders":{"error":{}}},
-  "@invoiceAlreadyStatus": {"placeholders":{"status":{}}},
-  "@invoiceCancelledWithCn": {"placeholders":{"creditNote":{}}},
-  "@invoiceCollectCashBody": {"placeholders":{"amount":{},"invoiceId":{}}},
-  "@invoiceCopiedNumber": {"placeholders":{"number":{}}},
-  "@invoiceCurrentSlot": {"placeholders":{"slot":{}}},
-  "@invoiceCustomerName": {"placeholders":{"name":{}}},
-  "@invoiceDeliveryError": {"placeholders":{"error":{}}},
-  "@invoiceInvoiceLabel": {"placeholders":{"name":{}}},
-  "@invoiceOfdError": {"placeholders":{"error":{}}},
-  "@invoiceOfdFailed": {"placeholders":{"error":{}}},
-  "@invoicePaymentError": {"placeholders":{"error":{}}},
-  "@invoicePaymentSuccess": {"placeholders":{"entry":{}}},
-  "@invoiceProcessingPayment": {"placeholders":{"method":{}}},
-  "@invoiceReceiptCreated": {"placeholders":{"receipt":{}}},
-  "@invoiceReceiptCreationFailed": {"placeholders":{"error":{}}},
-  "@invoiceReceiptReturnedWarning": {"placeholders":{"message":{}}},
-  "@invoiceSettleLaterError": {"placeholders":{"error":{}}},
-  "@invoiceSettlementError": {"placeholders":{"error":{}}},
-  "@invoiceSlotUpdated": {"placeholders":{"slot":{}}},
-  "@invoiceTransferSuccess": {"placeholders":{"branch":{}}},
-  "@itemGridBundlesCount": {"placeholders":{"count":{}}},
-  "@itemGridItemsCount": {"placeholders":{"count":{}}},
-  "@itemGridStockLimitReached": {"placeholders":{"stockQty":{}}},
-  "@kanbanBranchCount": {"placeholders":{"count":{}}},
-  "@kanbanCreateFailed": {"placeholders":{"error":{}}},
-  "@kanbanCustomShippingFailed": {"placeholders":{"error":{}}},
-  "@kanbanFilterActiveCount": {"placeholders":{"count":{}}},
-  "@kanbanOrdersSelectedCount": {"placeholders":{"count":{"type":"int"}}},
-  "@kanbanOfdAwaitingInstapayWithCourier": {"placeholders":{"courier":{}}},
-  "@kanbanPartOfTripWarning": {"placeholders":{"tripName":{}}},
-  "@kanbanPreviewFailed": {"placeholders":{"error":{}}},
-  "@kanbanSettleLaterError": {"placeholders":{"error":{}}},
-  "@kanbanSettlementError": {"placeholders":{"error":{}}},
-  "@kanbanWarehouse": {"placeholders":{"warehouse":{}}},
-  "@managerApproveFailed": {"placeholders":{"error":{}}},
-  "@managerReasonLabel": {"placeholders":{"reason":{}}},
-  "@managerRejectFailed": {"placeholders":{"error":{}}},
-  "@receiptConfirmError": {"placeholders":{"error":{}}},
-  "@receiptUploadError": {"placeholders":{"error":{}}},
-  "@settingsAlarmSoundChanged": {"placeholders":{"title":{}}},
-  "@settingsAlarmSoundUnavailable": {"placeholders":{"title":{}}},
-  "@settingsCustomAlarmSoundSet": {"placeholders":{"title":{}}},
-  "@settingsFailedToLoadAlarmSounds": {"placeholders":{"error":{}}},
-  "@settlementPartnerFeeTracked": {"placeholders":{"amount":{}}},
-  "@settlementPartnerLabel": {"placeholders":{"name":{}}},
-  "@subTerritoryForTerritory": {"placeholders":{"territory":{}}},
-  "@tripsCreateTripFailed": {"placeholders":{"error":{}}},
-  "@tripsFailed": {"placeholders":{"error":{}}},
-  "@tripsInvoicesCount": {"placeholders":{"count":{}}},
-  "@tripsMarkAllAsDeliveredContent": {"placeholders":{"count":{}}},
-  "@tripsMarkTripAsDeliveredContent": {"placeholders":{"tripName":{},"count":{}}},
-  "@tripsSameTerritory": {"placeholders":{"territory":{}}},
-  "@tripsSendForDeliveryContent": {"placeholders":{"count":{},"courierName":{}}},
-  "@tripsSubTerritoryRequired": {"placeholders":{"invoices":{}}},
-  "@tripsTripMarkedAsDelivered": {"placeholders":{"tripName":{}}},
+  "@checkoutFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@customShippingBadgeAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "@invoiceActionFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@invoiceAlreadyStatus": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "@invoiceCancelledWithCn": {
+    "placeholders": {
+      "creditNote": {}
+    }
+  },
+  "@invoiceCollectCashBody": {
+    "placeholders": {
+      "amount": {},
+      "invoiceId": {}
+    }
+  },
+  "@invoiceCopiedNumber": {
+    "placeholders": {
+      "number": {}
+    }
+  },
+  "@invoiceCurrentSlot": {
+    "placeholders": {
+      "slot": {}
+    }
+  },
+  "@invoiceCustomerName": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "@invoiceDeliveryError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@invoiceInvoiceLabel": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "@invoiceOfdError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@invoiceOfdFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@invoicePaymentError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@invoicePaymentSuccess": {
+    "placeholders": {
+      "entry": {}
+    }
+  },
+  "@invoiceProcessingPayment": {
+    "placeholders": {
+      "method": {}
+    }
+  },
+  "@invoiceReceiptCreated": {
+    "placeholders": {
+      "receipt": {}
+    }
+  },
+  "@invoiceReceiptCreationFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@invoiceReceiptReturnedWarning": {
+    "placeholders": {
+      "message": {}
+    }
+  },
+  "@invoiceSettleLaterError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@invoiceSettlementError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@invoiceSlotUpdated": {
+    "placeholders": {
+      "slot": {}
+    }
+  },
+  "@invoiceTransferSuccess": {
+    "placeholders": {
+      "branch": {}
+    }
+  },
+  "@itemGridBundlesCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@itemGridItemsCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@itemGridStockLimitReached": {
+    "placeholders": {
+      "stockQty": {}
+    }
+  },
+  "@kanbanBranchCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@kanbanCreateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@kanbanCustomShippingFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@kanbanFilterActiveCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@kanbanOrdersSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@kanbanOfdAwaitingInstapayWithCourier": {
+    "placeholders": {
+      "courier": {}
+    }
+  },
+  "@kanbanPartOfTripWarning": {
+    "placeholders": {
+      "tripName": {}
+    }
+  },
+  "@kanbanPreviewFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@kanbanSettleLaterError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@kanbanSettlementError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@kanbanWarehouse": {
+    "placeholders": {
+      "warehouse": {}
+    }
+  },
+  "@managerApproveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@managerReasonLabel": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "@managerRejectFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@receiptConfirmError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@receiptUploadError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@settingsAlarmSoundChanged": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "@settingsAlarmSoundUnavailable": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "@settingsCustomAlarmSoundSet": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "@settingsFailedToLoadAlarmSounds": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@settlementPartnerFeeTracked": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "@settlementPartnerLabel": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "@subTerritoryForTerritory": {
+    "placeholders": {
+      "territory": {}
+    }
+  },
+  "@tripsCreateTripFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@tripsFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@tripsInvoicesCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@tripsMarkAllAsDeliveredContent": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@tripsMarkTripAsDeliveredContent": {
+    "placeholders": {
+      "tripName": {},
+      "count": {}
+    }
+  },
+  "@tripsSameTerritory": {
+    "placeholders": {
+      "territory": {}
+    }
+  },
+  "@tripsSendForDeliveryContent": {
+    "placeholders": {
+      "count": {},
+      "courierName": {}
+    }
+  },
+  "@tripsSubTerritoryRequired": {
+    "placeholders": {
+      "invoices": {}
+    }
+  },
+  "@tripsTripMarkedAsDelivered": {
+    "placeholders": {
+      "tripName": {}
+    }
+  },
   "menuShiftMonitor": "متابعة الشيفتات",
   "shiftMonitorTitle": "متابعة شيفتات نقاط البيع",
   "shiftMonitorAccessRequired": "يلزم صلاحية مدير",
@@ -1756,5 +2029,18 @@
   "leadFieldTerritory": "المنطقة",
   "leadB2bStage": "مرحلة B2B",
   "leadFitScore": "درجة الملاءمة",
-  "b2bMoveTo": "نقل إلى"
+  "b2bMoveTo": "نقل إلى",
+  "shiftMonitorForceCloseAction": "إقفال هذه الوردية",
+  "shiftMonitorForceCloseTitle": "إقفال وردية {user}",
+  "shiftMonitorForceCloseIntro": "أنت تقوم بإقفال وردية فتحها {user} في {branch}. أدخل النقدية المعدودة فعليًا في الدرج — أي فرق هيتسجل في حساب العجز/الزيادة، زي الإقفال العادي بالظبط.",
+  "shiftMonitorForceCloseReasonLabel": "السبب (مطلوب)",
+  "shiftMonitorForceCloseReasonHint": "مثلاً: الموظف مشي من غير ما يقفل",
+  "shiftMonitorForceCloseReasonRequired": "من فضلك اكتب سبب إقفال وردية شخص تاني.",
+  "shiftMonitorForceCloseCountLabel": "المبلغ المعدود — {mode}",
+  "shiftMonitorForceCloseCountRequired": "أدخل المبلغ المعدود لـ {mode}.",
+  "shiftMonitorForceCloseExpected": "المتوقع من النظام: {amount}",
+  "shiftMonitorForceCloseCourierWarning": "الفرع لسه عنده {transactions} معاملة مندوب غير مسواة على {invoices} طلب. هتفضل مفتوحة بعد الإقفال ولازم تتسوى.",
+  "shiftMonitorForceCloseCourierAck": "أنا فاهم وعايز أقفل برضه",
+  "shiftMonitorForceCloseConfirm": "إقفال الوردية",
+  "shiftMonitorForceCloseSuccess": "تم إقفال الوردية."
 }

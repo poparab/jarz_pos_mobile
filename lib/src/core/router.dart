@@ -134,6 +134,17 @@ String? resolveRouterRedirect({
     return AppRoutes.pos;
   }
 
+  // A shift belongs to one branch, so it cannot be verified until we know which
+  // branch the user is on. Staff who land straight on the Kanban board never
+  // pass through profile selection, which used to skip the shift gate entirely
+  // while still letting them collect cash and dispatch orders.
+  if (requirePosShift && !hasSelectedProfile) {
+    if (!isOnProfileSelection && !isOnShiftStart) {
+      return AppRoutes.selectProfile;
+    }
+    return null;
+  }
+
   // Global shift gating: only after POS profile is selected.
   // Each POS profile is independent – shifts on other profiles are irrelevant.
   if (hasSelectedProfile && requirePosShift) {

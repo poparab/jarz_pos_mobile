@@ -23,6 +23,7 @@ class _FakeKanbanService extends KanbanService {
   Map<String, dynamic>? lastFilters;
   String? lastUpdatedInvoice;
   String? lastUpdatedState;
+  String? lastExpectedState;
   bool updateShouldSucceed = true;
   Object? fetchInvoicesError;
   final Map<String, List<InvoiceNote>> notesByInvoice = {
@@ -105,9 +106,11 @@ class _FakeKanbanService extends KanbanService {
     String newState, {
     bool shortageApproved = false,
     String? shortageReason,
+    String? expectedState,
   }) async {
     lastUpdatedInvoice = invoiceId;
     lastUpdatedState = newState;
+    lastExpectedState = expectedState;
     return updateShouldSucceed;
   }
 

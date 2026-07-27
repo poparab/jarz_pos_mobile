@@ -81,6 +81,10 @@ abstract final class ApiEndpoints {
   static const getShiftSummary =
       '/api/method/jarz_pos.api.shift.get_shift_summary';
   static const endShift = '/api/method/jarz_pos.api.shift.end_shift';
+  static const getForceCloseShiftPreview =
+      '/api/method/jarz_pos.api.shift.get_force_close_preview';
+  static const forceCloseShift =
+      '/api/method/jarz_pos.api.shift.force_close_shift';
 
   // ── Kanban ────────────────────────────────────────────────────────────
   static const getKanbanColumns =

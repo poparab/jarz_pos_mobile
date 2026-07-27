@@ -7560,6 +7560,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move to'**
   String get b2bMoveTo;
+
+  /// No description provided for @shiftMonitorForceCloseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Close This Shift'**
+  String get shiftMonitorForceCloseAction;
+
+  /// No description provided for @shiftMonitorForceCloseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Close {user}\'\'s Shift'**
+  String shiftMonitorForceCloseTitle(String user);
+
+  /// No description provided for @shiftMonitorForceCloseIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'You are closing a shift opened by {user} on {branch}. Enter the cash actually counted in the drawer — any difference posts a Cash Over/Short entry, exactly as a normal close would.'**
+  String shiftMonitorForceCloseIntro(String user, String branch);
+
+  /// No description provided for @shiftMonitorForceCloseReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (required)'**
+  String get shiftMonitorForceCloseReasonLabel;
+
+  /// No description provided for @shiftMonitorForceCloseReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. staff member left without closing'**
+  String get shiftMonitorForceCloseReasonHint;
+
+  /// No description provided for @shiftMonitorForceCloseReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please give a reason for closing another user\'\'s shift.'**
+  String get shiftMonitorForceCloseReasonRequired;
+
+  /// No description provided for @shiftMonitorForceCloseCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted amount — {mode}'**
+  String shiftMonitorForceCloseCountLabel(String mode);
+
+  /// No description provided for @shiftMonitorForceCloseCountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a counted amount for {mode}.'**
+  String shiftMonitorForceCloseCountRequired(String mode);
+
+  /// No description provided for @shiftMonitorForceCloseExpected.
+  ///
+  /// In en, this message translates to:
+  /// **'System expected: {amount}'**
+  String shiftMonitorForceCloseExpected(String amount);
+
+  /// No description provided for @shiftMonitorForceCloseCourierWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This branch still has {transactions} unsettled courier transaction(s) across {invoices} order(s). They stay outstanding after closing and must still be settled.'**
+  String shiftMonitorForceCloseCourierWarning(int transactions, int invoices);
+
+  /// No description provided for @shiftMonitorForceCloseCourierAck.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand and want to close anyway'**
+  String get shiftMonitorForceCloseCourierAck;
+
+  /// No description provided for @shiftMonitorForceCloseConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Shift'**
+  String get shiftMonitorForceCloseConfirm;
+
+  /// No description provided for @shiftMonitorForceCloseSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift closed.'**
+  String get shiftMonitorForceCloseSuccess;
 }
 
 class _AppLocalizationsDelegate

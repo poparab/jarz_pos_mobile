@@ -159,11 +159,18 @@ class KanbanService {
     String newState, {
     bool shortageApproved = false,
     String? shortageReason,
+    String? expectedState,
   }) async {
     final payload = <String, dynamic>{
       'invoice_id': invoiceId,
       'new_state': newState,
     };
+    // Tell the server which column we dragged the card out of. If somebody else
+    // already moved it, the move is rejected instead of silently overwriting
+    // their change.
+    if (expectedState != null && expectedState.isNotEmpty) {
+      payload['expected_state'] = expectedState;
+    }
     if (shortageApproved) {
       payload['shortage_approved'] = 1;
     }

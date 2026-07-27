@@ -80,8 +80,6 @@ class LoginNotifier extends AsyncNotifier<bool> {
     // Fully wipe every user-scoped provider and per-user Hive cache so no
     // state or permission from the previous user survives into the next login.
     _resetUserScopedState();
-    // Reset login mode so next login starts fresh
-    ref.read(loginModeProvider.notifier).state = LoginMode.employee;
     state = AsyncData(false);
   }
 
@@ -94,10 +92,10 @@ class LoginNotifier extends AsyncNotifier<bool> {
   /// Deliberately does NOT touch device-global state that must survive a user
   /// switch: locale/language (`app_settings`/preferred locale), printer prefs
   /// (`pos_printer_prefs`), the offline sync queue (`offline_queue`) and
-  /// alarm-sound prefs. It also does NOT invalidate `authStateProvider` (the
-  /// login path relies on it staying set) nor `loginModeProvider` (chosen at
-  /// the login screen); logout resets those explicitly. FCM/push token reset is
-  /// owned by OrderAlertBridge, which reacts to the auth-state change.
+  /// alarm-sound prefs. It also does NOT invalidate `authStateProvider` — the
+  /// login path relies on it staying set; logout resets it explicitly. FCM/push
+  /// token reset is owned by OrderAlertBridge, which reacts to the auth-state
+  /// change.
   void _resetUserScopedState() {
     // POS: selected profile, cart, customer, promos, amendment context, drafts.
     ref.invalidate(posNotifierProvider);
@@ -115,7 +113,6 @@ class LoginNotifier extends AsyncNotifier<bool> {
     ref.invalidate(canAccessB2bProvider);
     ref.invalidate(canMuteNotificationsProvider);
     ref.invalidate(requirePosShiftProvider);
-    ref.invalidate(shouldShowLoginModeChoiceProvider);
     // Manager dashboard access + filter selections.
     ref.invalidate(managerAccessProvider);
     ref.invalidate(selectedBranchProvider);

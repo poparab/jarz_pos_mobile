@@ -101,6 +101,52 @@ class OfflineQueue {
     }
   }
 
+  /// Maximum replay attempts before a queued action is considered dead.
+  static const int maxReplayAttempts = 3;
+
+  /// Record a failed replay attempt.
+  ///
+  /// Returns `true` once the action has exhausted [maxReplayAttempts] and has
+  /// been parked as `error`. A single failed replay used to park the action
+  /// immediately, so an order dispatched offline could be dropped for good
+  /// because of one flaky request on reconnect — with nothing shown to the
+  /// staff member who was told it had gone through.
+  Future<bool> markAttemptFailed(String id, String error) async {
+    await init();
+    final transaction = _getTransaction(id);
+    if (transaction == null) return true;
+
+    final attempts = ((transaction['attempts'] as num?)?.toInt() ?? 0) + 1;
+    transaction['attempts'] = attempts;
+    transaction['error'] = error;
+    transaction['error_at'] = DateTime.now().toIso8601String();
+
+    final exhausted = attempts >= maxReplayAttempts;
+    transaction['status'] = exhausted ? 'error' : 'pending';
+    await _putTransaction(id, transaction);
+
+    if (kDebugMode) {
+      debugPrint(
+        '⚠️ OFFLINE: attempt $attempts/$maxReplayAttempts failed for $id'
+        '${exhausted ? ' — parked' : ' — will retry'}: $error',
+      );
+    }
+    return exhausted;
+  }
+
+  /// Actions that exhausted their retries and need a human to look at them.
+  Future<List<Map<String, dynamic>>> getFailedTransactions() async {
+    await init();
+    final failed = <Map<String, dynamic>>[];
+    for (final key in _keys) {
+      final transaction = _getTransaction(key);
+      if (transaction != null && transaction['status'] == 'error') {
+        failed.add(transaction);
+      }
+    }
+    return failed;
+  }
+
   Future<void> clearProcessed() async {
     await init();
     final keysToRemove = <dynamic>[];

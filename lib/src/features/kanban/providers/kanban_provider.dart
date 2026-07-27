@@ -72,6 +72,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
   WebSocketService? _wsService;
   StreamSubscription<Map<String, dynamic>>? _kanbanSub;
   StreamSubscription<Map<String, dynamic>>? _pollingSub;
+  StreamSubscription<Map<String, dynamic>>? _invoiceSub;
   final Ref _ref; // store ref for offline queue & connectivity
   bool _autoBranchesInitialized = false; // ensure we don't override user choice
   Timer? _loadInvoicesDebounce; // debounce rapid loadInvoices calls
@@ -315,10 +316,33 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     await _initializeKanban();
   }
 
+  /// Whether a socket event concerns a branch this board is currently showing.
+  ///
+  /// The backend now addresses events to the owning branch's users, so this is
+  /// a second line of defence for the case that actually bit us: a user
+  /// assigned to several branches who has filtered down to one. Without it,
+  /// another branch's order could still trigger a board reload or — worse — pop
+  /// a "collect cash" dialog for an order this user is not handling.
+  bool _eventIsForVisibleBranch(Map<String, dynamic> event) {
+    final selected = state.selectedBranches;
+    if (selected.isEmpty) return true; // server already scoped it to our branches
+    final branch = (event['kanban_profile'] ??
+            event['custom_kanban_profile'] ??
+            event['pos_profile'] ??
+            '')
+        .toString()
+        .trim();
+    // No branch on the payload means we cannot judge it; let it through rather
+    // than risk dropping a legitimate update.
+    if (branch.isEmpty) return true;
+    return selected.contains(branch);
+  }
+
   void _attachRealtime() {
     try {
       // Listen for kanban state change updates
       _kanbanSub = _wsService?.kanbanUpdates.listen((event) {
+        if (!_eventIsForVisibleBranch(event)) return;
         final invoiceId = event['invoice'] as String? ?? event['invoice_id'] as String?;
         final eventName = (event['event'] ?? '').toString().toLowerCase();
         final paymentChanged = const [true, 1, '1', 'true', 'True']
@@ -416,9 +440,10 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         }
       });
   // Also listen for new POS invoices and refresh the Received column
-      _wsService?.invoiceStream.listen((inv) async {
+      _invoiceSub = _wsService?.invoiceStream.listen((inv) async {
         // Basic guard: ensure Kanban is initialized
         if (state.columns.isEmpty) return;
+        if (!_eventIsForVisibleBranch(inv)) return;
         // Simple strategy: reload invoices to pick up the new card
         await loadInvoices();
       });
@@ -587,6 +612,16 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     state = state.copyWith(invoices: _sortReceivedColumn(current), transitioningInvoices: ti);
   }
 
+  /// The column a card currently occupies, or null when it is not on the board.
+  String? _currentStateOf(String invoiceId) {
+    for (final entry in state.invoices.entries) {
+      for (final card in entry.value) {
+        if (card.id == invoiceId) return card.status;
+      }
+    }
+    return null;
+  }
+
   void _applyRealtimeMove(String invoiceId, String? oldStateKey, String newStateKey) {
     final current = Map<String, List<InvoiceCard>>.from(state.invoices);
     InvoiceCard? card;
@@ -718,6 +753,10 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       canonical = byId?.name ?? newState;
     }
 
+    // Capture where the card sits *now*, before any optimistic move, so the
+    // server can reject the change if a colleague already moved it.
+    final expectedState = _currentStateOf(invoiceId);
+
     // Guard: Out For Delivery handling
     if (canonical.toLowerCase() == 'out for delivery') {
       final all = state.invoices.values.expand((e) => e).toList();
@@ -743,6 +782,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
             canonical,
             shortageApproved: shortageApproved,
             shortageReason: shortageReason,
+            expectedState: expectedState,
           );
           if (!success) {
             state = state.copyWith(error: 'Failed to update pickup order state');
@@ -807,6 +847,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
               canonical,
               shortageApproved: shortageApproved,
               shortageReason: shortageReason,
+              expectedState: expectedState,
             );
             if (!success) {
               state = state.copyWith(error: 'Sales Partner paid dispatch failed');
@@ -835,6 +876,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         canonical,
         shortageApproved: shortageApproved,
         shortageReason: shortageReason,
+        expectedState: expectedState,
       );
       if (!success) {
         state = prevState.copyWith(error: 'Update failed (no success flag)');
@@ -953,6 +995,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
   void dispose() {
     _kanbanSub?.cancel();
     _pollingSub?.cancel();
+    // Was never cancelled: a second listener on rebuild meant every socket
+    // event triggered two full board reloads.
+    _invoiceSub?.cancel();
     _loadInvoicesDebounce?.cancel();
     super.dispose();
   }
@@ -1229,6 +1274,10 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     final queue = _ref.read(offlineQueueProvider);
     final pending = await queue.getPendingTransactions();
     if (pending.isEmpty) return;
+
+    final abandoned = <String>[];
+    var replayed = 0;
+
     for (final tx in pending) {
       final data = tx['data'] as Map<String, dynamic>?;
       if (data == null) continue;
@@ -1238,24 +1287,42 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         final mode = data['mode'] as String;
         final posProfile = data['pos_profile'] as String;
         final token = data['idempotency_token'] as String;
-    final partyType = data['party_type'] as String?;
-    final party = data['party'] as String?;
+        final partyType = data['party_type'] as String?;
+        final party = data['party'] as String?;
         try {
           final res = await _kanbanService.handleOutForDeliveryTransition(
             invoiceName: invoiceId,
             courier: courier,
             mode: mode,
             posProfile: posProfile,
-      idempotencyToken: token,
-      partyType: partyType,
-      party: party,
+            idempotencyToken: token,
+            partyType: partyType,
+            party: party,
           );
           _patchInvoiceOutForDelivery(invoiceId, res);
           await queue.markAsProcessed(tx['id']);
+          replayed++;
         } catch (e) {
-          await queue.markAsError(tx['id'], e.toString());
+          // Retry on the next reconnect until the attempts run out; only then
+          // is the action parked. Either way the staff member hears about it —
+          // they were told the dispatch succeeded, so silence here means an
+          // order sits "Out For Delivery" on the board and nowhere else.
+          final exhausted = await queue.markAttemptFailed(tx['id'], e.toString());
+          if (exhausted) abandoned.add(invoiceId);
         }
       }
+    }
+
+    if (abandoned.isNotEmpty) {
+      state = state.copyWith(
+        error: 'Could not sync ${abandoned.length} offline dispatch'
+            '${abandoned.length == 1 ? '' : 'es'} (${abandoned.join(', ')}). '
+            'Please redo the dispatch for these orders.',
+      );
+    }
+    if (replayed > 0) {
+      // Pull authoritative state for anything that did go through.
+      await loadInvoices();
     }
   }
 

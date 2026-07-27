@@ -155,6 +155,60 @@ void main() {
     );
   });
 
+  group('shift gate without a selected profile', () {
+    // A Jarz POS Staff user lands straight on the Kanban board and never passes
+    // through profile selection. The gate used to require a selected profile,
+    // so those users skipped it entirely while still collecting cash and
+    // dispatching orders.
+    test('sends a shift-required user with no profile to profile selection', () {
+      final result = resolveRouterRedirect(
+        isAuthenticated: true,
+        location: AppRoutes.kanban,
+        readRequirePosShift: () => true,
+        readActiveShift: () => const AsyncValue.data(null),
+        readSelectedProfile: () => null,
+      );
+
+      expect(result, AppRoutes.selectProfile);
+    });
+
+    test('does not bounce a user already on profile selection', () {
+      final result = resolveRouterRedirect(
+        isAuthenticated: true,
+        location: AppRoutes.selectProfile,
+        readRequirePosShift: () => true,
+        readActiveShift: () => const AsyncValue.data(null),
+        readSelectedProfile: () => null,
+      );
+
+      expect(result, isNull);
+    });
+
+    test('does not bounce a user already on shift start', () {
+      final result = resolveRouterRedirect(
+        isAuthenticated: true,
+        location: AppRoutes.shiftStart,
+        readRequirePosShift: () => true,
+        readActiveShift: () => const AsyncValue.data(null),
+        readSelectedProfile: () => null,
+      );
+
+      expect(result, isNull);
+    });
+
+    test('leaves users without a shift requirement alone', () {
+      final result = resolveRouterRedirect(
+        isAuthenticated: true,
+        location: AppRoutes.kanban,
+        readRequirePosShift: () => false,
+        readActiveShift: () => const AsyncValue.data(null),
+        readSelectedProfile: () => null,
+      );
+
+      expect(result, isNull);
+    });
+  });
+
   group('home route resolution', () {
     UserRoles rolesWith(List<String> roles) =>
         UserRoles(user: 'u@x.com', roles: roles);

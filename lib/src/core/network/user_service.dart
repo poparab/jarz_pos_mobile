@@ -199,38 +199,20 @@ final canEditPricingProvider = Provider<bool>((ref) {
   );
 });
 
-/// Login mode: when a Line Manager who requires a shift logs in,
-/// they can choose to operate as 'line_manager' (skip shift) or
-/// 'employee' (require shift). Defaults to 'employee'.
-/// Reset on logout.
-enum LoginMode { employee, lineManager }
-
-final loginModeProvider = StateProvider<LoginMode>((ref) => LoginMode.employee);
-
 /// Whether the user needs to open a POS shift.
-/// Returns false if the user chose to log in as Line Manager.
+///
+/// Driven solely by `User.custom_require_pos_shift`, which is the same flag the
+/// backend enforces. The old line-manager "manager mode" escape hatch is gone:
+/// it lived only on the client, so a line manager could take cash with no shift
+/// open and leave the money unattributed at close. A line manager who genuinely
+/// should not need a shift is configured by clearing the flag on their User.
 final requirePosShiftProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
-  final loginMode = ref.watch(loginModeProvider);
-  return rolesAsync.maybeWhen(
-    data: (roles) {
-      if (!roles.requirePosShift) return false;
-      // Line managers who chose manager mode skip shift requirement
-      if (roles.isLineManager && loginMode == LoginMode.lineManager) {
-        return false;
-      }
-      return true;
-    },
-    orElse: () => false,
-  );
+  // `valueOrNull` keeps the last successful roles across a refresh failure.
+  // `maybeWhen(orElse: false)` used to report "no shift needed" whenever the
+  // roles call errored, silently switching the gate off on a network blip.
+  final roles = rolesAsync.valueOrNull;
+  if (roles == null) return false;
+  return roles.requirePosShift;
 });
 
-/// Whether the current user should be shown the login mode choice
-/// (is a line manager AND has shift requirement).
-final shouldShowLoginModeChoiceProvider = Provider<bool>((ref) {
-  final rolesAsync = ref.watch(userRolesFutureProvider);
-  return rolesAsync.maybeWhen(
-    data: (roles) => roles.isLineManager && roles.requirePosShift,
-    orElse: () => false,
-  );
-});

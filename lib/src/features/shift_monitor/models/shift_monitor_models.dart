@@ -191,3 +191,56 @@ DateTime? _parseDateTime(Object? value) {
   if (raw == null || raw.isEmpty) return null;
   return DateTime.tryParse(raw)?.toLocal();
 }
+
+/// What a manager needs to know before closing somebody else's shift: whose it
+/// is, which payment modes need a count, and whether courier balances are still
+/// outstanding on that branch.
+class ForceClosePreview {
+  const ForceClosePreview({
+    required this.openingEntry,
+    required this.posProfile,
+    required this.user,
+    required this.userFullName,
+    required this.isCurrentUser,
+    required this.modesOfPayment,
+    required this.expectedAmount,
+    required this.courierBlocked,
+    required this.courierTransactionCount,
+    required this.courierInvoiceCount,
+  });
+
+  final String openingEntry;
+  final String posProfile;
+  final String user;
+  final String userFullName;
+  final bool isCurrentUser;
+  final List<String> modesOfPayment;
+  final double expectedAmount;
+  final bool courierBlocked;
+  final int courierTransactionCount;
+  final int courierInvoiceCount;
+
+  factory ForceClosePreview.fromJson(Map<String, dynamic> json) {
+    final courier = Map<String, dynamic>.from(
+      json['courier_block'] as Map? ?? const {},
+    );
+    final modes = (json['modes_of_payment'] as List<dynamic>? ?? const [])
+        .map((e) => e.toString())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    return ForceClosePreview(
+      openingEntry: (json['opening_entry'] ?? '').toString(),
+      posProfile: (json['pos_profile'] ?? '').toString(),
+      user: (json['user'] ?? '').toString(),
+      userFullName: (json['user_full_name'] ?? json['user'] ?? '').toString(),
+      isCurrentUser: json['is_current_user'] == true || json['is_current_user'] == 1,
+      // A profile with no configured modes still needs one cash count row.
+      modesOfPayment: modes.isEmpty ? const ['Cash'] : modes,
+      expectedAmount: (json['expected_amount'] as num?)?.toDouble() ?? 0,
+      courierBlocked: courier['blocked'] == true || courier['blocked'] == 1,
+      courierTransactionCount:
+          (courier['transaction_count'] as num?)?.toInt() ?? 0,
+      courierInvoiceCount: (courier['invoice_count'] as num?)?.toInt() ?? 0,
+    );
+  }
+}

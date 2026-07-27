@@ -9,6 +9,7 @@ import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../manager/state/manager_providers.dart';
 import '../models/shift_monitor_models.dart';
+import 'force_close_shift_dialog.dart';
 import 'providers/shift_monitor_providers.dart';
 
 class ShiftMonitorScreen extends ConsumerWidget {
@@ -495,13 +496,13 @@ class _ShiftProfileCard extends StatelessWidget {
   }
 }
 
-class _ShiftDetailsCard extends StatelessWidget {
+class _ShiftDetailsCard extends ConsumerWidget {
   const _ShiftDetailsCard({required this.shift});
 
   final ShiftMonitorShift shift;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final differenceColor = switch (shift.differenceKind) {
       'surplus' => Colors.green,
@@ -603,6 +604,31 @@ class _ShiftDetailsCard extends StatelessWidget {
               ),
             ],
           ),
+          // An open shift blocks every other user from starting one on this
+          // branch, so a manager needs a way to close it without going to Desk.
+          if (shift.isOpen && shift.openingEntry.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.lock_clock, size: 18),
+                label: Text(l10n.shiftMonitorForceCloseAction),
+                onPressed: () async {
+                  final closed = await ForceCloseShiftDialog.show(
+                    context,
+                    shift.openingEntry,
+                  );
+                  if (closed == true && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(l10n.shiftMonitorForceCloseSuccess),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
         ],
       ),
     );

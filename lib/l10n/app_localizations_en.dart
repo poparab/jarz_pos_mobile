@@ -4260,4 +4260,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get b2bMoveTo => 'Move to';
+
+  @override
+  String get shiftMonitorForceCloseAction => 'Close This Shift';
+
+  @override
+  String shiftMonitorForceCloseTitle(String user) {
+    return 'Close $user\'s Shift';
+  }
+
+  @override
+  String shiftMonitorForceCloseIntro(String user, String branch) {
+    return 'You are closing a shift opened by $user on $branch. Enter the cash actually counted in the drawer — any difference posts a Cash Over/Short entry, exactly as a normal close would.';
+  }
+
+  @override
+  String get shiftMonitorForceCloseReasonLabel => 'Reason (required)';
+
+  @override
+  String get shiftMonitorForceCloseReasonHint =>
+      'e.g. staff member left without closing';
+
+  @override
+  String get shiftMonitorForceCloseReasonRequired =>
+      'Please give a reason for closing another user\'s shift.';
+
+  @override
+  String shiftMonitorForceCloseCountLabel(String mode) {
+    return 'Counted amount — $mode';
+  }
+
+  @override
+  String shiftMonitorForceCloseCountRequired(String mode) {
+    return 'Enter a counted amount for $mode.';
+  }
+
+  @override
+  String shiftMonitorForceCloseExpected(String amount) {
+    return 'System expected: $amount';
+  }
+
+  @override
+  String shiftMonitorForceCloseCourierWarning(int transactions, int invoices) {
+    return 'This branch still has $transactions unsettled courier transaction(s) across $invoices order(s). They stay outstanding after closing and must still be settled.';
+  }
+
+  @override
+  String get shiftMonitorForceCloseCourierAck =>
+      'I understand and want to close anyway';
+
+  @override
+  String get shiftMonitorForceCloseConfirm => 'Close Shift';
+
+  @override
+  String get shiftMonitorForceCloseSuccess => 'Shift closed.';
 }
