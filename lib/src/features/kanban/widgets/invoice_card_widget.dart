@@ -161,65 +161,81 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       borderRadius: BorderRadius.circular(8),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: _noteAccentColor.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(8),
-          border: Border(
-            // Leading accent bar — reads like a sticky note without needing a
-            // new icon glyph.
-            left: BorderSide(color: _noteAccentColor, width: 3),
-            top: BorderSide(color: _noteAccentColor.withValues(alpha: 0.25)),
-            right: BorderSide(color: _noteAccentColor.withValues(alpha: 0.25)),
-            bottom: BorderSide(color: _noteAccentColor.withValues(alpha: 0.25)),
-          ),
+          // Uniform border ONLY. A non-uniform Border (a heavier left side)
+          // combined with a borderRadius throws a debug-only paint assertion
+          // ("A borderRadius can only be given on borders with uniform
+          // colors"), which stops the strip's inner content painting under
+          // `flutter test`. The thick amber left accent is rendered below as a
+          // standalone full-height bar instead of a heavier left BorderSide.
+          border: Border.all(color: _noteAccentColor.withValues(alpha: 0.25)),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Reuses the glyph already on this card — do not swap for a new
-            // icon, it would break the production Shorebird patch.
-            Padding(
-              padding: const EdgeInsetsDirectional.only(top: 1),
-              child: Icon(
-                Icons.comment_outlined,
-                size: ResponsiveUtils.getIconSize(context, small: 12, medium: 13, large: 14),
-                color: _noteAccentColor,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    count > 1
-                        ? l10n.invoiceLatestNoteLabelWithCount(count)
-                        : l10n.invoiceLatestNoteLabel,
-                    style: TextStyle(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, 10),
-                      fontWeight: FontWeight.w700,
-                      color: _noteAccentColor,
-                      letterSpacing: 0.2,
-                    ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Leading accent bar — reads like a sticky note without needing a
+              // new icon glyph. A standalone full-height bar (not a Border side)
+              // so the strip keeps a uniform border and can round its corners.
+              Container(width: 3, color: _noteAccentColor),
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Reuses the glyph already on this card — do not swap for a
+                      // new icon, it would break the production Shorebird patch.
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(top: 1),
+                        child: Icon(
+                          Icons.comment_outlined,
+                          size: ResponsiveUtils.getIconSize(context, small: 12, medium: 13, large: 14),
+                          color: _noteAccentColor,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              count > 1
+                                  ? l10n.invoiceLatestNoteLabelWithCount(count)
+                                  : l10n.invoiceLatestNoteLabel,
+                              style: TextStyle(
+                                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 10),
+                                fontWeight: FontWeight.w700,
+                                color: _noteAccentColor,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              preview ?? l10n.invoiceLatestNoteTapToRead,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 12),
+                                height: 1.25,
+                                color: Colors.black87,
+                                fontStyle: preview == null ? FontStyle.italic : FontStyle.normal,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 1),
-                  Text(
-                    preview ?? l10n.invoiceLatestNoteTapToRead,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, 12),
-                      height: 1.25,
-                      color: Colors.black87,
-                      fontStyle: preview == null ? FontStyle.italic : FontStyle.normal,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -293,27 +293,6 @@ List<Override> _cardOverrides() => [
       managerAccessProvider.overrideWith((ref) => false),
     ];
 
-/// The shipped note-preview strip (`_buildNotePreviewStrip`) gives a NON-uniform
-/// `Border` (thick amber left edge, faint amber on the other three sides) a
-/// `borderRadius`. Flutter allows that in RELEASE (where the paint-time assert
-/// is stripped) but throws it as a debug-only assertion under `flutter test`.
-/// We must not touch lib/, so this drains exactly that one known assert (any
-/// other recorded exception still fails the test). The amber card wash, the
-/// amber card border and the red note-count badge all paint cleanly BEFORE this
-/// fires, so the dimming fix is still captured; the strip's own inner content
-/// (icon + text) does not paint in the debug golden — its presence is instead
-/// guaranteed by the `find.text` assertion.
-void _drainKnownBorderAsserts(WidgetTester tester) {
-  for (var ex = tester.takeException(); ex != null; ex = tester.takeException()) {
-    expect(
-      ex.toString(),
-      contains('uniform colors'),
-      reason: 'Only the known note-strip non-uniform-border debug assert is '
-          'tolerated in this golden',
-    );
-  }
-}
-
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 void main() {
@@ -339,13 +318,16 @@ void main() {
     expect(find.text(_kNotePreviewText), findsOneWidget); // body preview strip
     expect(find.text('2'), findsOneWidget); // note-count badge
     expect(find.byIcon(Icons.comment_outlined), findsWidgets); // note glyph
-    _drainKnownBorderAsserts(tester);
+    // The strip now uses a uniform border, so the note-preview strip paints its
+    // inner content cleanly — no non-uniform-border + borderRadius assert to
+    // tolerate anymore.
+    expect(tester.takeException(), isNull);
 
     await expectLater(
       find.byKey(key),
       matchesGoldenFile('goldens/kanban_invoice_card_with_notes.png'),
     );
-    _drainKnownBorderAsserts(tester);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets(
