@@ -3453,7 +3453,7 @@ abstract class AppLocalizations {
   /// No description provided for @cancelOrderCreditNoteInfo.
   ///
   /// In en, this message translates to:
-  /// **'A credit note will be issued automatically so the accounts stay balanced.'**
+  /// **'The payment on this order will be reversed. Hand the money back to the customer before confirming.'**
   String get cancelOrderCreditNoteInfo;
 
   /// No description provided for @cancelOrderConfirmButton.
@@ -7638,6 +7638,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shift closed.'**
   String get shiftMonitorForceCloseSuccess;
+
+  /// No description provided for @returnOrderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Return Order'**
+  String get returnOrderTitle;
+
+  /// No description provided for @returnOrderLinesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Items coming back'**
+  String get returnOrderLinesLabel;
+
+  /// No description provided for @returnOrderLineAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {qty} can be returned'**
+  String returnOrderLineAvailable(String qty);
+
+  /// No description provided for @returnOrderLineAvailableAfterPrior.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {qty} can be returned ({returned} already returned)'**
+  String returnOrderLineAvailableAfterPrior(String qty, String returned);
+
+  /// No description provided for @returnOrderLineFullyReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Already returned'**
+  String get returnOrderLineFullyReturned;
+
+  /// No description provided for @returnOrderCreditAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer will be credited'**
+  String get returnOrderCreditAmountLabel;
+
+  /// No description provided for @returnOrderFullNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole order is coming back. Stock returns to the branch and the order is credited in full.'**
+  String get returnOrderFullNotice;
+
+  /// No description provided for @returnOrderPartialNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Part of the order is coming back. Only the selected items are credited and returned to stock.'**
+  String get returnOrderPartialNotice;
+
+  /// No description provided for @returnOrderTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Return type'**
+  String get returnOrderTypeLabel;
+
+  /// No description provided for @returnTypeCustomerReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer return'**
+  String get returnTypeCustomerReturn;
+
+  /// No description provided for @returnTypeFailedDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed delivery'**
+  String get returnTypeFailedDelivery;
+
+  /// No description provided for @returnTypeDamaged.
+  ///
+  /// In en, this message translates to:
+  /// **'Damaged'**
+  String get returnTypeDamaged;
+
+  /// No description provided for @returnTypeWrongItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong item'**
+  String get returnTypeWrongItem;
+
+  /// No description provided for @returnOrderReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get returnOrderReasonLabel;
+
+  /// No description provided for @returnOrderReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please describe why the order is coming back'**
+  String get returnOrderReasonRequired;
+
+  /// No description provided for @returnOrderNotesOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional notes (optional)'**
+  String get returnOrderNotesOptional;
+
+  /// No description provided for @returnOrderPayCourierTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay the courier for this trip'**
+  String get returnOrderPayCourierTitle;
+
+  /// No description provided for @returnOrderPayCourierYes.
+  ///
+  /// In en, this message translates to:
+  /// **'The courier keeps their delivery fee.'**
+  String get returnOrderPayCourierYes;
+
+  /// No description provided for @returnOrderPayCourierNo.
+  ///
+  /// In en, this message translates to:
+  /// **'The delivery fee will be reversed off the courier\'\'s balance.'**
+  String get returnOrderPayCourierNo;
+
+  /// No description provided for @returnOrderRefundLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Money already collected'**
+  String get returnOrderRefundLabel;
+
+  /// No description provided for @returnOrderRefundCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep as customer credit'**
+  String get returnOrderRefundCredit;
+
+  /// No description provided for @returnOrderRefundNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund cash now'**
+  String get returnOrderRefundNow;
+
+  /// No description provided for @returnOrderRefundUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No collected payment to refund.'**
+  String get returnOrderRefundUnavailable;
+
+  /// No description provided for @returnOrderConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm return'**
+  String get returnOrderConfirmButton;
+
+  /// No description provided for @returnOrderProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing return…'**
+  String get returnOrderProcessing;
+
+  /// No description provided for @returnOrderPreviewFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the return details.'**
+  String get returnOrderPreviewFailed;
+
+  /// No description provided for @returnOrderNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This order cannot be returned.'**
+  String get returnOrderNotAvailable;
+
+  /// No description provided for @returnOrderFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The return could not be completed.'**
+  String get returnOrderFailed;
+
+  /// No description provided for @returnOrderSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Return completed.'**
+  String get returnOrderSuccess;
+
+  /// No description provided for @returnOrderSuccessWithCn.
+  ///
+  /// In en, this message translates to:
+  /// **'Return completed. Credit note {creditNote} created.'**
+  String returnOrderSuccessWithCn(String creditNote);
 }
 
 class _AppLocalizationsDelegate

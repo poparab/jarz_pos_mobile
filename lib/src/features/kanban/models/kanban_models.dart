@@ -91,6 +91,10 @@ class InvoiceCard {
   final bool? canAmendFlag;
   final String? amendmentBlockCode;
   final String? amendmentBlockReason;
+  final bool? canReturnFlag;
+  final String? returnBlockCode;
+  final String? returnBlockReason;
+  final String? returnStatus;
   final double? customDeliveryIncome;
   final int? wooOrderId;
 
@@ -151,9 +155,25 @@ class InvoiceCard {
     this.canAmendFlag,
     this.amendmentBlockCode,
     this.amendmentBlockReason,
+    this.canReturnFlag,
+    this.returnBlockCode,
+    this.returnBlockReason,
+    this.returnStatus,
     this.customDeliveryIncome,
     this.wooOrderId,
   });
+
+  /// Parse a backend truthy flag that may arrive as bool, num or string.
+  static bool? _parseFlag(dynamic raw) {
+    if (raw is bool) return raw;
+    if (raw is num) return raw != 0;
+    if (raw is String) {
+      final normalized = raw.trim().toLowerCase();
+      if (normalized.isEmpty) return null;
+      return ['1', 'true', 'yes', 'y'].contains(normalized);
+    }
+    return null;
+  }
 
   factory InvoiceCard.fromJson(Map<String, dynamic> json) {
     bool? requiresAcceptanceFlag;
@@ -256,6 +276,10 @@ class InvoiceCard {
       canAmendFlag: canAmendFlag,
       amendmentBlockCode: json['amendment_block_code']?.toString(),
       amendmentBlockReason: json['amendment_block_reason']?.toString(),
+      canReturnFlag: _parseFlag(json['can_return']),
+      returnBlockCode: json['return_block_code']?.toString(),
+      returnBlockReason: json['return_block_reason']?.toString(),
+      returnStatus: json['custom_return_status']?.toString(),
       customDeliveryIncome: json['custom_delivery_income'] != null
           ? (json['custom_delivery_income'] as num).toDouble()
           : null,
@@ -320,6 +344,10 @@ class InvoiceCard {
       'can_amend': canAmendFlag,
       'amendment_block_code': amendmentBlockCode,
       'amendment_block_reason': amendmentBlockReason,
+      'can_return': canReturnFlag,
+      'return_block_code': returnBlockCode,
+      'return_block_reason': returnBlockReason,
+      'custom_return_status': returnStatus,
       'custom_delivery_income': customDeliveryIncome,
       'woo_order_id': wooOrderId,
     };
@@ -381,6 +409,10 @@ class InvoiceCard {
   double? shippingOverride,
   String? shippingOverrideStatus,
   bool? canAmendFlag,
+  bool? canReturnFlag,
+  String? returnBlockCode,
+  String? returnBlockReason,
+  String? returnStatus,
   String? amendmentBlockCode,
   String? amendmentBlockReason,
   double? customDeliveryIncome,
@@ -443,6 +475,10 @@ class InvoiceCard {
       shippingOverride: shippingOverride ?? this.shippingOverride,
       shippingOverrideStatus: shippingOverrideStatus ?? this.shippingOverrideStatus,
       canAmendFlag: canAmendFlag ?? this.canAmendFlag,
+      canReturnFlag: canReturnFlag ?? this.canReturnFlag,
+      returnBlockCode: returnBlockCode ?? this.returnBlockCode,
+      returnBlockReason: returnBlockReason ?? this.returnBlockReason,
+      returnStatus: returnStatus ?? this.returnStatus,
       amendmentBlockCode: amendmentBlockCode ?? this.amendmentBlockCode,
       amendmentBlockReason: amendmentBlockReason ?? this.amendmentBlockReason,
       customDeliveryIncome: clearCustomDeliveryIncome ? null : (customDeliveryIncome ?? this.customDeliveryIncome),
@@ -566,6 +602,31 @@ class InvoiceCard {
       }
     }
     return true;
+  }
+
+  /// Whether the post-dispatch return workflow applies to this order.
+  ///
+  /// The backend is authoritative — it also owns the kill switch and the
+  /// "was the original Delivery Note found?" question, neither of which the
+  /// client can determine. The local fallback only runs when the flag is
+  /// absent (an older payload), and errs closed.
+  bool get canReturn {
+    if (canReturnFlag != null) {
+      return canReturnFlag!;
+    }
+    if (isReturn || (docstatusValue ?? 1) != 1) {
+      return false;
+    }
+    if (returnStatus == 'Fully Returned') {
+      return false;
+    }
+    final normalized = status.trim().toLowerCase();
+    return const [
+      DeliveryStatus.outForDelivery,
+      DeliveryStatus.outForDeliverySnake,
+      DeliveryStatus.delivered,
+      DeliveryStatus.completed,
+    ].any(normalized.contains);
   }
 
   bool get canAmend {

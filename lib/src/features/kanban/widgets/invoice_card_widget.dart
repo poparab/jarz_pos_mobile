@@ -21,6 +21,7 @@ import '../../manager/data/manager_api.dart';
 import '../../manager/state/manager_providers.dart';
 import 'settlement_preview_dialog.dart';
 import 'cancel_order_dialog.dart';
+import 'return_order_dialog.dart';
 import 'payment_collection_change_dialog.dart';
 import 'sub_territory_selection_sheet.dart';
 import 'custom_shipping_request_dialog.dart';
@@ -760,6 +761,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               await _setDeliveryIncome(context);
             } else if (value == 'cancel_order') {
               await _cancelOrder(context);
+            } else if (value == 'return_order') {
+              await _returnOrder(context);
             } else if (value == 'change_collection_method') {
               await _changeCollectionMethod(context);
             } else if (value == 'request_custom_shipping') {
@@ -862,6 +865,18 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                   ],
                 ),
               ),
+            if (isLineManager && widget.invoice.canReturn)
+                PopupMenuItem(
+                  value: 'return_order',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.assignment_return_outlined,
+                          size: 18, color: Colors.deepOrange),
+                      const SizedBox(width: 8),
+                      Text(l10n.returnOrderTitle),
+                    ],
+                  ),
+                ),
             if (isLineManager && widget.invoice.canCancel)
                 PopupMenuItem(
                   value: 'cancel_order',
@@ -3340,6 +3355,77 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   }
 
   // Transfer order to another branch / Kanban profile.
+  /// Post-dispatch return: preview on the server, confirm, then submit.
+  ///
+  /// The preview is fetched rather than derived locally because only the server
+  /// knows how much of each line was already returned, where the customer's
+  /// money currently sits, and whether a cash refund is possible right now.
+  Future<void> _returnOrder(BuildContext context) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final notifier = ref.read(kanbanProvider.notifier);
+
+    final preview = await notifier.loadReturnPreview(widget.invoice.id);
+    if (!mounted) return;
+
+    if (preview == null) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.returnOrderPreviewFailed)),
+      );
+      return;
+    }
+
+    if (preview['can_return'] != true) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            preview['return_block_reason']?.toString() ??
+                l10n.returnOrderNotAvailable,
+          ),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
+    final request = await ReturnOrderDialog.show(context, preview: preview);
+    if (request == null || !mounted) return;
+
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.returnOrderProcessing)),
+    );
+
+    final result = await notifier.submitInvoiceReturn(
+      invoiceId: widget.invoice.id,
+      lines: request.lines,
+      reason: request.reason,
+      returnType: request.returnType,
+      refundMode: request.refundMode,
+      payCourierForTrip: request.payCourierForTrip,
+      notes: request.notes,
+    );
+    if (!mounted) return;
+
+    if (result == null) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.returnOrderFailed)),
+      );
+      return;
+    }
+
+    final creditNote = result['credit_note']?.toString() ?? '';
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          creditNote.isEmpty
+              ? l10n.returnOrderSuccess
+              : l10n.returnOrderSuccessWithCn(creditNote),
+        ),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
   Future<void> _cancelOrder(BuildContext context) async {
     if (widget.invoice.hasPartialPayment) {
       ScaffoldMessenger.of(context).showSnackBar(

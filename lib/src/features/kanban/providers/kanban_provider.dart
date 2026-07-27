@@ -961,6 +961,57 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     }
   }
 
+  /// Load the read-only return preview that drives the confirmation dialog.
+  Future<Map<String, dynamic>?> loadReturnPreview(String invoiceId) async {
+    try {
+      return await _kanbanService.getReturnPreview(invoiceId);
+    } catch (e) {
+      state = state.copyWith(
+        error: _formatActionError(e, action: 'Return preview failed'),
+      );
+      return null;
+    }
+  }
+
+  /// Post a return. Unlike a cancellation the invoice stays on the board — it
+  /// is still a real, submitted order — so this refreshes the single card
+  /// rather than removing it.
+  Future<Map<String, dynamic>?> submitInvoiceReturn({
+    required String invoiceId,
+    required List<Map<String, dynamic>> lines,
+    required String reason,
+    required String returnType,
+    required String refundMode,
+    required bool payCourierForTrip,
+    String? notes,
+  }) async {
+    final transitioning = Set<String>.from(state.transitioningInvoices)..add(invoiceId);
+    state = state.copyWith(transitioningInvoices: transitioning, error: null);
+
+    try {
+      final result = await _kanbanService.submitInvoiceReturn(
+        invoiceName: invoiceId,
+        lines: lines,
+        reason: reason,
+        returnType: returnType,
+        refundMode: refundMode,
+        payCourierForTrip: payCourierForTrip,
+        notes: notes,
+      );
+      await refreshSingle(invoiceId);
+      return result;
+    } catch (e) {
+      state = state.copyWith(
+        error: _formatActionError(e, action: 'Return failed'),
+      );
+      return null;
+    } finally {
+      final updatedTransitioning = Set<String>.from(state.transitioningInvoices);
+      updatedTransitioning.remove(invoiceId);
+      state = state.copyWith(transitioningInvoices: updatedTransitioning);
+    }
+  }
+
   void updateFilters(KanbanFilters newFilters) {
     state = state.copyWith(filters: newFilters);
     loadInvoices(); // Reload with new filters

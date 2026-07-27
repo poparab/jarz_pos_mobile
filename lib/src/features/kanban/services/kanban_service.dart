@@ -249,6 +249,74 @@ class KanbanService {
     }
   }
 
+  /// Load the return preview for a dispatched invoice. Read-only server side.
+  Future<Map<String, dynamic>> getReturnPreview(String invoiceName) async {
+    try {
+      _logger.info("Loading return preview for $invoiceName");
+      final response = await _dio.post(
+        ApiEndpoints.getReturnPreview,
+        data: {"invoice_id": invoiceName},
+      );
+      return _unwrapMethodResponse(response.data, "Failed to load return preview");
+    } catch (e) {
+      _logger.error("Failed to load return preview", e);
+      throw _friendlyException(e, fallback: "Failed to load return preview");
+    }
+  }
+
+  /// Post a return: credit note + return delivery note + money reversal.
+  ///
+  /// [lines] is a list of `{si_detail, qty}` maps — the operator's per-line
+  /// selection, which is what makes partial (B2B) returns possible.
+  Future<Map<String, dynamic>> submitInvoiceReturn({
+    required String invoiceName,
+    required List<Map<String, dynamic>> lines,
+    required String reason,
+    required String returnType,
+    required String refundMode,
+    required bool payCourierForTrip,
+    String? notes,
+  }) async {
+    try {
+      _logger.info("Submitting return for $invoiceName");
+      final payload = <String, dynamic>{
+        "invoice_id": invoiceName,
+        "lines": jsonEncode(lines),
+        "reason": reason,
+        "return_type": returnType,
+        "refund_mode": refundMode,
+        "pay_courier_for_trip": payCourierForTrip ? 1 : 0,
+      };
+      if (notes != null && notes.trim().isNotEmpty) {
+        payload["notes"] = notes.trim();
+      }
+
+      final response = await _dio.post(
+        ApiEndpoints.submitInvoiceReturn,
+        data: payload,
+      );
+      return _unwrapMethodResponse(response.data, "Failed to submit return");
+    } catch (e) {
+      _logger.error("Failed to submit return", e);
+      throw _friendlyException(e, fallback: "Failed to submit return");
+    }
+  }
+
+  /// Unwrap a Frappe `{"message": {...}}` envelope, surfacing server errors.
+  Map<String, dynamic> _unwrapMethodResponse(dynamic data, String fallback) {
+    final message = data is Map ? data["message"] : null;
+    if (message is Map) {
+      if (message["success"] == true) {
+        return Map<String, dynamic>.from(message);
+      }
+      final error = message["error"] ?? message["return_block_reason"];
+      if (error != null) {
+        throw Exception(error.toString());
+      }
+    }
+    throw Exception(fallback);
+  }
+
   /// Get detailed information about a specific invoice
   Future<InvoiceCard> getInvoiceDetails(String invoiceId) async {
     try {

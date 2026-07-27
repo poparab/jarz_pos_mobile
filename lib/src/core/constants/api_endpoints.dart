@@ -96,6 +96,11 @@ abstract final class ApiEndpoints {
   static const previewInvoiceOutForDelivery =
       '/api/method/jarz_pos.api.kanban.preview_invoice_out_for_delivery';
   static const cancelInvoice = '/api/method/jarz_pos.api.kanban.cancel_invoice';
+  // Post-dispatch return workflow (credit note + return delivery note).
+  static const getReturnPreview =
+      '/api/method/jarz_pos.api.returns.get_return_preview';
+  static const submitInvoiceReturn =
+      '/api/method/jarz_pos.api.returns.submit_invoice_return';
   static const getInvoiceDetails =
       '/api/method/jarz_pos.api.kanban.get_invoice_details';
   static const getInvoiceNotes =

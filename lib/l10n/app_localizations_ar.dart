@@ -1937,7 +1937,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get cancelOrderCreditNoteInfo =>
-      'سيتم إصدار إشعار دائن تلقائيًا للحفاظ على توازن الحسابات.';
+      'الدفعة اللي على الطلب ده هتترجع. سلّم الفلوس للعميل قبل ما تأكد.';
 
   @override
   String get cancelOrderConfirmButton => 'تأكيد الإلغاء';
@@ -4294,4 +4294,102 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shiftMonitorForceCloseSuccess => 'تم إقفال الوردية.';
+
+  @override
+  String get returnOrderTitle => 'مرتجع الطلب';
+
+  @override
+  String get returnOrderLinesLabel => 'الأصناف الراجعة';
+
+  @override
+  String returnOrderLineAvailable(String qty) {
+    return 'تقدر ترجّع لحد $qty';
+  }
+
+  @override
+  String returnOrderLineAvailableAfterPrior(String qty, String returned) {
+    return 'تقدر ترجّع لحد $qty (اترجع قبل كده $returned)';
+  }
+
+  @override
+  String get returnOrderLineFullyReturned => 'اترجع بالكامل';
+
+  @override
+  String get returnOrderCreditAmountLabel => 'هيتحسب للعميل';
+
+  @override
+  String get returnOrderFullNotice =>
+      'الطلب راجع بالكامل. البضاعة هترجع للفرع والطلب هيتحسب كله للعميل.';
+
+  @override
+  String get returnOrderPartialNotice =>
+      'جزء من الطلب راجع. الأصناف المختارة بس هي اللي هتترجع للمخزن وتتحسب للعميل.';
+
+  @override
+  String get returnOrderTypeLabel => 'نوع المرتجع';
+
+  @override
+  String get returnTypeCustomerReturn => 'العميل رجّع الطلب';
+
+  @override
+  String get returnTypeFailedDelivery => 'التوصيل فشل';
+
+  @override
+  String get returnTypeDamaged => 'تالف';
+
+  @override
+  String get returnTypeWrongItem => 'صنف غلط';
+
+  @override
+  String get returnOrderReasonLabel => 'السبب';
+
+  @override
+  String get returnOrderReasonRequired => 'من فضلك اكتب سبب رجوع الطلب';
+
+  @override
+  String get returnOrderNotesOptional => 'ملاحظات إضافية (اختياري)';
+
+  @override
+  String get returnOrderPayCourierTitle => 'ادفع للمندوب أجر الرحلة دي';
+
+  @override
+  String get returnOrderPayCourierYes => 'المندوب هياخد أجر التوصيل بتاعه.';
+
+  @override
+  String get returnOrderPayCourierNo => 'أجر التوصيل هيتشال من حساب المندوب.';
+
+  @override
+  String get returnOrderRefundLabel => 'الفلوس اللي اتحصلت';
+
+  @override
+  String get returnOrderRefundCredit => 'تفضل رصيد للعميل';
+
+  @override
+  String get returnOrderRefundNow => 'ارجع الفلوس دلوقتي';
+
+  @override
+  String get returnOrderRefundUnavailable => 'مفيش فلوس متحصلة عشان تترد.';
+
+  @override
+  String get returnOrderConfirmButton => 'تأكيد المرتجع';
+
+  @override
+  String get returnOrderProcessing => 'بنعمل المرتجع…';
+
+  @override
+  String get returnOrderPreviewFailed => 'مقدرناش نحمّل تفاصيل المرتجع.';
+
+  @override
+  String get returnOrderNotAvailable => 'الطلب ده مينفعش يترجع.';
+
+  @override
+  String get returnOrderFailed => 'المرتجع ماتمّش.';
+
+  @override
+  String get returnOrderSuccess => 'تم المرتجع.';
+
+  @override
+  String returnOrderSuccessWithCn(String creditNote) {
+    return 'تم المرتجع. اتعمل إشعار دائن $creditNote.';
+  }
 }

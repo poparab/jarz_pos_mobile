@@ -964,7 +964,7 @@
   "cancelOrderCustomReasonLabel": "Custom reason",
   "cancelOrderDescribeReasonValidation": "Please describe the cancellation reason",
   "cancelOrderAdditionalNotesOptional": "Additional notes (optional)",
-  "cancelOrderCreditNoteInfo": "A credit note will be issued automatically so the accounts stay balanced.",
+  "cancelOrderCreditNoteInfo": "The payment on this order will be reversed. Hand the money back to the customer before confirming.",
   "cancelOrderConfirmButton": "Confirm cancellation",
   "invoicePreparingReceipt": "Preparing receipt...",
   "invoiceItemsCount": "Items ({count})",
@@ -2330,5 +2330,59 @@
   },
   "shiftMonitorForceCloseCourierAck": "I understand and want to close anyway",
   "shiftMonitorForceCloseConfirm": "Close Shift",
-  "shiftMonitorForceCloseSuccess": "Shift closed."
+  "shiftMonitorForceCloseSuccess": "Shift closed.",
+  "returnOrderTitle": "Return Order",
+  "returnOrderLinesLabel": "Items coming back",
+  "returnOrderLineAvailable": "Up to {qty} can be returned",
+  "@returnOrderLineAvailable": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
+  "returnOrderLineAvailableAfterPrior": "Up to {qty} can be returned ({returned} already returned)",
+  "@returnOrderLineAvailableAfterPrior": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "returned": {
+        "type": "String"
+      }
+    }
+  },
+  "returnOrderLineFullyReturned": "Already returned",
+  "returnOrderCreditAmountLabel": "Customer will be credited",
+  "returnOrderFullNotice": "The whole order is coming back. Stock returns to the branch and the order is credited in full.",
+  "returnOrderPartialNotice": "Part of the order is coming back. Only the selected items are credited and returned to stock.",
+  "returnOrderTypeLabel": "Return type",
+  "returnTypeCustomerReturn": "Customer return",
+  "returnTypeFailedDelivery": "Failed delivery",
+  "returnTypeDamaged": "Damaged",
+  "returnTypeWrongItem": "Wrong item",
+  "returnOrderReasonLabel": "Reason",
+  "returnOrderReasonRequired": "Please describe why the order is coming back",
+  "returnOrderNotesOptional": "Additional notes (optional)",
+  "returnOrderPayCourierTitle": "Pay the courier for this trip",
+  "returnOrderPayCourierYes": "The courier keeps their delivery fee.",
+  "returnOrderPayCourierNo": "The delivery fee will be reversed off the courier''s balance.",
+  "returnOrderRefundLabel": "Money already collected",
+  "returnOrderRefundCredit": "Keep as customer credit",
+  "returnOrderRefundNow": "Refund cash now",
+  "returnOrderRefundUnavailable": "No collected payment to refund.",
+  "returnOrderConfirmButton": "Confirm return",
+  "returnOrderProcessing": "Processing return…",
+  "returnOrderPreviewFailed": "Could not load the return details.",
+  "returnOrderNotAvailable": "This order cannot be returned.",
+  "returnOrderFailed": "The return could not be completed.",
+  "returnOrderSuccess": "Return completed.",
+  "returnOrderSuccessWithCn": "Return completed. Credit note {creditNote} created.",
+  "@returnOrderSuccessWithCn": {
+    "placeholders": {
+      "creditNote": {
+        "type": "String"
+      }
+    }
+  }
 }

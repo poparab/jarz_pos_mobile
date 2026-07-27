@@ -1942,7 +1942,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancelOrderCreditNoteInfo =>
-      'A credit note will be issued automatically so the accounts stay balanced.';
+      'The payment on this order will be reversed. Hand the money back to the customer before confirming.';
 
   @override
   String get cancelOrderConfirmButton => 'Confirm cancellation';
@@ -4314,4 +4314,105 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shiftMonitorForceCloseSuccess => 'Shift closed.';
+
+  @override
+  String get returnOrderTitle => 'Return Order';
+
+  @override
+  String get returnOrderLinesLabel => 'Items coming back';
+
+  @override
+  String returnOrderLineAvailable(String qty) {
+    return 'Up to $qty can be returned';
+  }
+
+  @override
+  String returnOrderLineAvailableAfterPrior(String qty, String returned) {
+    return 'Up to $qty can be returned ($returned already returned)';
+  }
+
+  @override
+  String get returnOrderLineFullyReturned => 'Already returned';
+
+  @override
+  String get returnOrderCreditAmountLabel => 'Customer will be credited';
+
+  @override
+  String get returnOrderFullNotice =>
+      'The whole order is coming back. Stock returns to the branch and the order is credited in full.';
+
+  @override
+  String get returnOrderPartialNotice =>
+      'Part of the order is coming back. Only the selected items are credited and returned to stock.';
+
+  @override
+  String get returnOrderTypeLabel => 'Return type';
+
+  @override
+  String get returnTypeCustomerReturn => 'Customer return';
+
+  @override
+  String get returnTypeFailedDelivery => 'Failed delivery';
+
+  @override
+  String get returnTypeDamaged => 'Damaged';
+
+  @override
+  String get returnTypeWrongItem => 'Wrong item';
+
+  @override
+  String get returnOrderReasonLabel => 'Reason';
+
+  @override
+  String get returnOrderReasonRequired =>
+      'Please describe why the order is coming back';
+
+  @override
+  String get returnOrderNotesOptional => 'Additional notes (optional)';
+
+  @override
+  String get returnOrderPayCourierTitle => 'Pay the courier for this trip';
+
+  @override
+  String get returnOrderPayCourierYes =>
+      'The courier keeps their delivery fee.';
+
+  @override
+  String get returnOrderPayCourierNo =>
+      'The delivery fee will be reversed off the courier\'s balance.';
+
+  @override
+  String get returnOrderRefundLabel => 'Money already collected';
+
+  @override
+  String get returnOrderRefundCredit => 'Keep as customer credit';
+
+  @override
+  String get returnOrderRefundNow => 'Refund cash now';
+
+  @override
+  String get returnOrderRefundUnavailable => 'No collected payment to refund.';
+
+  @override
+  String get returnOrderConfirmButton => 'Confirm return';
+
+  @override
+  String get returnOrderProcessing => 'Processing return…';
+
+  @override
+  String get returnOrderPreviewFailed => 'Could not load the return details.';
+
+  @override
+  String get returnOrderNotAvailable => 'This order cannot be returned.';
+
+  @override
+  String get returnOrderFailed => 'The return could not be completed.';
+
+  @override
+  String get returnOrderSuccess => 'Return completed.';
+
+  @override
+  String returnOrderSuccessWithCn(String creditNote) {
+    return 'Return completed. Credit note $creditNote created.';
+  }
 }

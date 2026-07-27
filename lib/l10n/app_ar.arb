@@ -964,7 +964,7 @@
   "cancelOrderCustomReasonLabel": "سبب مخصص",
   "cancelOrderDescribeReasonValidation": "يرجى وصف سبب الإلغاء",
   "cancelOrderAdditionalNotesOptional": "ملاحظات إضافية (اختياري)",
-  "cancelOrderCreditNoteInfo": "سيتم إصدار إشعار دائن تلقائيًا للحفاظ على توازن الحسابات.",
+  "cancelOrderCreditNoteInfo": "الدفعة اللي على الطلب ده هتترجع. سلّم الفلوس للعميل قبل ما تأكد.",
   "cancelOrderConfirmButton": "تأكيد الإلغاء",
   "invoicePreparingReceipt": "جاري تجهيز الإيصال...",
   "invoiceItemsCount": "الأصناف ({count})",
@@ -2042,5 +2042,59 @@
   "shiftMonitorForceCloseCourierWarning": "الفرع لسه عنده {transactions} معاملة مندوب غير مسواة على {invoices} طلب. هتفضل مفتوحة بعد الإقفال ولازم تتسوى.",
   "shiftMonitorForceCloseCourierAck": "أنا فاهم وعايز أقفل برضه",
   "shiftMonitorForceCloseConfirm": "إقفال الوردية",
-  "shiftMonitorForceCloseSuccess": "تم إقفال الوردية."
+  "shiftMonitorForceCloseSuccess": "تم إقفال الوردية.",
+  "returnOrderTitle": "مرتجع الطلب",
+  "returnOrderLinesLabel": "الأصناف الراجعة",
+  "returnOrderLineAvailable": "تقدر ترجّع لحد {qty}",
+  "@returnOrderLineAvailable": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
+  "returnOrderLineAvailableAfterPrior": "تقدر ترجّع لحد {qty} (اترجع قبل كده {returned})",
+  "@returnOrderLineAvailableAfterPrior": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "returned": {
+        "type": "String"
+      }
+    }
+  },
+  "returnOrderLineFullyReturned": "اترجع بالكامل",
+  "returnOrderCreditAmountLabel": "هيتحسب للعميل",
+  "returnOrderFullNotice": "الطلب راجع بالكامل. البضاعة هترجع للفرع والطلب هيتحسب كله للعميل.",
+  "returnOrderPartialNotice": "جزء من الطلب راجع. الأصناف المختارة بس هي اللي هتترجع للمخزن وتتحسب للعميل.",
+  "returnOrderTypeLabel": "نوع المرتجع",
+  "returnTypeCustomerReturn": "العميل رجّع الطلب",
+  "returnTypeFailedDelivery": "التوصيل فشل",
+  "returnTypeDamaged": "تالف",
+  "returnTypeWrongItem": "صنف غلط",
+  "returnOrderReasonLabel": "السبب",
+  "returnOrderReasonRequired": "من فضلك اكتب سبب رجوع الطلب",
+  "returnOrderNotesOptional": "ملاحظات إضافية (اختياري)",
+  "returnOrderPayCourierTitle": "ادفع للمندوب أجر الرحلة دي",
+  "returnOrderPayCourierYes": "المندوب هياخد أجر التوصيل بتاعه.",
+  "returnOrderPayCourierNo": "أجر التوصيل هيتشال من حساب المندوب.",
+  "returnOrderRefundLabel": "الفلوس اللي اتحصلت",
+  "returnOrderRefundCredit": "تفضل رصيد للعميل",
+  "returnOrderRefundNow": "ارجع الفلوس دلوقتي",
+  "returnOrderRefundUnavailable": "مفيش فلوس متحصلة عشان تترد.",
+  "returnOrderConfirmButton": "تأكيد المرتجع",
+  "returnOrderProcessing": "بنعمل المرتجع…",
+  "returnOrderPreviewFailed": "مقدرناش نحمّل تفاصيل المرتجع.",
+  "returnOrderNotAvailable": "الطلب ده مينفعش يترجع.",
+  "returnOrderFailed": "المرتجع ماتمّش.",
+  "returnOrderSuccess": "تم المرتجع.",
+  "returnOrderSuccessWithCn": "تم المرتجع. اتعمل إشعار دائن {creditNote}.",
+  "@returnOrderSuccessWithCn": {
+    "placeholders": {
+      "creditNote": {
+        "type": "String"
+      }
+    }
+  }
 }
