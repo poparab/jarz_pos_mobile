@@ -611,7 +611,12 @@ class _ShiftDetailsCard extends ConsumerWidget {
             Align(
               alignment: AlignmentDirectional.centerEnd,
               child: OutlinedButton.icon(
-                icon: const Icon(Icons.lock_clock, size: 18),
+                // Icons.logout is already in the bundle. A glyph that appears
+                // nowhere else changes the tree-shaken MaterialIcons font,
+                // which makes the production Shorebird patch throw
+                // UnpatchableChangeException and forces a full APK rollout —
+                // so new icons are avoided unless a build is happening anyway.
+                icon: const Icon(Icons.logout, size: 18),
                 label: Text(l10n.shiftMonitorForceCloseAction),
                 onPressed: () async {
                   final closed = await ForceCloseShiftDialog.show(
