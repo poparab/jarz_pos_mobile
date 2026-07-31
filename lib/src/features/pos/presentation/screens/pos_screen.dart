@@ -381,9 +381,18 @@ class _PosScreenState extends ConsumerState<PosScreen>
       );
     }
 
-    // While shift data is still loading after a profile switch, show a spinner
-    // instead of flashing the POS UI then redirecting.
-    if (requirePosShift && activeShiftAsync.isLoading && !activeShiftAsync.hasValue) {
+    // Defence in depth behind the router's shift gate: never paint the POS UI
+    // unless we hold a shift that matches THIS profile and THIS user. Checking
+    // `isLoading && !hasValue` was not enough — a refresh carries the previous
+    // profile's value forward, so `hasValue` stayed true across a profile
+    // switch and the POS UI rendered for a profile with no shift open.
+    final selectedProfileName = (state.selectedProfile?['name'] ?? '').toString();
+    final shiftForThisProfile = activeShiftAsync.valueOrNull;
+    final hasShiftForProfile =
+        shiftForThisProfile != null &&
+        shiftForThisProfile.posProfile == selectedProfileName &&
+        shiftForThisProfile.isCurrentUser;
+    if (requirePosShift && !hasShiftForProfile) {
       return _wrapWithAmendmentCleanupGuard(
         const Scaffold(body: Center(child: CircularProgressIndicator())),
       );
@@ -400,10 +409,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
       ref: ref,
       context: context,
     );
-    // Only show shift banner when data is settled (not loading/stale).
-    final matchedActiveShift = (requirePosShift && !activeShiftAsync.isLoading)
-        ? activeShiftAsync.valueOrNull
-        : null;
+    // Only show the shift banner for the shift that actually gated this screen.
+    // Keeping the stale value across a refresh stops the banner flickering out.
+    final matchedActiveShift = hasShiftForProfile ? shiftForThisProfile : null;
 
     // ── Phone: scroll-to-hide header + FAB ──────────────────────────
     if (isPhone) {

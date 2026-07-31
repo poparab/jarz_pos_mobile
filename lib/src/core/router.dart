@@ -150,22 +150,30 @@ String? resolveRouterRedirect({
   if (hasSelectedProfile && requirePosShift) {
     final activeShift = activeShiftAsync.valueOrNull;
     final selectedProfileName = (selectedProfile['name'] ?? '').toString();
-    final isActiveShiftKnown = !activeShiftAsync.isLoading;
 
-    // While shift data is loading/refreshing, don't redirect.
-    if (!isActiveShiftKnown) return null;
-
+    // The gate is keyed on a *known-good* shift rather than on "is the request
+    // finished". The old code bailed out (`return null`) whenever the async
+    // value was loading, which let a user straight onto POS while the
+    // get_active_shift call was still in flight — and because nothing re-ran
+    // the redirect once it landed, they stayed there with no shift open until
+    // the next navigation happened to re-trigger the gate.
+    //
+    // `valueOrNull` deliberately survives a refresh: a user who already has a
+    // matching open shift keeps working while the value is revalidated, so a
+    // background refresh never yanks them off the screen they are on.
     final hasShiftForProfile =
-        activeShift != null && activeShift.posProfile == selectedProfileName;
+        activeShift != null &&
+        activeShift.posProfile == selectedProfileName &&
+        activeShift.isCurrentUser;
 
-    if (!hasShiftForProfile) {
-      // No shift on this profile → force Start Shift.
-      if (!isOnShiftStart) return AppRoutes.shiftStart;
-    } else if (activeShift.isCurrentUser) {
-      // Same user + same profile → go to POS.
+    if (hasShiftForProfile) {
+      // Same user + same profile → nothing to gate; leave Start Shift.
       if (isOnShiftStart) return AppRoutes.pos;
     } else {
-      // Different user + same profile → block on Start Shift.
+      // No shift, a shift on another profile, a shift owned by someone else,
+      // or a shift we do not know about yet → block on Start Shift, which
+      // renders a spinner while the lookup is still in flight and then either
+      // shows the opening form or the "already open by <user>" message.
       if (!isOnShiftStart) return AppRoutes.shiftStart;
     }
   }
@@ -216,11 +224,22 @@ final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(currentAuthStateProvider);
   final isAuthenticated = authState;
 
+  // GoRouter only evaluates `redirect` on navigation and whenever this
+  // listenable fires. Every provider the gate reads must therefore be wired to
+  // it, otherwise the gate silently runs on stale data.
+  final gateRefresh = ValueNotifier<int>(0);
   // Re-run redirects when the user's roles finish loading (e.g. on cold start
   // with a saved session) so the landing gate can resolve the correct home.
-  final rolesRefresh = ValueNotifier<int>(0);
-  ref.listen(userRolesFutureProvider, (_, _) => rolesRefresh.value++);
-  ref.onDispose(rolesRefresh.dispose);
+  ref.listen(userRolesFutureProvider, (_, _) => gateRefresh.value++);
+  if (isAuthenticated) {
+    // The shift gate resolves asynchronously, and selecting a POS profile
+    // invalidates it (a shift belongs to one profile). Without this the gate
+    // never re-ran after the lookup landed, so the user sat on POS with no
+    // shift open until an unrelated navigation re-triggered the redirect.
+    // Gated on auth so an anonymous login screen never calls get_active_shift.
+    ref.listen(activeShiftProvider, (_, _) => gateRefresh.value++);
+  }
+  ref.onDispose(gateRefresh.dispose);
 
   // Expose a RouteObserver so screens can respond to navigation lifecycle (e.g., refresh on return)
   // Keep a single observer instance; safe to reuse across router rebuilds
@@ -231,7 +250,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     // On startup: if authenticated, land on the root gate which resolves the
     // correct home (Kanban for Jarz POS Staff, POS otherwise) once roles load.
     initialLocation: isAuthenticated ? AppRoutes.root : AppRoutes.login,
-    refreshListenable: rolesRefresh,
+    refreshListenable: gateRefresh,
     redirect: (context, state) {
       // NOTE: We do NOT redirect non-POS/shift screens when no profile is selected.
       // Kanban, Trips, Expenses, and Courier screens can operate across all accessible

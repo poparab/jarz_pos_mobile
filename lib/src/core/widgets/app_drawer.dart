@@ -9,6 +9,7 @@ import '../../features/pos/presentation/widgets/courier_balances_dialog.dart';
 import '../localization/locale_notifier.dart';
 import '../localization/localization_extensions.dart';
 import '../network/user_service.dart';
+import '../../features/pos/state/pos_notifier.dart';
 import '../../features/shift/state/shift_notifier.dart';
 
 class AppDrawer extends ConsumerWidget {
@@ -29,7 +30,18 @@ class AppDrawer extends ConsumerWidget {
         : const AsyncValue<bool>.data(false);
     final requirePosShift = ref.watch(requirePosShiftProvider);
     final activeShiftAsync = ref.watch(activeShiftProvider);
-    final hasActiveShift = activeShiftAsync.valueOrNull != null;
+    // "End Shift" must only appear for a shift this user opened on the profile
+    // they are currently on — any other open shift is not theirs to close.
+    final selectedProfileName = ref.watch(
+      posNotifierProvider.select(
+        (s) => (s.selectedProfile?['name'] ?? '').toString(),
+      ),
+    );
+    final activeShift = activeShiftAsync.valueOrNull;
+    final hasActiveShift =
+        activeShift != null &&
+        activeShift.posProfile == selectedProfileName &&
+        activeShift.isCurrentUser;
     final hasManagerAccess = managerAccess.maybeWhen(
       data: (v) => v,
       orElse: () => false,
