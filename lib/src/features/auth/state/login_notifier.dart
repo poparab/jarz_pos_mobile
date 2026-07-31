@@ -72,9 +72,22 @@ class LoginNotifier extends AsyncNotifier<bool> {
     return error.toString();
   }
 
+  /// Kill the backend session (and the stored cookies) without flipping the
+  /// client-side auth flag.
+  ///
+  /// Ending a POS shift has to end the session at the instant the shift closes
+  /// — a counted-out till must never stay signed in — but it still has a
+  /// closing summary to show. Flipping [currentAuthStateProvider] rebuilds the
+  /// router, which restarts at `/login` and would tear that summary down before
+  /// anyone read it. So the session dies here and [logout] finishes the job
+  /// once the user acknowledges. Both are idempotent, so calling one after the
+  /// other is safe.
+  Future<void> endSession() async {
+    await ref.read(authRepositoryProvider).logout();
+  }
+
   Future<void> logout() async {
-    final repo = ref.read(authRepositoryProvider);
-    await repo.logout();
+    await endSession();
     ref.read(currentAuthStateProvider.notifier).state = false;
     ref.invalidate(authStateProvider);
     // Fully wipe every user-scoped provider and per-user Hive cache so no

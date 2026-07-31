@@ -72,6 +72,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
   final Map<String, TextEditingController> _controllers = {};
   ShiftSummary? _endResult;
   String? _validationError;
+  bool _loggingOut = false;
 
   @override
   void dispose() {
@@ -83,14 +84,17 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // The post-close summary is pure local state: the shift is closed and the
+    // session is already gone, so this branch must not touch the API again.
+    // Checked before any watch so the shift lookup is not kept alive either.
+    final endResult = _endResult;
+    if (endResult != null) {
+      return _buildClosedSummary(context, endResult);
+    }
+
     final l10n = context.l10n;
     final shiftState = ref.watch(shiftNotifierProvider);
     final activeShiftAsync = ref.watch(activeShiftProvider);
-
-    // Show post-close summary if shift was just ended
-    if (_endResult != null) {
-      return _buildClosedSummary(context, _endResult!);
-    }
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.shiftEndTitle)),
@@ -353,12 +357,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () async {
-                  ref.invalidate(activeShiftProvider);
-                  await ref.read(loginNotifierProvider.notifier).logout();
-                  if (!context.mounted) return;
-                  context.go(AppRoutes.login);
-                },
+                onPressed: _loggingOut ? null : _handleLogout,
                 child: Text(l10n.shiftLogout),
               ),
             ),
@@ -579,12 +578,39 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
         );
 
     if (!mounted) return;
-    if (result != null) {
-      ref.invalidate(activeShiftProvider);
-      setState(() {
-        _validationError = null;
-        _endResult = result;
-      });
+    if (result == null) return;
+
+    setState(() {
+      _validationError = null;
+      _endResult = result;
+    });
+    // Refreshed before the session goes: whichever way the lookup lands (null
+    // now, or an error once the session is gone) the shift gate reads "no open
+    // shift", so any route out of here leads to Start Shift rather than a POS
+    // screen backed by a closed till.
+    ref.invalidate(activeShiftProvider);
+
+    // Closing the shift signs the operator out. The backend session is dropped
+    // here, the moment the till is counted out, rather than waiting on the
+    // button below — walking away from the terminal or killing the app must
+    // not leave a closed till holding a live session. The client-side flip is
+    // deferred to `_handleLogout` so the closing summary survives long enough
+    // to be read (it goes down with the router the instant auth flips).
+    await ref.read(loginNotifierProvider.notifier).endSession();
+  }
+
+  Future<void> _handleLogout() async {
+    if (_loggingOut) return;
+    setState(() {
+      _loggingOut = true;
+    });
+
+    try {
+      await ref.read(loginNotifierProvider.notifier).logout();
+    } finally {
+      // The session is already gone either way; always land on the login
+      // screen rather than stranding the user on a dead summary.
+      if (mounted) context.go(AppRoutes.login);
     }
   }
 }

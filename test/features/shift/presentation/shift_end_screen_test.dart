@@ -4,6 +4,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
+import 'package:jarz_pos/src/core/session/session_manager.dart';
+import 'package:jarz_pos/src/features/auth/data/auth_repository.dart';
 import 'package:jarz_pos/src/features/shift/data/shift_repository.dart';
 import 'package:jarz_pos/src/features/shift/models/shift_models.dart';
 import 'package:jarz_pos/src/features/shift/presentation/shift_end_screen.dart';
@@ -14,6 +16,17 @@ Finder _buttonWithLabel(String label) {
     of: find.text(label),
     matching: find.byWidgetPredicate((widget) => widget is ButtonStyleButton),
   );
+}
+
+class _RecordingAuthRepository extends AuthRepository {
+  _RecordingAuthRepository() : super(Dio(), SessionManager());
+
+  int logoutCalls = 0;
+
+  @override
+  Future<void> logout() async {
+    logoutCalls++;
+  }
 }
 
 class _FakeShiftRepository extends ShiftRepository {
@@ -54,13 +67,19 @@ class _FakeShiftRepository extends ShiftRepository {
 
 Future<void> _pumpShiftEndScreen(
   WidgetTester tester,
-  _FakeShiftRepository repository,
-) async {
+  _FakeShiftRepository repository, {
+  AuthRepository? authRepository,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         shiftRepositoryProvider.overrideWithValue(repository),
         activeShiftProvider.overrideWith((ref) async => repository.activeShift),
+        // Closing a shift signs the operator out, so every path through this
+        // screen needs an auth repository that does not touch the network.
+        authRepositoryProvider.overrideWithValue(
+          authRepository ?? _RecordingAuthRepository(),
+        ),
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -220,6 +239,57 @@ void main() {
       final endShiftButton = tester.widget<ButtonStyleButton>(_buttonWithLabel('End Shift'));
       expect(endShiftButton.onPressed, isNull);
       expect(repository.submittedClosingBalances, isNull);
+    });
+  });
+
+  group('ShiftEndScreen sign-out on close', () {
+    // Ending a shift must end the session with it: a counted-out till may not
+    // stay signed in while the operator walks away.
+    testWidgets('drops the session as soon as the shift closes', (tester) async {
+      // Arrange
+      final authRepository = _RecordingAuthRepository();
+      final repository = _FakeShiftRepository(
+        activeShift: const ShiftEntry(
+          name: 'POS-OPN-001',
+          posProfile: 'Dokki',
+          status: 'Open',
+        ),
+        summary: const ShiftSummary(
+          openingEntry: 'POS-OPN-001',
+          status: 'Open',
+          invoiceCount: 1,
+          paymentReconciliation: [
+            ShiftBalanceDetail(modeOfPayment: 'Cash'),
+          ],
+          amountsHidden: true,
+        ),
+        endShiftSummary: const ShiftSummary(
+          openingEntry: 'POS-OPN-001',
+          status: 'Closed',
+          closingEntry: 'POS-CL-001',
+          invoiceCount: 1,
+          paymentReconciliation: [
+            ShiftBalanceDetail(modeOfPayment: 'Cash', closingAmount: 145.75),
+          ],
+          amountsHidden: false,
+        ),
+      );
+
+      // Act
+      await _pumpShiftEndScreen(
+        tester,
+        repository,
+        authRepository: authRepository,
+      );
+      await tester.enterText(find.byType(TextField), '145.75');
+      await tester.tap(_buttonWithLabel('End Shift').first);
+      await tester.pumpAndSettle();
+
+      // Assert: signed out on the spot, and the closing summary still stands so
+      // the operator can read it before handing the terminal over.
+      expect(authRepository.logoutCalls, 1);
+      expect(find.text('Shift ended successfully.'), findsOneWidget);
+      expect(_buttonWithLabel('Logout'), findsOneWidget);
     });
   });
 

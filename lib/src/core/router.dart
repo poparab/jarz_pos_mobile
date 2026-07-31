@@ -113,6 +113,7 @@ String? resolveRouterRedirect({
 }) {
   final isOnLogin = location == AppRoutes.login;
   final isOnShiftStart = location == AppRoutes.shiftStart;
+  final isOnShiftEnd = location == AppRoutes.shiftEnd;
   final isOnProfileSelection = location == AppRoutes.selectProfile;
 
   if (!isAuthenticated && !isOnLogin) return AppRoutes.login;
@@ -121,6 +122,14 @@ String? resolveRouterRedirect({
   if (isAuthenticated && isOnLogin) return AppRoutes.root;
 
   if (!isAuthenticated) return null;
+
+  // End Shift is the one screen where "no open shift" is the expected state.
+  // The moment the close succeeds the active shift disappears, and the gate
+  // below would bounce the user to Start Shift — off the closing summary and
+  // the Logout button it carries — leaving them signed in on the till they
+  // just closed. The screen cannot take money, so nothing is gated by letting
+  // it stand.
+  if (isOnShiftEnd) return null;
 
   final requirePosShift = readRequirePosShift();
   final activeShiftAsync = readActiveShift();

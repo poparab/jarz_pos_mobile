@@ -268,6 +268,47 @@ void main() {
       expect(result, AppRoutes.pos);
     });
 
+    // The reported bug: closing a shift made the active shift disappear, the
+    // gate fired on the End Shift screen and bounced the user to Start Shift —
+    // past the closing summary and the Logout button on it — so ending a shift
+    // silently left the operator signed in.
+    test('keeps the closing summary up once the shift is gone', () {
+      final result = resolveRouterRedirect(
+        isAuthenticated: true,
+        location: AppRoutes.shiftEnd,
+        readRequirePosShift: () => true,
+        readActiveShift: () => const AsyncValue<ShiftEntry?>.data(null),
+        readSelectedProfile: () => const {'name': 'Dokki'},
+      );
+
+      expect(result, isNull);
+    });
+
+    test('does not bounce End Shift when the shift lookup failed', () {
+      final result = resolveRouterRedirect(
+        isAuthenticated: true,
+        location: AppRoutes.shiftEnd,
+        readRequirePosShift: () => true,
+        readActiveShift: () =>
+            AsyncValue<ShiftEntry?>.error(Exception('boom'), StackTrace.empty),
+        readSelectedProfile: () => const {'name': 'Dokki'},
+      );
+
+      expect(result, isNull);
+    });
+
+    test('still sends an unauthenticated user off End Shift to login', () {
+      final result = resolveRouterRedirect(
+        isAuthenticated: false,
+        location: AppRoutes.shiftEnd,
+        readRequirePosShift: () => throw StateError('unexpected read'),
+        readActiveShift: () => throw StateError('unexpected read'),
+        readSelectedProfile: () => throw StateError('unexpected read'),
+      );
+
+      expect(result, AppRoutes.login);
+    });
+
     test('holds an unsettled lookup on Start Shift without bouncing', () {
       final result = resolveRouterRedirect(
         isAuthenticated: true,
