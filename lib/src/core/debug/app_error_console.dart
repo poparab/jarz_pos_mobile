@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -12,8 +13,20 @@ class AppErrorConsole extends StatelessWidget {
 
   final Widget child;
 
+  /// The floating "N errors" pill sits in the bottom-right corner and swallows
+  /// taps meant for whatever the screen puts there (FABs, kanban card actions).
+  /// Keep it for local development only — release builds (staging, production,
+  /// distributed APKs) never render it, so it can't block real usage. Error
+  /// capture itself is unaffected: [AppErrorReporter] still records everything
+  /// and Sentry still receives it.
+  static bool get _badgeEnabled => kDebugMode;
+
   @override
   Widget build(BuildContext context) {
+    if (!_badgeEnabled) {
+      return child;
+    }
+
     return AnimatedBuilder(
       animation: AppErrorReporter.instance,
       builder: (context, _) {
