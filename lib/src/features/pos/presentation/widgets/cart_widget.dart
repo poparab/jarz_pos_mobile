@@ -452,16 +452,27 @@ class CartWidget extends ConsumerWidget {
                                 style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(fontSize: isPhone ? 14 : null),
                               ),
-                              const SizedBox(width: 4),
-                              GestureDetector(
-                                onTap: () =>
-                                    _showDeliveryIncomeDialog(context, ref),
-                                child: Icon(
-                                  Icons.edit_outlined,
-                                  size: 16,
-                                  color: Theme.of(context).colorScheme.primary,
+                              // Overriding the delivery income is a manager
+                              // pricing action: the client sends
+                              // suppress_legacy_delivery_charges alongside it,
+                              // which the backend gates behind manager pricing
+                              // access. Showing the control to staff only
+                              // produced a "manager pricing access required"
+                              // failure at checkout.
+                              if (canManagePricing) ...[
+                                const SizedBox(width: 4),
+                                GestureDetector(
+                                  onTap: () =>
+                                      _showDeliveryIncomeDialog(context, ref),
+                                  child: Icon(
+                                    Icons.edit_outlined,
+                                    size: 16,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ],
