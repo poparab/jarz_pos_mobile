@@ -68,6 +68,14 @@ abstract final class RoleNames {
   static const moderator = 'Moderator';
   static const jarzPosStaff = 'Jarz POS Staff';
   static const b2bSalesRep = 'B2B Sales Rep';
+
+  // Stock/manufacturing roles. Mirror the backend `ROLES.MANUFACTURING` set so
+  // the Production Board's client-side gate matches its server-side one — the
+  // Manufacturing screen used to gate on a role the API did not accept, so a
+  // JARZ-Manager-only user could open it and then fail every call.
+  static const manufacturingManager = 'Manufacturing Manager';
+  static const stockManager = 'Stock Manager';
+  static const purchaseManager = 'Purchase Manager';
 }
 
 // ── Cancel reasons (defaults — will later be fetched from backend) ─────

@@ -47,6 +47,8 @@ class AppDrawer extends ConsumerWidget {
       orElse: () => false,
     );
     final hasElevatedAccess = hasManagerAccess || isLineManager || isModerator;
+    final canAccessProductionBoard =
+        ref.watch(canAccessProductionBoardProvider);
     final locale = ref.watch(localeNotifierProvider);
     final englishLocale = const Locale('en');
     final arabicLocale = const Locale('ar');
@@ -192,17 +194,24 @@ class AppDrawer extends ConsumerWidget {
     ];
 
     final purchasingChildren = <Widget>[
-      if (hasManagerAccess) ...[
+      if (hasManagerAccess)
         navTile(
           icon: Icons.receipt_long,
           title: l10n.menuPurchaseInvoice,
           onTap: () => navigate(AppRoutes.purchase),
         ),
+      // Gated on its own role set rather than the general manager one: the
+      // production API accepts stock/manufacturing managers that
+      // `hasManagerAccess` misses, and rejects line/POS managers that it
+      // includes. Showing a tile that 403s on every call is the bug this
+      // avoids.
+      if (canAccessProductionBoard)
         navTile(
           icon: Icons.factory,
-          title: l10n.menuManufacturing,
+          title: l10n.menuProductionBoard,
           onTap: () => navigate(AppRoutes.manufacturing),
         ),
+      if (hasManagerAccess) ...[
         navTile(
           icon: Icons.swap_horiz,
           title: l10n.menuStockTransfer,

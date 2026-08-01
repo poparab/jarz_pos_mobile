@@ -218,7 +218,13 @@ abstract final class ApiEndpoints {
   static const cashTransferSubmit =
       '/api/method/jarz_pos.api.cash_transfer.submit_transfer';
 
-  // ── Manufacturing ─────────────────────────────────────────────────────
+  // ── Manufacturing / Production ────────────────────────────────────────
+  static const getProductionSuggestions =
+      '/api/method/jarz_pos.api.production.get_production_suggestions';
+  static const getBasketMaterialRollup =
+      '/api/method/jarz_pos.api.production.get_basket_material_rollup';
+  static const setItemTargetDays =
+      '/api/method/jarz_pos.api.production.set_item_target_days';
   static const listDefaultBomItems =
       '/api/method/jarz_pos.api.manufacturing.list_default_bom_items';
   static const getBomDetails =

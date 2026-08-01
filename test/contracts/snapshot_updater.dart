@@ -69,6 +69,12 @@ final _snapshots = <(String, String, String, Map<String, dynamic>?)>[
     null,
   ),
   (
+    'production_suggestions.json',
+    'POST',
+    '/api/method/jarz_pos.api.production.get_production_suggestions',
+    {'include_capacity': 1, 'force_refresh': 1},
+  ),
+  (
     'active_shift.json',
     'POST',
     '/api/method/jarz_pos.api.shift.get_active_shift',

@@ -3862,6 +3862,270 @@ abstract class AppLocalizations {
   /// **'Missing: {quantity} {uom}'**
   String manufacturingComponentMissing(Object quantity, Object uom);
 
+  /// No description provided for @menuProductionBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Production Board'**
+  String get menuProductionBoard;
+
+  /// No description provided for @productionBoardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Production Board'**
+  String get productionBoardTitle;
+
+  /// No description provided for @productionTabPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get productionTabPlan;
+
+  /// No description provided for @productionTabBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch'**
+  String get productionTabBatch;
+
+  /// No description provided for @productionAccessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Production access required'**
+  String get productionAccessDenied;
+
+  /// No description provided for @productionSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search items with a BOM'**
+  String get productionSearchHint;
+
+  /// No description provided for @productionFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get productionFilterAll;
+
+  /// No description provided for @productionStatusCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get productionStatusCritical;
+
+  /// No description provided for @productionStatusLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get productionStatusLow;
+
+  /// No description provided for @productionStatusOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Covered'**
+  String get productionStatusOk;
+
+  /// No description provided for @productionStatusOverstocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Overstocked'**
+  String get productionStatusOverstocked;
+
+  /// No description provided for @productionStatusNoVelocity.
+  ///
+  /// In en, this message translates to:
+  /// **'No sales data'**
+  String get productionStatusNoVelocity;
+
+  /// No description provided for @productionOnHand.
+  ///
+  /// In en, this message translates to:
+  /// **'On hand'**
+  String get productionOnHand;
+
+  /// No description provided for @productionSellsPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Sells / day'**
+  String get productionSellsPerDay;
+
+  /// No description provided for @productionCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover'**
+  String get productionCover;
+
+  /// No description provided for @productionCoverDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d'**
+  String productionCoverDays(Object days);
+
+  /// No description provided for @productionCoverUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get productionCoverUnknown;
+
+  /// No description provided for @productionTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Trend'**
+  String get productionTrend;
+
+  /// No description provided for @productionMakeBatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Make {batches} batches · {units} {uom}'**
+  String productionMakeBatches(Object batches, Object units, Object uom);
+
+  /// No description provided for @productionReachCover.
+  ///
+  /// In en, this message translates to:
+  /// **'to reach {days} days cover'**
+  String productionReachCover(Object days);
+
+  /// No description provided for @productionCappedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'capped at {capped} — {limiter} is short (wanted {wanted})'**
+  String productionCappedBy(Object capped, Object limiter, Object wanted);
+
+  /// No description provided for @productionSeasonApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Season {name}: ×{value}'**
+  String productionSeasonApplied(Object name, Object value);
+
+  /// No description provided for @productionAddToBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get productionAddToBatch;
+
+  /// No description provided for @productionFillTheDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill the day'**
+  String get productionFillTheDay;
+
+  /// No description provided for @productionFillTheDayResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {added} items · {batches} batches'**
+  String productionFillTheDayResult(Object added, Object batches);
+
+  /// No description provided for @productionFillTheDaySkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{skipped} skipped — no materials'**
+  String productionFillTheDaySkipped(Object skipped);
+
+  /// No description provided for @productionFillTheDayNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to add'**
+  String get productionFillTheDayNothing;
+
+  /// No description provided for @productionNoSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needs producing'**
+  String get productionNoSuggestions;
+
+  /// No description provided for @productionVelocityNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales velocity has never been calculated — suggestions will stay empty until it runs'**
+  String get productionVelocityNever;
+
+  /// No description provided for @productionVelocityUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Velocity updated {when}'**
+  String productionVelocityUpdated(Object when);
+
+  /// No description provided for @productionBelowCover.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items below cover'**
+  String productionBelowCover(Object count);
+
+  /// No description provided for @productionBasketEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing queued yet'**
+  String get productionBasketEmpty;
+
+  /// No description provided for @productionBasketTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch ({count})'**
+  String productionBasketTitle(Object count);
+
+  /// No description provided for @productionPostingDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Production date'**
+  String get productionPostingDate;
+
+  /// No description provided for @productionClearBasket.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get productionClearBasket;
+
+  /// No description provided for @productionBatchesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Batches'**
+  String get productionBatchesLabel;
+
+  /// No description provided for @productionPickListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Consolidated pick list'**
+  String get productionPickListTitle;
+
+  /// No description provided for @productionPickListShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Short by {quantity} {uom}'**
+  String productionPickListShort(Object quantity, Object uom);
+
+  /// No description provided for @productionPickListOk.
+  ///
+  /// In en, this message translates to:
+  /// **'All materials available'**
+  String get productionPickListOk;
+
+  /// No description provided for @productionSharedAcrossLines.
+  ///
+  /// In en, this message translates to:
+  /// **'shared by {count} lines'**
+  String productionSharedAcrossLines(Object count);
+
+  /// No description provided for @productionSubmitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitting…'**
+  String get productionSubmitting;
+
+  /// No description provided for @productionScaleToFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce to what materials allow'**
+  String get productionScaleToFit;
+
+  /// No description provided for @productionTargetDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Target {days} days'**
+  String productionTargetDays(Object days);
+
+  /// No description provided for @productionNoSourceWarehouse.
+  ///
+  /// In en, this message translates to:
+  /// **'No source warehouse configured'**
+  String get productionNoSourceWarehouse;
+
   /// No description provided for @stockTransferTitle.
   ///
   /// In en, this message translates to:

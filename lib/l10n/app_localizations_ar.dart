@@ -2196,6 +2196,165 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get menuProductionBoard => 'لوحة الإنتاج';
+
+  @override
+  String get productionBoardTitle => 'لوحة الإنتاج';
+
+  @override
+  String get productionTabPlan => 'الخطة';
+
+  @override
+  String get productionTabBatch => 'التشغيلة';
+
+  @override
+  String get productionAccessDenied => 'مطلوب صلاحية الإنتاج';
+
+  @override
+  String get productionSearchHint => 'دوّر على صنف له BOM';
+
+  @override
+  String get productionFilterAll => 'الكل';
+
+  @override
+  String get productionStatusCritical => 'حرج';
+
+  @override
+  String get productionStatusLow => 'قليل';
+
+  @override
+  String get productionStatusOk => 'مغطى';
+
+  @override
+  String get productionStatusOverstocked => 'زيادة';
+
+  @override
+  String get productionStatusNoVelocity => 'مفيش بيانات بيع';
+
+  @override
+  String get productionOnHand => 'المتاح';
+
+  @override
+  String get productionSellsPerDay => 'بيبيع / يوم';
+
+  @override
+  String get productionCover => 'التغطية';
+
+  @override
+  String productionCoverDays(Object days) {
+    return '$days يوم';
+  }
+
+  @override
+  String get productionCoverUnknown => '—';
+
+  @override
+  String get productionTrend => 'الاتجاه';
+
+  @override
+  String productionMakeBatches(Object batches, Object units, Object uom) {
+    return 'اعمل $batches تشغيلة · $units $uom';
+  }
+
+  @override
+  String productionReachCover(Object days) {
+    return 'علشان توصل لتغطية $days يوم';
+  }
+
+  @override
+  String productionCappedBy(Object capped, Object limiter, Object wanted) {
+    return 'الحد $capped — $limiter ناقص (المطلوب $wanted)';
+  }
+
+  @override
+  String productionSeasonApplied(Object name, Object value) {
+    return 'موسم $name: ×$value';
+  }
+
+  @override
+  String get productionAddToBatch => 'أضف';
+
+  @override
+  String get productionFillTheDay => 'املأ اليوم';
+
+  @override
+  String productionFillTheDayResult(Object added, Object batches) {
+    return 'اتضاف $added صنف · $batches تشغيلة';
+  }
+
+  @override
+  String productionFillTheDaySkipped(Object skipped) {
+    return '$skipped اتخطّت — مفيش خامات';
+  }
+
+  @override
+  String get productionFillTheDayNothing => 'مفيش حاجة تتضاف';
+
+  @override
+  String get productionNoSuggestions => 'مفيش حاجة محتاجة إنتاج';
+
+  @override
+  String get productionVelocityNever =>
+      'معدل البيع لسه ماتحسبش — الاقتراحات هتفضل فاضية لحد ما يشتغل';
+
+  @override
+  String productionVelocityUpdated(Object when) {
+    return 'المعدل اتحدّث $when';
+  }
+
+  @override
+  String productionBelowCover(Object count) {
+    return '$count صنف تحت التغطية';
+  }
+
+  @override
+  String get productionBasketEmpty => 'مفيش حاجة في التشغيلة';
+
+  @override
+  String productionBasketTitle(Object count) {
+    return 'التشغيلة ($count)';
+  }
+
+  @override
+  String get productionPostingDate => 'تاريخ الإنتاج';
+
+  @override
+  String get productionClearBasket => 'مسح';
+
+  @override
+  String get productionBatchesLabel => 'تشغيلات';
+
+  @override
+  String get productionPickListTitle => 'قائمة الصرف المجمّعة';
+
+  @override
+  String productionPickListShort(Object quantity, Object uom) {
+    return 'ناقص $quantity $uom';
+  }
+
+  @override
+  String get productionPickListOk => 'كل الخامات متوفرة';
+
+  @override
+  String productionSharedAcrossLines(Object count) {
+    return 'مشترك بين $count بند';
+  }
+
+  @override
+  String get productionSubmitting => 'بيتبعت…';
+
+  @override
+  String get productionScaleToFit => 'قلّل للمتاح من الخامات';
+
+  @override
+  String productionTargetDays(Object days) {
+    return 'الهدف $days يوم';
+  }
+
+  @override
+  String get productionNoSourceWarehouse => 'مفيش مخزن مصدر متظبّط';
+
+  @override
   String get stockTransferTitle => 'تحويل مخزون';
 
   @override

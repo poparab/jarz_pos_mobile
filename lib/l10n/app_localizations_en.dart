@@ -2201,6 +2201,165 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get menuProductionBoard => 'Production Board';
+
+  @override
+  String get productionBoardTitle => 'Production Board';
+
+  @override
+  String get productionTabPlan => 'Plan';
+
+  @override
+  String get productionTabBatch => 'Batch';
+
+  @override
+  String get productionAccessDenied => 'Production access required';
+
+  @override
+  String get productionSearchHint => 'Search items with a BOM';
+
+  @override
+  String get productionFilterAll => 'All';
+
+  @override
+  String get productionStatusCritical => 'Critical';
+
+  @override
+  String get productionStatusLow => 'Low';
+
+  @override
+  String get productionStatusOk => 'Covered';
+
+  @override
+  String get productionStatusOverstocked => 'Overstocked';
+
+  @override
+  String get productionStatusNoVelocity => 'No sales data';
+
+  @override
+  String get productionOnHand => 'On hand';
+
+  @override
+  String get productionSellsPerDay => 'Sells / day';
+
+  @override
+  String get productionCover => 'Cover';
+
+  @override
+  String productionCoverDays(Object days) {
+    return '$days d';
+  }
+
+  @override
+  String get productionCoverUnknown => '—';
+
+  @override
+  String get productionTrend => 'Trend';
+
+  @override
+  String productionMakeBatches(Object batches, Object units, Object uom) {
+    return 'Make $batches batches · $units $uom';
+  }
+
+  @override
+  String productionReachCover(Object days) {
+    return 'to reach $days days cover';
+  }
+
+  @override
+  String productionCappedBy(Object capped, Object limiter, Object wanted) {
+    return 'capped at $capped — $limiter is short (wanted $wanted)';
+  }
+
+  @override
+  String productionSeasonApplied(Object name, Object value) {
+    return 'Season $name: ×$value';
+  }
+
+  @override
+  String get productionAddToBatch => 'Add';
+
+  @override
+  String get productionFillTheDay => 'Fill the day';
+
+  @override
+  String productionFillTheDayResult(Object added, Object batches) {
+    return 'Added $added items · $batches batches';
+  }
+
+  @override
+  String productionFillTheDaySkipped(Object skipped) {
+    return '$skipped skipped — no materials';
+  }
+
+  @override
+  String get productionFillTheDayNothing => 'Nothing to add';
+
+  @override
+  String get productionNoSuggestions => 'Nothing needs producing';
+
+  @override
+  String get productionVelocityNever =>
+      'Sales velocity has never been calculated — suggestions will stay empty until it runs';
+
+  @override
+  String productionVelocityUpdated(Object when) {
+    return 'Velocity updated $when';
+  }
+
+  @override
+  String productionBelowCover(Object count) {
+    return '$count items below cover';
+  }
+
+  @override
+  String get productionBasketEmpty => 'Nothing queued yet';
+
+  @override
+  String productionBasketTitle(Object count) {
+    return 'Batch ($count)';
+  }
+
+  @override
+  String get productionPostingDate => 'Production date';
+
+  @override
+  String get productionClearBasket => 'Clear';
+
+  @override
+  String get productionBatchesLabel => 'Batches';
+
+  @override
+  String get productionPickListTitle => 'Consolidated pick list';
+
+  @override
+  String productionPickListShort(Object quantity, Object uom) {
+    return 'Short by $quantity $uom';
+  }
+
+  @override
+  String get productionPickListOk => 'All materials available';
+
+  @override
+  String productionSharedAcrossLines(Object count) {
+    return 'shared by $count lines';
+  }
+
+  @override
+  String get productionSubmitting => 'Submitting…';
+
+  @override
+  String get productionScaleToFit => 'Reduce to what materials allow';
+
+  @override
+  String productionTargetDays(Object days) {
+    return 'Target $days days';
+  }
+
+  @override
+  String get productionNoSourceWarehouse => 'No source warehouse configured';
+
+  @override
   String get stockTransferTitle => 'Stock Transfer';
 
   @override

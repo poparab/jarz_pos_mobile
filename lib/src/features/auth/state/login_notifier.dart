@@ -147,6 +147,7 @@ class LoginNotifier extends AsyncNotifier<bool> {
     for (final boxName in const [
       HiveBoxes.leadsCache,
       HiveBoxes.inventoryCount,
+      HiveBoxes.productionBasket,
     ]) {
       try {
         if (Hive.isBoxOpen(boxName)) {

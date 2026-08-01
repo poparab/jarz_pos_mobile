@@ -69,6 +69,25 @@ class UserRoles {
   /// B2C POS/Kanban flows. Managers keep their normal landing but get a switch.
   bool get landsOnB2b => isB2bRep && !canAccessManagerDashboard;
 
+  /// Holds one of the stock/manufacturing roles the backend accepts.
+  bool get isProductionRole =>
+      roles.contains(RoleNames.manufacturingManager) ||
+      roles.contains(RoleNames.stockManager) ||
+      roles.contains(RoleNames.purchaseManager);
+
+  /// Whether this user may open the Production Board.
+  ///
+  /// Mirrors the backend `ROLES.PRODUCTION_VIEW` set exactly — deliberately
+  /// NOT `canAccessManagerDashboard`, which admits POS Manager and line
+  /// managers that the production API rejects. Gating on a wider set than the
+  /// server accepts is how the old Manufacturing screen ended up showing a
+  /// tile that failed on every call.
+  bool get canAccessProductionBoard =>
+      isJarzManager ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.administrator) ||
+      isProductionRole;
+
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
     final rolesList = rolesRaw is List
@@ -165,6 +184,19 @@ final canAccessShiftMonitorProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canAccessShiftMonitor,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user can open the Production Board.
+///
+/// Role-derived and synchronous — no server probe. The Manufacturing screen
+/// used to gate on `managerAccessProvider`, which fires a manager-dashboard
+/// request on every open and admits roles the production API rejects.
+final canAccessProductionBoardProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessProductionBoard,
     orElse: () => false,
   );
 });

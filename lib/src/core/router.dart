@@ -350,7 +350,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.manufacturing,
         name: 'manufacturing',
-        builder: (context, state) => const ManufacturingScreen(),
+        // Landscape opt-in: the Plan tab is a wide table of figures, and the
+        // app is portrait-locked on phones by default.
+        builder: (context, state) => PhoneLandscapeScope(
+          child: ManufacturingScreen(
+            initialTab: int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0,
+          ),
+        ),
       ),
       GoRoute(
         path: AppRoutes.stockTransfer,
