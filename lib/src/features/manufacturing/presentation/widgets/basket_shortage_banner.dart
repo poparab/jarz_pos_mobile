@@ -102,7 +102,13 @@ class _PickListRow extends StatelessWidget {
               ),
             ],
           ),
-          Row(
+          // Wrap rather than Row: available + "shared by N lines" + the
+          // shortfall is more than a phone width of text once quantities and
+          // UOMs are real, and a Row overflowed by 200px.
+          Wrap(
+            spacing: 10,
+            runSpacing: 2,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 l10n.manufacturingComponentAvailable(
@@ -112,8 +118,7 @@ class _PickListRow extends StatelessWidget {
                 style: theme.textTheme.labelSmall
                     ?.copyWith(color: scheme.onSurfaceVariant),
               ),
-              if (component.isSharedAcrossLines) ...[
-                const SizedBox(width: 8),
+              if (component.isSharedAcrossLines)
                 Text(
                   l10n.productionSharedAcrossLines(
                     component.contributingLines.length,
@@ -121,8 +126,6 @@ class _PickListRow extends StatelessWidget {
                   style: theme.textTheme.labelSmall
                       ?.copyWith(color: scheme.onSurfaceVariant),
                 ),
-              ],
-              const Spacer(),
               if (component.isMissingWarehouse)
                 Text(
                   l10n.productionNoSourceWarehouse,

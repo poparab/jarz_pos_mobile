@@ -39,11 +39,16 @@ class BatchDateBar extends StatelessWidget {
       children: [
         Icon(Icons.event, size: 18, color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(width: 8),
-        Text(
-          l10n.productionPostingDate,
-          style: theme.textTheme.bodyMedium,
+        // Expanded rather than a Spacer: the label is a translated string and
+        // the Arabic one is longer, so on a narrow phone a fixed-width Text
+        // plus the date button overflowed the row.
+        Expanded(
+          child: Text(
+            l10n.productionPostingDate,
+            style: theme.textTheme.bodyMedium,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-        const Spacer(),
         TextButton(
           onPressed: canBackDate ? () => _pick(context) : null,
           child: Text(_format(date)),

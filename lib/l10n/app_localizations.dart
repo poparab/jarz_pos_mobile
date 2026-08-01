@@ -4132,6 +4132,24 @@ abstract class AppLocalizations {
   /// **'Stock is negative — count this item'**
   String get productionNegativeStock;
 
+  /// No description provided for @productionMakeUnits.
+  ///
+  /// In en, this message translates to:
+  /// **'Make {units} {uom}'**
+  String productionMakeUnits(Object units, Object uom);
+
+  /// No description provided for @productionCannotStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot start — {limiter} is short'**
+  String productionCannotStart(Object limiter);
+
+  /// No description provided for @productionBatchTotals.
+  ///
+  /// In en, this message translates to:
+  /// **'{batches} batches · {units} units'**
+  String productionBatchTotals(Object batches, Object units);
+
   /// No description provided for @stockTransferTitle.
   ///
   /// In en, this message translates to:

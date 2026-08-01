@@ -115,8 +115,10 @@ class _BatchFooter extends ConsumerWidget {
                           ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     Text(
-                      '${trimQty(basket.totalBatches)} × ${l10n.productionBatchesLabel}'
-                      ' · ${trimQty(basket.totalUnits)}',
+                      l10n.productionBatchTotals(
+                        trimQty(basket.totalBatches),
+                        trimQty(basket.totalUnits),
+                      ),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

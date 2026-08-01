@@ -49,11 +49,14 @@ class SuggestionRow extends StatelessWidget {
                       style: theme.textTheme.titleSmall
                           ?.copyWith(fontWeight: FontWeight.w700),
                     ),
-                    Text(
-                      suggestion.itemCode,
-                      style: theme.textTheme.labelSmall
-                          ?.copyWith(color: scheme.onSurfaceVariant),
-                    ),
+                    // Most items here are named by their code, so printing both
+                    // just renders the same string twice.
+                    if (suggestion.itemCode != suggestion.itemName)
+                      Text(
+                        suggestion.itemCode,
+                        style: theme.textTheme.labelSmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
                   ],
                 ),
               ),
@@ -138,13 +141,38 @@ class _SuggestionAction extends StatelessWidget {
     // A shortage names the component that caused it and offers the achievable
     // number, rather than presenting a red wall with no way forward.
     final limiter = suggestion.limitingComponent;
+    final limiterLabel = limiter == null
+        ? ''
+        : (limiter.itemName.isEmpty ? limiter.itemCode : limiter.itemName);
+
     final why = capped && limiter != null
         ? l10n.productionCappedBy(
             achievable,
-            limiter.itemName.isEmpty ? limiter.itemCode : limiter.itemName,
+            limiterLabel,
             suggestion.suggestedBatches,
           )
         : l10n.productionReachCover(suggestion.targetDays);
+
+    // A blocked line must not headline "Make 6 batches" over a subtitle saying
+    // it is capped at zero — the two read as a contradiction.
+    final headline = blocked
+        ? (limiter == null
+            ? l10n.manufacturingInsufficientInventory
+            : (limiter.isMissingWarehouse
+                ? l10n.productionNoSourceWarehouse
+                : l10n.productionCannotStart(limiterLabel)))
+        : (suggestion.bomQty == 1
+            // One BOM makes one unit, so "5 batches · 5 Nos" is the same number
+            // printed twice.
+            ? l10n.productionMakeUnits(
+                trimQty(achievable * suggestion.bomQty),
+                suggestion.stockUom,
+              )
+            : l10n.productionMakeBatches(
+                achievable,
+                trimQty(achievable * suggestion.bomQty),
+                suggestion.stockUom,
+              ));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -160,26 +188,18 @@ class _SuggestionAction extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  l10n.productionMakeBatches(
-                    blocked ? suggestion.suggestedBatches : achievable,
-                    trimQty(
-                      (blocked ? suggestion.suggestedBatches : achievable) *
-                          suggestion.bomQty,
-                    ),
-                    suggestion.stockUom,
+                  headline,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: blocked ? scheme.error : null,
                   ),
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
-                Text(
-                  blocked && limiter != null
-                      ? (limiter.isMissingWarehouse
-                          ? l10n.productionNoSourceWarehouse
-                          : why)
-                      : why,
-                  style: theme.textTheme.labelSmall
-                      ?.copyWith(color: scheme.onSurfaceVariant),
-                ),
+                if (!blocked)
+                  Text(
+                    why,
+                    style: theme.textTheme.labelSmall
+                        ?.copyWith(color: scheme.onSurfaceVariant),
+                  ),
               ],
             ),
           ),

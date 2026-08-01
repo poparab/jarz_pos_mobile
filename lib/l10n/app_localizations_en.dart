@@ -2363,6 +2363,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productionNegativeStock => 'Stock is negative — count this item';
 
   @override
+  String productionMakeUnits(Object units, Object uom) {
+    return 'Make $units $uom';
+  }
+
+  @override
+  String productionCannotStart(Object limiter) {
+    return 'Cannot start — $limiter is short';
+  }
+
+  @override
+  String productionBatchTotals(Object batches, Object units) {
+    return '$batches batches · $units units';
+  }
+
+  @override
   String get stockTransferTitle => 'Stock Transfer';
 
   @override

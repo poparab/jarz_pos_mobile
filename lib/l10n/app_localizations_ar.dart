@@ -2358,6 +2358,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productionNegativeStock => 'الرصيد بالسالب — اعمل جرد للصنف ده';
 
   @override
+  String productionMakeUnits(Object units, Object uom) {
+    return 'اعمل $units $uom';
+  }
+
+  @override
+  String productionCannotStart(Object limiter) {
+    return 'مش هيبدأ — $limiter ناقص';
+  }
+
+  @override
+  String productionBatchTotals(Object batches, Object units) {
+    return '$batches تشغيلة · $units وحدة';
+  }
+
+  @override
   String get stockTransferTitle => 'تحويل مخزون';
 
   @override
