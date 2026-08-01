@@ -3336,6 +3336,12 @@ abstract class AppLocalizations {
   /// **'Invoice is: {status}{note}'**
   String settlementInvoiceStatus(Object status, Object note);
 
+  /// No description provided for @settlementOnlineUnconfirmedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer pays online — the courier collected nothing. Only the shipping fee is settled here.'**
+  String get settlementOnlineUnconfirmedNote;
+
   /// No description provided for @settlementCollectFormula.
   ///
   /// In en, this message translates to:

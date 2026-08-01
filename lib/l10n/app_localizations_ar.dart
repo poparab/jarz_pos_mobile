@@ -1866,6 +1866,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settlementOnlineUnconfirmedNote =>
+      'العميل هيدفع أونلاين — المندوب محصلش أي فلوس. اللي بيتسوّى هنا هو مصاريف الشحن بس.';
+
+  @override
   String get settlementCollectFormula => 'تحصيل (الطلب - الشحن):';
 
   @override

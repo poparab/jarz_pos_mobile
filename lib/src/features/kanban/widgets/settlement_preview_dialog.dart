@@ -111,6 +111,7 @@ bool _isUnpaidEffective(Map<String, dynamic> preview) {
   bool paidAfterOfd,
   bool recentlyPaid,
   bool isPartnerOrder,
+  bool onlineUnconfirmed,
   String? deliveryPartner,
   Color paidColor,
   IconData paidIcon,
@@ -130,12 +131,15 @@ _computeDisplay(Map<String, dynamic> preview, {double? orderFallback, double? sh
   double order = _firstNumberFrom(preview, orderKeys, fallback: 0);
   double shipping = _firstNumberFrom(preview, shippingKeys, fallback: 0);
 
-  // If preview lacks these fields, adopt provided fallbacks (e.g., from InvoiceCard or list details)
+  // If preview lacks these fields, adopt provided fallbacks (e.g., from InvoiceCard or list details).
+  //
+  // Only when the key is ABSENT. A zero the backend sent explicitly is a real answer, not a gap:
+  // an unpaid online-intent order (InstaPay / Mobile Wallet) has order_amount = 0 because the
+  // courier collected nothing, and substituting the invoice grand total there printed
+  // "Order: 1020 / Pay 85" under a "Pay = Order - Shipping" heading — numbers that cannot be
+  // reconciled by the person reading them.
   if (!hasOrderInPreview && (orderFallback != null)) order = orderFallback;
   if (!hasShippingInPreview && (shippingFallback != null)) shipping = shippingFallback;
-  // If preview provided zero/invalid values, prefer a positive fallback
-  if ((order <= 0) && (orderFallback != null) && (orderFallback > 0)) order = orderFallback;
-  if ((shipping <= 0) && (shippingFallback != null) && (shippingFallback > 0)) shipping = shippingFallback;
   // Prefer backend-provided signed net if available; else fallback to Order - Shipping
   final backendNet = _firstNumberFrom(preview, ['net_amount', 'netAmount', 'net_balance', 'net'], fallback: double.nan);
   final net = backendNet.isNaN ? (order - shipping) : backendNet;
@@ -166,6 +170,10 @@ _computeDisplay(Map<String, dynamic> preview, {double? orderFallback, double? sh
   final isPartnerOrder = preview['is_partner_order'] == true || preview['is_partner_order'] == 1;
   final deliveryPartner = (preview['delivery_partner'] ?? '').toString();
 
+  // Unpaid InstaPay / Mobile Wallet: the customer owes the money online, not to the courier.
+  final onlineUnconfirmed =
+      preview['is_online_unconfirmed'] == true || preview['is_online_unconfirmed'] == 1;
+
   return (
     actionCollect: actionCollect,
     netSigned: net,
@@ -175,6 +183,7 @@ _computeDisplay(Map<String, dynamic> preview, {double? orderFallback, double? sh
     paidAfterOfd: paidAfterOfd,
     recentlyPaid: recentlyPaid,
     isPartnerOrder: isPartnerOrder,
+    onlineUnconfirmed: onlineUnconfirmed,
     deliveryPartner: deliveryPartner.isEmpty ? null : deliveryPartner,
     paidColor: paidColor,
     paidIcon: paidIcon,
@@ -283,6 +292,19 @@ Future<bool?> showSettlementConfirmDialog(
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: d.paidColor)),
             ],
           ),
+          if (d.onlineUnconfirmed) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.account_balance, size: 16, color: Colors.blueGrey),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(l10n.settlementOnlineUnconfirmedNote,
+                      style: const TextStyle(fontSize: 11, color: Colors.blueGrey)),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 8),
           if (d.isPartnerOrder) ...[
             // Partner orders: show full amount to collect (no shipping deduction)
@@ -405,6 +427,19 @@ Future<void> showSettlementInfoDialog(
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: d.paidColor)),
             ],
           ),
+          if (d.onlineUnconfirmed) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.account_balance, size: 16, color: Colors.blueGrey),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(l10n.settlementOnlineUnconfirmedNote,
+                      style: const TextStyle(fontSize: 11, color: Colors.blueGrey)),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 8),
           if (isPartner) ...[
             // Partner order: show full order amount as the settlement amount

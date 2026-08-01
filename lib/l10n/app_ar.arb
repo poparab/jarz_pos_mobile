@@ -915,6 +915,7 @@
       "note": {}
     }
   },
+  "settlementOnlineUnconfirmedNote": "العميل هيدفع أونلاين — المندوب محصلش أي فلوس. اللي بيتسوّى هنا هو مصاريف الشحن بس.",
   "settlementCollectFormula": "تحصيل (الطلب - الشحن):",
   "settlementPayFormula": "سداد للمندوب (الطلب - الشحن):",
   "settlementNetToCollect": "الصافي للتحصيل",

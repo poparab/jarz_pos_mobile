@@ -915,6 +915,7 @@
       "note": {}
     }
   },
+  "settlementOnlineUnconfirmedNote": "Customer pays online — the courier collected nothing. Only the shipping fee is settled here.",
   "settlementCollectFormula": "Collect (Order - Shipping):",
   "settlementPayFormula": "Pay the courier (Order - Shipping):",
   "settlementNetToCollect": "Net to Collect",

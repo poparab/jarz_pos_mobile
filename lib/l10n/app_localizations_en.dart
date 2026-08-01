@@ -1869,6 +1869,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settlementOnlineUnconfirmedNote =>
+      'Customer pays online — the courier collected nothing. Only the shipping fee is settled here.';
+
+  @override
   String get settlementCollectFormula => 'Collect (Order - Shipping):';
 
   @override
