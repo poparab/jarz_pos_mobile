@@ -33,6 +33,7 @@
       "target_days_source": "default",
       "days_of_cover": 2.25,
       "status": "critical",
+      "stock_is_negative": false,
       "suggested_batches": 4,
       "suggested_units": 48.0,
       "can_make_now_batches": 2,
@@ -45,6 +46,31 @@
         "source_warehouse": "Stores - J",
         "reason": "insufficient_stock"
       }
+    },
+    {
+      "item_code": "FG-EXAMPLE-D",
+      "item_name": "Example finished good D",
+      "item_group": "Products",
+      "stock_uom": "Nos",
+      "default_bom": "BOM-FG-EXAMPLE-D-001",
+      "bom_qty": 8.0,
+      "company": "Jarz",
+      "on_hand": -14.0,
+      "velocity_30d": 3.0,
+      "velocity_60d": 3.0,
+      "velocity_trend": "Steady",
+      "velocity_updated_on": "2026-07-27 03:00:04.481922",
+      "season_multiplier": 1.0,
+      "effective_velocity": 3.0,
+      "target_days": 7,
+      "target_days_source": "default",
+      "days_of_cover": 0.0,
+      "status": "critical",
+      "stock_is_negative": true,
+      "suggested_batches": 3,
+      "suggested_units": 24.0,
+      "can_make_now_batches": 12,
+      "limiting_component": null
     },
     {
       "item_code": "FG-EXAMPLE-B",
@@ -65,6 +91,7 @@
       "target_days_source": "default",
       "days_of_cover": 120.0,
       "status": "overstocked",
+      "stock_is_negative": false,
       "suggested_batches": 0,
       "suggested_units": 0.0,
       "can_make_now_batches": 30,
@@ -89,6 +116,7 @@
       "target_days_source": "default",
       "days_of_cover": null,
       "status": "no_velocity",
+      "stock_is_negative": false,
       "suggested_batches": 0,
       "suggested_units": 0.0,
       "can_make_now_batches": null,
@@ -96,12 +124,12 @@
     }
   ],
   "summary": {
-    "critical": 1,
+    "critical": 2,
     "low": 0,
     "ok": 0,
     "overstocked": 1,
     "no_velocity": 1,
-    "total_suggested_batches": 4,
+    "total_suggested_batches": 7,
     "capped_by_materials": 1
   }
 }

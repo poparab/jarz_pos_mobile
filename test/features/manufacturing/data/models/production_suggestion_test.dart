@@ -69,6 +69,21 @@ void main() {
       expect(suggestion.daysOfCover, 3.0);
     });
 
+    test('stock_is_negative parses, and defaults to false when absent', () {
+      expect(
+        ProductionSuggestion.fromJson({
+          'item_code': 'X',
+          'on_hand': -14.0,
+          'stock_is_negative': true,
+        }).stockIsNegative,
+        isTrue,
+      );
+      expect(
+        ProductionSuggestion.fromJson({'item_code': 'X'}).stockIsNegative,
+        isFalse,
+      );
+    });
+
     test('a sparse payload falls back to defaults instead of throwing', () {
       final suggestion = ProductionSuggestion.fromJson({'item_code': 'X'});
 

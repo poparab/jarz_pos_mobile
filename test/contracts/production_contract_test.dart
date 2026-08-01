@@ -80,6 +80,21 @@ void main() {
       expect(noVelocity.suggestedBatches, 0);
     });
 
+    test('a negative-stock item is flagged and its suggestion is not inflated',
+        () {
+      final negative = page.items.firstWhere((i) => i.stockIsNegative);
+
+      expect(negative.onHand, lessThan(0));
+      // Cover clamps at zero — "-4.6 days of cover" means nothing to somebody
+      // deciding what to make.
+      expect(negative.daysOfCover, 0.0);
+      // The suggestion covers forward demand only; the hole is a counting
+      // problem, not a backlog to produce against.
+      final forwardDemandOnly =
+          (negative.targetDays * negative.effectiveVelocity) / negative.bomQty;
+      expect(negative.suggestedBatches, forwardDemandOnly.ceil());
+    });
+
     test('status values match the buckets the UI knows how to render', () {
       const known = {
         ProductionStatus.critical,

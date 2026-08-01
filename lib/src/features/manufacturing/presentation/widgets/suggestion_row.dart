@@ -69,6 +69,7 @@ class SuggestionRow extends StatelessWidget {
               ProductionStat(
                 label: l10n.productionOnHand,
                 value: trimQty(suggestion.onHand),
+                emphasis: suggestion.stockIsNegative ? scheme.error : null,
               ),
               ProductionStat(
                 label: l10n.productionSellsPerDay,
@@ -88,6 +89,26 @@ class SuggestionRow extends StatelessWidget {
                 ),
             ],
           ),
+          if (suggestion.stockIsNegative) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.error_outline, size: 15, color: scheme.error),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    // The suggestion below ignores the hole on purpose, so the
+                    // row has to say the stock figure cannot be trusted.
+                    l10n.productionNegativeStock,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
           if (suggestion.suggestedBatches > 0) ...[
             const SizedBox(height: 10),
             _SuggestionAction(suggestion: suggestion, onAdd: onAdd),

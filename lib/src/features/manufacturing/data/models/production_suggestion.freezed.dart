@@ -1181,6 +1181,13 @@ mixin _$ProductionSuggestion {
   @JsonKey(name: 'days_of_cover')
   double? get daysOfCover => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
+
+  /// Stock on hand is below zero. The suggestion deliberately ignores the
+  /// hole — for a finished good a negative Bin almost always means unrecorded
+  /// production or a count lag, not units owed to customers — so the row says
+  /// so instead, and somebody counts the item.
+  @JsonKey(name: 'stock_is_negative')
+  bool get stockIsNegative => throw _privateConstructorUsedError;
   @JsonKey(name: 'suggested_batches')
   int get suggestedBatches => throw _privateConstructorUsedError;
   @JsonKey(name: 'suggested_units')
@@ -1228,6 +1235,7 @@ abstract class $ProductionSuggestionCopyWith<$Res> {
     @JsonKey(name: 'target_days_source') String targetDaysSource,
     @JsonKey(name: 'days_of_cover') double? daysOfCover,
     String status,
+    @JsonKey(name: 'stock_is_negative') bool stockIsNegative,
     @JsonKey(name: 'suggested_batches') int suggestedBatches,
     @JsonKey(name: 'suggested_units') double suggestedUnits,
     @JsonKey(name: 'can_make_now_batches') int? canMakeNowBatches,
@@ -1272,6 +1280,7 @@ class _$ProductionSuggestionCopyWithImpl<
     Object? targetDaysSource = null,
     Object? daysOfCover = freezed,
     Object? status = null,
+    Object? stockIsNegative = null,
     Object? suggestedBatches = null,
     Object? suggestedUnits = null,
     Object? canMakeNowBatches = freezed,
@@ -1347,6 +1356,10 @@ class _$ProductionSuggestionCopyWithImpl<
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
                       as String,
+            stockIsNegative: null == stockIsNegative
+                ? _value.stockIsNegative
+                : stockIsNegative // ignore: cast_nullable_to_non_nullable
+                      as bool,
             suggestedBatches: null == suggestedBatches
                 ? _value.suggestedBatches
                 : suggestedBatches // ignore: cast_nullable_to_non_nullable
@@ -1410,6 +1423,7 @@ abstract class _$$ProductionSuggestionImplCopyWith<$Res>
     @JsonKey(name: 'target_days_source') String targetDaysSource,
     @JsonKey(name: 'days_of_cover') double? daysOfCover,
     String status,
+    @JsonKey(name: 'stock_is_negative') bool stockIsNegative,
     @JsonKey(name: 'suggested_batches') int suggestedBatches,
     @JsonKey(name: 'suggested_units') double suggestedUnits,
     @JsonKey(name: 'can_make_now_batches') int? canMakeNowBatches,
@@ -1451,6 +1465,7 @@ class __$$ProductionSuggestionImplCopyWithImpl<$Res>
     Object? targetDaysSource = null,
     Object? daysOfCover = freezed,
     Object? status = null,
+    Object? stockIsNegative = null,
     Object? suggestedBatches = null,
     Object? suggestedUnits = null,
     Object? canMakeNowBatches = freezed,
@@ -1526,6 +1541,10 @@ class __$$ProductionSuggestionImplCopyWithImpl<$Res>
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
                   as String,
+        stockIsNegative: null == stockIsNegative
+            ? _value.stockIsNegative
+            : stockIsNegative // ignore: cast_nullable_to_non_nullable
+                  as bool,
         suggestedBatches: null == suggestedBatches
             ? _value.suggestedBatches
             : suggestedBatches // ignore: cast_nullable_to_non_nullable
@@ -1568,6 +1587,7 @@ class _$ProductionSuggestionImpl extends _ProductionSuggestion {
     @JsonKey(name: 'target_days_source') this.targetDaysSource = 'default',
     @JsonKey(name: 'days_of_cover') this.daysOfCover,
     this.status = ProductionStatus.ok,
+    @JsonKey(name: 'stock_is_negative') this.stockIsNegative = false,
     @JsonKey(name: 'suggested_batches') this.suggestedBatches = 0,
     @JsonKey(name: 'suggested_units') this.suggestedUnits = 0.0,
     @JsonKey(name: 'can_make_now_batches') this.canMakeNowBatches,
@@ -1630,6 +1650,14 @@ class _$ProductionSuggestionImpl extends _ProductionSuggestion {
   @override
   @JsonKey()
   final String status;
+
+  /// Stock on hand is below zero. The suggestion deliberately ignores the
+  /// hole — for a finished good a negative Bin almost always means unrecorded
+  /// production or a count lag, not units owed to customers — so the row says
+  /// so instead, and somebody counts the item.
+  @override
+  @JsonKey(name: 'stock_is_negative')
+  final bool stockIsNegative;
   @override
   @JsonKey(name: 'suggested_batches')
   final int suggestedBatches;
@@ -1647,7 +1675,7 @@ class _$ProductionSuggestionImpl extends _ProductionSuggestion {
 
   @override
   String toString() {
-    return 'ProductionSuggestion(itemCode: $itemCode, itemName: $itemName, itemGroup: $itemGroup, stockUom: $stockUom, defaultBom: $defaultBom, bomQty: $bomQty, company: $company, onHand: $onHand, velocity30d: $velocity30d, velocity60d: $velocity60d, velocityTrend: $velocityTrend, seasonMultiplier: $seasonMultiplier, effectiveVelocity: $effectiveVelocity, targetDays: $targetDays, targetDaysSource: $targetDaysSource, daysOfCover: $daysOfCover, status: $status, suggestedBatches: $suggestedBatches, suggestedUnits: $suggestedUnits, canMakeNowBatches: $canMakeNowBatches, limitingComponent: $limitingComponent)';
+    return 'ProductionSuggestion(itemCode: $itemCode, itemName: $itemName, itemGroup: $itemGroup, stockUom: $stockUom, defaultBom: $defaultBom, bomQty: $bomQty, company: $company, onHand: $onHand, velocity30d: $velocity30d, velocity60d: $velocity60d, velocityTrend: $velocityTrend, seasonMultiplier: $seasonMultiplier, effectiveVelocity: $effectiveVelocity, targetDays: $targetDays, targetDaysSource: $targetDaysSource, daysOfCover: $daysOfCover, status: $status, stockIsNegative: $stockIsNegative, suggestedBatches: $suggestedBatches, suggestedUnits: $suggestedUnits, canMakeNowBatches: $canMakeNowBatches, limitingComponent: $limitingComponent)';
   }
 
   @override
@@ -1685,6 +1713,8 @@ class _$ProductionSuggestionImpl extends _ProductionSuggestion {
             (identical(other.daysOfCover, daysOfCover) ||
                 other.daysOfCover == daysOfCover) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.stockIsNegative, stockIsNegative) ||
+                other.stockIsNegative == stockIsNegative) &&
             (identical(other.suggestedBatches, suggestedBatches) ||
                 other.suggestedBatches == suggestedBatches) &&
             (identical(other.suggestedUnits, suggestedUnits) ||
@@ -1716,6 +1746,7 @@ class _$ProductionSuggestionImpl extends _ProductionSuggestion {
     targetDaysSource,
     daysOfCover,
     status,
+    stockIsNegative,
     suggestedBatches,
     suggestedUnits,
     canMakeNowBatches,
@@ -1759,6 +1790,7 @@ abstract class _ProductionSuggestion extends ProductionSuggestion {
     @JsonKey(name: 'target_days_source') final String targetDaysSource,
     @JsonKey(name: 'days_of_cover') final double? daysOfCover,
     final String status,
+    @JsonKey(name: 'stock_is_negative') final bool stockIsNegative,
     @JsonKey(name: 'suggested_batches') final int suggestedBatches,
     @JsonKey(name: 'suggested_units') final double suggestedUnits,
     @JsonKey(name: 'can_make_now_batches') final int? canMakeNowBatches,
@@ -1822,6 +1854,14 @@ abstract class _ProductionSuggestion extends ProductionSuggestion {
   double? get daysOfCover;
   @override
   String get status;
+
+  /// Stock on hand is below zero. The suggestion deliberately ignores the
+  /// hole — for a finished good a negative Bin almost always means unrecorded
+  /// production or a count lag, not units owed to customers — so the row says
+  /// so instead, and somebody counts the item.
+  @override
+  @JsonKey(name: 'stock_is_negative')
+  bool get stockIsNegative;
   @override
   @JsonKey(name: 'suggested_batches')
   int get suggestedBatches;

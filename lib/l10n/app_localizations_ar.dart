@@ -2355,6 +2355,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productionNoSourceWarehouse => 'مفيش مخزن مصدر متظبّط';
 
   @override
+  String get productionNegativeStock => 'الرصيد بالسالب — اعمل جرد للصنف ده';
+
+  @override
   String get stockTransferTitle => 'تحويل مخزون';
 
   @override

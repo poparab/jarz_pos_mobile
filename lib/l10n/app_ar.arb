@@ -1119,6 +1119,7 @@
   "productionScaleToFit": "قلّل للمتاح من الخامات",
   "productionTargetDays": "الهدف {days} يوم",
   "productionNoSourceWarehouse": "مفيش مخزن مصدر متظبّط",
+  "productionNegativeStock": "الرصيد بالسالب — اعمل جرد للصنف ده",
   "stockTransferTitle": "تحويل مخزون",
   "stockTransferManagersOnly": "للمدراء فقط",
   "stockTransferLinesTitle": "بنود التحويل ({count})",

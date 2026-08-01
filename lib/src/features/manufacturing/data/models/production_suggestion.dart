@@ -104,6 +104,12 @@ class ProductionSuggestion with _$ProductionSuggestion {
     /// number, which the stored `jarz_days_of_stock` field cannot express.
     @JsonKey(name: 'days_of_cover') double? daysOfCover,
     @Default(ProductionStatus.ok) String status,
+
+    /// Stock on hand is below zero. The suggestion deliberately ignores the
+    /// hole — for a finished good a negative Bin almost always means unrecorded
+    /// production or a count lag, not units owed to customers — so the row says
+    /// so instead, and somebody counts the item.
+    @JsonKey(name: 'stock_is_negative') @Default(false) bool stockIsNegative,
     @JsonKey(name: 'suggested_batches') @Default(0) int suggestedBatches,
     @JsonKey(name: 'suggested_units') @Default(0.0) double suggestedUnits,
 

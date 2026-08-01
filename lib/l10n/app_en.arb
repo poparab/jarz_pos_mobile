@@ -1119,6 +1119,7 @@
   "productionScaleToFit": "Reduce to what materials allow",
   "productionTargetDays": "Target {days} days",
   "productionNoSourceWarehouse": "No source warehouse configured",
+  "productionNegativeStock": "Stock is negative — count this item",
   "stockTransferTitle": "Stock Transfer",
   "stockTransferManagersOnly": "Managers only",
   "stockTransferLinesTitle": "Transfer Lines ({count})",

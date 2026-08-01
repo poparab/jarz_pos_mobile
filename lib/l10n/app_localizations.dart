@@ -4126,6 +4126,12 @@ abstract class AppLocalizations {
   /// **'No source warehouse configured'**
   String get productionNoSourceWarehouse;
 
+  /// No description provided for @productionNegativeStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock is negative — count this item'**
+  String get productionNegativeStock;
+
   /// No description provided for @stockTransferTitle.
   ///
   /// In en, this message translates to:

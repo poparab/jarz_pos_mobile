@@ -2360,6 +2360,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productionNoSourceWarehouse => 'No source warehouse configured';
 
   @override
+  String get productionNegativeStock => 'Stock is negative — count this item';
+
+  @override
   String get stockTransferTitle => 'Stock Transfer';
 
   @override
