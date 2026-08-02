@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
+import 'package:jarz_pos/src/core/constants/storage_keys.dart';
 import 'package:jarz_pos/src/features/auth/data/auth_repository.dart';
 import 'package:jarz_pos/src/features/auth/state/login_notifier.dart';
 import 'package:jarz_pos/src/core/router.dart';
@@ -36,7 +38,12 @@ class FakeAuthRepository extends AuthRepository {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setupMockPlatformChannels();
-  
+
+  // LoginNotifier wipes the per-user Hive caches on both login and logout, so
+  // the boxes it touches have to exist on disk somewhere for this suite.
+  setUpAll(() => setUpTestHive(prefix: 'login-notifier-test'));
+  tearDownAll(tearDownTestHive);
+
   group('LoginNotifier', () {
     late ProviderContainer container;
     late FakeAuthRepository fakeAuthRepo;
@@ -51,8 +58,17 @@ void main() {
       );
     });
 
-    tearDown(() {
+    tearDown(() async {
       container.dispose();
+      // The cache wipe is fire-and-forget; let it land before resetting the
+      // boxes so no draft/lead state leaks into the next test.
+      await flushMicrotasks();
+      await clearOpenTestHiveBoxes(const [
+        HiveBoxes.draftCarts,
+        HiveBoxes.leadsCache,
+        HiveBoxes.inventoryCount,
+        HiveBoxes.productionBasket,
+      ]);
     });
 
     test('initial state is not logged in', () async {
@@ -119,6 +135,30 @@ void main() {
       expect(fakeAuthRepo.logoutCalled, isTrue);
       final state = await notifier.future;
       expect(state, isFalse);
+    });
+
+    test('logout wipes the per-user Hive caches', () async {
+      final notifier = container.read(loginNotifierProvider.notifier);
+
+      // No login first: login runs the same cache wipe asynchronously, which
+      // would race the seeding below. logout() is independent of it.
+      // Seed the caches a previous user would have left behind.
+      final drafts = await Hive.openBox(HiveBoxes.draftCarts);
+      await drafts.put('draft-1', {'id': 'draft-1'});
+      final leads = await Hive.openBox(HiveBoxes.leadsCache);
+      await leads.put('lead-1', {'name': 'LEAD-0001'});
+      expect(drafts.isNotEmpty, isTrue);
+      expect(leads.isNotEmpty, isTrue);
+
+      await notifier.logout();
+      // LoginNotifier clears the caches fire-and-forget, so poll (bounded)
+      // rather than assuming a single event-loop turn covers the disk writes.
+      await pumpUntil(() => drafts.isEmpty && leads.isEmpty);
+
+      expect(drafts.isEmpty, isTrue,
+          reason: 'logout must clear the draft-cart cache');
+      expect(leads.isEmpty, isTrue,
+          reason: 'logout must clear the leads cache');
     });
 
     test('successful login updates currentAuthStateProvider', () async {

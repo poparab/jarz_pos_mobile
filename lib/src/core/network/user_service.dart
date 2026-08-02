@@ -75,6 +75,31 @@ class UserRoles {
       roles.contains(RoleNames.stockManager) ||
       roles.contains(RoleNames.purchaseManager);
 
+  bool get isProductionOperator =>
+      roles.contains(RoleNames.productionOperator);
+
+  /// May start and finish batches. Mirrors backend `ROLES.PRODUCTION_EXECUTE`.
+  bool get canExecuteProduction =>
+      isProductionOperator || canAccessProductionBoard;
+
+  /// May post production on a past date. Mirrors `ROLES.PRODUCTION_BACKDATE` —
+  /// deliberately EXCLUDES the operator role. The server enforces this against
+  /// its own clock; this only decides whether the date picker is tappable, so a
+  /// client that got it wrong would still be refused.
+  bool get canBackDateProduction =>
+      isJarzManager ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.administrator) ||
+      isProductionRole;
+
+  /// May return stranded WIP material to its source warehouse.
+  ///
+  /// Deliberately NOT [canAccessProductionBoard]: that mirrors the backend's
+  /// PRODUCTION_VIEW set, which *includes* Production Operator — gating on it
+  /// would show the action to exactly the role it must be hidden from. Manager
+  /// tier only, matching what the backend requires for `return_wip_to_store`.
+  bool get canManageProductionWip => canBackDateProduction;
+
   /// Whether this user may open the Production Board.
   ///
   /// Mirrors the backend `ROLES.PRODUCTION_VIEW` set exactly — deliberately
@@ -86,7 +111,8 @@ class UserRoles {
       isJarzManager ||
       roles.contains(RoleNames.systemManager) ||
       roles.contains(RoleNames.administrator) ||
-      isProductionRole;
+      isProductionRole ||
+      roles.contains(RoleNames.productionOperator);
 
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
@@ -197,6 +223,33 @@ final canAccessProductionBoardProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canAccessProductionBoard,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user may start and finish production batches.
+final canExecuteProductionProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canExecuteProduction,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user may post production on a past date.
+final canBackDateProductionProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canBackDateProduction,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user may return stranded WIP material to store.
+final canManageProductionWipProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canManageProductionWip,
     orElse: () => false,
   );
 });

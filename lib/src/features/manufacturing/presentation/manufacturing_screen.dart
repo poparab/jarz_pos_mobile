@@ -6,15 +6,18 @@ import '../../../core/network/user_service.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../state/production_basket_notifier.dart';
 import '../state/production_providers.dart';
+import '../state/running_batches_notifier.dart';
 import 'screens/production_batch_tab.dart';
 import 'screens/production_plan_tab.dart';
+import 'screens/production_running_tab.dart';
 import 'widgets/recent_work_orders_sheet.dart';
 
 /// The Production Board.
 ///
-/// A thin two-tab host: Plan answers "what should we make", Batch holds what
-/// has been queued. All the state lives in providers, so both tabs stay
-/// independently loadable and the basket survives navigation.
+/// A thin three-tab host: Plan answers "what should we make", Batch holds what
+/// has been queued, Running holds what is on the floor right now. All the state
+/// lives in providers, so every tab stays independently loadable and the basket
+/// survives navigation.
 class ManufacturingScreen extends ConsumerStatefulWidget {
   const ManufacturingScreen({super.key, this.initialTab = 0});
 
@@ -33,9 +36,9 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 2,
+      length: 3,
       vsync: this,
-      initialIndex: widget.initialTab.clamp(0, 1),
+      initialIndex: widget.initialTab.clamp(0, 2),
     );
     // Hive opens asynchronously, so the basket is hydrated after first frame
     // rather than in the notifier's build().
@@ -68,6 +71,20 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
     }
 
     final basket = ref.watch(productionBasketProvider);
+    final runningCount =
+        ref.watch(runningBatchesProvider).valueOrNull?.length ?? 0;
+
+    // The Batch tab asks to be moved here once a start succeeds — the batch has
+    // physically left the queue at that point, so leaving the user staring at
+    // the list it just emptied reads as "nothing happened".
+    ref.listen<int?>(productionTabRequestProvider, (_, next) {
+      if (next == null) return;
+      if (next >= 0 && next < _tabController.length) {
+        _tabController.animateTo(next);
+      }
+      // Cleared immediately so the same request cannot fire twice.
+      ref.read(productionTabRequestProvider.notifier).state = null;
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -81,8 +98,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
           IconButton(
             tooltip: MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
             icon: const Icon(Icons.refresh),
-            onPressed: () =>
-                ref.read(productionSuggestionsProvider.notifier).refresh(),
+            onPressed: _refreshVisibleTab,
           ),
         ],
         bottom: TabBar(
@@ -90,15 +106,15 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
           tabs: [
             Tab(text: l10n.productionTabPlan),
             Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(l10n.productionTabBatch),
-                  if (basket.isNotEmpty) ...[
-                    const SizedBox(width: 6),
-                    Badge(label: Text('${basket.lines.length}')),
-                  ],
-                ],
+              child: _TabLabel(
+                text: l10n.productionTabBatch,
+                count: basket.isNotEmpty ? basket.lines.length : 0,
+              ),
+            ),
+            Tab(
+              child: _TabLabel(
+                text: l10n.productionTabRunning,
+                count: runningCount,
               ),
             ),
           ],
@@ -107,8 +123,47 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
       drawer: const AppDrawer(),
       body: TabBarView(
         controller: _tabController,
-        children: const [ProductionPlanTab(), ProductionBatchTab()],
+        children: const [
+          ProductionPlanTab(),
+          ProductionBatchTab(),
+          ProductionRunningTab(),
+        ],
       ),
+    );
+  }
+
+  /// Refreshes whichever list is on screen rather than everything.
+  ///
+  /// Recomputing the ranked board costs a BOM explosion per item server-side,
+  /// so firing it while the user is looking at running batches is a slow answer
+  /// to a question nobody asked.
+  void _refreshVisibleTab() {
+    if (_tabController.index == kProductionRunningTabIndex) {
+      ref.read(runningBatchesProvider.notifier).refresh();
+      return;
+    }
+    ref.read(productionSuggestionsProvider.notifier).refresh();
+  }
+}
+
+/// A tab label with an optional count badge.
+class _TabLabel extends StatelessWidget {
+  const _TabLabel({required this.text, required this.count});
+
+  final String text;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(text),
+        if (count > 0) ...[
+          const SizedBox(width: 6),
+          Badge(label: Text('$count')),
+        ],
+      ],
     );
   }
 }

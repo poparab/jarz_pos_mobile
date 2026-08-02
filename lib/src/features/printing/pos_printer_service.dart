@@ -86,6 +86,54 @@ class PrintableInvoice {
   });
 }
 
+/// One material line on a batch sheet.
+class PrintableBatchComponent {
+  final String name;
+  final double qty;
+  final String uom;
+  const PrintableBatchComponent({
+    required this.name,
+    required this.qty,
+    this.uom = '',
+  });
+}
+
+/// The paper that goes on the bench with the batch.
+///
+/// Deliberately not an invoice: no customer, no money, no totals — a receipt
+/// shaped like a bill is unreadable as a work instruction, and the bitmap
+/// renderer is built entirely around the invoice layout.
+class PrintableBatchSheet {
+  final String workOrder;
+  final String itemName;
+  final String itemCode;
+  final double plannedQty;
+  final String uom;
+  final String? bom;
+  final DateTime? startedAt;
+  final String? startedBy;
+
+  /// The SOP version stamped on the Work Order when it started, printed so the
+  /// paper on the bench can be tied back to the method it was made by.
+  final String? sopVersion;
+  final List<PrintableBatchComponent> components;
+  final String? notes;
+
+  const PrintableBatchSheet({
+    required this.workOrder,
+    required this.itemName,
+    this.itemCode = '',
+    required this.plannedQty,
+    this.uom = '',
+    this.bom,
+    this.startedAt,
+    this.startedBy,
+    this.sopVersion,
+    this.components = const [],
+    this.notes,
+  });
+}
+
 class PosPrinterService extends ChangeNotifier {
   PosPrinterService({Dio? dio, bool autoInit = true}) : _dio = dio {
     if (autoInit) {
@@ -376,6 +424,10 @@ class PosPrinterService extends ChangeNotifier {
   Future<Uint8List> buildReceiptBytesForTest(PrintableInvoice inv) =>
       _buildReceipt(inv);
 
+  @visibleForTesting
+  Future<Uint8List> buildBatchSheetBytesForTest(PrintableBatchSheet sheet) =>
+      _buildBatchSheet(sheet);
+
   Future<void> _loadReceiptConfig() async {
     if (_receiptConfigLoaded || _dio == null) return;
     try {
@@ -640,42 +692,7 @@ class PosPrinterService extends ChangeNotifier {
         } else {
           bytes = await _buildReceipt(inv);
         }
-        if (isConnected) {
-          final bleChunk = _compatibilitySettings.bleChunkSize;
-          final bleChunkDelay = _compatibilitySettings.bleChunkDelayMs;
-          for (int o = 0; o < bytes.length; o += bleChunk) {
-            final part = bytes.sublist(
-              o,
-              (o + bleChunk).clamp(0, bytes.length),
-            );
-            await _writeChar!.write(part, withoutResponse: true);
-            if (bleChunkDelay > 0) {
-              await Future.delayed(Duration(milliseconds: bleChunkDelay));
-            }
-          }
-        } else if (isClassicConnected) {
-          final rasterBlockCount = _countByteSequence(bytes, const [
-            0x1D,
-            0x76,
-            0x30,
-            0x00,
-          ]);
-          final hasRaster = rasterBlockCount > 0;
-          final chunkSize = _compatibilitySettings.classicChunkSize;
-          final chunkDelayMs = _compatibilitySettings.classicChunkDelayMs;
-          final tailDelayMs = hasRaster
-              ? _compatibilitySettings.classicTailDelayMs
-              : 250;
-          final ok = await ClassicPrinterChannel.instance.writeJob(
-            bytes,
-            chunkSize: chunkSize,
-            chunkDelayMs: chunkDelayMs,
-            tailDelayMs: tailDelayMs,
-          );
-          if (!ok) {
-            throw Exception('Classic printer write job failed');
-          }
-        }
+        await _writeBytes(bytes);
         _setError(null);
         return PrintResult.success;
       } catch (e) {
@@ -684,6 +701,66 @@ class PosPrinterService extends ChangeNotifier {
         return PrintResult.failed;
       }
     });
+  }
+
+  /// Prints the batch sheet that goes on the bench with a production run.
+  ///
+  /// Shares the transport and the queue with [printInvoice]; only the bytes
+  /// differ.
+  Future<PrintResult> printBatchSheet(PrintableBatchSheet sheet) async {
+    if (!isConnected && !isClassicConnected) return PrintResult.disconnected;
+    return _enqueuePrintJob(() async {
+      try {
+        await _loadReceiptConfig();
+        // Always the legacy ESC/POS text path: the canvas renderer lays out an
+        // invoice — customer block, money columns, paid/unpaid — and a batch
+        // sheet has none of those.
+        final bytes = await _buildBatchSheet(sheet);
+        await _writeBytes(bytes);
+        _setError(null);
+        return PrintResult.success;
+      } catch (e) {
+        debugPrint('[PosPrinterService] batch sheet print error: $e');
+        _setError('Print failed: $e');
+        return PrintResult.failed;
+      }
+    });
+  }
+
+  /// Ships a finished byte stream over whichever transport is connected.
+  ///
+  /// Chunk sizes and inter-chunk delays are properties of the link, not of the
+  /// document, so this lives once rather than being copied per document type —
+  /// a second copy is how one of them ends up missing the raster tail delay and
+  /// truncating long prints on classic printers only.
+  Future<void> _writeBytes(Uint8List bytes) async {
+    if (isConnected) {
+      final bleChunk = _compatibilitySettings.bleChunkSize;
+      final bleChunkDelay = _compatibilitySettings.bleChunkDelayMs;
+      for (int o = 0; o < bytes.length; o += bleChunk) {
+        final part = bytes.sublist(o, (o + bleChunk).clamp(0, bytes.length));
+        await _writeChar!.write(part, withoutResponse: true);
+        if (bleChunkDelay > 0) {
+          await Future.delayed(Duration(milliseconds: bleChunkDelay));
+        }
+      }
+      return;
+    }
+
+    if (isClassicConnected) {
+      final hasRaster =
+          _countByteSequence(bytes, const [0x1D, 0x76, 0x30, 0x00]) > 0;
+      final ok = await ClassicPrinterChannel.instance.writeJob(
+        bytes,
+        chunkSize: _compatibilitySettings.classicChunkSize,
+        chunkDelayMs: _compatibilitySettings.classicChunkDelayMs,
+        tailDelayMs:
+            hasRaster ? _compatibilitySettings.classicTailDelayMs : 250,
+      );
+      if (!ok) {
+        throw Exception('Classic printer write job failed');
+      }
+    }
   }
 
   /// Build receipt using the new canvas-based bitmap renderer (Approach C).
@@ -1020,6 +1097,120 @@ class PosPrinterService extends ChangeNotifier {
     // Add two cut guide lines so user can manually cut at the marked area
     // Single guide line and a short feed keeps output compact while preserving cut space.
     await hr();
+    feed(3);
+    esc([0x1D, 0x56, 0x42, 0x00]); // cut
+    return b.toBytes();
+  }
+
+  /// The batch sheet, as ESC/POS text.
+  ///
+  /// Mirrors [_buildReceipt]'s escape/rasterize conventions so a printer that
+  /// needs Arabic rasterized gets it here too, but carries none of the invoice
+  /// layout: what to make, how much, what it takes, and who started it.
+  Future<Uint8List> _buildBatchSheet(PrintableBatchSheet sheet) async {
+    final b = BytesBuilder();
+    final compat = _compatibilitySettings;
+    void esc(List<int> c) => b.add(Uint8List.fromList(c));
+
+    Future<void> text(
+      String s, {
+      bool bold = false,
+      bool center = false,
+      bool big = false,
+      double? fontSize,
+    }) async {
+      if (compat.shouldRasterizeText(s, fontSize: fontSize)) {
+        await _addRasterText(
+          b,
+          s,
+          bold: bold,
+          center: center,
+          fontSize: fontSize ?? (big ? 28.0 : 18.0),
+        );
+        return;
+      }
+      final printable = _normalizeEscPosText(s);
+      if (printable.isEmpty) return;
+      esc([0x1C, 0x2E]); // Cancel CJK mode
+      esc([0x1B, 0x4D, 0x00]); // Font A
+      int mode = 0;
+      if (bold) mode |= 0x08;
+      if (big) mode |= 0x10;
+      esc([0x1B, 0x21, mode]);
+      esc([0x1B, 0x61, center ? 0x01 : 0x00]);
+      b.add(latin1.encode(printable));
+      esc([0x0A]);
+      if (big) esc([0x1B, 0x21, 0x00]);
+    }
+
+    void feed(int n) => esc([0x1B, 0x64, n.clamp(0, 255)]);
+    final lineChars = compat.lineChars;
+    Future<void> hr() => text('-' * lineChars);
+
+    String two(int v) => v.toString().padLeft(2, '0');
+    String stamp(DateTime t) =>
+        '${t.year}-${two(t.month)}-${two(t.day)} ${two(t.hour)}:${two(t.minute)}';
+
+    // Reset to a known state, same preamble as the receipt path.
+    esc([0x1B, 0x40]);
+    esc([0x1C, 0x2E]);
+    esc([0x1D, 0x4C, 0x00, 0x00]);
+    esc([
+      0x1D,
+      0x57,
+      compat.paperWidthDots & 0xFF,
+      (compat.paperWidthDots >> 8) & 0xFF,
+    ]);
+    esc([0x1B, 0x20, 0x00]);
+    esc([0x1B, 0x74, compat.codeTable]);
+    esc([0x1B, 0x4D, 0x00]);
+
+    await text('BATCH SHEET', bold: true, center: true, big: true);
+    await hr();
+    await text(sheet.itemName, bold: true, fontSize: 20);
+    if (sheet.itemCode.isNotEmpty) await text(sheet.itemCode);
+    await text(
+      _labelVal('Qty', '${_qtyLabel(sheet.plannedQty)} ${sheet.uom}'.trim()),
+      bold: true,
+    );
+    await text(_labelVal('Work Order', sheet.workOrder));
+    if ((sheet.bom ?? '').isNotEmpty) {
+      await text(_labelVal('BOM', sheet.bom!));
+    }
+    if (sheet.startedAt != null) {
+      await text(_labelVal('Started', stamp(sheet.startedAt!)));
+    }
+    if ((sheet.startedBy ?? '').isNotEmpty) {
+      await text(_labelVal('By', sheet.startedBy!));
+    }
+    if ((sheet.sopVersion ?? '').isNotEmpty) {
+      await text(_labelVal('SOP', sheet.sopVersion!));
+    }
+
+    if (sheet.components.isNotEmpty) {
+      await hr();
+      await text('MATERIALS', bold: true);
+      for (final component in sheet.components) {
+        await text(
+          _labelVal(
+            component.name,
+            '${_qtyLabel(component.qty)} ${component.uom}'.trim(),
+          ),
+        );
+      }
+    }
+
+    if ((sheet.notes ?? '').isNotEmpty) {
+      await hr();
+      await text(sheet.notes!);
+    }
+
+    await hr();
+    // Blank lines the operator writes the actual output into. The number that
+    // matters is recorded on paper at the bench and typed in afterwards, not
+    // remembered.
+    await text(_labelVal('Actual produced', '________'));
+    await text(_labelVal('Scrap / waste', '________'));
     feed(3);
     esc([0x1D, 0x56, 0x42, 0x00]); // cut
     return b.toBytes();

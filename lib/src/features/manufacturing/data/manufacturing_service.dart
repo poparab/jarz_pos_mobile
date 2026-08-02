@@ -6,6 +6,8 @@ import '../../../core/constants/api_endpoints.dart';
 import 'models/basket_rollup.dart';
 import 'models/bom_details.dart';
 import 'models/production_suggestion.dart';
+import 'models/running_batch.dart';
+import 'models/sop.dart';
 
 final manufacturingServiceProvider = Provider<ManufacturingService>((ref) {
   final dio = ref.watch(dioProvider);
@@ -172,6 +174,173 @@ class ManufacturingService {
   /// Typed wrapper over [getBomDetails].
   Future<BomDetails> fetchBomDetails(String itemCode) async {
     return BomDetails.fromJson(await getBomDetails(itemCode));
+  }
+
+  // ── Start / finish (stage 2) ────────────────────────────────────────
+
+  /// Starts a batch: creates the Work Order and files the material transfer
+  /// ONLY. No Manufacture entry until [finishProductionBatch].
+  Future<StartBatchResult> startProductionBatch({
+    required String itemCode,
+    required String bomName,
+    required double itemQty,
+    String? scheduledAt,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.startProductionBatch,
+        data: {
+          'item_code': itemCode,
+          'bom_name': bomName,
+          'item_qty': itemQty,
+          if (scheduledAt != null) 'scheduled_at': scheduledAt,
+        },
+      );
+      return StartBatchResult.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to start the batch');
+    }
+  }
+
+  /// Finishes a batch with the quantity that actually came out.
+  ///
+  /// [actualQty] drives the Manufacture entry; [scrapQty] is recorded on the
+  /// Work Order as a reported figure and does not post stock.
+  Future<FinishBatchResult> finishProductionBatch({
+    required String workOrder,
+    required double actualQty,
+    double scrapQty = 0,
+    String? scheduledAt,
+    String? notes,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.finishProductionBatch,
+        data: {
+          'work_order': workOrder,
+          'actual_qty': actualQty,
+          'scrap_qty': scrapQty,
+          if (scheduledAt != null) 'scheduled_at': scheduledAt,
+          if (notes != null && notes.isNotEmpty) 'notes': notes,
+        },
+      );
+      return FinishBatchResult.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to finish the batch');
+    }
+  }
+
+  Future<List<RunningBatch>> listRunningWorkOrders({int limit = 50}) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.listRunningWorkOrders,
+        data: {'limit': limit},
+      );
+      return _unwrapList(resp.data).map(RunningBatch.fromJson).toList();
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to load running batches');
+    }
+  }
+
+  Future<BatchCost> getBatchCost(String workOrder) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.getBatchCost,
+        data: {'work_order': workOrder},
+      );
+      return BatchCost.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to load batch cost');
+    }
+  }
+
+  /// Manager-only: returns un-consumed WIP material to its source warehouse.
+  Future<Map<String, dynamic>> returnWipToStore(String workOrder) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.returnWipToStore,
+        data: {'work_order': workOrder},
+      );
+      return _unwrapMap(resp.data);
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to return WIP material');
+    }
+  }
+
+  // ── SOPs (stage 3) ──────────────────────────────────────────────────
+
+  /// Returns `hasSop: false` rather than throwing when an item has no SOP —
+  /// most do not, and the board asks for every item.
+  Future<SopDocument> getSopForItem({
+    required String itemCode,
+    String? bom,
+    double batches = 1,
+    double? units,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.getSopForItem,
+        data: {
+          'item_code': itemCode,
+          if (bom != null) 'bom': bom,
+          'batches': batches,
+          if (units != null) 'units': units,
+        },
+      );
+      return SopDocument.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to load the SOP');
+    }
+  }
+
+  /// Returns the SOP version stamped on the Work Order when it started, not
+  /// whatever is active now — otherwise editing an SOP silently rewrites the
+  /// method every past batch was made by.
+  Future<SopDocument> getSopForWorkOrder(String workOrder) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.getSopForWorkOrder,
+        data: {'work_order': workOrder},
+      );
+      return SopDocument.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to load the SOP');
+    }
+  }
+
+  Future<Map<String, dynamic>> recordSopStepCapture({
+    required String workOrder,
+    required int stepNo,
+    double? value,
+    String? fileUrl,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.recordSopStepCapture,
+        data: {
+          'work_order': workOrder,
+          'step_no': stepNo,
+          if (value != null) 'value': value,
+          if (fileUrl != null) 'file_url': fileUrl,
+        },
+      );
+      return _unwrapMap(resp.data);
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to record the reading');
+    }
+  }
+
+  /// Unwraps Frappe's `{"message": [...]}` envelope down to a List of Maps.
+  List<Map<String, dynamic>> _unwrapList(dynamic payload) {
+    if (payload is Map && payload['message'] is List) {
+      return (payload['message'] as List)
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+    }
+    if (payload is List) {
+      return payload.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    }
+    return const [];
   }
 
   /// Unwraps Frappe's `{"message": ...}` envelope down to a Map.

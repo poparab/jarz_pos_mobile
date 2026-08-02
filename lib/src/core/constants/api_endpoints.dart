@@ -235,6 +235,28 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.manufacturing.submit_single_work_order';
   static const listRecentWorkOrders =
       '/api/method/jarz_pos.api.manufacturing.list_recent_work_orders';
+  static const startProductionBatch =
+      '/api/method/jarz_pos.api.manufacturing.start_production_batch';
+  static const finishProductionBatch =
+      '/api/method/jarz_pos.api.manufacturing.finish_production_batch';
+  static const listRunningWorkOrders =
+      '/api/method/jarz_pos.api.manufacturing.list_running_work_orders';
+  static const getBatchCost =
+      '/api/method/jarz_pos.api.manufacturing.get_batch_cost';
+  static const returnWipToStore =
+      '/api/method/jarz_pos.api.manufacturing.return_wip_to_store';
+
+  // ── Production SOPs ───────────────────────────────────────────────────
+  static const getSopForItem = '/api/method/jarz_pos.api.sop.get_sop_for_item';
+  static const getSopForWorkOrder =
+      '/api/method/jarz_pos.api.sop.get_sop_for_work_order';
+  static const recordSopStepCapture =
+      '/api/method/jarz_pos.api.sop.record_sop_step_capture';
+  static const listSops = '/api/method/jarz_pos.api.sop.list_sops';
+
+  /// Frappe core, not a jarz_pos method — SOP photo captures have to become a
+  /// File on the site before `record_sop_step_capture` can reference a URL.
+  static const uploadFile = '/api/method/upload_file';
 
   // ── Inventory Count ───────────────────────────────────────────────────
   static const listWarehouses =

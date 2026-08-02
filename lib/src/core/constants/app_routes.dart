@@ -14,6 +14,10 @@ abstract final class AppRoutes {
   static const shiftMonitor = '/shift-monitor';
   static const purchase = '/purchase';
   static const manufacturing = '/manufacturing';
+
+  /// Full-screen SOP execution. A real destination rather than a sheet: the
+  /// operator stays in it for the length of a batch.
+  static const productionSop = '/manufacturing/sop';
   static const stockTransfer = '/stock-transfer';
   static const cashTransfer = '/cash-transfer';
   static const inventoryCount = '/inventory-count';

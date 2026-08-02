@@ -2373,6 +2373,208 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get productionTabRunning => 'شغال';
+
+  @override
+  String get productionStart => 'ابدأ التشغيلة';
+
+  @override
+  String get productionQuickProduce => 'إنتاج سريع';
+
+  @override
+  String get productionFinish => 'إنهاء';
+
+  @override
+  String get productionFinishTitle => 'إنهاء التشغيلة';
+
+  @override
+  String get productionActualQty => 'الكمية الفعلية';
+
+  @override
+  String get productionScrapQty => 'الهالك';
+
+  @override
+  String get productionBatchNotes => 'ملاحظات';
+
+  @override
+  String productionActualExceedsPlanned(Object planned) {
+    return 'أكتر من المخطط $planned';
+  }
+
+  @override
+  String get productionQtyMustBePositive => 'اكتب اللي طلع فعلاً';
+
+  @override
+  String get productionRunningEmpty => 'مفيش تشغيلات شغالة';
+
+  @override
+  String productionRunningSince(Object when, Object who) {
+    return 'بدأت $when بواسطة $who';
+  }
+
+  @override
+  String productionElapsed(Object hours, Object minutes) {
+    return '$hoursس $minutesد';
+  }
+
+  @override
+  String productionElapsedMinutes(Object minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String productionPlannedVsProduced(Object planned, Object produced) {
+    return '$planned مخطط · $produced منتَج';
+  }
+
+  @override
+  String productionWipLeftover(Object quantity, Object uom) {
+    return 'متبقي $quantity $uom تحت التشغيل';
+  }
+
+  @override
+  String get productionReturnToStore => 'رجّع للمخزن';
+
+  @override
+  String get productionReturnedToStore => 'الخامات رجعت للمخزن';
+
+  @override
+  String get productionCostTitle => 'تكلفة التشغيلة';
+
+  @override
+  String get productionMaterialCost => 'الخامات';
+
+  @override
+  String get productionCostPerUnit => 'للوحدة';
+
+  @override
+  String get productionStandardCost => 'المعياري';
+
+  @override
+  String get productionVariance => 'الفرق';
+
+  @override
+  String productionVarianceOver(Object percent) {
+    return '$percent% أعلى من المعياري';
+  }
+
+  @override
+  String productionVarianceUnder(Object percent) {
+    return '$percent% أقل من المعياري';
+  }
+
+  @override
+  String get productionCostUnavailable => 'مفيش تكلفة لسه — مفيش إنتاج';
+
+  @override
+  String get productionPrintBatchSheet => 'اطبع ورقة التشغيلة';
+
+  @override
+  String get productionBackDateNotAllowed => 'مش مسموح تسجّل إنتاج بتاريخ قديم';
+
+  @override
+  String productionStarted(Object workOrder) {
+    return 'التشغيلة بدأت · $workOrder';
+  }
+
+  @override
+  String productionFinished(Object quantity, Object uom) {
+    return 'التشغيلة خلصت · $quantity $uom';
+  }
+
+  @override
+  String get productionNotStartedYet => 'التشغيلة دي ماابتدتش أصلاً';
+
+  @override
+  String get sopTitle => 'تعليمات التشغيل';
+
+  @override
+  String get sopViewSop => 'شوف التعليمات';
+
+  @override
+  String get sopNoSopForItem => 'مفيش تعليمات للصنف ده';
+
+  @override
+  String sopStepOf(Object current, Object total) {
+    return 'خطوة $current من $total';
+  }
+
+  @override
+  String get sopNext => 'التالي';
+
+  @override
+  String get sopPrevious => 'السابق';
+
+  @override
+  String get sopConfirmStep => 'تم';
+
+  @override
+  String get sopCaptureNumber => 'اكتب القراءة';
+
+  @override
+  String get sopCaptureTemperature => 'اكتب درجة الحرارة';
+
+  @override
+  String get sopCapturePhoto => 'صوّر';
+
+  @override
+  String get sopCaptureRequired => 'سجّل ده قبل ما تكمّل';
+
+  @override
+  String sopCaptureOutOfRange(Object from, Object to) {
+    return 'المسموح من $from لـ $to';
+  }
+
+  @override
+  String sopDurationMins(Object minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String sopTotalDuration(Object minutes) {
+    return 'حوالي $minutes دقيقة إجمالاً';
+  }
+
+  @override
+  String sopScaledFor(Object batches) {
+    return 'محسوبة لـ $batches تشغيلة';
+  }
+
+  @override
+  String get sopEquipment => 'المعدات';
+
+  @override
+  String sopExpectedYield(Object percent) {
+    return 'الناتج المتوقع $percent%';
+  }
+
+  @override
+  String sopVersionLabel(Object version) {
+    return 'إصدار $version';
+  }
+
+  @override
+  String get sopFinishExecution => 'إنهاء التعليمات';
+
+  @override
+  String get sopExitConfirm => 'هتسيب التعليمات؟ مكانك مش هيتحفظ.';
+
+  @override
+  String sopUnresolvedTokens(Object count) {
+    return '$count مرجع في التعليمات مش متعرَّف';
+  }
+
+  @override
+  String get sopPhotoCaptured => 'الصورة اتسجلت';
+
+  @override
+  String get sopCameraPermissionDenied => 'محتاج إذن الكاميرا عشان تصوّر';
+
+  @override
+  String get sopImageUnavailable =>
+      'الصورة مش متاحة — يمكن ماعندكش صلاحية ليها';
+
+  @override
   String get stockTransferTitle => 'تحويل مخزون';
 
   @override

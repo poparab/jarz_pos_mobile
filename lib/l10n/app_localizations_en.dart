@@ -2378,6 +2378,211 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get productionTabRunning => 'Running';
+
+  @override
+  String get productionStart => 'Start batch';
+
+  @override
+  String get productionQuickProduce => 'Quick produce';
+
+  @override
+  String get productionFinish => 'Finish';
+
+  @override
+  String get productionFinishTitle => 'Finish batch';
+
+  @override
+  String get productionActualQty => 'Actual produced';
+
+  @override
+  String get productionScrapQty => 'Scrap / waste';
+
+  @override
+  String get productionBatchNotes => 'Notes';
+
+  @override
+  String productionActualExceedsPlanned(Object planned) {
+    return 'More than the $planned planned';
+  }
+
+  @override
+  String get productionQtyMustBePositive => 'Enter how much actually came out';
+
+  @override
+  String get productionRunningEmpty => 'No batches running';
+
+  @override
+  String productionRunningSince(Object when, Object who) {
+    return 'Started $when by $who';
+  }
+
+  @override
+  String productionElapsed(Object hours, Object minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String productionElapsedMinutes(Object minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String productionPlannedVsProduced(Object planned, Object produced) {
+    return '$planned planned · $produced produced';
+  }
+
+  @override
+  String productionWipLeftover(Object quantity, Object uom) {
+    return '$quantity $uom left in WIP';
+  }
+
+  @override
+  String get productionReturnToStore => 'Return to store';
+
+  @override
+  String get productionReturnedToStore => 'Material returned to store';
+
+  @override
+  String get productionCostTitle => 'Batch cost';
+
+  @override
+  String get productionMaterialCost => 'Materials';
+
+  @override
+  String get productionCostPerUnit => 'Per unit';
+
+  @override
+  String get productionStandardCost => 'Standard';
+
+  @override
+  String get productionVariance => 'Variance';
+
+  @override
+  String productionVarianceOver(Object percent) {
+    return '$percent% over standard';
+  }
+
+  @override
+  String productionVarianceUnder(Object percent) {
+    return '$percent% under standard';
+  }
+
+  @override
+  String get productionCostUnavailable => 'No cost yet — nothing produced';
+
+  @override
+  String get productionPrintBatchSheet => 'Print batch sheet';
+
+  @override
+  String get productionBackDateNotAllowed =>
+      'You cannot post production on a past date';
+
+  @override
+  String productionStarted(Object workOrder) {
+    return 'Batch started · $workOrder';
+  }
+
+  @override
+  String productionFinished(Object quantity, Object uom) {
+    return 'Batch finished · $quantity $uom';
+  }
+
+  @override
+  String get productionNotStartedYet => 'This batch was never started';
+
+  @override
+  String get sopTitle => 'Work instructions';
+
+  @override
+  String get sopViewSop => 'View SOP';
+
+  @override
+  String get sopNoSopForItem => 'No work instructions for this item';
+
+  @override
+  String sopStepOf(Object current, Object total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get sopNext => 'Next';
+
+  @override
+  String get sopPrevious => 'Back';
+
+  @override
+  String get sopConfirmStep => 'Done';
+
+  @override
+  String get sopCaptureNumber => 'Enter the reading';
+
+  @override
+  String get sopCaptureTemperature => 'Enter the temperature';
+
+  @override
+  String get sopCapturePhoto => 'Take a photo';
+
+  @override
+  String get sopCaptureRequired => 'Record this before continuing';
+
+  @override
+  String sopCaptureOutOfRange(Object from, Object to) {
+    return 'Allowed range $from to $to';
+  }
+
+  @override
+  String sopDurationMins(Object minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String sopTotalDuration(Object minutes) {
+    return 'About $minutes min total';
+  }
+
+  @override
+  String sopScaledFor(Object batches) {
+    return 'Scaled for $batches batches';
+  }
+
+  @override
+  String get sopEquipment => 'Equipment';
+
+  @override
+  String sopExpectedYield(Object percent) {
+    return 'Expected yield $percent%';
+  }
+
+  @override
+  String sopVersionLabel(Object version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get sopFinishExecution => 'Finish instructions';
+
+  @override
+  String get sopExitConfirm =>
+      'Leave the instructions? Your place is not saved.';
+
+  @override
+  String sopUnresolvedTokens(Object count) {
+    return '$count instruction reference(s) could not be resolved';
+  }
+
+  @override
+  String get sopPhotoCaptured => 'Photo recorded';
+
+  @override
+  String get sopCameraPermissionDenied =>
+      'Camera permission is needed to record a photo';
+
+  @override
+  String get sopImageUnavailable =>
+      'Image unavailable — you may not have access to it';
+
+  @override
   String get stockTransferTitle => 'Stock Transfer';
 
   @override

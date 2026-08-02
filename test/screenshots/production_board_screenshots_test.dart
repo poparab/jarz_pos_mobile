@@ -21,7 +21,14 @@ import 'package:jarz_pos/src/features/manufacturing/data/models/bom_details.dart
 import 'package:jarz_pos/src/features/manufacturing/data/models/production_suggestion.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/repositories/production_basket_repository.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_batch_tab.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/running_batch.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/sop.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_plan_tab.dart';
+import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_running_tab.dart';
+import 'package:jarz_pos/src/features/manufacturing/presentation/screens/sop_execute_screen.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/running_batches_notifier.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/sop_providers.dart';
+import 'package:jarz_pos/src/core/network/user_service.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/production_basket_notifier.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/production_providers.dart';
 
@@ -317,6 +324,89 @@ void main() {
   testWidgets('07 batch tab — empty', (tester) async {
     await _shoot(tester, '07_batch_empty', const ProductionBatchTab());
   });
+
+  testWidgets('08 running tab — a batch with stranded WIP', (tester) async {
+    // The case that must never be quiet: material went into WIP and did not
+    // come back out.
+    const batch = RunningBatch(
+      workOrder: 'MFG-WO-0042',
+      itemCode: 'FG-SAMPLE-01',
+      itemName: 'Sample finished good 01',
+      bomName: 'BOM-FG-SAMPLE-01',
+      stockUom: 'Nos',
+      qty: 60,
+      producedQty: 24,
+      status: 'In Process',
+      startedBy: 'baker@jarz.test',
+      startedAt: '2026-08-02 06:15:00',
+      elapsedMinutes: 185,
+      wipLeftoverQty: 4.5,
+      sopVersion: 'SOP-0003#2',
+    );
+
+    await _shoot(
+      tester,
+      '08_running_wip_leftover',
+      const ProductionRunningTab(),
+      overrides: [
+        runningBatchesProvider.overrideWith(() => _StubRunning(const [batch])),
+        canManageProductionWipProvider.overrideWithValue(true),
+        canExecuteProductionProvider.overrideWithValue(true),
+      ],
+    );
+  });
+
+  testWidgets('09 SOP step — scaled instruction with a capture', (tester) async {
+    const doc = SopDocument(
+      hasSop: true,
+      sop: 'SOP-0003',
+      version: 2,
+      itemCode: 'FG-SAMPLE-01',
+      itemName: 'Sample finished good 01',
+      yieldPercent: 96,
+      prepTimeMins: 20,
+      equipment: 'Mixer, 60cm tray, probe thermometer',
+      batches: 5,
+      units: 60,
+      totalDurationMins: 95,
+      steps: [
+        SopStep(
+          stepNo: 1,
+          title: 'Weigh and combine the dry mix',
+          // The whole point of stage 3: quantities arrive already scaled for
+          // the batch, so nobody multiplies anything on the bench.
+          instructionText:
+              'Weigh 12.500 Kg Sample raw material 01 into the mixer bowl. '
+              'Add 3.750 Kg Sample raw material 02 and combine on speed 1 for '
+              'two minutes until no dry pockets remain.',
+          durationMins: 12,
+          scalingMode: SopScaling.perBatch,
+          captureType: SopCapture.temperature,
+          captureLabel: 'Mix temperature',
+          captureMin: 18,
+          captureMax: 24,
+        ),
+      ],
+    );
+
+    await _shoot(
+      tester,
+      '09_sop_step',
+      const SopExecuteScreen(
+        args: SopLaunchArgs(workOrder: 'MFG-WO-0042', itemCode: 'FG-SAMPLE-01'),
+      ),
+      overrides: [
+        sopForWorkOrderProvider('MFG-WO-0042').overrideWith((ref) async => doc),
+      ],
+    );
+  });
+}
+
+class _StubRunning extends RunningBatchesNotifier {
+  _StubRunning(this._batches);
+  final List<RunningBatch> _batches;
+  @override
+  Future<List<RunningBatch>> build() async => _batches;
 }
 
 class _SeededBasket extends ProductionBasketNotifier {

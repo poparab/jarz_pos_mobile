@@ -69,6 +69,51 @@ class PrintableInvoice {
   });
 }
 
+/// One material line on a batch sheet (shared across mobile & web).
+class PrintableBatchComponent {
+  final String name;
+  final double qty;
+  final String uom;
+  const PrintableBatchComponent({
+    required this.name,
+    required this.qty,
+    this.uom = '',
+  });
+}
+
+/// Data class for a printable batch sheet (shared across mobile & web).
+///
+/// Must mirror the mobile class field for field. The conditional import only
+/// resolves on a web build, so `flutter analyze` will never tell you this file
+/// has drifted — only `flutter build web` will.
+class PrintableBatchSheet {
+  final String workOrder;
+  final String itemName;
+  final String itemCode;
+  final double plannedQty;
+  final String uom;
+  final String? bom;
+  final DateTime? startedAt;
+  final String? startedBy;
+  final String? sopVersion;
+  final List<PrintableBatchComponent> components;
+  final String? notes;
+
+  const PrintableBatchSheet({
+    required this.workOrder,
+    required this.itemName,
+    this.itemCode = '',
+    required this.plannedQty,
+    this.uom = '',
+    this.bom,
+    this.startedAt,
+    this.startedBy,
+    this.sopVersion,
+    this.components = const [],
+    this.notes,
+  });
+}
+
 /// Web stub for PosPrinterService.
 ///
 /// Bluetooth printing is not available in web browsers.
@@ -115,6 +160,7 @@ class PosPrinterService extends ChangeNotifier {
   // Printing
   Future<PrintResult> testPrint() async => PrintResult.disconnected;
   Future<PrintResult> printInvoice(PrintableInvoice inv) async => PrintResult.disconnected;
+  Future<PrintResult> printBatchSheet(PrintableBatchSheet sheet) async => PrintResult.disconnected;
   Future<String> buildReceiptPreview(PrintableInvoice inv) async => 'Printing is not available on web.';
 }
 

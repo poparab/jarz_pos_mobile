@@ -19,6 +19,7 @@ import '../features/manager/presentation/manager_dashboard_screen.dart';
 import '../features/shift_monitor/presentation/shift_monitor_screen.dart';
 import '../features/purchase/presentation/purchase_screen.dart';
 import '../features/manufacturing/presentation/manufacturing_screen.dart';
+import '../features/manufacturing/presentation/screens/sop_execute_screen.dart';
 import '../features/stock_transfer/presentation/stock_transfer_screen.dart';
 import '../features/cash_transfer/presentation/cash_transfer_screen.dart';
 import '../features/inventory_count/presentation/inventory_count_screen.dart';
@@ -357,6 +358,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             initialTab: int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0,
           ),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.productionSop,
+        name: 'production-sop',
+        // Deliberately NOT wrapped in PhoneLandscapeScope: an SOP step is long
+        // instruction prose, and portrait fits more of it on screen.
+        builder: (context, state) =>
+            SopExecuteScreen(args: SopLaunchArgs.fromExtra(state.extra)),
       ),
       GoRoute(
         path: AppRoutes.stockTransfer,

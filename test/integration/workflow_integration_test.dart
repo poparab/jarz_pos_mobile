@@ -5,6 +5,7 @@ import 'package:jarz_pos/src/features/auth/state/login_notifier.dart';
 import 'package:jarz_pos/src/core/router.dart';
 import 'package:jarz_pos/src/core/connectivity/connectivity_service.dart';
 import 'package:jarz_pos/src/core/offline/offline_queue.dart';
+import 'package:jarz_pos/src/core/constants/storage_keys.dart';
 import '../helpers/mock_services.dart';
 import '../helpers/test_helpers.dart';
 
@@ -14,7 +15,13 @@ import '../helpers/test_helpers.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setupMockPlatformChannels();
-  
+
+  // The login/logout flow wipes the per-user Hive caches, which opens boxes.
+  // Point Hive at a throwaway directory so those opens succeed in a headless
+  // `flutter test` process (the app normally does this via Hive.initFlutter()).
+  setUpAll(() => setUpTestHive(prefix: 'workflow-integration-test'));
+  tearDownAll(tearDownTestHive);
+
   group('Authentication Flow Integration Tests', () {
     late ProviderContainer container;
     late MockDio mockDio;
@@ -40,8 +47,17 @@ void main() {
       );
     });
 
-    tearDown(() {
+    tearDown(() async {
       container.dispose();
+      // The cache wipe is fire-and-forget; let it land, then reset the boxes
+      // so nothing leaks between tests.
+      await flushMicrotasks();
+      await clearOpenTestHiveBoxes(const [
+        HiveBoxes.draftCarts,
+        HiveBoxes.leadsCache,
+        HiveBoxes.inventoryCount,
+        HiveBoxes.productionBasket,
+      ]);
     });
 
     test('complete login flow updates all relevant states', () async {

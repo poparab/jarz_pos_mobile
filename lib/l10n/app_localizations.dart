@@ -4150,6 +4150,336 @@ abstract class AppLocalizations {
   /// **'{batches} batches · {units} units'**
   String productionBatchTotals(Object batches, Object units);
 
+  /// No description provided for @productionTabRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get productionTabRunning;
+
+  /// No description provided for @productionStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start batch'**
+  String get productionStart;
+
+  /// No description provided for @productionQuickProduce.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick produce'**
+  String get productionQuickProduce;
+
+  /// No description provided for @productionFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get productionFinish;
+
+  /// No description provided for @productionFinishTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish batch'**
+  String get productionFinishTitle;
+
+  /// No description provided for @productionActualQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual produced'**
+  String get productionActualQty;
+
+  /// No description provided for @productionScrapQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrap / waste'**
+  String get productionScrapQty;
+
+  /// No description provided for @productionBatchNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get productionBatchNotes;
+
+  /// No description provided for @productionActualExceedsPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'More than the {planned} planned'**
+  String productionActualExceedsPlanned(Object planned);
+
+  /// No description provided for @productionQtyMustBePositive.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter how much actually came out'**
+  String get productionQtyMustBePositive;
+
+  /// No description provided for @productionRunningEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No batches running'**
+  String get productionRunningEmpty;
+
+  /// No description provided for @productionRunningSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Started {when} by {who}'**
+  String productionRunningSince(Object when, Object who);
+
+  /// No description provided for @productionElapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String productionElapsed(Object hours, Object minutes);
+
+  /// No description provided for @productionElapsedMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String productionElapsedMinutes(Object minutes);
+
+  /// No description provided for @productionPlannedVsProduced.
+  ///
+  /// In en, this message translates to:
+  /// **'{planned} planned · {produced} produced'**
+  String productionPlannedVsProduced(Object planned, Object produced);
+
+  /// No description provided for @productionWipLeftover.
+  ///
+  /// In en, this message translates to:
+  /// **'{quantity} {uom} left in WIP'**
+  String productionWipLeftover(Object quantity, Object uom);
+
+  /// No description provided for @productionReturnToStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to store'**
+  String get productionReturnToStore;
+
+  /// No description provided for @productionReturnedToStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Material returned to store'**
+  String get productionReturnedToStore;
+
+  /// No description provided for @productionCostTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch cost'**
+  String get productionCostTitle;
+
+  /// No description provided for @productionMaterialCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Materials'**
+  String get productionMaterialCost;
+
+  /// No description provided for @productionCostPerUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Per unit'**
+  String get productionCostPerUnit;
+
+  /// No description provided for @productionStandardCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get productionStandardCost;
+
+  /// No description provided for @productionVariance.
+  ///
+  /// In en, this message translates to:
+  /// **'Variance'**
+  String get productionVariance;
+
+  /// No description provided for @productionVarianceOver.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% over standard'**
+  String productionVarianceOver(Object percent);
+
+  /// No description provided for @productionVarianceUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% under standard'**
+  String productionVarianceUnder(Object percent);
+
+  /// No description provided for @productionCostUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No cost yet — nothing produced'**
+  String get productionCostUnavailable;
+
+  /// No description provided for @productionPrintBatchSheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Print batch sheet'**
+  String get productionPrintBatchSheet;
+
+  /// No description provided for @productionBackDateNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot post production on a past date'**
+  String get productionBackDateNotAllowed;
+
+  /// No description provided for @productionStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch started · {workOrder}'**
+  String productionStarted(Object workOrder);
+
+  /// No description provided for @productionFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch finished · {quantity} {uom}'**
+  String productionFinished(Object quantity, Object uom);
+
+  /// No description provided for @productionNotStartedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'This batch was never started'**
+  String get productionNotStartedYet;
+
+  /// No description provided for @sopTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Work instructions'**
+  String get sopTitle;
+
+  /// No description provided for @sopViewSop.
+  ///
+  /// In en, this message translates to:
+  /// **'View SOP'**
+  String get sopViewSop;
+
+  /// No description provided for @sopNoSopForItem.
+  ///
+  /// In en, this message translates to:
+  /// **'No work instructions for this item'**
+  String get sopNoSopForItem;
+
+  /// No description provided for @sopStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String sopStepOf(Object current, Object total);
+
+  /// No description provided for @sopNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get sopNext;
+
+  /// No description provided for @sopPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get sopPrevious;
+
+  /// No description provided for @sopConfirmStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get sopConfirmStep;
+
+  /// No description provided for @sopCaptureNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the reading'**
+  String get sopCaptureNumber;
+
+  /// No description provided for @sopCaptureTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the temperature'**
+  String get sopCaptureTemperature;
+
+  /// No description provided for @sopCapturePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get sopCapturePhoto;
+
+  /// No description provided for @sopCaptureRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Record this before continuing'**
+  String get sopCaptureRequired;
+
+  /// No description provided for @sopCaptureOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed range {from} to {to}'**
+  String sopCaptureOutOfRange(Object from, Object to);
+
+  /// No description provided for @sopDurationMins.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String sopDurationMins(Object minutes);
+
+  /// No description provided for @sopTotalDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'About {minutes} min total'**
+  String sopTotalDuration(Object minutes);
+
+  /// No description provided for @sopScaledFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Scaled for {batches} batches'**
+  String sopScaledFor(Object batches);
+
+  /// No description provided for @sopEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get sopEquipment;
+
+  /// No description provided for @sopExpectedYield.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected yield {percent}%'**
+  String sopExpectedYield(Object percent);
+
+  /// No description provided for @sopVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String sopVersionLabel(Object version);
+
+  /// No description provided for @sopFinishExecution.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish instructions'**
+  String get sopFinishExecution;
+
+  /// No description provided for @sopExitConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the instructions? Your place is not saved.'**
+  String get sopExitConfirm;
+
+  /// No description provided for @sopUnresolvedTokens.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} instruction reference(s) could not be resolved'**
+  String sopUnresolvedTokens(Object count);
+
+  /// No description provided for @sopPhotoCaptured.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo recorded'**
+  String get sopPhotoCaptured;
+
+  /// No description provided for @sopCameraPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission is needed to record a photo'**
+  String get sopCameraPermissionDenied;
+
+  /// No description provided for @sopImageUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Image unavailable — you may not have access to it'**
+  String get sopImageUnavailable;
+
   /// No description provided for @stockTransferTitle.
   ///
   /// In en, this message translates to:

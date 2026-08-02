@@ -76,6 +76,10 @@ abstract final class RoleNames {
   static const manufacturingManager = 'Manufacturing Manager';
   static const stockManager = 'Stock Manager';
   static const purchaseManager = 'Purchase Manager';
+
+  /// Floor role: may run batches but not back-date a posting, edit an SOP, or
+  /// start a batch above the configured value limit.
+  static const productionOperator = 'Production Operator';
 }
 
 // ── Cancel reasons (defaults — will later be fetched from backend) ─────
