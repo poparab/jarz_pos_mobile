@@ -1800,6 +1800,95 @@ void main() {
     );
 
     test(
+      'bundle repeating the same item group keeps children on their own rows',
+      () async {
+        // Real staging bug (ACC-SINV-2026-17035 / "Jarz Royal Feast"): the bundle
+        // lists "Medium" twice — 8 + 2. Both rows expose the SAME item list, so a
+        // membership scan cannot tell them apart and used to funnel all 10 units
+        // into the first row, which the backend then rejected with
+        // "expected 8 selection(s) from 'Medium', received 10".
+        const mediumItems = [
+          {'id': 'Tiramisu Medium', 'name': 'Tiramisu Medium', 'price': 120.0},
+          {'id': 'Mango Medium', 'name': 'Mango Medium', 'price': 120.0},
+        ];
+        repository.bundlesResult = [
+          {
+            'id': 'gf9k3rfeg5',
+            'name': 'Jarz Royal Feast',
+            'erpnext_item': 'Jarz Royal Feast',
+            'price': 960.0,
+            'item_groups': [
+              {
+                'group_name': 'Medium',
+                'group_key': 'gf9h4g3bi2',
+                'quantity': 8,
+                'items': mediumItems,
+              },
+              {
+                'group_name': 'Medium',
+                'group_key': 'gf9m0embuv',
+                'quantity': 2,
+                'items': mediumItems,
+              },
+            ],
+          },
+        ];
+
+        await notifier.startAmendmentDraft({
+          'name': 'INV-AMD-DUPGROUP',
+          'pos_profile': 'Main POS',
+          'grand_total': 960.0,
+          'items': [
+            {
+              'item_code': 'Jarz Royal Feast',
+              'item_name': 'Jarz Royal Feast',
+              'qty': 1,
+              'rate': 0,
+              'price_list_rate': 960.0,
+              'is_bundle_parent': 1,
+              'bundle_code': 'gf9k3rfeg5',
+            },
+            {
+              'item_code': 'Tiramisu Medium',
+              'item_name': 'Tiramisu Medium',
+              'qty': 8,
+              'rate': 96.0,
+              'is_bundle_child': 1,
+              'parent_bundle': 'gf9k3rfeg5',
+              'bundle_group_key': 'gf9h4g3bi2',
+              'bundle_group_name': 'Medium',
+            },
+            {
+              'item_code': 'Mango Medium',
+              'item_name': 'Mango Medium',
+              'qty': 2,
+              'rate': 96.0,
+              'is_bundle_child': 1,
+              'parent_bundle': 'gf9k3rfeg5',
+              'bundle_group_key': 'gf9m0embuv',
+              'bundle_group_name': 'Medium',
+            },
+          ],
+        });
+
+        expect(notifier.state.cartItems, hasLength(1));
+        final selections =
+            notifier.state.cartItems.first['bundle_details']['selected_items']
+                as Map;
+
+        expect(
+          selections.keys.toSet(),
+          {'gf9h4g3bi2', 'gf9m0embuv'},
+          reason:
+              'Each bundle group row must keep its own selection bucket, '
+              'even when both rows point at the same item group',
+        );
+        expect((selections['gf9h4g3bi2'] as List), hasLength(8));
+        expect((selections['gf9m0embuv'] as List), hasLength(2));
+      },
+    );
+
+    test(
       'B4: bundle with qty_mismatch (odd children) results in catalog-miss sentinel',
       () async {
         // Parent qty=2 but only 1 child row (child qty=1).

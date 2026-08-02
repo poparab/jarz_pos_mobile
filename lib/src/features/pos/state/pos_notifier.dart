@@ -1948,36 +1948,71 @@ class PosNotifier extends StateNotifier<PosState> {
       return '$groupName::$rawIndex';
     }
 
+    Map<String, dynamic>? findItemInGroup(
+      Map<String, dynamic> group,
+      String itemCode,
+    ) {
+      final rawItems = group['items'] as List<dynamic>? ?? const [];
+      for (final rawItem in rawItems.whereType<Map>()) {
+        final candidate = Map<String, dynamic>.from(rawItem);
+        final candidateId = candidate['id']?.toString().trim() ?? '';
+        final candidateName = candidate['name']?.toString().trim() ?? '';
+        if (candidateId == itemCode || candidateName == itemCode) {
+          return candidate;
+        }
+      }
+      return null;
+    }
+
+    // Index the catalog groups by their key. A bundle may list the SAME item
+    // group twice (e.g. "Medium x8" + "Medium x2"); those rows are only
+    // distinguishable by key, never by their item membership.
+    final catalogGroupsByKey = <String, Map<String, dynamic>>{};
+    final catalogGroupIndexByKey = <String, int>{};
+    var catalogIndex = 0;
+    for (final rawGroup in rawGroups.whereType<Map>()) {
+      final group = Map<String, dynamic>.from(rawGroup);
+      final key = groupKeyFor(group, catalogIndex);
+      catalogGroupsByKey.putIfAbsent(key, () => group);
+      catalogGroupIndexByKey.putIfAbsent(key, () => catalogIndex);
+      catalogIndex += 1;
+    }
+
     for (final childItem in childItems) {
       final itemCode = childItem['item_code']?.toString().trim() ?? '';
       if (itemCode.isEmpty) continue;
-
-      Map<String, dynamic>? matchedGroup;
-      Map<String, dynamic>? matchedItem;
-      var matchedGroupIndex = 0;
-      var groupIndex = 0;
-      for (final rawGroup in rawGroups.whereType<Map>()) {
-        final group = Map<String, dynamic>.from(rawGroup);
-        final rawItems = group['items'] as List<dynamic>? ?? const [];
-        for (final rawItem in rawItems.whereType<Map>()) {
-          final candidate = Map<String, dynamic>.from(rawItem);
-          final candidateId = candidate['id']?.toString().trim() ?? '';
-          final candidateName = candidate['name']?.toString().trim() ?? '';
-          if (candidateId == itemCode || candidateName == itemCode) {
-            matchedGroup = group;
-            matchedGroupIndex = groupIndex;
-            matchedItem = candidate;
-            break;
-          }
-        }
-        if (matchedItem != null) break;
-        groupIndex += 1;
-      }
 
       final persistedGroupKey =
           childItem['bundle_group_key']?.toString().trim() ?? '';
       final persistedGroupName =
           childItem['bundle_group_name']?.toString().trim() ?? '';
+
+      Map<String, dynamic>? matchedGroup;
+      Map<String, dynamic>? matchedItem;
+      var matchedGroupIndex = 0;
+
+      // The key the invoice recorded when the bundle was sold is authoritative —
+      // scanning group membership cannot tell two rows of the same item group
+      // apart and would collapse every child into the first one.
+      if (persistedGroupKey.isNotEmpty &&
+          catalogGroupsByKey.containsKey(persistedGroupKey)) {
+        matchedGroup = catalogGroupsByKey[persistedGroupKey];
+        matchedGroupIndex = catalogGroupIndexByKey[persistedGroupKey] ?? 0;
+        matchedItem = findItemInGroup(matchedGroup!, itemCode);
+      } else {
+        var groupIndex = 0;
+        for (final rawGroup in rawGroups.whereType<Map>()) {
+          final group = Map<String, dynamic>.from(rawGroup);
+          final candidate = findItemInGroup(group, itemCode);
+          if (candidate != null) {
+            matchedGroup = group;
+            matchedGroupIndex = groupIndex;
+            matchedItem = candidate;
+            break;
+          }
+          groupIndex += 1;
+        }
+      }
 
       // Determine the selection key and whether we have a real catalog match.
       final bool hasCatalogMatch = matchedGroup != null;

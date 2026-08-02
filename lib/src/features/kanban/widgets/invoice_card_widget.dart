@@ -2973,18 +2973,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         return;
       }
 
-      // v1: bundle orders must use the full "Edit Invoice" amendment flow.
-      final hasBundles = details.items.any((i) => i.isBundleParent || i.isBundleChild);
-      if (hasBundles) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'This order has bundle items. Use "Edit Invoice" to change the delivery income.',
-            ),
-          ),
-        );
-        return;
-      }
+      // Bundle orders are supported: the backend rebuilds the cart from the
+      // invoice rows, so no client-side reconstruction is needed here.
 
       // Show loading
       ScaffoldMessenger.of(context).showSnackBar(
