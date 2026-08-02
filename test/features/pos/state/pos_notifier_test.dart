@@ -22,6 +22,8 @@ class _FakePosRepository extends PosRepository {
   int bundlesCalls = 0;
   int createInvoiceCalls = 0;
   int submitInvoiceAmendmentCalls = 0;
+  /// custom_delivery_income sent with each createInvoice call, in order.
+  final List<double?> createInvoiceDeliveryIncomes = [];
   // Delay injected into getBundles to simulate async gap in tests.
   Duration? getBundlesDelay;
 
@@ -85,6 +87,7 @@ class _FakePosRepository extends PosRepository {
     List<String> promoCodes = const [],
   }) async {
     createInvoiceCalls += 1;
+    createInvoiceDeliveryIncomes.add(customDeliveryIncome);
     return {'invoice_name': 'INV-NEW-001'};
   }
 
@@ -2351,5 +2354,183 @@ void main() {
         expect(notifier.state.isLoading, isFalse);
       },
     );
+  });
+
+  group('custom delivery income', () {
+    late _FakePosRepository repository;
+    late PosNotifier notifier;
+
+    /// A customer whose territory charges 60 for delivery.
+    const payingCustomer = {
+      'name': 'CUST-A',
+      'customer_name': 'Customer A',
+      'delivery_income': 60.0,
+    };
+    const otherCustomer = {
+      'name': 'CUST-B',
+      'customer_name': 'Customer B',
+      'delivery_income': 25.0,
+    };
+    const cartItem = {
+      'item_code': 'ITEM-001',
+      'item_name': 'A',
+      'rate': 100.0,
+      'quantity': 1,
+      'type': 'item',
+    };
+
+    setUp(() {
+      repository = _FakePosRepository();
+      notifier = PosNotifier(repository, _FakeDraftCartRepository());
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': 'Main POS'},
+        selectedCustomer: payingCustomer,
+        cartItems: const [cartItem],
+      );
+    });
+
+    // ── shippingCost resolution ─────────────────────────────────────────
+
+    test('falls back to the territory income when unset', () {
+      expect(notifier.state.customDeliveryIncome, isNull);
+      expect(notifier.state.shippingCost, 60.0);
+    });
+
+    test('a custom amount replaces the territory income', () {
+      notifier.setCustomDeliveryIncome(30.0);
+
+      expect(notifier.state.shippingCost, 30.0);
+    });
+
+    test('zero means free delivery, not "unset"', () {
+      notifier.setCustomDeliveryIncome(0);
+
+      expect(notifier.state.customDeliveryIncome, 0.0);
+      expect(notifier.state.shippingCost, 0.0);
+    });
+
+    test('clearing restores the territory income', () {
+      notifier.setCustomDeliveryIncome(30.0);
+      notifier.setCustomDeliveryIncome(null);
+
+      expect(notifier.state.customDeliveryIncome, isNull);
+      expect(notifier.state.shippingCost, 60.0);
+    });
+
+    test('pickup beats the override', () {
+      notifier.setCustomDeliveryIncome(30.0);
+      notifier.setPickup(true);
+
+      expect(notifier.state.shippingCost, 0.0);
+    });
+
+    test('a sales partner beats the override', () {
+      notifier.setCustomDeliveryIncome(30.0);
+      notifier.setSalesPartner({'name': 'PARTNER-1'});
+
+      expect(notifier.state.shippingCost, 0.0);
+    });
+
+    test('zeroShippingOverride beats the override', () {
+      notifier.setCustomDeliveryIncome(30.0);
+      notifier.setZeroShippingOverride(true);
+
+      expect(notifier.state.shippingCost, 0.0);
+    });
+
+    test('a free-shipping bundle beats the override', () {
+      notifier.setCustomDeliveryIncome(30.0);
+      notifier.state = notifier.state.copyWith(
+        cartItems: const [
+          {
+            'item_code': 'BDL-1',
+            'type': 'bundle',
+            'quantity': 1,
+            'rate': 100.0,
+            'bundle_details': {
+              'bundle_info': {'free_shipping': 1},
+            },
+          },
+        ],
+      );
+
+      expect(notifier.state.shippingCost, 0.0);
+    });
+
+    // ── lifecycle: the override must not outlive its order ───────────────
+
+    test('does not leak into the next order after checkout', () async {
+      notifier.setCustomDeliveryIncome(30.0);
+
+      await notifier.checkout();
+
+      expect(
+        notifier.state.customDeliveryIncome,
+        isNull,
+        reason: 'The override belongs to the order that was just submitted',
+      );
+
+      // Build a second order for a different customer/territory.
+      notifier.state = notifier.state.copyWith(
+        selectedCustomer: otherCustomer,
+        cartItems: const [cartItem],
+      );
+      expect(notifier.state.shippingCost, 25.0);
+
+      await notifier.checkout();
+
+      expect(
+        repository.createInvoiceDeliveryIncomes,
+        [30.0, null],
+        reason: 'Only the first order asked for a custom delivery income',
+      );
+    });
+
+    test('does not leak through startNewInvoice', () {
+      notifier.setCustomDeliveryIncome(30.0);
+
+      notifier.startNewInvoice();
+
+      expect(notifier.state.customDeliveryIncome, isNull);
+    });
+
+    test('does not leak through newDraft', () {
+      notifier.setCustomDeliveryIncome(30.0);
+
+      notifier.newDraft();
+
+      expect(notifier.state.customDeliveryIncome, isNull);
+    });
+
+    test('a free-delivery order still sends 0 at checkout', () async {
+      notifier.setCustomDeliveryIncome(0);
+
+      await notifier.checkout();
+
+      expect(
+        repository.createInvoiceDeliveryIncomes,
+        [0.0],
+        reason: '0 is an explicit free-delivery override, not an omitted key',
+      );
+    });
+
+    // ── draft round-trip ────────────────────────────────────────────────
+
+    test('survives a draft round-trip, including an explicit zero', () {
+      for (final value in [30.0, 0.0, null]) {
+        final restored = DraftCart.fromMap(
+          DraftCart(
+            id: 'D1',
+            label: 'Draft',
+            cartItems: const [],
+            isPickup: false,
+            customDeliveryIncome: value,
+            createdAt: DateTime(2026, 8, 3),
+            updatedAt: DateTime(2026, 8, 3),
+          ).toMap(),
+        );
+        expect(restored.customDeliveryIncome, value);
+      }
+    });
   });
 }

@@ -2992,6 +2992,10 @@ class PosNotifier extends StateNotifier<PosState> {
         draftDirty: false,
         drafts: remainingDrafts,
         clearPromos: true,
+        // A delivery-income override belongs to the order that was just checked
+        // out. Leaving it set re-applied it to every later order — a different
+        // customer, address and territory included.
+        clearCustomDeliveryIncome: true,
       );
       if (state.selectedProfile != null) {
         unawaited(refreshCatalog());
@@ -3057,6 +3061,8 @@ class PosNotifier extends StateNotifier<PosState> {
       clearAmendmentSourceInvoiceId: true,
       clearCurrentDraftId: true,
       draftDirty: false,
+      // Same reason as the post-checkout reset: the override is per-order.
+      clearCustomDeliveryIncome: true,
     );
     if (state.selectedProfile != null) {
       unawaited(refreshCatalog());
