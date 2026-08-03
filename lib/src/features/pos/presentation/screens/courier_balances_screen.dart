@@ -133,7 +133,7 @@ class CourierBalancesScreen extends ConsumerWidget {
                                       final net = d.amount - d.shipping;
                                       return ListTile(
                                         dense: true,
-                                        title: Text(d.invoice),
+                                        title: Text(d.displayId),
                                         subtitle: Text(
                                           l10n.courierBalancesCityOrderLine(
                                             d.city,

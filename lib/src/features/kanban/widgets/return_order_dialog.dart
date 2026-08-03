@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/order_display_id.dart';
 import '../../../core/utils/responsive_utils.dart';
 
 /// What the operator chose in the return dialog.
@@ -152,7 +153,10 @@ class _ReturnOrderDialogState extends State<ReturnOrderDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.preview['invoice_id']?.toString() ?? '',
+                  orderDisplayId(
+                    widget.preview['invoice_id']?.toString(),
+                    wooOrderId: widget.preview['woo_order_id'],
+                  ),
                   style: theme.textTheme.titleMedium,
                 ),
                 Text(

@@ -58,7 +58,7 @@ class _CancelOrderDialogState extends State<CancelOrderDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n.cancelOrderInvoiceLabel(invoice.invoiceIdShort.isNotEmpty ? invoice.invoiceIdShort : invoice.id),
+                l10n.cancelOrderInvoiceLabel(invoice.displayId),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 4),

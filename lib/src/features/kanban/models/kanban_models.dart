@@ -1,4 +1,5 @@
 import '../../../core/constants/business_constants.dart';
+import '../../../core/utils/order_display_id.dart';
 
 class KanbanColumn {
   final String id;
@@ -162,6 +163,9 @@ class InvoiceCard {
     this.customDeliveryIncome,
     this.wooOrderId,
   });
+
+  /// The identifier every user-facing surface shows for this order.
+  String get displayId => orderDisplayId(name, wooOrderId: wooOrderId);
 
   /// Parse a backend truthy flag that may arrive as bool, num or string.
   static bool? _parseFlag(dynamic raw) {

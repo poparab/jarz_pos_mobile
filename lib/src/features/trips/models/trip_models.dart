@@ -1,5 +1,7 @@
 // Models for the Delivery Trip feature.
 
+import '../../../core/utils/order_display_id.dart';
+
 class DeliveryTrip {
   final String name;
   final String tripDate;
@@ -64,6 +66,7 @@ class DeliveryTrip {
 
 class TripInvoice {
   final String invoice;
+  final int? wooOrderId;
   final String customerName;
   final String territory;
   final String? subTerritory;
@@ -86,6 +89,7 @@ class TripInvoice {
 
   TripInvoice({
     required this.invoice,
+    this.wooOrderId,
     required this.customerName,
     required this.territory,
     this.subTerritory,
@@ -109,6 +113,9 @@ class TripInvoice {
 
   bool get isPaid => outstandingAmount <= 0.01;
 
+  /// What the trip screens label this order with.
+  String get displayId => orderDisplayId(invoice, wooOrderId: wooOrderId);
+
   factory TripInvoice.fromJson(Map<String, dynamic> json) {
     final itemsRaw = json['items'];
     final itemsList = itemsRaw is List
@@ -120,6 +127,7 @@ class TripInvoice {
 
     return TripInvoice(
       invoice: (json['invoice'] ?? '').toString(),
+      wooOrderId: normalizeWooOrderId(json['woo_order_id']),
       customerName: (json['customer_name'] ?? '').toString(),
       territory: (json['territory'] ?? '').toString(),
       subTerritory: json['sub_territory']?.toString(),

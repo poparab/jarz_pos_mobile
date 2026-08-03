@@ -7,6 +7,7 @@ import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/network/frappe_error_message.dart';
+import '../../../core/utils/order_display_id.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../providers/kanban_provider.dart';
 
@@ -285,7 +286,10 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
 
   Widget _buildReceiptCard(Map<String, dynamic> receipt) {
     final receiptName = receipt['name'] as String;
-    final salesInvoice = receipt['sales_invoice'] as String? ?? context.l10n.commonNotSpecified;
+    final salesInvoiceName = receipt['sales_invoice'] as String?;
+    final salesInvoice = salesInvoiceName == null
+        ? context.l10n.commonNotSpecified
+        : orderDisplayId(salesInvoiceName, wooOrderId: receipt['woo_order_id']);
     final paymentMethod = receipt['payment_method'] as String? ?? context.l10n.commonNotSpecified;
     final amount = receipt['amount'] as num? ?? 0;
     final status = receipt['status'] as String? ?? 'Unconfirmed';

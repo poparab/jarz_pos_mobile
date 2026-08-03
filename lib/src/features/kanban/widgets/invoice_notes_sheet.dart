@@ -220,7 +220,7 @@ class _InvoiceNotesSheetState extends ConsumerState<InvoiceNotesSheet> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          context.l10n.invoiceInvoiceLabel(widget.invoice.name),
+                          context.l10n.invoiceInvoiceLabel(widget.invoice.displayId),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],

@@ -502,14 +502,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     }
   }
 
-  String _displayId(InvoiceCard invoice) {
-    final wooId = invoice.wooOrderId;
-    if (wooId != null) return '#$wooId';
-    const prefix = 'ACC-SINV-';
-    return invoice.name.startsWith(prefix)
-        ? invoice.name.substring(prefix.length)
-        : invoice.name;
-  }
+  String _displayId(InvoiceCard invoice) => invoice.displayId;
 
   @override
   Widget build(BuildContext context) {

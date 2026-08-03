@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import '../../../../core/utils/order_display_id.dart';
+
 /// A local-only draft (in-progress order) that lives in Hive until checkout.
 /// Never sent to the backend until [PosNotifier.checkout] is called.
 class DraftCart {
@@ -17,6 +19,7 @@ class DraftCart {
   /// Set when this draft is an amendment of a submitted invoice.
   /// Persisted so amendment context survives app restarts.
   final String? amendmentSourceInvoiceId;
+  final int? amendmentSourceWooOrderId;
   final double? amendmentSourceGrandTotal;
 
   /// Custom delivery income override. null = use territory default; 0 = free delivery; >0 = custom amount.
@@ -34,6 +37,7 @@ class DraftCart {
     required this.createdAt,
     required this.updatedAt,
     this.amendmentSourceInvoiceId,
+    this.amendmentSourceWooOrderId,
     this.amendmentSourceGrandTotal,
     this.customDeliveryIncome,
   });
@@ -52,6 +56,7 @@ class DraftCart {
     DateTime? updatedAt,
     String? amendmentSourceInvoiceId,
     bool clearAmendmentContext = false,
+    int? amendmentSourceWooOrderId,
     double? amendmentSourceGrandTotal,
     double? customDeliveryIncome,
     bool clearCustomDeliveryIncome = false,
@@ -73,6 +78,9 @@ class DraftCart {
       amendmentSourceInvoiceId: clearAmendmentContext
           ? null
           : (amendmentSourceInvoiceId ?? this.amendmentSourceInvoiceId),
+      amendmentSourceWooOrderId: clearAmendmentContext
+          ? null
+          : (amendmentSourceWooOrderId ?? this.amendmentSourceWooOrderId),
       amendmentSourceGrandTotal: clearAmendmentContext
           ? null
           : (amendmentSourceGrandTotal ?? this.amendmentSourceGrandTotal),
@@ -98,6 +106,7 @@ class DraftCart {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'amendment_source_invoice_id': amendmentSourceInvoiceId,
+      'amendment_source_woo_order_id': amendmentSourceWooOrderId,
       'amendment_source_grand_total': amendmentSourceGrandTotal,
       'custom_delivery_income': customDeliveryIncome,
     };
@@ -145,6 +154,10 @@ class DraftCart {
       createdAt: parseDate(map['created_at'], now),
       updatedAt: parseDate(map['updated_at'], now),
       amendmentSourceInvoiceId: map['amendment_source_invoice_id']?.toString(),
+      // Absent on drafts saved before this field existed — falls back to the
+      // ERPNext name in the banner, which is exactly the old behaviour.
+      amendmentSourceWooOrderId:
+          normalizeWooOrderId(map['amendment_source_woo_order_id']),
       amendmentSourceGrandTotal: map['amendment_source_grand_total'] != null
           ? double.tryParse(map['amendment_source_grand_total'].toString())
           : null,

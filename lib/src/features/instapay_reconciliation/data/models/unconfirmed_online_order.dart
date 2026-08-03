@@ -1,3 +1,5 @@
+import '../../../../core/utils/order_display_id.dart';
+
 /// An unpaid online (InstaPay / Mobile Wallet) order that is already Out for
 /// Delivery and awaiting the manager's bank-transfer confirmation.
 ///
@@ -5,6 +7,7 @@
 /// `jarz_pos.api.couriers.list_unconfirmed_online_orders`.
 class UnconfirmedOnlineOrder {
   final String invoice;
+  final int? wooOrderId;
   final String customer;
   final String customerName;
   final double amount;
@@ -22,6 +25,7 @@ class UnconfirmedOnlineOrder {
 
   const UnconfirmedOnlineOrder({
     required this.invoice,
+    this.wooOrderId,
     required this.customer,
     required this.customerName,
     required this.amount,
@@ -50,6 +54,7 @@ class UnconfirmedOnlineOrder {
 
     return UnconfirmedOnlineOrder(
       invoice: (json['invoice'] ?? json['name'] ?? '').toString(),
+      wooOrderId: normalizeWooOrderId(json['woo_order_id']),
       customer: (json['customer'] ?? '').toString(),
       customerName:
           (json['customer_name'] ?? json['customer'] ?? '').toString(),
@@ -70,4 +75,7 @@ class UnconfirmedOnlineOrder {
 
   /// True when a receipt screenshot has been attached to this order.
   bool get hasReceiptImage => (receiptImageUrl ?? '').trim().isNotEmpty;
+
+  /// What the reconciliation screens label this order with.
+  String get displayId => orderDisplayId(invoice, wooOrderId: wooOrderId);
 }

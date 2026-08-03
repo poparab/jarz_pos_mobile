@@ -270,7 +270,7 @@ class _OrderCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    order.invoice,
+                    order.displayId,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,

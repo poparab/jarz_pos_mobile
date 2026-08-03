@@ -137,15 +137,20 @@ class WebNotificationService {
   }
 
   /// Show notification for new invoice alert
+  ///
+  /// [invoiceId] stays the ERPNext name — it is the tag and the click payload
+  /// that routes back to the order. [displayId] is what the operator reads
+  /// (the WooCommerce number when the order has one).
   static Future<void> showInvoiceAlert({
     required String invoiceId,
     required String customerName,
     required double total,
+    String? displayId,
     String? posProfile,
   }) async {
     await showNotification(
       title: '🔔 New Order Alert',
-      body: 'Invoice: $invoiceId\nCustomer: $customerName\nTotal: \$$total',
+      body: 'Invoice: ${displayId ?? invoiceId}\nCustomer: $customerName\nTotal: \$$total',
       tag: 'invoice_$invoiceId',
       data: {
         'type': 'invoice_alert',

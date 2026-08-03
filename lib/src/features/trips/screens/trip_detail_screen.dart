@@ -371,7 +371,7 @@ class _TripInvoiceCardState extends State<_TripInvoiceCard> {
             children: [
               Row(
                 children: [
-                  Text(inv.invoice, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text(inv.displayId, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(width: 6),
                   _statusBadge(localizedStatusLabel(context, inv.invoiceStatus), _statusColor),
                   if (inv.isPaid) ...[

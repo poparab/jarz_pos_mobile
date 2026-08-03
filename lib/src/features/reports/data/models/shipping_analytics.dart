@@ -1,6 +1,7 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/utils/order_display_id.dart';
 import 'report_json.dart';
 
 part 'shipping_analytics.freezed.dart';
@@ -161,8 +162,11 @@ class ShippingCustomBreakdownSummary with _$ShippingCustomBreakdownSummary {
 
 @freezed
 class ShippingCustomBreakdownRow with _$ShippingCustomBreakdownRow {
+  const ShippingCustomBreakdownRow._();
+
   const factory ShippingCustomBreakdownRow({
     @Default('') String invoice,
+    @JsonKey(name: 'woo_order_id') int? wooOrderId,
     @Default('') String territory,
     @JsonKey(name: 'original_amount') @Default(0) double originalAmount,
     @JsonKey(name: 'requested_amount') @Default(0) double requestedAmount,
@@ -170,6 +174,9 @@ class ShippingCustomBreakdownRow with _$ShippingCustomBreakdownRow {
     @JsonKey(name: 'is_large_override') @Default(false) bool isLargeOverride,
     @Default('') String status,
   }) = _ShippingCustomBreakdownRow;
+
+  /// What the report labels this row with.
+  String get displayId => orderDisplayId(invoice, wooOrderId: wooOrderId);
 
   factory ShippingCustomBreakdownRow.fromJson(Map<String, dynamic> json) =>
       _$ShippingCustomBreakdownRowFromJson(json);

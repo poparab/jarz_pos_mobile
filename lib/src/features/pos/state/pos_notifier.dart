@@ -11,6 +11,7 @@ import '../data/models/pos_models.dart';
 import '../data/repositories/draft_cart_repository.dart';
 import '../data/repositories/pos_repository.dart';
 import '../domain/models/delivery_slot.dart';
+import '../../../core/utils/order_display_id.dart';
 
 // State for the POS screen
 class PosState {
@@ -43,6 +44,9 @@ class PosState {
   final bool zeroShippingOverride;
   final bool isAmendmentDraft;
   final String? amendmentSourceInvoiceId;
+  // WooCommerce number of the source invoice, so the amendment banner names the
+  // order the way staff know it rather than by its ERPNext key.
+  final int? amendmentSourceWooOrderId;
   // Source invoice grand total captured when the amendment draft started.
   // Used to guard against submitting an empty or badly loaded cart.
   final double? amendmentSourceGrandTotal;
@@ -100,6 +104,7 @@ class PosState {
     this.zeroShippingOverride = false,
     this.isAmendmentDraft = false,
     this.amendmentSourceInvoiceId,
+    this.amendmentSourceWooOrderId,
     this.amendmentSourceGrandTotal,
     this.drafts = const [],
     this.currentDraftId,
@@ -143,6 +148,7 @@ class PosState {
     bool? isAmendmentDraft,
     String? amendmentSourceInvoiceId,
     bool clearAmendmentSourceInvoiceId = false,
+    int? amendmentSourceWooOrderId,
     double? amendmentSourceGrandTotal,
     // Draft fields
     List<DraftCartSummary>? drafts,
@@ -199,6 +205,9 @@ class PosState {
       amendmentSourceInvoiceId: clearAmendmentSourceInvoiceId
           ? null
           : (amendmentSourceInvoiceId ?? this.amendmentSourceInvoiceId),
+      amendmentSourceWooOrderId: clearAmendmentSourceInvoiceId
+          ? null
+          : (amendmentSourceWooOrderId ?? this.amendmentSourceWooOrderId),
       amendmentSourceGrandTotal: clearAmendmentSourceInvoiceId
           ? null
           : (amendmentSourceGrandTotal ?? this.amendmentSourceGrandTotal),
@@ -427,6 +436,7 @@ class PosNotifier extends StateNotifier<PosState> {
       createdAt: now,
       updatedAt: now,
       amendmentSourceInvoiceId: state.amendmentSourceInvoiceId,
+      amendmentSourceWooOrderId: state.amendmentSourceWooOrderId,
       amendmentSourceGrandTotal: state.amendmentSourceGrandTotal,
       customDeliveryIncome: state.customDeliveryIncome,
     );
@@ -563,6 +573,7 @@ class PosNotifier extends StateNotifier<PosState> {
         isAmendmentDraft: target.amendmentSourceInvoiceId != null,
         amendmentSourceInvoiceId: target.amendmentSourceInvoiceId,
         clearAmendmentSourceInvoiceId: target.amendmentSourceInvoiceId == null,
+        amendmentSourceWooOrderId: target.amendmentSourceWooOrderId,
         amendmentSourceGrandTotal: target.amendmentSourceGrandTotal,
         customDeliveryIncome: target.customDeliveryIncome,
         clearCustomDeliveryIncome: target.customDeliveryIncome == null,
@@ -2589,6 +2600,9 @@ class PosNotifier extends StateNotifier<PosState> {
         isLoading: false,
         isAmendmentDraft: true,
         amendmentSourceInvoiceId: invoiceId,
+        amendmentSourceWooOrderId: normalizeWooOrderId(
+          invoiceData['woo_order_id'],
+        ),
         amendmentSourceGrandTotal: sourceGrandTotal > 0
             ? sourceGrandTotal
             : null,

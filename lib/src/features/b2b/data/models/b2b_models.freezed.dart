@@ -717,6 +717,8 @@ B2bRecentInvoice _$B2bRecentInvoiceFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$B2bRecentInvoice {
   String get name => throw _privateConstructorUsedError;
+  @JsonKey(name: 'woo_order_id')
+  int? get wooOrderId => throw _privateConstructorUsedError;
   @JsonKey(name: 'posting_date')
   String? get postingDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'grand_total')
@@ -744,6 +746,7 @@ abstract class $B2bRecentInvoiceCopyWith<$Res> {
   @useResult
   $Res call({
     String name,
+    @JsonKey(name: 'woo_order_id') int? wooOrderId,
     @JsonKey(name: 'posting_date') String? postingDate,
     @JsonKey(name: 'grand_total') double? grandTotal,
     @JsonKey(name: 'custom_order_purpose') String? orderPurpose,
@@ -767,6 +770,7 @@ class _$B2bRecentInvoiceCopyWithImpl<$Res, $Val extends B2bRecentInvoice>
   @override
   $Res call({
     Object? name = null,
+    Object? wooOrderId = freezed,
     Object? postingDate = freezed,
     Object? grandTotal = freezed,
     Object? orderPurpose = freezed,
@@ -778,6 +782,10 @@ class _$B2bRecentInvoiceCopyWithImpl<$Res, $Val extends B2bRecentInvoice>
                 ? _value.name
                 : name // ignore: cast_nullable_to_non_nullable
                       as String,
+            wooOrderId: freezed == wooOrderId
+                ? _value.wooOrderId
+                : wooOrderId // ignore: cast_nullable_to_non_nullable
+                      as int?,
             postingDate: freezed == postingDate
                 ? _value.postingDate
                 : postingDate // ignore: cast_nullable_to_non_nullable
@@ -811,6 +819,7 @@ abstract class _$$B2bRecentInvoiceImplCopyWith<$Res>
   @useResult
   $Res call({
     String name,
+    @JsonKey(name: 'woo_order_id') int? wooOrderId,
     @JsonKey(name: 'posting_date') String? postingDate,
     @JsonKey(name: 'grand_total') double? grandTotal,
     @JsonKey(name: 'custom_order_purpose') String? orderPurpose,
@@ -833,6 +842,7 @@ class __$$B2bRecentInvoiceImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? name = null,
+    Object? wooOrderId = freezed,
     Object? postingDate = freezed,
     Object? grandTotal = freezed,
     Object? orderPurpose = freezed,
@@ -844,6 +854,10 @@ class __$$B2bRecentInvoiceImplCopyWithImpl<$Res>
             ? _value.name
             : name // ignore: cast_nullable_to_non_nullable
                   as String,
+        wooOrderId: freezed == wooOrderId
+            ? _value.wooOrderId
+            : wooOrderId // ignore: cast_nullable_to_non_nullable
+                  as int?,
         postingDate: freezed == postingDate
             ? _value.postingDate
             : postingDate // ignore: cast_nullable_to_non_nullable
@@ -867,20 +881,24 @@ class __$$B2bRecentInvoiceImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$B2bRecentInvoiceImpl implements _B2bRecentInvoice {
+class _$B2bRecentInvoiceImpl extends _B2bRecentInvoice {
   const _$B2bRecentInvoiceImpl({
     required this.name,
+    @JsonKey(name: 'woo_order_id') this.wooOrderId,
     @JsonKey(name: 'posting_date') this.postingDate,
     @JsonKey(name: 'grand_total') this.grandTotal,
     @JsonKey(name: 'custom_order_purpose') this.orderPurpose,
     this.status,
-  });
+  }) : super._();
 
   factory _$B2bRecentInvoiceImpl.fromJson(Map<String, dynamic> json) =>
       _$$B2bRecentInvoiceImplFromJson(json);
 
   @override
   final String name;
+  @override
+  @JsonKey(name: 'woo_order_id')
+  final int? wooOrderId;
   @override
   @JsonKey(name: 'posting_date')
   final String? postingDate;
@@ -895,7 +913,7 @@ class _$B2bRecentInvoiceImpl implements _B2bRecentInvoice {
 
   @override
   String toString() {
-    return 'B2bRecentInvoice(name: $name, postingDate: $postingDate, grandTotal: $grandTotal, orderPurpose: $orderPurpose, status: $status)';
+    return 'B2bRecentInvoice(name: $name, wooOrderId: $wooOrderId, postingDate: $postingDate, grandTotal: $grandTotal, orderPurpose: $orderPurpose, status: $status)';
   }
 
   @override
@@ -904,6 +922,8 @@ class _$B2bRecentInvoiceImpl implements _B2bRecentInvoice {
         (other.runtimeType == runtimeType &&
             other is _$B2bRecentInvoiceImpl &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.wooOrderId, wooOrderId) ||
+                other.wooOrderId == wooOrderId) &&
             (identical(other.postingDate, postingDate) ||
                 other.postingDate == postingDate) &&
             (identical(other.grandTotal, grandTotal) ||
@@ -918,6 +938,7 @@ class _$B2bRecentInvoiceImpl implements _B2bRecentInvoice {
   int get hashCode => Object.hash(
     runtimeType,
     name,
+    wooOrderId,
     postingDate,
     grandTotal,
     orderPurpose,
@@ -941,20 +962,25 @@ class _$B2bRecentInvoiceImpl implements _B2bRecentInvoice {
   }
 }
 
-abstract class _B2bRecentInvoice implements B2bRecentInvoice {
+abstract class _B2bRecentInvoice extends B2bRecentInvoice {
   const factory _B2bRecentInvoice({
     required final String name,
+    @JsonKey(name: 'woo_order_id') final int? wooOrderId,
     @JsonKey(name: 'posting_date') final String? postingDate,
     @JsonKey(name: 'grand_total') final double? grandTotal,
     @JsonKey(name: 'custom_order_purpose') final String? orderPurpose,
     final String? status,
   }) = _$B2bRecentInvoiceImpl;
+  const _B2bRecentInvoice._() : super._();
 
   factory _B2bRecentInvoice.fromJson(Map<String, dynamic> json) =
       _$B2bRecentInvoiceImpl.fromJson;
 
   @override
   String get name;
+  @override
+  @JsonKey(name: 'woo_order_id')
+  int? get wooOrderId;
   @override
   @JsonKey(name: 'posting_date')
   String? get postingDate;

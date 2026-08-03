@@ -258,6 +258,7 @@ _$ShippingCustomBreakdownRowImpl _$$ShippingCustomBreakdownRowImplFromJson(
   Map<String, dynamic> json,
 ) => _$ShippingCustomBreakdownRowImpl(
   invoice: json['invoice'] as String? ?? '',
+  wooOrderId: (json['woo_order_id'] as num?)?.toInt(),
   territory: json['territory'] as String? ?? '',
   originalAmount: (json['original_amount'] as num?)?.toDouble() ?? 0,
   requestedAmount: (json['requested_amount'] as num?)?.toDouble() ?? 0,
@@ -270,6 +271,7 @@ Map<String, dynamic> _$$ShippingCustomBreakdownRowImplToJson(
   _$ShippingCustomBreakdownRowImpl instance,
 ) => <String, dynamic>{
   'invoice': instance.invoice,
+  'woo_order_id': instance.wooOrderId,
   'territory': instance.territory,
   'original_amount': instance.originalAmount,
   'requested_amount': instance.requestedAmount,

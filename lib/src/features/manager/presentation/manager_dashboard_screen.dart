@@ -255,7 +255,7 @@ class _OrderTile extends StatelessWidget {
     return Card(
       child: ListTile(
         dense: true,
-        title: Text('${invoice.name} • ${invoice.customerName}'),
+        title: Text('${invoice.displayId} • ${invoice.customerName}'),
         subtitle: Text('${invoice.postingDate} ${invoice.postingTime}  |  ${invoice.status}  |  ${invoice.branch}'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

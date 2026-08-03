@@ -1,6 +1,8 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/utils/order_display_id.dart';
+
 part 'b2b_models.freezed.dart';
 part 'b2b_models.g.dart';
 
@@ -64,13 +66,19 @@ class B2bContact with _$B2bContact {
 /// A recent invoice shown on the account detail screen.
 @freezed
 class B2bRecentInvoice with _$B2bRecentInvoice {
+  const B2bRecentInvoice._();
+
   const factory B2bRecentInvoice({
     required String name,
+    @JsonKey(name: 'woo_order_id') int? wooOrderId,
     @JsonKey(name: 'posting_date') String? postingDate,
     @JsonKey(name: 'grand_total') double? grandTotal,
     @JsonKey(name: 'custom_order_purpose') String? orderPurpose,
     String? status,
   }) = _B2bRecentInvoice;
+
+  /// What the account screen labels this order with.
+  String get displayId => orderDisplayId(name, wooOrderId: wooOrderId);
 
   factory B2bRecentInvoice.fromJson(Map<String, dynamic> json) =>
       _$B2bRecentInvoiceFromJson(json);

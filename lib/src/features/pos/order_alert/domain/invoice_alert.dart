@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import '../../../../core/utils/order_display_id.dart';
+
 class InvoiceAlertItem {
   final String? itemCode;
   final String? itemName;
@@ -56,6 +58,11 @@ class InvoiceAlert {
   bool get isAccepted => acceptanceStatus.toLowerCase() == 'accepted';
 
   String get displayTotal => grandTotal.toStringAsFixed(2);
+
+  /// What the alert shows the operator. Read off [raw] because the Woo id
+  /// arrives typed over websocket but as a string through FCM data payloads —
+  /// [orderDisplayId] normalizes both.
+  String get displayId => orderDisplayId(invoiceId, wooOrderId: raw['woo_order_id']);
 
   static InvoiceAlert fromDynamic(Map<String, dynamic> payload) {
     final raw = Map<String, dynamic>.from(payload);

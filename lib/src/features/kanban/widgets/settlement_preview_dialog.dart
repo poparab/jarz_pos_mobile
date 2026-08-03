@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 
+import '../../../core/utils/order_display_id.dart';
+
 // Shared settlement dialogs used across Kanban and POS screens, to avoid duplication.
 // Computes consistent labels from preview:
 // - net_amount > 0  => Collect From Courier (Order - Shipping)
@@ -281,7 +283,11 @@ Future<bool?> showSettlementConfirmDialog(
             const SizedBox(height: 8),
           ],
           if (invoice != null) ...[
-            Text(l10n.websocketInvoiceLabel(invoice)),
+            // Label with the Woo number the preview carries; the ERPNext name is
+            // only the fallback for orders that never came from WooCommerce.
+            Text(l10n.websocketInvoiceLabel(
+              orderDisplayId(invoice, wooOrderId: preview['woo_order_id']),
+            )),
             const SizedBox(height: 6),
           ],
           Row(
@@ -416,7 +422,11 @@ Future<void> showSettlementInfoDialog(
             const SizedBox(height: 8),
           ],
           if (invoice != null) ...[
-            Text(l10n.websocketInvoiceLabel(invoice)),
+            // Label with the Woo number the preview carries; the ERPNext name is
+            // only the fallback for orders that never came from WooCommerce.
+            Text(l10n.websocketInvoiceLabel(
+              orderDisplayId(invoice, wooOrderId: preview['woo_order_id']),
+            )),
             const SizedBox(height: 6),
           ],
           Row(

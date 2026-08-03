@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/order_display_id.dart';
 import '../state/master_orders_providers.dart';
 
 class MasterOrdersScreen extends ConsumerStatefulWidget {
@@ -522,7 +523,10 @@ class _OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    final name = invoice['name']?.toString() ?? '';
+    final name = orderDisplayId(
+      invoice['name']?.toString(),
+      wooOrderId: invoice['woo_order_id'],
+    );
     final customerName = invoice['customer_name']?.toString() ?? '';
     final postingDate = invoice['posting_date']?.toString() ?? '';
     final postingTime = invoice['posting_time']?.toString() ?? '';

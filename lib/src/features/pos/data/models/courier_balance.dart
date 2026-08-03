@@ -1,3 +1,5 @@
+import '../../../../core/utils/order_display_id.dart';
+
 class CourierBalance {
   final String courier;
   final String courierName;
@@ -44,6 +46,7 @@ class CourierBalance {
 
 class CourierBalanceDetail {
   final String invoice;
+  final int? wooOrderId;
   final String city;
   final double amount;
   final double shipping;
@@ -53,11 +56,16 @@ class CourierBalanceDetail {
     required this.city,
     required this.amount,
     required this.shipping,
+    this.wooOrderId,
   });
+
+  /// What settlement screens label this line with.
+  String get displayId => orderDisplayId(invoice, wooOrderId: wooOrderId);
 
   factory CourierBalanceDetail.fromMap(Map<String, dynamic> map) {
     return CourierBalanceDetail(
       invoice: (map['invoice'] ?? '') as String,
+      wooOrderId: normalizeWooOrderId(map['woo_order_id']),
       city: (map['city'] ?? '') as String,
       amount: CourierBalance._toDouble(map['amount']),
       shipping: CourierBalance._toDouble(map['shipping']),

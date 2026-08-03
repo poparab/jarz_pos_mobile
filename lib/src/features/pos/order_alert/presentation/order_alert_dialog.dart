@@ -58,7 +58,7 @@ class OrderAlertDialog extends ConsumerWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              l10n.orderAlertTitle(alert.invoiceId),
+              l10n.orderAlertTitle(alert.displayId),
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

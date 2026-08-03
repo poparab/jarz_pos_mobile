@@ -106,5 +106,26 @@ void main() {
       expect(detail.amount, 99.9);
       expect(detail.shipping, 10.0);
     });
+
+    test('labels the settlement row with the Woo order number', () {
+      final detail = CourierBalanceDetail.fromMap({
+        'invoice': 'ACC-SINV-2026-00123',
+        'woo_order_id': 16834,
+      });
+
+      expect(detail.wooOrderId, 16834);
+      expect(detail.displayId, '#16834');
+    });
+
+    test('falls back to the invoice name for a POS-native order', () {
+      // woo_order_id is an Int field, so a non-Woo order arrives as 0.
+      final detail = CourierBalanceDetail.fromMap({
+        'invoice': 'ACC-SINV-2026-00123',
+        'woo_order_id': 0,
+      });
+
+      expect(detail.wooOrderId, isNull);
+      expect(detail.displayId, '2026-00123');
+    });
   });
 }

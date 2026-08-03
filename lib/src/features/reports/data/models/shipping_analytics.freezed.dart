@@ -2650,6 +2650,8 @@ ShippingCustomBreakdownRow _$ShippingCustomBreakdownRowFromJson(
 /// @nodoc
 mixin _$ShippingCustomBreakdownRow {
   String get invoice => throw _privateConstructorUsedError;
+  @JsonKey(name: 'woo_order_id')
+  int? get wooOrderId => throw _privateConstructorUsedError;
   String get territory => throw _privateConstructorUsedError;
   @JsonKey(name: 'original_amount')
   double get originalAmount => throw _privateConstructorUsedError;
@@ -2683,6 +2685,7 @@ abstract class $ShippingCustomBreakdownRowCopyWith<$Res> {
   @useResult
   $Res call({
     String invoice,
+    @JsonKey(name: 'woo_order_id') int? wooOrderId,
     String territory,
     @JsonKey(name: 'original_amount') double originalAmount,
     @JsonKey(name: 'requested_amount') double requestedAmount,
@@ -2711,6 +2714,7 @@ class _$ShippingCustomBreakdownRowCopyWithImpl<
   @override
   $Res call({
     Object? invoice = null,
+    Object? wooOrderId = freezed,
     Object? territory = null,
     Object? originalAmount = null,
     Object? requestedAmount = null,
@@ -2724,6 +2728,10 @@ class _$ShippingCustomBreakdownRowCopyWithImpl<
                 ? _value.invoice
                 : invoice // ignore: cast_nullable_to_non_nullable
                       as String,
+            wooOrderId: freezed == wooOrderId
+                ? _value.wooOrderId
+                : wooOrderId // ignore: cast_nullable_to_non_nullable
+                      as int?,
             territory: null == territory
                 ? _value.territory
                 : territory // ignore: cast_nullable_to_non_nullable
@@ -2765,6 +2773,7 @@ abstract class _$$ShippingCustomBreakdownRowImplCopyWith<$Res>
   @useResult
   $Res call({
     String invoice,
+    @JsonKey(name: 'woo_order_id') int? wooOrderId,
     String territory,
     @JsonKey(name: 'original_amount') double originalAmount,
     @JsonKey(name: 'requested_amount') double requestedAmount,
@@ -2793,6 +2802,7 @@ class __$$ShippingCustomBreakdownRowImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? invoice = null,
+    Object? wooOrderId = freezed,
     Object? territory = null,
     Object? originalAmount = null,
     Object? requestedAmount = null,
@@ -2806,6 +2816,10 @@ class __$$ShippingCustomBreakdownRowImplCopyWithImpl<$Res>
             ? _value.invoice
             : invoice // ignore: cast_nullable_to_non_nullable
                   as String,
+        wooOrderId: freezed == wooOrderId
+            ? _value.wooOrderId
+            : wooOrderId // ignore: cast_nullable_to_non_nullable
+                  as int?,
         territory: null == territory
             ? _value.territory
             : territory // ignore: cast_nullable_to_non_nullable
@@ -2837,16 +2851,17 @@ class __$$ShippingCustomBreakdownRowImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$ShippingCustomBreakdownRowImpl implements _ShippingCustomBreakdownRow {
+class _$ShippingCustomBreakdownRowImpl extends _ShippingCustomBreakdownRow {
   const _$ShippingCustomBreakdownRowImpl({
     this.invoice = '',
+    @JsonKey(name: 'woo_order_id') this.wooOrderId,
     this.territory = '',
     @JsonKey(name: 'original_amount') this.originalAmount = 0,
     @JsonKey(name: 'requested_amount') this.requestedAmount = 0,
     this.delta = 0,
     @JsonKey(name: 'is_large_override') this.isLargeOverride = false,
     this.status = '',
-  });
+  }) : super._();
 
   factory _$ShippingCustomBreakdownRowImpl.fromJson(
     Map<String, dynamic> json,
@@ -2855,6 +2870,9 @@ class _$ShippingCustomBreakdownRowImpl implements _ShippingCustomBreakdownRow {
   @override
   @JsonKey()
   final String invoice;
+  @override
+  @JsonKey(name: 'woo_order_id')
+  final int? wooOrderId;
   @override
   @JsonKey()
   final String territory;
@@ -2876,7 +2894,7 @@ class _$ShippingCustomBreakdownRowImpl implements _ShippingCustomBreakdownRow {
 
   @override
   String toString() {
-    return 'ShippingCustomBreakdownRow(invoice: $invoice, territory: $territory, originalAmount: $originalAmount, requestedAmount: $requestedAmount, delta: $delta, isLargeOverride: $isLargeOverride, status: $status)';
+    return 'ShippingCustomBreakdownRow(invoice: $invoice, wooOrderId: $wooOrderId, territory: $territory, originalAmount: $originalAmount, requestedAmount: $requestedAmount, delta: $delta, isLargeOverride: $isLargeOverride, status: $status)';
   }
 
   @override
@@ -2885,6 +2903,8 @@ class _$ShippingCustomBreakdownRowImpl implements _ShippingCustomBreakdownRow {
         (other.runtimeType == runtimeType &&
             other is _$ShippingCustomBreakdownRowImpl &&
             (identical(other.invoice, invoice) || other.invoice == invoice) &&
+            (identical(other.wooOrderId, wooOrderId) ||
+                other.wooOrderId == wooOrderId) &&
             (identical(other.territory, territory) ||
                 other.territory == territory) &&
             (identical(other.originalAmount, originalAmount) ||
@@ -2902,6 +2922,7 @@ class _$ShippingCustomBreakdownRowImpl implements _ShippingCustomBreakdownRow {
   int get hashCode => Object.hash(
     runtimeType,
     invoice,
+    wooOrderId,
     territory,
     originalAmount,
     requestedAmount,
@@ -2927,10 +2948,10 @@ class _$ShippingCustomBreakdownRowImpl implements _ShippingCustomBreakdownRow {
   }
 }
 
-abstract class _ShippingCustomBreakdownRow
-    implements ShippingCustomBreakdownRow {
+abstract class _ShippingCustomBreakdownRow extends ShippingCustomBreakdownRow {
   const factory _ShippingCustomBreakdownRow({
     final String invoice,
+    @JsonKey(name: 'woo_order_id') final int? wooOrderId,
     final String territory,
     @JsonKey(name: 'original_amount') final double originalAmount,
     @JsonKey(name: 'requested_amount') final double requestedAmount,
@@ -2938,12 +2959,16 @@ abstract class _ShippingCustomBreakdownRow
     @JsonKey(name: 'is_large_override') final bool isLargeOverride,
     final String status,
   }) = _$ShippingCustomBreakdownRowImpl;
+  const _ShippingCustomBreakdownRow._() : super._();
 
   factory _ShippingCustomBreakdownRow.fromJson(Map<String, dynamic> json) =
       _$ShippingCustomBreakdownRowImpl.fromJson;
 
   @override
   String get invoice;
+  @override
+  @JsonKey(name: 'woo_order_id')
+  int? get wooOrderId;
   @override
   String get territory;
   @override

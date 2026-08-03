@@ -31,6 +31,7 @@ class WebNotificationService {
     required String invoiceId,
     required String customerName,
     required double total,
+    String? displayId,
     String? posProfile,
   }) async {
     // No-op on non-web platforms

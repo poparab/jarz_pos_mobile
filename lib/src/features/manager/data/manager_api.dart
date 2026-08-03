@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/network/frappe_error_message.dart';
 import '../../../core/constants/api_endpoints.dart';
+import '../../../core/utils/order_display_id.dart';
 
 final managerApiProvider = Provider<ManagerApi>((ref) {
   final dio = ref.read(dioProvider);
@@ -187,6 +188,7 @@ class BranchBalance {
 
 class ManagerInvoice {
   final String name;
+  final int? wooOrderId;
   final String customer;
   final String customerName;
   final String postingDate;
@@ -197,6 +199,8 @@ class ManagerInvoice {
   final String branch;
   // convenience for UI
   String get branchName => branch;
+  /// What the dashboard labels this order with.
+  String get displayId => orderDisplayId(name, wooOrderId: wooOrderId);
   ManagerInvoice({
     required this.name,
     required this.customer,
@@ -207,9 +211,11 @@ class ManagerInvoice {
     required this.netTotal,
     required this.status,
     required this.branch,
+    this.wooOrderId,
   });
   factory ManagerInvoice.fromJson(Map<String, dynamic> json) => ManagerInvoice(
         name: json['name'] as String,
+        wooOrderId: normalizeWooOrderId(json['woo_order_id']),
         customer: json['customer'] as String,
         customerName: (json['customer_name'] as String?) ?? (json['customer'] as String),
         postingDate: json['posting_date'] as String,

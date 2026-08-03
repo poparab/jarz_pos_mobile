@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/connectivity/connectivity_service.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/utils/order_display_id.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/websocket/websocket_service.dart';
 import '../../../../core/sync/offline_sync_service.dart';
@@ -560,7 +561,11 @@ class _PosScreenState extends ConsumerState<PosScreen>
 
   Widget _buildAmendmentDraftBanner(BuildContext context, PosState state) {
     final theme = Theme.of(context);
-    final invoiceId = (state.amendmentSourceInvoiceId ?? '').trim();
+    // Already carries its own '#' when the order came from WooCommerce.
+    final invoiceId = orderDisplayId(
+      state.amendmentSourceInvoiceId,
+      wooOrderId: state.amendmentSourceWooOrderId,
+    );
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
@@ -591,7 +596,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
                 if (invoiceId.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
-                    '#$invoiceId',
+                    invoiceId,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSecondaryContainer.withValues(alpha: 0.8),
                       fontWeight: FontWeight.w600,

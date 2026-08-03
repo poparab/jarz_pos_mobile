@@ -48,6 +48,7 @@ _$B2bRecentInvoiceImpl _$$B2bRecentInvoiceImplFromJson(
   Map<String, dynamic> json,
 ) => _$B2bRecentInvoiceImpl(
   name: json['name'] as String,
+  wooOrderId: (json['woo_order_id'] as num?)?.toInt(),
   postingDate: json['posting_date'] as String?,
   grandTotal: (json['grand_total'] as num?)?.toDouble(),
   orderPurpose: json['custom_order_purpose'] as String?,
@@ -58,6 +59,7 @@ Map<String, dynamic> _$$B2bRecentInvoiceImplToJson(
   _$B2bRecentInvoiceImpl instance,
 ) => <String, dynamic>{
   'name': instance.name,
+  'woo_order_id': instance.wooOrderId,
   'posting_date': instance.postingDate,
   'grand_total': instance.grandTotal,
   'custom_order_purpose': instance.orderPurpose,

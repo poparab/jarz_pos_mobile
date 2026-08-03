@@ -11,6 +11,7 @@ import '../router.dart';
 import 'package:flutter/material.dart';
 
 import '../localization/localization_extensions.dart';
+import '../utils/order_display_id.dart';
 
 class WebSocketService {
   WebSocketChannel? _channel;
@@ -354,7 +355,10 @@ class WebSocketService {
             final navigatorKey = rootNavigatorKey; // imported via router.dart
             final ctx = navigatorKey.currentContext;
             if (ctx != null) {
-              final inv = (data['invoice'] ?? '').toString();
+              final inv = orderDisplayId(
+                (data['invoice'] ?? '').toString(),
+                wooOrderId: data['woo_order_id'],
+              );
               final amtRaw = (data['outstanding'] ?? data['amount'] ?? '').toString();
               String amt = amtRaw;
               try { amt = double.parse(amtRaw).toStringAsFixed(2); } catch (_) {}

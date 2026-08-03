@@ -281,7 +281,7 @@ class _CourierTile extends StatelessWidget {
                       final net = d.amount - d.shipping;
                       return ListTile(
                         dense: true,
-                        title: Text(d.invoice),
+                        title: Text(d.displayId),
                         subtitle: Text(
                           context.l10n.courierBalancesCityOrderLine(
                             d.city,
@@ -515,7 +515,7 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
   final collectFromCourier = b.balance > 0; // positive -> collect (courier owes store)
   final actionLabel = collectFromCourier ? context.l10n.settlementTitleCollectFromCourier : context.l10n.settlementTitlePayCourier;
     final netLabel = b.balance.abs().toStringAsFixed(2);
-    final invoices = b.details.map((d) => d.invoice).toList();
+    final invoices = b.details.map((d) => d.displayId).toList();
 
     final confirmed = await showDialog<bool>(
       context: context,

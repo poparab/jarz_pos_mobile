@@ -293,7 +293,7 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${widget.order.invoice} · ${widget.order.customerName}',
+                  '${widget.order.displayId} · ${widget.order.customerName}',
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),

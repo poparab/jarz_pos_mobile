@@ -477,7 +477,7 @@ class _AccountBody extends StatelessWidget {
                         (inv) => ListTile(
                           contentPadding: EdgeInsets.zero,
                           dense: true,
-                          title: Text(inv.name),
+                          title: Text(inv.displayId),
                           subtitle: Text(
                             '${inv.postingDate ?? ''} · '
                             '${inv.orderPurpose ?? ''} · ${inv.status ?? ''}',

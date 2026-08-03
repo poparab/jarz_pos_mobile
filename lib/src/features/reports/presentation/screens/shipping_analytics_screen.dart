@@ -1210,7 +1210,7 @@ class _OverridesSection extends StatelessWidget {
                                   ],
                                   Flexible(
                                     child: Text(
-                                      r.invoice,
+                                      r.displayId,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.bodySmall,
