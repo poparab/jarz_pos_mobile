@@ -187,6 +187,28 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.purchase.create_purchase_invoice';
   static const getPurchaseInvoices =
       '/api/method/jarz_pos.api.purchase.get_purchase_invoices';
+  static const createSupplier =
+      '/api/method/jarz_pos.api.purchase.create_supplier';
+  static const getSupplierGroups =
+      '/api/method/jarz_pos.api.purchase.get_supplier_groups';
+  static const getPurchaseTaxesTemplates =
+      '/api/method/jarz_pos.api.purchase.get_purchase_taxes_templates';
+  static const payPurchaseInvoice =
+      '/api/method/jarz_pos.api.purchase.pay_purchase_invoice';
+  static const returnPurchaseInvoice =
+      '/api/method/jarz_pos.api.purchase.return_purchase_invoice';
+
+  // ── Purchase requests (team item requests) ────────────────────────────
+  static const createItemRequest =
+      '/api/method/jarz_pos.api.purchase_request.create_request';
+  static const listItemRequests =
+      '/api/method/jarz_pos.api.purchase_request.list_requests';
+  static const stopItemRequest =
+      '/api/method/jarz_pos.api.purchase_request.stop_request';
+  static const reopenItemRequest =
+      '/api/method/jarz_pos.api.purchase_request.reopen_request';
+  static const getOpenRequestLines =
+      '/api/method/jarz_pos.api.purchase_request.get_open_request_lines';
 
   // ── Manager ───────────────────────────────────────────────────────────
   static const getManagerDashboardSummary =

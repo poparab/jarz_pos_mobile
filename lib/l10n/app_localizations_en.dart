@@ -4801,4 +4801,274 @@ class AppLocalizationsEn extends AppLocalizations {
   String returnOrderSuccessWithCn(String creditNote) {
     return 'Return completed. Credit note $creditNote created.';
   }
+
+  @override
+  String get menuItemRequests => 'Item Requests';
+
+  @override
+  String get requestsTitle => 'Item Requests';
+
+  @override
+  String get requestsFilterOpen => 'Open';
+
+  @override
+  String get requestsFilterMine => 'Mine';
+
+  @override
+  String get requestsFilterAll => 'All';
+
+  @override
+  String get requestsEmptyOpen => 'Nothing is being requested right now';
+
+  @override
+  String get requestsEmptyMine => 'You have not requested anything yet';
+
+  @override
+  String get requestsEmptyAll => 'No requests yet';
+
+  @override
+  String get requestsEmptyHint =>
+      'Tap + to ask for something you are running out of.';
+
+  @override
+  String get requestsNewTitle => 'Request items';
+
+  @override
+  String get requestsAddItems => 'Add items';
+
+  @override
+  String get requestsNeededBy => 'Needed by';
+
+  @override
+  String get requestsNoteLabel => 'Note (optional)';
+
+  @override
+  String get requestsNoteHint => 'Brand, size, urgency';
+
+  @override
+  String get requestsSubmit => 'Send request';
+
+  @override
+  String requestsSubmitted(Object name) {
+    return 'Request $name sent';
+  }
+
+  @override
+  String requestsSubmitFailed(Object error) {
+    return 'Could not send request: $error';
+  }
+
+  @override
+  String get requestsNoItemsYet => 'No items added yet';
+
+  @override
+  String requestsItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String requestsRequestedBy(Object name) {
+    return 'by $name';
+  }
+
+  @override
+  String get requestsOverdue => 'Overdue';
+
+  @override
+  String get requestsStatusPending => 'Waiting';
+
+  @override
+  String get requestsStatusPartiallyReceived => 'Partly bought';
+
+  @override
+  String get requestsStatusReceived => 'Bought';
+
+  @override
+  String get requestsStatusStopped => 'Rejected';
+
+  @override
+  String get requestsStatusCancelled => 'Cancelled';
+
+  @override
+  String get requestsStatusOrdered => 'Ordered';
+
+  @override
+  String get requestsReject => 'Reject';
+
+  @override
+  String get requestsRejectTitle => 'Reject this request?';
+
+  @override
+  String get requestsRejectReason => 'Reason (optional)';
+
+  @override
+  String get requestsRejected => 'Request rejected';
+
+  @override
+  String get requestsReopen => 'Reopen';
+
+  @override
+  String get requestsReopened => 'Request reopened';
+
+  @override
+  String requestsLineProgress(Object received, Object requested, Object uom) {
+    return '$received of $requested $uom';
+  }
+
+  @override
+  String get requestsBranchLabel => 'Branch';
+
+  @override
+  String get purchaseFromRequests => 'From requests';
+
+  @override
+  String get purchaseFromRequestsTitle => 'Buy requested items';
+
+  @override
+  String get purchaseFromRequestsEmpty => 'No open requests to buy';
+
+  @override
+  String get purchaseFromRequestsHint =>
+      'Quantities are pre-filled with what is still outstanding. Change anything before adding.';
+
+  @override
+  String purchaseRequestedQty(Object qty) {
+    return 'requested $qty';
+  }
+
+  @override
+  String purchaseBuyingLess(Object requested, Object buying) {
+    return 'requested $requested, buying $buying';
+  }
+
+  @override
+  String purchaseOnHand(Object qty) {
+    return 'on hand $qty';
+  }
+
+  @override
+  String purchaseLastPaid(Object rate) {
+    return 'last paid $rate';
+  }
+
+  @override
+  String purchaseAddSelected(Object count) {
+    return 'Add $count to cart';
+  }
+
+  @override
+  String purchaseNeededBy(Object date) {
+    return 'needed $date';
+  }
+
+  @override
+  String get purchaseRequestSources => 'Requested by';
+
+  @override
+  String get purchaseUrgent => 'Urgent';
+
+  @override
+  String get purchasePaymentCredit => 'On account (pay later)';
+
+  @override
+  String get purchasePaymentCreditSubtitle =>
+      'Leaves an outstanding balance with the supplier';
+
+  @override
+  String get purchaseBillNoLabel => 'Supplier bill no.';
+
+  @override
+  String get purchaseBillNoHint => 'From the supplier\'s own invoice';
+
+  @override
+  String get purchaseBillDateLabel => 'Bill date';
+
+  @override
+  String get purchaseTaxesLabel => 'Taxes';
+
+  @override
+  String get purchaseTaxesNone => 'No tax';
+
+  @override
+  String get purchaseNewSupplier => 'New supplier';
+
+  @override
+  String get purchaseNewSupplierName => 'Supplier name';
+
+  @override
+  String get purchaseNewSupplierGroup => 'Supplier group';
+
+  @override
+  String get purchaseNewSupplierPhone => 'Phone (optional)';
+
+  @override
+  String purchaseSupplierCreated(Object name) {
+    return 'Supplier $name created';
+  }
+
+  @override
+  String get purchaseSubmitting => 'Creating purchase';
+
+  @override
+  String get purchaseOutstandingLabel => 'Outstanding';
+
+  @override
+  String get purchasePayNow => 'Pay now';
+
+  @override
+  String purchasePaid(Object entry) {
+    return 'Payment recorded ($entry)';
+  }
+
+  @override
+  String get purchaseReturnAction => 'Return to supplier';
+
+  @override
+  String get purchaseReturnTitle => 'Return to supplier';
+
+  @override
+  String get purchaseReturnReason => 'Reason';
+
+  @override
+  String get purchaseReturnQtyLabel => 'Return qty';
+
+  @override
+  String get purchaseReturnSubmit => 'Create return';
+
+  @override
+  String purchaseReturned(Object name) {
+    return 'Return $name created';
+  }
+
+  @override
+  String get purchaseHistoryFilterSupplier => 'Supplier';
+
+  @override
+  String get purchaseHistoryFilterStatus => 'Status';
+
+  @override
+  String get purchaseHistoryFilterAll => 'All';
+
+  @override
+  String get purchaseHistoryFilterClear => 'Clear filters';
+
+  @override
+  String get purchaseHistorySearchHint => 'Invoice or bill no.';
+
+  @override
+  String purchaseItemsInvoiceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
 }

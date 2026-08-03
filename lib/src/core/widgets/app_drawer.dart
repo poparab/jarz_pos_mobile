@@ -194,6 +194,14 @@ class AppDrawer extends ConsumerWidget {
     ];
 
     final purchasingChildren = <Widget>[
+      // Ungated on purpose: anyone who notices a shortage can raise a request,
+      // and the server gate (ROLES.PURCHASE_REQUEST) is deliberately the widest
+      // in the app. Hiding this behind manager access would defeat the feature.
+      navTile(
+        icon: Icons.playlist_add,
+        title: l10n.menuItemRequests,
+        onTap: () => navigate(AppRoutes.itemRequests),
+      ),
       if (hasManagerAccess)
         navTile(
           icon: Icons.receipt_long,
@@ -266,6 +274,7 @@ class AppDrawer extends ConsumerWidget {
     const financeRoutes = [AppRoutes.expenses, AppRoutes.cashTransfer];
     const purchasingRoutes = [
       AppRoutes.purchase,
+      AppRoutes.itemRequests,
       AppRoutes.manufacturing,
       AppRoutes.stockTransfer,
       AppRoutes.inventoryCount,

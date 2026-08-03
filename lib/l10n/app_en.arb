@@ -2488,5 +2488,162 @@
         "type": "String"
       }
     }
+  },
+  "menuItemRequests": "Item Requests",
+  "requestsTitle": "Item Requests",
+  "requestsFilterOpen": "Open",
+  "requestsFilterMine": "Mine",
+  "requestsFilterAll": "All",
+  "requestsEmptyOpen": "Nothing is being requested right now",
+  "requestsEmptyMine": "You have not requested anything yet",
+  "requestsEmptyAll": "No requests yet",
+  "requestsEmptyHint": "Tap + to ask for something you are running out of.",
+  "requestsNewTitle": "Request items",
+  "requestsAddItems": "Add items",
+  "requestsNeededBy": "Needed by",
+  "requestsNoteLabel": "Note (optional)",
+  "requestsNoteHint": "Brand, size, urgency",
+  "requestsSubmit": "Send request",
+  "requestsSubmitted": "Request {name} sent",
+  "@requestsSubmitted": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "requestsSubmitFailed": "Could not send request: {error}",
+  "@requestsSubmitFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "requestsNoItemsYet": "No items added yet",
+  "requestsItemCount": "{count, plural, =1{1 item} other{{count} items}}",
+  "@requestsItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "requestsRequestedBy": "by {name}",
+  "@requestsRequestedBy": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "requestsOverdue": "Overdue",
+  "requestsStatusPending": "Waiting",
+  "requestsStatusPartiallyReceived": "Partly bought",
+  "requestsStatusReceived": "Bought",
+  "requestsStatusStopped": "Rejected",
+  "requestsStatusCancelled": "Cancelled",
+  "requestsStatusOrdered": "Ordered",
+  "requestsReject": "Reject",
+  "requestsRejectTitle": "Reject this request?",
+  "requestsRejectReason": "Reason (optional)",
+  "requestsRejected": "Request rejected",
+  "requestsReopen": "Reopen",
+  "requestsReopened": "Request reopened",
+  "requestsLineProgress": "{received} of {requested} {uom}",
+  "@requestsLineProgress": {
+    "placeholders": {
+      "received": {},
+      "requested": {},
+      "uom": {}
+    }
+  },
+  "requestsBranchLabel": "Branch",
+  "purchaseFromRequests": "From requests",
+  "purchaseFromRequestsTitle": "Buy requested items",
+  "purchaseFromRequestsEmpty": "No open requests to buy",
+  "purchaseFromRequestsHint": "Quantities are pre-filled with what is still outstanding. Change anything before adding.",
+  "purchaseRequestedQty": "requested {qty}",
+  "@purchaseRequestedQty": {
+    "placeholders": {
+      "qty": {}
+    }
+  },
+  "purchaseBuyingLess": "requested {requested}, buying {buying}",
+  "@purchaseBuyingLess": {
+    "placeholders": {
+      "requested": {},
+      "buying": {}
+    }
+  },
+  "purchaseOnHand": "on hand {qty}",
+  "@purchaseOnHand": {
+    "placeholders": {
+      "qty": {}
+    }
+  },
+  "purchaseLastPaid": "last paid {rate}",
+  "@purchaseLastPaid": {
+    "placeholders": {
+      "rate": {}
+    }
+  },
+  "purchaseAddSelected": "Add {count} to cart",
+  "@purchaseAddSelected": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "purchaseNeededBy": "needed {date}",
+  "@purchaseNeededBy": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "purchaseRequestSources": "Requested by",
+  "purchaseUrgent": "Urgent",
+  "purchasePaymentCredit": "On account (pay later)",
+  "purchasePaymentCreditSubtitle": "Leaves an outstanding balance with the supplier",
+  "purchaseBillNoLabel": "Supplier bill no.",
+  "purchaseBillNoHint": "From the supplier''s own invoice",
+  "purchaseBillDateLabel": "Bill date",
+  "purchaseTaxesLabel": "Taxes",
+  "purchaseTaxesNone": "No tax",
+  "purchaseNewSupplier": "New supplier",
+  "purchaseNewSupplierName": "Supplier name",
+  "purchaseNewSupplierGroup": "Supplier group",
+  "purchaseNewSupplierPhone": "Phone (optional)",
+  "purchaseSupplierCreated": "Supplier {name} created",
+  "@purchaseSupplierCreated": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "purchaseSubmitting": "Creating purchase",
+  "purchaseOutstandingLabel": "Outstanding",
+  "purchasePayNow": "Pay now",
+  "purchasePaid": "Payment recorded ({entry})",
+  "@purchasePaid": {
+    "placeholders": {
+      "entry": {}
+    }
+  },
+  "purchaseReturnAction": "Return to supplier",
+  "purchaseReturnTitle": "Return to supplier",
+  "purchaseReturnReason": "Reason",
+  "purchaseReturnQtyLabel": "Return qty",
+  "purchaseReturnSubmit": "Create return",
+  "purchaseReturned": "Return {name} created",
+  "@purchaseReturned": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "purchaseHistoryFilterSupplier": "Supplier",
+  "purchaseHistoryFilterStatus": "Status",
+  "purchaseHistoryFilterAll": "All",
+  "purchaseHistoryFilterClear": "Clear filters",
+  "purchaseHistorySearchHint": "Invoice or bill no.",
+  "purchaseItemsInvoiceCount": "{count, plural, =1{1 item} other{{count} items}}",
+  "@purchaseItemsInvoiceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

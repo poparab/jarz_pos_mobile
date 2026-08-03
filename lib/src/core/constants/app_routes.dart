@@ -13,6 +13,10 @@ abstract final class AppRoutes {
   static const manager = '/manager';
   static const shiftMonitor = '/shift-monitor';
   static const purchase = '/purchase';
+
+  /// Team item requests. Open to all floor staff, unlike [purchase] which is
+  /// manager-gated — noticing a shortage is not a manager's job.
+  static const itemRequests = '/item-requests';
   static const manufacturing = '/manufacturing';
 
   /// Full-screen SOP execution. A real destination rather than a sheet: the

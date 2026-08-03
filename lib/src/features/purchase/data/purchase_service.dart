@@ -85,6 +85,11 @@ class PurchaseService {
     String? company,
     String? paymentOption,
     double? shippingAmount,
+    String? billNo,
+    String? billDate,
+    String? taxesTemplate,
+    String? remarks,
+    String? idempotencyKey,
   }) async {
     final resp = await _dio.post(
       ApiEndpoints.createPurchaseInvoice,
@@ -96,26 +101,121 @@ class PurchaseService {
         if (company != null) 'company': company,
         if (paymentOption != null) 'payment_option': paymentOption,
         if (shippingAmount != null) 'shipping_amount': shippingAmount,
+        if (billNo != null && billNo.trim().isNotEmpty) 'bill_no': billNo.trim(),
+        if (billDate != null) 'bill_date': billDate,
+        if (taxesTemplate != null) 'taxes_template': taxesTemplate,
+        if (remarks != null && remarks.trim().isNotEmpty) 'remarks': remarks.trim(),
+        // Makes a retried submit safe: the server returns the invoice created
+        // the first time instead of buying the goods twice.
+        if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
       },
     );
-    final payload = resp.data;
-    if (payload is Map && payload['message'] is Map) {
-      return Map<String, dynamic>.from(payload['message'] as Map);
-    }
-    if (payload is Map) return Map<String, dynamic>.from(payload);
-    throw Exception('Unexpected create PI response');
+    return _asMap(resp.data, 'create PI');
   }
 
-  Future<Map<String, dynamic>> getPurchaseInvoices({int limit = 50, int page = 0}) async {
+  Future<Map<String, dynamic>> getPurchaseInvoices({
+    int limit = 50,
+    int page = 0,
+    String? supplier,
+    String? status,
+    String? fromDate,
+    String? toDate,
+    String? search,
+  }) async {
     final resp = await _dio.post(
       ApiEndpoints.getPurchaseInvoices,
-      data: {'limit': limit, 'page': page},
+      data: {
+        'limit': limit,
+        'page': page,
+        if (supplier != null) 'supplier': supplier,
+        if (status != null) 'status': status,
+        if (fromDate != null) 'from_date': fromDate,
+        if (toDate != null) 'to_date': toDate,
+        if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+      },
     );
+    return _asMap(resp.data, 'get PI');
+  }
+
+  Future<Map<String, dynamic>> createSupplier({
+    required String supplierName,
+    String? supplierGroup,
+    String? phone,
+    String? taxId,
+  }) async {
+    final resp = await _dio.post(
+      ApiEndpoints.createSupplier,
+      data: {
+        'supplier_name': supplierName,
+        if (supplierGroup != null) 'supplier_group': supplierGroup,
+        if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
+        if (taxId != null && taxId.trim().isNotEmpty) 'tax_id': taxId.trim(),
+      },
+    );
+    return _asMap(resp.data, 'create supplier');
+  }
+
+  Future<List<Map<String, dynamic>>> getSupplierGroups() async {
+    final resp = await _dio.post(ApiEndpoints.getSupplierGroups, data: {});
     final payload = resp.data;
+    if (payload is Map && payload['message'] is List) {
+      return (payload['message'] as List).cast<Map<String, dynamic>>();
+    }
+    if (payload is List) return payload.cast<Map<String, dynamic>>();
+    return [];
+  }
+
+  Future<Map<String, dynamic>> getPurchaseTaxesTemplates({String? company}) async {
+    final resp = await _dio.post(
+      ApiEndpoints.getPurchaseTaxesTemplates,
+      data: {if (company != null) 'company': company},
+    );
+    return _asMap(resp.data, 'taxes templates');
+  }
+
+  Future<Map<String, dynamic>> payPurchaseInvoice({
+    required String purchaseInvoice,
+    String? paymentOption,
+    double? amount,
+    String? postingDate,
+  }) async {
+    final resp = await _dio.post(
+      ApiEndpoints.payPurchaseInvoice,
+      data: {
+        'purchase_invoice': purchaseInvoice,
+        if (paymentOption != null) 'payment_option': paymentOption,
+        if (amount != null) 'amount': amount,
+        if (postingDate != null) 'posting_date': postingDate,
+      },
+    );
+    return _asMap(resp.data, 'pay PI');
+  }
+
+  Future<Map<String, dynamic>> returnPurchaseInvoice({
+    required String purchaseInvoice,
+    List<Map<String, dynamic>>? items,
+    String? reason,
+    String? postingDate,
+  }) async {
+    final resp = await _dio.post(
+      ApiEndpoints.returnPurchaseInvoice,
+      data: {
+        'purchase_invoice': purchaseInvoice,
+        if (items != null) 'items': items,
+        if (reason != null) 'reason': reason,
+        if (postingDate != null) 'posting_date': postingDate,
+      },
+    );
+    return _asMap(resp.data, 'return PI');
+  }
+
+  /// Frappe usually wraps a whitelisted return value in `message`, but not
+  /// always — unwrap defensively rather than assuming one shape.
+  Map<String, dynamic> _asMap(dynamic payload, String label) {
     if (payload is Map && payload['message'] is Map) {
       return Map<String, dynamic>.from(payload['message'] as Map);
     }
     if (payload is Map) return Map<String, dynamic>.from(payload);
-    throw Exception('Unexpected get PI response');
+    throw Exception('Unexpected $label response');
   }
 }

@@ -8442,6 +8442,456 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Return completed. Credit note {creditNote} created.'**
   String returnOrderSuccessWithCn(String creditNote);
+
+  /// No description provided for @menuItemRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Item Requests'**
+  String get menuItemRequests;
+
+  /// No description provided for @requestsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Item Requests'**
+  String get requestsTitle;
+
+  /// No description provided for @requestsFilterOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get requestsFilterOpen;
+
+  /// No description provided for @requestsFilterMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get requestsFilterMine;
+
+  /// No description provided for @requestsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get requestsFilterAll;
+
+  /// No description provided for @requestsEmptyOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is being requested right now'**
+  String get requestsEmptyOpen;
+
+  /// No description provided for @requestsEmptyMine.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not requested anything yet'**
+  String get requestsEmptyMine;
+
+  /// No description provided for @requestsEmptyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'No requests yet'**
+  String get requestsEmptyAll;
+
+  /// No description provided for @requestsEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to ask for something you are running out of.'**
+  String get requestsEmptyHint;
+
+  /// No description provided for @requestsNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request items'**
+  String get requestsNewTitle;
+
+  /// No description provided for @requestsAddItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Add items'**
+  String get requestsAddItems;
+
+  /// No description provided for @requestsNeededBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed by'**
+  String get requestsNeededBy;
+
+  /// No description provided for @requestsNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get requestsNoteLabel;
+
+  /// No description provided for @requestsNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand, size, urgency'**
+  String get requestsNoteHint;
+
+  /// No description provided for @requestsSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get requestsSubmit;
+
+  /// No description provided for @requestsSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Request {name} sent'**
+  String requestsSubmitted(Object name);
+
+  /// No description provided for @requestsSubmitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send request: {error}'**
+  String requestsSubmitFailed(Object error);
+
+  /// No description provided for @requestsNoItemsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No items added yet'**
+  String get requestsNoItemsYet;
+
+  /// No description provided for @requestsItemCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}'**
+  String requestsItemCount(int count);
+
+  /// No description provided for @requestsRequestedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'by {name}'**
+  String requestsRequestedBy(Object name);
+
+  /// No description provided for @requestsOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get requestsOverdue;
+
+  /// No description provided for @requestsStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get requestsStatusPending;
+
+  /// No description provided for @requestsStatusPartiallyReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Partly bought'**
+  String get requestsStatusPartiallyReceived;
+
+  /// No description provided for @requestsStatusReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought'**
+  String get requestsStatusReceived;
+
+  /// No description provided for @requestsStatusStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get requestsStatusStopped;
+
+  /// No description provided for @requestsStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get requestsStatusCancelled;
+
+  /// No description provided for @requestsStatusOrdered.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered'**
+  String get requestsStatusOrdered;
+
+  /// No description provided for @requestsReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get requestsReject;
+
+  /// No description provided for @requestsRejectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject this request?'**
+  String get requestsRejectTitle;
+
+  /// No description provided for @requestsRejectReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get requestsRejectReason;
+
+  /// No description provided for @requestsRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Request rejected'**
+  String get requestsRejected;
+
+  /// No description provided for @requestsReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get requestsReopen;
+
+  /// No description provided for @requestsReopened.
+  ///
+  /// In en, this message translates to:
+  /// **'Request reopened'**
+  String get requestsReopened;
+
+  /// No description provided for @requestsLineProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{received} of {requested} {uom}'**
+  String requestsLineProgress(Object received, Object requested, Object uom);
+
+  /// No description provided for @requestsBranchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get requestsBranchLabel;
+
+  /// No description provided for @purchaseFromRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'From requests'**
+  String get purchaseFromRequests;
+
+  /// No description provided for @purchaseFromRequestsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy requested items'**
+  String get purchaseFromRequestsTitle;
+
+  /// No description provided for @purchaseFromRequestsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No open requests to buy'**
+  String get purchaseFromRequestsEmpty;
+
+  /// No description provided for @purchaseFromRequestsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantities are pre-filled with what is still outstanding. Change anything before adding.'**
+  String get purchaseFromRequestsHint;
+
+  /// No description provided for @purchaseRequestedQty.
+  ///
+  /// In en, this message translates to:
+  /// **'requested {qty}'**
+  String purchaseRequestedQty(Object qty);
+
+  /// No description provided for @purchaseBuyingLess.
+  ///
+  /// In en, this message translates to:
+  /// **'requested {requested}, buying {buying}'**
+  String purchaseBuyingLess(Object requested, Object buying);
+
+  /// No description provided for @purchaseOnHand.
+  ///
+  /// In en, this message translates to:
+  /// **'on hand {qty}'**
+  String purchaseOnHand(Object qty);
+
+  /// No description provided for @purchaseLastPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'last paid {rate}'**
+  String purchaseLastPaid(Object rate);
+
+  /// No description provided for @purchaseAddSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {count} to cart'**
+  String purchaseAddSelected(Object count);
+
+  /// No description provided for @purchaseNeededBy.
+  ///
+  /// In en, this message translates to:
+  /// **'needed {date}'**
+  String purchaseNeededBy(Object date);
+
+  /// No description provided for @purchaseRequestSources.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested by'**
+  String get purchaseRequestSources;
+
+  /// No description provided for @purchaseUrgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent'**
+  String get purchaseUrgent;
+
+  /// No description provided for @purchasePaymentCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'On account (pay later)'**
+  String get purchasePaymentCredit;
+
+  /// No description provided for @purchasePaymentCreditSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaves an outstanding balance with the supplier'**
+  String get purchasePaymentCreditSubtitle;
+
+  /// No description provided for @purchaseBillNoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier bill no.'**
+  String get purchaseBillNoLabel;
+
+  /// No description provided for @purchaseBillNoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'From the supplier\'\'s own invoice'**
+  String get purchaseBillNoHint;
+
+  /// No description provided for @purchaseBillDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill date'**
+  String get purchaseBillDateLabel;
+
+  /// No description provided for @purchaseTaxesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxes'**
+  String get purchaseTaxesLabel;
+
+  /// No description provided for @purchaseTaxesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No tax'**
+  String get purchaseTaxesNone;
+
+  /// No description provided for @purchaseNewSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'New supplier'**
+  String get purchaseNewSupplier;
+
+  /// No description provided for @purchaseNewSupplierName.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier name'**
+  String get purchaseNewSupplierName;
+
+  /// No description provided for @purchaseNewSupplierGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier group'**
+  String get purchaseNewSupplierGroup;
+
+  /// No description provided for @purchaseNewSupplierPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone (optional)'**
+  String get purchaseNewSupplierPhone;
+
+  /// No description provided for @purchaseSupplierCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier {name} created'**
+  String purchaseSupplierCreated(Object name);
+
+  /// No description provided for @purchaseSubmitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating purchase'**
+  String get purchaseSubmitting;
+
+  /// No description provided for @purchaseOutstandingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get purchaseOutstandingLabel;
+
+  /// No description provided for @purchasePayNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay now'**
+  String get purchasePayNow;
+
+  /// No description provided for @purchasePaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment recorded ({entry})'**
+  String purchasePaid(Object entry);
+
+  /// No description provided for @purchaseReturnAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to supplier'**
+  String get purchaseReturnAction;
+
+  /// No description provided for @purchaseReturnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to supplier'**
+  String get purchaseReturnTitle;
+
+  /// No description provided for @purchaseReturnReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get purchaseReturnReason;
+
+  /// No description provided for @purchaseReturnQtyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Return qty'**
+  String get purchaseReturnQtyLabel;
+
+  /// No description provided for @purchaseReturnSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Create return'**
+  String get purchaseReturnSubmit;
+
+  /// No description provided for @purchaseReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Return {name} created'**
+  String purchaseReturned(Object name);
+
+  /// No description provided for @purchaseHistoryFilterSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier'**
+  String get purchaseHistoryFilterSupplier;
+
+  /// No description provided for @purchaseHistoryFilterStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get purchaseHistoryFilterStatus;
+
+  /// No description provided for @purchaseHistoryFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get purchaseHistoryFilterAll;
+
+  /// No description provided for @purchaseHistoryFilterClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get purchaseHistoryFilterClear;
+
+  /// No description provided for @purchaseHistorySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice or bill no.'**
+  String get purchaseHistorySearchHint;
+
+  /// No description provided for @purchaseItemsInvoiceCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}'**
+  String purchaseItemsInvoiceCount(int count);
 }
 
 class _AppLocalizationsDelegate

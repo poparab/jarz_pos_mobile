@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/localized_formatters.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../purchase/data/purchase_service.dart';
+import '../domain/request_allocation.dart';
+import '../../purchase_request/presentation/widgets/buy_from_requests_sheet.dart';
 import '../../../core/constants/business_constants.dart';
 
 class PurchaseScreen extends ConsumerStatefulWidget {
@@ -23,28 +28,112 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   DateTime postingDate = DateTime.now();
   double shippingAmount = 0.0;
 
+  /// Supplier's own invoice number. ERPNext rejects a duplicate for the same
+  /// supplier, which is the built-in guard against entering a bill twice.
+  String billNo = '';
+  DateTime? billDate;
+  String? taxesTemplate;
+  List<Map<String, dynamic>> taxesTemplates = const [];
+
+  /// Guards the submit path. Without it a double tap on a slow connection
+  /// created two invoices — double stock and double cash out.
+  bool _submitting = false;
+
+  /// Regenerated after every successful submit. Sent with the create call so a
+  /// network-level retry is deduplicated server-side rather than buying twice.
+  String _idempotencyKey = _newIdempotencyKey();
+
   final List<Map<String, dynamic>> cart = [];
   StateSetter? _sheetSetState;
   late final TextEditingController _itemSearchController;
   late final TextEditingController _shippingController;
+  late final TextEditingController _billNoController;
+
+  // Item search runs as explicit state rather than a Future built inside
+  // build(). The old code created a new Future on every rebuild, so changing a
+  // quantity or typing in the shipping box fired a fresh search request.
+  Timer? _itemDebounce;
+  int _itemSearchToken = 0;
+  List<Map<String, dynamic>> _items = const [];
+  bool _itemsLoading = true;
+
+  static String _newIdempotencyKey() =>
+      'pi-${DateTime.now().microsecondsSinceEpoch}-${identityHashCode(DateTime.now())}';
 
   @override
   void initState() {
     super.initState();
     _itemSearchController = TextEditingController(text: itemQuery);
     _shippingController = TextEditingController(text: shippingAmount.toStringAsFixed(2));
+    _billNoController = TextEditingController(text: billNo);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _runItemSearch(itemQuery);
+      _loadTaxesTemplates();
+    });
   }
 
   @override
   void dispose() {
+    _itemDebounce?.cancel();
     _itemSearchController.dispose();
     _shippingController.dispose();
+    _billNoController.dispose();
     for (final line in cart) {
       try {
         (line['qtyCtrl'] as TextEditingController?)?.dispose();
       } catch (_) {}
     }
     super.dispose();
+  }
+
+  void _onItemQueryChanged(String value) {
+    setState(() => itemQuery = value);
+    _itemDebounce?.cancel();
+    // One request per keystroke was the previous behaviour; 300ms of quiet
+    // turns a typed word into roughly two calls instead of twenty.
+    _itemDebounce = Timer(
+      const Duration(milliseconds: 300),
+      () => _runItemSearch(value),
+    );
+  }
+
+  Future<void> _runItemSearch(String query) async {
+    // Monotonic token: a slow response for "ah" must not overwrite the results
+    // already shown for "ahmed".
+    final token = ++_itemSearchToken;
+    if (mounted) setState(() => _itemsLoading = true);
+    try {
+      final results = await ref.read(purchaseServiceProvider).searchItems(query);
+      if (!mounted || token != _itemSearchToken) return;
+      setState(() {
+        _items = results;
+        _itemsLoading = false;
+      });
+    } catch (_) {
+      if (!mounted || token != _itemSearchToken) return;
+      setState(() {
+        _items = const [];
+        _itemsLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadTaxesTemplates() async {
+    try {
+      final payload =
+          await ref.read(purchaseServiceProvider).getPurchaseTaxesTemplates();
+      if (!mounted) return;
+      final templates = ((payload['templates'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+      setState(() {
+        taxesTemplates = templates;
+        taxesTemplate = payload['default'] as String?;
+      });
+    } catch (_) {
+      // Tax templates are optional; a failure here must not block purchasing.
+    }
   }
 
   @override
@@ -54,8 +143,15 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       appBar: AppBar(
         title: Text(l10n.purchaseTitle),
         actions: [
+          // The consolidated buying list — one row per item, demand summed
+          // across every open team request.
           IconButton(
-            tooltip: context.l10n.purchaseHistoryTitle,
+            tooltip: l10n.purchaseFromRequests,
+            icon: const Icon(Icons.playlist_add_check),
+            onPressed: _openBuyFromRequests,
+          ),
+          IconButton(
+            tooltip: l10n.purchaseHistoryTitle,
             icon: const Icon(Icons.history),
             onPressed: _openPurchaseHistory,
           ),
@@ -105,8 +201,21 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
           const SizedBox(height: 8),
           TextField(
             controller: _itemSearchController,
-            decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: l10n.commonSearchItems),
-            onChanged: (v) => setState(() => itemQuery = v),
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              hintText: l10n.commonSearchItems,
+              suffixIcon: _itemsLoading
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : null,
+            ),
+            onChanged: _onItemQueryChanged,
           ),
           const SizedBox(height: 8),
           Expanded(child: _buildItemsList()),
@@ -170,6 +279,8 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                 const SizedBox(height: 8),
                 Expanded(child: _buildCartList()),
                 const SizedBox(height: 8),
+                _buildInvoiceMetaRow(context),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Text(l10n.purchaseShippingLabel),
@@ -198,9 +309,19 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                   children: [
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: cart.isEmpty || supplier == null ? null : _submit,
-                        icon: const Icon(Icons.check),
-                        label: Text(l10n.purchaseSubmit),
+                        onPressed: cart.isEmpty || supplier == null || _submitting
+                            ? null
+                            : _submit,
+                        icon: _submitting
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.check),
+                        label: Text(_submitting
+                            ? l10n.purchaseSubmitting
+                            : l10n.purchaseSubmit),
                       ),
                     ),
                   ],
@@ -306,6 +427,9 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
                         child: Column(
                           children: [
+                            _buildInvoiceMetaRow(context,
+                                onChanged: () => setSheetState(() {})),
+                            const SizedBox(height: 8),
                             Row(
                               children: [
                                 Text(l10n.purchaseShippingLabel),
@@ -331,14 +455,26 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton.icon(
-                                onPressed: cart.isEmpty || supplier == null
-                                    ? null
-                                    : () async {
-                                        await _submit();
-                                        setSheetState(() {});
-                                      },
-                                icon: const Icon(Icons.check),
-                                label: Text(l10n.purchaseSubmit),
+                                onPressed:
+                                    cart.isEmpty || supplier == null || _submitting
+                                        ? null
+                                        : () async {
+                                            await _submit();
+                                            if (context.mounted) {
+                                              setSheetState(() {});
+                                            }
+                                          },
+                                icon: _submitting
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
+                                      )
+                                    : const Icon(Icons.check),
+                                label: Text(_submitting
+                                    ? l10n.purchaseSubmitting
+                                    : l10n.purchaseSubmit),
                               ),
                             ),
                           ],
@@ -441,6 +577,11 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
             Text(l10n.commonRateLabel),
             const SizedBox(width: 6),
             SizedBox(width: 90, child: TextFormField(
+              // Keyed by item, not list position. Without a key Flutter reuses
+              // the field element by index, so deleting a row left the next
+              // row's rate box showing the deleted row's number — silently
+              // mis-pricing the line.
+              key: ValueKey('rate-${line['item_code']}-$i'),
               initialValue: rate.toStringAsFixed(2),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               onChanged: (v) { final r = double.tryParse(v) ?? rate; setState(() => line['rate'] = r); onChanged(); },
@@ -448,6 +589,8 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
             const SizedBox(width: 12),
             Text(l10n.commonAmountValue(amount.toStringAsFixed(2))),
           ]),
+          if (line['requested_qty'] != null)
+            _requestedChip(context, line, qty),
         ],
       ),
       trailing: IconButton(
@@ -460,6 +603,29 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
           onChanged();
           _sheetSetState?.call(() {});
         },
+      ),
+    );
+  }
+
+  /// "requested 40, buying 35" — makes a deliberate deviation from what the
+  /// team asked for visible at a glance instead of silent.
+  Widget _requestedChip(
+      BuildContext context, Map<String, dynamic> line, double qty) {
+    final requested = _num(line['requested_qty']);
+    if (requested <= 0) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+    final deviates = (qty - requested).abs() > 0.0001;
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Text(
+        deviates
+            ? context.l10n
+                .purchaseBuyingLess(_fmtQty(requested), _fmtQty(qty))
+            : context.l10n.purchaseRequestedQty(_fmtQty(requested)),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: deviates ? theme.colorScheme.tertiary : theme.colorScheme.outline,
+          fontWeight: deviates ? FontWeight.w600 : null,
+        ),
       ),
     );
   }
@@ -521,11 +687,28 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     } catch (_) {}
     if (!mounted) return;
     final queryController = TextEditingController(text: supplierQuery);
+    // Monotonic token per dialog: a slow response for "ah" must not land after
+    // — and overwrite — the results already shown for "ahmed".
+    var searchToken = 0;
+    Timer? debounce;
+
     final selected = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (ctx) {
         final dialogL10n = ctx.l10n;
         return StatefulBuilder(builder: (ctx, setStateDialog) {
+          Future<void> runSearch(String query) async {
+            final token = ++searchToken;
+            try {
+              final data = await service.getSuppliers(query);
+              if (token != searchToken) return;
+              setStateDialog(() => results = data);
+            } catch (_) {
+              if (token != searchToken) return;
+              setStateDialog(() => results = const []);
+            }
+          }
+
           return AlertDialog(
             title: Text(dialogL10n.purchaseSelectSupplier),
             content: SizedBox(
@@ -538,20 +721,22 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                       child: TextField(
                         controller: queryController,
                         decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: dialogL10n.commonSearchSuppliers),
-                        onChanged: (v) async {
-                          setStateDialog(() {});
-                          try {
-                            final data = await service.getSuppliers(v);
-                            setStateDialog(() => results = data);
-                          } catch (_) {}
+                        onChanged: (v) {
+                          debounce?.cancel();
+                          debounce = Timer(
+                            const Duration(milliseconds: 300),
+                            () => runSearch(v),
+                          );
                         },
                       ),
                     ),
                     const SizedBox(width: 8),
                     TextButton.icon(
                       onPressed: () async {
+                        final token = ++searchToken;
                         try {
                           final data = await service.getRecentSuppliers();
+                          if (token != searchToken) return;
                           setStateDialog(() => results = data);
                         } catch (_) {}
                       },
@@ -584,50 +769,288 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                 ],
               ),
             ),
+            actions: [
+              // A new vendor turning up mid-purchase used to mean abandoning
+              // the cart and opening Desk.
+              TextButton.icon(
+                onPressed: () => Navigator.pop(ctx, const {'__new__': true}),
+                icon: const Icon(Icons.add, size: 18),
+                label: Text(dialogL10n.purchaseNewSupplier),
+              ),
+            ],
           );
         });
       },
     );
-    if (selected != null) {
-      setState(() {
-        supplier = selected['name'] ?? selected['supplier_name'];
-        supplierQuery = '';
-      });
+
+    debounce?.cancel();
+    queryController.dispose();
+
+    if (selected == null || !mounted) return;
+    if (selected['__new__'] == true) {
+      await _createSupplier();
+      return;
+    }
+    setState(() {
+      supplier = selected['name'] ?? selected['supplier_name'];
+      supplierQuery = '';
+    });
+  }
+
+  Future<void> _createSupplier() async {
+    final service = ref.read(purchaseServiceProvider);
+    final nameController = TextEditingController();
+    final phoneController = TextEditingController();
+    List<Map<String, dynamic>> groups = const [];
+    String? group;
+    try {
+      groups = await service.getSupplierGroups();
+    } catch (_) {}
+    if (!mounted) {
+      nameController.dispose();
+      phoneController.dispose();
+      return;
+    }
+
+    final created = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (ctx) {
+        final dialogL10n = ctx.l10n;
+        return StatefulBuilder(builder: (ctx, setStateDialog) {
+          return AlertDialog(
+            title: Text(dialogL10n.purchaseNewSupplier),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                      labelText: dialogL10n.purchaseNewSupplierName),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: group,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                      labelText: dialogL10n.purchaseNewSupplierGroup),
+                  items: [
+                    for (final g in groups)
+                      DropdownMenuItem(
+                        value: g['name'] as String,
+                        child: Text(g['name'] as String),
+                      ),
+                  ],
+                  onChanged: (v) => setStateDialog(() => group = v),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                      labelText: dialogL10n.purchaseNewSupplierPhone),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(dialogL10n.commonCancel),
+              ),
+              ElevatedButton(
+                onPressed: nameController.text.trim().isEmpty
+                    ? null
+                    : () => Navigator.pop(ctx, {
+                          'supplier_name': nameController.text.trim(),
+                          'supplier_group': group,
+                          'phone': phoneController.text.trim(),
+                        }),
+                child: Text(dialogL10n.commonContinue),
+              ),
+            ],
+          );
+        });
+      },
+    );
+
+    nameController.dispose();
+    phoneController.dispose();
+    if (created == null || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    try {
+      final result = await service.createSupplier(
+        supplierName: created['supplier_name'] as String,
+        supplierGroup: created['supplier_group'] as String?,
+        phone: created['phone'] as String?,
+      );
+      if (!mounted) return;
+      final payload =
+          Map<String, dynamic>.from(result['supplier'] as Map);
+      setState(() => supplier = payload['name'] as String?);
+      messenger.showSnackBar(SnackBar(
+        content: Text(l10n.purchaseSupplierCreated(
+            (payload['supplier_name'] ?? '').toString())),
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.commonErrorWithDetails('$e'))),
+      );
     }
   }
 
   Widget _buildItemsList() {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: ref.read(purchaseServiceProvider).searchItems(itemQuery),
-      builder: (context, snap) {
-        final l10n = context.l10n;
-        if (snap.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final items = snap.data ?? [];
-        if (items.isEmpty) return Center(child: Text(l10n.commonNoItems));
-        return ListView.separated(
-          itemCount: items.length,
-          separatorBuilder: (_, i) => const Divider(height: 1),
-          itemBuilder: (ctx, i) {
-            final itemL10n = ctx.l10n;
-            final it = items[i];
-            final code = it['item_code'];
-            final name = it['item_name'] ?? code;
-            final stockUom = it['stock_uom']?.toString() ?? '';
-            return ListTile(
-              title: Text(itemL10n.commonNameWithCode(name, code)),
-              subtitle: Text(itemL10n.commonUomValue(stockUom)),
-              trailing: ElevatedButton(
-                onPressed: () => _addToCart(it),
-                child: Text(itemL10n.commonAdd),
-              ),
-            );
-          },
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+
+    if (_itemsLoading && _items.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_items.isEmpty) return Center(child: Text(l10n.commonNoItems));
+
+    return ListView.separated(
+      itemCount: _items.length,
+      separatorBuilder: (_, _) => const Divider(height: 1),
+      itemBuilder: (ctx, i) {
+        final itemL10n = ctx.l10n;
+        final it = _items[i];
+        final code = it['item_code'];
+        final name = it['item_name'] ?? code;
+        final stockUom = it['stock_uom']?.toString() ?? '';
+        final onHand = _num(it['on_hand_qty']);
+        final lastPaid = _num(it['last_purchase_rate']);
+        return ListTile(
+          title: Text(itemL10n.commonNameWithCode(name, code)),
+          // Stock and last-paid inline: a buyer choosing a price blind is the
+          // single most common complaint about a bare item picker.
+          subtitle: Row(
+            children: [
+              Text(itemL10n.commonUomValue(stockUom),
+                  style: theme.textTheme.bodySmall),
+              const SizedBox(width: 10),
+              Text(itemL10n.purchaseOnHand(_fmtQty(onHand)),
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: theme.colorScheme.outline)),
+              if (lastPaid > 0) ...[
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    itemL10n.purchaseLastPaid(lastPaid.toStringAsFixed(2)),
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: theme.colorScheme.outline),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          trailing: ElevatedButton(
+            onPressed: () => _addToCart(it),
+            child: Text(itemL10n.commonAdd),
+          ),
         );
       },
     );
   }
+
+  /// Supplier bill reference + tax template.
+  ///
+  /// The bill number is what makes ERPNext's built-in duplicate-invoice guard
+  /// actually fire — it rejects a repeated `bill_no` for the same supplier, but
+  /// only when one is recorded. Without it the same paper invoice could be
+  /// entered twice by two different people.
+  Widget _buildInvoiceMetaRow(BuildContext context, {VoidCallback? onChanged}) {
+    final l10n = context.l10n;
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                // A controller owned by state, not built inline: rebuilding one
+                // per frame resets the cursor to position 0 mid-typing.
+                controller: _billNoController,
+                decoration: InputDecoration(
+                  isDense: true,
+                  labelText: l10n.purchaseBillNoLabel,
+                  hintText: l10n.purchaseBillNoHint,
+                ),
+                onChanged: (v) {
+                  billNo = v;
+                  onChanged?.call();
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton.icon(
+              onPressed: () async {
+                final now = DateTime.now();
+                final picked = await showDatePicker(
+                  context: context,
+                  firstDate: DateTime(now.year - 1),
+                  lastDate: now,
+                  initialDate: billDate ?? now,
+                );
+                if (picked != null) {
+                  setState(() => billDate = picked);
+                  onChanged?.call();
+                }
+              },
+              icon: const Icon(Icons.event_outlined, size: 16),
+              label: Text(
+                billDate == null
+                    ? l10n.purchaseBillDateLabel
+                    : _fmtDate(billDate!),
+              ),
+            ),
+          ],
+        ),
+        if (taxesTemplates.isNotEmpty)
+          Row(
+            children: [
+              Text(l10n.purchaseTaxesLabel),
+              const SizedBox(width: 8),
+              Expanded(
+                child: DropdownButton<String?>(
+                  value: taxesTemplate,
+                  isExpanded: true,
+                  underline: const SizedBox.shrink(),
+                  items: [
+                    DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text(l10n.purchaseTaxesNone),
+                    ),
+                    for (final t in taxesTemplates)
+                      DropdownMenuItem<String?>(
+                        value: t['name'] as String,
+                        child: Text(
+                          (t['title'] ?? t['name']).toString(),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: (v) {
+                    setState(() => taxesTemplate = v);
+                    onChanged?.call();
+                  },
+                ),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  static double _num(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static String _fmtQty(double value) => value == value.roundToDouble()
+      ? value.toStringAsFixed(0)
+      : value.toStringAsFixed(2);
 
   void _addToCart(Map<String, dynamic> it) {
     final code = it['item_code'];
@@ -639,6 +1062,12 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       (p) => (p['uom'] == stockUom),
       orElse: () => {'uom': stockUom, 'rate': 0},
     );
+    final lastPaid = _num(it['last_purchase_rate']);
+    // Prefer the price list, but fall back to what was actually last paid so a
+    // brand-new item does not land in the cart at zero.
+    final rate = _num(priceForStock['rate']) > 0
+        ? _num(priceForStock['rate'])
+        : lastPaid;
     setState(() {
       cart.add({
         'item_code': code,
@@ -647,12 +1076,96 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
         'qty': 1.0,
         // controller for qty two-way binding (supports steppers)
         'qtyCtrl': TextEditingController(text: 1.0.toStringAsFixed(2)),
-        'rate': (priceForStock['rate'] ?? 0).toDouble(),
+        'rate': rate,
         'stock_uom': stockUom,
         'uoms': uoms,
         'prices': prices,
       });
     });
+  }
+
+  /// Open the consolidated buying list and fold the buyer's choices into the
+  /// cart, carrying the request links that let ERPNext close each request.
+  Future<void> _openBuyFromRequests() async {
+    final selections = await BuyFromRequestsSheet.show(context);
+    if (selections == null || selections.isEmpty || !mounted) return;
+
+    setState(() {
+      for (final selection in selections) {
+        final demand = selection.demand;
+        // Demand is expressed in stock UOM, so allocation and the invoice line
+        // agree without a conversion step.
+        var remaining = selection.qty;
+        final links = <Map<String, dynamic>>[];
+        for (final source in demand.sources) {
+          if (remaining <= 0) break;
+          final take = remaining < source.outstandingQty
+              ? remaining
+              : source.outstandingQty;
+          links.add({
+            'material_request': source.materialRequest,
+            'material_request_item': source.materialRequestItem,
+            'qty': take,
+          });
+          remaining -= take;
+        }
+
+        cart.add({
+          'item_code': demand.itemCode,
+          'item_name': demand.itemName,
+          'uom': demand.stockUom,
+          'stock_uom': demand.stockUom,
+          'qty': selection.qty,
+          'qtyCtrl':
+              TextEditingController(text: selection.qty.toStringAsFixed(2)),
+          'rate': demand.lastPurchaseRate,
+          'uoms': [
+            {'uom': demand.stockUom, 'conversion_factor': 1}
+          ],
+          'prices': const <Map<String, dynamic>>[],
+          // Kept on the line so the cart can show "requested N, buying M" and
+          // the submit call can split the purchase across source requests.
+          'requested_qty': demand.outstandingQty,
+          'request_links': links,
+        });
+      }
+    });
+    _sheetSetState?.call(() {});
+  }
+
+  /// Expand a cart line into one or more invoice rows.
+  ///
+  /// A line bought against several requests becomes several rows — one per
+  /// request line — because ERPNext credits `received_qty` per link. The
+  /// distribution itself lives in [allocateAcrossRequests] so it can be tested
+  /// without a widget.
+  List<Map<String, dynamic>> _expandLineForSubmit(Map<String, dynamic> line) {
+    final qty = (line['qty'] as num).toDouble();
+    final base = {
+      'item_code': line['item_code'],
+      'uom': line['uom'],
+      'rate': (line['rate'] as num).toDouble(),
+    };
+
+    final targets = ((line['request_links'] as List?) ?? const [])
+        .cast<Map<String, dynamic>>()
+        .map((link) => RequestAllocationTarget(
+              materialRequest: (link['material_request'] ?? '').toString(),
+              materialRequestItem:
+                  (link['material_request_item'] ?? '').toString(),
+              outstandingQty: _num(link['qty']),
+            ))
+        .toList();
+
+    return [
+      for (final row in allocateAcrossRequests(qty, targets))
+        {
+          ...base,
+          'qty': row.qty,
+          if (row.isLinked) 'material_request': row.materialRequest,
+          if (row.isLinked) 'material_request_item': row.materialRequestItem,
+        },
+    ];
   }
 
   Widget _buildCartList() {
@@ -796,6 +1309,10 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                 SizedBox(
                   width: 100,
                   child: TextFormField(
+                    // See the note on the sheet's rate field: an unkeyed
+                    // TextFormField in a list reuses state by index and shows a
+                    // deleted row's value on the row that takes its place.
+                    key: ValueKey('rate-panel-${line['item_code']}-$i'),
                     initialValue: rate.toStringAsFixed(2),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     onChanged: (v) {
@@ -807,6 +1324,8 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                 const SizedBox(width: 16),
                 Text(itemL10n.commonAmountValue(amount.toStringAsFixed(2))),
               ]),
+              if (line['requested_qty'] != null)
+                _requestedChip(context, line, qty),
             ],
           ),
           trailing: IconButton(
@@ -827,36 +1346,51 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   }
 
   Future<void> _submit() async {
+    // Re-entrancy guard. The button is also disabled while this runs, but the
+    // flag is what actually makes a fast double tap safe.
+    if (_submitting) return;
+
     final service = ref.read(purchaseServiceProvider);
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+
+    final paymentOption = await _choosePaymentOption();
+    if (paymentOption == null || !mounted) return;
+
+    // `_creditPaymentOption` means "buy on supplier terms" — the invoice is
+    // submitted unpaid and settled later from the history sheet.
+    final isPaid = paymentOption != _creditPaymentOption;
+
+    setState(() => _submitting = true);
+    _sheetSetState?.call(() {});
     try {
-      final paymentOption = await _choosePaymentOption();
-      if (paymentOption == null) return;
-      final items = cart
-          .map((l) => {
-                'item_code': l['item_code'],
-                'qty': l['qty'],
-                'uom': l['uom'],
-                'rate': l['rate'],
-              })
-          .toList();
+      final items = cart.expand(_expandLineForSubmit).toList();
       final res = await service.createPurchaseInvoice(
         supplier: supplier!,
         postingDate: _fmtDate(postingDate),
-        isPaid: true,
+        isPaid: isPaid,
         items: items,
-        paymentOption: paymentOption,
+        paymentOption: isPaid ? paymentOption : null,
         shippingAmount: shippingAmount > 0 ? shippingAmount : null,
+        billNo: billNo,
+        billDate: billDate == null ? null : _fmtDate(billDate!),
+        taxesTemplate: taxesTemplate,
+        idempotencyKey: _idempotencyKey,
       );
+      if (!mounted) return;
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.purchaseCreated((res['purchase_invoice'] ?? '-').toString()))),
       );
-      if (!mounted) return;
       _resetForm();
       _sheetSetState?.call(() {});
     } catch (e) {
+      if (!mounted) return;
       messenger.showSnackBar(SnackBar(content: Text(l10n.purchaseSubmitFailed('$e'))));
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+        _sheetSetState?.call(() {});
+      }
     }
   }
 
@@ -905,10 +1439,21 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       itemQuery = '';
       postingDate = DateTime.now();
       shippingAmount = 0.0;
+      billNo = '';
+      billDate = null;
+      // A fresh key per purchase — reusing the previous one would make the
+      // *next* genuine purchase look like a retry of the last.
+      _idempotencyKey = _newIdempotencyKey();
     });
     _itemSearchController.clear();
+    _billNoController.clear();
     _shippingController.text = shippingAmount.toStringAsFixed(2);
+    _runItemSearch('');
   }
+
+  /// Sentinel for "don't pay now". Not a real payment mode — the submit path
+  /// turns it into `is_paid = 0`, leaving a payable against the supplier.
+  static const _creditPaymentOption = '__credit__';
 
   Future<String?> _choosePaymentOption() async {
     // Build dynamic options: all POS Profiles by name, then InstaPay and Cash
@@ -924,34 +1469,46 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
             final dialogL10n = ctx.l10n;
             return AlertDialog(
               title: Text(dialogL10n.purchaseSelectPayment),
-              content: RadioGroup<String>(
-                groupValue: selected,
-                onChanged: (v) => setStateDialog(() => selected = v ?? selected),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // One option per POS Profile (value is the profile name)
-                    for (final p in profiles)
+              content: SingleChildScrollView(
+                child: RadioGroup<String>(
+                  groupValue: selected,
+                  onChanged: (v) => setStateDialog(() => selected = v ?? selected),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // One option per POS Profile (value is the profile name)
+                      for (final p in profiles)
+                        RadioListTile<String>(
+                          value: p['name'] as String,
+                          title: Text(p['name'] as String),
+                          subtitle: Text(dialogL10n.purchasePaymentProfileSubtitle),
+                          dense: true,
+                        ),
+                      const Divider(),
                       RadioListTile<String>(
-                        value: p['name'] as String,
-                        title: Text(p['name'] as String),
-                        subtitle: Text(dialogL10n.purchasePaymentProfileSubtitle),
+                        value: 'instapay',
+                        title: Text(dialogL10n.purchasePaymentInstapayTitle),
+                        subtitle: Text(dialogL10n.purchasePaymentInstapaySubtitle),
                         dense: true,
                       ),
-                    const Divider(),
-                    RadioListTile<String>(
-                      value: 'instapay',
-                      title: Text(dialogL10n.purchasePaymentInstapayTitle),
-                      subtitle: Text(dialogL10n.purchasePaymentInstapaySubtitle),
-                      dense: true,
-                    ),
-                    RadioListTile<String>(
-                      value: PaymentModes.cashLower,
-                      title: Text(dialogL10n.purchasePaymentCashTitle),
-                      subtitle: Text(dialogL10n.purchasePaymentCashSubtitle),
-                      dense: true,
-                    ),
-                  ],
+                      RadioListTile<String>(
+                        value: PaymentModes.cashLower,
+                        title: Text(dialogL10n.purchasePaymentCashTitle),
+                        subtitle: Text(dialogL10n.purchasePaymentCashSubtitle),
+                        dense: true,
+                      ),
+                      const Divider(),
+                      // Buying on supplier terms. Previously impossible from
+                      // the app: is_paid was hardcoded true, so every purchase
+                      // had to be settled on the spot.
+                      RadioListTile<String>(
+                        value: _creditPaymentOption,
+                        title: Text(dialogL10n.purchasePaymentCredit),
+                        subtitle: Text(dialogL10n.purchasePaymentCreditSubtitle),
+                        dense: true,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -983,10 +1540,165 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
   int _page = 0;
   static const _pageSize = 30;
 
+  String? _statusFilter;
+  String _searchQuery = '';
+  Timer? _searchDebounce;
+  final _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     _loadInvoices();
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
+      _searchQuery = value;
+      _refresh();
+    });
+  }
+
+  void _setStatus(String? status) {
+    setState(() => _statusFilter = status);
+    _refresh();
+  }
+
+  /// Settle an outstanding (credit) purchase.
+  Future<void> _pay(Map<String, dynamic> invoice) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final option = await _pickPaymentAccount();
+    if (option == null || !mounted) return;
+    try {
+      final result = await ref.read(purchaseServiceProvider).payPurchaseInvoice(
+            purchaseInvoice: (invoice['name'] ?? '').toString(),
+            paymentOption: option,
+          );
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(
+        content: Text(l10n.purchasePaid((result['payment_entry'] ?? '-').toString())),
+      ));
+      await _refresh();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.commonErrorWithDetails('$e'))),
+      );
+    }
+  }
+
+  Future<String?> _pickPaymentAccount() async {
+    final profiles = ref.read(posNotifierProvider).profiles;
+    String selected = profiles.isNotEmpty
+        ? (profiles.first['name'] as String)
+        : PaymentModes.cashLower;
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setStateDialog) {
+          final dialogL10n = ctx.l10n;
+          return AlertDialog(
+            title: Text(dialogL10n.purchaseSelectPayment),
+            content: SingleChildScrollView(
+              child: RadioGroup<String>(
+                groupValue: selected,
+                onChanged: (v) => setStateDialog(() => selected = v ?? selected),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final p in profiles)
+                      RadioListTile<String>(
+                        value: p['name'] as String,
+                        title: Text(p['name'] as String),
+                        dense: true,
+                      ),
+                    RadioListTile<String>(
+                      value: 'instapay',
+                      title: Text(dialogL10n.purchasePaymentInstapayTitle),
+                      dense: true,
+                    ),
+                    RadioListTile<String>(
+                      value: PaymentModes.cashLower,
+                      title: Text(dialogL10n.purchasePaymentCashTitle),
+                      dense: true,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(dialogL10n.commonCancel),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, selected),
+                child: Text(dialogL10n.commonContinue),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// Send goods back to the supplier. Omitting per-line quantities returns the
+  /// whole invoice, which is what the confirm dialog does.
+  Future<void> _returnInvoice(Map<String, dynamic> invoice) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final reasonController = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.purchaseReturnTitle),
+        content: TextField(
+          controller: reasonController,
+          autofocus: true,
+          decoration: InputDecoration(labelText: ctx.l10n.purchaseReturnReason),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(ctx.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(ctx.l10n.purchaseReturnSubmit),
+          ),
+        ],
+      ),
+    );
+    final reason = reasonController.text;
+    reasonController.dispose();
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final result =
+          await ref.read(purchaseServiceProvider).returnPurchaseInvoice(
+                purchaseInvoice: (invoice['name'] ?? '').toString(),
+                reason: reason,
+              );
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(
+        content: Text(l10n.purchaseReturned((result['return_invoice'] ?? '-').toString())),
+      ));
+      await _refresh();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.commonErrorWithDetails('$e'))),
+      );
+    }
   }
 
   Future<void> _loadInvoices({bool append = false}) async {
@@ -997,7 +1709,12 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
     });
     try {
       final service = ref.read(purchaseServiceProvider);
-      final result = await service.getPurchaseInvoices(limit: _pageSize, page: _page);
+      final result = await service.getPurchaseInvoices(
+        limit: _pageSize,
+        page: _page,
+        status: _statusFilter,
+        search: _searchQuery,
+      );
       final list = (result['invoices'] as List?)?.cast<Map<String, dynamic>>() ?? [];
       setState(() {
         if (append) {
@@ -1030,6 +1747,70 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _filterBar(context),
+        Expanded(child: _list(context)),
+      ],
+    );
+  }
+
+  /// Search + status filters. The history was previously an unfiltered scroll,
+  /// so finding one invoice among months of them meant scrolling to it.
+  Widget _filterBar(BuildContext context) {
+    final l10n = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      child: Column(
+        children: [
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              isDense: true,
+              prefixIcon: const Icon(Icons.search, size: 20),
+              hintText: l10n.purchaseHistorySearchHint,
+              suffixIcon: _searchController.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      onPressed: () {
+                        _searchController.clear();
+                        _searchQuery = '';
+                        _refresh();
+                      },
+                    ),
+            ),
+            onChanged: _onSearchChanged,
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final entry in <(String?, String)>[
+                  (null, l10n.purchaseHistoryFilterAll),
+                  ('Unpaid', l10n.purchaseOutstandingLabel),
+                  ('Paid', l10n.purchasePaymentCashTitle),
+                  ('Overdue', l10n.requestsOverdue),
+                  ('Return', l10n.purchaseReturnAction),
+                ])
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 6),
+                    child: ChoiceChip(
+                      label: Text(entry.$2),
+                      selected: _statusFilter == entry.$1,
+                      onSelected: (_) => _setStatus(entry.$1),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _list(BuildContext context) {
     if (_loading && _invoices.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -1068,10 +1849,13 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
               );
             }
             return _PurchaseInvoiceCard(
+              key: ValueKey(_invoices[index]['name']),
               invoice: _invoices[index],
               onReorder: widget.onNavigateToInvoice != null
                   ? () => widget.onNavigateToInvoice!(_invoices[index])
                   : null,
+              onPay: () => _pay(_invoices[index]),
+              onReturn: () => _returnInvoice(_invoices[index]),
             );
           },
         ),
@@ -1083,7 +1867,15 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
 class _PurchaseInvoiceCard extends StatefulWidget {
   final Map<String, dynamic> invoice;
   final VoidCallback? onReorder;
-  const _PurchaseInvoiceCard({required this.invoice, this.onReorder});
+  final VoidCallback? onPay;
+  final VoidCallback? onReturn;
+  const _PurchaseInvoiceCard({
+    super.key,
+    required this.invoice,
+    this.onReorder,
+    this.onPay,
+    this.onReturn,
+  });
 
   @override
   State<_PurchaseInvoiceCard> createState() => _PurchaseInvoiceCardState();
@@ -1102,6 +1894,8 @@ class _PurchaseInvoiceCardState extends State<_PurchaseInvoiceCard> {
     final outstanding = _parseDouble(inv['outstanding_amount']);
     final status = (inv['status'] ?? '').toString();
     final isPaid = (inv['is_paid'] == 1 || inv['is_paid'] == true);
+    final currency = (inv['currency'] ?? '').toString();
+    final billNo = (inv['bill_no'] ?? '').toString();
     final items = (inv['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
     final statusColor = switch (status.toLowerCase()) {
@@ -1144,7 +1938,7 @@ class _PurchaseInvoiceCardState extends State<_PurchaseInvoiceCard> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          isPaid ? 'Paid' : status,
+                          status.isEmpty && isPaid ? 'Paid' : status,
                           style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
                         ),
                       ),
@@ -1165,18 +1959,27 @@ class _PurchaseInvoiceCardState extends State<_PurchaseInvoiceCard> {
                   Row(
                     children: [
                       Text(
-                        '\$${grandTotal.toStringAsFixed(2)}',
+                        // Was a hardcoded '$' on an EGP business. formatCurrency
+                        // resolves the symbol from the invoice currency and the
+                        // active locale (EGP / ج.م).
+                        formatCurrency(context, grandTotal,
+                            currencyCode: currency),
                         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.green),
                       ),
                       if (outstanding > 0.01) ...[
                         const SizedBox(width: 12),
-                        Text(
-                          'Outstanding: \$${outstanding.toStringAsFixed(2)}',
-                          style: TextStyle(fontSize: 12, color: Colors.red[600]),
+                        Flexible(
+                          child: Text(
+                            '${context.l10n.purchaseOutstandingLabel}: '
+                            '${formatCurrency(context, outstanding, currencyCode: currency)}',
+                            style: TextStyle(fontSize: 12, color: Colors.red[600]),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                       const Spacer(),
-                      Text('${items.length} items', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                      Text(context.l10n.purchaseItemsInvoiceCount(items.length),
+                          style: TextStyle(fontSize: 12, color: Colors.grey[500])),
                       const SizedBox(width: 4),
                       AnimatedRotation(
                         turns: _expanded ? 0.5 : 0,
@@ -1236,20 +2039,52 @@ class _PurchaseInvoiceCardState extends State<_PurchaseInvoiceCard> {
                         ],
                       ),
                     ),
-                  const SizedBox(height: 8),
-                  if (widget.onReorder != null)
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: widget.onReorder,
-                        icon: const Icon(Icons.replay, size: 16),
-                        label: Text(context.l10n.purchaseReorderFromSupplier),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.indigo,
-                          side: const BorderSide(color: Colors.indigo),
+                  if (billNo.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.description_outlined,
+                            size: 13, color: Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${context.l10n.purchaseBillNoLabel} $billNo',
+                          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                         ),
-                      ),
+                      ],
                     ),
+                  ],
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      // Settling a credit purchase later — the counterpart to
+                      // the "on account" payment option.
+                      if (outstanding > 0.01 && widget.onPay != null)
+                        OutlinedButton.icon(
+                          onPressed: widget.onPay,
+                          icon: const Icon(Icons.payments_outlined, size: 16),
+                          label: Text(context.l10n.purchasePayNow),
+                        ),
+                      if (widget.onReturn != null)
+                        OutlinedButton.icon(
+                          onPressed: widget.onReturn,
+                          icon: const Icon(Icons.assignment_return_outlined,
+                              size: 16),
+                          label: Text(context.l10n.purchaseReturnAction),
+                        ),
+                      if (widget.onReorder != null)
+                        OutlinedButton.icon(
+                          onPressed: widget.onReorder,
+                          icon: const Icon(Icons.replay, size: 16),
+                          label: Text(context.l10n.purchaseReorderFromSupplier),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.indigo,
+                            side: const BorderSide(color: Colors.indigo),
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ),

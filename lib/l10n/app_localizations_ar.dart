@@ -4775,4 +4775,272 @@ class AppLocalizationsAr extends AppLocalizations {
   String returnOrderSuccessWithCn(String creditNote) {
     return 'تم المرتجع. اتعمل إشعار دائن $creditNote.';
   }
+
+  @override
+  String get menuItemRequests => 'طلبات الأصناف';
+
+  @override
+  String get requestsTitle => 'طلبات الأصناف';
+
+  @override
+  String get requestsFilterOpen => 'المفتوحة';
+
+  @override
+  String get requestsFilterMine => 'طلباتي';
+
+  @override
+  String get requestsFilterAll => 'الكل';
+
+  @override
+  String get requestsEmptyOpen => 'مفيش حاجة مطلوبة دلوقتي';
+
+  @override
+  String get requestsEmptyMine => 'لسه ماطلبتش حاجة';
+
+  @override
+  String get requestsEmptyAll => 'مفيش طلبات';
+
+  @override
+  String get requestsEmptyHint => 'دوس + عشان تطلب حاجة قربت تخلص.';
+
+  @override
+  String get requestsNewTitle => 'اطلب أصناف';
+
+  @override
+  String get requestsAddItems => 'ضيف أصناف';
+
+  @override
+  String get requestsNeededBy => 'محتاجها قبل';
+
+  @override
+  String get requestsNoteLabel => 'ملاحظة (اختياري)';
+
+  @override
+  String get requestsNoteHint => 'الماركة، المقاس، الاستعجال';
+
+  @override
+  String get requestsSubmit => 'ابعت الطلب';
+
+  @override
+  String requestsSubmitted(Object name) {
+    return 'الطلب $name اتبعت';
+  }
+
+  @override
+  String requestsSubmitFailed(Object error) {
+    return 'الطلب مابعتش: $error';
+  }
+
+  @override
+  String get requestsNoItemsYet => 'لسه مفيش أصناف';
+
+  @override
+  String requestsItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أصناف',
+      one: 'صنف واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String requestsRequestedBy(Object name) {
+    return 'من $name';
+  }
+
+  @override
+  String get requestsOverdue => 'متأخر';
+
+  @override
+  String get requestsStatusPending => 'مستني';
+
+  @override
+  String get requestsStatusPartiallyReceived => 'اتشرى جزء';
+
+  @override
+  String get requestsStatusReceived => 'اتشرى';
+
+  @override
+  String get requestsStatusStopped => 'مرفوض';
+
+  @override
+  String get requestsStatusCancelled => 'ملغي';
+
+  @override
+  String get requestsStatusOrdered => 'اتطلب';
+
+  @override
+  String get requestsReject => 'ارفض';
+
+  @override
+  String get requestsRejectTitle => 'ترفض الطلب ده؟';
+
+  @override
+  String get requestsRejectReason => 'السبب (اختياري)';
+
+  @override
+  String get requestsRejected => 'الطلب اترفض';
+
+  @override
+  String get requestsReopen => 'افتحه تاني';
+
+  @override
+  String get requestsReopened => 'الطلب اتفتح تاني';
+
+  @override
+  String requestsLineProgress(Object received, Object requested, Object uom) {
+    return '$received من $requested $uom';
+  }
+
+  @override
+  String get requestsBranchLabel => 'الفرع';
+
+  @override
+  String get purchaseFromRequests => 'من الطلبات';
+
+  @override
+  String get purchaseFromRequestsTitle => 'اشتري الأصناف المطلوبة';
+
+  @override
+  String get purchaseFromRequestsEmpty => 'مفيش طلبات مفتوحة';
+
+  @override
+  String get purchaseFromRequestsHint =>
+      'الكميات متملية بالباقي المطلوب. غيّر اللي انت عايزه قبل الإضافة.';
+
+  @override
+  String purchaseRequestedQty(Object qty) {
+    return 'مطلوب $qty';
+  }
+
+  @override
+  String purchaseBuyingLess(Object requested, Object buying) {
+    return 'مطلوب $requested، هتشتري $buying';
+  }
+
+  @override
+  String purchaseOnHand(Object qty) {
+    return 'المتاح $qty';
+  }
+
+  @override
+  String purchaseLastPaid(Object rate) {
+    return 'آخر سعر $rate';
+  }
+
+  @override
+  String purchaseAddSelected(Object count) {
+    return 'ضيف $count للسلة';
+  }
+
+  @override
+  String purchaseNeededBy(Object date) {
+    return 'محتاجها $date';
+  }
+
+  @override
+  String get purchaseRequestSources => 'طلبها';
+
+  @override
+  String get purchaseUrgent => 'مستعجل';
+
+  @override
+  String get purchasePaymentCredit => 'على الحساب (تدفع بعدين)';
+
+  @override
+  String get purchasePaymentCreditSubtitle => 'هيفضل رصيد مستحق للمورد';
+
+  @override
+  String get purchaseBillNoLabel => 'رقم فاتورة المورد';
+
+  @override
+  String get purchaseBillNoHint => 'من فاتورة المورد نفسها';
+
+  @override
+  String get purchaseBillDateLabel => 'تاريخ الفاتورة';
+
+  @override
+  String get purchaseTaxesLabel => 'الضرايب';
+
+  @override
+  String get purchaseTaxesNone => 'بدون ضريبة';
+
+  @override
+  String get purchaseNewSupplier => 'مورد جديد';
+
+  @override
+  String get purchaseNewSupplierName => 'اسم المورد';
+
+  @override
+  String get purchaseNewSupplierGroup => 'مجموعة المورد';
+
+  @override
+  String get purchaseNewSupplierPhone => 'التليفون (اختياري)';
+
+  @override
+  String purchaseSupplierCreated(Object name) {
+    return 'المورد $name اتعمل';
+  }
+
+  @override
+  String get purchaseSubmitting => 'بيعمل الشراء';
+
+  @override
+  String get purchaseOutstandingLabel => 'المستحق';
+
+  @override
+  String get purchasePayNow => 'ادفع دلوقتي';
+
+  @override
+  String purchasePaid(Object entry) {
+    return 'الدفع اتسجل ($entry)';
+  }
+
+  @override
+  String get purchaseReturnAction => 'مرتجع للمورد';
+
+  @override
+  String get purchaseReturnTitle => 'مرتجع للمورد';
+
+  @override
+  String get purchaseReturnReason => 'السبب';
+
+  @override
+  String get purchaseReturnQtyLabel => 'كمية المرتجع';
+
+  @override
+  String get purchaseReturnSubmit => 'اعمل المرتجع';
+
+  @override
+  String purchaseReturned(Object name) {
+    return 'المرتجع $name اتعمل';
+  }
+
+  @override
+  String get purchaseHistoryFilterSupplier => 'المورد';
+
+  @override
+  String get purchaseHistoryFilterStatus => 'الحالة';
+
+  @override
+  String get purchaseHistoryFilterAll => 'الكل';
+
+  @override
+  String get purchaseHistoryFilterClear => 'امسح الفلاتر';
+
+  @override
+  String get purchaseHistorySearchHint => 'رقم الفاتورة أو فاتورة المورد';
+
+  @override
+  String purchaseItemsInvoiceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أصناف',
+      one: 'صنف واحد',
+    );
+    return '$_temp0';
+  }
 }
