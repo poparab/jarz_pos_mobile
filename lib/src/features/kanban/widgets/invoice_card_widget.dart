@@ -3160,6 +3160,29 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 duration: const Duration(seconds: 4),
               ),
             );
+          } else if (changeResult['territory_resolved'] == false) {
+            // The address saved, but its city maps to no Territory — so the
+            // shipping cost was NOT recomputed and the courier would settle at
+            // the old rate. Say so rather than showing a plain success tick.
+            final city = (changeResult['unresolved_city'] ?? '').toString();
+            messenger.showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.warning_amber, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Address saved, but "$city" matches no territory — '
+                        'shipping cost was not updated. Fix the address territory.',
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.orange[800],
+                duration: const Duration(seconds: 7),
+              ),
+            );
           } else {
             messenger.showSnackBar(
               SnackBar(
