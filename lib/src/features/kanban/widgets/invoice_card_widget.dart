@@ -2782,9 +2782,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final isFull = invoice.isFullyReturned;
     final bgColor = isFull ? Colors.red[50]! : Colors.orange[50]!;
     final textColor = isFull ? Colors.red[700]! : Colors.orange[800]!;
-    final icon = isFull
-        ? Icons.assignment_return
-        : Icons.assignment_return_outlined;
+    // One icon for both states, deliberately. Full vs partial is already carried
+    // by the background colour, the text colour and the label itself, so a
+    // filled/outlined variant adds no information — but Icons.assignment_return
+    // is used nowhere else in the app, and pulling a new glyph into the
+    // tree-shaken MaterialIcons font changes an asset. That makes the Shorebird
+    // production patch fail with UnpatchableChangeException and forces a full
+    // APK that every staff member has to install by hand (it did exactly that on
+    // 2026-08-03). Not worth it for a redundant icon weight.
+    const icon = Icons.assignment_return_outlined;
 
     final amount = invoice.returnedAmount;
     final String label;
