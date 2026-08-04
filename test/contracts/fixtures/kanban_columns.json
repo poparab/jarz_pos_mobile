@@ -36,6 +36,12 @@
       "name": "Cancelled",
       "color": "#F5F5F5",
       "order": 5
+    },
+    {
+      "id": "returned",
+      "name": "Returned",
+      "color": "#F5F5F5",
+      "order": 6
     }
   ]
 }

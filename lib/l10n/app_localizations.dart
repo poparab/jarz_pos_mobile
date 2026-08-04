@@ -5368,6 +5368,18 @@ abstract class AppLocalizations {
   /// **'Orders can\'\'t be cancelled by dragging. Use the card menu and pick \"Cancel Order\".'**
   String get kanbanCancelViaMenuOnly;
 
+  /// No description provided for @kanbanReturnViaMenuOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders can\'\'t be returned by dragging. Use the card menu and pick \"Return Order\".'**
+  String get kanbanReturnViaMenuOnly;
+
+  /// No description provided for @kanbanFullyReturnedLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This order was fully returned and can no longer be moved.'**
+  String get kanbanFullyReturnedLocked;
+
   /// No description provided for @kanbanMoveOneStage.
   ///
   /// In en, this message translates to:
@@ -6319,6 +6331,30 @@ abstract class AppLocalizations {
   /// **'Custom shipping rejected'**
   String get customShippingBadgeRejected;
 
+  /// No description provided for @returnBadgeFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get returnBadgeFull;
+
+  /// No description provided for @returnBadgePartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partially returned'**
+  String get returnBadgePartial;
+
+  /// No description provided for @returnBadgeFullAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned {amount}'**
+  String returnBadgeFullAmount(Object amount);
+
+  /// No description provided for @returnBadgePartialAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Partially returned {amount}'**
+  String returnBadgePartialAmount(Object amount);
+
   /// No description provided for @receiptSelectImageSource.
   ///
   /// In en, this message translates to:
@@ -6456,6 +6492,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Return'**
   String get statusReturn;
+
+  /// No description provided for @statusReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get statusReturned;
 
   /// No description provided for @statusReturnedToSender.
   ///

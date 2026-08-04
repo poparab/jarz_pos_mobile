@@ -6,18 +6,65 @@ class KanbanColumn {
   final String name;
   final String color;
 
-  KanbanColumn({required this.id, required this.name, required this.color});
+  /// Board position as declared by the backend (the Sales Invoice state field's
+  /// option index). Null on payloads that predate the field — the app then
+  /// falls back to the order the server listed them in.
+  ///
+  /// The board's forward/backward drag guard is index-based, so this ordering
+  /// is load-bearing, not cosmetic: the terminal "Returned" column has the
+  /// highest order and therefore sorts last, after Cancelled.
+  final int? order;
+
+  KanbanColumn({
+    required this.id,
+    required this.name,
+    required this.color,
+    this.order,
+  });
 
   factory KanbanColumn.fromJson(Map<String, dynamic> json) {
     return KanbanColumn(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       color: json['color'] ?? '#F5F5F5',
+      order: _parseOrder(json['order']),
     );
   }
 
+  /// Tolerant parse — the value may arrive as int, double or numeric string.
+  static int? _parseOrder(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is int) return raw;
+    if (raw is num) return raw.toInt();
+    return int.tryParse(raw.toString().trim());
+  }
+
   Map<String, dynamic> toJson() {
-    return {'id': id, 'name': name, 'color': color};
+    return {
+      'id': id,
+      'name': name,
+      'color': color,
+      if (order != null) 'order': order,
+    };
+  }
+
+  /// Sort a board left-to-right by the backend's declared order.
+  ///
+  /// Stable, and columns without an `order` keep their server position, so a
+  /// backend that has not been redeployed yet behaves exactly as before.
+  static List<KanbanColumn> sorted(List<KanbanColumn> columns) {
+    final indexed = <MapEntry<int, KanbanColumn>>[
+      for (var i = 0; i < columns.length; i++) MapEntry(i, columns[i]),
+    ];
+    indexed.sort((a, b) {
+      final left = a.value.order;
+      final right = b.value.order;
+      if (left != null && right != null && left != right) {
+        return left.compareTo(right);
+      }
+      return a.key.compareTo(b.key); // stable fallback
+    });
+    return [for (final entry in indexed) entry.value];
   }
 }
 
@@ -28,6 +75,7 @@ class InvoiceCard {
     DeliveryStatus.delivered,
     DeliveryStatus.completed,
     DeliveryStatus.cancelled,
+    DeliveryStatus.returned,
     'canceled',
   };
 
@@ -95,7 +143,12 @@ class InvoiceCard {
   final bool? canReturnFlag;
   final String? returnBlockCode;
   final String? returnBlockReason;
+  /// Post-dispatch return state: `Partially Returned`, `Fully Returned`, or
+  /// null when nothing has been returned. See [ReturnStatus].
   final String? returnStatus;
+  /// Gross value already credited back to the customer. 0 when nothing has
+  /// been returned, and 0 for older payloads that predate the field.
+  final double returnedAmount;
   final double? customDeliveryIncome;
   final int? wooOrderId;
 
@@ -160,12 +213,35 @@ class InvoiceCard {
     this.returnBlockCode,
     this.returnBlockReason,
     this.returnStatus,
+    this.returnedAmount = 0.0,
     this.customDeliveryIncome,
     this.wooOrderId,
   });
 
   /// The identifier every user-facing surface shows for this order.
   String get displayId => orderDisplayId(name, wooOrderId: wooOrderId);
+
+  /// Normalise the post-dispatch return status.
+  ///
+  /// The backend moved from `custom_return_status` to `return_status`; both are
+  /// read so a card built from an older cached/queued payload keeps working.
+  /// Blank/whitespace-only means "nothing returned" and collapses to null so
+  /// every caller only has to test for null.
+  static String? _parseReturnStatus(Map<String, dynamic> json) {
+    final raw = (json['return_status'] ?? json['custom_return_status'])
+        ?.toString()
+        .trim();
+    return (raw == null || raw.isEmpty) ? null : raw;
+  }
+
+  /// Tolerant numeric parse: the field may arrive as num, numeric string, or be
+  /// absent entirely (older payloads). Anything unparseable degrades to 0
+  /// rather than throwing and taking the whole board down with it.
+  static double _parseAmount(dynamic raw) {
+    if (raw == null) return 0.0;
+    if (raw is num) return raw.toDouble();
+    return double.tryParse(raw.toString().trim()) ?? 0.0;
+  }
 
   /// Parse a backend truthy flag that may arrive as bool, num or string.
   static bool? _parseFlag(dynamic raw) {
@@ -283,7 +359,8 @@ class InvoiceCard {
       canReturnFlag: _parseFlag(json['can_return']),
       returnBlockCode: json['return_block_code']?.toString(),
       returnBlockReason: json['return_block_reason']?.toString(),
-      returnStatus: json['custom_return_status']?.toString(),
+      returnStatus: _parseReturnStatus(json),
+      returnedAmount: _parseAmount(json['returned_amount']),
       customDeliveryIncome: json['custom_delivery_income'] != null
           ? (json['custom_delivery_income'] as num).toDouble()
           : null,
@@ -351,7 +428,11 @@ class InvoiceCard {
       'can_return': canReturnFlag,
       'return_block_code': returnBlockCode,
       'return_block_reason': returnBlockReason,
+      'return_status': returnStatus,
+      // Legacy key kept so a payload written by this build still deserialises
+      // on an older one.
       'custom_return_status': returnStatus,
+      'returned_amount': returnedAmount,
       'custom_delivery_income': customDeliveryIncome,
       'woo_order_id': wooOrderId,
     };
@@ -417,6 +498,7 @@ class InvoiceCard {
   String? returnBlockCode,
   String? returnBlockReason,
   String? returnStatus,
+  double? returnedAmount,
   String? amendmentBlockCode,
   String? amendmentBlockReason,
   double? customDeliveryIncome,
@@ -483,6 +565,7 @@ class InvoiceCard {
       returnBlockCode: returnBlockCode ?? this.returnBlockCode,
       returnBlockReason: returnBlockReason ?? this.returnBlockReason,
       returnStatus: returnStatus ?? this.returnStatus,
+      returnedAmount: returnedAmount ?? this.returnedAmount,
       amendmentBlockCode: amendmentBlockCode ?? this.amendmentBlockCode,
       amendmentBlockReason: amendmentBlockReason ?? this.amendmentBlockReason,
       customDeliveryIncome: clearCustomDeliveryIncome ? null : (customDeliveryIncome ?? this.customDeliveryIncome),
@@ -586,6 +669,24 @@ class InvoiceCard {
 
   bool get hasPartialPayment => !(isFullyPaid || isFullyUnpaid);
 
+  // ── Post-dispatch return ──────────────────────────────────────────────
+  /// Normalised [returnStatus] for comparisons; empty when nothing returned.
+  String get _normalizedReturnStatus =>
+      (returnStatus ?? '').trim().toLowerCase();
+
+  /// Every unit on the order came back. The backend moves these to the
+  /// terminal "Returned" column and refuses any further state change.
+  bool get isFullyReturned =>
+      _normalizedReturnStatus == ReturnStatus.fullyReturned.toLowerCase();
+
+  /// Some — but not all — units came back. The order keeps its current state,
+  /// so the card stays in an active column and needs a badge to say so.
+  bool get isPartiallyReturned =>
+      _normalizedReturnStatus == ReturnStatus.partiallyReturned.toLowerCase();
+
+  /// Anything at all has been returned against this order.
+  bool get hasReturn => _normalizedReturnStatus.isNotEmpty;
+
   bool get _isPostReadyActionBlocked {
     final normalized = status.trim().toLowerCase();
     return _postReadyActionBlockedStatuses.any((blocked) => normalized.contains(blocked));
@@ -599,8 +700,13 @@ class InvoiceCard {
     if (hasUnsettledCourierTxn) {
       return false;
     }
+    // A returned order is already reversed by its credit note; cancelling on
+    // top of that would double-reverse it.
+    if (hasReturn) {
+      return false;
+    }
     final normalized = status.trim().toLowerCase();
-    for (final blocked in const [DeliveryStatus.outForDelivery, DeliveryStatus.outForDeliverySnake, DeliveryStatus.delivered, DeliveryStatus.completed, DeliveryStatus.cancelled]) {
+    for (final blocked in const [DeliveryStatus.outForDelivery, DeliveryStatus.outForDeliverySnake, DeliveryStatus.delivered, DeliveryStatus.completed, DeliveryStatus.cancelled, DeliveryStatus.returned]) {
       if (normalized.contains(blocked)) {
         return false;
       }
@@ -621,7 +727,7 @@ class InvoiceCard {
     if (isReturn || (docstatusValue ?? 1) != 1) {
       return false;
     }
-    if (returnStatus == 'Fully Returned') {
+    if (isFullyReturned) {
       return false;
     }
     final normalized = status.trim().toLowerCase();

@@ -47,8 +47,19 @@ abstract final class DeliveryStatus {
   static const delivered = 'delivered';
   static const completed = 'completed';
   static const cancelled = 'cancelled';
+  /// Terminal kanban state a fully-returned order lands in. Set by the backend
+  /// post-dispatch return workflow — never by a drag.
+  static const returned = 'returned';
   static const pending = 'pending';
   static const accepted = 'accepted';
+}
+
+// ── Post-dispatch return statuses ───────────────────────────────────────
+/// Values of the Sales Invoice `return_status` field. Must match the backend
+/// return workflow exactly; an empty/absent value means "nothing returned".
+abstract final class ReturnStatus {
+  static const partiallyReturned = 'Partially Returned';
+  static const fullyReturned = 'Fully Returned';
 }
 
 // ── Voucher types ───────────────────────────────────────────────────────

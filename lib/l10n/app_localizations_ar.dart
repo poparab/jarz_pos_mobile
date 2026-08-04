@@ -3066,6 +3066,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'مش هينفع تلغي الطلب بالسحب. افتح قائمة الكارت واختار \"إلغاء الطلب\".';
 
   @override
+  String get kanbanReturnViaMenuOnly =>
+      'مش هينفع ترجّع الطلب بالسحب. افتح قائمة الكارت واختار \"مرتجع الطلب\".';
+
+  @override
+  String get kanbanFullyReturnedLocked =>
+      'الطلب ده اترجع بالكامل ومش هينفع يتحرك تاني.';
+
+  @override
   String get kanbanMoveOneStage => 'يمكن التقدم مرحلة واحدة فقط';
 
   @override
@@ -3635,6 +3643,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customShippingBadgeRejected => 'تم رفض الشحن المخصص';
 
   @override
+  String get returnBadgeFull => 'مرتجع بالكامل';
+
+  @override
+  String get returnBadgePartial => 'مرتجع جزئي';
+
+  @override
+  String returnBadgeFullAmount(Object amount) {
+    return 'مرتجع بالكامل $amount';
+  }
+
+  @override
+  String returnBadgePartialAmount(Object amount) {
+    return 'مرتجع جزئي $amount';
+  }
+
+  @override
   String get receiptSelectImageSource => 'اختر مصدر الصورة';
 
   @override
@@ -3706,6 +3730,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statusReturn => 'مرتجع';
+
+  @override
+  String get statusReturned => 'مرتجع بالكامل';
 
   @override
   String get statusReturnedToSender => 'تم الإرجاع إلى المرسل';

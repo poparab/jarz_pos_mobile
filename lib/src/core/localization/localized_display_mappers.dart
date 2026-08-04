@@ -15,6 +15,10 @@ String localizedStatusLabel(BuildContext context, String? rawStatus) {
       return context.l10n.statusDelivered;
     case 'return':
       return context.l10n.statusReturn;
+    // Terminal kanban state for a fully returned order — distinct from the
+    // courier's "Returned to Sender" below.
+    case 'returned':
+      return context.l10n.statusReturned;
     case 'returned to sender':
       return context.l10n.statusReturnedToSender;
     case 'paid':

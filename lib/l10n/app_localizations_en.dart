@@ -3075,6 +3075,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Orders can\'t be cancelled by dragging. Use the card menu and pick \"Cancel Order\".';
 
   @override
+  String get kanbanReturnViaMenuOnly =>
+      'Orders can\'t be returned by dragging. Use the card menu and pick \"Return Order\".';
+
+  @override
+  String get kanbanFullyReturnedLocked =>
+      'This order was fully returned and can no longer be moved.';
+
+  @override
   String get kanbanMoveOneStage => 'Can only move one stage at a time';
 
   @override
@@ -3649,6 +3657,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customShippingBadgeRejected => 'Custom shipping rejected';
 
   @override
+  String get returnBadgeFull => 'Returned';
+
+  @override
+  String get returnBadgePartial => 'Partially returned';
+
+  @override
+  String returnBadgeFullAmount(Object amount) {
+    return 'Returned $amount';
+  }
+
+  @override
+  String returnBadgePartialAmount(Object amount) {
+    return 'Partially returned $amount';
+  }
+
+  @override
   String get receiptSelectImageSource => 'Select Image Source';
 
   @override
@@ -3720,6 +3744,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statusReturn => 'Return';
+
+  @override
+  String get statusReturned => 'Returned';
 
   @override
   String get statusReturnedToSender => 'Returned to Sender';

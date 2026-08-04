@@ -20,6 +20,56 @@ void main() {
         'color': '#FFFFFF',
       });
     });
+
+    test('fromJson reads the backend order, tolerating non-int encodings', () {
+      expect(KanbanColumn.fromJson({'id': 'returned', 'order': 6}).order, 6);
+      expect(KanbanColumn.fromJson({'id': 'returned', 'order': '6'}).order, 6);
+      expect(KanbanColumn.fromJson({'id': 'returned', 'order': 6.0}).order, 6);
+      expect(KanbanColumn.fromJson({'id': 'returned'}).order, isNull);
+    });
+
+    test('toJson emits order only when the backend supplied one', () {
+      expect(
+        KanbanColumn(id: 'returned', name: 'Returned', color: '#FFF', order: 6)
+            .toJson()['order'],
+        6,
+      );
+      expect(
+        KanbanColumn(id: 'returned', name: 'Returned', color: '#FFF')
+            .toJson()
+            .containsKey('order'),
+        isFalse,
+      );
+    });
+
+    test('sorted puts the terminal Returned column last, after Cancelled', () {
+      final shuffled = [
+        KanbanColumn(id: 'returned', name: 'Returned', color: '#FFF', order: 6),
+        KanbanColumn(id: 'received', name: 'Received', color: '#FFF', order: 0),
+        KanbanColumn(id: 'cancelled', name: 'Cancelled', color: '#FFF', order: 5),
+        KanbanColumn(id: 'ready', name: 'Ready', color: '#FFF', order: 2),
+      ];
+
+      expect(
+        KanbanColumn.sorted(shuffled).map((c) => c.id),
+        ['received', 'ready', 'cancelled', 'returned'],
+      );
+    });
+
+    test('sorted preserves server order when no column declares one', () {
+      // An older backend sends no `order`; the board must look exactly as it
+      // did before, not get re-shuffled.
+      final asServed = [
+        KanbanColumn(id: 'received', name: 'Received', color: '#FFF'),
+        KanbanColumn(id: 'ready', name: 'Ready', color: '#FFF'),
+        KanbanColumn(id: 'cancelled', name: 'Cancelled', color: '#FFF'),
+      ];
+
+      expect(
+        KanbanColumn.sorted(asServed).map((c) => c.id),
+        ['received', 'ready', 'cancelled'],
+      );
+    });
   });
 
   group('InvoiceItem', () {
@@ -266,6 +316,129 @@ void main() {
       expect(json['creation'], '2026-06-01 18:40:00');
       expect(json['items'], hasLength(1));
       expect(json['items'][0]['item_code'], 'ITEM-001');
+    });
+
+    // ── Post-dispatch return ────────────────────────────────────────────
+    test('fromJson reads the current return_status / returned_amount keys', () {
+      final card = buildCard(overrides: {
+        'return_status': 'Partially Returned',
+        'returned_amount': 45.5,
+      });
+
+      expect(card.returnStatus, 'Partially Returned');
+      expect(card.returnedAmount, 45.5);
+      expect(card.isPartiallyReturned, isTrue);
+      expect(card.isFullyReturned, isFalse);
+      expect(card.hasReturn, isTrue);
+    });
+
+    test('fromJson still reads the legacy custom_return_status key', () {
+      // Cards queued/cached before the rename must keep working.
+      final card = buildCard(overrides: {
+        'custom_return_status': 'Fully Returned',
+      });
+
+      expect(card.returnStatus, 'Fully Returned');
+      expect(card.isFullyReturned, isTrue);
+      expect(card.hasReturn, isTrue);
+    });
+
+    test('fromJson prefers return_status when both keys are present', () {
+      final card = buildCard(overrides: {
+        'return_status': 'Fully Returned',
+        'custom_return_status': 'Partially Returned',
+      });
+
+      expect(card.returnStatus, 'Fully Returned');
+      expect(card.isFullyReturned, isTrue);
+    });
+
+    test('fromJson treats missing return keys as "nothing returned"', () {
+      // Old cached payloads carry neither key; this must not throw.
+      final card = buildCard();
+
+      expect(card.returnStatus, isNull);
+      expect(card.returnedAmount, 0.0);
+      expect(card.hasReturn, isFalse);
+      expect(card.isFullyReturned, isFalse);
+      expect(card.isPartiallyReturned, isFalse);
+    });
+
+    test('fromJson collapses a blank return status to null', () {
+      final card = buildCard(overrides: {
+        'return_status': '   ',
+        'returned_amount': null,
+      });
+
+      expect(card.returnStatus, isNull);
+      expect(card.hasReturn, isFalse);
+      expect(card.returnedAmount, 0.0);
+    });
+
+    test('fromJson coerces a stringified returned_amount', () {
+      expect(buildCard(overrides: {'returned_amount': '75.25'}).returnedAmount, 75.25);
+      expect(buildCard(overrides: {'returned_amount': 12}).returnedAmount, 12.0);
+      // Unparseable input degrades to zero rather than throwing.
+      expect(buildCard(overrides: {'returned_amount': 'n/a'}).returnedAmount, 0.0);
+    });
+
+    test('return status matching is case and whitespace tolerant', () {
+      final card = buildCard(overrides: {'return_status': ' fully returned '});
+
+      expect(card.isFullyReturned, isTrue);
+    });
+
+    test('a fully returned order can neither be returned again nor cancelled', () {
+      final card = buildCard(overrides: {
+        'status': 'Returned',
+        'return_status': 'Fully Returned',
+      });
+
+      expect(card.canReturn, isFalse);
+      expect(card.canCancel, isFalse);
+      expect(card.canChangeDeliverySlot, isFalse);
+      expect(card.canTransferOrder, isFalse);
+    });
+
+    test('a partially returned order is not cancellable either', () {
+      // Its credit note already reversed part of the order; cancelling on top
+      // would double-reverse it.
+      final card = buildCard(overrides: {
+        'status': 'Received',
+        'return_status': 'Partially Returned',
+      });
+
+      expect(card.canCancel, isFalse);
+    });
+
+    test('toJson round-trips the return fields through fromJson', () {
+      final card = buildCard(overrides: {
+        'return_status': 'Partially Returned',
+        'returned_amount': 30.0,
+      });
+
+      final json = card.toJson();
+      expect(json['return_status'], 'Partially Returned');
+      expect(json['returned_amount'], 30.0);
+      // Legacy key is still written so an older build can read our payload.
+      expect(json['custom_return_status'], 'Partially Returned');
+
+      final restored = InvoiceCard.fromJson(json);
+      expect(restored.returnStatus, 'Partially Returned');
+      expect(restored.returnedAmount, 30.0);
+      expect(restored.isPartiallyReturned, isTrue);
+    });
+
+    test('copyWith carries the return fields forward', () {
+      final card = buildCard(overrides: {
+        'return_status': 'Fully Returned',
+        'returned_amount': 99.0,
+      });
+
+      final moved = card.copyWith(status: 'Returned');
+      expect(moved.returnStatus, 'Fully Returned');
+      expect(moved.returnedAmount, 99.0);
+      expect(moved.isFullyReturned, isTrue);
     });
 
     test('fromJson exposes posting timestamps for received ordering', () {

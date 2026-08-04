@@ -1334,6 +1334,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                       const SizedBox(height: 4),
                       _buildShippingOverrideBadge(widget.invoice.shippingOverrideStatus!, widget.invoice.shippingOverride),
                     ],
+
+                    // Return badge — matters most for a PARTIALLY returned order
+                    // still sitting in an active column, where nothing else on
+                    // the board says a credit note has been posted.
+                    if (widget.invoice.hasReturn) ...[
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: _buildReturnStatusBadge(),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1508,6 +1519,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         return Colors.green;
       case InvoiceStatus.cancelledLower:
         return Colors.red;
+      case DeliveryStatus.returned:
+      case 'credit note issued':
+        return Colors.deepOrange;
       case 'overdue':
         return Colors.orange;
       default:
@@ -2748,6 +2762,66 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           Text(
             label,
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: textColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Badge for an order with a posted credit note against it.
+  ///
+  /// A fully returned order already lives in the terminal "Returned" column, so
+  /// the column itself carries that message; this badge earns its keep on the
+  /// PARTIALLY returned card that is still sitting in an active column and
+  /// otherwise looks like an ordinary order. Same shape/typography as
+  /// [_buildShippingOverrideBadge] so the card keeps one badge language.
+  Widget _buildReturnStatusBadge() {
+    final invoice = widget.invoice;
+    if (!invoice.hasReturn) return const SizedBox.shrink();
+
+    final isFull = invoice.isFullyReturned;
+    final bgColor = isFull ? Colors.red[50]! : Colors.orange[50]!;
+    final textColor = isFull ? Colors.red[700]! : Colors.orange[800]!;
+    final icon = isFull
+        ? Icons.assignment_return
+        : Icons.assignment_return_outlined;
+
+    final amount = invoice.returnedAmount;
+    final String label;
+    if (amount > 0) {
+      final money = formatCurrency(context, amount);
+      label = isFull
+          ? context.l10n.returnBadgeFullAmount(money)
+          : context.l10n.returnBadgePartialAmount(money);
+    } else {
+      label = isFull
+          ? context.l10n.returnBadgeFull
+          : context.l10n.returnBadgePartial;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: textColor.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: textColor),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
+            ),
           ),
         ],
       ),

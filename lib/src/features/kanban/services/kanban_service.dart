@@ -74,9 +74,12 @@ class KanbanService {
 
       if (response.data["message"]["success"] == true) {
         final List<dynamic> columnsData = response.data["message"]["columns"];
-        final columns = columnsData
-            .map((column) => KanbanColumn.fromJson(column))
-            .toList();
+        // Sort by the backend's declared `order` so the board's index-based
+        // drag guard can never be thrown off by response ordering. Stable, and
+        // a no-op when the server already sends them in order.
+        final columns = KanbanColumn.sorted(
+          columnsData.map((column) => KanbanColumn.fromJson(column)).toList(),
+        );
         _logger.debug("Retrieved ${columns.length} columns");
         return columns;
       } else {

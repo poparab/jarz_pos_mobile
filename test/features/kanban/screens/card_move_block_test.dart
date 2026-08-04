@@ -12,12 +12,15 @@ void main() {
     KanbanColumn(id: 'ready', name: 'Ready', color: '#CCC'),
     KanbanColumn(id: 'out_for_delivery', name: 'Out For Delivery', color: '#BBB'),
     KanbanColumn(id: 'courier_settlement', name: 'Courier Settlement', color: '#AAA'),
+    // Terminal Returned column, last on the board (backend order 6).
+    KanbanColumn(id: 'returned', name: 'Returned', color: '#999'),
   ];
 
   CardMoveBlockReason? evaluate(
     String from,
     String to, {
     bool isPickup = false,
+    bool isFullyReturned = false,
     List<KanbanColumn>? withColumns,
   }) {
     return evaluateCardMoveBlock(
@@ -25,6 +28,7 @@ void main() {
       fromColumnId: from,
       toColumnId: to,
       isPickupLookup: () => isPickup,
+      isFullyReturnedLookup: () => isFullyReturned,
     );
   }
 
@@ -107,6 +111,131 @@ void main() {
     });
   });
 
+  group('isReturnedKanbanColumn', () {
+    test('should match the Returned column on id or name', () {
+      expect(
+        isReturnedKanbanColumn(
+            KanbanColumn(id: 'returned', name: 'Whatever', color: '#FFF')),
+        isTrue,
+      );
+      expect(
+        isReturnedKanbanColumn(
+            KanbanColumn(id: 'x', name: 'RETURNED', color: '#FFF')),
+        isTrue,
+      );
+    });
+
+    test('should not match the unrelated "Returned to Sender" courier status', () {
+      expect(
+        isReturnedKanbanColumn(KanbanColumn(
+            id: 'returned_to_sender', name: 'Returned to Sender', color: '#FFF')),
+        isFalse,
+      );
+    });
+
+    test('should not match ordinary columns', () {
+      expect(
+        isReturnedKanbanColumn(
+            KanbanColumn(id: 'ready', name: 'Ready', color: '#FFF')),
+        isFalse,
+      );
+    });
+  });
+
+  group('evaluateCardMoveBlock — Returned column is drag-proof', () {
+    test('should block a forward move into Returned', () {
+      expect(
+        evaluate('courier_settlement', 'returned'),
+        CardMoveBlockReason.returnViaMenuOnly,
+      );
+    });
+
+    test('should block a backward move into Returned', () {
+      final backwardBoard = [
+        KanbanColumn(id: 'received', name: 'Received', color: '#FFF'),
+        KanbanColumn(id: 'returned', name: 'Returned', color: '#FFF'),
+        KanbanColumn(id: 'ready', name: 'Ready', color: '#FFF'),
+      ];
+      expect(
+        evaluate('ready', 'returned', withColumns: backwardBoard),
+        CardMoveBlockReason.returnViaMenuOnly,
+      );
+    });
+
+    test('should report return-via-menu, not "one stage at a time", for far drops', () {
+      // Ordering guard: the Returned check must precede the distance check so
+      // staff are told how to actually return an order.
+      expect(
+        evaluate('received', 'returned'),
+        CardMoveBlockReason.returnViaMenuOnly,
+      );
+    });
+
+    test('should resolve a blocking reason for every source column', () {
+      for (final source in columns.where((c) => c.id != 'returned')) {
+        expect(
+          evaluate(source.id, 'returned'),
+          CardMoveBlockReason.returnViaMenuOnly,
+          reason: 'from ${source.id}',
+        );
+      }
+    });
+  });
+
+  group('evaluateCardMoveBlock — a fully returned order is frozen', () {
+    test('should block a move out of the Returned column', () {
+      expect(
+        evaluate('returned', 'ready', isFullyReturned: true),
+        CardMoveBlockReason.fullyReturnedLocked,
+      );
+    });
+
+    test('should block an otherwise legal single forward step', () {
+      expect(evaluate('received', 'processing'), isNull);
+      expect(
+        evaluate('received', 'processing', isFullyReturned: true),
+        CardMoveBlockReason.fullyReturnedLocked,
+      );
+    });
+
+    test('should beat every target-specific guard', () {
+      // Whatever the target, the reason must name the return — not pickup,
+      // cancellation, direction or distance.
+      for (final target in columns.where((c) => c.id != 'ready')) {
+        expect(
+          evaluate('ready', target.id, isFullyReturned: true, isPickup: true),
+          CardMoveBlockReason.fullyReturnedLocked,
+          reason: 'to ${target.id}',
+        );
+      }
+    });
+
+    test('should still no-op silently when dropped back on its own column', () {
+      expect(
+        evaluate('returned', 'returned', isFullyReturned: true),
+        CardMoveBlockReason.sameColumn,
+      );
+    });
+
+    test('should leave a partially returned order movable', () {
+      // Partial returns keep the order in its active column and it must stay
+      // draggable — only FULL returns are terminal.
+      expect(evaluate('received', 'processing', isFullyReturned: false), isNull);
+    });
+
+    test('should default to movable when no return lookup is supplied', () {
+      expect(
+        evaluateCardMoveBlock(
+          columns: columns,
+          fromColumnId: 'received',
+          toColumnId: 'processing',
+          isPickupLookup: () => false,
+        ),
+        isNull,
+      );
+    });
+  });
+
   group('evaluateCardMoveBlock — existing guards still hold', () {
     test('should allow a single forward step', () {
       expect(evaluate('received', 'processing'), isNull);
@@ -177,6 +306,27 @@ void main() {
           reason: 'from ${source.id}',
         );
       }
+    });
+
+    test('should never offer Returned as a move target', () {
+      for (final source in columns) {
+        expect(
+          targetsFor(source.id).where(isReturnedKanbanColumn),
+          isEmpty,
+          reason: 'from ${source.id}',
+        );
+      }
+    });
+
+    test('should offer nothing at all for a fully returned order', () {
+      // The sheet short-circuits on this, but the filter must agree: a frozen
+      // order has no legal target anywhere on the board.
+      final targets = columns
+          .where((column) => column.id != 'returned')
+          .where((column) =>
+              evaluate('returned', column.id, isFullyReturned: true) == null)
+          .toList();
+      expect(targets, isEmpty);
     });
 
     test('should still offer the legitimate next stage', () {

@@ -655,6 +655,8 @@ class _OrderCard extends StatelessWidget {
         return Colors.green.shade50;
       case 'cancelled':
         return Colors.red.shade50;
+      case 'returned':
+        return Colors.deepOrange.shade50;
       default:
         return theme.colorScheme.surfaceContainerHighest;
     }

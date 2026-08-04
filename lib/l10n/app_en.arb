@@ -1371,6 +1371,8 @@
   "kanbanPickupNoSettlement": "Pickup orders don''t require settlement",
   "kanbanCannotMoveBackward": "Cannot move backward",
   "kanbanCancelViaMenuOnly": "Orders can''t be cancelled by dragging. Use the card menu and pick \"Cancel Order\".",
+  "kanbanReturnViaMenuOnly": "Orders can''t be returned by dragging. Use the card menu and pick \"Return Order\".",
+  "kanbanFullyReturnedLocked": "This order was fully returned and can no longer be moved.",
   "kanbanMoveOneStage": "Can only move one stage at a time",
   "kanbanAllBranches": "All Branches",
   "kanbanBranchCount": "{count} branches",
@@ -1718,6 +1720,20 @@
     }
   },
   "customShippingBadgeRejected": "Custom shipping rejected",
+  "returnBadgeFull": "Returned",
+  "returnBadgePartial": "Partially returned",
+  "returnBadgeFullAmount": "Returned {amount}",
+  "@returnBadgeFullAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "returnBadgePartialAmount": "Partially returned {amount}",
+  "@returnBadgePartialAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
   "receiptSelectImageSource": "Select Image Source",
   "receiptCamera": "Camera",
   "receiptGallery": "Gallery",
@@ -1751,6 +1767,7 @@
   "statusCompleted": "Completed",
   "statusDelivered": "Delivered",
   "statusReturn": "Return",
+  "statusReturned": "Returned",
   "statusReturnedToSender": "Returned to Sender",
   "statusPaid": "Paid",
   "statusUnpaid": "Unpaid",

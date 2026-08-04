@@ -1142,6 +1142,18 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     // Clear any previous error so it doesn't persist on the screen
     final messenger = ScaffoldMessenger.of(screenContext);
     ref.read(kanbanProvider.notifier).clearError();
+
+    // Last funnel before any state change: a fully returned order is terminal.
+    // The DragTarget and the mobile sheet already block it, but every move ends
+    // up here, so the guard lives here too rather than trusting the callers.
+    if (_findInvoice(invoiceId)?.isFullyReturned ?? false) {
+      messenger.removeCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.kanbanFullyReturnedLocked)),
+      );
+      return;
+    }
+
     final targetColumn = ref.read(kanbanProvider).columns.firstWhere(
       (col) => col.id == toColumnId,
       orElse: () => KanbanColumn(id: toColumnId, name: toColumnId, color: '#F5F5F5'),
@@ -1546,6 +1558,15 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   }
 
   Future<void> _showMobileMoveSheet(InvoiceCard invoice, String fromColumnId) async {
+    // A fully returned order is frozen, so bail out with the real reason rather
+    // than the generic "one stage at a time" the empty-target branch would give.
+    if (invoice.isFullyReturned) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.kanbanFullyReturnedLocked)),
+      );
+      return;
+    }
+
     final columns = ref.read(kanbanProvider).columns;
     final targets = columns
         .where((column) => column.id != fromColumnId)
@@ -1643,6 +1664,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       // Lazy: only resolved when the target is the settlement column, so a plain
       // hover over other columns does not scan the whole board.
       isPickupLookup: () => _findInvoice(invoiceId)?.isPickup ?? false,
+      isFullyReturnedLookup: () =>
+          _findInvoice(invoiceId)?.isFullyReturned ?? false,
     );
 
     switch (reason) {
@@ -1650,10 +1673,14 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         return null;
       case CardMoveBlockReason.sameColumn:
         return '';
+      case CardMoveBlockReason.fullyReturnedLocked:
+        return context.l10n.kanbanFullyReturnedLocked;
       case CardMoveBlockReason.pickupNoSettlement:
         return context.l10n.kanbanPickupNoSettlement;
       case CardMoveBlockReason.cancelViaMenuOnly:
         return context.l10n.kanbanCancelViaMenuOnly;
+      case CardMoveBlockReason.returnViaMenuOnly:
+        return context.l10n.kanbanReturnViaMenuOnly;
       case CardMoveBlockReason.cannotMoveBackward:
         return context.l10n.kanbanCannotMoveBackward;
       case CardMoveBlockReason.moveOneStage:
@@ -2250,8 +2277,10 @@ class _BranchFilterButton extends ConsumerWidget {
 /// `_cardMoveBlockMessage`; [sameColumn] blocks silently.
 enum CardMoveBlockReason {
   sameColumn,
+  fullyReturnedLocked,
   pickupNoSettlement,
   cancelViaMenuOnly,
+  returnViaMenuOnly,
   cannotMoveBackward,
   moveOneStage,
 }
@@ -2263,27 +2292,49 @@ bool isCancelledKanbanColumn(KanbanColumn column) {
   return id.contains('cancelled') || name.contains('cancelled');
 }
 
+/// True when [column] is the terminal Returned column.
+///
+/// Matches `returned` but deliberately NOT the older `Returned to Sender`
+/// courier status, which is a different thing entirely.
+bool isReturnedKanbanColumn(KanbanColumn column) {
+  bool matches(String value) {
+    final normalized = value.trim().toLowerCase().replaceAll(' ', '_');
+    return normalized == 'returned' || normalized == 'return';
+  }
+
+  return matches(column.id) || matches(column.name);
+}
+
 /// Pure move-validation for the kanban board. Returns null when the move is
 /// allowed, otherwise the reason it is blocked.
 ///
 /// Guard order matters and is asserted by tests:
 ///  1. same column          -> silent no-op
-///  2. pickup -> settlement -> pickup orders never settle
-///  3. -> Cancelled         -> ALWAYS blocked, any direction. Cancelling has to
+///  2. fully returned       -> the card itself is frozen, so this beats every
+///     target-specific guard below. The server rejects the move anyway; doing
+///     it here saves the round-trip and gives immediate feedback.
+///  3. pickup -> settlement -> pickup orders never settle
+///  4. -> Cancelled         -> ALWAYS blocked, any direction. Cancelling has to
 ///     capture a reason + notes and honour canCancel / hasPartialPayment, which
 ///     only the card's "Cancel Order" menu action does. This must stay ahead of
 ///     the backward guard, otherwise a backward drag into Cancelled would report
 ///     the unhelpful "Cannot move backward" instead.
-///  4. backward             -> not allowed
-///  5. forward > 1 stage    -> one stage at a time
+///  5. -> Returned          -> ALWAYS blocked, any direction. Reaching Returned
+///     means a credit note was posted; only the card's "Return Order" action
+///     can do that. Same ordering reasoning as Cancelled.
+///  6. backward             -> not allowed
+///  7. forward > 1 stage    -> one stage at a time
 ///
 /// [isPickupLookup] is called lazily, only when the target is the settlement
 /// column, so hovering other columns stays cheap during a drag.
+/// [isFullyReturnedLookup] is likewise lazy, and defaults to "not returned" so
+/// callers that predate the return workflow keep their old behaviour.
 CardMoveBlockReason? evaluateCardMoveBlock({
   required List<KanbanColumn> columns,
   required String fromColumnId,
   required String toColumnId,
   required bool Function() isPickupLookup,
+  bool Function()? isFullyReturnedLookup,
 }) {
   if (columns.isEmpty) return null;
 
@@ -2305,6 +2356,12 @@ CardMoveBlockReason? evaluateCardMoveBlock({
     return CardMoveBlockReason.sameColumn;
   }
 
+  // FULLY-RETURNED GUARD: a fully returned order is terminal. It cannot leave
+  // the Returned column and nothing can be dragged onto it either.
+  if (isFullyReturnedLookup?.call() ?? false) {
+    return CardMoveBlockReason.fullyReturnedLocked;
+  }
+
   // PICKUP ORDER VALIDATION: Prevent pickup orders from going to Courier Settlement
   final targetColumn = columns[toIndex];
   final targetName = targetColumn.name.trim().toLowerCase();
@@ -2321,6 +2378,12 @@ CardMoveBlockReason? evaluateCardMoveBlock({
   // backward guard.
   if (isCancelledKanbanColumn(targetColumn)) {
     return CardMoveBlockReason.cancelViaMenuOnly;
+  }
+
+  // RETURN GUARD — same reasoning as the cancellation guard: the column is
+  // only ever reached by the backend return workflow, never by a drag.
+  if (isReturnedKanbanColumn(targetColumn)) {
+    return CardMoveBlockReason.returnViaMenuOnly;
   }
 
   final isBackward = toIndex < fromIndex;
