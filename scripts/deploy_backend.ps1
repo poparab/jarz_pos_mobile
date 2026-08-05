@@ -36,26 +36,20 @@ if (-not (Test-Path $SshKeyPath)) {
 # upstream frappe/hrms commits shipped straight to production — and any hrms
 # schema change would have hit `bench migrate` for the first time on prod.
 # Keep this single list; do not re-introduce a per-environment variant.
-# jarz_courier is DELIBERATELY not listed yet — see below.
+# jarz_courier MUST stay after jarz_pos: it declares required_apps = ["jarz_pos"]
+# and `bench install-app` fails if a required app is not installed yet.
+#
+# An app listed here must be readable by the servers' /home/ubuntu/.ssh/id_ed25519.
+# Listing one that is not makes Ensure-AppCloned fail on the clone, which aborts
+# EVERY backend deploy including a POS hotfix — that happened on 2026-08-05 while
+# jarz_courier was still a private repo the servers had no key for. Confirm with
+# `git ls-remote` from the server before adding an app here.
+# jarz_courier is intentionally NOT listed yet: it is cloned on staging and in
+# sites/apps.txt, but the editable pip install has not completed, so
+# `bench install-app` still fails with ModuleNotFoundError. Listing it makes the
+# bootstrap fail and takes every backend deploy down with it. Re-add once the
+# pip install is confirmed (see BOOTSTRAP-NOTES below).
 $deployedApps = @('jarz_pos', 'jarz_woocommerce_integration', 'hrms')
-
-# ── Adding jarz_courier ──────────────────────────────────────────────────────
-# Append 'jarz_courier' to $deployedApps ONLY once the servers can clone it.
-# Order matters when you do: it declares required_apps = ["jarz_pos"] and
-# `bench install-app` fails if a required app is not installed yet, so it must
-# come after jarz_pos.
-#
-# Blocked on access, not on code. github.com/poparab/jarz_courier is private and
-# the servers' /home/ubuntu/.ssh/id_ed25519 cannot read it. That key is already
-# registered as a deploy key on another repo, and GitHub refuses to reuse one
-# deploy key across repos, so unblocking needs either:
-#   * making the repo public (matching the other three), or
-#   * a dedicated key pair per server registered as its deploy key.
-#
-# Listing it before then makes Ensure-AppCloned fail on the clone, which aborts
-# EVERY backend deploy including a POS hotfix. That is exactly what happened on
-# 2026-08-05; no partial clone was left behind, and reverting this line restored
-# deploys immediately.
 
 # Clone URLs for first-time bootstrap. Only consulted when an app in $deployedApps
 # is genuinely absent from the server, so an app already on disk (hrms) needs no
@@ -371,7 +365,16 @@ function Get-SiteInstalledApps([string]$BackendContainer) {
 }
 
 function Ensure-AppCloned([string]$AppName) {
+    $appPath = "$remoteAppsDir/$AppName"
+
     if (Test-AppCloned $AppName) {
+        # Ownership is re-asserted on EVERY run, not just after a fresh clone.
+        # `sudo git clone` produces root:root, and if anything interrupts the
+        # bootstrap between the clone and the chown the app is left unusable —
+        # the containers exec as uid 1000 (`ubuntu` on the host) and cannot write
+        # it. Re-running would then skip the chown forever, because the clone now
+        # exists. It is a cheap no-op when already correct.
+        Invoke-Remote "sudo chown -R ubuntu:ubuntu $appPath" | Out-Null
         return $false
     }
 
@@ -381,13 +384,16 @@ function Ensure-AppCloned([string]$AppName) {
                "`$appRepos. Register its clone URL before adding it to `$deployedApps.")
     }
 
-    $appPath = "$remoteAppsDir/$AppName"
     Write-Step "Bootstrapping $AppName - cloning (first install)..."
+    # --quiet is required, not cosmetic. git writes "Cloning into '...'" and its
+    # progress meter to STDERR, and Invoke-Remote merges stderr with 2>&1. Under
+    # Windows PowerShell 5.1 a native command's stderr becomes NativeCommandError
+    # records, which $ErrorActionPreference='Stop' treats as fatal — so a
+    # perfectly successful clone aborted the deploy mid-bootstrap, leaving the
+    # repo on disk as root:root with no chown and no install.
+    #
     # Full clone, never --depth: Assert-AppRepoIntegrity rejects shallow clones.
-    Invoke-Remote "sudo GIT_SSH_COMMAND='$gitSshCommand' git clone $repoUrl $appPath" | Out-Null
-    # The containers run as uid 1000, which is `ubuntu` on the host. A clone made
-    # by root leaves every file unwritable to bench. Same reason the pull path
-    # chowns after fetching.
+    Invoke-Remote "sudo GIT_SSH_COMMAND='$gitSshCommand' git clone --quiet $repoUrl $appPath" | Out-Null
     Invoke-Remote "sudo chown -R ubuntu:ubuntu $appPath" | Out-Null
     Write-Info "$AppName cloned"
     return $true
@@ -403,6 +409,30 @@ function Add-AppToBenchAppsTxt([string]$AppName, [string]$BackendContainer) {
     Invoke-Remote $cmd | Out-Null
 }
 
+# ── BOOTSTRAP-NOTES ──────────────────────────────────────────────────────────
+# State of the jarz_courier first install as of 2026-08-05, and the order the
+# steps must succeed in. On staging it is cloned at
+# /var/lib/docker/volumes/erp_apps/_data/jarz_courier (uid 1000, full clone) but
+# NOT yet pip-installed, so `bench install-app` still fails with
+# ModuleNotFoundError. It has been removed from sites/apps.txt again — leaving a
+# name there that Python cannot import makes `bench list-apps` print a traceback
+# to stderr, which this script's Invoke-Remote turns into a fatal
+# NativeCommandError and takes every deploy down with it.
+#
+# Remaining step, to run once and confirm before re-adding jarz_courier to
+# $deployedApps:
+#
+#   docker exec -u root <backend> /home/frappe/frappe-bench/env/bin/pip \
+#       install -e /home/frappe/frappe-bench/apps/jarz_courier
+#   docker exec <backend> /home/frappe/frappe-bench/env/bin/python \
+#       -c "import jarz_courier"      # must succeed before going further
+#
+# Then re-add it to $deployedApps and deploy: the bootstrap re-adds apps.txt,
+# installs into all four service envs and runs `bench install-app`.
+#
+# Order is load-bearing throughout: clone -> chown -> pip install -> apps.txt ->
+# install-app. Every earlier attempt failed by reaching a later step with an
+# earlier one incomplete.
 function Invoke-AppBootstrap {
     param(
         [Parameter(Mandatory = $true)]
@@ -440,17 +470,44 @@ function Invoke-AppBootstrap {
         return
     }
 
-    $cloned = @()
     foreach ($appName in $AppNames) {
-        if (Ensure-AppCloned $appName) {
-            $cloned += $appName
-            Add-AppToBenchAppsTxt $appName $BackendContainer
-        }
+        [void](Ensure-AppCloned $appName)
     }
 
-    if ($cloned.Count -gt 0) {
-        Write-Step "Installing newly cloned apps into the Python env: $($cloned -join ', ')"
-        Install-EditableApps -AppNames $cloned -ContainersByService $ContainersByService
+    # Prepare EVERY app that is not yet on the site, not just the ones cloned in
+    # THIS run.
+    #
+    # Keying off "did I just clone it" assumes the bootstrap always completes,
+    # and it does not: an interrupted run leaves the repo on disk, so the next
+    # run sees it as already-cloned, skips apps.txt and the editable install, and
+    # then `bench install-app` dies with
+    #     ModuleNotFoundError: No module named '<app>'
+    # because the package was never put on the Python path. Each step is
+    # individually guarded, so redoing them is a cheap no-op.
+    $needsPrep = @($missingOnSite)
+    if ($needsPrep.Count -gt 0) {
+        foreach ($appName in $needsPrep) {
+            Add-AppToBenchAppsTxt $appName $BackendContainer
+        }
+        Write-Step "Installing into the Python env: $($needsPrep -join ', ')"
+        # Deliberately NOT Install-EditableApps here. That function builds one
+        # `bash -lc` script using `set -euo pipefail` and backgrounded jobs, and
+        # it fails on this server with "bash: line 1: set: pipefail" — it only
+        # ever fires when pyproject/requirements actually change, so that path
+        # has evidently never run. Fixing it is its own change with its own
+        # verification; the bootstrap must not depend on it.
+        #
+        # One plain docker exec per container instead: slower, but each has its
+        # own exit code and its own error, and pip is already idempotent.
+        foreach ($appName in $needsPrep) {
+            foreach ($serviceName in $serviceNames) {
+                $container = $ContainersByService[$serviceName]
+                Invoke-Remote ("docker exec -u root $container " +
+                    "/home/frappe/frappe-bench/env/bin/pip install -q -e " +
+                    "/home/frappe/frappe-bench/apps/$appName") | Out-Null
+            }
+            Write-Info "$appName installed into all service envs"
+        }
     }
 
     foreach ($appName in $AppNames) {
@@ -513,6 +570,20 @@ Invoke-AppBootstrap `
 Write-Host ''
 
 $gitTargets = foreach ($appName in $config.CustomApps) {
+    # Under -PlanOnly the bootstrap above only REPORTS what it would do, so an
+    # app awaiting first install is still absent from disk. Resolve-GitTarget
+    # runs `git rev-parse` against its path and hard-throws on a missing
+    # directory, which crashed the plan immediately after correctly announcing
+    # "would CLONE". A plan must never fail on the thing it just planned.
+    #
+    # Skipped only in report mode: a real deploy has already cloned the app by
+    # the time control reaches here, so it resolves normally and keeps the full
+    # integrity check.
+    if ($PlanOnly -and -not (Test-AppCloned $appName)) {
+        Write-Info "$appName - skipping git plan; pending first-install bootstrap"
+        continue
+    }
+
     $gitTarget = Resolve-GitTarget $appName
     Assert-AppRepoIntegrity $gitTarget
     $remoteUrl = Convert-GitHubRemoteToSsh $gitTarget
