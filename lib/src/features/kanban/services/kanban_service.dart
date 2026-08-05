@@ -861,6 +861,10 @@ class KanbanService {
     String? addressName,
     String? address,
     String? territory,
+    String? locationLink,
+    double? latitude,
+    double? longitude,
+    String? geoSource,
   }) async {
     try {
       _logger.info('Saving shipping address for $customer (invoice: $invoice)');
@@ -874,6 +878,17 @@ class KanbanService {
             'address_name': addressName,
           if (address != null && address.isNotEmpty) 'address': address,
           if (territory != null && territory.isNotEmpty) 'territory': territory,
+          // Geo payload from the location-link field. Frappe drops form keys a
+          // whitelisted method does not declare, so a backend that predates the
+          // geo lane ignores these rather than failing the save.
+          if (locationLink != null && locationLink.isNotEmpty)
+            'location_link': locationLink,
+          if (latitude != null && longitude != null) ...{
+            'latitude': latitude,
+            'longitude': longitude,
+            if (geoSource != null && geoSource.isNotEmpty)
+              'geo_source': geoSource,
+          },
           'set_as_primary': 1,
         },
       );

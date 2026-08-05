@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../features/geo/presentation/widgets/location_link_field.dart';
 import '../localization/localization_extensions.dart';
 import '../repositories/customer_address_repository.dart';
 
@@ -10,6 +11,11 @@ import '../repositories/customer_address_repository.dart';
 ///   - ``address_name`` when an existing saved address is chosen, OR
 ///   - ``address`` (free-text) when adding a brand-new address,
 ///   plus ``phone`` and optional ``territory`` in both cases.
+///
+/// When staff paste a Maps link it additionally carries ``location_link`` and,
+/// once the backend has resolved it, ``latitude``/``longitude``/``geo_source``.
+/// Those keys appear **only** when the link was touched in this dialog, so
+/// re-saving an untouched address never re-stamps its pin.
 ///
 /// Edit and delete are handled inline; the dialog calls
 /// [CustomerAddressRepository] directly and refreshes its own list.
@@ -34,6 +40,12 @@ class CustomerShippingAddressDialog extends StatefulWidget {
     required this.repository,
     this.title,
   });
+
+  /// Stable handles for the two free-text fields. The dialog grew a third
+  /// text field (the Maps link), which silently broke finders written as
+  /// `find.byType(TextField).last`.
+  static const newAddressFieldKey = ValueKey('shipping_address_new_line1');
+  static const phoneFieldKey = ValueKey('shipping_address_phone');
 
   static Future<Map<String, String>?> show(
     BuildContext context, {
@@ -107,6 +119,14 @@ class _CustomerShippingAddressDialogState
   String? _selectedAddressName;
   String? _newTerritory;
 
+  /// Current state of the Maps-link field.
+  LocationLinkValue _location = LocationLinkValue.empty;
+
+  /// Whether staff touched the link field in this dialog. The geo keys are only
+  /// returned when this is true — a save that merely changed the phone number
+  /// must not re-write coordinates it never asked about.
+  bool _locationDirty = false;
+
   _EditState? _editState;
   bool _isBusy = false;
 
@@ -132,6 +152,37 @@ class _CustomerShippingAddressDialogState
     _newAddressController = TextEditingController();
     _newLine2Controller = TextEditingController();
     _newPincodeController = TextEditingController();
+    _location = _locationOf(selectedAddress);
+  }
+
+  /// Existing pin on a saved address, when the backend sends one.
+  ///
+  /// Reads the `custom_*` geo fields but deliberately ignores `address_line2`,
+  /// where legacy links live: that field is part of the Woo address-dedup
+  /// signature, so surfacing its text here would invite a round trip that
+  /// rewrites it.
+  LocationLinkValue _locationOf(Map<String, dynamic>? address) {
+    if (address == null) return LocationLinkValue.empty;
+
+    final lat = _asDouble(address['custom_latitude'] ?? address['latitude']);
+    final lng = _asDouble(address['custom_longitude'] ?? address['longitude']);
+    final link = (address['location_link'] ?? '').toString().trim();
+    if (lat == null || lng == null) {
+      return LocationLinkValue(link: link);
+    }
+    return LocationLinkValue(
+      link: link,
+      latitude: lat,
+      longitude: lng,
+      precision:
+          (address['custom_geo_source'] ?? address['geo_source'])?.toString(),
+    );
+  }
+
+  static double? _asDouble(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is num) return raw.toDouble();
+    return double.tryParse(raw.toString().trim());
   }
 
   @override
@@ -147,16 +198,38 @@ class _CustomerShippingAddressDialogState
   // â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   void _selectSavedAddress(String? addressName) {
-    setState(() {
-      _selectedAddressName = addressName;
-      _editState = null;
-    });
     final selected = _addresses.cast<Map<String, dynamic>?>().firstWhere(
       (a) => a?['name']?.toString() == addressName,
       orElse: () => null,
     );
+    setState(() {
+      _selectedAddressName = addressName;
+      _editState = null;
+      // A different address has a different pin; drop anything typed against
+      // the previous one rather than carrying it across.
+      _location = _locationOf(selected);
+      _locationDirty = false;
+    });
     final phone = selected?['phone']?.toString().trim() ?? '';
     if (phone.isNotEmpty) _phoneController.text = phone;
+  }
+
+  void _switchTab(_Tab tab) {
+    if (_tab == tab) return;
+    final selected = _addresses.cast<Map<String, dynamic>?>().firstWhere(
+      (a) => a?['name']?.toString() == _selectedAddressName,
+      orElse: () => null,
+    );
+    setState(() {
+      _tab = tab;
+      _editState?.dispose();
+      _editState = null;
+      // A brand-new address starts with no pin; the saved tab shows the pin of
+      // whichever address is selected.
+      _location =
+          tab == _Tab.addNew ? LocationLinkValue.empty : _locationOf(selected);
+      _locationDirty = false;
+    });
   }
 
   void _startEdit(Map<String, dynamic> address) {
@@ -296,6 +369,10 @@ class _CustomerShippingAddressDialogState
     );
   }
 
+  /// Geo keys for the result map — empty unless staff touched the link field.
+  Map<String, String> get _locationFields =>
+      _locationDirty ? _location.toRequestFields() : const {};
+
   void _submit() {
     if (_tab == _Tab.addNew) {
       final newAddress = _newAddressController.text.trim();
@@ -308,6 +385,7 @@ class _CustomerShippingAddressDialogState
         'phone': _phoneController.text.trim(),
         if (_newTerritory != null && _newTerritory!.isNotEmpty)
           'territory': _newTerritory!,
+        ..._locationFields,
       });
     } else {
       if ((_selectedAddressName ?? '').trim().isEmpty) {
@@ -323,6 +401,7 @@ class _CustomerShippingAddressDialogState
         'address_name': _selectedAddressName!.trim(),
         'phone': _phoneController.text.trim(),
         if (selectedTerritory.isNotEmpty) 'territory': selectedTerritory,
+        ..._locationFields,
       });
     }
   }
@@ -381,24 +460,12 @@ class _CustomerShippingAddressDialogState
                       ChoiceChip(
                         label: Text(l10n.customerShippingAddressSavedTab),
                         selected: _tab == _Tab.saved,
-                        onSelected: (_) {
-                          setState(() {
-                            _tab = _Tab.saved;
-                            _editState?.dispose();
-                            _editState = null;
-                          });
-                        },
+                        onSelected: (_) => _switchTab(_Tab.saved),
                       ),
                     ChoiceChip(
                       label: Text(l10n.customerShippingAddressNewTab),
                       selected: _tab == _Tab.addNew,
-                      onSelected: (_) {
-                        setState(() {
-                          _tab = _Tab.addNew;
-                          _editState?.dispose();
-                          _editState = null;
-                        });
-                      },
+                      onSelected: (_) => _switchTab(_Tab.addNew),
                     ),
                   ],
                 ),
@@ -442,6 +509,7 @@ class _CustomerShippingAddressDialogState
               // Add new form.
               if (_tab == _Tab.addNew) ...[
                 TextField(
+                  key: CustomerShippingAddressDialog.newAddressFieldKey,
                   controller: _newAddressController,
                   decoration: InputDecoration(
                     labelText: l10n.invoiceDeliveryAddressLabel,
@@ -462,8 +530,9 @@ class _CustomerShippingAddressDialogState
               ],
               const SizedBox(height: 16),
               // Phone field (shown only when not inside an inline edit form).
-              if (_editState == null)
+              if (_editState == null) ...[
                 TextField(
+                  key: CustomerShippingAddressDialog.phoneFieldKey,
                   controller: _phoneController,
                   decoration: InputDecoration(
                     labelText: l10n.invoicePhoneNumber,
@@ -472,6 +541,24 @@ class _CustomerShippingAddressDialogState
                   ),
                   keyboardType: TextInputType.phone,
                 ),
+                const SizedBox(height: 16),
+                // Maps link → coordinates. Keyed on the selected address so
+                // switching addresses rebuilds the field with that address's
+                // own pin instead of leaking the previous one.
+                LocationLinkField(
+                  key: ValueKey(
+                    'location-${_tab.name}-${_selectedAddressName ?? ''}',
+                  ),
+                  initialValue: _location,
+                  enabled: !_isBusy,
+                  onChanged: (value) {
+                    setState(() {
+                      _location = value;
+                      _locationDirty = true;
+                    });
+                  },
+                ),
+              ],
             ],
           ),
         ),

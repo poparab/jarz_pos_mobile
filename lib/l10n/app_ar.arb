@@ -1328,6 +1328,10 @@
   "kanbanCancelViaMenuOnly": "مش هينفع تلغي الطلب بالسحب. افتح قائمة الكارت واختار \"إلغاء الطلب\".",
   "kanbanReturnViaMenuOnly": "مش هينفع ترجّع الطلب بالسحب. افتح قائمة الكارت واختار \"مرتجع الطلب\".",
   "kanbanFullyReturnedLocked": "الطلب ده اترجع بالكامل ومش هينفع يتحرك تاني.",
+  "kanbanPinBadgePinned": "الموقع متحدد",
+  "kanbanPinBadgePinnedTooltip": "العنوان ده عليه إحداثيات على الخريطة",
+  "kanbanPinBadgeMissing": "مفيش موقع",
+  "kanbanPinBadgeMissingTooltip": "لسه مفيش موقع على الخريطة — ضيف رابط الموقع قبل الخروج للتوصيل",
   "kanbanMoveOneStage": "يمكن التقدم مرحلة واحدة فقط",
   "kanbanAllBranches": "كل الفروع",
   "kanbanBranchCount": "{count} فروع",
@@ -1646,6 +1650,34 @@
   "secondaryPhoneHint": "رقم تواصل إضافي",
   "locationLinkLabel": "رابط الموقع (اختياري)",
   "locationLinkHint": "رابط خرائط جوجل، إلخ.",
+  "locationLinkFieldLabel": "رابط الموقع",
+  "locationLinkPasteHint": "الصق رابط خرائط جوجل أو 30.0444, 31.2357",
+  "locationLinkChecking": "بنراجع الموقع…",
+  "locationLinkConfirmed": "الموقع اتأكد",
+  "locationLinkUnconfirmed": "الموقع لسه ما اتأكدش",
+  "locationLinkClear": "امسح رابط الموقع",
+  "locationLinkRetry": "راجع تاني",
+  "locationLinkDistanceKm": "{value} كم من الفرع",
+  "@locationLinkDistanceKm": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "locationLinkDistanceMeters": "{value} متر من الفرع",
+  "@locationLinkDistanceMeters": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "locationLinkErrorUnrecognized": "ده مش شكل رابط خرائط. الصق رابط من خرائط جوجل أو إحداثيات زي 30.0444, 31.2357.",
+  "locationLinkErrorUnresolved": "مقدرناش نطلع موقع من الرابط ده. افتحه في الخرائط وشيره تاني والصق الرابط الجديد.",
+  "locationLinkErrorTooFar": "النقطة دي {distance} — بعيدة أوي على إنها عنوان توصيل. راجع الرابط.",
+  "@locationLinkErrorTooFar": {
+    "placeholders": {
+      "distance": {}
+    }
+  },
+  "locationLinkErrorNetwork": "مقدرناش نراجع الموقع. جرب تاني.",
   "detailedAddressRequired": "العنوان التفصيلي *",
   "detailedAddressOptional": "العنوان التفصيلي (اختياري)",
   "addressOptionalPartner": "اختياري عند اختيار شريك مبيعات",

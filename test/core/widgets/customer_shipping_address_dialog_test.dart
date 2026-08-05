@@ -99,8 +99,16 @@ void main() {
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField).first, 'New Shipping Address');
-      await tester.enterText(find.byType(TextField).last, '01009');
+      // Keyed, not positional: the dialog also carries a Maps-link field, so
+      // `find.byType(TextField).last` no longer means "the phone field".
+      await tester.enterText(
+        find.byKey(CustomerShippingAddressDialog.newAddressFieldKey),
+        'New Shipping Address',
+      );
+      await tester.enterText(
+        find.byKey(CustomerShippingAddressDialog.phoneFieldKey),
+        '01009',
+      );
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 

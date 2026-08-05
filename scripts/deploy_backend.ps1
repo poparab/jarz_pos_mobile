@@ -38,6 +38,19 @@ if (-not (Test-Path $SshKeyPath)) {
 # Keep this single list; do not re-introduce a per-environment variant.
 $deployedApps = @('jarz_pos', 'jarz_woocommerce_integration', 'hrms')
 
+# Clone URLs for first-time bootstrap. Only consulted when an app in $deployedApps
+# is genuinely absent from the server, so an app already on disk (hrms) needs no
+# entry. An app that IS missing and has no entry here fails with a clear message
+# instead of a cryptic `rev-parse` error out of Resolve-GitTarget.
+#
+# Order in $deployedApps is load-bearing for bootstrap: `bench install-app` fails
+# if an app's `required_apps` are not installed yet, so a dependent app must be
+# listed after the app it depends on.
+$appRepos = @{
+    'jarz_pos'                     = 'git@github.com:poparab/jarz_pos.git'
+    'jarz_woocommerce_integration' = 'git@github.com:poparab/Woo_ERPNext.git'
+}
+
 $config = switch ($Environment) {
     'staging' {
         @{
@@ -302,6 +315,134 @@ fi
     Invoke-Remote ("bash -lc " + (ConvertTo-BashLiteral $installScript))
 }
 
+# ── First-install bootstrap ──────────────────────────────────────────────────
+# Until 2026-08-05 this script had no `bench install-app` anywhere: the only
+# --site calls were backup, migrate and clear-cache. `bench migrate` does NOT
+# install an app that is absent from the site, so a newly added app was pulled
+# and pip-installed and then silently did nothing — no DocTypes, no fixtures.
+# jarz_observability is the standing example: present in the bench, in zero
+# deploy scripts, absent from apps.txt, and it has never deployed.
+#
+# Worse, Resolve-GitTarget hard-throws on a missing clone, so merely naming a new
+# app in $deployedApps broke EVERY backend deploy, including POS hotfixes. The
+# bootstrap below therefore runs before the Resolve-GitTarget loop.
+#
+# Every step is guarded by an existence check, so this is a no-op on a healthy
+# server and safe to run on every deploy.
+
+function Test-AppCloned([string]$AppName) {
+    $appPath = "$remoteAppsDir/$AppName"
+    # sudo is required: /var/lib/docker/volumes is root-only, so an unprivileged
+    # `test -d` cannot traverse it and reports every app as missing. That sends
+    # healthy servers down the Ensure-AppCloned path, where `git clone` into the
+    # existing non-empty directory exits non-zero and kills the deploy before it
+    # reaches the pull. Every other volume access in this script uses sudo.
+    $probe = Invoke-Remote "sudo test -d '$appPath/.git' && echo yes || echo no" -IgnoreExitCode
+    return ($probe.Trim() -eq 'yes')
+}
+
+function Get-SiteInstalledApps([string]$BackendContainer) {
+    $output = Invoke-Remote "docker exec $BackendContainer bench --site frontend list-apps" -IgnoreExitCode
+    return @(
+        $output -split "`r?`n" |
+            ForEach-Object { ($_ -split '\s+')[0] } |
+            Where-Object { $_ }
+    )
+}
+
+function Ensure-AppCloned([string]$AppName) {
+    if (Test-AppCloned $AppName) {
+        return $false
+    }
+
+    $repoUrl = $appRepos[$AppName]
+    if (-not $repoUrl) {
+        throw ("App '$AppName' is missing at $remoteAppsDir/$AppName and has no entry in " +
+               "`$appRepos. Register its clone URL before adding it to `$deployedApps.")
+    }
+
+    $appPath = "$remoteAppsDir/$AppName"
+    Write-Step "Bootstrapping $AppName - cloning (first install)..."
+    # Full clone, never --depth: Assert-AppRepoIntegrity rejects shallow clones.
+    Invoke-Remote "sudo GIT_SSH_COMMAND='$gitSshCommand' git clone $repoUrl $appPath" | Out-Null
+    # The containers run as uid 1000, which is `ubuntu` on the host. A clone made
+    # by root leaves every file unwritable to bench. Same reason the pull path
+    # chowns after fetching.
+    Invoke-Remote "sudo chown -R ubuntu:ubuntu $appPath" | Out-Null
+    Write-Info "$AppName cloned"
+    return $true
+}
+
+function Add-AppToBenchAppsTxt([string]$AppName, [string]$BackendContainer) {
+    # bench only sees apps listed in sites/apps.txt. `bench get-app` maintains it;
+    # a hand clone does not. Missing this line is precisely why an app can sit in
+    # the bench forever without ever installing.
+    $appsTxt = '/home/frappe/frappe-bench/sites/apps.txt'
+    $inner = "grep -qxF '$AppName' $appsTxt || echo '$AppName' >> $appsTxt"
+    $cmd = "docker exec -u root $BackendContainer bash -lc " + (ConvertTo-BashLiteral $inner)
+    Invoke-Remote $cmd | Out-Null
+}
+
+function Invoke-AppBootstrap {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$AppNames,
+
+        [Parameter(Mandatory = $true)]
+        [string]$BackendContainer,
+
+        [Parameter(Mandatory = $true)]
+        [hashtable]$ContainersByService,
+
+        [switch]$ReportOnly
+    )
+
+    $missingClones = @($AppNames | Where-Object { -not (Test-AppCloned $_) })
+    $installedApps = Get-SiteInstalledApps $BackendContainer
+    # Checked for EVERY app on every deploy, not just freshly cloned ones: an app
+    # can be on disk and pip-installed yet still absent from the site.
+    $missingOnSite = @($AppNames | Where-Object { $installedApps -notcontains $_ })
+
+    if ($ReportOnly) {
+        foreach ($appName in $missingClones) {
+            Write-Warn "$appName - would CLONE (not present on server)"
+        }
+        foreach ($appName in $missingOnSite) {
+            Write-Warn "$appName - would INSTALL on site frontend"
+        }
+        if (-not $missingClones -and -not $missingOnSite) {
+            Write-Info 'Bootstrap: all apps cloned and installed on site'
+        }
+        return
+    }
+
+    if (-not $missingClones -and -not $missingOnSite) {
+        return
+    }
+
+    $cloned = @()
+    foreach ($appName in $AppNames) {
+        if (Ensure-AppCloned $appName) {
+            $cloned += $appName
+            Add-AppToBenchAppsTxt $appName $BackendContainer
+        }
+    }
+
+    if ($cloned.Count -gt 0) {
+        Write-Step "Installing newly cloned apps into the Python env: $($cloned -join ', ')"
+        Install-EditableApps -AppNames $cloned -ContainersByService $ContainersByService
+    }
+
+    foreach ($appName in $AppNames) {
+        if ($installedApps -contains $appName) {
+            continue
+        }
+        Write-Step "Installing $appName on site frontend (first install)..."
+        Invoke-Remote "docker exec $BackendContainer bench --site frontend install-app $appName" | Out-Null
+        Write-Info "$appName installed on site"
+    }
+}
+
 function Get-RemoteHttpCode {
     $output = ssh -q -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i $SshKeyPath $sshTarget "curl -s -o /dev/null -w '%{http_code}' https://$($config.Domain) 2>/dev/null || echo 000" 2>$null
     return (($output -join "`n").Trim() -split "`r?`n")[-1]
@@ -338,6 +479,17 @@ foreach ($serviceName in $serviceNames) {
 
 Write-Info "Backend container: $backendContainer"
 Write-Info "Frontend container: $frontendContainer"
+Write-Host ''
+
+# MUST run before the Resolve-GitTarget loop below: that loop calls `git rev-parse`
+# on every app path and hard-throws if the clone is absent, which would break this
+# deploy and every other one until the app was cloned by hand.
+Write-Step 'Checking app bootstrap state...'
+Invoke-AppBootstrap `
+    -AppNames $config.CustomApps `
+    -BackendContainer $backendContainer `
+    -ContainersByService $serviceContainers `
+    -ReportOnly:$PlanOnly
 Write-Host ''
 
 $gitTargets = foreach ($appName in $config.CustomApps) {

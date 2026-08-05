@@ -53,6 +53,12 @@ abstract final class ApiEndpoints {
   static const changeInvoiceShippingAddress =
       '/api/method/jarz_pos.api.customer.change_invoice_shipping_address';
 
+  // ── Geo ───────────────────────────────────────────────────────────────
+  /// Read-only resolve of a pasted Maps link into coordinates + the distance
+  /// from the branch. Writes nothing; the address save carries the result.
+  static const previewMapsLink =
+      '/api/method/jarz_pos.api.geo.preview_maps_link';
+
   // ── Invoices ──────────────────────────────────────────────────────────
   static const createPosInvoice =
       '/api/method/jarz_pos.api.invoices.create_pos_invoice';

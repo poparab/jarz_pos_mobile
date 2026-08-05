@@ -1373,6 +1373,10 @@
   "kanbanCancelViaMenuOnly": "Orders can''t be cancelled by dragging. Use the card menu and pick \"Cancel Order\".",
   "kanbanReturnViaMenuOnly": "Orders can''t be returned by dragging. Use the card menu and pick \"Return Order\".",
   "kanbanFullyReturnedLocked": "This order was fully returned and can no longer be moved.",
+  "kanbanPinBadgePinned": "Pinned",
+  "kanbanPinBadgePinnedTooltip": "This address has map coordinates",
+  "kanbanPinBadgeMissing": "No map pin",
+  "kanbanPinBadgeMissingTooltip": "No map pin yet — add the location link before dispatch",
   "kanbanMoveOneStage": "Can only move one stage at a time",
   "kanbanAllBranches": "All Branches",
   "kanbanBranchCount": "{count} branches",
@@ -1941,6 +1945,34 @@
   "secondaryPhoneHint": "Additional contact number",
   "locationLinkLabel": "Location Link (Optional)",
   "locationLinkHint": "Google Maps link, etc.",
+  "locationLinkFieldLabel": "Location link",
+  "locationLinkPasteHint": "Paste a Google Maps link or 30.0444, 31.2357",
+  "locationLinkChecking": "Checking the location…",
+  "locationLinkConfirmed": "Location confirmed",
+  "locationLinkUnconfirmed": "Location not confirmed yet",
+  "locationLinkClear": "Clear location link",
+  "locationLinkRetry": "Check again",
+  "locationLinkDistanceKm": "{value} km from the branch",
+  "@locationLinkDistanceKm": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "locationLinkDistanceMeters": "{value} m from the branch",
+  "@locationLinkDistanceMeters": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "locationLinkErrorUnrecognized": "That does not look like a Maps link. Paste a Google Maps link or coordinates like 30.0444, 31.2357.",
+  "locationLinkErrorUnresolved": "Could not read a location from this link. Open it in Maps, share it again, and paste the new link.",
+  "locationLinkErrorTooFar": "This point is {distance} — too far to be a delivery address. Check the link.",
+  "@locationLinkErrorTooFar": {
+    "placeholders": {
+      "distance": {}
+    }
+  },
+  "locationLinkErrorNetwork": "Could not check the location. Try again.",
   "detailedAddressRequired": "Detailed Address *",
   "detailedAddressOptional": "Detailed Address (Optional)",
   "addressOptionalPartner": "Optional when Sales Partner is selected",

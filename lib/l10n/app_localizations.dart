@@ -5380,6 +5380,30 @@ abstract class AppLocalizations {
   /// **'This order was fully returned and can no longer be moved.'**
   String get kanbanFullyReturnedLocked;
 
+  /// No description provided for @kanbanPinBadgePinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get kanbanPinBadgePinned;
+
+  /// No description provided for @kanbanPinBadgePinnedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'This address has map coordinates'**
+  String get kanbanPinBadgePinnedTooltip;
+
+  /// No description provided for @kanbanPinBadgeMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'No map pin'**
+  String get kanbanPinBadgeMissing;
+
+  /// No description provided for @kanbanPinBadgeMissingTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'No map pin yet — add the location link before dispatch'**
+  String get kanbanPinBadgeMissingTooltip;
+
   /// No description provided for @kanbanMoveOneStage.
   ///
   /// In en, this message translates to:
@@ -7104,6 +7128,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Google Maps link, etc.'**
   String get locationLinkHint;
+
+  /// No description provided for @locationLinkFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Location link'**
+  String get locationLinkFieldLabel;
+
+  /// No description provided for @locationLinkPasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a Google Maps link or 30.0444, 31.2357'**
+  String get locationLinkPasteHint;
+
+  /// No description provided for @locationLinkChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the location…'**
+  String get locationLinkChecking;
+
+  /// No description provided for @locationLinkConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Location confirmed'**
+  String get locationLinkConfirmed;
+
+  /// No description provided for @locationLinkUnconfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Location not confirmed yet'**
+  String get locationLinkUnconfirmed;
+
+  /// No description provided for @locationLinkClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear location link'**
+  String get locationLinkClear;
+
+  /// No description provided for @locationLinkRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get locationLinkRetry;
+
+  /// No description provided for @locationLinkDistanceKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} km from the branch'**
+  String locationLinkDistanceKm(Object value);
+
+  /// No description provided for @locationLinkDistanceMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} m from the branch'**
+  String locationLinkDistanceMeters(Object value);
+
+  /// No description provided for @locationLinkErrorUnrecognized.
+  ///
+  /// In en, this message translates to:
+  /// **'That does not look like a Maps link. Paste a Google Maps link or coordinates like 30.0444, 31.2357.'**
+  String get locationLinkErrorUnrecognized;
+
+  /// No description provided for @locationLinkErrorUnresolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read a location from this link. Open it in Maps, share it again, and paste the new link.'**
+  String get locationLinkErrorUnresolved;
+
+  /// No description provided for @locationLinkErrorTooFar.
+  ///
+  /// In en, this message translates to:
+  /// **'This point is {distance} — too far to be a delivery address. Check the link.'**
+  String locationLinkErrorTooFar(Object distance);
+
+  /// No description provided for @locationLinkErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check the location. Try again.'**
+  String get locationLinkErrorNetwork;
 
   /// No description provided for @detailedAddressRequired.
   ///

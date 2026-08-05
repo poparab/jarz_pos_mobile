@@ -9,6 +9,7 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/widgets/customer_shipping_address_dialog.dart';
 import '../../../../core/repositories/customer_address_repository.dart';
+import '../../../geo/presentation/widgets/location_link_field.dart';
 import '../../data/repositories/pos_repository.dart';
 import '../../state/pos_notifier.dart';
 // providers file not present; we use repository providers directly
@@ -238,6 +239,10 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
           addressName: selection['address_name']?.toString(),
           address: selection['address']?.toString(),
           territory: selection['territory']?.toString(),
+          locationLink: selection['location_link']?.toString(),
+          latitude: double.tryParse(selection['latitude']?.toString() ?? ''),
+          longitude: double.tryParse(selection['longitude']?.toString() ?? ''),
+          geoSource: selection['geo_source']?.toString(),
         );
         addressBook = saveResult['address_book'] is Map
             ? Map<String, dynamic>.from(saveResult['address_book'] as Map)
@@ -791,7 +796,9 @@ class _QuickAddCustomerWidgetState
   final _mobileController = TextEditingController();
   final _secondaryMobileController = TextEditingController();
   final _addressController = TextEditingController();
-  final _locationController = TextEditingController();
+
+  /// Pasted Maps link plus the point the backend resolved it to.
+  LocationLinkValue _location = LocationLinkValue.empty;
 
   String? _selectedTerritoryId;
   bool _isLoading = false;
@@ -829,7 +836,6 @@ class _QuickAddCustomerWidgetState
     _mobileController.dispose();
     _secondaryMobileController.dispose();
     _addressController.dispose();
-    _locationController.dispose();
     super.dispose();
   }
 
@@ -938,23 +944,18 @@ class _QuickAddCustomerWidgetState
                     ],
                     const SizedBox(height: 16),
 
-                    // Second row - Territory and Location Link
-                    Row(
-                      children: [
-                        Expanded(child: _buildTerritorySelector()),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _locationController,
-                            decoration: InputDecoration(
-                              labelText: context.l10n.locationLinkLabel,
-                              border: const OutlineInputBorder(),
-                              prefixIcon: const Icon(Icons.link),
-                              hintText: context.l10n.locationLinkHint,
-                            ),
-                          ),
-                        ),
-                      ],
+                    // Territory
+                    _buildTerritorySelector(),
+                    const SizedBox(height: 16),
+
+                    // Maps link → coordinates. Full width because it grows a
+                    // status line and a map preview once the link resolves.
+                    LocationLinkField(
+                      enabled: !_isLoading,
+                      // Assigned rather than setState-ed: nothing else in this
+                      // form reads it, so rebuilding the whole dialog on every
+                      // keystroke would be pure churn.
+                      onChanged: (value) => _location = value,
                     ),
                     const SizedBox(height: 16),
 
@@ -1193,9 +1194,10 @@ class _QuickAddCustomerWidgetState
             mobileNumber: _mobileController.text.trim(),
             territoryId: _selectedTerritoryId!,
             detailedAddress: addressValue,
-            locationLink: _locationController.text.trim().isNotEmpty
-                ? _locationController.text.trim()
-                : null,
+            locationLink: _location.link.isNotEmpty ? _location.link : null,
+            latitude: _location.latitude,
+            longitude: _location.longitude,
+            geoSource: _location.precision,
             secondaryMobile: _secondaryMobileController.text.trim().isNotEmpty
                 ? _secondaryMobileController.text.trim()
                 : null,

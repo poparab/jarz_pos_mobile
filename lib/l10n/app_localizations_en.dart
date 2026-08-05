@@ -3083,6 +3083,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'This order was fully returned and can no longer be moved.';
 
   @override
+  String get kanbanPinBadgePinned => 'Pinned';
+
+  @override
+  String get kanbanPinBadgePinnedTooltip => 'This address has map coordinates';
+
+  @override
+  String get kanbanPinBadgeMissing => 'No map pin';
+
+  @override
+  String get kanbanPinBadgeMissingTooltip =>
+      'No map pin yet — add the location link before dispatch';
+
+  @override
   String get kanbanMoveOneStage => 'Can only move one stage at a time';
 
   @override
@@ -4091,6 +4104,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationLinkHint => 'Google Maps link, etc.';
+
+  @override
+  String get locationLinkFieldLabel => 'Location link';
+
+  @override
+  String get locationLinkPasteHint =>
+      'Paste a Google Maps link or 30.0444, 31.2357';
+
+  @override
+  String get locationLinkChecking => 'Checking the location…';
+
+  @override
+  String get locationLinkConfirmed => 'Location confirmed';
+
+  @override
+  String get locationLinkUnconfirmed => 'Location not confirmed yet';
+
+  @override
+  String get locationLinkClear => 'Clear location link';
+
+  @override
+  String get locationLinkRetry => 'Check again';
+
+  @override
+  String locationLinkDistanceKm(Object value) {
+    return '$value km from the branch';
+  }
+
+  @override
+  String locationLinkDistanceMeters(Object value) {
+    return '$value m from the branch';
+  }
+
+  @override
+  String get locationLinkErrorUnrecognized =>
+      'That does not look like a Maps link. Paste a Google Maps link or coordinates like 30.0444, 31.2357.';
+
+  @override
+  String get locationLinkErrorUnresolved =>
+      'Could not read a location from this link. Open it in Maps, share it again, and paste the new link.';
+
+  @override
+  String locationLinkErrorTooFar(Object distance) {
+    return 'This point is $distance — too far to be a delivery address. Check the link.';
+  }
+
+  @override
+  String get locationLinkErrorNetwork =>
+      'Could not check the location. Try again.';
 
   @override
   String get detailedAddressRequired => 'Detailed Address *';

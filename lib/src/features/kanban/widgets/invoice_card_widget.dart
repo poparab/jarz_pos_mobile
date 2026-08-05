@@ -1327,6 +1327,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                       ),
                     ],
 
+                    // Map-pin state. Sits above the shipping/return badges
+                    // because it is the one thing that has to be true *before*
+                    // the order is dragged to Out for Delivery.
+                    if (widget.invoice.showsLocationPinBadge) ...[
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: _buildLocationPinBadge(transitioning),
+                      ),
+                    ],
+
                     // Custom shipping status badge
                     if (widget.invoice.shippingOverrideStatus != null &&
                         widget.invoice.shippingOverrideStatus!.isNotEmpty &&
@@ -2834,6 +2845,67 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     );
   }
 
+  /// "Pinned" / "No map pin" chip.
+  ///
+  /// The missing state is the one that matters: a courier sent out with no
+  /// coordinates has nothing but a free-text address to work from. Tapping it
+  /// opens the same address dialog as the menu action, so the fix is one tap
+  /// from the card rather than buried behind the overflow menu.
+  ///
+  /// Both icons (`location_on`, `location_searching`) are already used by the
+  /// sub-territory chip on this card. That is deliberate — pulling a new glyph into
+  /// the tree-shaken MaterialIcons font changes an asset, which makes the
+  /// Shorebird production patch fail with UnpatchableChangeException and forces
+  /// a full APK install for everyone.
+  Widget _buildLocationPinBadge(bool transitioning) {
+    final invoice = widget.invoice;
+    final pinned = invoice.hasLocationPin;
+
+    final color = pinned ? Colors.green[700]! : Colors.orange[800]!;
+    final label = pinned
+        ? context.l10n.kanbanPinBadgePinned
+        : context.l10n.kanbanPinBadgeMissing;
+    final tooltip = pinned
+        ? context.l10n.kanbanPinBadgePinnedTooltip
+        : context.l10n.kanbanPinBadgeMissingTooltip;
+
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: transitioning
+            ? null
+            : () => _editCustomerAddress(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withValues(alpha: 0.4)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                pinned ? Icons.location_on : Icons.location_searching,
+                size: 11,
+                color: color,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _showSubTerritorySheet(BuildContext context) async {
     final service = ref.read(kanbanServiceProvider);
     final territory = widget.invoice.territory;
@@ -3186,6 +3258,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         // Forward the territory the user picked so a brand-new address is
         // stamped with the chosen territory (not the customer's old default).
         territory: result['territory'],
+        // Maps link + resolved pin, present only when staff touched the link
+        // field in the dialog.
+        locationLink: result['location_link'],
+        latitude: double.tryParse(result['latitude'] ?? ''),
+        longitude: double.tryParse(result['longitude'] ?? ''),
+        geoSource: result['geo_source'],
       );
 
       // Step 2: If we have a resolved address_name, recompute shipping on the

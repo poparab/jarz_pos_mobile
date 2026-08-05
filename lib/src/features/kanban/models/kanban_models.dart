@@ -151,6 +151,20 @@ class InvoiceCard {
   final double returnedAmount;
   final double? customDeliveryIncome;
   final int? wooOrderId;
+  // ── Delivery address geo (courier lane M1) ────────────────────────────
+  /// Coordinates on the invoice's shipping Address, when it has been pinned.
+  /// Absent on every payload that predates the geo fields, which is why the
+  /// badge reads [hasLocationPin] rather than testing these directly.
+  final double? addressLatitude;
+  final double? addressLongitude;
+  /// `custom_geo_source` label from the confidence ladder, e.g. `pos_link`.
+  final String? geoSource;
+  /// Integer rank matching the label; the backend derives it and never lets it
+  /// disagree with [geoSource].
+  final int? geoConfidence;
+  /// Explicit backend verdict, when it sends one. Wins over the coordinates so
+  /// the server can suppress the badge for addresses it knows are exempt.
+  final bool? hasLocationPinFlag;
 
   InvoiceCard({
     required this.id,
@@ -216,6 +230,11 @@ class InvoiceCard {
     this.returnedAmount = 0.0,
     this.customDeliveryIncome,
     this.wooOrderId,
+    this.addressLatitude,
+    this.addressLongitude,
+    this.geoSource,
+    this.geoConfidence,
+    this.hasLocationPinFlag,
   });
 
   /// The identifier every user-facing surface shows for this order.
@@ -365,7 +384,37 @@ class InvoiceCard {
           ? (json['custom_delivery_income'] as num).toDouble()
           : null,
       wooOrderId: (json['woo_order_id'] as num?)?.toInt(),
+      addressLatitude: _parseNullableAmount(
+        json['address_latitude'] ?? json['custom_latitude'] ?? json['latitude'],
+      ),
+      addressLongitude: _parseNullableAmount(
+        json['address_longitude'] ??
+            json['custom_longitude'] ??
+            json['longitude'],
+      ),
+      geoSource: (json['geo_source'] ?? json['custom_geo_source'])
+          ?.toString()
+          .trim(),
+      geoConfidence: _parseNullableInt(
+        json['geo_confidence'] ?? json['custom_geo_confidence'],
+      ),
+      hasLocationPinFlag: _parseFlag(json['has_location_pin']),
     );
+  }
+
+  /// Like [_parseAmount] but keeps "absent" distinguishable from 0 — a geo
+  /// field that degrades to 0.0 would read as Null Island, not as "no pin".
+  static double? _parseNullableAmount(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is num) return raw.toDouble();
+    return double.tryParse(raw.toString().trim());
+  }
+
+  static int? _parseNullableInt(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is int) return raw;
+    if (raw is num) return raw.toInt();
+    return int.tryParse(raw.toString().trim());
   }
 
   Map<String, dynamic> toJson() {
@@ -435,6 +484,11 @@ class InvoiceCard {
       'returned_amount': returnedAmount,
       'custom_delivery_income': customDeliveryIncome,
       'woo_order_id': wooOrderId,
+      'address_latitude': addressLatitude,
+      'address_longitude': addressLongitude,
+      'geo_source': geoSource,
+      'geo_confidence': geoConfidence,
+      'has_location_pin': hasLocationPinFlag,
     };
   }
 
@@ -505,6 +559,11 @@ class InvoiceCard {
   bool clearCustomDeliveryIncome = false,
   int? wooOrderId,
   bool clearWooOrderId = false,
+  double? addressLatitude,
+  double? addressLongitude,
+  String? geoSource,
+  int? geoConfidence,
+  bool? hasLocationPinFlag,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -570,6 +629,11 @@ class InvoiceCard {
       amendmentBlockReason: amendmentBlockReason ?? this.amendmentBlockReason,
       customDeliveryIncome: clearCustomDeliveryIncome ? null : (customDeliveryIncome ?? this.customDeliveryIncome),
       wooOrderId: clearWooOrderId ? null : (wooOrderId ?? this.wooOrderId),
+      addressLatitude: addressLatitude ?? this.addressLatitude,
+      addressLongitude: addressLongitude ?? this.addressLongitude,
+      geoSource: geoSource ?? this.geoSource,
+      geoConfidence: geoConfidence ?? this.geoConfidence,
+      hasLocationPinFlag: hasLocationPinFlag ?? this.hasLocationPinFlag,
     );
   }
 
@@ -686,6 +750,44 @@ class InvoiceCard {
 
   /// Anything at all has been returned against this order.
   bool get hasReturn => _normalizedReturnStatus.isNotEmpty;
+
+  // ── Delivery address geo ──────────────────────────────────────────────
+  /// States where the pin no longer changes anything — the order has either
+  /// arrived or been unwound, so nagging about coordinates is pure noise.
+  static const _pinBadgeSilentStatuses = {
+    DeliveryStatus.delivered,
+    DeliveryStatus.completed,
+    DeliveryStatus.cancelled,
+    DeliveryStatus.returned,
+  };
+
+  /// Whether the shipping address carries usable coordinates.
+  ///
+  /// The backend flag wins when present. Otherwise the pair must be complete
+  /// and in range: a half-written pin, or Null Island (what a failed parse
+  /// looks like numerically), counts as no pin at all.
+  bool get hasLocationPin {
+    if (hasLocationPinFlag != null) return hasLocationPinFlag!;
+    final lat = addressLatitude;
+    final lng = addressLongitude;
+    if (lat == null || lng == null) return false;
+    if (lat == 0 && lng == 0) return false;
+    return lat.abs() <= 90 && lng.abs() <= 180;
+  }
+
+  /// Whether the card should say anything about the pin at all.
+  ///
+  /// Pickups are never driven to, and a delivered/cancelled/returned order is
+  /// past the point where a pin helps.
+  bool get showsLocationPinBadge {
+    if (isPickup) return false;
+    final normalized = status.trim().toLowerCase();
+    return !_pinBadgeSilentStatuses.any(normalized.contains);
+  }
+
+  /// The case staff need to catch before dispatch: a live delivery order with
+  /// no coordinates for the courier to navigate to.
+  bool get needsLocationPin => showsLocationPinBadge && !hasLocationPin;
 
   bool get _isPostReadyActionBlocked {
     final normalized = status.trim().toLowerCase();

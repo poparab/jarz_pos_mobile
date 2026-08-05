@@ -3074,6 +3074,20 @@ class AppLocalizationsAr extends AppLocalizations {
       'الطلب ده اترجع بالكامل ومش هينفع يتحرك تاني.';
 
   @override
+  String get kanbanPinBadgePinned => 'الموقع متحدد';
+
+  @override
+  String get kanbanPinBadgePinnedTooltip =>
+      'العنوان ده عليه إحداثيات على الخريطة';
+
+  @override
+  String get kanbanPinBadgeMissing => 'مفيش موقع';
+
+  @override
+  String get kanbanPinBadgeMissingTooltip =>
+      'لسه مفيش موقع على الخريطة — ضيف رابط الموقع قبل الخروج للتوصيل';
+
+  @override
   String get kanbanMoveOneStage => 'يمكن التقدم مرحلة واحدة فقط';
 
   @override
@@ -4071,6 +4085,54 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get locationLinkHint => 'رابط خرائط جوجل، إلخ.';
+
+  @override
+  String get locationLinkFieldLabel => 'رابط الموقع';
+
+  @override
+  String get locationLinkPasteHint =>
+      'الصق رابط خرائط جوجل أو 30.0444, 31.2357';
+
+  @override
+  String get locationLinkChecking => 'بنراجع الموقع…';
+
+  @override
+  String get locationLinkConfirmed => 'الموقع اتأكد';
+
+  @override
+  String get locationLinkUnconfirmed => 'الموقع لسه ما اتأكدش';
+
+  @override
+  String get locationLinkClear => 'امسح رابط الموقع';
+
+  @override
+  String get locationLinkRetry => 'راجع تاني';
+
+  @override
+  String locationLinkDistanceKm(Object value) {
+    return '$value كم من الفرع';
+  }
+
+  @override
+  String locationLinkDistanceMeters(Object value) {
+    return '$value متر من الفرع';
+  }
+
+  @override
+  String get locationLinkErrorUnrecognized =>
+      'ده مش شكل رابط خرائط. الصق رابط من خرائط جوجل أو إحداثيات زي 30.0444, 31.2357.';
+
+  @override
+  String get locationLinkErrorUnresolved =>
+      'مقدرناش نطلع موقع من الرابط ده. افتحه في الخرائط وشيره تاني والصق الرابط الجديد.';
+
+  @override
+  String locationLinkErrorTooFar(Object distance) {
+    return 'النقطة دي $distance — بعيدة أوي على إنها عنوان توصيل. راجع الرابط.';
+  }
+
+  @override
+  String get locationLinkErrorNetwork => 'مقدرناش نراجع الموقع. جرب تاني.';
 
   @override
   String get detailedAddressRequired => 'العنوان التفصيلي *';

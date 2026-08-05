@@ -615,6 +615,10 @@ class PosRepository {
     String? addressName,
     String? address,
     String? territory,
+    String? locationLink,
+    double? latitude,
+    double? longitude,
+    String? geoSource,
   }) async {
     try {
       final response = await _dio.post(
@@ -627,6 +631,17 @@ class PosRepository {
             'address_name': addressName,
           if (address != null && address.isNotEmpty) 'address': address,
           if (territory != null && territory.isNotEmpty) 'territory': territory,
+          // Geo payload. Frappe drops form keys a whitelisted method does not
+          // declare, so a backend that predates the geo lane simply ignores
+          // these instead of erroring.
+          if (locationLink != null && locationLink.isNotEmpty)
+            'location_link': locationLink,
+          if (latitude != null && longitude != null) ...{
+            'latitude': latitude,
+            'longitude': longitude,
+            if (geoSource != null && geoSource.isNotEmpty)
+              'geo_source': geoSource,
+          },
           'set_as_primary': 1,
         },
       );
@@ -646,6 +661,9 @@ class PosRepository {
     required String territoryId,
     required String detailedAddress,
     String? locationLink,
+    double? latitude,
+    double? longitude,
+    String? geoSource,
     String? secondaryMobile,
     String? customerType,
     String? customerGroup,
@@ -660,6 +678,14 @@ class PosRepository {
           'territory_id': territoryId,
           if (locationLink != null && locationLink.isNotEmpty)
             'location_link': locationLink,
+          // Resolved pin from the location-link field. Sent only as a pair —
+          // half a coordinate is worse than none.
+          if (latitude != null && longitude != null) ...{
+            'latitude': latitude.toString(),
+            'longitude': longitude.toString(),
+            if (geoSource != null && geoSource.isNotEmpty)
+              'geo_source': geoSource,
+          },
           if (secondaryMobile != null && secondaryMobile.isNotEmpty)
             'secondary_mobile': secondaryMobile,
           if (customerType != null && customerType.isNotEmpty)
