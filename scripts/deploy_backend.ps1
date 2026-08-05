@@ -36,7 +36,26 @@ if (-not (Test-Path $SshKeyPath)) {
 # upstream frappe/hrms commits shipped straight to production — and any hrms
 # schema change would have hit `bench migrate` for the first time on prod.
 # Keep this single list; do not re-introduce a per-environment variant.
+# jarz_courier is DELIBERATELY not listed yet — see below.
 $deployedApps = @('jarz_pos', 'jarz_woocommerce_integration', 'hrms')
+
+# ── Adding jarz_courier ──────────────────────────────────────────────────────
+# Append 'jarz_courier' to $deployedApps ONLY once the servers can clone it.
+# Order matters when you do: it declares required_apps = ["jarz_pos"] and
+# `bench install-app` fails if a required app is not installed yet, so it must
+# come after jarz_pos.
+#
+# Blocked on access, not on code. github.com/poparab/jarz_courier is private and
+# the servers' /home/ubuntu/.ssh/id_ed25519 cannot read it. That key is already
+# registered as a deploy key on another repo, and GitHub refuses to reuse one
+# deploy key across repos, so unblocking needs either:
+#   * making the repo public (matching the other three), or
+#   * a dedicated key pair per server registered as its deploy key.
+#
+# Listing it before then makes Ensure-AppCloned fail on the clone, which aborts
+# EVERY backend deploy including a POS hotfix. That is exactly what happened on
+# 2026-08-05; no partial clone was left behind, and reverting this line restored
+# deploys immediately.
 
 # Clone URLs for first-time bootstrap. Only consulted when an app in $deployedApps
 # is genuinely absent from the server, so an app already on disk (hrms) needs no
@@ -49,6 +68,7 @@ $deployedApps = @('jarz_pos', 'jarz_woocommerce_integration', 'hrms')
 $appRepos = @{
     'jarz_pos'                     = 'git@github.com:poparab/jarz_pos.git'
     'jarz_woocommerce_integration' = 'git@github.com:poparab/Woo_ERPNext.git'
+    'jarz_courier'                 = 'git@github.com:poparab/jarz_courier.git'
 }
 
 $config = switch ($Environment) {
