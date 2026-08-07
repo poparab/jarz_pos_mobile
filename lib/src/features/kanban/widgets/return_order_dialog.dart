@@ -100,12 +100,23 @@ class _ReturnOrderDialogState extends State<ReturnOrderDialog> {
     return double.tryParse(value?.toString() ?? '') ?? 0.0;
   }
 
-  /// Value of the goods coming back, from the operator's current selection.
+  /// What the credit note will actually come to for the current selection.
+  ///
+  /// Goods alone are not the whole story. The delivery charge is a fixed amount
+  /// that rides on the return which closes the order out — a partial return
+  /// leaves it with the customer, because the delivery did happen and they still
+  /// have some of the goods. Summing `qty * rate` on its own therefore understated
+  /// a completing return, so the operator confirmed one number and the ledger
+  /// took another. This mirrors the server rule in
+  /// `invoice_return._apply_fixed_charge_rule`; the two must stay in step.
   double get _creditTotal {
     var total = 0.0;
     for (final line in _lines) {
       final qty = _selected[line['si_detail'].toString()] ?? 0;
       total += qty * _asDouble(line['rate']);
+    }
+    if (!_isPartial) {
+      total += _asDouble(widget.preview['fixed_charges_remaining']);
     }
     return total;
   }
