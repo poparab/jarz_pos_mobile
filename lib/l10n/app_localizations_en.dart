@@ -2210,6 +2210,90 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productionTabPlan => 'Plan';
 
   @override
+  String get productionTabDaily => 'Daily';
+
+  @override
+  String get dailyPlanNoItems => 'No fillable items have a default BOM yet.';
+
+  @override
+  String get dailyPlanNoMix => 'No cheesecake mix';
+
+  @override
+  String dailyPlanPerBatch(int count) {
+    return '$count per batch';
+  }
+
+  @override
+  String dailyPlanTotalJars(int count) {
+    return '$count jars planned';
+  }
+
+  @override
+  String get dailyPlanEnterQuantities =>
+      'Enter how many jars you plan to fill.';
+
+  @override
+  String dailyPlanMixTotal(String qty, String uom, String batches) {
+    return '$qty $uom of mix = $batches batches';
+  }
+
+  @override
+  String get dailyPlanNoRuns =>
+      'The mixer is not configured, so the split cannot be calculated.';
+
+  @override
+  String get dailyPlanRunPreferred => 'ideal';
+
+  @override
+  String get dailyPlanRunAcceptable => 'stretching';
+
+  @override
+  String get dailyPlanRunPoor => 'mixes badly';
+
+  @override
+  String dailyPlanSpareMix(String batches) {
+    return '$batches batches of spare mix from rounding to whole runs.';
+  }
+
+  @override
+  String get dailyPlanCheckMaterials => 'Check stock';
+
+  @override
+  String get dailyPlanSave => 'Save plan';
+
+  @override
+  String dailyPlanSaved(String name) {
+    return 'Plan $name saved.';
+  }
+
+  @override
+  String dailyPlanShortages(int count) {
+    return '$count materials short';
+  }
+
+  @override
+  String dailyPlanShortageLine(String item, String qty, String uom) {
+    return '$item: $qty $uom short';
+  }
+
+  @override
+  String dailyPlanShortagesMore(int count) {
+    return 'and $count more';
+  }
+
+  @override
+  String get dailyPlanMaterialsUnavailable =>
+      'Stock could not be checked for this plan.';
+
+  @override
+  String dailyPlanBomIssues(int count) {
+    return '$count BOMs need attention before the mix total is right';
+  }
+
+  @override
+  String get dailyPlanBomIssuesTitle => 'BOM issues affecting the plan';
+
+  @override
   String get productionTabBatch => 'Batch';
 
   @override

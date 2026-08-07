@@ -7,6 +7,7 @@ import '../../../core/widgets/app_drawer.dart';
 import '../state/production_basket_notifier.dart';
 import '../state/production_providers.dart';
 import '../state/running_batches_notifier.dart';
+import 'screens/daily_plan_tab.dart';
 import 'screens/production_batch_tab.dart';
 import 'screens/production_plan_tab.dart';
 import 'screens/production_running_tab.dart';
@@ -36,9 +37,9 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 3,
+      length: 4,
       vsync: this,
-      initialIndex: widget.initialTab.clamp(0, 2),
+      initialIndex: widget.initialTab.clamp(0, 3),
     );
     // Hive opens asynchronously, so the basket is hydrated after first frame
     // rather than in the notifier's build().
@@ -104,6 +105,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
+            Tab(text: l10n.productionTabDaily),
             Tab(text: l10n.productionTabPlan),
             Tab(
               child: _TabLabel(
@@ -124,6 +126,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
       body: TabBarView(
         controller: _tabController,
         children: const [
+          DailyPlanTab(),
           ProductionPlanTab(),
           ProductionBatchTab(),
           ProductionRunningTab(),

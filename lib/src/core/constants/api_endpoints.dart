@@ -274,6 +274,18 @@ abstract final class ApiEndpoints {
   static const returnWipToStore =
       '/api/method/jarz_pos.api.manufacturing.return_wip_to_store';
 
+  // ── Daily Production Plan ─────────────────────────────────────────────
+  static const dailyPlanTemplate =
+      '/api/method/jarz_pos.api.daily_plan.get_plan_template';
+  static const dailyPlanPreview =
+      '/api/method/jarz_pos.api.daily_plan.preview_plan';
+  static const dailyPlanSave = '/api/method/jarz_pos.api.daily_plan.save_plan';
+  static const dailyPlanClose = '/api/method/jarz_pos.api.daily_plan.close_plan';
+  static const dailyPlanGet = '/api/method/jarz_pos.api.daily_plan.get_plan';
+  static const dailyPlanList = '/api/method/jarz_pos.api.daily_plan.list_plans';
+  static const dailyPlanBomReadiness =
+      '/api/method/jarz_pos.api.daily_plan.check_bom_readiness';
+
   // ── Production SOPs ───────────────────────────────────────────────────
   static const getSopForItem = '/api/method/jarz_pos.api.sop.get_sop_for_item';
   static const getSopForWorkOrder =

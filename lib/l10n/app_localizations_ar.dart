@@ -2205,6 +2205,90 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productionTabPlan => 'الخطة';
 
   @override
+  String get productionTabDaily => 'اليوم';
+
+  @override
+  String get dailyPlanNoItems =>
+      'لا توجد أصناف قابلة للتعبئة لها قائمة مكونات افتراضية.';
+
+  @override
+  String get dailyPlanNoMix => 'بدون خليط تشيز كيك';
+
+  @override
+  String dailyPlanPerBatch(int count) {
+    return '$count للتشغيلة';
+  }
+
+  @override
+  String dailyPlanTotalJars(int count) {
+    return '$count برطمان مخطط';
+  }
+
+  @override
+  String get dailyPlanEnterQuantities => 'اكتب عدد البرطمانات اللي هتعبيها.';
+
+  @override
+  String dailyPlanMixTotal(String qty, String uom, String batches) {
+    return '$qty $uom خليط = $batches تشغيلة';
+  }
+
+  @override
+  String get dailyPlanNoRuns => 'العجان مش متظبط، فمش هينفع نحسب التقسيم.';
+
+  @override
+  String get dailyPlanRunPreferred => 'مظبوط';
+
+  @override
+  String get dailyPlanRunAcceptable => 'زيادة شوية';
+
+  @override
+  String get dailyPlanRunPoor => 'مش بيخلط كويس';
+
+  @override
+  String dailyPlanSpareMix(String batches) {
+    return '$batches تشغيلة خليط زيادة بسبب التقريب.';
+  }
+
+  @override
+  String get dailyPlanCheckMaterials => 'راجع المخزون';
+
+  @override
+  String get dailyPlanSave => 'احفظ الخطة';
+
+  @override
+  String dailyPlanSaved(String name) {
+    return 'الخطة $name اتحفظت.';
+  }
+
+  @override
+  String dailyPlanShortages(int count) {
+    return '$count خامات ناقصة';
+  }
+
+  @override
+  String dailyPlanShortageLine(String item, String qty, String uom) {
+    return '$item: ناقص $qty $uom';
+  }
+
+  @override
+  String dailyPlanShortagesMore(int count) {
+    return 'و$count كمان';
+  }
+
+  @override
+  String get dailyPlanMaterialsUnavailable =>
+      'مش قادرين نراجع المخزون للخطة دي.';
+
+  @override
+  String dailyPlanBomIssues(int count) {
+    return '$count قائمة مكونات محتاجة مراجعة عشان إجمالي الخليط يبقى صح';
+  }
+
+  @override
+  String get dailyPlanBomIssuesTitle =>
+      'مشاكل قوائم المكونات المؤثرة على الخطة';
+
+  @override
   String get productionTabBatch => 'التشغيلة';
 
   @override

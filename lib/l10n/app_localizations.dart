@@ -3880,6 +3880,132 @@ abstract class AppLocalizations {
   /// **'Plan'**
   String get productionTabPlan;
 
+  /// No description provided for @productionTabDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get productionTabDaily;
+
+  /// No description provided for @dailyPlanNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No fillable items have a default BOM yet.'**
+  String get dailyPlanNoItems;
+
+  /// No description provided for @dailyPlanNoMix.
+  ///
+  /// In en, this message translates to:
+  /// **'No cheesecake mix'**
+  String get dailyPlanNoMix;
+
+  /// No description provided for @dailyPlanPerBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} per batch'**
+  String dailyPlanPerBatch(int count);
+
+  /// No description provided for @dailyPlanTotalJars.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} jars planned'**
+  String dailyPlanTotalJars(int count);
+
+  /// No description provided for @dailyPlanEnterQuantities.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter how many jars you plan to fill.'**
+  String get dailyPlanEnterQuantities;
+
+  /// No description provided for @dailyPlanMixTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{qty} {uom} of mix = {batches} batches'**
+  String dailyPlanMixTotal(String qty, String uom, String batches);
+
+  /// No description provided for @dailyPlanNoRuns.
+  ///
+  /// In en, this message translates to:
+  /// **'The mixer is not configured, so the split cannot be calculated.'**
+  String get dailyPlanNoRuns;
+
+  /// No description provided for @dailyPlanRunPreferred.
+  ///
+  /// In en, this message translates to:
+  /// **'ideal'**
+  String get dailyPlanRunPreferred;
+
+  /// No description provided for @dailyPlanRunAcceptable.
+  ///
+  /// In en, this message translates to:
+  /// **'stretching'**
+  String get dailyPlanRunAcceptable;
+
+  /// No description provided for @dailyPlanRunPoor.
+  ///
+  /// In en, this message translates to:
+  /// **'mixes badly'**
+  String get dailyPlanRunPoor;
+
+  /// No description provided for @dailyPlanSpareMix.
+  ///
+  /// In en, this message translates to:
+  /// **'{batches} batches of spare mix from rounding to whole runs.'**
+  String dailyPlanSpareMix(String batches);
+
+  /// No description provided for @dailyPlanCheckMaterials.
+  ///
+  /// In en, this message translates to:
+  /// **'Check stock'**
+  String get dailyPlanCheckMaterials;
+
+  /// No description provided for @dailyPlanSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save plan'**
+  String get dailyPlanSave;
+
+  /// No description provided for @dailyPlanSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan {name} saved.'**
+  String dailyPlanSaved(String name);
+
+  /// No description provided for @dailyPlanShortages.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} materials short'**
+  String dailyPlanShortages(int count);
+
+  /// No description provided for @dailyPlanShortageLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{item}: {qty} {uom} short'**
+  String dailyPlanShortageLine(String item, String qty, String uom);
+
+  /// No description provided for @dailyPlanShortagesMore.
+  ///
+  /// In en, this message translates to:
+  /// **'and {count} more'**
+  String dailyPlanShortagesMore(int count);
+
+  /// No description provided for @dailyPlanMaterialsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock could not be checked for this plan.'**
+  String get dailyPlanMaterialsUnavailable;
+
+  /// No description provided for @dailyPlanBomIssues.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} BOMs need attention before the mix total is right'**
+  String dailyPlanBomIssues(int count);
+
+  /// No description provided for @dailyPlanBomIssuesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'BOM issues affecting the plan'**
+  String get dailyPlanBomIssuesTitle;
+
   /// No description provided for @productionTabBatch.
   ///
   /// In en, this message translates to:

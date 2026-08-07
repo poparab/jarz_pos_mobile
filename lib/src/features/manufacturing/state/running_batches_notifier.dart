@@ -10,7 +10,11 @@ import '../data/models/running_batch.dart';
 ///
 /// Named rather than inlined because two files agree on it: the host builds the
 /// tabs and the Batch tab asks to be moved here after a successful start.
-const int kProductionRunningTabIndex = 2;
+///
+/// Order is Daily, Plan, Batch, Running — Daily was added at the front because
+/// it is what the floor opens the board for first thing in the morning, which
+/// pushed this index from 2 to 3.
+const int kProductionRunningTabIndex = 3;
 
 /// A one-shot request to move the Production Board to another tab.
 ///
