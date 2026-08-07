@@ -56,8 +56,11 @@ class UserRoles {
   bool get canAccessShiftMonitor =>
       isJarzManager || isAdminManager || isLineManager;
   bool get isModerator => roles.contains(RoleNames.moderator);
+  /// The admin tier is included deliberately: ACCESS_MATRIX has always listed
+  /// mute as a High Management capability, but the check omitted it, so a
+  /// System-Manager-only account could not mute while a Moderator could.
   bool get canMuteNotifications =>
-      isJarzManager || isLineManager || isModerator;
+      isJarzManager || isLineManager || isModerator || isAdminManager;
 
   /// Whether this user is a dedicated B2B sales rep (lands in B2B mode and is
   /// blocked from the B2C POS/Kanban flows). Falls back to the role name when

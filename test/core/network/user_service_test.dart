@@ -114,6 +114,11 @@ void main() {
       expect(r.canMuteNotifications, isTrue);
     });
 
+    test('canMuteNotifications for the admin tier', () {
+      final r = UserRoles(user: 'u', roles: [RoleNames.systemManager]);
+      expect(r.canMuteNotifications, isTrue);
+    });
+
     test('canMuteNotifications false for regular user', () {
       final r = UserRoles(user: 'u', roles: ['POS User']);
       expect(r.canMuteNotifications, isFalse);
