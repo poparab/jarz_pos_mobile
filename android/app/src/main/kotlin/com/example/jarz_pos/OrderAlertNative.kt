@@ -29,6 +29,15 @@ object OrderAlertNative {
     private const val SHIFT_CHANNEL_ID = "jarz_shift_updates"
     private const val ORDER_NOTIFICATION_SOUND_RESOURCE = "jarz_order_alert_notification"
 
+    // Mute state is mirrored here from Dart because the FCM service starts the
+    // alarm with no Flutter engine attached — it has nothing else to consult.
+    // SharedPreferences (not a static field) so it also survives the process
+    // being killed and revived by a background push.
+    private const val PREFS_NAME = "jarz_order_alert_state"
+    private const val KEY_GLOBAL_MUTE = "global_mute"
+    private const val KEY_MUTED_INVOICES = "muted_invoices"
+    private const val KEY_CAN_MUTE = "can_mute"
+
     private var mediaPlayer: MediaPlayer? = null
     private var audioManager: AudioManager? = null
     private var focusRequest: AudioFocusRequest? = null
@@ -37,15 +46,65 @@ object OrderAlertNative {
     private var volumeLocked: Boolean = false
     @Volatile
     private var selectedAlarmUri: String? = null
+    @Volatile
+    private var currentInvoiceId: String? = null
 
     fun prepareNotificationChannels(context: Context) {
         ensureChannel(context, recreateIfSoundChanged = true)
         ensureShiftChannel(context)
     }
 
-    fun startAlarm(context: Context) {
+    private fun prefs(context: Context) =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    fun setMuteState(context: Context, globalMute: Boolean, mutedInvoiceIds: Set<String>) {
+        prefs(context).edit()
+            .putBoolean(KEY_GLOBAL_MUTE, globalMute)
+            .putStringSet(KEY_MUTED_INVOICES, mutedInvoiceIds)
+            .apply()
+
+        // A mute that arrives while the alarm is already looping has to stop it
+        // here too: the push path can start the alarm without Dart ever knowing.
+        if (isPlaying() && isAlarmSuppressed(context, currentInvoiceId)) {
+            stopAlarm()
+        }
+    }
+
+    fun setCanMute(context: Context, canMute: Boolean) {
+        prefs(context).edit().putBoolean(KEY_CAN_MUTE, canMute).apply()
+        // Someone who may silence the alarm must never be locked out of the
+        // volume keys — including while an alarm started before we knew.
+        if (canMute && volumeLocked) {
+            setVolumeLock(false)
+        }
+    }
+
+    private fun canMute(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_CAN_MUTE, false)
+
+    fun isAlarmSuppressed(context: Context, invoiceId: String?): Boolean {
+        val stored = prefs(context)
+        if (stored.getBoolean(KEY_GLOBAL_MUTE, false)) {
+            return true
+        }
+        if (invoiceId.isNullOrBlank()) {
+            return false
+        }
+        return stored.getStringSet(KEY_MUTED_INVOICES, emptySet())
+            ?.contains(invoiceId) == true
+    }
+
+    fun isPlaying(): Boolean = synchronized(this) { mediaPlayer?.isPlaying == true }
+
+    @JvmOverloads
+    fun startAlarm(context: Context, invoiceId: String? = null) {
+        if (isAlarmSuppressed(context, invoiceId)) {
+            return
+        }
+
         synchronized(this) {
             if (mediaPlayer?.isPlaying == true) {
+                currentInvoiceId = invoiceId ?: currentInvoiceId
                 return
             }
 
@@ -83,7 +142,8 @@ object OrderAlertNative {
             }
 
             mediaPlayer = mp
-            setVolumeLock(true)
+            currentInvoiceId = invoiceId
+            setVolumeLock(!canMute(context))
         }
     }
 
@@ -98,6 +158,7 @@ object OrderAlertNative {
             } catch (_: Exception) {
             }
             mediaPlayer = null
+            currentInvoiceId = null
 
             releaseAudioFocus()
             setVolumeLock(false)

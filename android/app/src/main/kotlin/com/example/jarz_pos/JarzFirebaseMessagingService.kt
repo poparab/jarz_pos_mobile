@@ -10,7 +10,12 @@ class JarzFirebaseMessagingService : FlutterFirebaseMessagingService() {
         if (data.isNotEmpty()) {
             when (data["type"]) {
                 "new_invoice" -> {
-                    OrderAlertNative.startAlarm(applicationContext)
+                    // startAlarm consults the mirrored mute state itself. Passing
+                    // the invoice id is what lets it tell "this one is silenced"
+                    // apart from "the device is silenced".
+                    OrderAlertNative.startAlarm(applicationContext, data["invoice_id"])
+                    // The notification is silent and stays useful even when the
+                    // alarm is muted, so it is shown either way.
                     OrderAlertNative.showNotification(applicationContext, data)
                 }
                 "invoice_accepted" -> {

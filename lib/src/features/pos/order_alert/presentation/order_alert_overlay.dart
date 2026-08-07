@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../state/order_alert_controller.dart';
+import '../state/order_alert_state.dart';
 import '../order_alert_native_channel.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/constants/timing_config.dart';
@@ -27,6 +28,8 @@ class _OrderAlertOverlayState extends ConsumerState<OrderAlertOverlay> {
   Timer? _pollTimer;
   bool _isDisposed = false;
   bool _isShowingOverlay = false;
+  bool _volumeLocked = false;
+  bool? _lastCanMute;
 
   @override
   void initState() {
@@ -186,12 +189,39 @@ class _OrderAlertOverlayState extends ConsumerState<OrderAlertOverlay> {
     }
   }
 
+  /// Locks the volume keys only for users who have no other way to stop the
+  /// alarm.
+  ///
+  /// This used to live in `OrderAlertListener`, which nothing mounts — so in
+  /// practice the keys were locked by the native start path for *everyone*,
+  /// including the managers whose mute button was the intended escape hatch.
+  void _syncVolumeLock(OrderAlertState state, bool canMute) {
+    final shouldLock = state.hasActive && !state.isMuted && !canMute;
+    if (shouldLock == _volumeLocked) {
+      return;
+    }
+    _volumeLocked = shouldLock;
+    OrderAlertNativeChannel.setVolumeLocked(shouldLock);
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Keep the native layer's copy of the mute capability current: the alarm
+    // can be started by a background push, long before this widget rebuilds.
+    // Watched rather than listened so the first value is pushed too — the
+    // capability is usually resolved before any alert exists.
+    final canMute = ref.watch(canMuteNotificationsProvider);
+    if (canMute != _lastCanMute) {
+      _lastCanMute = canMute;
+      OrderAlertNativeChannel.setCanMuteAlarm(canMute);
+      _syncVolumeLock(ref.read(orderAlertControllerProvider), canMute);
+    }
+
     // Listen to state changes to trigger overlay updates
-    ref.listen<dynamic>(
+    ref.listen<OrderAlertState>(
       orderAlertControllerProvider,
       (previous, next) {
+        _syncVolumeLock(next, ref.read(canMuteNotificationsProvider));
         _checkForAlerts();
       },
     );

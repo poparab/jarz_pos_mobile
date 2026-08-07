@@ -29,9 +29,40 @@ class OrderAlertNativeChannel {
     _isInitialised = true;
   }
 
-  static Future<void> startAlarm() {
+  /// Starts the looping alarm for [invoiceId].
+  ///
+  /// The id matters: the native layer refuses to ring for an invoice the user
+  /// has silenced. Passing null means "ring unless the device is globally
+  /// muted", which is only correct for callers that have no invoice in hand.
+  static Future<void> startAlarm({String? invoiceId}) {
     if (kIsWeb) return Future.value(); // No-op on web
-    return _channel.invokeMethod('startAlarm');
+    return _channel.invokeMethod('startAlarm', {'invoiceId': invoiceId});
+  }
+
+  /// Mirrors the Dart mute state into the native layer.
+  ///
+  /// Android starts the alarm straight from the FCM service, with no Dart
+  /// engine running and therefore no access to the controller's state. Without
+  /// this, every push re-armed an alarm the user had already muted.
+  static Future<void> setMuteState({
+    required bool globalMute,
+    required List<String> mutedInvoiceIds,
+  }) {
+    if (kIsWeb) return Future.value(); // No-op on web
+    return _channel.invokeMethod('setMuteState', {
+      'globalMute': globalMute,
+      'mutedInvoiceIds': mutedInvoiceIds,
+    });
+  }
+
+  /// Tells the native layer whether this user is allowed to silence alarms.
+  ///
+  /// Drives the volume-key lock: someone who cannot mute must not be able to
+  /// turn the volume down either, but locking the keys of someone who *can*
+  /// mute just traps them.
+  static Future<void> setCanMuteAlarm(bool canMute) {
+    if (kIsWeb) return Future.value(); // No-op on web
+    return _channel.invokeMethod('setCanMuteAlarm', {'canMute': canMute});
   }
 
   static Future<void> stopAlarm() {

@@ -45,7 +45,7 @@ void main() {
         queue: [alert],
         active: alert,
         isAcknowledging: true,
-        isMuted: true,
+        mutedInvoiceIds: const {'INV-1'},
         error: 'some error',
         lastSynced: now,
       );
@@ -71,7 +71,7 @@ void main() {
         queue: [newAlert],
         active: newAlert,
         isAcknowledging: true,
-        isMuted: true,
+        mutedInvoiceIds: const {'B'},
         error: 'new error',
       );
       expect(copy.queue.first.invoiceId, 'B');

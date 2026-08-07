@@ -161,7 +161,10 @@ void main() {
 
       expect(controller.state.queue, hasLength(1));
       expect(controller.state.active?.invoiceId, 'INV-1');
-      expect(nativeChannelCalls, isEmpty);
+      // `setMuteState` may be mirrored at any time; what must not happen is an
+      // alarm or a notification.
+      expect(nativeChannelCalls, isNot(contains('startAlarm')));
+      expect(nativeChannelCalls, isNot(contains('showNotification')));
     });
 
     test('uses effective branch for timetable checks', () async {
@@ -531,6 +534,91 @@ void main() {
 
       await controller.muteActiveAlert();
       expect(nativeChannelCalls, isEmpty);
+    });
+
+    // The regression this whole change exists for: mute used to live only in
+    // memory, so any poll tick, push or controller rebuild that followed it
+    // started the alarm right back up.
+    test('a sync after muting does not restart the alarm', () async {
+      await controller.enqueueAlert(_alert('INV-1'));
+      await controller.muteActiveAlert();
+      service.pendingAlerts = [_alert('INV-1')];
+      nativeChannelCalls.clear();
+
+      await controller.syncPendingAlerts();
+
+      expect(controller.state.isMuted, isTrue);
+      expect(nativeChannelCalls, isNot(contains('startAlarm')));
+    });
+
+    test('mute is mirrored to the native layer', () async {
+      await controller.enqueueAlert(_alert('INV-1'));
+      nativeChannelCalls.clear();
+
+      await controller.muteActiveAlert();
+
+      expect(nativeChannelCalls, contains('setMuteState'));
+    });
+
+    test('mute survives a controller rebuild', () async {
+      await controller.enqueueAlert(_alert('INV-1'));
+      await controller.muteActiveAlert();
+
+      final rebuilt = OrderAlertController(service, posRepo);
+      addTearDown(rebuilt.dispose);
+      service.pendingAlerts = [_alert('INV-1')];
+      nativeChannelCalls.clear();
+
+      await rebuilt.syncPendingAlerts();
+
+      expect(rebuilt.state.isMuted, isTrue);
+      expect(nativeChannelCalls, isNot(contains('startAlarm')));
+    });
+
+    // Mute means "this order is handled", not "stop telling me about orders".
+    test('a new order still rings while an older one is muted', () async {
+      await controller.enqueueAlert(_alert('INV-1'));
+      await controller.muteActiveAlert();
+      nativeChannelCalls.clear();
+
+      await controller.enqueueAlert(_alert('INV-2'));
+
+      expect(controller.state.active?.invoiceId, 'INV-2');
+      expect(controller.state.isMuted, isFalse);
+      expect(nativeChannelCalls, contains('startAlarm'));
+    });
+
+    test('sync hands the active slot to an unmuted alert', () async {
+      await controller.enqueueAlert(_alert('INV-1'));
+      await controller.muteActiveAlert();
+      service.pendingAlerts = [_alert('INV-1'), _alert('INV-2')];
+
+      await controller.syncPendingAlerts();
+
+      expect(controller.state.active?.invoiceId, 'INV-2');
+      expect(controller.state.queue, hasLength(2));
+      expect(controller.state.isMuted, isFalse);
+    });
+
+    test('accepting a muted invoice releases its mute', () async {
+      await controller.enqueueAlert(_alert('INV-1'));
+      await controller.muteActiveAlert();
+      service.pendingAlerts = [];
+
+      await controller.acknowledgeActive();
+
+      expect(controller.state.mutedInvoiceIds, isEmpty);
+    });
+
+    test('sync prunes mutes for invoices the server dropped', () async {
+      await controller.enqueueAlert(_alert('INV-1'));
+      await controller.muteActiveAlert();
+      service.pendingAlerts = [_alert('INV-2')];
+
+      await controller.syncPendingAlerts();
+
+      expect(controller.state.mutedInvoiceIds, isEmpty);
+      expect(controller.state.active?.invoiceId, 'INV-2');
     });
   });
 

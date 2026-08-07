@@ -28,7 +28,18 @@ class OrderAlertChannel : FlutterPlugin, MethodChannel.MethodCallHandler {
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "startAlarm" -> {
-                OrderAlertNative.startAlarm(appContext)
+                OrderAlertNative.startAlarm(appContext, call.argument<String>("invoiceId"))
+                result.success(null)
+            }
+            "setMuteState" -> {
+                val globalMute = call.argument<Boolean>("globalMute") ?: false
+                val mutedInvoiceIds =
+                    call.argument<List<String>>("mutedInvoiceIds")?.toSet() ?: emptySet()
+                OrderAlertNative.setMuteState(appContext, globalMute, mutedInvoiceIds)
+                result.success(null)
+            }
+            "setCanMuteAlarm" -> {
+                OrderAlertNative.setCanMute(appContext, call.argument<Boolean>("canMute") ?: false)
                 result.success(null)
             }
             "stopAlarm" -> {

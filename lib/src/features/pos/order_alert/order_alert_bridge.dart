@@ -206,6 +206,7 @@ class OrderAlertBridge {
     } else {
       await _registerWebTokenIfPermissionGranted();
     }
+    unawaited(_syncMuteCapabilityToNative());
     await _ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts();
 
     final pendingNotificationId = _pendingWebNotificationInvoiceId;
@@ -324,9 +325,24 @@ class OrderAlertBridge {
     }
   }
 
+  /// Hands the native layer this user's mute capability, so an alarm started by
+  /// a background push locks the volume keys only for people who have no mute
+  /// button to reach for.
+  Future<void> _syncMuteCapabilityToNative() async {
+    try {
+      final roles = await _ref.read(userRolesFutureProvider.future);
+      await OrderAlertNativeChannel.setCanMuteAlarm(roles.canMuteNotifications);
+    } catch (error, stackTrace) {
+      _logger.error('Failed to sync mute capability to native', error, stackTrace);
+    }
+  }
+
   Future<void> _onLoggedOut() async {
     _backgroundPollTimer?.cancel();
     _backgroundPollTimer = null;
+    // The next user is not this user: a cached "may mute" must not survive.
+    _ref.read(canMuteNotificationsCacheProvider.notifier).clear();
+    await OrderAlertNativeChannel.setCanMuteAlarm(false);
     final controller = _ref.read(orderAlertControllerProvider.notifier);
     await controller.clearAll();
     await controller.resetTokenCache();

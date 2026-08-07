@@ -1,0 +1,1405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Jarz POS — Manual Test Checklist (Staff &amp; Line Manager)</title>
+<style>
+  @page { size: A4 portrait; margin: 12mm 10mm 14mm 10mm; }
+
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    font-size: 8.6pt;
+    line-height: 1.3;
+    color: #000;
+    margin: 0;
+    background: #fff;
+  }
+
+  /* ---------- Cover ---------- */
+  .cover { page-break-after: always; }
+  h1 { font-size: 19pt; margin: 0 0 2mm; letter-spacing: -.2px; }
+  .sub { font-size: 10pt; color: #444; margin: 0 0 6mm; }
+
+  h2 {
+    font-size: 12pt;
+    margin: 7mm 0 2mm;
+    padding: 1.5mm 2mm;
+    background: #1f2937;
+    color: #fff;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+  h3 {
+    font-size: 9.6pt;
+    margin: 4.5mm 0 1.5mm;
+    padding-bottom: 1mm;
+    border-bottom: 1.2pt solid #1f2937;
+    page-break-after: avoid;
+  }
+  h3 .pre { font-weight: 400; font-size: 8pt; color: #444; }
+
+  /* ---------- Meta / run sheet ---------- */
+  table.meta { width: 100%; border-collapse: collapse; margin-bottom: 5mm; }
+  table.meta td { border: .6pt solid #000; padding: 2.6mm 2mm; vertical-align: middle; }
+  table.meta td.k { width: 32mm; background: #f1f2f4; font-weight: 700; font-size: 8pt; }
+
+  /* ---------- Test tables ---------- */
+  table.tc { width: 100%; border-collapse: collapse; margin-bottom: 3mm; }
+  table.tc thead { display: table-header-group; }
+  table.tc th {
+    border: .6pt solid #000;
+    background: #e5e7eb;
+    padding: 1.4mm 1.6mm;
+    font-size: 7.6pt;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+  }
+  table.tc td {
+    border: .6pt solid #000;
+    padding: 1.8mm 1.6mm;
+    vertical-align: top;
+  }
+  table.tc tr { page-break-inside: avoid; }
+
+  col.c-id  { width: 15mm; }
+  col.c-st  { width: 55mm; }
+  col.c-ex  { width: 55mm; }
+  col.c-pf  { width: 14mm; }
+  col.c-ac  { width: 47mm; }
+
+  td.id { font-weight: 700; font-size: 7.6pt; font-family: "Consolas", monospace; }
+  td.pf { text-align: center; padding-top: 2.4mm; }
+  td.ac { background: #fbfbfb; }
+
+  .box {
+    display: inline-block;
+    width: 3.6mm; height: 3.6mm;
+    border: .8pt solid #000;
+    vertical-align: -.6mm;
+  }
+  .pfw { font-size: 7pt; line-height: 1.8; }
+
+  ol.steps, ul.steps { margin: 0; padding-left: 3.6mm; }
+  ol.steps li, ul.steps li { margin-bottom: .6mm; }
+
+  .tag {
+    display: inline-block;
+    font-size: 6.6pt;
+    font-weight: 700;
+    padding: .3mm 1.2mm;
+    border: .6pt solid #000;
+    border-radius: 1mm;
+    margin-right: 1mm;
+    vertical-align: 1px;
+  }
+  .tag.cfg { background: #fef3c7; }
+  .tag.neg { background: #fee2e2; }
+  .tag.crit { background: #dbeafe; }
+
+  .note {
+    border-left: 2pt solid #1f2937;
+    background: #f4f5f7;
+    padding: 2mm 2.5mm;
+    margin: 2mm 0 4mm;
+    font-size: 8pt;
+    page-break-inside: avoid;
+  }
+  .note b { display: block; margin-bottom: .8mm; }
+
+  .legend td { border: .6pt solid #000; padding: 1.6mm 2mm; font-size: 7.8pt; }
+  .legend { width: 100%; border-collapse: collapse; margin-bottom: 4mm; }
+
+  /* ---------- Bug log ---------- */
+  table.bug { width: 100%; border-collapse: collapse; }
+  table.bug th { border: .6pt solid #000; background: #e5e7eb; padding: 1.6mm; font-size: 7.6pt; text-align: left; }
+  table.bug td { border: .6pt solid #000; height: 13mm; padding: 1.4mm; }
+
+  .sign { margin-top: 8mm; width: 100%; border-collapse: collapse; }
+  .sign td { padding: 8mm 3mm 2mm; border-bottom: .8pt solid #000; font-size: 8pt; }
+
+  .pb { page-break-before: always; }
+  .ltr { direction: ltr; unicode-bidi: embed; display: inline-block; }
+</style>
+</head>
+<body>
+
+<!-- =========================== COVER =========================== -->
+<section class="cover">
+  <h1>Jarz POS — Manual Test Checklist</h1>
+  <p class="sub">User Acceptance Testing · <b>Staff (Sales User)</b> and <b>Line Manager</b> personas · Print on A4</p>
+
+  <table class="meta">
+    <tr><td class="k">Tester name</td><td></td><td class="k">Date</td><td></td></tr>
+    <tr><td class="k">Environment</td><td>&#9744; Staging (erpstg.orderjarz.com)&nbsp;&nbsp; &#9744; Production (erp.orderjarz.com)</td><td class="k">App build / version</td><td></td></tr>
+    <tr><td class="k">Device / browser</td><td></td><td class="k">Platform</td><td>&#9744; Android app&nbsp;&nbsp; &#9744; Web (Chrome)</td></tr>
+    <tr><td class="k">Staff test account</td><td></td><td class="k">POS profile / branch</td><td></td></tr>
+    <tr><td class="k">Line Manager account</td><td></td><td class="k">POS profile / branch</td><td></td></tr>
+    <tr><td class="k">Start time</td><td></td><td class="k">End time</td><td></td></tr>
+  </table>
+
+  <h3>How to use this sheet</h3>
+  <ol class="steps" style="font-size:8.4pt; line-height:1.5;">
+    <li>Run the sections <b>in order</b> — later cases depend on orders created in earlier ones.</li>
+    <li>For each row, perform the steps and compare against <b>Expected Result</b>.</li>
+    <li>If the app behaves exactly as expected → tick <b>P</b> and leave <b>Actual</b> empty.</li>
+    <li>If it differs in any way → tick <b>F</b> and write what actually happened in <b>Actual / Bug note</b>. Add a bug number (B-01, B-02 …) and copy it into the Bug Log on the last page.</li>
+    <li>If a case cannot be run (feature off, no data, blocked) → write <b>N/A</b> plus the reason in Actual.</li>
+    <li>Take a screenshot for every failure and name it with the bug number.</li>
+  </ol>
+
+  <h3>Legend</h3>
+  <table class="legend">
+    <tr>
+      <td><span class="tag crit">CRIT</span> Critical path — a failure here blocks the release.</td>
+      <td><span class="tag neg">NEG</span> Negative test — the app must <b>refuse</b> or <b>hide</b> something.</td>
+    </tr>
+    <tr>
+      <td><span class="tag cfg">CFG</span> Depends on a setting/feature flag. If the feature is off, mark N/A.</td>
+      <td><b>P / F</b> = Pass / Fail tick boxes.</td>
+    </tr>
+  </table>
+
+  <div class="note">
+    <b>Before you start — preconditions</b>
+    1. Two separate accounts are needed: one plain <b>Staff</b> (Role Profile "Jarz POS Staff") and one <b>Line Manager</b> (Role Profile "Jarz POS Line Manager"). Do not test both personas from one login.<br>
+    2. Both accounts must be linked to a POS Profile via the <b>POS Profile User</b> table, and the branch must have items, at least one bundle, delivery slots, one courier, and at least one expense account configured.<br>
+    3. The Staff account must have <b>Require POS Shift</b> enabled on the User record, otherwise the whole shift section is not applicable.<br>
+    4. Always fully log out (and hard-refresh on web) when switching between the two personas — a stale session hides permission bugs.<br>
+    5. Use a clearly fake customer name (e.g. "TEST — <i>your name</i>") for every order you create so the data can be cleaned up afterwards.
+  </div>
+
+  <div class="note">
+    <b>Scope of this version</b>
+    The <b>Delivery Trips</b> section (creating a multi-order trip, the Trips screen, marking a trip delivered) is <b>excluded</b> from this version by request.
+    The step of <b>sending a single order out for delivery with a courier from the Kanban board</b> is still covered (cases <span class="ltr">ST-KAN-16 / 17</span>), because Courier Balances and End Shift cannot be tested without it.
+  </div>
+</section>
+
+<!-- =========================== SECTION 1 — STAFF =========================== -->
+<h2>SECTION 1 — STAFF PERSONA (Sales User)</h2>
+<p style="margin:0 0 3mm; font-size:8.4pt;">Log in with the <b>Staff</b> account for every case in this section.</p>
+
+<h3>1.1 Login &amp; Landing <span class="pre">— account: Staff</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-LOG-01<br><span class="tag crit">CRIT</span></td>
+      <td>Open the app / POS URL. Enter the Staff email and password. Tap <b>Login</b>.</td>
+      <td>Login succeeds without error. <b>No</b> "Line Manager / Employee" mode dialog appears (that prompt was removed). The user is taken straight to their home screen.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-LOG-02</td>
+      <td>Observe which screen the app lands on after login.</td>
+      <td>Staff lands on the <b>Kanban board</b> (not the Manager Dashboard). If the shift gate applies, the app instead forces the <b>Start Shift</b> screen first.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-LOG-03</td>
+      <td>Enter the correct email with a <b>wrong password</b> and tap Login.</td>
+      <td>A clear, readable error message is shown. The app does not hang, and does not navigate anywhere.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-LOG-04</td>
+      <td>Open the side menu (☰) and check the POS profile shown at the top / in Profile.</td>
+      <td>The correct branch/POS profile for this user is shown, and it is the only one available. Staff cannot switch to another branch.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-LOG-05</td>
+      <td>Open the side menu and list <b>every</b> menu item you can see. Write them in the Actual column.</td>
+      <td>Only these are visible: Point of Sale, Kanban, End Shift (once a shift is open), Delivery Trips, Courier Balances, Expenses, Item Requests, About, Language, Logout.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>1.2 Shift Start <span class="pre">— account: Staff</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-SHF-01<br><span class="tag crit">CRIT</span></td>
+      <td>Before starting a shift, try to reach the POS screen and submit an order.</td>
+      <td>The app blocks it and sends the user to <b>Start Shift</b>. An order cannot be submitted with no open shift.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-SHF-02<br><span class="tag crit">CRIT</span></td>
+      <td>On Start Shift, count the drawer, type the opening <b>cash</b> amount, tap <b>Start Shift</b>.</td>
+      <td>"Shift Active" is confirmed and the user is redirected to POS. The shift number is visible. Only a cash field is required — no InstaPay/wallet/bank entry is demanded from staff.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-SHF-03</td>
+      <td>Leave the opening amount empty (or type letters) and tap Start Shift.</td>
+      <td>A validation message appears. The shift is not opened.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-SHF-04<br><span class="tag neg">NEG</span></td>
+      <td>With the shift open, log in as a <b>different</b> user on the same POS profile and try to start a shift.</td>
+      <td>A "Shift Already Open" style warning appears. A second shift is not created on the same profile.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-SHF-05</td>
+      <td>Return to the side menu after opening the shift.</td>
+      <td>An <b>End Shift</b> item now appears in the menu (it was absent before).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>1.3 POS Order Entry <span class="pre">— account: Staff</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-POS-01<br><span class="tag neg">NEG</span></td>
+      <td>On a fresh POS screen with <b>no customer selected</b>, try to add an item to the cart.</td>
+      <td>The app requires a customer first — the item is not added, or a prompt asks to select the customer.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-02</td>
+      <td>Tap <b>Add Customer</b>. Search an existing customer by <b>name</b>, then repeat searching by <b>phone number</b>. Select the customer.</td>
+      <td>Both searches return results. On selection the customer name appears in the cart header and the saved delivery address loads automatically.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-03<br><span class="tag crit">CRIT</span></td>
+      <td>Create a <b>new</b> customer: name "TEST — <i>your name</i>", a phone number, and a delivery address with area/territory.</td>
+      <td>The customer is created and auto-selected. The address is saved and the delivery fee for that area is picked up in the cart.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-04</td>
+      <td>Search an item by name, tap it to add. Tap again / use +. Then use − to decrease and the trash icon to remove.</td>
+      <td>Quantity increases and decreases correctly, the line total recalculates each time, and the removed line disappears.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-05</td>
+      <td>Add a <b>bundle</b> to the cart and open it to see its contents / choose flavors if prompted.</td>
+      <td>The bundle is added as one priced line, its child items are listed, and the bundle price (not the sum of items) is used in the total.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-06</td>
+      <td>Tap <b>Select Delivery Time</b> and choose a slot.</td>
+      <td>Available slots for the branch are listed with dates/times. The chosen slot is shown in the cart. A delivery fee is added automatically based on the customer's area.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-07</td>
+      <td>Toggle <b>Pickup from Branch</b> on.</td>
+      <td>The delivery slot selector disappears and the delivery fee is removed from the total (grand total drops by exactly the shipping amount).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-08<br><span class="tag neg">NEG</span></td>
+      <td>Turn Pickup off, do <b>not</b> pick a slot, and tap Submit.</td>
+      <td>"Please select a delivery time" (or equivalent) is shown. The order is <b>not</b> submitted.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-09</td>
+      <td>Verify the totals arithmetic on screen: items subtotal + delivery fee = Grand Total.</td>
+      <td>The three figures add up exactly. No rounding error, no missing delivery line.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-10<br><span class="tag crit">CRIT</span></td>
+      <td>Tap <b>Submit</b>, choose <b>Cash</b>, and confirm.</td>
+      <td>Success message with an invoice number (e.g. ACC-SINV-…). The cart clears automatically. Write the invoice number in Actual — you will need it later.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-11</td>
+      <td>Create a second order and submit it with <b>InstaPay</b> (or another non-cash method offered).</td>
+      <td>The order submits successfully and the payment method chosen is reflected on the resulting order card.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-12</td>
+      <td>Create a third order and submit it as <b>unpaid / settle later</b>.</td>
+      <td>The order submits and appears on Kanban with a clear <b>UNPAID</b> badge.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-13<br><span class="tag cfg">CFG</span></td>
+      <td>Build a cart, then apply a <b>promo code</b> if promo codes are configured for this branch.</td>
+      <td>A valid code applies the discount and the grand total drops accordingly. An invalid code is rejected with a message and no discount.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-14</td>
+      <td>Build a cart <b>without submitting</b>, navigate away to Kanban, then come back to POS.</td>
+      <td>The cart is restored from the auto-saved draft (or is retrievable from the Drafts / history icon in the POS header).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-15</td>
+      <td>Tap <b>Clear Cart</b> on a filled cart.</td>
+      <td>A confirmation is requested, then all lines, the customer, and the delivery slot are cleared. Submit becomes disabled/greyed on the empty cart.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-16<br><span class="tag neg">NEG</span></td>
+      <td>Try to add a quantity far above available stock for a stock-tracked item (e.g. 999).</td>
+      <td>The app stops at the available quantity or shows a stock error. It does not silently submit an over-sold order.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>1.4 Kanban Board <span class="pre">— account: Staff</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-KAN-01<br><span class="tag crit">CRIT</span></td>
+      <td>Open the Kanban board and find the order created in ST-POS-10.</td>
+      <td>The order appears in the <b>Received</b> column within seconds (or after one refresh), showing customer name, order id, and total.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-02</td>
+      <td>Check the columns shown on the board and list them in Actual.</td>
+      <td>Received, In Progress, Ready, Out for Delivery, Delivered, Cancelled (and Returned if the return feature is on).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-03<br><span class="tag crit">CRIT</span></td>
+      <td>Open the order card and tap <b>Accept Order</b>, then move it to <b>In Progress</b> and then to <b>Ready</b>.</td>
+      <td>Each transition succeeds, the card moves column immediately, and the new status survives a manual refresh (it was saved on the server, not only locally).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-04<br><span class="tag neg">NEG</span></td>
+      <td>Try to <b>drag an order card into the Cancelled column</b>.</td>
+      <td>The drop is refused with a message. Orders cannot be cancelled by dragging — cancellation is a menu action for authorised roles only.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-05</td>
+      <td>On a card open <b>More options (⋮) → Add Note</b>, write a note, save. Close and reopen the board.</td>
+      <td>The note is saved and a note indicator/preview is visible on the card itself after refresh.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-06<br><span class="tag crit">CRIT</span></td>
+      <td>⋮ → <b>Edit Customer Address</b>. Change the street/building, save. Reopen the same dialog.</td>
+      <td>The address saves without any error (no "document has been modified" / 417 error) and the new value is shown when reopened. The delivery area/territory is not lost.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-07</td>
+      <td>⋮ → <b>Change Delivery Slot</b> on a delivery order that is not yet dispatched. Pick a different slot.</td>
+      <td>The new slot is saved and shown on the card. (The option is absent on pickup orders and on dispatched/delivered/cancelled orders.)</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-08</td>
+      <td>⋮ → <b>Edit Invoice</b> (amendment) on a Received/In-Progress order. Change a quantity, submit the amendment.</td>
+      <td>The POS opens pre-filled with the original cart. After Submit Amendment the board shows the corrected order and total, with no duplicated lines.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-09<br><span class="tag neg">NEG</span></td>
+      <td>Look for <b>Edit Invoice</b> on an order that is Out for Delivery / Delivered / Cancelled.</td>
+      <td>The option is not offered for those statuses.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-10</td>
+      <td>⋮ → <b>Payment Receipts</b> on the unpaid order from ST-POS-12. Add a receipt with an amount and method.</td>
+      <td>The receipt is recorded and listed, marked as awaiting manager confirmation. The order does not silently become fully paid.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-11</td>
+      <td>⋮ → <b>Preview Receipt</b>, then <b>Print</b>.</td>
+      <td>The preview shows correct customer, items, quantities, delivery fee and grand total. Print either prints or gives a clear "printer not connected" message — it never crashes the screen.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-12</td>
+      <td>Use <b>Show Filters</b>: filter by customer name, then by date range, then by status. Clear filters.</td>
+      <td>Each filter narrows the board correctly and clearing restores all cards. Filters do not survive as invisible state after being cleared.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-13</td>
+      <td>Search the board by invoice number, then by customer name.</td>
+      <td>Both find the expected order.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-14<br><span class="tag neg">NEG</span></td>
+      <td>Open the ⋮ menu on any card and list every option shown. Write them in Actual.</td>
+      <td>Staff must <b>not</b> see: Cancel Order, Return Order. (Add Note, Edit Address, Change Slot, Edit Invoice, Preview, Print, Transfer Order may appear.)</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-15</td>
+      <td>On a second device/browser, have someone else move an order. Watch this board without refreshing.</td>
+      <td>The card moves on this board automatically (realtime), or at worst after the normal refresh interval. Only orders of <b>this branch</b> appear.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-16<br><span class="tag crit">CRIT</span></td>
+      <td>On a <b>Ready</b>, <b>paid</b> delivery order, tap the card → Delivery action. Assign a courier and confirm dispatch.</td>
+      <td>The order moves to <b>Out for Delivery</b>, the courier name is shown on the card, and the status survives a refresh.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-17<br><span class="tag crit">CRIT</span></td>
+      <td>Repeat on the <b>unpaid</b> order: dispatch it and choose the "courier collects the cash" option.</td>
+      <td>A dialog forces an explicit choice about who collects the money. After dispatch, the amount appears against that courier in Courier Balances.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-18</td>
+      <td>Look at a live delivery order card with no map pin set on the address.</td>
+      <td>A "missing location pin" indicator is shown so the order can be fixed before dispatch. Pickup, delivered and cancelled orders show no pin warning.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>1.5 Courier Balances <span class="pre">— account: Staff</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-CUR-01</td>
+      <td>Menu → <b>Courier Balances</b>. Read the figures for the courier used in ST-KAN-17.</td>
+      <td>Three figures are shown — Collect From Courier, Pay Courier, Net Balance — plus an unsettled invoice count. The unpaid order's amount is reflected in "Collect From Courier".</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-CUR-02<br><span class="tag crit">CRIT</span></td>
+      <td>Tap <b>Settle</b> next to that courier and confirm the settlement dialog.</td>
+      <td>The confirmation names the courier and the number of invoices. After confirming, a "Settled" message appears and the courier's row clears from the outstanding list.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-CUR-03</td>
+      <td>Reopen Courier Balances after settling.</td>
+      <td>The settled courier no longer shows an outstanding balance; the figure does not reappear after refresh.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>1.6 Expenses <span class="pre">— account: Staff</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-EXP-01</td>
+      <td>Menu → <b>Expenses</b>. Read the summary at the top.</td>
+      <td>The current month is shown with Total / Approved / Pending figures and the user's own expenses listed.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-EXP-02<br><span class="tag crit">CRIT</span></td>
+      <td>Tap <b>+ New Expense</b>. Pick a reason, a payment source, enter an amount and remarks, submit for approval.</td>
+      <td>"Expense submitted for approval" is confirmed and the expense appears in the list with a <b>Pending Approval</b> badge — it is <b>not</b> auto-approved for staff.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-EXP-03<br><span class="tag neg">NEG</span></td>
+      <td>Open the <b>Pay from</b> dropdown and list the accounts offered.</td>
+      <td>Only payment sources belonging to this user's own POS profile are listed. No company-wide bank/cash accounts from other branches appear.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-EXP-04<br><span class="tag neg">NEG</span></td>
+      <td>Look for any Approve / Reject control on your own pending expense.</td>
+      <td>No approval control is available to staff.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-EXP-05</td>
+      <td>Submit an expense with an empty amount, then with the text "abc".</td>
+      <td>A validation error is shown in both cases and nothing is saved.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-EXP-06</td>
+      <td>Switch the month filter to the previous month, then pull down to refresh.</td>
+      <td>The list reloads for the selected month; the summary figures update to match.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>1.7 Item Requests <span class="pre">— account: Staff</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-REQ-01</td>
+      <td>Menu → <b>Item Requests</b>. Create a request for an item with a quantity and required date.</td>
+      <td>The request is created and appears in the list with its status. Staff are deliberately allowed to raise requests — this is not manager-only.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-REQ-02</td>
+      <td>Reopen the screen and check the request you created.</td>
+      <td>The request persists with the correct item, quantity, date and requesting branch.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>1.8 Shift End <span class="pre">— account: Staff · run last for this persona</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-END-01<br><span class="tag crit">CRIT</span></td>
+      <td>Create one more unpaid delivery order, dispatch it with a courier collecting, then open <b>End Shift</b>.</td>
+      <td>A "settle courier balances before ending the shift" notice appears with the courier and net balance, and the <b>End Shift button is disabled</b>.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-END-02</td>
+      <td>Tap <b>Review &amp; Settle Couriers</b>, settle the courier, close the overlay.</td>
+      <td>The notice clears and the End Shift button becomes enabled.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-END-03<br><span class="tag crit">CRIT</span></td>
+      <td>Look at the End Shift screen while typing the counted cash.</td>
+      <td>The <b>expected</b> cash amount is <b>not</b> shown while typing — this is a blind count. Only a counted-cash field is requested (no InstaPay/wallet/bank fields for staff).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-END-04<br><span class="tag crit">CRIT</span></td>
+      <td>Enter a counted amount that is deliberately <b>different</b> from the real expected figure (e.g. 20 EGP short) and tap End Shift.</td>
+      <td>"Shift ended successfully" plus a summary revealing Expected, Counted and <b>Difference</b>, and a closing entry number. The over/short is recorded — the difference is not silently swallowed.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-END-05<br><span class="tag neg">NEG</span></td>
+      <td>After the shift is closed, try to submit a new POS order.</td>
+      <td>Blocked — the user is sent back to Start Shift.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-END-06</td>
+      <td>Check the side menu after the shift closed.</td>
+      <td>The <b>End Shift</b> item is gone from the menu.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>1.9 Staff Restrictions — must NOT be possible <span class="pre">— account: Staff</span></h3>
+<div class="note">
+  <b>How to test a hidden screen properly</b>
+  It is not enough that the menu item is missing. Where possible, also type the screen's URL directly in the browser address bar (web build) — the app must still refuse, either by redirecting away or showing "Not permitted". Record what actually happened.
+</div>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr><td class="id">ST-NEG-01<br><span class="tag neg">NEG</span></td><td>Look for <b>Master Orders</b> in the menu; then try its URL directly.</td><td>Not visible and not reachable — "Not permitted" or redirect.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-02<br><span class="tag neg">NEG</span></td><td>Look for <b>Manager Dashboard</b>; then try its URL directly.</td><td>Not visible and not reachable.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-03<br><span class="tag neg">NEG</span></td><td>Look for <b>Reports</b>; then try its URL directly.</td><td>Not visible and not reachable.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-04<br><span class="tag neg">NEG</span></td><td>Look for <b>Cash Transfer</b> and <b>Stock Transfer</b>; then try their URLs.</td><td>Neither is visible nor reachable.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-05<br><span class="tag neg">NEG</span></td><td>Look for <b>Inventory Count</b>, <b>Purchase Invoice</b>, <b>Production Board</b>.</td><td>None are visible nor reachable.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-06<br><span class="tag neg">NEG</span></td><td>Look for <b>B2B Mode</b>, <b>Leads</b>, <b>Price Lists</b>.</td><td>Not visible for a plain staff user (unless this account was deliberately given B2B access — then mark N/A).</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-07<br><span class="tag neg">NEG</span></td><td>Open Profile / Settings and look for a <b>Mute notifications</b> control.</td><td>Not available to staff.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-08<br><span class="tag neg">NEG</span></td><td>On the Kanban board look for a <b>branch filter</b> and try to view another branch's orders.</td><td>Only the user's own branch data is visible.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+  </tbody>
+</table>
+
+<!-- =========================== SECTION 2 — LINE MANAGER =========================== -->
+<h2 class="pb">SECTION 2 — LINE MANAGER PERSONA</h2>
+<div class="note">
+  <b>Switch account now</b>
+  Log out completely from the Staff account (and hard-refresh the browser on web), then log in with the <b>Line Manager</b> account. If you skip the full logout, the app may still be showing cached staff permissions and every case below becomes meaningless.
+</div>
+
+<h3>2.1 Login, Landing &amp; Navigation <span class="pre">— account: Line Manager</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-NAV-01<br><span class="tag crit">CRIT</span></td>
+      <td>Log in with the Line Manager account.</td>
+      <td>Login succeeds. No "Line Manager / Employee" mode dialog appears. Note the landing screen in Actual.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-NAV-02<br><span class="tag crit">CRIT</span></td>
+      <td>Immediately try to use the POS and submit an order without starting a shift.</td>
+      <td>The shift rule is now enforced by the server, not by a login choice. Whatever the app does, it must be <b>consistent</b>: if it lets the manager into POS, the order must submit successfully; if it blocks, it must send them to Start Shift. A screen that allows building a cart but then fails at submit is a bug — record exactly what happened.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-NAV-03<br><span class="tag crit">CRIT</span></td>
+      <td>Open the side menu and write down <b>every</b> item visible, group by group.</td>
+      <td>Expected for a Line Manager: Point of Sale, Kanban, Delivery Trips, Courier Balances, Expenses, Item Requests, <b>Master Orders</b>, <b>Manager Dashboard</b>, <b>Shift Monitor</b>. Anything beyond this list must be recorded — see LM-NEG.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-NAV-04</td>
+      <td>Run the whole staff happy path once as Line Manager: create a customer order, accept it, move it to Ready, dispatch it.</td>
+      <td>Everything a staff member can do also works for the Line Manager — no permission errors on the normal POS/Kanban path.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.2 Master Orders <span class="pre">— account: Line Manager</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-MST-01<br><span class="tag crit">CRIT</span></td>
+      <td>Menu → <b>Master Orders</b>.</td>
+      <td>The screen opens with no permission error and lists orders.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-MST-02</td>
+      <td>Find the orders created in Section 1 by their invoice numbers.</td>
+      <td>They are present with the correct customer, total and current status.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-MST-03</td>
+      <td>Use the filters/search on Master Orders (date range, status, customer, branch if offered).</td>
+      <td>Each filter returns a sensible narrowed list and clearing restores it. Branch options are limited to branches this manager is assigned to.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.3 Manager Dashboard <span class="pre">— account: Line Manager</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-DSH-01<br><span class="tag crit">CRIT</span></td>
+      <td>Menu → <b>Manager Dashboard</b>.</td>
+      <td>The dashboard loads with summary figures — no "Not permitted" error, no endless spinner, no blank screen.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-DSH-02</td>
+      <td>Compare today's order count / sales total on the dashboard with the number of orders visible on the Kanban board.</td>
+      <td>The figures agree (allowing for cancelled orders). A dashboard showing zero while the board shows orders is a bug.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-DSH-03</td>
+      <td>Change the branch selector / date filter on the dashboard, if present.</td>
+      <td>Figures refresh for the chosen branch and period. Only assigned branches are offered.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.4 Shift Monitor <span class="pre">— account: Line Manager</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-SHM-01</td>
+      <td>Menu → <b>Shift Monitor</b>.</td>
+      <td>The screen opens and lists shifts for the branch, including the staff shift closed in ST-END-04.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-SHM-02<br><span class="tag crit">CRIT</span></td>
+      <td>Open that closed shift and check the cash figures.</td>
+      <td>Expected, counted and the <b>difference you deliberately created in ST-END-04</b> are all shown correctly. The over/short is visible to the manager.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-SHM-03<br><span class="tag neg">NEG</span></td>
+      <td>Find a shift opened by <b>another user</b> that is still open and try to close it.</td>
+      <td>Closing another user's shift is refused — only the user who opened a shift may close it.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.5 Cancel Order <span class="pre">— account: Line Manager</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-CAN-01<br><span class="tag crit">CRIT</span></td>
+      <td>On Kanban, create a fresh <b>unpaid</b> order in Received. Open ⋮ → the <b>Cancel Order</b> option must now be present.</td>
+      <td>Cancel Order is visible for the Line Manager (it was hidden for staff in ST-KAN-14).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-CAN-02<br><span class="tag crit">CRIT</span></td>
+      <td>Cancel that unpaid order: choose a reason, add notes, confirm.</td>
+      <td>A reason is required. The order moves to <b>Cancelled</b> and stays there after a refresh. No error dialog.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-CAN-03<br><span class="tag crit">CRIT</span></td>
+      <td>Create a new order and pay it in full (Cash) at submit. Then cancel it from Kanban.</td>
+      <td>The cancellation of a <b>paid</b> order completes successfully — no "document has been modified" / timestamp mismatch error. The order lands in Cancelled.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-CAN-04<br><span class="tag neg">NEG</span></td>
+      <td>Open ⋮ on an order that is <b>Out for Delivery</b> and on one that is <b>Delivered</b>.</td>
+      <td>Cancel Order is not offered for either — cancellation after dispatch is not allowed (a return is the correct route).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-CAN-05<br><span class="tag neg">NEG</span></td>
+      <td>Take an order with an <b>unsettled courier balance</b> against it and try to cancel.</td>
+      <td>Cancel is unavailable/refused while the courier transaction is unsettled.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-CAN-06<br><span class="tag neg">NEG</span></td>
+      <td>Try again to <b>drag</b> an order into the Cancelled column as Line Manager.</td>
+      <td>Still refused, even for a manager — cancellation must go through the menu action with a reason.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-CAN-07</td>
+      <td>Check the cancelled order's card and the Master Orders list.</td>
+      <td>The cancellation reason/notes entered in LM-CAN-02 are visible for follow-up.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.6 Transfer Order <span class="pre">— account: Line Manager</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-TRF-01<br><span class="tag crit">CRIT</span></td>
+      <td>On a Received/In-Progress order, ⋮ → <b>Transfer Order</b>. Choose another branch and confirm.</td>
+      <td>The branch list appears, the transfer succeeds, and the order leaves this branch's board (it now belongs to the target branch).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-TRF-02<br><span class="tag neg">NEG</span></td>
+      <td>Open ⋮ on an order that is Out for Delivery / Delivered / Cancelled.</td>
+      <td>Transfer Order is not offered after dispatch.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-TRF-03</td>
+      <td>Log in at the receiving branch (or ask someone there) and check their Kanban.</td>
+      <td>The transferred order is present at the target branch with all items, customer and totals intact.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.7 Return Order <span class="pre">— account: Line Manager · <span class="tag cfg">CFG</span> only if returns are enabled</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-RET-01<br><span class="tag cfg">CFG</span></td>
+      <td>On a <b>Delivered</b> order, ⋮ → look for <b>Return Order</b>.</td>
+      <td>If returns are enabled the option is present for the Line Manager only. If the feature is switched off, the option is absent everywhere — then mark this whole block N/A.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-RET-02<br><span class="tag cfg">CFG</span></td>
+      <td>Return the full order. Review the preview before confirming.</td>
+      <td>The preview shows the items and the refund amount. After confirming, the order shows as returned (Returned column if present) and the refund total matches the original.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-RET-03<br><span class="tag neg">NEG</span></td>
+      <td>Try to <b>cancel</b> the order you just returned.</td>
+      <td>Cancel is refused/unavailable on a returned order — it must not be reversed twice.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.8 Notifications <span class="pre">— account: Line Manager</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-NOT-01</td>
+      <td>Open Profile / Settings and find the <b>Mute notifications</b> control (hidden from staff in ST-NEG-07).</td>
+      <td>The control is present and can be toggled.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-NOT-02</td>
+      <td>With notifications <b>unmuted</b>, have a staff member submit a new order from another device.</td>
+      <td>A notification for the new order arrives on the manager's device.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-NOT-03</td>
+      <td>Mute notifications, then have another order submitted.</td>
+      <td>No notification arrives while muted. The setting survives closing and reopening the app.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.9 Payment Receipt Confirmation <span class="pre">— account: Line Manager</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-RCP-01<br><span class="tag crit">CRIT</span></td>
+      <td>Find the order whose receipt the staff member created in ST-KAN-10. Open ⋮ → <b>Payment Receipts</b>.</td>
+      <td>The pending receipt is listed with its amount and method, and a <b>Confirm</b> control is available to the Line Manager (it was not available to staff).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-RCP-02</td>
+      <td>Confirm the receipt.</td>
+      <td>The receipt status becomes <b>Confirmed</b> and records who confirmed it and when. Confirming is a control step only — it does not create a payment or change the invoice's outstanding balance by itself (verify in AC-RCP-01).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-RCP-03<br><span class="tag neg">NEG</span></td>
+      <td>Try to confirm a receipt belonging to a POS profile this manager is <b>not</b> assigned to (ask a manager of another branch to create one, or use Master Orders to reach it).</td>
+      <td>Refused — "Only branch managers and above can confirm payment receipts", or the control is absent. Confirmation is scoped to assigned profiles.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-RCP-04<br><span class="tag neg">NEG</span></td>
+      <td>Amend or change the payment on an order that already has a <b>confirmed</b> receipt, then reopen the receipt list.</td>
+      <td>The receipt is marked <b>Changed</b> and can no longer be confirmed ("Changed payment receipts cannot be confirmed"). It is not silently re-confirmed.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.10 Line Manager Restrictions — must NOT be possible <span class="pre">— account: Line Manager</span></h3>
+<div class="note">
+  <b>Read this before filling the rows below</b>
+  A Line Manager is <b>not</b> a full Manager: financial and stock operations belong to the JARZ Manager role only. For each row, first record whether the menu item is <b>visible</b>, and — if it is visible — <b>tap it anyway</b> and record what happens (screen loads with data / "Not permitted" error / empty screen). A tile that is visible but errors on open is still a bug worth reporting, so please capture both facts.
+</div>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual: visible? &amp; what happened on tap</th></tr></thead>
+  <tbody>
+    <tr><td class="id">LM-NEG-01<br><span class="tag neg">NEG</span></td><td>Menu → look for <b>Cash Transfer</b>. If shown, open it.</td><td>Not available to a Line Manager.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-02<br><span class="tag neg">NEG</span></td><td>Menu → look for <b>Stock Transfer</b>. If shown, open it and try to search an item.</td><td>Not available to a Line Manager.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-03<br><span class="tag neg">NEG</span></td><td>Menu → look for <b>Inventory Count</b>. If shown, open it.</td><td>Not available to a Line Manager.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-04<br><span class="tag neg">NEG</span></td><td>Menu → look for <b>Purchase Invoice</b>. If shown, open it.</td><td>Not available to a Line Manager (Item Requests <i>is</i> allowed — that one is correct).</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-05<br><span class="tag neg">NEG</span></td><td>Menu → look for <b>Reports</b>. If shown, open it and try to run one.</td><td>Not available to a Line Manager.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-06<br><span class="tag neg">NEG</span></td><td>Menu → look for <b>InstaPay Reconciliation</b>. If shown, open it.</td><td>Not available to a Line Manager.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-07<br><span class="tag neg">NEG</span></td><td>Menu → look for <b>Production Board</b>. If shown, open it.</td><td>Not available to a Line Manager (it belongs to stock/manufacturing roles).</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-08<br><span class="tag neg">NEG</span></td><td>Go to <b>Expenses</b> and open a staff expense that is Pending Approval. Look for an Approve button.</td><td>A Line Manager <b>cannot</b> approve expenses — approval is JARZ Manager only.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-09<br><span class="tag neg">NEG</span></td><td>Create an expense as the Line Manager and submit it.</td><td>It is created as <b>Pending Approval</b> like a staff expense — it is not auto-approved.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-10<br><span class="tag neg">NEG</span></td><td>Open the expense <b>Pay from</b> dropdown.</td><td>Only payment sources of this manager's own POS profiles — not all company accounts.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-11<br><span class="tag neg">NEG</span></td><td>Check whether the app offers a way to switch to a POS profile this user is <b>not</b> assigned to.</td><td>Not possible — a Line Manager only reaches assigned branches.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-12<br><span class="tag cfg">CFG</span></td><td>Look for <b>Price Lists</b>. If shown, try to change a price or create a list.</td><td>Viewing may be allowed, but <b>editing</b> prices is JARZ Manager only — an edit attempt must be refused.</td><td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td><td class="ac"></td></tr>
+  </tbody>
+</table>
+
+<!-- =========================== SECTION 3 — CROSS-CUTTING =========================== -->
+<h2 class="pb">SECTION 3 — CROSS-CUTTING CHECKS (run as either persona)</h2>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">X-LNG-01</td>
+      <td>Menu → <b>Language</b> → switch to <b>Arabic</b>. Then walk through POS, Kanban and Expenses.</td>
+      <td>The whole interface switches to Arabic and lays out right-to-left. No English leftovers, no text cut off or overlapping, numbers and totals still readable.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-LNG-02</td>
+      <td>Close and reopen the app while Arabic is selected. Then switch back to English.</td>
+      <td>The language choice is remembered across restarts and switching back works cleanly.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-NET-01<br><span class="tag crit">CRIT</span></td>
+      <td>Turn off Wi-Fi/data. Try to submit a POS order.</td>
+      <td>A clear offline/connection message appears. The app does not freeze, and does not report a false success.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-NET-02<br><span class="tag crit">CRIT</span></td>
+      <td>Turn the connection back on and retry the same order.</td>
+      <td>The order submits <b>once</b>. Check Kanban: there must be exactly one order — no duplicate from the failed attempt.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-NET-03</td>
+      <td>Open Kanban with the connection off.</td>
+      <td>Previously loaded orders are still readable from cache, or a clear offline message is shown. No blank crash screen.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-SES-01</td>
+      <td>Tap <b>Logout</b>, then press the browser Back button (web) or reopen the app.</td>
+      <td>The login screen is shown. Previous screens and data are not reachable after logout.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-SES-02<br><span class="tag crit">CRIT</span></td>
+      <td>Log out of the Line Manager account and log straight back in as <b>Staff</b> on the same device, without refreshing.</td>
+      <td>The menu immediately shows the reduced <b>staff</b> menu. No manager-only items are left over from the previous session.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-UI-01</td>
+      <td>Rotate the device / resize the browser window on POS and Kanban.</td>
+      <td>Layout adapts without content being cut off or buttons becoming unreachable.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-UI-02</td>
+      <td>Throughout the whole test day, note any spinner that never ends, any raw technical error text (e.g. a Python traceback or "DioException"), or any untranslated key shown to the user.</td>
+      <td>Users only ever see plain, understandable messages. Log every raw error you saw with the screen it appeared on.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- =========================== SECTION 4 — BUG LOG =========================== -->
+<h2 class="pb">SECTION 4 — ACCOUNTING VERIFICATION</h2>
+<div class="note">
+  <b>Who runs this section, and with what access</b>
+  This section <b>cannot be done from the POS app</b> — the app never shows the ledger, by design. It needs read access to <b>ERPNext Desk</b> (<span class="ltr">/desk</span>) with permission to view Sales Invoice, Payment Entry, Journal Entry, GL Entry, Delivery Note and Courier Transaction.<br>
+  If the tester does not have that access, this section must be run by an <b>accountant or a JARZ Manager</b> working from the invoice numbers she recorded in Section 1. Do not skip it — Sections 1–3 can all pass on a build that posts every order to the wrong account.
+</div>
+<div class="note">
+  <b>How to look up a voucher's ledger</b>
+  Open <span class="ltr">/desk</span> → search the invoice number → open the Sales Invoice → menu → <b>Ledger</b>. Or open the <b>GL Entry</b> list and filter by <b>Voucher No</b>.<br>
+  Account names carry a company suffix in this system (e.g. <span class="ltr">Creditors - J</span>, <span class="ltr">Courier Outstanding - J</span>) — match on the leading name, ignore the suffix.
+</div>
+
+<h3>4.1 Invoice Posting <span class="pre">— use the invoice numbers from Section 1.3</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">AC-INV-01<br><span class="tag crit">CRIT</span></td>
+      <td>Open the cash invoice from ST-POS-10 in Desk. Check its status, Outstanding Amount, and its GL.</td>
+      <td>Status <b>Paid</b>, Outstanding <b>0.00</b>. The GL is balanced, revenue is credited to an income account, and the branch cash account is debited by exactly the grand total.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INV-02<br><span class="tag crit">CRIT</span></td>
+      <td>On the same invoice open the <b>Taxes and Charges</b> table. Compare with the delivery fee the app showed at checkout.</td>
+      <td>Exactly one row named <b>Shipping Income (&lt;territory&gt;)</b> equal to the fee shown in the app. <b>If the app charged zero delivery there must be NO such row</b> — an absent row means "billed nothing", it is not missing data. Never judge the delivery charge from the territory's rate.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INV-03</td>
+      <td>Check the invoice arithmetic: net total, taxes/charges, grand total.</td>
+      <td>Grand total = sum of item amounts + the Shipping Income row. No unexpected extra charge row appeared.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INV-04</td>
+      <td>Open the <b>pickup</b> order created in ST-POS-07.</td>
+      <td>No Shipping Income row at all, and grand total = items only. No delivery revenue was invented for a pickup.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INV-05<br><span class="tag crit">CRIT</span></td>
+      <td>Open the InstaPay order from ST-POS-11 and find its Payment Entry.</td>
+      <td>A Payment Entry exists whose <b>Paid To</b> is the bank / online-collection account — <b>not</b> a mobile-wallet account. Invoice Outstanding = 0.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INV-06</td>
+      <td>Open the bundle order from ST-POS-05 and read its item lines.</td>
+      <td>Total revenue for the bundle equals the <b>bundle price</b> shown in the POS, not the sum of the child items' list prices. The invoice grand total matches what the cashier saw.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INV-07<br><span class="tag cfg">CFG</span></td>
+      <td>If a promo code was applied in ST-POS-13, check how the discount was posted.</td>
+      <td>The discount reduces revenue on the invoice (it is visible on the document), and the grand total matches the discounted total the customer was charged.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>4.2 Dispatch &amp; Courier Accounting <span class="pre">— the COD path, from ST-KAN-16 / 17</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">AC-COD-01<br><span class="tag crit">CRIT</span></td>
+      <td><b>Before</b> dispatching the unpaid order, record its Outstanding Amount and which account carries it.</td>
+      <td>Status <b>Unpaid</b>, the full grand total sits on <b>Debtors</b> against the customer.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-COD-02<br><span class="tag crit">CRIT</span></td>
+      <td><b>After</b> ST-KAN-17 dispatches it with "courier collects", open the Courier Transaction list filtered by this invoice, and re-check the invoice GL.</td>
+      <td>Exactly one Courier Transaction for this invoice + courier, amount = order total, status <b>Unsettled</b>. The receivable has moved off Debtors onto <b>Courier Outstanding</b>.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-COD-03<br><span class="tag crit">CRIT</span></td>
+      <td>Find the shipping-expense Journal Entry created by the same dispatch.</td>
+      <td>A JE debits <b>Freight and Forwarding Charges</b> and credits <b>Creditors</b> with the <b>courier as the party</b>, for the shipping expense amount. A party-less Creditors line is a failure.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-COD-04<br><span class="tag crit">CRIT</span></td>
+      <td>Dispatch an order whose delivery was billed as <b>free / zero</b> to the customer but where the courier is still paid for the trip. Check the courier expense.</td>
+      <td>The courier expense is still <b>non-zero</b>. Charging the customer nothing must not zero what we owe the courier — these are two different numbers.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-COD-05<br><span class="tag crit">CRIT</span></td>
+      <td><b>Idempotency.</b> From the app, dispatch the same order a second time (retry, double-tap confirm, or repeat after a connection drop). Then count the documents linked to that invoice.</td>
+      <td>Exactly <b>one</b> Courier Transaction, <b>one</b> freight JE and <b>one</b> Delivery Note for that invoice. A retry must never duplicate any of the three.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-COD-06</td>
+      <td>Check the <b>paid</b> order dispatched in ST-KAN-16.</td>
+      <td>A Courier Transaction exists carrying the <b>shipping amount only</b> (order amount 0) — the customer receivable is not touched, because the customer already paid.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>4.3 Settlement <span class="pre">— from ST-CUR-02</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">AC-SET-01<br><span class="tag crit">CRIT</span></td>
+      <td>After the courier was settled in ST-CUR-02, re-open that Courier Transaction and the Courier Outstanding ledger.</td>
+      <td>The Courier Transaction status is <b>Settled</b>, and the Courier Outstanding balance for that courier is back to <b>zero</b>.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-SET-02<br><span class="tag crit">CRIT</span></td>
+      <td>Open the settlement Journal Entry and read every line.</td>
+      <td>It clears the <b>Courier Outstanding</b> balance and the accrued <b>Creditors</b> balance for that courier, and the cash account moves by the <b>net</b> (collected cash minus what we owed the courier) — not by the gross.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-SET-03</td>
+      <td>Compare the courier balance the app showed in ST-CUR-01 against the ledger balance of Courier Outstanding for that courier at the same moment.</td>
+      <td>The two agree. The app's figure is derived from the same Courier Transactions the ledger is, not from a separate calculation.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>4.4 Cancellation, Return &amp; Amendment</h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">AC-CNL-01<br><span class="tag crit">CRIT</span></td>
+      <td>Open the unpaid order cancelled in LM-CAN-02.</td>
+      <td>The Sales Invoice is <b>Cancelled</b> and its GL is fully reversed — no residual balance left on Debtors or on income for that invoice.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-CNL-02<br><span class="tag crit">CRIT</span></td>
+      <td>Open the <b>paid</b> order cancelled in LM-CAN-03 and trace its Payment Entry.</td>
+      <td>The payment is reversed as well and the cash/bank account is back where it started. <b>No Payment Entry is left submitted against a cancelled invoice</b> — that combination is a blocker.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-CNL-03<br><span class="tag crit">CRIT</span> <span class="tag neg">NEG</span></td>
+      <td>In <b>Desk</b> (not the app), open an order that is <b>Out for Delivery</b> and try to Cancel the Sales Invoice directly.</td>
+      <td>The server refuses it. This proves the guard lives on the document, not only on the app screen — a cancel that succeeds here would let anyone with Desk access erase dispatched revenue.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-CNL-04<br><span class="tag crit">CRIT</span></td>
+      <td>Open both documents from the amendment in ST-KAN-08 — the original and the amended invoice.</td>
+      <td>Only <b>one</b> of them carries value: the original is cancelled/replaced and the amended one is live. The revenue is counted once, not twice. The Shipping Income row on the amended invoice still matches what the customer was charged (it must not have silently dropped to zero).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-CNL-05<br><span class="tag cfg">CFG</span></td>
+      <td>If returns are enabled, open the return created in LM-RET-02.</td>
+      <td>A credit note exists reversing the income for the returned lines and returning the stock. Net revenue for that order is zero, and the credit note is linked to the original invoice.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>4.5 Shift Accounting</h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">AC-SHF-01<br><span class="tag crit">CRIT</span></td>
+      <td>Find the Journal Entry for the closing difference you deliberately created in ST-END-04.</td>
+      <td>A JE was posted to a <b>Cash Over/Short</b> account for <b>exactly</b> the difference amount. A non-zero difference with no JE is a blocker — the shortage would vanish from the books.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-SHF-02</td>
+      <td>If the opening amount confirmed in ST-SHF-02 differed from the system balance, look for an <b>opening</b> discrepancy JE too.</td>
+      <td>An opening discrepancy is posted the same way. If opening matched exactly, mark N/A.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-SHF-03<br><span class="tag crit">CRIT</span></td>
+      <td>Compare the shift's invoice count and cash total against the invoices actually created during it (list Sales Invoices for that POS profile in that time window).</td>
+      <td>Every invoice created during the shift is accounted for in the closing entry. None is missing, and none from another shift is included.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>4.6 Controls &amp; Integrity</h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>ID</th><th>Step / Action</th><th>Expected Result</th><th>P / F</th><th>Actual / Bug note</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">AC-RCP-01</td>
+      <td>Check what the receipt confirmation in LM-RCP-02 actually posted.</td>
+      <td><b>Nothing</b> — confirming changes only the POS Payment Receipt status. No Payment Entry or Journal Entry is created by the confirm action itself. This is by design; the money is booked by the payment / dispatch / settlement flow. If confirming <i>does</i> post a voucher, report it.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INT-01<br><span class="tag crit">CRIT</span></td>
+      <td>List every invoice you created today for this POS profile. For each, confirm there is no orphan: a submitted invoice with no payment and no courier transaction and no open receivable.</td>
+      <td>Every invoice is in exactly one honest state — paid, on Debtors, or on Courier Outstanding. None is "Paid" with nobody having actually paid, and none is invisible to all three.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INT-02</td>
+      <td>For every voucher you opened in this section, check total debit vs total credit on its GL.</td>
+      <td>Debits equal credits on every voucher. Any unbalanced entry is a blocker.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> P<br><span class="box"></span> F</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 class="pb">SECTION 5 — BUG LOG</h2>
+<p style="margin:0 0 3mm; font-size:8.4pt;">Write one row per failure. The <b>Test ID</b> must match the row you ticked F on. Severity: <b>1</b> blocker, <b>2</b> major, <b>3</b> minor, <b>4</b> cosmetic.</p>
+<table class="bug">
+  <thead>
+    <tr>
+      <th style="width:14mm">Bug #</th>
+      <th style="width:20mm">Test ID</th>
+      <th style="width:12mm">Sev.</th>
+      <th>What happened (and what you expected instead) · steps to reproduce</th>
+      <th style="width:24mm">Screenshot</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>B-01</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-02</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-03</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-04</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-05</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-06</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-07</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-08</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-09</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-10</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-11</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-12</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-13</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-14</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>B-15</td><td></td><td></td><td></td><td></td></tr>
+  </tbody>
+</table>
+
+<h3 style="margin-top:6mm">Run summary</h3>
+<table class="meta">
+  <tr>
+    <td class="k">Total cases run</td><td></td>
+    <td class="k">Passed</td><td></td>
+    <td class="k">Failed</td><td></td>
+    <td class="k">N/A</td><td></td>
+  </tr>
+  <tr>
+    <td class="k">Blockers found</td><td colspan="3"></td>
+    <td class="k">Ready to release?</td><td colspan="3">&#9744; Yes &nbsp;&nbsp; &#9744; No &nbsp;&nbsp; &#9744; With fixes</td>
+  </tr>
+</table>
+
+<table class="sign">
+  <tr>
+    <td style="width:50%">Tester signature &amp; date</td>
+    <td style="width:50%">Reviewed by (Tech Lead) &amp; date</td>
+  </tr>
+</table>
+
+</body>
+</html>

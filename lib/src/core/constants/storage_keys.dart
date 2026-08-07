@@ -38,6 +38,11 @@ abstract final class PrefKeys {
   static const orderAlertLastUser = 'order_alert_last_user';
   static const orderAlertLastProfiles = 'order_alert_last_profiles';
   static const orderAlertGlobalMute = 'order_alert_global_mute';
+
+  /// Invoice ids the user silenced individually. Persisted so a controller
+  /// rebuild, a hot restart or an app relaunch cannot resurrect an alarm the
+  /// user already silenced.
+  static const orderAlertMutedInvoices = 'order_alert_muted_invoices';
 }
 
 // ── MethodChannel names ─────────────────────────────────────────────────

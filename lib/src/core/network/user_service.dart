@@ -222,12 +222,46 @@ final isModeratorProvider = Provider<bool>((ref) {
   );
 });
 
+/// Remembers the last answer [userRolesFutureProvider] gave for
+/// [UserRoles.canMuteNotifications], for the duration of the session.
+///
+/// `maybeWhen(orElse: false)` answers "no" on every *reload* of the roles
+/// future and on any transient failure. That is the wrong default here: it made
+/// the mute button vanish from a ringing alarm — mid-alarm, with the volume keys
+/// locked — every time roles were refetched or the network hiccuped, leaving a
+/// manager with no way to silence the device. Cleared on logout by
+/// [OrderAlertBridge] so it can never leak across users.
+class CanMuteNotificationsCache extends StateNotifier<bool> {
+  CanMuteNotificationsCache(this._ref) : super(false) {
+    _ref.listen<AsyncValue<UserRoles>>(
+      userRolesFutureProvider,
+      (_, next) {
+        final roles = next.valueOrNull;
+        if (roles != null) {
+          state = roles.canMuteNotifications;
+        }
+      },
+      fireImmediately: true,
+    );
+  }
+
+  final Ref _ref;
+
+  void clear() => state = false;
+}
+
+final canMuteNotificationsCacheProvider =
+    StateNotifierProvider<CanMuteNotificationsCache, bool>(
+  CanMuteNotificationsCache.new,
+);
+
 final canMuteNotificationsProvider = Provider<bool>((ref) {
-  final rolesAsync = ref.watch(userRolesFutureProvider);
-  return rolesAsync.maybeWhen(
-    data: (roles) => roles.canMuteNotifications,
-    orElse: () => false,
-  );
+  // Watched unconditionally: the cache only records while something keeps it
+  // alive, and it has to be recording *before* the roles future starts
+  // reloading, not after.
+  final cached = ref.watch(canMuteNotificationsCacheProvider);
+  final roles = ref.watch(userRolesFutureProvider).valueOrNull;
+  return roles?.canMuteNotifications ?? cached;
 });
 
 final canAccessShiftMonitorProvider = Provider<bool>((ref) {

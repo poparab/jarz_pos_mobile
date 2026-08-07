@@ -21,12 +21,24 @@ final orderAlertControllerProvider =
     });
 
 class OrderAlertController extends StateNotifier<OrderAlertState> {
-  OrderAlertController(this._service, this._posRepository) : super(const OrderAlertState());
+  OrderAlertController(this._service, this._posRepository)
+      : super(const OrderAlertState()) {
+    _muteRestored = _restoreMuteState();
+  }
 
   static const _prefKeyToken = PrefKeys.orderAlertLastToken;
   static const _prefKeyUser = PrefKeys.orderAlertLastUser;
   static const _prefKeyProfiles = PrefKeys.orderAlertLastProfiles;
   static const _prefKeyGlobalMute = PrefKeys.orderAlertGlobalMute;
+  static const _prefKeyMutedInvoices = PrefKeys.orderAlertMutedInvoices;
+
+  /// How long a POS-profile timetable answer is reused.
+  ///
+  /// This probe is an HTTP round trip and used to run on every poll tick (every
+  /// 2–10s per device). Beyond the traffic, the await was the window in which a
+  /// mute could be overtaken by an alarm start that had already passed its
+  /// checks — caching all but closes it.
+  static const _profileOpenTtl = Duration(minutes: 2);
 
   final OrderAlertService _service;
   final PosRepository _posRepository;
@@ -34,9 +46,138 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
 
   SharedPreferences? _prefs;
   bool _loadingPending = false;
+  late final Future<void> _muteRestored;
+
+  /// Bumped on every change to the mute state. An alarm start that began before
+  /// the bump is abandoned, so "mute" can never lose a race to a start decision
+  /// that was made microseconds earlier.
+  int _muteGeneration = 0;
+
+  final Map<String, _ProfileOpenResult> _profileOpenCache = {};
 
   Future<SharedPreferences> _preferences() async {
     return _prefs ??= await SharedPreferences.getInstance();
+  }
+
+  Future<void> _restoreMuteState() async {
+    try {
+      final prefs = await _preferences();
+      final globalMute = prefs.getBool(_prefKeyGlobalMute) ?? false;
+      final muted =
+          (prefs.getStringList(_prefKeyMutedInvoices) ?? const <String>[]).toSet();
+      if (!mounted) return;
+      if (globalMute || muted.isNotEmpty) {
+        _logger.info(
+          'Restored mute state: globalMute=$globalMute muted=${muted.length}',
+        );
+      }
+      state = state.copyWith(globalMute: globalMute, mutedInvoiceIds: muted);
+      await _pushMuteStateToNative();
+    } catch (error, stackTrace) {
+      _logger.error('Failed to restore mute state', error, stackTrace);
+    }
+  }
+
+  /// Mirrors the mute state into the native layer.
+  ///
+  /// The Android FCM service starts the alarm from a background isolate with no
+  /// Dart state to consult, so the native side has to own the final say —
+  /// otherwise every push re-armed an alarm the user had already silenced.
+  Future<void> _pushMuteStateToNative() async {
+    await OrderAlertNativeChannel.setMuteState(
+      globalMute: state.globalMute,
+      mutedInvoiceIds: state.mutedInvoiceIds.toList(),
+    );
+  }
+
+  Future<void> _updateMuteState({
+    Set<String>? mutedInvoiceIds,
+    bool? globalMute,
+  }) async {
+    if (!mounted) return;
+
+    // Only a *new* silence has to abort in-flight alarm starts. Bumping on
+    // removals too (the pruning pass runs on every sync) would cancel healthy
+    // keep-alive starts for no reason.
+    final gainedSilence = (globalMute == true && !state.globalMute) ||
+        (mutedInvoiceIds != null &&
+            mutedInvoiceIds.difference(state.mutedInvoiceIds).isNotEmpty);
+    if (gainedSilence) {
+      _muteGeneration++;
+    }
+
+    state = state.copyWith(
+      mutedInvoiceIds: mutedInvoiceIds,
+      globalMute: globalMute,
+      clearError: true,
+    );
+
+    try {
+      final prefs = await _preferences();
+      await prefs.setBool(_prefKeyGlobalMute, state.globalMute);
+      await prefs.setStringList(
+        _prefKeyMutedInvoices,
+        state.mutedInvoiceIds.toList(),
+      );
+    } catch (error, stackTrace) {
+      _logger.error('Failed to persist mute state', error, stackTrace);
+    }
+
+    await _pushMuteStateToNative();
+  }
+
+  /// The single place that is allowed to start the alarm.
+  ///
+  /// Every check is repeated after every await: the timetable probe and the
+  /// method-channel hop both yield, and a mute that lands inside either of those
+  /// windows must still win.
+  Future<void> _startAlarmIfAllowed(
+    InvoiceAlert alert, {
+    required String reason,
+  }) async {
+    final generation = _muteGeneration;
+
+    if (state.isInvoiceMuted(alert.invoiceId)) {
+      _logger.info(
+        'Not starting alarm for ${alert.invoiceId} ($reason): muted '
+        '(global=${state.globalMute})',
+      );
+      return;
+    }
+
+    if (!await _shouldTriggerAlarm(alert.posProfile)) {
+      _logger.info(
+        'Not starting alarm for ${alert.invoiceId} ($reason): POS profile closed',
+      );
+      return;
+    }
+
+    if (_muteGeneration != generation || state.isInvoiceMuted(alert.invoiceId)) {
+      _logger.info(
+        'Abandoning alarm start for ${alert.invoiceId} ($reason): '
+        'muted while checking the timetable',
+      );
+      return;
+    }
+
+    _logger.info('Starting alarm for ${alert.invoiceId} ($reason)');
+    await OrderAlertNativeChannel.startAlarm(invoiceId: alert.invoiceId);
+
+    if (_muteGeneration != generation || state.isInvoiceMuted(alert.invoiceId)) {
+      _logger.info(
+        'Muted while the alarm was starting for ${alert.invoiceId} — stopping again',
+      );
+      await OrderAlertNativeChannel.stopAlarm();
+    }
+  }
+
+  /// Re-evaluates the alarm for whatever is currently active.
+  Future<void> _refreshAlarmForActive({required String reason}) async {
+    final active = state.active;
+    if (active == null) {
+      return;
+    }
+    await _startAlarmIfAllowed(active, reason: reason);
   }
 
   Future<void> enqueueAlert(
@@ -44,6 +185,8 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     bool fromNotification = false,
     bool triggerNativeEffects = true,
   }) async {
+    await _muteRestored;
+
     _logger.info(
       "enqueueAlert CALLED: invoice=${alert.invoiceId} "
       "requiresAcceptance=${alert.requiresAcceptance} "
@@ -51,7 +194,7 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       "source=${fromNotification ? 'push' : 'realtime'} "
       "currentQueueLen=${state.queue.length}"
     );
-    
+
     if (!alert.requiresAcceptance) {
       _logger.warning(
         "Alert for ${alert.invoiceId} does NOT require acceptance. "
@@ -68,7 +211,7 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       );
       return;
     }
-    
+
     await OrderAlertNativeChannel.ensureInitialised();
     final currentQueue = List<InvoiceAlert>.from(state.queue);
     final existingIndex = currentQueue.indexWhere(
@@ -88,14 +231,22 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
 
     _logger.info("Adding NEW alert for ${alert.invoiceId} to queue");
     currentQueue.add(alert);
-    final hasActive = state.hasActive;
-    final newActive = hasActive ? state.active : alert;
+
+    // A silenced alert must not keep the active slot: mute means "this order is
+    // handled", not "stop telling me about new orders". Handing the slot to the
+    // newcomer is what lets the next order actually ring.
+    final currentActive = state.active;
+    final activeIsSilenced =
+        currentActive != null && state.isInvoiceMuted(currentActive.invoiceId);
+    final newActive =
+        (currentActive == null || activeIsSilenced) ? alert : currentActive;
+    final promoted = newActive.invoiceId == alert.invoiceId;
     final reorderedQueue = _ensureActiveFirst(currentQueue, newActive);
 
     _logger.info(
       "Setting state: queueLen=${reorderedQueue.length} "
-      "activeInvoice=${newActive?.invoiceId} "
-      "hasActive=$hasActive "
+      "activeInvoice=${newActive.invoiceId} "
+      "promoted=$promoted "
       "isMuted=${state.isMuted}"
     );
 
@@ -109,25 +260,16 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       return;
     }
 
-    // Check global mute state
-    final globalMute = await getGlobalMuteState();
-    
-    if (!hasActive && !state.isMuted && !globalMute) {
-      // Check if POS Profile is open before triggering alarm
-      final shouldTrigger = await _shouldTriggerAlarm(alert.posProfile);
-      if (shouldTrigger) {
-        _logger.info('POS Profile is open. Starting alarm for invoice ${alert.invoiceId}');
-        await OrderAlertNativeChannel.startAlarm();
-      } else {
-        _logger.info('POS Profile is closed. Skipping alarm for invoice ${alert.invoiceId}');
-      }
+    if (promoted) {
+      await _startAlarmIfAllowed(alert, reason: 'new alert');
     } else {
       _logger.info(
-        'NOT starting alarm: hasActive=$hasActive, isMuted=${state.isMuted}, globalMute=$globalMute'
+        'NOT starting alarm for ${alert.invoiceId}: '
+        '${currentActive?.invoiceId} is already ringing',
       );
     }
 
-    if (fromNotification || (!hasActive && !state.isMuted)) {
+    if (fromNotification || promoted) {
       _logger.info('Showing notification for ${alert.invoiceId}');
       await OrderAlertNativeChannel.showNotification(
         _buildNotificationData(alert),
@@ -151,36 +293,24 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       await _service.acknowledgeInvoice(current.invoiceId);
       await OrderAlertNativeChannel.stopAlarm();
       await OrderAlertNativeChannel.cancelNotification(current.invoiceId);
+      await _forgetMute(current.invoiceId);
       _removeInvoice(current.invoiceId);
-      
+
       // Force sync to check if there are any remaining alerts on server
       // This ensures we don't keep ringing if all alerts were accepted
       _logger.info('Forcing sync after acknowledging ${current.invoiceId}');
       await syncPendingAlerts();
-      
+
       // Check if we still have alerts after sync
       if (!state.hasActive) {
         _logger.info('No more active alerts after sync - ensuring alarm is stopped');
         await OrderAlertNativeChannel.stopAlarm();
-        state = state.copyWith(
-          isMuted: false,
-          isAcknowledging: false,
-          clearError: true,
-        );
+        state = state.copyWith(isAcknowledging: false, clearError: true);
         return;
       }
-      
-      final next = state.active;
-      if (next != null && !state.isMuted) {
-        // Check if POS Profile is open before continuing alarm
-        final shouldTrigger = await _shouldTriggerAlarm(next.posProfile);
-        if (shouldTrigger) {
-          _logger.info('POS Profile is open. Continuing alarm with next invoice ${next.invoiceId}');
-          await OrderAlertNativeChannel.startAlarm();
-        } else {
-          _logger.info('POS Profile is closed. Skipping alarm for next invoice ${next.invoiceId}');
-        }
-      }
+
+      state = state.copyWith(isAcknowledging: false, clearError: true);
+      await _refreshAlarmForActive(reason: 'next queued alert');
     } catch (error, stackTrace) {
       _logger.error(
         'Failed to acknowledge invoice ${current.invoiceId}',
@@ -198,6 +328,7 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     }
     _loadingPending = true;
     try {
+      await _muteRestored;
       final rawAlerts = await _service.getPendingAlerts();
       // Filter out cancelled invoices client-side as a safety net
       final alerts = rawAlerts.where((a) {
@@ -206,7 +337,7 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       }).toList();
       final now = DateTime.now();
       _logger.info("syncPendingAlerts fetched ${rawAlerts.length} alerts, ${alerts.length} after filtering cancelled");
-      
+
       if (alerts.isEmpty) {
         _logger.info("No pending alerts from server, clearing local queue and stopping alarm");
         if (state.hasActive || state.queue.isNotEmpty) {
@@ -219,19 +350,40 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
           lastSynced: now,
           clearError: true,
           isAcknowledging: false,
-          isMuted: false,
         );
+        // Per-invoice mutes die with their invoice; the device-wide mute is a
+        // setting and survives.
+        if (state.mutedInvoiceIds.isNotEmpty) {
+          await _updateMuteState(mutedInvoiceIds: const <String>{});
+        }
         _loadingPending = false;
         return;
       }
 
+      // Drop mutes for invoices the server no longer considers pending, so the
+      // set cannot grow forever and a recycled id cannot arrive pre-silenced.
+      final pendingIds = alerts.map((alert) => alert.invoiceId).toSet();
+      final prunedMutes = state.mutedInvoiceIds.intersection(pendingIds);
+      if (prunedMutes.length != state.mutedInvoiceIds.length) {
+        await _updateMuteState(mutedInvoiceIds: prunedMutes);
+      }
+
       final existingActiveId = state.active?.invoiceId;
-      final candidateActive = existingActiveId != null
-          ? alerts.firstWhere(
+      final existingActive = existingActiveId == null
+          ? null
+          : alerts.firstWhereOrNull(
               (alert) => alert.invoiceId == existingActiveId,
-              orElse: () => alerts.first,
-            )
-          : alerts.first;
+            );
+      final candidateActive = (existingActive != null &&
+              !state.isInvoiceMuted(existingActive.invoiceId))
+          ? existingActive
+          // Prefer something the user has NOT silenced, so a muted order at the
+          // head of the queue cannot swallow the alarm for everything behind it.
+          : (alerts.firstWhereOrNull(
+                  (alert) => !state.isInvoiceMuted(alert.invoiceId),
+                ) ??
+              existingActive ??
+              alerts.first);
       final reordered = _ensureActiveFirst(alerts, candidateActive);
 
       final newActive = reordered.isNotEmpty ? reordered.first : null;
@@ -247,24 +399,9 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
           (newActive == null || newActive.invoiceId != existingActiveId)) {
         await OrderAlertNativeChannel.stopAlarm();
       }
-      
-      // Check global mute state
-      final globalMute = await getGlobalMuteState();
-      
-      if (newActive != null && !state.isMuted && !globalMute) {
-        // Check if POS Profile is open before starting alarm
-        final shouldTrigger = await _shouldTriggerAlarm(newActive.posProfile);
-        if (shouldTrigger) {
-          _logger.info('POS Profile is open. Sync ensures alarm for invoice ${newActive.invoiceId}');
-          await OrderAlertNativeChannel.startAlarm();
-        } else {
-          _logger.info('POS Profile is closed. Skipping alarm during sync for invoice ${newActive.invoiceId}');
-        }
-      } else if (globalMute) {
-        _logger.info('Global mute is active. Skipping alarm during sync.');
-      }
-      if (newActive == null) {
-        state = state.copyWith(isMuted: false, clearError: true);
+
+      if (newActive != null) {
+        await _startAlarmIfAllowed(newActive, reason: 'sync');
       }
     } catch (error, stackTrace) {
       // This runs on a poll loop, so an offline device would otherwise report
@@ -313,16 +450,17 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
 
   Future<void> handleInvoiceAccepted(String invoiceId) async {
     _logger.info("handleInvoiceAccepted invoice=$invoiceId - stopping alarm and removing from queue");
-    
+
     // ALWAYS stop the alarm when we receive an acceptance notification
     // This ensures that if another device accepted, this device stops ringing
     await OrderAlertNativeChannel.stopAlarm();
     await OrderAlertNativeChannel.cancelNotification(invoiceId);
-    
+    await _forgetMute(invoiceId);
+
     final wasActive = state.active?.invoiceId == invoiceId;
     final removed = _removeInvoice(invoiceId);
     _logger.info("handleInvoiceAccepted invoice=$invoiceId removed=$removed wasActive=$wasActive hasActive=${state.hasActive}");
-    
+
     if (!removed) {
       // Even if we don't have this invoice locally, ensure alarm is stopped
       _logger.info("Invoice $invoiceId not in local queue but stopping alarm anyway");
@@ -333,25 +471,11 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     if (!state.hasActive) {
       _logger.info('No more pending invoices after accepting $invoiceId - stopping alarm completely');
       await OrderAlertNativeChannel.stopAlarm();
-      state = state.copyWith(isMuted: false, clearError: true);
       return;
     }
 
     if (wasActive) {
-      final next = state.active;
-      if (next != null && !state.isMuted) {
-        // Check if POS Profile is open before starting alarm for next invoice
-        final shouldTrigger = await _shouldTriggerAlarm(next.posProfile);
-        if (shouldTrigger) {
-          _logger.info('POS Profile is open. Switching alarm to next invoice ${next.invoiceId}');
-          await OrderAlertNativeChannel.startAlarm();
-        } else {
-          _logger.info('POS Profile is closed. Skipping alarm for next invoice ${next.invoiceId}');
-        }
-      }
-      if (!state.hasActive) {
-        state = state.copyWith(isMuted: false, clearError: true);
-      }
+      await _refreshAlarmForActive(reason: 'previous alert accepted');
     }
   }
 
@@ -397,39 +521,42 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
   }
 
   Future<void> setGlobalMuteState(bool muted) async {
-    final prefs = await _preferences();
-    await prefs.setBool(_prefKeyGlobalMute, muted);
     _logger.info('Global notification mute state set to: $muted');
-    
-    // Update the current muted state and stop/start alarm accordingly
+    await _updateMuteState(globalMute: muted);
+
     if (muted) {
       await OrderAlertNativeChannel.stopAlarm();
-      state = state.copyWith(isMuted: true, clearError: true);
     } else {
-      state = state.copyWith(isMuted: false, clearError: true);
-      // If there's an active alert and we're unmuting globally, start the alarm
-      if (state.hasActive) {
-        final shouldTrigger = await _shouldTriggerAlarm(state.active!.posProfile);
-        if (shouldTrigger) {
-          _logger.info('Starting alarm after global unmute');
-          await OrderAlertNativeChannel.startAlarm();
-        }
-      }
+      // Resuming is an explicit user action: re-probe the timetable rather than
+      // resuming on a cached answer that may be minutes old.
+      _profileOpenCache.clear();
+      await _refreshAlarmForActive(reason: 'global unmute');
     }
   }
 
   Future<void> clearAll() async {
     await OrderAlertNativeChannel.stopAlarm();
-    state = const OrderAlertState();
+    // Keep the device-wide setting; only the per-invoice mutes belong to the
+    // session that just ended.
+    final globalMute = state.globalMute;
+    state = OrderAlertState(globalMute: globalMute);
+    await _updateMuteState(mutedInvoiceIds: const <String>{});
+    _profileOpenCache.clear();
   }
 
   Future<void> muteActiveAlert() async {
-    if (!state.hasActive || state.isMuted) {
+    final active = state.active;
+    if (active == null || state.isMuted) {
       return;
     }
-    _logger.info('Muting alarm for invoice ${state.active?.invoiceId}');
+    _logger.info('Muting alarm for invoice ${active.invoiceId}');
+    // Record the mute BEFORE stopping: this bumps the generation and tells the
+    // native layer, so an alarm start already in flight (poll tick, FCM push)
+    // is refused instead of restarting what the user just silenced.
+    await _updateMuteState(
+      mutedInvoiceIds: {...state.mutedInvoiceIds, active.invoiceId},
+    );
     await OrderAlertNativeChannel.stopAlarm();
-    state = state.copyWith(isMuted: true, clearError: true);
   }
 
   Future<void> unmuteAlerts() async {
@@ -437,17 +564,24 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       return;
     }
     _logger.info('Unmuting alarm');
-    state = state.copyWith(isMuted: false, clearError: true);
-    if (state.hasActive) {
-      // Check if POS Profile is open before starting alarm when unmuting
-      final shouldTrigger = await _shouldTriggerAlarm(state.active!.posProfile);
-      if (shouldTrigger) {
-        _logger.info('POS Profile is open. Starting alarm after unmute');
-        await OrderAlertNativeChannel.startAlarm();
-      } else {
-        _logger.info('POS Profile is closed. Skipping alarm after unmute');
-      }
+    final active = state.active;
+    final remaining = {...state.mutedInvoiceIds};
+    if (active != null) {
+      remaining.remove(active.invoiceId);
     }
+    // The button on a ringing alert reads "Unmute", so it has to undo the
+    // device-wide mute too — otherwise it claims to restore sound and doesn't.
+    await _updateMuteState(mutedInvoiceIds: remaining, globalMute: false);
+    _profileOpenCache.clear();
+    await _refreshAlarmForActive(reason: 'unmute');
+  }
+
+  Future<void> _forgetMute(String invoiceId) async {
+    if (!state.mutedInvoiceIds.contains(invoiceId)) {
+      return;
+    }
+    final remaining = {...state.mutedInvoiceIds}..remove(invoiceId);
+    await _updateMuteState(mutedInvoiceIds: remaining);
   }
 
   Map<String, String> _buildNotificationData(InvoiceAlert alert) {
@@ -487,7 +621,6 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       active: nextActive,
       isAcknowledging: false,
       clearError: true,
-      isMuted: nextActive == null ? false : state.isMuted,
     );
     return true;
   }
@@ -514,23 +647,40 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
 
   /// Check if the POS Profile is currently open based on its timetable
   Future<bool> _shouldTriggerAlarm(String posProfile) async {
+    final cached = _profileOpenCache[posProfile];
+    if (cached != null && !cached.isStale(_profileOpenTtl)) {
+      return cached.isOpen;
+    }
+
     try {
       final result = await _posRepository.isPosProfileOpen(posProfile);
       final isOpen = result['is_open'] as bool? ?? true;
-      
+
       if (!isOpen) {
         _logger.info(
           'POS Profile $posProfile is closed: ${result['message']}. '
           'Alarm will not be triggered.'
         );
       }
-      
+
+      _profileOpenCache[posProfile] =
+          _ProfileOpenResult(isOpen: isOpen, checkedAt: DateTime.now());
       return isOpen;
     } catch (e) {
       _logger.error('Error checking POS profile timetable: $e. Defaulting to trigger alarm.');
       // If there's an error checking the timetable, default to triggering the alarm
-      // to avoid missing important alerts
+      // to avoid missing important alerts. Deliberately not cached — a transient
+      // failure must not pin the answer for the next two minutes.
       return true;
     }
   }
+}
+
+class _ProfileOpenResult {
+  const _ProfileOpenResult({required this.isOpen, required this.checkedAt});
+
+  final bool isOpen;
+  final DateTime checkedAt;
+
+  bool isStale(Duration ttl) => DateTime.now().difference(checkedAt) > ttl;
 }

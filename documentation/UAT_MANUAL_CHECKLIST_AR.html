@@ -1,0 +1,1410 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>جارز POS — قائمة الاختبار اليدوي (الموظف ومدير الخط)</title>
+<style>
+  @page { size: A4 portrait; margin: 12mm 10mm 14mm 10mm; }
+
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: "Segoe UI", Tahoma, "Dubai", "Traditional Arabic", Arial, sans-serif;
+    font-size: 9pt;
+    line-height: 1.45;
+    color: #000;
+    margin: 0;
+    background: #fff;
+    direction: rtl;
+  }
+
+  /* ---------- الغلاف ---------- */
+  .cover { page-break-after: always; }
+  h1 { font-size: 19pt; margin: 0 0 2mm; }
+  .sub { font-size: 10.5pt; color: #444; margin: 0 0 6mm; }
+
+  h2 {
+    font-size: 12.5pt;
+    margin: 7mm 0 2mm;
+    padding: 1.8mm 2.5mm;
+    background: #1f2937;
+    color: #fff;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+  h3 {
+    font-size: 10.2pt;
+    margin: 4.5mm 0 1.5mm;
+    padding-bottom: 1mm;
+    border-bottom: 1.2pt solid #1f2937;
+    page-break-after: avoid;
+  }
+  h3 .pre { font-weight: 400; font-size: 8.4pt; color: #444; }
+
+  /* ---------- بيانات التشغيل ---------- */
+  table.meta { width: 100%; border-collapse: collapse; margin-bottom: 5mm; }
+  table.meta td { border: .6pt solid #000; padding: 2.6mm 2mm; vertical-align: middle; }
+  table.meta td.k { width: 33mm; background: #f1f2f4; font-weight: 700; font-size: 8.4pt; }
+
+  /* ---------- جداول الحالات ---------- */
+  table.tc { width: 100%; border-collapse: collapse; margin-bottom: 3mm; }
+  table.tc thead { display: table-header-group; }
+  table.tc th {
+    border: .6pt solid #000;
+    background: #e5e7eb;
+    padding: 1.6mm;
+    font-size: 8pt;
+    text-align: right;
+  }
+  table.tc td {
+    border: .6pt solid #000;
+    padding: 1.8mm 1.6mm;
+    vertical-align: top;
+  }
+  table.tc tr { page-break-inside: avoid; }
+
+  col.c-id  { width: 16mm; }
+  col.c-st  { width: 54mm; }
+  col.c-ex  { width: 54mm; }
+  col.c-pf  { width: 16mm; }
+  col.c-ac  { width: 46mm; }
+
+  td.id {
+    font-weight: 700;
+    font-size: 7.6pt;
+    font-family: "Consolas", monospace;
+    direction: ltr;
+    text-align: center;
+  }
+  td.pf { text-align: center; padding-top: 2.2mm; }
+  td.ac { background: #fbfbfb; }
+
+  .box {
+    display: inline-block;
+    width: 3.6mm; height: 3.6mm;
+    border: .8pt solid #000;
+    vertical-align: -.6mm;
+  }
+  .pfw { font-size: 7.2pt; line-height: 2; white-space: nowrap; }
+
+  ol.steps, ul.steps { margin: 0; padding-right: 4.5mm; padding-left: 0; }
+  ol.steps li, ul.steps li { margin-bottom: 1mm; }
+
+  .tag {
+    display: inline-block;
+    font-size: 7pt;
+    font-weight: 700;
+    padding: .3mm 1.4mm;
+    border: .6pt solid #000;
+    border-radius: 1mm;
+    margin: .6mm 0 0;
+  }
+  .tag.cfg { background: #fef3c7; }
+  .tag.neg { background: #fee2e2; }
+  .tag.crit { background: #dbeafe; }
+
+  .note {
+    border-right: 2pt solid #1f2937;
+    background: #f4f5f7;
+    padding: 2.2mm 2.8mm;
+    margin: 2mm 0 4mm;
+    font-size: 8.6pt;
+    page-break-inside: avoid;
+  }
+  .note b { display: block; margin-bottom: 1mm; }
+
+  .legend { width: 100%; border-collapse: collapse; margin-bottom: 4mm; }
+  .legend td { border: .6pt solid #000; padding: 1.8mm 2mm; font-size: 8.2pt; }
+
+  /* ---------- سجل الأخطاء ---------- */
+  table.bug { width: 100%; border-collapse: collapse; }
+  table.bug th { border: .6pt solid #000; background: #e5e7eb; padding: 1.8mm; font-size: 8pt; text-align: right; }
+  table.bug td { border: .6pt solid #000; height: 13mm; padding: 1.4mm; }
+  table.bug td.n { text-align: center; font-family: "Consolas", monospace; direction: ltr; }
+
+  .sign { margin-top: 8mm; width: 100%; border-collapse: collapse; }
+  .sign td { padding: 8mm 3mm 2mm; border-bottom: .8pt solid #000; font-size: 8.6pt; }
+
+  .pb { page-break-before: always; }
+  .ltr { direction: ltr; unicode-bidi: embed; display: inline-block; }
+</style>
+</head>
+<body>
+
+<!-- =========================== الغلاف =========================== -->
+<section class="cover">
+  <h1>جارز POS — قائمة الاختبار اليدوي</h1>
+  <p class="sub">اختبار قبول المستخدم · شخصية <b>الموظف (كاشير)</b> وشخصية <b>مدير الخط</b> · للطباعة على ورق A4</p>
+
+  <table class="meta">
+    <tr><td class="k">اسم المُختبِر</td><td></td><td class="k">التاريخ</td><td></td></tr>
+    <tr><td class="k">البيئة</td><td>&#9744; تجريبي <span class="ltr">erpstg.orderjarz.com</span> &nbsp;&nbsp; &#9744; إنتاج <span class="ltr">erp.orderjarz.com</span></td><td class="k">إصدار التطبيق</td><td></td></tr>
+    <tr><td class="k">الجهاز / المتصفح</td><td></td><td class="k">المنصة</td><td>&#9744; تطبيق أندرويد &nbsp;&nbsp; &#9744; ويب (كروم)</td></tr>
+    <tr><td class="k">حساب الموظف</td><td></td><td class="k">ملف نقطة البيع / الفرع</td><td></td></tr>
+    <tr><td class="k">حساب مدير الخط</td><td></td><td class="k">ملف نقطة البيع / الفرع</td><td></td></tr>
+    <tr><td class="k">وقت البدء</td><td></td><td class="k">وقت الانتهاء</td><td></td></tr>
+  </table>
+
+  <h3>طريقة استخدام الورقة</h3>
+  <ol class="steps" style="font-size:8.8pt; line-height:1.6;">
+    <li>نفّذي الأقسام <b>بالترتيب</b> — الحالات المتأخرة بتعتمد على أوردرات اتعملت في حالات قبلها.</li>
+    <li>في كل صف، نفّذي الخطوات وقارني اللي حصل بـ<b>النتيجة المتوقعة</b>.</li>
+    <li>لو التطبيق اشتغل زي المتوقع بالظبط ← علّمي على <b>ناجح</b> وسيبي خانة «النتيجة الفعلية» فاضية.</li>
+    <li>لو في أي اختلاف ← علّمي على <b>فاشل</b> واكتبي اللي حصل فعلًا في خانة «النتيجة الفعلية»، وحطّي رقم خطأ (<span class="ltr">B-01، B-02</span> …) وانقليه في سجل الأخطاء في آخر صفحة.</li>
+    <li>لو الحالة مش ممكن تتنفّذ (الخاصية مقفولة، مفيش بيانات، أو في مانع) ← اكتبي <b>لا ينطبق</b> مع السبب.</li>
+    <li>صوّري الشاشة في كل حالة فشل، وسمّي الصورة برقم الخطأ.</li>
+  </ol>
+
+  <h3>دليل الرموز</h3>
+  <table class="legend">
+    <tr>
+      <td><span class="tag crit">حرج</span> مسار أساسي — الفشل هنا يوقف الإصدار.</td>
+      <td><span class="tag neg">سلبي</span> اختبار سلبي — المفروض التطبيق <b>يرفض</b> أو <b>يخفي</b> الحاجة دي.</td>
+    </tr>
+    <tr>
+      <td><span class="tag cfg">إعداد</span> يعتمد على إعداد أو خاصية مفعّلة. لو مقفولة اكتبي «لا ينطبق».</td>
+      <td><b>ناجح / فاشل</b> = خانات التعليم.</td>
+    </tr>
+  </table>
+
+  <div class="note">
+    <b>قبل ما تبدأي — المتطلبات</b>
+    ١. محتاجة حسابين منفصلين: حساب <b>موظف</b> عادي (Role Profile «<span class="ltr">Jarz POS Staff</span>») وحساب <b>مدير خط</b> (Role Profile «<span class="ltr">Jarz POS Line Manager</span>»). متجربيش الشخصيتين من نفس اللوجين.<br>
+    ٢. الحسابين لازم يكونوا مربوطين بملف نقطة بيع من جدول <b><span class="ltr">POS Profile User</span></b>، والفرع لازم يكون فيه أصناف، وباقة واحدة على الأقل، ومواعيد توصيل، ومندوب توصيل واحد، وحساب مصروفات واحد على الأقل.<br>
+    ٣. حساب الموظف لازم يكون مفعّل عليه خيار <b>«يتطلب وردية»</b> (<span class="ltr">Require POS Shift</span>)، وإلا قسم الوردية كله مش هينطبق.<br>
+    ٤. اعملي تسجيل خروج كامل (وتحديث قوي للصفحة على الويب) وإنتي بتبدّلي بين الشخصيتين — الجلسة القديمة بتخفي مشاكل الصلاحيات.<br>
+    ٥. استخدمي اسم عميل واضح إنه تجريبي (مثلًا «<b>تجربة — اسمك</b>») في كل أوردر بتعمليه، عشان يبقى سهل تنضيف البيانات بعدين.
+  </div>
+
+  <div class="note">
+    <b>نطاق النسخة دي</b>
+    قسم <b>رحلات التوصيل</b> (إنشاء رحلة، شاشة الرحلات، تعليم الرحلة كمُسلَّمة) <b>مستبعد</b> من النسخة دي حسب الطلب.
+    خطوة <b>إرسال الأوردر للتوصيل مع مندوب من شاشة الكانبان</b> اتسابت موجودة (الحالات <span class="ltr">ST-KAN-16 / 17</span>) لأن «أرصدة المناديب» و«إقفال الوردية» مش ممكن تتجربوا من غيرها.
+  </div>
+</section>
+
+<!-- =========================== القسم ١ — الموظف =========================== -->
+<h2>القسم ١ — شخصية الموظف (كاشير)</h2>
+<p style="margin:0 0 3mm; font-size:8.8pt;">استخدمي حساب <b>الموظف</b> في كل حالات القسم ده.</p>
+
+<h3>١.١ تسجيل الدخول والشاشة الافتتاحية <span class="pre">— الحساب: موظف</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-LOG-01<br><span class="tag crit">حرج</span></td>
+      <td>افتحي التطبيق أو رابط نقطة البيع. اكتبي إيميل الموظف وكلمة السر واضغطي <b>دخول</b>.</td>
+      <td>الدخول ينجح من غير أخطاء. <b>ما تظهرش</b> نافذة اختيار الوضع «مدير خط / موظف» (النافذة دي اتشالت). المستخدم يروح على طول للشاشة الرئيسية بتاعته.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-LOG-02</td>
+      <td>لاحظي الشاشة اللي التطبيق بيفتح عليها بعد الدخول.</td>
+      <td>الموظف يقف على <b>شاشة الكانبان</b> (مش لوحة المدير). ولو شرط الوردية مفعّل، التطبيق يوديه الأول لشاشة <b>بدء الوردية</b>.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-LOG-03</td>
+      <td>اكتبي الإيميل الصح مع <b>كلمة سر غلط</b> واضغطي دخول.</td>
+      <td>تظهر رسالة خطأ واضحة ومفهومة. التطبيق ما يعلّقش وما ينتقلش لأي شاشة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-LOG-04</td>
+      <td>افتحي القائمة الجانبية (☰) وشوفي ملف نقطة البيع الظاهر في الأعلى أو في «الملف الشخصي».</td>
+      <td>الفرع الصح بتاع المستخدم ظاهر، وهو الوحيد المتاح. الموظف ما يقدرش يبدّل لفرع تاني.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-LOG-05</td>
+      <td>افتحي القائمة الجانبية واكتبي <b>كل</b> البنود اللي بتشوفيها في خانة النتيجة الفعلية.</td>
+      <td>المفروض تظهر بس: نقطة البيع، الكانبان، إنهاء الوردية (بعد فتح وردية)، رحلات التوصيل، أرصدة المناديب، المصروفات، طلبات الأصناف، عن التطبيق، اللغة، تسجيل الخروج.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>١.٢ بدء الوردية <span class="pre">— الحساب: موظف</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-SHF-01<br><span class="tag crit">حرج</span></td>
+      <td>قبل ما تفتحي وردية، حاولي تدخلي على شاشة نقطة البيع وتعملي أوردر.</td>
+      <td>التطبيق يمنع ده ويوديكي لشاشة <b>بدء الوردية</b>. مفيش أوردر ممكن يتبعت من غير وردية مفتوحة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-SHF-02<br><span class="tag crit">حرج</span></td>
+      <td>في شاشة بدء الوردية، عُدّي الدرج واكتبي مبلغ <b>الكاش</b> الافتتاحي واضغطي <b>بدء الوردية</b>.</td>
+      <td>تظهر رسالة «الوردية نشطة» ويتم تحويلك لنقطة البيع، ورقم الوردية ظاهر. المطلوب خانة كاش بس — مش مطلوب من الموظف يدخّل أرصدة إنستاباي أو محفظة أو بنك.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-SHF-03</td>
+      <td>سيبي خانة المبلغ الافتتاحي فاضية (أو اكتبي حروف) واضغطي بدء الوردية.</td>
+      <td>تظهر رسالة تحقق من صحة البيانات، والوردية ما تتفتحش.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-SHF-04<br><span class="tag neg">سلبي</span></td>
+      <td>والوردية مفتوحة، سجّلي دخول بمستخدم <b>تاني</b> على نفس ملف نقطة البيع وحاولي تفتحي وردية.</td>
+      <td>تظهر رسالة إن في وردية مفتوحة بالفعل. ما يتعملش وردية تانية على نفس الملف.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-SHF-05</td>
+      <td>ارجعي للقائمة الجانبية بعد فتح الوردية.</td>
+      <td>بند <b>إنهاء الوردية</b> ظهر في القائمة (ما كانش موجود قبل كده).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>١.٣ إدخال الأوردر من نقطة البيع <span class="pre">— الحساب: موظف</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-POS-01<br><span class="tag neg">سلبي</span></td>
+      <td>في شاشة نقطة بيع جديدة و<b>من غير اختيار عميل</b>، حاولي تضيفي صنف للسلة.</td>
+      <td>التطبيق يطلب اختيار العميل الأول — الصنف ما يتضافش، أو تظهر رسالة تطلب اختيار العميل.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-02</td>
+      <td>اضغطي <b>إضافة عميل</b>. ابحثي بعميل موجود بـ<b>الاسم</b>، وبعدين كرري البحث بـ<b>رقم التليفون</b>. اختاري العميل.</td>
+      <td>البحثين يرجّعوا نتايج. بعد الاختيار اسم العميل يظهر فوق السلة وعنوان التوصيل المحفوظ يتحمّل أوتوماتيك.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-03<br><span class="tag crit">حرج</span></td>
+      <td>اعملي عميل <b>جديد</b>: الاسم «تجربة — اسمك»، رقم تليفون، وعنوان توصيل بالمنطقة.</td>
+      <td>العميل يتعمل ويتختار أوتوماتيك. العنوان يتحفظ، ورسوم التوصيل بتاعة المنطقة دي تظهر في السلة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-04</td>
+      <td>ابحثي عن صنف بالاسم واضغطي عليه عشان يتضاف. اضغطي تاني أو استخدمي (+). بعدين استخدمي (−) للتقليل وأيقونة سلة المهملات للحذف.</td>
+      <td>الكمية بتزيد وبتقل صح، وإجمالي السطر بيتحسب من جديد كل مرة، والسطر المحذوف بيختفي.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-05</td>
+      <td>ضيفي <b>باقة (Bundle)</b> للسلة وافتحيها عشان تشوفي محتوياتها أو تختاري النكهات لو طلب منك.</td>
+      <td>الباقة تتضاف كسطر واحد بسعرها، ومحتوياتها ظاهرة، والإجمالي بيستخدم <b>سعر الباقة</b> مش مجموع أسعار الأصناف.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-06</td>
+      <td>اضغطي <b>اختيار وقت التوصيل</b> واختاري ميعاد.</td>
+      <td>مواعيد الفرع المتاحة تظهر بالتواريخ والأوقات. الميعاد المختار يظهر في السلة، ورسوم التوصيل بتتضاف أوتوماتيك حسب منطقة العميل.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-07</td>
+      <td>فعّلي خيار <b>استلام من الفرع</b>.</td>
+      <td>اختيار ميعاد التوصيل بيختفي، ورسوم التوصيل بتتشال من الإجمالي (الإجمالي بينقص بمقدار رسوم الشحن بالظبط).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-08<br><span class="tag neg">سلبي</span></td>
+      <td>اقفلي خيار الاستلام من الفرع، و<b>من غير</b> ما تختاري ميعاد اضغطي «إرسال».</td>
+      <td>تظهر رسالة «من فضلك اختر وقت التوصيل» أو ما يشبهها. الأوردر <b>ما يتبعتش</b>.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-09</td>
+      <td>راجعي حساب الإجماليات على الشاشة: إجمالي الأصناف + رسوم التوصيل = الإجمالي النهائي.</td>
+      <td>الأرقام التلاتة بتطلع مظبوطة. مفيش فرق تقريب ولا سطر توصيل ناقص.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-10<br><span class="tag crit">حرج</span></td>
+      <td>اضغطي <b>إرسال</b>، اختاري <b>كاش</b>، وأكّدي.</td>
+      <td>تظهر رسالة نجاح برقم الفاتورة (مثلًا <span class="ltr">ACC-SINV-…</span>). السلة بتتفضّى أوتوماتيك. <b>اكتبي رقم الفاتورة</b> في خانة النتيجة الفعلية — هتحتاجيه بعدين.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-11</td>
+      <td>اعملي أوردر تاني وابعتيه بـ<b>إنستاباي</b> (أو أي طريقة دفع تانية متاحة).</td>
+      <td>الأوردر يتبعت بنجاح وطريقة الدفع المختارة تكون ظاهرة على كارت الأوردر.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-12</td>
+      <td>اعملي أوردر تالت وابعتيه <b>غير مدفوع / الدفع لاحقًا</b>.</td>
+      <td>الأوردر يتبعت ويظهر في الكانبان وعليه علامة <b>«غير مدفوع»</b> واضحة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-13<br><span class="tag cfg">إعداد</span></td>
+      <td>جهّزي سلة وطبّقي <b>كود خصم</b> لو أكواد الخصم مفعّلة للفرع.</td>
+      <td>الكود الصحيح بيطبّق الخصم والإجمالي بينقص. الكود الغلط بيترفض برسالة ومن غير أي خصم.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-14</td>
+      <td>جهّزي سلة <b>من غير</b> ما تبعتيها، اخرجي لشاشة الكانبان، وبعدين ارجعي لنقطة البيع.</td>
+      <td>السلة بترجع تاني من المسودة المحفوظة أوتوماتيك (أو ممكن تسترجعيها من أيقونة المسودات في أعلى شاشة نقطة البيع).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-15</td>
+      <td>اضغطي <b>تفريغ السلة</b> وهي مليانة.</td>
+      <td>يطلب تأكيد، وبعدين كل الأسطر والعميل وميعاد التوصيل بيتمسحوا. زرار الإرسال يبقى غير مفعّل على السلة الفاضية.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-POS-16<br><span class="tag neg">سلبي</span></td>
+      <td>حاولي تضيفي كمية أكبر بكتير من المتاح في المخزن لصنف بيتتبّع مخزنيًا (مثلًا ٩٩٩).</td>
+      <td>التطبيق بيقف عند الكمية المتاحة أو بيطلع رسالة نقص مخزون. ما يبعتش أوردر بكمية أكتر من الموجود في صمت.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>١.٤ شاشة الكانبان <span class="pre">— الحساب: موظف</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-KAN-01<br><span class="tag crit">حرج</span></td>
+      <td>افتحي شاشة الكانبان ودوّري على الأوردر اللي اتعمل في <span class="ltr">ST-POS-10</span>.</td>
+      <td>الأوردر يظهر في عمود <b>«مستلم»</b> خلال ثواني (أو بعد تحديث واحد)، وعليه اسم العميل ورقم الأوردر والإجمالي.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-02</td>
+      <td>شوفي الأعمدة الظاهرة على الشاشة واكتبيها في خانة النتيجة الفعلية.</td>
+      <td>مستلم، قيد التنفيذ، جاهز، خرج للتوصيل، تم التسليم، ملغي (وعمود «مرتجع» لو خاصية المرتجعات مفعّلة).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-03<br><span class="tag crit">حرج</span></td>
+      <td>افتحي كارت الأوردر واضغطي <b>قبول الأوردر</b>، وبعدين حرّكيه لـ<b>قيد التنفيذ</b> وبعدها لـ<b>جاهز</b>.</td>
+      <td>كل نقلة تنجح، الكارت يتحرك للعمود الجديد فورًا، والحالة الجديدة تفضل بعد التحديث اليدوي (يعني اتحفظت على السيرفر مش محليًا بس).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-04<br><span class="tag neg">سلبي</span></td>
+      <td>حاولي <b>تسحبي كارت أوردر لعمود «ملغي»</b>.</td>
+      <td>الإفلات بيترفض برسالة. الإلغاء مش بيتم بالسحب — الإلغاء إجراء من القائمة وللأدوار المصرّح لها بس.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-05</td>
+      <td>على كارت أوردر افتحي <b>المزيد (⋮) ← إضافة ملاحظة</b>، اكتبي ملاحظة واحفظي. اقفلي الشاشة وافتحيها تاني.</td>
+      <td>الملاحظة اتحفظت، وفي علامة أو معاينة للملاحظة ظاهرة على الكارت نفسه بعد التحديث.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-06<br><span class="tag crit">حرج</span></td>
+      <td>⋮ ← <b>تعديل عنوان العميل</b>. غيّري الشارع أو رقم العمارة واحفظي. افتحي نفس النافذة تاني.</td>
+      <td>العنوان يتحفظ من غير أي خطأ (مفيش رسالة «تم تعديل المستند» أو خطأ <span class="ltr">417</span>)، والقيمة الجديدة ظاهرة لما تفتحيه تاني. منطقة التوصيل ما تضيعش.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-07</td>
+      <td>⋮ ← <b>تغيير ميعاد التوصيل</b> على أوردر توصيل لسه ما خرجش. اختاري ميعاد مختلف.</td>
+      <td>الميعاد الجديد يتحفظ ويظهر على الكارت. (الخيار ده مش بيظهر على أوردرات الاستلام من الفرع ولا على الأوردرات اللي خرجت أو اتسلّمت أو اتلغت.)</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-08</td>
+      <td>⋮ ← <b>تعديل الفاتورة</b> على أوردر في «مستلم» أو «قيد التنفيذ». غيّري كمية وابعتي التعديل.</td>
+      <td>نقطة البيع بتفتح والسلة الأصلية جاهزة فيها. بعد إرسال التعديل، الشاشة تعرض الأوردر والإجمالي المصحّحين من غير أسطر مكررة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-09<br><span class="tag neg">سلبي</span></td>
+      <td>دوّري على <b>تعديل الفاتورة</b> في أوردر حالته «خرج للتوصيل» أو «تم التسليم» أو «ملغي».</td>
+      <td>الخيار مش بيظهر في الحالات دي.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-10</td>
+      <td>⋮ ← <b>إيصالات الدفع</b> على الأوردر غير المدفوع بتاع <span class="ltr">ST-POS-12</span>. ضيفي إيصال بمبلغ وطريقة دفع.</td>
+      <td>الإيصال يتسجّل ويظهر في القائمة وعليه إنه في انتظار تأكيد المدير. الأوردر ما يتحوّلش لمدفوع بالكامل في صمت.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-11</td>
+      <td>⋮ ← <b>معاينة الإيصال</b>، وبعدين <b>طباعة</b>.</td>
+      <td>المعاينة بتعرض العميل والأصناف والكميات ورسوم التوصيل والإجمالي صح. الطباعة تشتغل أو تطلع رسالة واضحة «الطابعة غير متصلة» — من غير ما الشاشة تقع أبدًا.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-12</td>
+      <td>استخدمي <b>الفلاتر</b>: فلترة باسم العميل، بعدين بالفترة الزمنية، بعدين بالحالة. وبعدين امسحي الفلاتر.</td>
+      <td>كل فلتر بيضيّق النتايج صح، ومسح الفلاتر بيرجّع كل الكروت. الفلاتر ما تفضلش شغالة بشكل مخفي بعد ما تتمسح.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-13</td>
+      <td>ابحثي في الشاشة برقم الفاتورة، وبعدين باسم العميل.</td>
+      <td>الاتنين بيوصلوا للأوردر المطلوب.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-14<br><span class="tag neg">سلبي</span></td>
+      <td>افتحي قائمة ⋮ على أي كارت واكتبي كل الخيارات الظاهرة في خانة النتيجة الفعلية.</td>
+      <td>الموظف <b>لازم ما يشوفش</b>: إلغاء الأوردر، إرجاع الأوردر. (إضافة ملاحظة، تعديل العنوان، تغيير الميعاد، تعديل الفاتورة، المعاينة، الطباعة، تحويل الأوردر — دول ممكن يظهروا.)</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-15</td>
+      <td>من جهاز أو متصفح تاني، خلّي حد يحرّك أوردر. راقبي الشاشة دي من غير ما تعملي تحديث.</td>
+      <td>الكارت بيتحرك على الشاشة دي أوتوماتيك (لحظي)، أو على الأكتر بعد فترة التحديث المعتادة. وأوردرات <b>الفرع ده بس</b> هي اللي بتظهر.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-16<br><span class="tag crit">حرج</span></td>
+      <td>على أوردر توصيل <b>جاهز ومدفوع</b>، اضغطي الكارت ← إجراء التوصيل. اختاري مندوب وأكّدي الإرسال.</td>
+      <td>الأوردر ينتقل لـ<b>«خرج للتوصيل»</b>، واسم المندوب يظهر على الكارت، والحالة تفضل بعد التحديث.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-17<br><span class="tag crit">حرج</span></td>
+      <td>كرري نفس الخطوة على الأوردر <b>غير المدفوع</b>: ابعتيه للتوصيل واختاري خيار «المندوب يحصّل الفلوس».</td>
+      <td>تظهر نافذة تجبرك تحددي مين هيحصّل الفلوس. بعد الإرسال، المبلغ يظهر على المندوب ده في شاشة «أرصدة المناديب».</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-KAN-18</td>
+      <td>بصّي على كارت أوردر توصيل قائم عنوانه من غير دبوس موقع على الخريطة.</td>
+      <td>تظهر علامة «الموقع ناقص» عشان يتظبط قبل الإرسال. أوردرات الاستلام والمُسلَّمة والملغية ما بيظهرش عليها التنبيه ده.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>١.٥ أرصدة المناديب <span class="pre">— الحساب: موظف</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-CUR-01</td>
+      <td>القائمة ← <b>أرصدة المناديب</b>. اقري أرقام المندوب اللي استخدمتيه في <span class="ltr">ST-KAN-17</span>.</td>
+      <td>بتظهر تلات أرقام — «تحصيل من المندوب»، «دفع للمندوب»، «الرصيد الصافي» — مع عدد الفواتير غير المسوّاة. مبلغ الأوردر غير المدفوع ظاهر تحت «تحصيل من المندوب».</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-CUR-02<br><span class="tag crit">حرج</span></td>
+      <td>اضغطي <b>تسوية</b> جنب المندوب ده وأكّدي النافذة.</td>
+      <td>التأكيد بيذكر اسم المندوب وعدد الفواتير. بعد التأكيد تظهر رسالة «تمت التسوية» وسطر المندوب بيختفي من قائمة المستحقات.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-CUR-03</td>
+      <td>افتحي أرصدة المناديب تاني بعد التسوية.</td>
+      <td>المندوب اللي اتسوّى ما بقاش عليه رصيد مستحق، والرقم ما بيرجعش يظهر تاني بعد التحديث.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>١.٦ المصروفات <span class="pre">— الحساب: موظف</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-EXP-01</td>
+      <td>القائمة ← <b>المصروفات</b>. اقري الملخص اللي فوق.</td>
+      <td>الشهر الحالي ظاهر ومعاه الإجمالي / المعتمد / تحت الموافقة، مع قائمة بمصروفات المستخدم نفسه.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-EXP-02<br><span class="tag crit">حرج</span></td>
+      <td>اضغطي <b>+ مصروف جديد</b>. اختاري السبب ومصدر الدفع، واكتبي المبلغ والملاحظات، وابعتي للموافقة.</td>
+      <td>تظهر رسالة «تم إرسال المصروف للموافقة» والمصروف يظهر في القائمة بعلامة <b>«في انتظار الموافقة»</b> — مش بيتعتمد أوتوماتيك للموظف.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-EXP-03<br><span class="tag neg">سلبي</span></td>
+      <td>افتحي قائمة <b>«الدفع من»</b> واكتبي الحسابات المتاحة.</td>
+      <td>بتظهر بس مصادر الدفع اللي تخص ملف نقطة البيع بتاع المستخدم. ما تظهرش حسابات بنكية أو كاش تخص فروع تانية.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-EXP-04<br><span class="tag neg">سلبي</span></td>
+      <td>دوّري على أي زرار موافقة أو رفض على المصروف بتاعك اللي تحت الموافقة.</td>
+      <td>مفيش أي إمكانية موافقة متاحة للموظف.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-EXP-05</td>
+      <td>حاولي تبعتي مصروف والمبلغ فاضي، وبعدين بمبلغ مكتوب حروف «<span class="ltr">abc</span>».</td>
+      <td>تظهر رسالة تحقق في الحالتين، وما يتحفظش حاجة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-EXP-06</td>
+      <td>بدّلي فلتر الشهر للشهر اللي فات، وبعدين اسحبي لتحت للتحديث.</td>
+      <td>القائمة بتتحمّل للشهر المختار، وأرقام الملخص بتتغير عشان تطابقه.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>١.٧ طلبات الأصناف <span class="pre">— الحساب: موظف</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-REQ-01</td>
+      <td>القائمة ← <b>طلبات الأصناف</b>. اعملي طلب لصنف بكمية وتاريخ مطلوب.</td>
+      <td>الطلب يتعمل ويظهر في القائمة بحالته. الموظف مسموح له يعمل طلبات — ده مقصود ومش للمديرين بس.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-REQ-02</td>
+      <td>افتحي الشاشة تاني وشوفي الطلب اللي عملتيه.</td>
+      <td>الطلب موجود بالصنف والكمية والتاريخ والفرع الطالب الصح.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>١.٨ إنهاء الوردية <span class="pre">— الحساب: موظف · تتنفّذ في آخر القسم</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">ST-END-01<br><span class="tag crit">حرج</span></td>
+      <td>اعملي أوردر توصيل <b>غير مدفوع</b> كمان واحد، وابعتيه مع مندوب يحصّل الفلوس، وبعدين افتحي <b>إنهاء الوردية</b>.</td>
+      <td>تظهر ملاحظة «سوّي أرصدة المناديب قبل إنهاء الوردية» باسم المندوب والرصيد الصافي، وزرار <b>إنهاء الوردية يبقى غير مفعّل</b>.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-END-02</td>
+      <td>اضغطي <b>مراجعة وتسوية المناديب</b>، سوّي المندوب، واقفلي النافذة.</td>
+      <td>الملاحظة بتختفي وزرار إنهاء الوردية بيتفعّل.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-END-03<br><span class="tag crit">حرج</span></td>
+      <td>بصّي على شاشة إنهاء الوردية وإنتي بتكتبي الكاش المعدود.</td>
+      <td>المبلغ <b>المتوقع ما يظهرش</b> وإنتي بتكتبي — ده جرد أعمى. المطلوب خانة الكاش المعدود بس (مفيش إنستاباي أو محفظة أو بنك للموظف).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-END-04<br><span class="tag crit">حرج</span></td>
+      <td>اكتبي مبلغ معدود <b>مختلف عمدًا</b> عن المتوقع الحقيقي (مثلًا أقل بـ ٢٠ جنيه) واضغطي إنهاء الوردية.</td>
+      <td>تظهر «تم إنهاء الوردية بنجاح» وملخص فيه المتوقع والمعدود و<b>الفرق</b>، ورقم قيد الإقفال. الزيادة أو العجز بيتسجّل — الفرق ما يضيعش في صمت.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-END-05<br><span class="tag neg">سلبي</span></td>
+      <td>بعد إقفال الوردية، حاولي تبعتي أوردر جديد من نقطة البيع.</td>
+      <td>ممنوع — المستخدم بيترجّع لشاشة بدء الوردية.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">ST-END-06</td>
+      <td>شوفي القائمة الجانبية بعد إقفال الوردية.</td>
+      <td>بند <b>إنهاء الوردية</b> اختفى من القائمة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>١.٩ قيود الموظف — المفروض تكون <b>ممنوعة</b> <span class="pre">— الحساب: موظف</span></h3>
+<div class="note">
+  <b>إزاي تختبري شاشة مخفية صح</b>
+  مش كفاية إن البند مش ظاهر في القائمة. لو ممكن، اكتبي رابط الشاشة في شريط العنوان في المتصفح (نسخة الويب) — لازم التطبيق يرفض برضه، سواء بتحويلك لبرّه أو برسالة «غير مصرّح». سجّلي اللي حصل فعلًا.
+</div>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr><td class="id">ST-NEG-01<br><span class="tag neg">سلبي</span></td><td>دوّري على <b>الأوردرات الرئيسية</b> في القائمة، وبعدين جرّبي رابطها مباشرة.</td><td>مش ظاهرة ومش ممكن الوصول لها — «غير مصرّح» أو تحويل لبرّه.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-02<br><span class="tag neg">سلبي</span></td><td>دوّري على <b>لوحة المدير</b>، وبعدين جرّبي رابطها مباشرة.</td><td>مش ظاهرة ومش ممكن الوصول لها.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-03<br><span class="tag neg">سلبي</span></td><td>دوّري على <b>التقارير</b>، وبعدين جرّبي رابطها مباشرة.</td><td>مش ظاهرة ومش ممكن الوصول لها.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-04<br><span class="tag neg">سلبي</span></td><td>دوّري على <b>تحويل النقدية</b> و<b>تحويل المخزون</b>، وبعدين جرّبي روابطهم.</td><td>الاتنين مش ظاهرين ومش ممكن الوصول لهم.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-05<br><span class="tag neg">سلبي</span></td><td>دوّري على <b>جرد المخزون</b> و<b>فواتير المشتريات</b> و<b>لوحة الإنتاج</b>.</td><td>ولا واحدة منهم ظاهرة ولا ممكن الوصول لها.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-06<br><span class="tag neg">سلبي</span></td><td>دوّري على <b>وضع <span class="ltr">B2B</span></b> و<b>العملاء المحتملين</b> و<b>قوائم الأسعار</b>.</td><td>مش ظاهرين لموظف عادي (إلا لو الحساب ده اتعطى صلاحية <span class="ltr">B2B</span> عمدًا — ساعتها اكتبي «لا ينطبق»).</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-07<br><span class="tag neg">سلبي</span></td><td>افتحي «الملف الشخصي / الإعدادات» ودوّري على خيار <b>كتم الإشعارات</b>.</td><td>مش متاح للموظف.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">ST-NEG-08<br><span class="tag neg">سلبي</span></td><td>في شاشة الكانبان دوّري على <b>فلتر الفروع</b> وحاولي تشوفي أوردرات فرع تاني.</td><td>بيانات فرع المستخدم بس هي الظاهرة.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+  </tbody>
+</table>
+
+<!-- =========================== القسم ٢ — مدير الخط =========================== -->
+<h2 class="pb">القسم ٢ — شخصية مدير الخط</h2>
+<div class="note">
+  <b>بدّلي الحساب دلوقتي</b>
+  اعملي تسجيل خروج كامل من حساب الموظف (وتحديث قوي للصفحة على الويب)، وبعدين سجّلي دخول بحساب <b>مدير الخط</b>. لو ما عملتيش خروج كامل، التطبيق ممكن يفضل شغّال بصلاحيات الموظف المحفوظة وكل الحالات اللي تحت تبقى بلا معنى.
+</div>
+
+<h3>٢.١ الدخول والشاشة الافتتاحية والقائمة <span class="pre">— الحساب: مدير خط</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-NAV-01<br><span class="tag crit">حرج</span></td>
+      <td>سجّلي دخول بحساب مدير الخط.</td>
+      <td>الدخول ينجح. ما تظهرش نافذة اختيار الوضع «مدير خط / موظف». اكتبي الشاشة اللي وقفتي عليها في خانة النتيجة الفعلية.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-NAV-02<br><span class="tag crit">حرج</span></td>
+      <td>على طول حاولي تستخدمي نقطة البيع وتبعتي أوردر من غير ما تفتحي وردية.</td>
+      <td>شرط الوردية بقى بيتنفّذ من السيرفر مش من اختيار وقت الدخول. أيًا كان تصرّف التطبيق لازم يكون <b>متسق</b>: يا إما يدخّلك نقطة البيع والأوردر يتبعت بنجاح، يا إما يمنعك ويوديكي لبدء الوردية. إنه يسيبك تجهّزي سلة وبعدين يفشل عند الإرسال — ده خطأ، سجّلي بالظبط اللي حصل.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-NAV-03<br><span class="tag crit">حرج</span></td>
+      <td>افتحي القائمة الجانبية واكتبي <b>كل</b> البنود الظاهرة، مجموعة مجموعة.</td>
+      <td>المتوقع لمدير الخط: نقطة البيع، الكانبان، رحلات التوصيل، أرصدة المناديب، المصروفات، طلبات الأصناف، <b>الأوردرات الرئيسية</b>، <b>لوحة المدير</b>، <b>متابعة الورديات</b>. أي حاجة زيادة عن دي لازم تتسجّل — بصّي على قسم <span class="ltr">LM-NEG</span>.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-NAV-04</td>
+      <td>نفّذي مسار الموظف الكامل مرة واحدة بحساب مدير الخط: اعملي أوردر لعميل، اقبليه، حرّكيه لـ«جاهز»، وابعتيه للتوصيل.</td>
+      <td>كل حاجة الموظف بيعملها بتشتغل لمدير الخط كمان — مفيش أخطاء صلاحيات في مسار نقطة البيع والكانبان العادي.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٢.٢ الأوردرات الرئيسية <span class="pre">— الحساب: مدير خط</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-MST-01<br><span class="tag crit">حرج</span></td>
+      <td>القائمة ← <b>الأوردرات الرئيسية</b>.</td>
+      <td>الشاشة تفتح من غير خطأ صلاحيات وتعرض الأوردرات.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-MST-02</td>
+      <td>دوّري على الأوردرات اللي اتعملت في القسم ١ بأرقام الفواتير بتاعتها.</td>
+      <td>موجودة كلها بالعميل والإجمالي والحالة الحالية الصح.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-MST-03</td>
+      <td>استخدمي الفلاتر والبحث في الشاشة (الفترة، الحالة، العميل، الفرع لو متاح).</td>
+      <td>كل فلتر بيرجّع نتيجة منطقية ومسحه بيرجّع القائمة. خيارات الفروع محصورة في الفروع المسنّدة للمدير ده.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٢.٣ لوحة المدير <span class="pre">— الحساب: مدير خط</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-DSH-01<br><span class="tag crit">حرج</span></td>
+      <td>القائمة ← <b>لوحة المدير</b>.</td>
+      <td>اللوحة بتفتح وفيها الأرقام الملخّصة — من غير رسالة «غير مصرّح» ولا تحميل لا نهائي ولا شاشة فاضية.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-DSH-02</td>
+      <td>قارني عدد أوردرات النهارده وإجمالي المبيعات في اللوحة مع عدد الأوردرات الظاهرة في شاشة الكانبان.</td>
+      <td>الأرقام متطابقة (مع مراعاة الأوردرات الملغية). لو اللوحة بتقول صفر والشاشة فيها أوردرات، ده خطأ.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-DSH-03</td>
+      <td>غيّري اختيار الفرع أو فلتر التاريخ في اللوحة لو موجود.</td>
+      <td>الأرقام بتتحدّث للفرع والفترة المختارة. الفروع المتاحة هي المسنّدة للمدير بس.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٢.٤ متابعة الورديات <span class="pre">— الحساب: مدير خط</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-SHM-01</td>
+      <td>القائمة ← <b>متابعة الورديات</b>.</td>
+      <td>الشاشة تفتح وتعرض ورديات الفرع، ومنها وردية الموظف اللي اتقفلت في <span class="ltr">ST-END-04</span>.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-SHM-02<br><span class="tag crit">حرج</span></td>
+      <td>افتحي الوردية المقفولة دي وشوفي أرقام الكاش.</td>
+      <td>المتوقع والمعدود و<b>الفرق اللي عملتيه عمدًا في <span class="ltr">ST-END-04</span></b> كلهم ظاهرين صح. الزيادة أو العجز مرئي للمدير.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-SHM-03<br><span class="tag neg">سلبي</span></td>
+      <td>دوّري على وردية فتحها <b>مستخدم تاني</b> ولسه مفتوحة وحاولي تقفليها.</td>
+      <td>إقفال وردية مستخدم تاني مرفوض — الشخص اللي فتح الوردية هو الوحيد اللي يقدر يقفلها.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٢.٥ إلغاء الأوردر <span class="pre">— الحساب: مدير خط</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-CAN-01<br><span class="tag crit">حرج</span></td>
+      <td>في الكانبان، اعملي أوردر <b>غير مدفوع</b> جديد في عمود «مستلم». افتحي ⋮ — لازم خيار <b>إلغاء الأوردر</b> يكون ظاهر دلوقتي.</td>
+      <td>«إلغاء الأوردر» ظاهر لمدير الخط (وكان مخفي عن الموظف في <span class="ltr">ST-KAN-14</span>).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-CAN-02<br><span class="tag crit">حرج</span></td>
+      <td>الغي الأوردر غير المدفوع ده: اختاري سبب، ضيفي ملاحظات، وأكّدي.</td>
+      <td>السبب مطلوب إجباري. الأوردر ينتقل لعمود <b>«ملغي»</b> ويفضل فيه بعد التحديث. من غير أي رسالة خطأ.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-CAN-03<br><span class="tag crit">حرج</span></td>
+      <td>اعملي أوردر جديد وادفعيه بالكامل (كاش) وقت الإرسال. وبعدين الغيه من الكانبان.</td>
+      <td>إلغاء أوردر <b>مدفوع</b> بينجح — من غير خطأ «تم تعديل المستند» أو خطأ اختلاف الوقت. الأوردر يروح لعمود «ملغي».</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-CAN-04<br><span class="tag neg">سلبي</span></td>
+      <td>افتحي ⋮ على أوردر حالته <b>«خرج للتوصيل»</b>، وبعدين على واحد <b>«تم التسليم»</b>.</td>
+      <td>«إلغاء الأوردر» مش متاح في الحالتين — الإلغاء بعد الخروج للتوصيل ممنوع (المرتجع هو الطريق الصح).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-CAN-05<br><span class="tag neg">سلبي</span></td>
+      <td>خدي أوردر عليه <b>رصيد مندوب غير مسوّى</b> وحاولي تلغيه.</td>
+      <td>الإلغاء مش متاح أو بيترفض طول ما معاملة المندوب لسه غير مسوّاة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-CAN-06<br><span class="tag neg">سلبي</span></td>
+      <td>حاولي تاني <b>تسحبي</b> أوردر لعمود «ملغي» بحساب مدير الخط.</td>
+      <td>برضه مرفوض حتى للمدير — الإلغاء لازم يعدّي من إجراء القائمة مع تسجيل سبب.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-CAN-07</td>
+      <td>شوفي كارت الأوردر الملغي وشوفيه كمان في «الأوردرات الرئيسية».</td>
+      <td>سبب الإلغاء والملاحظات اللي كتبتيها في <span class="ltr">LM-CAN-02</span> ظاهرين للمتابعة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٢.٦ تحويل الأوردر <span class="pre">— الحساب: مدير خط</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-TRF-01<br><span class="tag crit">حرج</span></td>
+      <td>على أوردر في «مستلم» أو «قيد التنفيذ»، ⋮ ← <b>تحويل الأوردر</b>. اختاري فرع تاني وأكّدي.</td>
+      <td>قائمة الفروع تظهر، التحويل ينجح، والأوردر يختفي من شاشة الفرع ده (بقى تابع للفرع المستقبِل).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-TRF-02<br><span class="tag neg">سلبي</span></td>
+      <td>افتحي ⋮ على أوردر حالته «خرج للتوصيل» أو «تم التسليم» أو «ملغي».</td>
+      <td>«تحويل الأوردر» مش متاح بعد الخروج للتوصيل.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-TRF-03</td>
+      <td>سجّلي دخول من الفرع المستقبِل (أو اطلبي من حد هناك) وشوفي شاشة الكانبان بتاعتهم.</td>
+      <td>الأوردر المحوَّل موجود عندهم بكل أصنافه وبيانات العميل والإجماليات سليمة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٢.٧ إرجاع الأوردر <span class="pre">— الحساب: مدير خط · <span class="tag cfg">إعداد</span> لو خاصية المرتجعات مفعّلة بس</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-RET-01<br><span class="tag cfg">إعداد</span></td>
+      <td>على أوردر حالته <b>«تم التسليم»</b>، ⋮ ← دوّري على <b>إرجاع الأوردر</b>.</td>
+      <td>لو الخاصية مفعّلة، الخيار موجود لمدير الخط بس. لو الخاصية مقفولة، الخيار مش موجود عند أي حد — ساعتها اكتبي «لا ينطبق» على القسم ده كله.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-RET-02<br><span class="tag cfg">إعداد</span></td>
+      <td>ارجعي الأوردر بالكامل. راجعي المعاينة قبل التأكيد.</td>
+      <td>المعاينة بتعرض الأصناف ومبلغ الاسترداد. بعد التأكيد الأوردر يظهر كمرتجع (في عمود «مرتجع» لو موجود) ومبلغ الاسترداد مطابق للأصلي.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-RET-03<br><span class="tag neg">سلبي</span></td>
+      <td>حاولي <b>تلغي</b> الأوردر اللي لسه راجعتيه.</td>
+      <td>الإلغاء مرفوض أو مش متاح على أوردر مرتجع — ما ينفعش يتعكس مرتين.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٢.٨ الإشعارات <span class="pre">— الحساب: مدير خط</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-NOT-01</td>
+      <td>افتحي «الملف الشخصي / الإعدادات» ودوّري على خيار <b>كتم الإشعارات</b> (اللي كان مخفي عن الموظف في <span class="ltr">ST-NEG-07</span>).</td>
+      <td>الخيار موجود وممكن تشغيله وإطفاؤه.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-NOT-02</td>
+      <td>والإشعارات <b>مش مكتومة</b>، خلّي موظف يبعت أوردر جديد من جهاز تاني.</td>
+      <td>إشعار بالأوردر الجديد يوصل على جهاز المدير.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-NOT-03</td>
+      <td>اكتمي الإشعارات، وبعدين خلّي حد يبعت أوردر تاني.</td>
+      <td>مفيش إشعار بيوصل والكتم شغّال. والإعداد بيفضل محفوظ بعد قفل التطبيق وفتحه تاني.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٢.٩ تأكيد إيصالات الدفع <span class="pre">— الحساب: مدير خط</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">LM-RCP-01<br><span class="tag crit">حرج</span></td>
+      <td>دوّري على الأوردر اللي الموظف عمل عليه إيصال في <span class="ltr">ST-KAN-10</span>. افتحي ⋮ ← <b>إيصالات الدفع</b>.</td>
+      <td>الإيصال المعلّق ظاهر بمبلغه وطريقته، وفي زرار <b>تأكيد</b> متاح لمدير الخط (وما كانش متاح للموظف).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-RCP-02</td>
+      <td>أكّدي الإيصال.</td>
+      <td>حالة الإيصال تبقى <b>مؤكَّد</b> ويتسجّل مين أكّده وإمتى. التأكيد خطوة رقابية بس — ما بيعملش دفعة ولا بيغيّر رصيد الفاتورة لوحده (التحقق في <span class="ltr">AC-RCP-01</span>).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-RCP-03<br><span class="tag neg">سلبي</span></td>
+      <td>حاولي تأكّدي إيصال بتاع ملف نقطة بيع المدير ده <b>مش</b> مسنّد له (اطلبي من مدير فرع تاني يعمل واحد، أو اوصلي له من «الأوردرات الرئيسية»).</td>
+      <td>مرفوض — «تأكيد إيصالات الدفع لمديري الفروع فما فوق بس»، أو الزرار مش موجود أصلًا. التأكيد محصور في الفروع المسنّدة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">LM-RCP-04<br><span class="tag neg">سلبي</span></td>
+      <td>عدّلي الفاتورة أو غيّري الدفع على أوردر عليه إيصال <b>مؤكَّد</b>، وبعدين افتحي قائمة الإيصالات تاني.</td>
+      <td>الإيصال بيتعلّم عليه <b>«متغيّر»</b> وما بقاش ممكن يتأكّد («الإيصالات المتغيّرة ما ينفعش تتأكّد»). ما بيتأكّدش تاني في صمت.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٢.١٠ قيود مدير الخط — المفروض تكون <b>ممنوعة</b> <span class="pre">— الحساب: مدير خط</span></h3>
+<div class="note">
+  <b>اقري ده قبل ما تملي الصفوف اللي تحت</b>
+  مدير الخط <b>مش</b> مدير كامل: العمليات المالية والمخزنية تخص دور «مدير جارز» بس. في كل صف، سجّلي الأول هل البند <b>ظاهر</b> ولا لأ — ولو ظاهر، <b>اضغطي عليه برضه</b> وسجّلي اللي حصل (الشاشة فتحت بالبيانات / رسالة «غير مصرّح» / شاشة فاضية). البند اللي بيظهر وبعدين بيطلع خطأ لما تفتحيه ده برضه خطأ يستاهل التسجيل — فمن فضلك سجّلي المعلومتين.
+</div>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>الفعلي: ظاهر؟ وإيه اللي حصل عند الضغط؟</th></tr></thead>
+  <tbody>
+    <tr><td class="id">LM-NEG-01<br><span class="tag neg">سلبي</span></td><td>القائمة ← دوّري على <b>تحويل النقدية</b>. لو ظاهر، افتحيه.</td><td>مش متاح لمدير الخط.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-02<br><span class="tag neg">سلبي</span></td><td>القائمة ← دوّري على <b>تحويل المخزون</b>. لو ظاهر، افتحيه وحاولي تبحثي عن صنف.</td><td>مش متاح لمدير الخط.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-03<br><span class="tag neg">سلبي</span></td><td>القائمة ← دوّري على <b>جرد المخزون</b>. لو ظاهر، افتحيه.</td><td>مش متاح لمدير الخط.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-04<br><span class="tag neg">سلبي</span></td><td>القائمة ← دوّري على <b>فواتير المشتريات</b>. لو ظاهر، افتحيه.</td><td>مش متاح لمدير الخط (لكن <b>طلبات الأصناف</b> متاحة — ودي صح).</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-05<br><span class="tag neg">سلبي</span></td><td>القائمة ← دوّري على <b>التقارير</b>. لو ظاهر، افتحيه وحاولي تشغّلي تقرير.</td><td>مش متاح لمدير الخط.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-06<br><span class="tag neg">سلبي</span></td><td>القائمة ← دوّري على <b>تسوية إنستاباي</b>. لو ظاهر، افتحيه.</td><td>مش متاح لمدير الخط.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-07<br><span class="tag neg">سلبي</span></td><td>القائمة ← دوّري على <b>لوحة الإنتاج</b>. لو ظاهر، افتحيه.</td><td>مش متاح لمدير الخط (دي تخص أدوار المخزون والتصنيع).</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-08<br><span class="tag neg">سلبي</span></td><td>روحي <b>المصروفات</b> وافتحي مصروف موظف تحت الموافقة. دوّري على زرار موافقة.</td><td>مدير الخط <b>ما يقدرش</b> يعتمد المصروفات — الاعتماد لـ«مدير جارز» بس.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-09<br><span class="tag neg">سلبي</span></td><td>اعملي مصروف بحساب مدير الخط وابعتيه.</td><td>بيتعمل بحالة <b>«في انتظار الموافقة»</b> زي مصروف الموظف — مش بيتعتمد أوتوماتيك.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-10<br><span class="tag neg">سلبي</span></td><td>افتحي قائمة <b>«الدفع من»</b> في المصروفات.</td><td>بس مصادر الدفع بتاعة ملفات نقطة البيع الخاصة بالمدير ده — مش كل حسابات الشركة.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-11<br><span class="tag neg">سلبي</span></td><td>شوفي لو التطبيق بيتيح تبديل لملف نقطة بيع المستخدم ده <b>مش</b> مسنّد له.</td><td>مش ممكن — مدير الخط بيوصل للفروع المسنّدة له بس.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+    <tr><td class="id">LM-NEG-12<br><span class="tag cfg">إعداد</span></td><td>دوّري على <b>قوائم الأسعار</b>. لو ظاهرة، حاولي تغيّري سعر أو تعملي قائمة جديدة.</td><td>العرض ممكن يكون مسموح، لكن <b>تعديل</b> الأسعار لـ«مدير جارز» بس — محاولة التعديل لازم ترفض.</td><td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td><td class="ac"></td></tr>
+  </tbody>
+</table>
+
+<!-- =========================== القسم ٣ — فحوصات عامة =========================== -->
+<h2 class="pb">القسم ٣ — فحوصات عامة (بأي حساب)</h2>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">X-LNG-01</td>
+      <td>القائمة ← <b>اللغة</b> ← بدّلي لـ<b>الإنجليزية</b> وبعدين ارجعي للعربية. بعد كل تبديل امشي على نقطة البيع والكانبان والمصروفات.</td>
+      <td>الواجهة كلها بتتبدّل والاتجاه بيتظبط صح. مفيش نصوص ناقصة ترجمة، ولا كلام مقصوص أو متراكب، والأرقام والإجماليات لسه مقروءة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-LNG-02</td>
+      <td>اقفلي التطبيق وافتحيه تاني واللغة العربية مختارة.</td>
+      <td>اختيار اللغة محفوظ بعد إعادة الفتح.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-NET-01<br><span class="tag crit">حرج</span></td>
+      <td>اقفلي الواي فاي أو الداتا. حاولي تبعتي أوردر من نقطة البيع.</td>
+      <td>تظهر رسالة واضحة إن مفيش اتصال. التطبيق ما يعلّقش، وما يقولش إن العملية نجحت وهي ما نجحتش.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-NET-02<br><span class="tag crit">حرج</span></td>
+      <td>رجّعي الاتصال وحاولي تبعتي نفس الأوردر تاني.</td>
+      <td>الأوردر يتبعت <b>مرة واحدة بس</b>. راجعي الكانبان: لازم يكون في أوردر واحد — من غير نسخة مكررة من المحاولة الفاشلة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-NET-03</td>
+      <td>افتحي الكانبان والاتصال مقفول.</td>
+      <td>الأوردرات اللي اتحمّلت قبل كده لسه مقروءة من الذاكرة المؤقتة، أو تظهر رسالة واضحة إن مفيش اتصال. مفيش شاشة فاضية أو انهيار.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-SES-01</td>
+      <td>اضغطي <b>تسجيل خروج</b>، وبعدين اضغطي زرار الرجوع في المتصفح (على الويب) أو افتحي التطبيق تاني.</td>
+      <td>شاشة الدخول هي اللي بتظهر. الشاشات والبيانات القديمة مش ممكن الوصول لها بعد الخروج.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-SES-02<br><span class="tag crit">حرج</span></td>
+      <td>اخرجي من حساب مدير الخط وادخلي على طول بحساب <b>الموظف</b> على نفس الجهاز من غير تحديث للصفحة.</td>
+      <td>القائمة بتظهر فورًا بصلاحيات <b>الموظف</b> المحدودة. مفيش أي بند خاص بالمدير متبقي من الجلسة اللي فاتت.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-UI-01</td>
+      <td>لُفّي الجهاز أو غيّري حجم نافذة المتصفح وإنتي على نقطة البيع والكانبان.</td>
+      <td>التصميم بيتأقلم من غير ما محتوى يتقص أو زرار يبقى مش قابل للضغط.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">X-UI-02</td>
+      <td>طول يوم الاختبار، سجّلي أي دايرة تحميل ما بتخلصش، أو أي رسالة خطأ تقنية خام (زي خطأ برمجي أو «<span class="ltr">DioException</span>»)، أو أي نص غير مترجم بيظهر للمستخدم.</td>
+      <td>المستخدم المفروض ما يشوفش غير رسايل بسيطة ومفهومة. سجّلي كل خطأ خام شفتيه ومعاه اسم الشاشة اللي ظهر فيها.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- =========================== القسم ٤ — سجل الأخطاء =========================== -->
+<h2 class="pb">القسم ٤ — التحقق المحاسبي</h2>
+<div class="note">
+  <b>مين ينفّذ القسم ده وبأي صلاحية</b>
+  القسم ده <b>مش ممكن يتنفّذ من تطبيق نقطة البيع</b> — التطبيق مش بيعرض القيود المحاسبية أصلًا، وده بالتصميم. محتاج صلاحية قراءة على <b>لوحة ERPNext</b> (<span class="ltr">/desk</span>) لعرض: فاتورة المبيعات، قيد الدفع، قيد اليومية، قيود الأستاذ العام، إذن التسليم، ومعاملات المناديب.<br>
+  لو المُختبِرة معندهاش الصلاحية دي، القسم ده لازم ينفّذه <b>محاسب أو مدير جارز</b> باستخدام أرقام الفواتير اللي هي سجّلتها في القسم ١. متتخطّيهوش — الأقسام ١ إلى ٣ ممكن تعدّي كلها وتطبيق بيرحّل كل أوردر على حساب غلط.
+</div>
+<div class="note">
+  <b>إزاي تشوفي قيود أي مستند</b>
+  افتحي <span class="ltr">/desk</span> ← ابحثي برقم الفاتورة ← افتحي فاتورة المبيعات ← القائمة ← <b>Ledger</b>. أو افتحي قائمة <b>GL Entry</b> وفلتري بـ<b>Voucher No</b>.<br>
+  أسماء الحسابات في النظام ده بتيجي بلاحقة الشركة (مثلًا <span class="ltr">Creditors - J</span> و<span class="ltr">Courier Outstanding - J</span>) — طابقي على أول الاسم وتجاهلي اللاحقة.
+</div>
+
+<h3>٤.١ ترحيل الفاتورة <span class="pre">— استخدمي أرقام الفواتير من القسم ١.٣</span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">AC-INV-01<br><span class="tag crit">حرج</span></td>
+      <td>افتحي فاتورة الكاش بتاعة <span class="ltr">ST-POS-10</span> في اللوحة. شوفي حالتها والمبلغ المستحق والقيود.</td>
+      <td>الحالة <b>مدفوعة</b> والمستحق <b>٠٫٠٠</b>. القيود متوازنة، والإيراد مقيّد في حساب إيرادات، وحساب كاش الفرع مدين بالإجمالي بالظبط.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INV-02<br><span class="tag crit">حرج</span></td>
+      <td>على نفس الفاتورة افتحي جدول <b>الضرائب والرسوم</b>. قارنيه برسوم التوصيل اللي التطبيق عرضها وقت الدفع.</td>
+      <td>سطر واحد بالظبط اسمه <b>Shipping Income (المنطقة)</b> بنفس الرسوم اللي ظهرت في التطبيق. <b>لو التطبيق حسب توصيل بصفر، لازم ما يكونش في السطر ده خالص</b> — غياب السطر معناه «ما اتحسبش عليه حاجة»، مش بيانات ناقصة. ومتحكميش على رسوم التوصيل من سعر المنطقة أبدًا.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INV-03</td>
+      <td>راجعي حسابات الفاتورة: الصافي، الضرائب والرسوم، الإجمالي النهائي.</td>
+      <td>الإجمالي النهائي = مجموع مبالغ الأصناف + سطر رسوم التوصيل. مفيش سطر رسوم زيادة ظهر من غير سبب.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INV-04</td>
+      <td>افتحي أوردر <b>الاستلام من الفرع</b> اللي اتعمل في <span class="ltr">ST-POS-07</span>.</td>
+      <td>مفيش سطر رسوم توصيل خالص، والإجمالي = الأصناف بس. مفيش إيراد توصيل اتخلق لأوردر استلام.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INV-05<br><span class="tag crit">حرج</span></td>
+      <td>افتحي أوردر الإنستاباي بتاع <span class="ltr">ST-POS-11</span> ودوّري على قيد الدفع بتاعه.</td>
+      <td>في قيد دفع وحسابه في خانة <b>Paid To</b> هو حساب البنك / التحصيل الإلكتروني — <b>مش</b> حساب المحفظة. والمستحق على الفاتورة = صفر.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INV-06</td>
+      <td>افتحي أوردر الباقة بتاع <span class="ltr">ST-POS-05</span> واقري أسطر الأصناف.</td>
+      <td>إيراد الباقة = <b>سعر الباقة</b> اللي في نقطة البيع، مش مجموع أسعار الأصناف المفردة. وإجمالي الفاتورة مطابق للي الكاشير شافه.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INV-07<br><span class="tag cfg">إعداد</span></td>
+      <td>لو اتطبّق كود خصم في <span class="ltr">ST-POS-13</span>، شوفي الخصم اتقيّد إزاي.</td>
+      <td>الخصم بيقلّل الإيراد على الفاتورة وظاهر على المستند، والإجمالي مطابق للمبلغ المخفّض اللي العميل دفعه.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٤.٢ محاسبة الإرسال والمناديب <span class="pre">— مسار الدفع عند الاستلام، من <span class="ltr">ST-KAN-16 / 17</span></span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">AC-COD-01<br><span class="tag crit">حرج</span></td>
+      <td><b>قبل</b> إرسال الأوردر غير المدفوع، سجّلي المبلغ المستحق عليه وعلى أنهي حساب.</td>
+      <td>الحالة <b>غير مدفوعة</b>، والإجمالي كله على حساب <b>Debtors</b> باسم العميل.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-COD-02<br><span class="tag crit">حرج</span></td>
+      <td><b>بعد</b> ما <span class="ltr">ST-KAN-17</span> يبعته بخيار «المندوب يحصّل»، افتحي قائمة معاملات المناديب مفلترة بالفاتورة دي، وراجعي قيود الفاتورة تاني.</td>
+      <td>معاملة مندوب واحدة بالظبط للفاتورة دي مع المندوب ده، مبلغها = إجمالي الأوردر، وحالتها <b>غير مسوّاة</b>. والمديونية اتنقلت من <b>Debtors</b> لحساب <b>Courier Outstanding</b>.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-COD-03<br><span class="tag crit">حرج</span></td>
+      <td>دوّري على قيد اليومية بتاع مصروف الشحن اللي اتعمل مع نفس الإرسال.</td>
+      <td>في قيد يجعل <b>Freight and Forwarding Charges</b> مدين و<b>Creditors</b> دائن و<b>المندوب هو الطرف</b> على السطر، بمبلغ مصروف الشحن. سطر Creditors من غير طرف = فشل.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-COD-04<br><span class="tag crit">حرج</span></td>
+      <td>ابعتي أوردر التوصيل فيه <b>مجاني / صفر</b> على العميل لكن المندوب بياخد أجره عادي. شوفي مصروف المندوب.</td>
+      <td>مصروف المندوب لسه <b>مش صفر</b>. إن العميل ما اتحسبش عليه توصيل ما ينفعش يصفّر اللي إحنا مدينينه للمندوب — دول رقمين مختلفين.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-COD-05<br><span class="tag crit">حرج</span></td>
+      <td><b>عدم التكرار.</b> من التطبيق، ابعتي نفس الأوردر للتوصيل مرة تانية (إعادة محاولة، أو ضغط مرتين على التأكيد، أو إعادة بعد انقطاع النت). وبعدين عُدّي المستندات المرتبطة بالفاتورة.</td>
+      <td>معاملة مندوب <b>واحدة</b>، وقيد شحن <b>واحد</b>، وإذن تسليم <b>واحد</b> بالظبط للفاتورة دي. إعادة المحاولة لازم ما تكررش أي واحد فيهم.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-COD-06</td>
+      <td>راجعي الأوردر <b>المدفوع</b> اللي اتبعت في <span class="ltr">ST-KAN-16</span>.</td>
+      <td>في معاملة مندوب بمبلغ <b>الشحن بس</b> (مبلغ الأوردر = صفر) — مديونية العميل ما اتلمستش، لأن العميل دفع خلاص.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٤.٣ التسوية <span class="pre">— من <span class="ltr">ST-CUR-02</span></span></h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">AC-SET-01<br><span class="tag crit">حرج</span></td>
+      <td>بعد ما المندوب اتسوّى في <span class="ltr">ST-CUR-02</span>، افتحي معاملة المندوب دي وحساب <span class="ltr">Courier Outstanding</span>.</td>
+      <td>حالة معاملة المندوب بقت <b>مسوّاة</b>، ورصيد <span class="ltr">Courier Outstanding</span> للمندوب ده رجع <b>صفر</b>.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-SET-02<br><span class="tag crit">حرج</span></td>
+      <td>افتحي قيد يومية التسوية واقري كل أسطره.</td>
+      <td>بيقفل رصيد <span class="ltr">Courier Outstanding</span> ورصيد <span class="ltr">Creditors</span> المستحق للمندوب ده، وحساب الكاش بيتحرك بالـ<b>صافي</b> (الكاش المحصّل ناقص اللي مستحق للمندوب) — مش بالإجمالي.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-SET-03</td>
+      <td>قارني رصيد المندوب اللي التطبيق عرضه في <span class="ltr">ST-CUR-01</span> برصيد <span class="ltr">Courier Outstanding</span> في الدفاتر في نفس اللحظة.</td>
+      <td>الرقمين متطابقين. رقم التطبيق مشتق من نفس معاملات المناديب اللي الدفاتر مبنية عليها، مش من حسبة تانية.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٤.٤ الإلغاء والمرتجع والتعديل</h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">AC-CNL-01<br><span class="tag crit">حرج</span></td>
+      <td>افتحي الأوردر غير المدفوع اللي اتلغى في <span class="ltr">LM-CAN-02</span>.</td>
+      <td>فاتورة المبيعات <b>ملغية</b> وقيودها اتعكست بالكامل — مفيش رصيد متبقي على <span class="ltr">Debtors</span> ولا على الإيرادات للفاتورة دي.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-CNL-02<br><span class="tag crit">حرج</span></td>
+      <td>افتحي الأوردر <b>المدفوع</b> اللي اتلغى في <span class="ltr">LM-CAN-03</span> وتتبّعي قيد الدفع بتاعه.</td>
+      <td>الدفعة اتعكست هي كمان وحساب الكاش/البنك رجع زي ما كان. <b>مفيش قيد دفع سايب معتمد على فاتورة ملغية</b> — الحالة دي خطأ مانع.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-CNL-03<br><span class="tag crit">حرج</span> <span class="tag neg">سلبي</span></td>
+      <td>من <b>اللوحة</b> (مش من التطبيق)، افتحي أوردر حالته «خرج للتوصيل» وحاولي تلغي فاتورة المبيعات مباشرة.</td>
+      <td>السيرفر يرفض. ده بيثبت إن المنع على مستوى المستند نفسه مش على شاشة التطبيق بس — لو الإلغاء نجح هنا، يبقى أي حد عنده صلاحية لوحة يقدر يمسح إيرادات أوردرات اتبعتت.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-CNL-04<br><span class="tag crit">حرج</span></td>
+      <td>افتحي المستندين بتوع التعديل في <span class="ltr">ST-KAN-08</span> — الأصلية والمعدّلة.</td>
+      <td><b>واحدة بس</b> فيهم شايلة قيمة: الأصلية ملغية/مستبدلة والمعدّلة هي الحية. الإيراد متحسب مرة واحدة مش مرتين. وسطر رسوم التوصيل على الفاتورة المعدّلة لسه مطابق للي العميل اتحسب عليه (ما ينفعش يكون نزل لصفر في صمت).</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-CNL-05<br><span class="tag cfg">إعداد</span></td>
+      <td>لو خاصية المرتجعات مفعّلة، افتحي المرتجع اللي اتعمل في <span class="ltr">LM-RET-02</span>.</td>
+      <td>في إشعار دائن بيعكس إيراد الأصناف المرتجعة ويرجّع المخزون. صافي إيراد الأوردر ده صفر، والإشعار مربوط بالفاتورة الأصلية.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٤.٥ محاسبة الوردية</h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">AC-SHF-01<br><span class="tag crit">حرج</span></td>
+      <td>دوّري على قيد اليومية بتاع فرق الإقفال اللي عملتيه عمدًا في <span class="ltr">ST-END-04</span>.</td>
+      <td>في قيد اتعمل على حساب <b>Cash Over/Short</b> بمبلغ الفرق <b>بالظبط</b>. لو في فرق ومفيش قيد، ده خطأ مانع — العجز هيختفي من الدفاتر.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-SHF-02</td>
+      <td>لو المبلغ الافتتاحي اللي اتأكّد في <span class="ltr">ST-SHF-02</span> كان مختلف عن رصيد النظام، دوّري على قيد فرق <b>افتتاحي</b> كمان.</td>
+      <td>فرق الافتتاح بيتقيّد بنفس الطريقة. لو الافتتاح كان مطابق بالظبط، اكتبي «لا ينطبق».</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-SHF-03<br><span class="tag crit">حرج</span></td>
+      <td>قارني عدد فواتير الوردية وإجمالي الكاش بالفواتير اللي فعلًا اتعملت خلالها (اعرضي فواتير المبيعات لملف نقطة البيع ده في نفس الفترة).</td>
+      <td>كل فاتورة اتعملت في الوردية محسوبة في قيد الإقفال. مفيش واحدة ناقصة، ومفيش واحدة من وردية تانية داخلة معاها.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>٤.٦ الضوابط وسلامة البيانات</h3>
+<table class="tc">
+  <colgroup><col class="c-id"><col class="c-st"><col class="c-ex"><col class="c-pf"><col class="c-ac"></colgroup>
+  <thead><tr><th>الرقم</th><th>الخطوات</th><th>النتيجة المتوقعة</th><th>ناجح / فاشل</th><th>النتيجة الفعلية / ملاحظة الخطأ</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">AC-RCP-01</td>
+      <td>شوفي تأكيد الإيصال في <span class="ltr">LM-RCP-02</span> رحّل إيه فعليًا.</td>
+      <td><b>ولا حاجة</b> — التأكيد بيغيّر حالة إيصال الدفع بس. مفيش قيد دفع ولا قيد يومية بيتعمل من التأكيد نفسه. ده بالتصميم؛ الفلوس بتتقيّد من مسار الدفع/الإرسال/التسوية. لو التأكيد <b>عمل</b> قيد، سجّليه كخطأ.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INT-01<br><span class="tag crit">حرج</span></td>
+      <td>اعرضي كل الفواتير اللي عملتيها النهارده لملف نقطة البيع ده. وتأكدي إن مفيش فاتورة يتيمة: معتمدة ومن غير دفع ومن غير معاملة مندوب ومن غير مديونية مفتوحة.</td>
+      <td>كل فاتورة في حالة واحدة صادقة — مدفوعة، أو على <span class="ltr">Debtors</span>، أو على <span class="ltr">Courier Outstanding</span>. مفيش واحدة «مدفوعة» ومحدش دفع، ومفيش واحدة مش ظاهرة في التلاتة.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+    <tr>
+      <td class="id">AC-INT-02</td>
+      <td>لكل مستند فتحتيه في القسم ده، راجعي إجمالي المدين مقابل إجمالي الدائن في قيوده.</td>
+      <td>المدين = الدائن في كل مستند. أي قيد غير متوازن ده خطأ مانع.</td>
+      <td class="pf"><span class="pfw"><span class="box"></span> ناجح<br><span class="box"></span> فاشل</span></td>
+      <td class="ac"></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 class="pb">القسم ٥ — سجل الأخطاء</h2>
+<p style="margin:0 0 3mm; font-size:8.8pt;">اكتبي سطر لكل حالة فشل. <b>رقم الحالة</b> لازم يطابق الصف اللي علّمتي عليه «فاشل». الخطورة: <b>١</b> مانع، <b>٢</b> كبير، <b>٣</b> بسيط، <b>٤</b> شكلي.</p>
+<table class="bug">
+  <thead>
+    <tr>
+      <th style="width:15mm">رقم الخطأ</th>
+      <th style="width:22mm">رقم الحالة</th>
+      <th style="width:14mm">الخطورة</th>
+      <th>اللي حصل (وإيه اللي كان المفروض يحصل) · خطوات إعادة الإنتاج</th>
+      <th style="width:24mm">الصورة</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">B-01</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-02</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-03</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-04</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-05</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-06</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-07</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-08</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-09</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-10</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-11</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-12</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-13</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-14</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td class="n">B-15</td><td></td><td></td><td></td><td></td></tr>
+  </tbody>
+</table>
+
+<h3 style="margin-top:6mm">ملخص التشغيل</h3>
+<table class="meta">
+  <tr>
+    <td class="k">إجمالي الحالات المنفّذة</td><td></td>
+    <td class="k">ناجحة</td><td></td>
+    <td class="k">فاشلة</td><td></td>
+    <td class="k">لا ينطبق</td><td></td>
+  </tr>
+  <tr>
+    <td class="k">عدد الأخطاء المانعة</td><td colspan="3"></td>
+    <td class="k">جاهز للإصدار؟</td><td colspan="3">&#9744; نعم &nbsp;&nbsp; &#9744; لأ &nbsp;&nbsp; &#9744; بعد الإصلاحات</td>
+  </tr>
+</table>
+
+<table class="sign">
+  <tr>
+    <td style="width:50%">توقيع المُختبِر والتاريخ</td>
+    <td style="width:50%">مراجعة المسؤول التقني والتاريخ</td>
+  </tr>
+</table>
+
+</body>
+</html>
