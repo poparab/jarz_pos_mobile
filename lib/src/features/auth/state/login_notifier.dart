@@ -120,6 +120,7 @@ class LoginNotifier extends AsyncNotifier<bool> {
     ref.invalidate(userRolesFutureProvider);
     ref.invalidate(isJarzManagerProvider);
     ref.invalidate(isLineManagerProvider);
+    ref.invalidate(canActAsLineManagerProvider);
     ref.invalidate(isModeratorProvider);
     ref.invalidate(canAccessManagerDashboardRoleProvider);
     ref.invalidate(canAccessShiftMonitorProvider);

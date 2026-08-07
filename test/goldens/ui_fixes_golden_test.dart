@@ -290,6 +290,7 @@ Widget _cardScene(Key key, {required bool withNotes}) {
 List<Override> _cardOverrides() => [
       kanbanProvider.overrideWith((ref) => _FakeKanbanNotifier()),
       isLineManagerProvider.overrideWithValue(false),
+      canActAsLineManagerProvider.overrideWithValue(false),
       managerAccessProvider.overrideWith((ref) => false),
     ];
 

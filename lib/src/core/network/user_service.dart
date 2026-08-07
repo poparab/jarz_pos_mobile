@@ -35,6 +35,17 @@ class UserRoles {
       roles.contains(RoleNames.posManager) ||
       roles.contains(RoleNames.systemManager) ||
       roles.contains(RoleNames.administrator);
+
+  /// Everything a JARZ line manager may do, the manager tier and the
+  /// Administrator may do too — the line manager is a *narrower* manager, never
+  /// the holder of an authority its own manager lacks. Mirrors the backend
+  /// `ROLES.LINE_MANAGER_TIER`.
+  ///
+  /// Gate line-manager actions on this, NOT on [isLineManager]: cancel and
+  /// return were gated on the bare role for months, so a JARZ Manager could not
+  /// cancel or return an order on their own branch.
+  bool get canActAsLineManager =>
+      isLineManager || isJarzManager || isAdminManager;
   bool get canAccessManagerDashboard =>
       isJarzManager || isLineManager || isAdminManager;
   bool get isJarzPosStaff => roles.contains(RoleNames.jarzPosStaff);
@@ -178,6 +189,16 @@ final isLineManagerProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.isLineManager,
+    orElse: () => false,
+  );
+});
+
+/// Whether the user may take any line-manager action (cancel order, return
+/// order, …). True for the line manager, the JARZ Manager and the admin tier.
+final canActAsLineManagerProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canActAsLineManager,
     orElse: () => false,
   );
 });

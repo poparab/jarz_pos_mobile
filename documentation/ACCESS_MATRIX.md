@@ -43,6 +43,7 @@ The app has **four named roles**, each granting a distinct level of authority. T
 | `ROLES.STOCK` | System Manager, Stock Manager, Manufacturing Manager, Accounts Manager | Inventory count |
 | `ROLES.MANUFACTURING` | System Manager, Manufacturing Manager, Stock Manager, Purchase Manager | Manufacturing / work orders |
 | `ROLES.PURCHASE` | System Manager, Stock Manager, Manufacturing Manager, Purchase Manager, Accounts Manager | Purchase invoices |
+| `ROLES.LINE_MANAGER_TIER` | jarz line manager, JARZ line manager, JARZ Manager, System Manager, Administrator | Every line-manager capability — cancel/return orders, manager pricing, collection-method change, manager dashboard, shift monitor, materials report, geo pin override |
 
 ---
 
@@ -129,11 +130,12 @@ The POS profile a user can operate on is the first access gate — many features
 | Assign delivery partner | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Settle courier | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-> **Transfer Order** and **Cancel Order** require `isLineManager` (true for JARZ Manager and JARZ Line Manager) or `isHighManagement`. Cancel Order is also blocked if the invoice has a partial payment.
+> **Transfer Order**, **Cancel Order** and **Return Order** require `canActAsLineManager` = `isLineManager || isJarzManager || isAdminManager`. Cancel Order is also blocked if the invoice has a partial payment.
 
-**Backend enforcement for Cancel Order:**
-- Allowed roles: `Administrator`, `JARZ Line Manager`
-- Returns error "You are not permitted to cancel orders" for other users
+**Backend enforcement for Cancel Order and Return Order:**
+- Allowed roles: `ROLES.LINE_MANAGER_TIER` = `jarz line manager`, `JARZ line manager`, `JARZ Manager`, `System Manager`, `Administrator`
+- Returns error "You are not permitted to cancel orders" / "You are not permitted to return orders" for other users
+- The tier is the single source of truth for *every* line-manager capability: whatever the line manager may do, the manager tier and the Administrator may do too. Pinned by `jarz_pos/tests/test_line_manager_tier.py`.
 
 ---
 
@@ -269,7 +271,9 @@ Backend API permission gates that were verified/fixed (commits `92798ac` and `f7
 |-----------|--------------|--------------|-----------------|
 | `manager.py` | `_ensure_manager_dashboard_access()` | `ROLES.ADMIN` ∪ `{JARZ Manager}` | Dashboard summary, orders, states, branch update |
 | `manufacturing.py` | `_ensure_manager_access()` | `ROLES.MANUFACTURING` | BOM list, BOM details, work order submission |
-| `orders.py` | `_ensure_elevated_access()` | `JARZ Manager`, `JARZ line manager`, `Moderator`, `System Manager`, `Administrator` | Master Orders list |
+| `orders.py` | `_ensure_elevated_access()` | `ROLES.LINE_MANAGER_TIER` ∪ `{Moderator}` | Master Orders list |
+| `kanban.py` | `cancel_invoice()` | `ROLES.LINE_MANAGER_TIER` | Cancel order (pre-dispatch) |
+| `returns.py` | `_ensure_return_permission()` | `ROLES.LINE_MANAGER_TIER` | Return preview + submission |
 | `expenses.py` | (profile-based) | Any user with POS Profile | Expense bootstrap, month list |
 | `purchase.py` | `_ensure_purchase_access()` | `ROLES.PURCHASE` | Supplier list, PO submission |
 | `stock_transfer.py` | `_ensure_manager_access()` | `ROLES.MANAGER` | Transfer profiles, item search, submission |

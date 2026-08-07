@@ -77,6 +77,7 @@ Future<void> _pumpInventoryCountScreen(
         managerAccessProvider.overrideWith((ref) async => true),
         isJarzManagerProvider.overrideWith((ref) => false),
         isLineManagerProvider.overrideWith((ref) => false),
+        canActAsLineManagerProvider.overrideWith((ref) => false),
         isModeratorProvider.overrideWith((ref) => false),
         requirePosShiftProvider.overrideWith((ref) => false),
         activeShiftProvider.overrideWith((ref) async => null),

@@ -119,12 +119,40 @@ void main() {
       expect(r.canMuteNotifications, isFalse);
     });
 
+    test('canActAsLineManager for the line manager itself', () {
+      final r = UserRoles(user: 'u', roles: [RoleNames.jarzLineManager]);
+      expect(r.canActAsLineManager, isTrue);
+    });
+
+    test('canActAsLineManager for a JARZ Manager without the line role', () {
+      final r = UserRoles(user: 'u', roles: [RoleNames.jarzManager]);
+      expect(r.isLineManager, isFalse);
+      expect(r.canActAsLineManager, isTrue);
+    });
+
+    test('canActAsLineManager for the admin tier', () {
+      for (final role in [
+        RoleNames.administrator,
+        RoleNames.systemManager,
+        RoleNames.posManager,
+      ]) {
+        final r = UserRoles(user: 'u', roles: [role]);
+        expect(r.canActAsLineManager, isTrue, reason: role);
+      }
+    });
+
+    test('canActAsLineManager false for a regular POS user', () {
+      final r = UserRoles(user: 'u', roles: ['POS User', RoleNames.moderator]);
+      expect(r.canActAsLineManager, isFalse);
+    });
+
     test('all false when no roles', () {
       final r = UserRoles(user: 'u', roles: []);
       expect(r.isJarzManager, isFalse);
       expect(r.isLineManager, isFalse);
       expect(r.isModerator, isFalse);
       expect(r.canMuteNotifications, isFalse);
+      expect(r.canActAsLineManager, isFalse);
     });
   });
 

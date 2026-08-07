@@ -713,7 +713,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     // Preview Receipt and Print moved to three-dot menu for compactness
 
     // Add three-dot menu for additional actions
-    final isLineManager = ref.watch(isLineManagerProvider);
+    // Line manager *or above* — a JARZ Manager and the admin tier hold every
+    // line-manager capability, matching the backend's ROLES.LINE_MANAGER_TIER.
+    final canActAsLineManager = ref.watch(canActAsLineManagerProvider);
     final managerAccessAsync = ref.watch(managerAccessProvider);
     final canManageCollectionChange = managerAccessAsync.maybeWhen(
       data: (value) => value,
@@ -858,7 +860,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                   ],
                 ),
               ),
-            if (isLineManager && widget.invoice.canReturn)
+            if (canActAsLineManager && widget.invoice.canReturn)
                 PopupMenuItem(
                   value: 'return_order',
                   child: Row(
@@ -870,7 +872,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                     ],
                   ),
                 ),
-            if (isLineManager && widget.invoice.canCancel)
+            if (canActAsLineManager && widget.invoice.canCancel)
                 PopupMenuItem(
                   value: 'cancel_order',
                   enabled: !widget.invoice.hasPartialPayment,

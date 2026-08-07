@@ -69,6 +69,7 @@ Future<void> _pumpCard(WidgetTester tester, InvoiceCard invoice) async {
       overrides: [
         kanbanProvider.overrideWith((ref) => _FakeKanbanNotifier()),
         isLineManagerProvider.overrideWithValue(false),
+        canActAsLineManagerProvider.overrideWithValue(false),
         managerAccessProvider.overrideWith((ref) => false),
       ],
       child: MaterialApp(
