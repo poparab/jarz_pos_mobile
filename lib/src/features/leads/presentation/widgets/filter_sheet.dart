@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../b2b/presentation/widgets/b2b_stage_chip.dart'
+    show B2bStageChip, kB2bStages;
 import '../../state/lead_filter.dart';
 import '../../state/leads_notifier.dart';
 import '../leads_theme.dart';
 
-/// Bottom sheet with the advanced filters: rating range, min reviews,
-/// min branch count, has-Sahel, specialty-only, presence toggles, price band.
+/// Bottom sheet with the advanced filters: pipeline stage, rating range, min
+/// reviews, min branch count, has-Sahel, specialty-only, presence toggles,
+/// price band, and whether not-suitable prospects are shown.
 class FilterSheet extends ConsumerStatefulWidget {
   const FilterSheet({super.key});
 
@@ -97,6 +100,34 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             ),
             const SizedBox(height: 16),
 
+            // Pipeline stage. "All" is a real chip rather than an implicit
+            // empty state, so clearing the narrowing is one tap and the sheet
+            // never looks like it has no stage selected by accident.
+            _label('Pipeline stage'),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                ChoiceChip(
+                  label: const Text('All'),
+                  selected: filter.selectedStages.isEmpty,
+                  selectedColor: LeadsTheme.blush,
+                  showCheckmark: false,
+                  onSelected: (_) => notifier.clearStages(),
+                ),
+                for (final stage in kB2bStages)
+                  FilterChip(
+                    label: Text(stage),
+                    selected: filter.selectedStages.contains(stage),
+                    selectedColor:
+                        B2bStageChip.colorFor(stage).withValues(alpha: 0.2),
+                    checkmarkColor: B2bStageChip.colorFor(stage),
+                    onSelected: (_) => notifier.toggleStage(stage),
+                  ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
             _label('Rating range'),
             RangeSlider(
               values: RangeValues(filter.ratingMin, filter.ratingMax),

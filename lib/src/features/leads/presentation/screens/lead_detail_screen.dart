@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../b2b/data/b2b_repository.dart' show b2bRepositoryProvider;
-import '../../../b2b/presentation/widgets/b2b_stage_chip.dart';
+import '../../../b2b/presentation/widgets/b2b_stage_chip.dart'
+    show B2bStageChip, kB2bStages, kDefaultB2bStage;
 import '../../../b2b/state/b2b_pipeline_notifier.dart' show b2bPipelineProvider;
 import '../../data/models/lead.dart';
 import '../../state/lead_categories_notifier.dart';
@@ -15,20 +16,6 @@ import '../widgets/lead_actions.dart';
 import '../widgets/sahel_badge.dart';
 import '../widgets/score_bar.dart';
 import '../widgets/tier_pill.dart';
-
-/// The 8 valid B2B pipeline stages, in order. Mirrors the backend
-/// `custom_b2b_stage` select options so the Leads detail and the B2B kanban
-/// stay consistent.
-const _kB2bStages = <String>[
-  'Lead',
-  'Qualify',
-  'Sample',
-  'Approved',
-  'Trial',
-  'Check-up',
-  'Active',
-  'Lost/On-hold',
-];
 
 /// Full detail view for a single lead: brand header + contacts, branches list,
 /// and editable status / notes / category + primary/shipping addresses.
@@ -525,7 +512,7 @@ class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
   /// initial `Lead` stage.
   String get _currentStage {
     final raw = widget.lead.b2bStage.trim();
-    return raw.isEmpty ? 'Lead' : raw;
+    return raw.isEmpty ? kDefaultB2bStage : raw;
   }
 
   Future<void> _onSelect(String stage) async {
@@ -610,7 +597,7 @@ class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
     final current = _currentStage;
     // Only preselect a value the dropdown knows about; an unknown/legacy stage
     // renders the chip but leaves the dropdown unselected (no crash).
-    final selected = _kB2bStages.contains(current) ? current : null;
+    final selected = kB2bStages.contains(current) ? current : null;
     return _SectionCard(
       title: context.l10n.leadB2bStage,
       children: [
@@ -637,7 +624,7 @@ class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
           ),
           style: LeadsTheme.body,
           items: [
-            for (final stage in _kB2bStages)
+            for (final stage in kB2bStages)
               DropdownMenuItem<String>(value: stage, child: Text(stage)),
           ],
           onChanged: _saving

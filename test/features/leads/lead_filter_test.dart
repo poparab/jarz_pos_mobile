@@ -498,6 +498,93 @@ void main() {
     });
   });
 
+  group('pipeline stage', () {
+    // Three tier-A leads that differ only by stage, so nothing but the stage
+    // filter can separate them. The third carries an EMPTY stage, which the
+    // backend uses for a lead that has never been advanced.
+    const atQualify = Lead(
+      name: 'L-ST1',
+      leadName: 'Qualified Co',
+      tier: 'A',
+      b2bStage: 'Qualify',
+    );
+    const atActive = Lead(
+      name: 'L-ST2',
+      leadName: 'Active Co',
+      tier: 'A',
+      b2bStage: 'Active',
+    );
+    const atNothing = Lead(
+      name: 'L-ST3',
+      leadName: 'Untouched Co',
+      tier: 'A',
+      b2bStage: '',
+    );
+    const stageCatalog = [atQualify, atActive, atNothing];
+
+    test('empty selection means every stage', () {
+      final result = applyLeadFilter(stageCatalog, const LeadFilter());
+      expect(_names(result), containsAll(['L-ST1', 'L-ST2', 'L-ST3']));
+    });
+
+    test('selecting one stage keeps only that stage', () {
+      final result = applyLeadFilter(
+        stageCatalog,
+        const LeadFilter(selectedStages: {'Qualify'}),
+      );
+      expect(_names(result), ['L-ST1']);
+    });
+
+    test('selecting several stages is an OR across them', () {
+      final result = applyLeadFilter(
+        stageCatalog,
+        const LeadFilter(selectedStages: {'Qualify', 'Active'}),
+      );
+      expect(_names(result).toSet(), {'L-ST1', 'L-ST2'});
+    });
+
+    test('an empty backend stage counts as the first stage', () {
+      final result = applyLeadFilter(
+        stageCatalog,
+        const LeadFilter(selectedStages: {'Lead'}),
+      );
+      expect(_names(result), ['L-ST3']);
+    });
+
+    test('stage ANDs with the other filters rather than replacing them', () {
+      // Tier C excludes it even though the stage matches.
+      const tierCAtQualify = Lead(
+        name: 'L-ST4',
+        leadName: 'Small Co',
+        tier: 'C',
+        b2bStage: 'Qualify',
+      );
+      final result = applyLeadFilter(
+        [...stageCatalog, tierCAtQualify],
+        const LeadFilter(selectedStages: {'Qualify'}),
+      );
+      expect(_names(result), ['L-ST1']);
+    });
+
+    test('counts as one active advanced filter regardless of how many stages',
+        () {
+      expect(const LeadFilter().activeAdvancedCount, 0);
+      expect(const LeadFilter(selectedStages: {'Qualify'}).activeAdvancedCount, 1);
+      expect(
+        const LeadFilter(selectedStages: {'Qualify', 'Active', 'Trial'})
+            .activeAdvancedCount,
+        1,
+      );
+    });
+
+    test('clearedAdvanced resets the stage narrowing back to all', () {
+      const on = LeadFilter(selectedStages: {'Active'}, selectedTiers: {'A'});
+      final cleared = on.clearedAdvanced();
+      expect(cleared.selectedStages, isEmpty);
+      expect(cleared.selectedTiers, {'A'});
+    });
+  });
+
   group('not suitable', () {
     // A tier-A lead a rep judged unsuitable after manual inspection. It would
     // otherwise pass the default filter, so it isolates the verdict's effect.

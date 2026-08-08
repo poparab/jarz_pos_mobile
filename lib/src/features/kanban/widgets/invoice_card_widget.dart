@@ -506,6 +506,23 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
   String _displayId(InvoiceCard invoice) => invoice.displayId;
 
+  /// The delivery area shown on the card, using the same Arabic-first
+  /// precedence every other territory surface in this file already uses
+  /// (`territory_name_ar` -> `territory_display` -> raw `territory`), so a card
+  /// and the sheet it opens never disagree about where an order is going.
+  /// Empty when the invoice carries no territory at all.
+  String get _areaLabel {
+    for (final candidate in [
+      widget.invoice.territoryNameAr,
+      widget.invoice.territoryDisplay,
+      widget.invoice.territory,
+    ]) {
+      final value = (candidate ?? '').trim();
+      if (value.isNotEmpty) return value;
+    }
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final transitioning = ref.watch(kanbanProvider.select((s) => s.transitioningInvoices.contains(widget.invoice.id)));
@@ -1134,6 +1151,32 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
+                              // Delivery area on every card. Dispatchers group and
+                              // hand out orders by area, and until now that meant
+                              // opening each card: the sub-territory chip below only
+                              // renders for territories that HAVE sub-territories,
+                              // so most cards showed no location at all.
+                              if (_areaLabel.isNotEmpty) ...[
+                                SizedBox(height: ResponsiveUtils.getSpacing(context, small: 1, medium: 1.5, large: 2)),
+                                Row(
+                                  children: [
+                                    Icon(Icons.place_outlined, size: 11, color: Colors.grey[700]),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        _areaLabel,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey[800],
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                               if ((widget.invoice.phone ?? widget.invoice.customerPhone ?? '').isNotEmpty) ...[
                                 SizedBox(height: ResponsiveUtils.getSpacing(context, small: 1, medium: 1.5, large: 2)),
                                 GestureDetector(

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../b2b/presentation/widgets/b2b_stage_chip.dart' show kDefaultB2bStage;
 import '../data/models/lead.dart';
 import 'leads_notifier.dart';
 
@@ -10,6 +11,12 @@ enum LeadSortBy { score, rating, reviews, branches, name }
 /// [copyWith]. Search is case-insensitive and Arabic-friendly.
 class LeadFilter {
   final Set<String> selectedTiers;
+  /// B2B pipeline stages to keep. EMPTY means "every stage" — unlike
+  /// [selectedTiers], where empty means "none". Tiers are a closed grading a
+  /// rep always wants some of; stage is an opt-in narrowing, and a filter sheet
+  /// that silently emptied the catalog the moment you deselected the last stage
+  /// would read as a bug.
+  final Set<String> selectedStages;
   final String? selectedCategory;
   final String? selectedArea; // null / '' == all areas
   final String searchText;
@@ -31,6 +38,7 @@ class LeadFilter {
 
   const LeadFilter({
     this.selectedTiers = const {'A', 'B'},
+    this.selectedStages = const {},
     this.selectedCategory,
     this.selectedArea,
     this.searchText = '',
@@ -51,6 +59,7 @@ class LeadFilter {
 
   LeadFilter copyWith({
     Set<String>? selectedTiers,
+    Set<String>? selectedStages,
     Object? selectedCategory = _sentinel,
     Object? selectedArea = _sentinel,
     String? searchText,
@@ -70,6 +79,7 @@ class LeadFilter {
   }) {
     return LeadFilter(
       selectedTiers: selectedTiers ?? this.selectedTiers,
+      selectedStages: selectedStages ?? this.selectedStages,
       selectedCategory: selectedCategory == _sentinel
           ? this.selectedCategory
           : selectedCategory as String?,
@@ -110,6 +120,7 @@ class LeadFilter {
     if (hasWebsite) count++;
     if (priceBand != null && priceBand!.isNotEmpty) count++;
     if (showNotSuitable) count++;
+    if (selectedStages.isNotEmpty) count++;
     return count;
   }
 
@@ -144,6 +155,18 @@ class LeadFilterNotifier extends Notifier<LeadFilter> {
     }
     state = state.copyWith(selectedTiers: next);
   }
+
+  void toggleStage(String stage) {
+    final next = Set<String>.from(state.selectedStages);
+    if (next.contains(stage)) {
+      next.remove(stage);
+    } else {
+      next.add(stage);
+    }
+    state = state.copyWith(selectedStages: next);
+  }
+
+  void clearStages() => state = state.copyWith(selectedStages: const {});
 
   void setCategory(String? category) =>
       state = state.copyWith(selectedCategory: category);
@@ -189,6 +212,15 @@ List<Lead> applyLeadFilter(List<Lead> catalog, LeadFilter f) {
 bool _matchesLead(Lead lead, LeadFilter f, String query) {
   // Manual-inspection verdict: rejected prospects are hidden unless asked for.
   if (lead.notSuitable && !f.showNotSuitable) return false;
+
+  // B2B stage: empty selection means "every stage". A lead the backend has
+  // never advanced carries an empty stage and counts as the first one.
+  if (f.selectedStages.isNotEmpty) {
+    final stage = lead.b2bStage.trim();
+    if (!f.selectedStages.contains(stage.isEmpty ? kDefaultB2bStage : stage)) {
+      return false;
+    }
+  }
 
   // Tier: empty selection means "show none".
   if (f.selectedTiers.isNotEmpty) {
