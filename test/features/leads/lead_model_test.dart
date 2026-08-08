@@ -105,6 +105,31 @@ void main() {
       expect(lead.notes, 'Interested in bulk orders.');
     });
 
+    test('decodes the not-suitable verdict, and defaults it off when absent', () {
+      // A payload from before the verdict shipped (keys entirely absent) must
+      // still decode — every not_suitable_* field is null-safe.
+      final legacy = Lead.fromJson(fullJson);
+      expect(legacy.notSuitable, isFalse);
+      expect(legacy.notSuitableReason, '');
+      expect(legacy.notSuitableNotes, '');
+      expect(legacy.notSuitableOn, isNull);
+      expect(legacy.notSuitableBy, '');
+
+      final marked = Lead.fromJson({
+        ...fullJson,
+        'not_suitable': true,
+        'not_suitable_reason': 'Out of Business',
+        'not_suitable_notes': 'Shutters down, sign removed.',
+        'not_suitable_on': '2026-08-08 11:30:00',
+        'not_suitable_by': 'rep@jarz.com',
+      });
+      expect(marked.notSuitable, isTrue);
+      expect(marked.notSuitableReason, 'Out of Business');
+      expect(marked.notSuitableNotes, 'Shutters down, sign removed.');
+      expect(marked.notSuitableOn, '2026-08-08 11:30:00');
+      expect(marked.notSuitableBy, 'rep@jarz.com');
+    });
+
     test('parses list fields', () {
       final lead = Lead.fromJson(fullJson);
 

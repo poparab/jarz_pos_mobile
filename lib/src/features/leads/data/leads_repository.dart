@@ -89,6 +89,40 @@ class LeadsRepository {
     return (result['address'] ?? '').toString();
   }
 
+  /// Fetches the canonical "why is this prospect not suitable" reasons. The
+  /// backend owns the list (it reads the live Select options), so the app never
+  /// hard-codes its own copy.
+  Future<List<String>> getNotSuitableReasons() async {
+    final response =
+        await _dio.post(ApiEndpoints.getNotSuitableReasons, data: {});
+    final payload = _asMap(_unwrap(response));
+    final raw = (payload['reasons'] as List?) ?? const [];
+    return raw.map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
+  }
+
+  /// Marks a lead not suitable after manual inspection, or clears the verdict.
+  ///
+  /// [reason] is required when marking and must be one of
+  /// [getNotSuitableReasons]. Returns the refreshed catalog row.
+  Future<Lead> setLeadSuitability({
+    required String name,
+    required bool notSuitable,
+    String? reason,
+    String? notes,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.setLeadSuitability,
+      data: {
+        'name': name,
+        'not_suitable': notSuitable ? 1 : 0,
+        if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
+        if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+      },
+    );
+    final result = _asMap(_unwrap(response));
+    return Lead.fromJson(Map<String, dynamic>.from(result['lead'] as Map));
+  }
+
   /// Fetches the list of lead categories.
   Future<List<LeadCategory>> getLeadCategories() async {
     final response =

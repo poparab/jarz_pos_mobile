@@ -156,6 +156,8 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                 (v) => notifier.update((f) => f.copyWith(hasInstagram: v))),
             _toggle('Has website', filter.hasWebsite,
                 (v) => notifier.update((f) => f.copyWith(hasWebsite: v))),
+            _toggle('Show not suitable', filter.showNotSuitable,
+                (v) => notifier.setShowNotSuitable(v)),
 
             if (priceBands.isNotEmpty) ...[
               const SizedBox(height: 12),

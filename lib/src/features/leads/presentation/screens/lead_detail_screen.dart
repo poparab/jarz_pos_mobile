@@ -9,6 +9,7 @@ import '../../data/models/lead.dart';
 import '../../state/lead_categories_notifier.dart';
 import '../../state/lead_detail_notifier.dart';
 import '../../state/leads_notifier.dart' show leadsProvider;
+import '../../state/not_suitable_reasons_notifier.dart';
 import '../leads_theme.dart';
 import '../widgets/lead_actions.dart';
 import '../widgets/sahel_badge.dart';
@@ -90,6 +91,10 @@ class _DetailBody extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       children: [
         _Header(lead: lead),
+        if (lead.notSuitable) ...[
+          const SizedBox(height: 12),
+          _NotSuitableBanner(lead: lead),
+        ],
         const SizedBox(height: 16),
         _ContactRow(lead: lead),
         const SizedBox(height: 20),
@@ -98,6 +103,8 @@ class _DetailBody extends ConsumerWidget {
         _FitScoreSection(lead: lead, leadName: leadName),
         const SizedBox(height: 20),
         _B2bStageSection(lead: lead, leadName: leadName),
+        const SizedBox(height: 20),
+        _SuitabilitySection(lead: lead, leadName: leadName),
         const SizedBox(height: 20),
         _AddressesSection(lead: lead, leadName: leadName),
         const SizedBox(height: 20),
@@ -638,6 +645,302 @@ class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
               : (value) {
                   if (value != null) _onSelect(value);
                 },
+        ),
+      ],
+    );
+  }
+}
+
+/// Read-only summary of an active "not suitable" verdict, shown directly under
+/// the header so a rep opening the lead sees immediately that it was set aside.
+class _NotSuitableBanner extends StatelessWidget {
+  const _NotSuitableBanner({required this.lead});
+
+  final Lead lead;
+
+  @override
+  Widget build(BuildContext context) {
+    final detail = [
+      if (lead.notSuitableReason.isNotEmpty) lead.notSuitableReason,
+      if (lead.notSuitableBy.isNotEmpty) 'by ${lead.notSuitableBy}',
+      if (lead.notSuitableOn != null && lead.notSuitableOn!.isNotEmpty)
+        'on ${lead.notSuitableOn!.split(' ').first}',
+    ].join(' · ');
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: LeadsTheme.rejectedBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: LeadsTheme.rejected.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.block, size: 18, color: LeadsTheme.rejected),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Not suitable',
+                  style: LeadsTheme.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: LeadsTheme.rejected,
+                  ),
+                ),
+                if (detail.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(detail, style: LeadsTheme.bodyMuted),
+                ],
+                if (lead.notSuitableNotes.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(lead.notSuitableNotes, style: LeadsTheme.bodyMuted),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Records the manual-inspection verdict: after visiting/calling a prospect a
+/// rep can mark it not suitable (with a reason and optional notes), which hides
+/// it from the working catalog and drops it off the B2B pipeline board. The
+/// same control reverses the verdict when the call turns out to be wrong.
+class _SuitabilitySection extends ConsumerStatefulWidget {
+  const _SuitabilitySection({required this.lead, required this.leadName});
+
+  final Lead lead;
+  final String leadName;
+
+  @override
+  ConsumerState<_SuitabilitySection> createState() =>
+      _SuitabilitySectionState();
+}
+
+class _SuitabilitySectionState extends ConsumerState<_SuitabilitySection> {
+  bool _saving = false;
+
+  Future<void> _mark() async {
+    final reasons = await ref.read(notSuitableReasonsProvider.future);
+    if (!mounted) return;
+
+    final verdict = await showDialog<_NotSuitableVerdict>(
+      context: context,
+      builder: (ctx) => _NotSuitableDialog(reasons: reasons),
+    );
+    if (verdict == null) return; // cancelled
+
+    await _apply(
+      notSuitable: true,
+      reason: verdict.reason,
+      notes: verdict.notes,
+      message: 'Marked not suitable',
+    );
+  }
+
+  Future<void> _clear() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Restore lead?'),
+        content: const Text(
+          'This clears the not-suitable verdict and puts the lead back in the '
+          'catalog at the Lead stage.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Restore'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    await _apply(notSuitable: false, message: 'Lead restored');
+  }
+
+  Future<void> _apply({
+    required bool notSuitable,
+    String? reason,
+    String? notes,
+    required String message,
+  }) async {
+    setState(() => _saving = true);
+    try {
+      await ref.read(leadDetailProvider(widget.leadName).notifier).setSuitability(
+            notSuitable: notSuitable,
+            reason: reason,
+            notes: notes,
+          );
+
+      // Keep the B2B kanban in sync — marking removes the card, clearing puts
+      // it back. Guarded: the board is not always initialised in this context.
+      try {
+        await ref.read(b2bPipelineProvider.notifier).refresh();
+      } catch (_) {
+        // B2B pipeline not available in this context; ignore.
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final marked = widget.lead.notSuitable;
+    return _SectionCard(
+      title: 'Suitability',
+      children: [
+        Text(
+          marked
+              ? 'This prospect was judged not suitable after manual inspection. '
+                  'It is hidden from the catalog and off the pipeline board.'
+              : 'Inspected this prospect and it is not worth pursuing? Mark it '
+                  'not suitable to take it out of the working catalog.',
+          style: LeadsTheme.bodyMuted,
+        ),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerRight,
+          child: marked
+              ? OutlinedButton.icon(
+                  onPressed: _saving ? null : _clear,
+                  icon: _saving
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.undo, size: 16),
+                  label: const Text('Restore lead'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: LeadsTheme.deepPlum,
+                    side: const BorderSide(color: LeadsTheme.line),
+                  ),
+                )
+              : OutlinedButton.icon(
+                  onPressed: _saving ? null : _mark,
+                  icon: _saving
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.block, size: 16),
+                  label: const Text('Mark not suitable'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: LeadsTheme.rejected,
+                    side: BorderSide(
+                      color: LeadsTheme.rejected.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The reason + notes captured when marking a lead not suitable.
+class _NotSuitableVerdict {
+  const _NotSuitableVerdict({required this.reason, required this.notes});
+
+  final String reason;
+  final String notes;
+}
+
+/// Reason picker + optional notes. Confirm stays disabled until a reason is
+/// chosen — the backend rejects a reasonless verdict, so the UI does too.
+class _NotSuitableDialog extends StatefulWidget {
+  const _NotSuitableDialog({required this.reasons});
+
+  final List<String> reasons;
+
+  @override
+  State<_NotSuitableDialog> createState() => _NotSuitableDialogState();
+}
+
+class _NotSuitableDialogState extends State<_NotSuitableDialog> {
+  final _notesController = TextEditingController();
+  String? _reason;
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Mark not suitable'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: _reason,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: 'Reason',
+              isDense: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            items: [
+              for (final reason in widget.reasons)
+                DropdownMenuItem<String>(value: reason, child: Text(reason)),
+            ],
+            onChanged: (value) => setState(() => _reason = value),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _notesController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              labelText: 'Notes (optional)',
+              hintText: 'What did the inspection show?',
+              isDense: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _reason == null
+              ? null
+              : () => Navigator.pop(
+                    context,
+                    _NotSuitableVerdict(
+                      reason: _reason!,
+                      notes: _notesController.text.trim(),
+                    ),
+                  ),
+          style: FilledButton.styleFrom(backgroundColor: LeadsTheme.rejected),
+          child: const Text('Mark not suitable'),
         ),
       ],
     );

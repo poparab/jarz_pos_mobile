@@ -43,6 +43,11 @@ _$LeadImpl _$$LeadImplFromJson(Map<String, dynamic> json) => _$LeadImpl(
   lastVerified: json['last_verified'] as String?,
   latitude: (json['latitude'] as num?)?.toDouble(),
   longitude: (json['longitude'] as num?)?.toDouble(),
+  notSuitable: json['not_suitable'] as bool? ?? false,
+  notSuitableReason: json['not_suitable_reason'] as String? ?? '',
+  notSuitableNotes: json['not_suitable_notes'] as String? ?? '',
+  notSuitableOn: json['not_suitable_on'] as String?,
+  notSuitableBy: json['not_suitable_by'] as String? ?? '',
   branches:
       (json['branches'] as List<dynamic>?)
           ?.map((e) => LeadBranch.fromJson(e as Map<String, dynamic>))
@@ -87,6 +92,11 @@ Map<String, dynamic> _$$LeadImplToJson(_$LeadImpl instance) =>
       'last_verified': instance.lastVerified,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
+      'not_suitable': instance.notSuitable,
+      'not_suitable_reason': instance.notSuitableReason,
+      'not_suitable_notes': instance.notSuitableNotes,
+      'not_suitable_on': instance.notSuitableOn,
+      'not_suitable_by': instance.notSuitableBy,
       'branches': instance.branches,
       'primary_address': instance.primaryAddress,
       'shipping_address': instance.shippingAddress,

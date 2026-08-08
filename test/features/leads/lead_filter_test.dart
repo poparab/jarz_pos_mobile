@@ -498,6 +498,68 @@ void main() {
     });
   });
 
+  group('not suitable', () {
+    // A tier-A lead a rep judged unsuitable after manual inspection. It would
+    // otherwise pass the default filter, so it isolates the verdict's effect.
+    const rejected = Lead(
+      name: 'L-NS1',
+      leadName: 'Closed Roastery',
+      category: 'Cafe',
+      score: 80,
+      tier: 'A',
+      branchCount: 2,
+      avgRating: 4.4,
+      totalReviews: 400,
+      primaryArea: 'Zamalek',
+      areas: ['Zamalek'],
+      phone: '+2019',
+      notSuitable: true,
+      notSuitableReason: 'Out of Business',
+    );
+
+    test('hidden by default', () {
+      final result = applyLeadFilter([...catalog, rejected], const LeadFilter());
+      expect(_names(result), isNot(contains('L-NS1')));
+      // The rest of the catalog is unaffected.
+      expect(_names(result), _names(applyLeadFilter(catalog, const LeadFilter())));
+    });
+
+    test('shown when showNotSuitable is on', () {
+      final result = applyLeadFilter(
+        [...catalog, rejected],
+        const LeadFilter(showNotSuitable: true),
+      );
+      expect(_names(result), contains('L-NS1'));
+    });
+
+    test('the verdict wins over every other passing filter', () {
+      // Every advanced filter this lead satisfies, but the verdict still hides it.
+      final result = applyLeadFilter(
+        [rejected],
+        const LeadFilter(
+          selectedTiers: {'A'},
+          selectedCategory: 'Cafe',
+          selectedArea: 'Zamalek',
+          hasPhone: true,
+        ),
+      );
+      expect(result, isEmpty);
+    });
+
+    test('counts as an active advanced filter', () {
+      expect(const LeadFilter().activeAdvancedCount, 0);
+      expect(const LeadFilter(showNotSuitable: true).activeAdvancedCount, 1);
+    });
+
+    test('clearedAdvanced turns it back off', () {
+      const on = LeadFilter(showNotSuitable: true, selectedTiers: {'A'});
+      final cleared = on.clearedAdvanced();
+      expect(cleared.showNotSuitable, isFalse);
+      // Tier/category/area/search are preserved by clearedAdvanced.
+      expect(cleared.selectedTiers, {'A'});
+    });
+  });
+
   group('clear all (reset to defaults)', () {
     test('a fresh LeadFilter restores default tiers + sort', () {
       // Start from a heavily-customized filter.

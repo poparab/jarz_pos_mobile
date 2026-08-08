@@ -32,6 +32,24 @@ class LeadDetailNotifier extends FamilyAsyncNotifier<Lead, String> {
     unawaitedRefreshCatalog();
   }
 
+  /// Records (or clears) the manual-inspection "not suitable" verdict, then
+  /// refreshes this detail and the cached catalog so the list drops/re-shows
+  /// the lead immediately.
+  Future<void> setSuitability({
+    required bool notSuitable,
+    String? reason,
+    String? notes,
+  }) async {
+    await _repo.setLeadSuitability(
+      name: arg,
+      notSuitable: notSuitable,
+      reason: reason,
+      notes: notes,
+    );
+    await refresh();
+    unawaitedRefreshCatalog();
+  }
+
   /// Saves a primary or shipping address, then refreshes the detail.
   Future<void> saveAddress({
     required String kind,

@@ -62,7 +62,20 @@ mixin _$Lead {
   String? get lastVerified => throw _privateConstructorUsedError;
   double? get latitude => throw _privateConstructorUsedError;
   double? get longitude =>
-      throw _privateConstructorUsedError; // ── Detail-only fields (present on get_lead, null on get_leads) ────────
+      throw _privateConstructorUsedError; // ── Manual-inspection verdict ──────────────────────────────────────────
+  // Set by a rep through `set_lead_suitability`, never through `save_lead`.
+  // A not-suitable lead is hidden from the working catalog by default and
+  // never appears on the B2B pipeline board.
+  @JsonKey(name: 'not_suitable')
+  bool get notSuitable => throw _privateConstructorUsedError;
+  @JsonKey(name: 'not_suitable_reason')
+  String get notSuitableReason => throw _privateConstructorUsedError;
+  @JsonKey(name: 'not_suitable_notes')
+  String get notSuitableNotes => throw _privateConstructorUsedError;
+  @JsonKey(name: 'not_suitable_on')
+  String? get notSuitableOn => throw _privateConstructorUsedError;
+  @JsonKey(name: 'not_suitable_by')
+  String get notSuitableBy => throw _privateConstructorUsedError; // ── Detail-only fields (present on get_lead, null on get_leads) ────────
   @JsonKey(name: 'branches')
   List<LeadBranch> get branches => throw _privateConstructorUsedError;
   @JsonKey(name: 'primary_address')
@@ -114,6 +127,11 @@ abstract class $LeadCopyWith<$Res> {
     @JsonKey(name: 'last_verified') String? lastVerified,
     double? latitude,
     double? longitude,
+    @JsonKey(name: 'not_suitable') bool notSuitable,
+    @JsonKey(name: 'not_suitable_reason') String notSuitableReason,
+    @JsonKey(name: 'not_suitable_notes') String notSuitableNotes,
+    @JsonKey(name: 'not_suitable_on') String? notSuitableOn,
+    @JsonKey(name: 'not_suitable_by') String notSuitableBy,
     @JsonKey(name: 'branches') List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') LeadAddress? shippingAddress,
@@ -167,6 +185,11 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
     Object? lastVerified = freezed,
     Object? latitude = freezed,
     Object? longitude = freezed,
+    Object? notSuitable = null,
+    Object? notSuitableReason = null,
+    Object? notSuitableNotes = null,
+    Object? notSuitableOn = freezed,
+    Object? notSuitableBy = null,
     Object? branches = null,
     Object? primaryAddress = freezed,
     Object? shippingAddress = freezed,
@@ -286,6 +309,26 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
                 ? _value.longitude
                 : longitude // ignore: cast_nullable_to_non_nullable
                       as double?,
+            notSuitable: null == notSuitable
+                ? _value.notSuitable
+                : notSuitable // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            notSuitableReason: null == notSuitableReason
+                ? _value.notSuitableReason
+                : notSuitableReason // ignore: cast_nullable_to_non_nullable
+                      as String,
+            notSuitableNotes: null == notSuitableNotes
+                ? _value.notSuitableNotes
+                : notSuitableNotes // ignore: cast_nullable_to_non_nullable
+                      as String,
+            notSuitableOn: freezed == notSuitableOn
+                ? _value.notSuitableOn
+                : notSuitableOn // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            notSuitableBy: null == notSuitableBy
+                ? _value.notSuitableBy
+                : notSuitableBy // ignore: cast_nullable_to_non_nullable
+                      as String,
             branches: null == branches
                 ? _value.branches
                 : branches // ignore: cast_nullable_to_non_nullable
@@ -373,6 +416,11 @@ abstract class _$$LeadImplCopyWith<$Res> implements $LeadCopyWith<$Res> {
     @JsonKey(name: 'last_verified') String? lastVerified,
     double? latitude,
     double? longitude,
+    @JsonKey(name: 'not_suitable') bool notSuitable,
+    @JsonKey(name: 'not_suitable_reason') String notSuitableReason,
+    @JsonKey(name: 'not_suitable_notes') String notSuitableNotes,
+    @JsonKey(name: 'not_suitable_on') String? notSuitableOn,
+    @JsonKey(name: 'not_suitable_by') String notSuitableBy,
     @JsonKey(name: 'branches') List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') LeadAddress? shippingAddress,
@@ -425,6 +473,11 @@ class __$$LeadImplCopyWithImpl<$Res>
     Object? lastVerified = freezed,
     Object? latitude = freezed,
     Object? longitude = freezed,
+    Object? notSuitable = null,
+    Object? notSuitableReason = null,
+    Object? notSuitableNotes = null,
+    Object? notSuitableOn = freezed,
+    Object? notSuitableBy = null,
     Object? branches = null,
     Object? primaryAddress = freezed,
     Object? shippingAddress = freezed,
@@ -544,6 +597,26 @@ class __$$LeadImplCopyWithImpl<$Res>
             ? _value.longitude
             : longitude // ignore: cast_nullable_to_non_nullable
                   as double?,
+        notSuitable: null == notSuitable
+            ? _value.notSuitable
+            : notSuitable // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        notSuitableReason: null == notSuitableReason
+            ? _value.notSuitableReason
+            : notSuitableReason // ignore: cast_nullable_to_non_nullable
+                  as String,
+        notSuitableNotes: null == notSuitableNotes
+            ? _value.notSuitableNotes
+            : notSuitableNotes // ignore: cast_nullable_to_non_nullable
+                  as String,
+        notSuitableOn: freezed == notSuitableOn
+            ? _value.notSuitableOn
+            : notSuitableOn // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        notSuitableBy: null == notSuitableBy
+            ? _value.notSuitableBy
+            : notSuitableBy // ignore: cast_nullable_to_non_nullable
+                  as String,
         branches: null == branches
             ? _value._branches
             : branches // ignore: cast_nullable_to_non_nullable
@@ -597,6 +670,11 @@ class _$LeadImpl implements _Lead {
     @JsonKey(name: 'last_verified') this.lastVerified,
     this.latitude,
     this.longitude,
+    @JsonKey(name: 'not_suitable') this.notSuitable = false,
+    @JsonKey(name: 'not_suitable_reason') this.notSuitableReason = '',
+    @JsonKey(name: 'not_suitable_notes') this.notSuitableNotes = '',
+    @JsonKey(name: 'not_suitable_on') this.notSuitableOn,
+    @JsonKey(name: 'not_suitable_by') this.notSuitableBy = '',
     @JsonKey(name: 'branches')
     final List<LeadBranch> branches = const <LeadBranch>[],
     @JsonKey(name: 'primary_address') this.primaryAddress,
@@ -708,6 +786,25 @@ class _$LeadImpl implements _Lead {
   final double? latitude;
   @override
   final double? longitude;
+  // ── Manual-inspection verdict ──────────────────────────────────────────
+  // Set by a rep through `set_lead_suitability`, never through `save_lead`.
+  // A not-suitable lead is hidden from the working catalog by default and
+  // never appears on the B2B pipeline board.
+  @override
+  @JsonKey(name: 'not_suitable')
+  final bool notSuitable;
+  @override
+  @JsonKey(name: 'not_suitable_reason')
+  final String notSuitableReason;
+  @override
+  @JsonKey(name: 'not_suitable_notes')
+  final String notSuitableNotes;
+  @override
+  @JsonKey(name: 'not_suitable_on')
+  final String? notSuitableOn;
+  @override
+  @JsonKey(name: 'not_suitable_by')
+  final String notSuitableBy;
   // ── Detail-only fields (present on get_lead, null on get_leads) ────────
   final List<LeadBranch> _branches;
   // ── Detail-only fields (present on get_lead, null on get_leads) ────────
@@ -731,7 +828,7 @@ class _$LeadImpl implements _Lead {
 
   @override
   String toString() {
-    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes)';
+    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes)';
   }
 
   @override
@@ -788,6 +885,16 @@ class _$LeadImpl implements _Lead {
                 other.latitude == latitude) &&
             (identical(other.longitude, longitude) ||
                 other.longitude == longitude) &&
+            (identical(other.notSuitable, notSuitable) ||
+                other.notSuitable == notSuitable) &&
+            (identical(other.notSuitableReason, notSuitableReason) ||
+                other.notSuitableReason == notSuitableReason) &&
+            (identical(other.notSuitableNotes, notSuitableNotes) ||
+                other.notSuitableNotes == notSuitableNotes) &&
+            (identical(other.notSuitableOn, notSuitableOn) ||
+                other.notSuitableOn == notSuitableOn) &&
+            (identical(other.notSuitableBy, notSuitableBy) ||
+                other.notSuitableBy == notSuitableBy) &&
             const DeepCollectionEquality().equals(other._branches, _branches) &&
             (identical(other.primaryAddress, primaryAddress) ||
                 other.primaryAddress == primaryAddress) &&
@@ -828,6 +935,11 @@ class _$LeadImpl implements _Lead {
     lastVerified,
     latitude,
     longitude,
+    notSuitable,
+    notSuitableReason,
+    notSuitableNotes,
+    notSuitableOn,
+    notSuitableBy,
     const DeepCollectionEquality().hash(_branches),
     primaryAddress,
     shippingAddress,
@@ -878,6 +990,11 @@ abstract class _Lead implements Lead {
     @JsonKey(name: 'last_verified') final String? lastVerified,
     final double? latitude,
     final double? longitude,
+    @JsonKey(name: 'not_suitable') final bool notSuitable,
+    @JsonKey(name: 'not_suitable_reason') final String notSuitableReason,
+    @JsonKey(name: 'not_suitable_notes') final String notSuitableNotes,
+    @JsonKey(name: 'not_suitable_on') final String? notSuitableOn,
+    @JsonKey(name: 'not_suitable_by') final String notSuitableBy,
     @JsonKey(name: 'branches') final List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') final LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') final LeadAddress? shippingAddress,
@@ -954,7 +1071,25 @@ abstract class _Lead implements Lead {
   @override
   double? get latitude;
   @override
-  double? get longitude; // ── Detail-only fields (present on get_lead, null on get_leads) ────────
+  double? get longitude; // ── Manual-inspection verdict ──────────────────────────────────────────
+  // Set by a rep through `set_lead_suitability`, never through `save_lead`.
+  // A not-suitable lead is hidden from the working catalog by default and
+  // never appears on the B2B pipeline board.
+  @override
+  @JsonKey(name: 'not_suitable')
+  bool get notSuitable;
+  @override
+  @JsonKey(name: 'not_suitable_reason')
+  String get notSuitableReason;
+  @override
+  @JsonKey(name: 'not_suitable_notes')
+  String get notSuitableNotes;
+  @override
+  @JsonKey(name: 'not_suitable_on')
+  String? get notSuitableOn;
+  @override
+  @JsonKey(name: 'not_suitable_by')
+  String get notSuitableBy; // ── Detail-only fields (present on get_lead, null on get_leads) ────────
   @override
   @JsonKey(name: 'branches')
   List<LeadBranch> get branches;

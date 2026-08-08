@@ -64,6 +64,7 @@ class LeadCard extends StatelessWidget {
                       runSpacing: 4,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
+                        if (lead.notSuitable) const _NotSuitableBadge(),
                         if (lead.sahelBranches > 0)
                           SahelBadge(lead.sahelBranches),
                         _Metric(
@@ -140,6 +141,40 @@ class LeadCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Marks a prospect a rep judged not worth pursuing. Only visible when the
+/// "Show not suitable" filter is on, since those cards are hidden by default.
+class _NotSuitableBadge extends StatelessWidget {
+  const _NotSuitableBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: LeadsTheme.rejectedBg,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: LeadsTheme.rejected.withValues(alpha: 0.35)),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.block, size: 12, color: LeadsTheme.rejected),
+          SizedBox(width: 3),
+          Text(
+            'Not suitable',
+            style: TextStyle(
+              fontFamily: LeadsTheme.bodyFont,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: LeadsTheme.rejected,
+            ),
+          ),
+        ],
       ),
     );
   }

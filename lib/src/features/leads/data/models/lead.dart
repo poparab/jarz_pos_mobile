@@ -42,6 +42,15 @@ class Lead with _$Lead {
     @JsonKey(name: 'last_verified') String? lastVerified,
     double? latitude,
     double? longitude,
+    // ── Manual-inspection verdict ──────────────────────────────────────────
+    // Set by a rep through `set_lead_suitability`, never through `save_lead`.
+    // A not-suitable lead is hidden from the working catalog by default and
+    // never appears on the B2B pipeline board.
+    @JsonKey(name: 'not_suitable') @Default(false) bool notSuitable,
+    @JsonKey(name: 'not_suitable_reason') @Default('') String notSuitableReason,
+    @JsonKey(name: 'not_suitable_notes') @Default('') String notSuitableNotes,
+    @JsonKey(name: 'not_suitable_on') String? notSuitableOn,
+    @JsonKey(name: 'not_suitable_by') @Default('') String notSuitableBy,
     // ── Detail-only fields (present on get_lead, null on get_leads) ────────
     @JsonKey(name: 'branches') @Default(<LeadBranch>[]) List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,

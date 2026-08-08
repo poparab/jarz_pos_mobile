@@ -15,6 +15,10 @@ abstract final class LeadsTheme {
   static const muted = Color(0xFF78746D);
   static const sahelBlue = Color(0xFF3F6FA6);
   static const sahelBlueBg = Color(0xFFEAF1F8);
+  // "Not suitable" verdict — deliberately desaturated, not alarm-red: it marks
+  // a prospect as set aside, not an error.
+  static const rejected = Color(0xFF8C5A5A);
+  static const rejectedBg = Color(0xFFF6EDED);
 
   // ── Fonts ─────────────────────────────────────────────────────────────
   static const headingFont = 'DMSerifDisplay';

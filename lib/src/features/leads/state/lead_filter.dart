@@ -23,6 +23,9 @@ class LeadFilter {
   final bool hasInstagram;
   final bool hasWebsite;
   final String? priceBand;
+  /// Whether prospects marked not suitable after manual inspection are shown.
+  /// Off by default: a rejected lead should leave the working catalog.
+  final bool showNotSuitable;
   final LeadSortBy sortBy;
   final bool sortDescending;
 
@@ -41,6 +44,7 @@ class LeadFilter {
     this.hasInstagram = false,
     this.hasWebsite = false,
     this.priceBand,
+    this.showNotSuitable = false,
     this.sortBy = LeadSortBy.score,
     this.sortDescending = true,
   });
@@ -60,6 +64,7 @@ class LeadFilter {
     bool? hasInstagram,
     bool? hasWebsite,
     Object? priceBand = _sentinel,
+    bool? showNotSuitable,
     LeadSortBy? sortBy,
     bool? sortDescending,
   }) {
@@ -82,6 +87,7 @@ class LeadFilter {
       hasWebsite: hasWebsite ?? this.hasWebsite,
       priceBand:
           priceBand == _sentinel ? this.priceBand : priceBand as String?,
+      showNotSuitable: showNotSuitable ?? this.showNotSuitable,
       sortBy: sortBy ?? this.sortBy,
       sortDescending: sortDescending ?? this.sortDescending,
     );
@@ -103,6 +109,7 @@ class LeadFilter {
     if (hasInstagram) count++;
     if (hasWebsite) count++;
     if (priceBand != null && priceBand!.isNotEmpty) count++;
+    if (showNotSuitable) count++;
     return count;
   }
 
@@ -149,6 +156,9 @@ class LeadFilterNotifier extends Notifier<LeadFilter> {
       state.copyWith(sortBy: sortBy, sortDescending: descending);
 
   void clearAdvanced() => state = state.clearedAdvanced();
+
+  void setShowNotSuitable(bool value) =>
+      state = state.copyWith(showNotSuitable: value);
 }
 
 final leadFilterProvider =
@@ -177,6 +187,9 @@ List<Lead> applyLeadFilter(List<Lead> catalog, LeadFilter f) {
 /// Whether a single [lead] passes every active filter in [f]. [query] is the
 /// already-normalized search text (pass '' when searching is not active).
 bool _matchesLead(Lead lead, LeadFilter f, String query) {
+  // Manual-inspection verdict: rejected prospects are hidden unless asked for.
+  if (lead.notSuitable && !f.showNotSuitable) return false;
+
   // Tier: empty selection means "show none".
   if (f.selectedTiers.isNotEmpty) {
     final tier = lead.tier.trim().toUpperCase();
