@@ -44,12 +44,14 @@ if (-not (Test-Path $SshKeyPath)) {
 # EVERY backend deploy including a POS hotfix — that happened on 2026-08-05 while
 # jarz_courier was still a private repo the servers had no key for. Confirm with
 # `git ls-remote` from the server before adding an app here.
-# jarz_courier is intentionally NOT listed yet: it is cloned on staging and in
-# sites/apps.txt, but the editable pip install has not completed, so
-# `bench install-app` still fails with ModuleNotFoundError. Listing it makes the
-# bootstrap fail and takes every backend deploy down with it. Re-add once the
-# pip install is confirmed (see BOOTSTRAP-NOTES below).
-$deployedApps = @('jarz_pos', 'jarz_woocommerce_integration', 'hrms')
+# jarz_courier MUST stay after jarz_pos: it declares required_apps = ["jarz_pos"]
+# and `bench install-app` fails if a required app is not yet installed.
+#
+# An app listed here must be readable by the servers' id_ed25519. Listing one that
+# is not makes Ensure-AppCloned fail on the clone, which aborts EVERY backend
+# deploy including a POS hotfix. Confirm with `git ls-remote` from the server
+# before adding an app here.
+$deployedApps = @('jarz_pos', 'jarz_woocommerce_integration', 'hrms', 'jarz_courier')
 
 # Clone URLs for first-time bootstrap. Only consulted when an app in $deployedApps
 # is genuinely absent from the server, so an app already on disk (hrms) needs no
@@ -502,9 +504,17 @@ function Invoke-AppBootstrap {
         foreach ($appName in $needsPrep) {
             foreach ($serviceName in $serviceNames) {
                 $container = $ContainersByService[$serviceName]
+                # `2>&1` is appended so the REMOTE shell merges the streams before
+                # ssh ever writes them. Without it pip's routine warnings (e.g.
+                # "Ignoring invalid distribution ...") arrive on ssh's stderr,
+                # Windows PowerShell 5.1 wraps each line as a NativeCommandError,
+                # and $ErrorActionPreference='Stop' kills the deploy on a pip run
+                # that actually succeeded — leaving the app installed in the env
+                # but never installed on the site. Exit codes still propagate, so
+                # a real failure is still caught.
                 Invoke-Remote ("docker exec -u root $container " +
                     "/home/frappe/frappe-bench/env/bin/pip install -q -e " +
-                    "/home/frappe/frappe-bench/apps/$appName") | Out-Null
+                    "/home/frappe/frappe-bench/apps/$appName 2>&1") | Out-Null
             }
             Write-Info "$appName installed into all service envs"
         }
