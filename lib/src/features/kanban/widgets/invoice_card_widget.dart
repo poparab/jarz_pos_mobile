@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../models/courier_run_progress.dart';
 import '../models/kanban_models.dart';
+import '../providers/courier_run_progress_provider.dart';
 import '../providers/kanban_provider.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../pos/domain/models/delivery_slot.dart';
@@ -544,6 +546,16 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
   Widget _buildCard(bool transitioning) {
     final l10n = context.l10n;
+
+    // Courier run progress for the run THIS card belongs to. Null whenever the
+    // card is not a stop on anyone's run (a pickup, an unassigned order, or one
+    // still in preparation), which is what keeps the badge off the vast majority
+    // of cards on the board.
+    final runProgress = widget.invoice.isCourierRunStop
+        ? ref.watch(courierRunProgressProvider).forInvoice(widget.invoice)
+        : null;
+    final showMissedBadge = widget.invoice.hasOpenDeliveryFailure;
+
     // Show settlement only when backend indicates there is an unsettled courier transaction
     final hasUnsettled = widget.invoice.hasUnsettledCourierTxn;
     final hasPartner = (widget.invoice.salesPartner ?? '').isNotEmpty;
@@ -1337,6 +1349,26 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                       Align(
                         alignment: AlignmentDirectional.centerStart,
                         child: _buildLocationPinBadge(transitioning),
+                      ),
+                    ],
+
+                    // Courier run progress + this stop's own outcome. Directly
+                    // below the pin because the two together are the whole
+                    // "where is this delivery?" story: can the courier find it,
+                    // and how far through the run are they.
+                    if (runProgress != null || showMissedBadge) ...[
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          children: [
+                            if (runProgress != null)
+                              _buildCourierRunBadge(runProgress),
+                            if (showMissedBadge) _buildDeliveryMissedBadge(),
+                          ],
+                        ),
                       ),
                     ],
 
@@ -2903,6 +2935,111 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Courier run progress — "Stop 3 · 7/12 delivered".
+  ///
+  /// Lets a dispatcher read how far a courier has got without phoning them. The
+  /// counts come from the board itself (see [courierRunProgressProvider]), so the
+  /// badge can never disagree with the cards around it.
+  ///
+  /// Icons are reused from glyphs already in this app's tree-shaken
+  /// MaterialIcons font (`local_shipping` and `error_outline` are each used in
+  /// 20+ places). Pulling in a NEW glyph changes an asset, which makes the
+  /// Shorebird production patch fail with UnpatchableChangeException and forces a
+  /// full APK install on every device — see the same note on the pin badge above.
+  Widget _buildCourierRunBadge(CourierRunProgress progress) {
+    final l10n = context.l10n;
+    final invoice = widget.invoice;
+
+    final color = progress.isComplete
+        ? Colors.green[700]!
+        : (progress.hasFailures ? Colors.orange[800]! : Colors.indigo[700]!);
+
+    final parts = <String>[];
+    final stopNumber = invoice.stopNumber;
+    // Sequencing is optional by contract (§2: 0 = unsequenced). An unsequenced
+    // run simply omits this and still reports progress.
+    if (stopNumber != null) {
+      parts.add(l10n.kanbanRunStopLabel(stopNumber));
+    }
+    parts.add(
+      l10n.kanbanRunProgressLabel(progress.delivered, progress.total),
+    );
+    if (progress.hasFailures) {
+      parts.add(l10n.kanbanRunFailedLabel(progress.failed));
+    }
+
+    return Tooltip(
+      message: progress.hasFailures
+          ? l10n.kanbanRunFailedTooltip(progress.failed)
+          : l10n.kanbanRunProgressTooltip(
+              progress.courierLabel,
+              progress.delivered,
+              progress.total,
+            ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.local_shipping, size: 11, color: color),
+            const SizedBox(width: 4),
+            Text(
+              parts.join(' · '),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// This specific stop was attempted and not delivered.
+  ///
+  /// A failed delivery deliberately does NOT change the invoice state
+  /// (COURIER_CONTRACTS §5 invariant 4), so the card stays in Out for Delivery
+  /// and nothing else on the board would say the attempt was missed.
+  Widget _buildDeliveryMissedBadge() {
+    final l10n = context.l10n;
+    final color = Colors.deepOrange[700]!;
+    final attempts = widget.invoice.deliveryAttemptNo ?? 1;
+
+    return Tooltip(
+      message: l10n.kanbanRunAttemptFailedTooltip(attempts < 1 ? 1 : attempts),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 11, color: color),
+            const SizedBox(width: 4),
+            Text(
+              l10n.kanbanRunAttemptFailedLabel,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
         ),
       ),
     );

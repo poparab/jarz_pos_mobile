@@ -2897,7 +2897,39 @@ class AppLocalizationsAr extends AppLocalizations {
   String get kanbanFilterSearch => 'بحث';
 
   @override
-  String get kanbanFilterSearchHint => 'بحث في الطلبات...';
+  String get kanbanFilterSearchHint => 'رقم الطلب أو العميل أو التليفون';
+
+  @override
+  String kanbanFilterMatchCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count طلب مطابق',
+      few: '$count طلبات مطابقة',
+      two: 'طلبان مطابقان',
+      one: 'طلب واحد مطابق',
+      zero: 'مفيش طلبات مطابقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get kanbanFilterDone => 'تم';
+
+  @override
+  String get kanbanFilterDateToday => 'النهاردة';
+
+  @override
+  String get kanbanFilterDateLast7Days => 'آخر ٧ أيام';
+
+  @override
+  String get kanbanFilterDateLast30Days => 'آخر ٣٠ يوم';
+
+  @override
+  String get kanbanFilterDateThisMonth => 'الشهر ده';
+
+  @override
+  String get kanbanFilterDateCustom => 'نطاق مخصص…';
 
   @override
   String get kanbanFilterAllCustomers => 'كل العملاء';
@@ -5215,5 +5247,59 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'صنف واحد',
     );
     return '$_temp0';
+  }
+
+  @override
+  String kanbanRunProgressLabel(int delivered, int total) {
+    return '$delivered/$total اتسلّم';
+  }
+
+  @override
+  String kanbanRunProgressTooltip(String courier, int delivered, int total) {
+    return '$courier: سلّم $delivered من $total محطة على البورد';
+  }
+
+  @override
+  String get kanbanRunProgressComplete => 'خلّص الخط';
+
+  @override
+  String kanbanRunStopLabel(int sequence) {
+    return 'محطة $sequence';
+  }
+
+  @override
+  String kanbanRunFailedLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count محطات فاتوا',
+      one: 'محطة فاتت',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String kanbanRunFailedTooltip(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count محطات اتجرب يوصلهم ومحصلش تسليم',
+      one: 'محطة واحدة اتجرب يوصلها ومحصلش تسليم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get kanbanRunAttemptFailedLabel => 'التسليم فات';
+
+  @override
+  String kanbanRunAttemptFailedTooltip(int attempts) {
+    String _temp0 = intl.Intl.pluralLogic(
+      attempts,
+      locale: localeName,
+      other: '$attempts مرات',
+      one: 'مرة',
+    );
+    return 'المحطة دي اتجرب فيها $_temp0 ولسه مش متسلمة';
   }
 }

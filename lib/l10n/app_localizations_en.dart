@@ -2903,7 +2903,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kanbanFilterSearch => 'Search';
 
   @override
-  String get kanbanFilterSearchHint => 'Search orders...';
+  String get kanbanFilterSearchHint => 'Order #, customer, or phone';
+
+  @override
+  String kanbanFilterMatchCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count matching orders',
+      one: '1 matching order',
+      zero: 'No matching orders',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get kanbanFilterDone => 'Done';
+
+  @override
+  String get kanbanFilterDateToday => 'Today';
+
+  @override
+  String get kanbanFilterDateLast7Days => 'Last 7 days';
+
+  @override
+  String get kanbanFilterDateLast30Days => 'Last 30 days';
+
+  @override
+  String get kanbanFilterDateThisMonth => 'This month';
+
+  @override
+  String get kanbanFilterDateCustom => 'Custom range…';
 
   @override
   String get kanbanFilterAllCustomers => 'All Customers';
@@ -5243,5 +5273,59 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '1 item',
     );
     return '$_temp0';
+  }
+
+  @override
+  String kanbanRunProgressLabel(int delivered, int total) {
+    return '$delivered/$total delivered';
+  }
+
+  @override
+  String kanbanRunProgressTooltip(String courier, int delivered, int total) {
+    return '$courier: $delivered of $total stops delivered on this board';
+  }
+
+  @override
+  String get kanbanRunProgressComplete => 'Run complete';
+
+  @override
+  String kanbanRunStopLabel(int sequence) {
+    return 'Stop $sequence';
+  }
+
+  @override
+  String kanbanRunFailedLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count missed',
+      one: '1 missed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String kanbanRunFailedTooltip(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stops on this run were attempted and not delivered',
+      one: '1 stop on this run was attempted and not delivered',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get kanbanRunAttemptFailedLabel => 'Delivery missed';
+
+  @override
+  String kanbanRunAttemptFailedTooltip(int attempts) {
+    String _temp0 = intl.Intl.pluralLogic(
+      attempts,
+      locale: localeName,
+      other: '$attempts times',
+      one: 'once',
+    );
+    return 'This stop was attempted $_temp0 and has not been delivered';
   }
 }

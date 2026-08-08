@@ -166,6 +166,31 @@ class InvoiceCard {
   /// the server can suppress the badge for addresses it knows are exempt.
   final bool? hasLocationPinFlag;
 
+  // ── Delivery outcome (courier lane M2) ────────────────────────────────
+  // The four `custom_delivery_*` / `custom_delivered_at` fields COURIER_CONTRACTS
+  // §2 added to Sales Invoice. Every one of them is absent on a backend that has
+  // not migrated yet AND on a payload whose query does not select it, so all four
+  // are nullable and every consumer degrades to "unknown" rather than to a
+  // confident zero. Reporting "0/12 delivered" because a column was missing is
+  // worse than reporting nothing.
+  /// When the courier's POD landed. The authoritative "this stop is done"
+  /// signal — more precise than the Kanban column, which lags a manual drag.
+  final String? deliveredAt;
+
+  /// `Delivery Failure Reason` name for the last failed attempt. Per §2 the
+  /// backend CLEARS this on a successful delivery, so a non-empty value on an
+  /// undelivered stop is a live problem, not history.
+  final String? deliveryFailureReason;
+
+  /// Incremented on every failure. A failed delivery deliberately does NOT
+  /// change the state string (§5 invariant 4), so on the board this counter and
+  /// [deliveryFailureReason] are the only evidence an attempt was missed.
+  final int? deliveryAttemptNo;
+
+  /// Stop order within the courier's run; 0 or absent means unsequenced. A run
+  /// without sequences is a supported, normal run — never treat 0 as an error.
+  final int? deliverySequence;
+
   InvoiceCard({
     required this.id,
     required this.invoiceIdShort,
@@ -235,6 +260,10 @@ class InvoiceCard {
     this.geoSource,
     this.geoConfidence,
     this.hasLocationPinFlag,
+    this.deliveredAt,
+    this.deliveryFailureReason,
+    this.deliveryAttemptNo,
+    this.deliverySequence,
   });
 
   /// The identifier every user-facing surface shows for this order.
@@ -399,7 +428,28 @@ class InvoiceCard {
         json['geo_confidence'] ?? json['custom_geo_confidence'],
       ),
       hasLocationPinFlag: _parseFlag(json['has_location_pin']),
+      // Both the flat alias and the raw `custom_*` fieldname are read, the same
+      // way the geo block above does: the Kanban query may project either, and a
+      // rename on one side must not silently blank the run progress.
+      deliveredAt: _nonEmpty(json['delivered_at'] ?? json['custom_delivered_at']),
+      deliveryFailureReason: _nonEmpty(
+        json['delivery_failure_reason'] ?? json['custom_delivery_failure_reason'],
+      ),
+      deliveryAttemptNo: _parseNullableInt(
+        json['delivery_attempt_no'] ?? json['custom_delivery_attempt_no'],
+      ),
+      deliverySequence: _parseNullableInt(
+        json['delivery_sequence'] ?? json['custom_delivery_sequence'],
+      ),
     );
+  }
+
+  /// Trimmed string, or null when absent/blank. Frappe returns a cleared Small
+  /// Text as `""`, not null, so an empty string must collapse to null or
+  /// "has a failure reason" would be true for every successful delivery.
+  static String? _nonEmpty(dynamic raw) {
+    final value = raw?.toString().trim();
+    return (value == null || value.isEmpty) ? null : value;
   }
 
   /// Like [_parseAmount] but keeps "absent" distinguishable from 0 — a geo
@@ -489,6 +539,10 @@ class InvoiceCard {
       'geo_source': geoSource,
       'geo_confidence': geoConfidence,
       'has_location_pin': hasLocationPinFlag,
+      'delivered_at': deliveredAt,
+      'delivery_failure_reason': deliveryFailureReason,
+      'delivery_attempt_no': deliveryAttemptNo,
+      'delivery_sequence': deliverySequence,
     };
   }
 
@@ -564,6 +618,13 @@ class InvoiceCard {
   String? geoSource,
   int? geoConfidence,
   bool? hasLocationPinFlag,
+  String? deliveredAt,
+  String? deliveryFailureReason,
+  int? deliveryAttemptNo,
+  int? deliverySequence,
+  /// Set when a successful delivery clears the reason (§2) — a plain
+  /// `deliveryFailureReason: null` cannot express that through `??`.
+  bool clearDeliveryFailureReason = false,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -634,6 +695,12 @@ class InvoiceCard {
       geoSource: geoSource ?? this.geoSource,
       geoConfidence: geoConfidence ?? this.geoConfidence,
       hasLocationPinFlag: hasLocationPinFlag ?? this.hasLocationPinFlag,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
+      deliveryFailureReason: clearDeliveryFailureReason
+          ? null
+          : (deliveryFailureReason ?? this.deliveryFailureReason),
+      deliveryAttemptNo: deliveryAttemptNo ?? this.deliveryAttemptNo,
+      deliverySequence: deliverySequence ?? this.deliverySequence,
     );
   }
 
@@ -788,6 +855,79 @@ class InvoiceCard {
   /// The case staff need to catch before dispatch: a live delivery order with
   /// no coordinates for the courier to navigate to.
   bool get needsLocationPin => showsLocationPinBadge && !hasLocationPin;
+
+  // ── Courier run / delivery outcome ────────────────────────────────────
+  /// States in which this invoice is a stop on somebody's run.
+  ///
+  /// `Cancelled` is excluded — a cancelled order was pulled and is not a stop
+  /// anybody has to drive to, so counting it would inflate the denominator and
+  /// make a finished run read as incomplete forever. `Returned` IS included: the
+  /// courier did attend it, so it is a completed stop even though nothing was
+  /// handed over.
+  static const _inRunStatuses = {
+    DeliveryStatus.outForDelivery,
+    DeliveryStatus.outForDeliverySnake,
+    DeliveryStatus.delivered,
+    DeliveryStatus.completed,
+    DeliveryStatus.returned,
+  };
+
+  /// The key a run is grouped by: `custom_courier_party` first, per
+  /// COURIER_CONTRACTS §2. [courier] is a display name and is only a fallback
+  /// for payloads that carry no party — two couriers can share a display name,
+  /// so it must never be preferred over the party id.
+  String? get courierRunKey {
+    final party = courierParty?.trim();
+    if (party != null && party.isNotEmpty) return party;
+    final name = courier?.trim();
+    return (name == null || name.isEmpty) ? null : name;
+  }
+
+  /// Best available human label for the courier on this stop.
+  String? get courierRunLabel {
+    final name = courier?.trim();
+    if (name != null && name.isNotEmpty) return name;
+    return courierRunKey;
+  }
+
+  /// Whether this invoice counts as a stop on a courier's run.
+  bool get isCourierRunStop {
+    if (isPickup) return false;
+    if (courierRunKey == null) return false;
+    final normalized = status.trim().toLowerCase();
+    return _inRunStatuses.any(normalized.contains);
+  }
+
+  /// Whether the stop is finished.
+  ///
+  /// `custom_delivered_at` wins when present because it is stamped by the
+  /// courier's POD, whereas the column depends on somebody dragging the card.
+  /// The status fallback is what keeps the count truthful on a backend that does
+  /// not project the field yet — without it every stop would read as pending.
+  bool get isDeliveredStop {
+    if (deliveredAt != null) return true;
+    final normalized = status.trim().toLowerCase();
+    return normalized.contains(DeliveryStatus.delivered) ||
+        normalized.contains(DeliveryStatus.completed);
+  }
+
+  /// A stop that has been attempted and missed, and is still owed a delivery.
+  ///
+  /// Deliberately excludes anything already delivered: §2 clears the reason on
+  /// success, but a stale attempt counter on a delivered stop must not surface as
+  /// a live failure. This is the "act on it now" set, not the history.
+  bool get hasOpenDeliveryFailure {
+    if (isDeliveredStop) return false;
+    if (deliveryFailureReason != null) return true;
+    return (deliveryAttemptNo ?? 0) > 0;
+  }
+
+  /// The stop's position in the run, or null when the run is unsequenced.
+  /// 0 means unsequenced per §2 and is NOT a valid stop number.
+  int? get stopNumber {
+    final sequence = deliverySequence ?? 0;
+    return sequence > 0 ? sequence : null;
+  }
 
   bool get _isPostReadyActionBlocked {
     final normalized = status.trim().toLowerCase();
@@ -1175,14 +1315,42 @@ class KanbanFilters {
     );
   }
 
-  bool get hasFilters =>
-      searchTerm.trim().isNotEmpty ||
-      (customer?.isNotEmpty == true) ||
-      (status?.isNotEmpty == true) ||
-      dateFrom != null ||
-      dateTo != null ||
-      amountFrom != null ||
-      amountTo != null;
+  bool get hasFilters => activeCount > 0;
+
+  /// Number of distinct filters in play. A date or amount *range* counts once —
+  /// it is one decision the user made, and that is what the UI reports.
+  int get activeCount {
+    var count = 0;
+    if (searchTerm.trim().isNotEmpty) count++;
+    if (customer?.isNotEmpty == true) count++;
+    if (status?.isNotEmpty == true) count++;
+    if (dateFrom != null || dateTo != null) count++;
+    if (amountFrom != null || amountTo != null) count++;
+    return count;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is KanbanFilters &&
+          other.searchTerm == searchTerm &&
+          other.customer == customer &&
+          other.status == status &&
+          other.dateFrom == dateFrom &&
+          other.dateTo == dateTo &&
+          other.amountFrom == amountFrom &&
+          other.amountTo == amountTo;
+
+  @override
+  int get hashCode => Object.hash(
+        searchTerm,
+        customer,
+        status,
+        dateFrom,
+        dateTo,
+        amountFrom,
+        amountTo,
+      );
 }
 
 class CustomerOption {

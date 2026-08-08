@@ -1296,7 +1296,19 @@
   },
   "kanbanFilterClearAll": "Clear All",
   "kanbanFilterSearch": "Search",
-  "kanbanFilterSearchHint": "Search orders...",
+  "kanbanFilterSearchHint": "Order #, customer, or phone",
+  "kanbanFilterMatchCount": "{count, plural, =0{No matching orders} =1{1 matching order} other{{count} matching orders}}",
+  "@kanbanFilterMatchCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "kanbanFilterDone": "Done",
+  "kanbanFilterDateToday": "Today",
+  "kanbanFilterDateLast7Days": "Last 7 days",
+  "kanbanFilterDateLast30Days": "Last 30 days",
+  "kanbanFilterDateThisMonth": "This month",
+  "kanbanFilterDateCustom": "Custom range…",
   "kanbanFilterAllCustomers": "All Customers",
   "kanbanFilterAllStatuses": "All Statuses",
   "kanbanFilterDateRange": "Date Range",
@@ -2721,6 +2733,69 @@
   "@purchaseItemsInvoiceCount": {
     "placeholders": {
       "count": {
+        "type": "int"
+      }
+    }
+  },
+  "kanbanRunProgressLabel": "{delivered}/{total} delivered",
+  "@kanbanRunProgressLabel": {
+    "description": "Compact courier run progress on a Kanban card, e.g. 7/12 delivered.",
+    "placeholders": {
+      "delivered": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "kanbanRunProgressTooltip": "{courier}: {delivered} of {total} stops delivered on this board",
+  "@kanbanRunProgressTooltip": {
+    "description": "Tooltip explaining the courier run progress badge and that it is scoped to the visible board.",
+    "placeholders": {
+      "courier": {
+        "type": "String"
+      },
+      "delivered": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "kanbanRunProgressComplete": "Run complete",
+  "kanbanRunStopLabel": "Stop {sequence}",
+  "@kanbanRunStopLabel": {
+    "description": "This order's position in the courier's sequenced run.",
+    "placeholders": {
+      "sequence": {
+        "type": "int"
+      }
+    }
+  },
+  "kanbanRunFailedLabel": "{count, plural, =1{1 missed} other{{count} missed}}",
+  "@kanbanRunFailedLabel": {
+    "description": "How many stops on the run were attempted and missed.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "kanbanRunFailedTooltip": "{count, plural, =1{1 stop on this run was attempted and not delivered} other{{count} stops on this run were attempted and not delivered}}",
+  "@kanbanRunFailedTooltip": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "kanbanRunAttemptFailedLabel": "Delivery missed",
+  "kanbanRunAttemptFailedTooltip": "This stop was attempted {attempts, plural, =1{once} other{{attempts} times}} and has not been delivered",
+  "@kanbanRunAttemptFailedTooltip": {
+    "placeholders": {
+      "attempts": {
         "type": "int"
       }
     }

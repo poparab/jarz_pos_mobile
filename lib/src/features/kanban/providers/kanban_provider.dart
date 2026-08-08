@@ -5,6 +5,7 @@ import 'package:jarz_pos/l10n/app_localizations.dart';
 import '../models/kanban_models.dart';
 import '../services/kanban_service.dart';
 import '../services/notification_polling_service.dart';
+import '../../../core/constants/ws_events.dart';
 import '../../../core/network/dio_provider.dart'; // shared Dio instance
 import '../../../core/network/frappe_error_message.dart';
 import '../../../core/websocket/websocket_service.dart';
@@ -76,6 +77,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
   final Ref _ref; // store ref for offline queue & connectivity
   bool _autoBranchesInitialized = false; // ensure we don't override user choice
   Timer? _loadInvoicesDebounce; // debounce rapid loadInvoices calls
+  Completer<void>? _pendingLoad; // awaiters of the currently debounced load
 
   String _formatActionError(
     Object error, {
@@ -338,6 +340,17 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     return selected.contains(branch);
   }
 
+  /// Whether a realtime event is a courier stop outcome or an address pin
+  /// correction — the events that change a card's contents without moving it
+  /// between columns.
+  ///
+  /// Reads the same set the WebSocket service binds and routes, so this branch
+  /// cannot go live for an event the transport never subscribes to. Matched on the
+  /// frozen [WsEvents] constants rather than substrings, so a backend rename shows
+  /// up as a dead branch instead of a silently-matching prefix.
+  static bool _isCourierStopEvent(String eventName) =>
+      WebSocketService.courierStopEvents.contains(eventName);
+
   void _attachRealtime() {
     try {
       // Listen for kanban state change updates
@@ -369,6 +382,32 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
             );
           } else {
             refreshSingle(invoiceId);
+          }
+          return;
+        }
+
+        // Courier stop outcomes + address pin corrections (COURIER_CONTRACTS §7).
+        //
+        // Handled before the generic move handler below because none of these
+        // carry a state transition: a failed delivery keeps the invoice at Out
+        // for Delivery by design (§5 invariant 4), and a pin update changes only
+        // the Address. Falling through to `_applyRealtimeMove` would find no
+        // `new_state_key` and drop the event, leaving the board stale until
+        // somebody refreshed by hand.
+        //
+        // `refreshSingle` re-reads the card, which is what brings the new
+        // `custom_delivered_at` / failure fields — and therefore the recomputed
+        // run progress — onto the board.
+        if (_isCourierStopEvent(eventName)) {
+          if (invoiceId != null) {
+            refreshSingle(invoiceId);
+          } else {
+            // A pin correction is about an Address, so the payload may name no
+            // invoice at all — several cards can share one address. Fall back to
+            // a board reload rather than dropping the event and leaving the pin
+            // badge stale. `loadInvoices` is debounced (500 ms), so a burst of
+            // these collapses into a single fetch.
+            loadInvoices();
           }
           return;
         }
@@ -666,17 +705,37 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     }
   }
 
-  Future<void> loadInvoices({bool immediate = false}) async {
+  Future<void> loadInvoices({bool immediate = false}) {
     _loadInvoicesDebounce?.cancel();
-    if (!immediate) {
-      final completer = Completer<void>();
-      _loadInvoicesDebounce = Timer(const Duration(milliseconds: 500), () async {
-        await _doLoadInvoices();
-        completer.complete();
-      });
-      return completer.future;
+
+    if (immediate) {
+      // A queued debounce is subsumed by this load, so its awaiters have to be
+      // released when this one lands. Previously the timer was simply cancelled
+      // and its completer abandoned, so anything holding that future — most
+      // visibly pull-to-refresh — spun forever.
+      final queued = _pendingLoad;
+      _pendingLoad = null;
+      final future = _doLoadInvoices();
+      if (queued != null) {
+        unawaited(future.whenComplete(() {
+          if (!queued.isCompleted) queued.complete();
+        }));
+      }
+      return future;
     }
-    return _doLoadInvoices();
+
+    // Successive debounced calls share one completer: they all resolve when the
+    // single coalesced fetch finishes.
+    final completer = _pendingLoad ??= Completer<void>();
+    _loadInvoicesDebounce = Timer(const Duration(milliseconds: 500), () async {
+      _pendingLoad = null;
+      try {
+        await _doLoadInvoices();
+      } finally {
+        if (!completer.isCompleted) completer.complete();
+      }
+    });
+    return completer.future;
   }
 
   Future<void> _doLoadInvoices() async {
@@ -1050,6 +1109,10 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     // event triggered two full board reloads.
     _invoiceSub?.cancel();
     _loadInvoicesDebounce?.cancel();
+    // Release anyone awaiting a debounced load that will now never run.
+    final pending = _pendingLoad;
+    _pendingLoad = null;
+    if (pending != null && !pending.isCompleted) pending.complete();
     super.dispose();
   }
 

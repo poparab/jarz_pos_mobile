@@ -34,6 +34,41 @@ class WebSocketService {
   Stream<Map<String, dynamic>> get courierUpdates => _courierUpdateStreamController.stream;
   Stream<Map<String, dynamic>> get shiftUpdates => _shiftUpdateStreamController.stream;
 
+  /// Every Socket.IO event this client binds a handler to.
+  ///
+  /// Public and named because binding and handling are two separate lists that
+  /// must agree, and the failure when they do not is silent: socket.io only
+  /// delivers events with a registered handler, so an event that is handled in
+  /// [_handleWebSocketMessage] but missing here never arrives at all — no error,
+  /// no log, the feature simply never updates. Exposing the list lets a test
+  /// assert the two sides match instead of trusting a reviewer to notice.
+  static const List<String> subscribedEvents = [
+    WsEvents.newInvoice,
+    WsEvents.invoiceStateChange,
+    WsEvents.kanbanUpdate,
+    WsEvents.outForDeliveryTransition,
+    WsEvents.courierOutstanding,
+    WsEvents.courierExpensePaid,
+    WsEvents.courierSettled,
+    // Sales Partner specific events
+    WsEvents.salesPartnerCollectPrompt,
+    WsEvents.salesPartnerUnpaidOfd,
+    WsEvents.salesPartnerPaidOfd,
+    // Courier app (COURIER_CONTRACTS §7)
+    ...courierStopEvents,
+  ];
+
+  /// Courier events that change a card's *contents* without moving it between
+  /// columns, so the Kanban board has to re-read the invoice rather than animate
+  /// a transition. The single definition both this service and the Kanban
+  /// provider read, so the two can never drift apart.
+  static const Set<String> courierStopEvents = {
+    WsEvents.courierStopArrived,
+    WsEvents.courierStopDelivered,
+    WsEvents.courierStopFailed,
+    WsEvents.addressPinUpdated,
+  };
+
   void connect() {
     if (_isConnecting) return;
     _isConnecting = true;
@@ -99,19 +134,7 @@ class WebSocketService {
             }
           });
         }
-        for (final ev in [
-          WsEvents.newInvoice,
-          WsEvents.invoiceStateChange,
-          WsEvents.kanbanUpdate,
-          WsEvents.outForDeliveryTransition,
-          WsEvents.courierOutstanding,
-          WsEvents.courierExpensePaid,
-          WsEvents.courierSettled,
-          // Sales Partner specific events
-          WsEvents.salesPartnerCollectPrompt,
-          WsEvents.salesPartnerUnpaidOfd,
-          WsEvents.salesPartnerPaidOfd,
-  ]) { bindEvent(ev); }
+        for (final ev in subscribedEvents) { bindEvent(ev); }
         // Generic fallback
         _io!.on(WsEvents.message, (data) {
           try {
@@ -395,6 +418,35 @@ class WebSocketService {
               );
             }
           } catch (_) {}
+        }
+        break;
+      // ── Courier stop outcomes (COURIER_CONTRACTS §7) ──────────────────
+      // A courier's tap on Arrived / Delivered / Failed, and a pin correction on
+      // the delivery address. All four change what a Kanban card should show
+      // without changing the column the card sits in — a failed delivery
+      // deliberately keeps the invoice at Out for Delivery (§5 invariant 4) — so
+      // without these the board only tells the truth after a manual refresh.
+      //
+      // The case list mirrors [courierStopEvents], which the Kanban provider
+      // dispatches on — keep the two together.
+      case WsEvents.courierStopArrived:
+      case WsEvents.courierStopDelivered:
+      case WsEvents.courierStopFailed:
+      case WsEvents.addressPinUpdated:
+        if (data != null) {
+          // Stamp the event name into the payload. The Kanban handler dispatches
+          // on `data['event']`, and whether the backend includes that key is not
+          // pinned by the contract — injecting it here makes the client correct
+          // either way, and never overwrites a name the server did send.
+          final enriched = Map<String, dynamic>.from(data);
+          enriched.putIfAbsent('event', () => event);
+          _kanbanUpdateStreamController.add(enriched);
+          if (event != WsEvents.addressPinUpdated) {
+            _courierUpdateStreamController.add(enriched);
+          }
+          if (kDebugMode) {
+            debugPrint('🚚 WEBSOCKET: $event for ${enriched['invoice'] ?? enriched['invoice_id']}');
+          }
         }
         break;
       case WsEvents.pong:

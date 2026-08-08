@@ -5017,8 +5017,50 @@ abstract class AppLocalizations {
   /// No description provided for @kanbanFilterSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search orders...'**
+  /// **'Order #, customer, or phone'**
   String get kanbanFilterSearchHint;
+
+  /// No description provided for @kanbanFilterMatchCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No matching orders} =1{1 matching order} other{{count} matching orders}}'**
+  String kanbanFilterMatchCount(int count);
+
+  /// No description provided for @kanbanFilterDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get kanbanFilterDone;
+
+  /// No description provided for @kanbanFilterDateToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get kanbanFilterDateToday;
+
+  /// No description provided for @kanbanFilterDateLast7Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get kanbanFilterDateLast7Days;
+
+  /// No description provided for @kanbanFilterDateLast30Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get kanbanFilterDateLast30Days;
+
+  /// No description provided for @kanbanFilterDateThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get kanbanFilterDateThisMonth;
+
+  /// No description provided for @kanbanFilterDateCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom range…'**
+  String get kanbanFilterDateCustom;
 
   /// No description provided for @kanbanFilterAllCustomers.
   ///
@@ -9162,6 +9204,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 item} other{{count} items}}'**
   String purchaseItemsInvoiceCount(int count);
+
+  /// Compact courier run progress on a Kanban card, e.g. 7/12 delivered.
+  ///
+  /// In en, this message translates to:
+  /// **'{delivered}/{total} delivered'**
+  String kanbanRunProgressLabel(int delivered, int total);
+
+  /// Tooltip explaining the courier run progress badge and that it is scoped to the visible board.
+  ///
+  /// In en, this message translates to:
+  /// **'{courier}: {delivered} of {total} stops delivered on this board'**
+  String kanbanRunProgressTooltip(String courier, int delivered, int total);
+
+  /// No description provided for @kanbanRunProgressComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Run complete'**
+  String get kanbanRunProgressComplete;
+
+  /// This order's position in the courier's sequenced run.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop {sequence}'**
+  String kanbanRunStopLabel(int sequence);
+
+  /// How many stops on the run were attempted and missed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 missed} other{{count} missed}}'**
+  String kanbanRunFailedLabel(int count);
+
+  /// No description provided for @kanbanRunFailedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 stop on this run was attempted and not delivered} other{{count} stops on this run were attempted and not delivered}}'**
+  String kanbanRunFailedTooltip(int count);
+
+  /// No description provided for @kanbanRunAttemptFailedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery missed'**
+  String get kanbanRunAttemptFailedLabel;
+
+  /// No description provided for @kanbanRunAttemptFailedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'This stop was attempted {attempts, plural, =1{once} other{{attempts} times}} and has not been delivered'**
+  String kanbanRunAttemptFailedTooltip(int attempts);
 }
 
 class _AppLocalizationsDelegate
