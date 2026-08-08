@@ -425,6 +425,9 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.leads.get_not_suitable_reasons';
   static const setLeadSuitability =
       '/api/method/jarz_pos.api.leads.set_lead_suitability';
+  static const getMergeCandidates =
+      '/api/method/jarz_pos.api.leads.get_merge_candidates';
+  static const mergeLeads = '/api/method/jarz_pos.api.leads.merge_leads';
 
   // ── Courier tracking (jarz_courier app) ───────────────────────────────
   // Supervisor-only and Redis-backed, so it is safe to poll. Couriers are

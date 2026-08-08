@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -118,6 +120,44 @@ class LeadsRepository {
         if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
         if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
       },
+    );
+    final result = _asMap(_unwrap(response));
+    return Lead.fromJson(Map<String, dynamic>.from(result['lead'] as Map));
+  }
+
+  /// Possible duplicates of [name]. With no [query] the backend suggests
+  /// matches on brand name / phone / Instagram / website; with a [query] it is
+  /// a plain name search for the duplicate the heuristics miss.
+  Future<List<LeadMergeCandidate>> getMergeCandidates({
+    required String name,
+    String? query,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.getMergeCandidates,
+      data: {
+        'name': name,
+        if (query != null && query.trim().isNotEmpty) 'query': query.trim(),
+      },
+    );
+    final payload = _asMap(_unwrap(response));
+    final raw = (payload['candidates'] as List?) ?? const [];
+    return raw
+        .whereType<Map>()
+        .map((e) => LeadMergeCandidate.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
+  /// Folds [sources] into [name] as duplicates of the same brand. Returns the
+  /// refreshed surviving lead.
+  Future<Lead> mergeLeads({
+    required String name,
+    required List<String> sources,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.mergeLeads,
+      // Sent as a JSON string: Frappe delivers list args that way anyway, and
+      // being explicit avoids Dio's form-encoding flattening it to `a,b`.
+      data: {'target': name, 'sources': jsonEncode(sources)},
     );
     final result = _asMap(_unwrap(response));
     return Lead.fromJson(Map<String, dynamic>.from(result['lead'] as Map));

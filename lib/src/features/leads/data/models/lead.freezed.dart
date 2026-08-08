@@ -75,7 +75,16 @@ mixin _$Lead {
   @JsonKey(name: 'not_suitable_on')
   String? get notSuitableOn => throw _privateConstructorUsedError;
   @JsonKey(name: 'not_suitable_by')
-  String get notSuitableBy => throw _privateConstructorUsedError; // ── Detail-only fields (present on get_lead, null on get_leads) ────────
+  String get notSuitableBy => throw _privateConstructorUsedError; // ── Duplicate-merge bookkeeping ────────────────────────────────────────
+  // Non-empty on a lead that was merged INTO another as a duplicate. Such a
+  // lead is excluded from the catalog server-side, so this is normally only
+  // seen when a merged record is opened directly.
+  @JsonKey(name: 'merged_into')
+  String get mergedInto => throw _privateConstructorUsedError;
+  @JsonKey(name: 'merged_on')
+  String? get mergedOn => throw _privateConstructorUsedError;
+  @JsonKey(name: 'merged_by')
+  String get mergedBy => throw _privateConstructorUsedError; // ── Detail-only fields (present on get_lead, null on get_leads) ────────
   @JsonKey(name: 'branches')
   List<LeadBranch> get branches => throw _privateConstructorUsedError;
   @JsonKey(name: 'primary_address')
@@ -132,6 +141,9 @@ abstract class $LeadCopyWith<$Res> {
     @JsonKey(name: 'not_suitable_notes') String notSuitableNotes,
     @JsonKey(name: 'not_suitable_on') String? notSuitableOn,
     @JsonKey(name: 'not_suitable_by') String notSuitableBy,
+    @JsonKey(name: 'merged_into') String mergedInto,
+    @JsonKey(name: 'merged_on') String? mergedOn,
+    @JsonKey(name: 'merged_by') String mergedBy,
     @JsonKey(name: 'branches') List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') LeadAddress? shippingAddress,
@@ -190,6 +202,9 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
     Object? notSuitableNotes = null,
     Object? notSuitableOn = freezed,
     Object? notSuitableBy = null,
+    Object? mergedInto = null,
+    Object? mergedOn = freezed,
+    Object? mergedBy = null,
     Object? branches = null,
     Object? primaryAddress = freezed,
     Object? shippingAddress = freezed,
@@ -329,6 +344,18 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
                 ? _value.notSuitableBy
                 : notSuitableBy // ignore: cast_nullable_to_non_nullable
                       as String,
+            mergedInto: null == mergedInto
+                ? _value.mergedInto
+                : mergedInto // ignore: cast_nullable_to_non_nullable
+                      as String,
+            mergedOn: freezed == mergedOn
+                ? _value.mergedOn
+                : mergedOn // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            mergedBy: null == mergedBy
+                ? _value.mergedBy
+                : mergedBy // ignore: cast_nullable_to_non_nullable
+                      as String,
             branches: null == branches
                 ? _value.branches
                 : branches // ignore: cast_nullable_to_non_nullable
@@ -421,6 +448,9 @@ abstract class _$$LeadImplCopyWith<$Res> implements $LeadCopyWith<$Res> {
     @JsonKey(name: 'not_suitable_notes') String notSuitableNotes,
     @JsonKey(name: 'not_suitable_on') String? notSuitableOn,
     @JsonKey(name: 'not_suitable_by') String notSuitableBy,
+    @JsonKey(name: 'merged_into') String mergedInto,
+    @JsonKey(name: 'merged_on') String? mergedOn,
+    @JsonKey(name: 'merged_by') String mergedBy,
     @JsonKey(name: 'branches') List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') LeadAddress? shippingAddress,
@@ -478,6 +508,9 @@ class __$$LeadImplCopyWithImpl<$Res>
     Object? notSuitableNotes = null,
     Object? notSuitableOn = freezed,
     Object? notSuitableBy = null,
+    Object? mergedInto = null,
+    Object? mergedOn = freezed,
+    Object? mergedBy = null,
     Object? branches = null,
     Object? primaryAddress = freezed,
     Object? shippingAddress = freezed,
@@ -617,6 +650,18 @@ class __$$LeadImplCopyWithImpl<$Res>
             ? _value.notSuitableBy
             : notSuitableBy // ignore: cast_nullable_to_non_nullable
                   as String,
+        mergedInto: null == mergedInto
+            ? _value.mergedInto
+            : mergedInto // ignore: cast_nullable_to_non_nullable
+                  as String,
+        mergedOn: freezed == mergedOn
+            ? _value.mergedOn
+            : mergedOn // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        mergedBy: null == mergedBy
+            ? _value.mergedBy
+            : mergedBy // ignore: cast_nullable_to_non_nullable
+                  as String,
         branches: null == branches
             ? _value._branches
             : branches // ignore: cast_nullable_to_non_nullable
@@ -675,6 +720,9 @@ class _$LeadImpl implements _Lead {
     @JsonKey(name: 'not_suitable_notes') this.notSuitableNotes = '',
     @JsonKey(name: 'not_suitable_on') this.notSuitableOn,
     @JsonKey(name: 'not_suitable_by') this.notSuitableBy = '',
+    @JsonKey(name: 'merged_into') this.mergedInto = '',
+    @JsonKey(name: 'merged_on') this.mergedOn,
+    @JsonKey(name: 'merged_by') this.mergedBy = '',
     @JsonKey(name: 'branches')
     final List<LeadBranch> branches = const <LeadBranch>[],
     @JsonKey(name: 'primary_address') this.primaryAddress,
@@ -805,6 +853,19 @@ class _$LeadImpl implements _Lead {
   @override
   @JsonKey(name: 'not_suitable_by')
   final String notSuitableBy;
+  // ── Duplicate-merge bookkeeping ────────────────────────────────────────
+  // Non-empty on a lead that was merged INTO another as a duplicate. Such a
+  // lead is excluded from the catalog server-side, so this is normally only
+  // seen when a merged record is opened directly.
+  @override
+  @JsonKey(name: 'merged_into')
+  final String mergedInto;
+  @override
+  @JsonKey(name: 'merged_on')
+  final String? mergedOn;
+  @override
+  @JsonKey(name: 'merged_by')
+  final String mergedBy;
   // ── Detail-only fields (present on get_lead, null on get_leads) ────────
   final List<LeadBranch> _branches;
   // ── Detail-only fields (present on get_lead, null on get_leads) ────────
@@ -828,7 +889,7 @@ class _$LeadImpl implements _Lead {
 
   @override
   String toString() {
-    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes)';
+    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes)';
   }
 
   @override
@@ -895,6 +956,12 @@ class _$LeadImpl implements _Lead {
                 other.notSuitableOn == notSuitableOn) &&
             (identical(other.notSuitableBy, notSuitableBy) ||
                 other.notSuitableBy == notSuitableBy) &&
+            (identical(other.mergedInto, mergedInto) ||
+                other.mergedInto == mergedInto) &&
+            (identical(other.mergedOn, mergedOn) ||
+                other.mergedOn == mergedOn) &&
+            (identical(other.mergedBy, mergedBy) ||
+                other.mergedBy == mergedBy) &&
             const DeepCollectionEquality().equals(other._branches, _branches) &&
             (identical(other.primaryAddress, primaryAddress) ||
                 other.primaryAddress == primaryAddress) &&
@@ -940,6 +1007,9 @@ class _$LeadImpl implements _Lead {
     notSuitableNotes,
     notSuitableOn,
     notSuitableBy,
+    mergedInto,
+    mergedOn,
+    mergedBy,
     const DeepCollectionEquality().hash(_branches),
     primaryAddress,
     shippingAddress,
@@ -995,6 +1065,9 @@ abstract class _Lead implements Lead {
     @JsonKey(name: 'not_suitable_notes') final String notSuitableNotes,
     @JsonKey(name: 'not_suitable_on') final String? notSuitableOn,
     @JsonKey(name: 'not_suitable_by') final String notSuitableBy,
+    @JsonKey(name: 'merged_into') final String mergedInto,
+    @JsonKey(name: 'merged_on') final String? mergedOn,
+    @JsonKey(name: 'merged_by') final String mergedBy,
     @JsonKey(name: 'branches') final List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') final LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') final LeadAddress? shippingAddress,
@@ -1089,7 +1162,19 @@ abstract class _Lead implements Lead {
   String? get notSuitableOn;
   @override
   @JsonKey(name: 'not_suitable_by')
-  String get notSuitableBy; // ── Detail-only fields (present on get_lead, null on get_leads) ────────
+  String get notSuitableBy; // ── Duplicate-merge bookkeeping ────────────────────────────────────────
+  // Non-empty on a lead that was merged INTO another as a duplicate. Such a
+  // lead is excluded from the catalog server-side, so this is normally only
+  // seen when a merged record is opened directly.
+  @override
+  @JsonKey(name: 'merged_into')
+  String get mergedInto;
+  @override
+  @JsonKey(name: 'merged_on')
+  String? get mergedOn;
+  @override
+  @JsonKey(name: 'merged_by')
+  String get mergedBy; // ── Detail-only fields (present on get_lead, null on get_leads) ────────
   @override
   @JsonKey(name: 'branches')
   List<LeadBranch> get branches;
@@ -1913,6 +1998,367 @@ abstract class _LeadAddress implements LeadAddress {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$LeadAddressImplCopyWith<_$LeadAddressImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+LeadMergeCandidate _$LeadMergeCandidateFromJson(Map<String, dynamic> json) {
+  return _LeadMergeCandidate.fromJson(json);
+}
+
+/// @nodoc
+mixin _$LeadMergeCandidate {
+  String get name => throw _privateConstructorUsedError;
+  @JsonKey(name: 'lead_name')
+  String get leadName => throw _privateConstructorUsedError;
+  String get category => throw _privateConstructorUsedError;
+  @JsonKey(name: 'branch_count')
+  int get branchCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'primary_area')
+  String get primaryArea => throw _privateConstructorUsedError;
+  String get phone => throw _privateConstructorUsedError;
+  String get instagram => throw _privateConstructorUsedError;
+  int get score => throw _privateConstructorUsedError;
+  List<String> get reasons => throw _privateConstructorUsedError;
+
+  /// Serializes this LeadMergeCandidate to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of LeadMergeCandidate
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $LeadMergeCandidateCopyWith<LeadMergeCandidate> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $LeadMergeCandidateCopyWith<$Res> {
+  factory $LeadMergeCandidateCopyWith(
+    LeadMergeCandidate value,
+    $Res Function(LeadMergeCandidate) then,
+  ) = _$LeadMergeCandidateCopyWithImpl<$Res, LeadMergeCandidate>;
+  @useResult
+  $Res call({
+    String name,
+    @JsonKey(name: 'lead_name') String leadName,
+    String category,
+    @JsonKey(name: 'branch_count') int branchCount,
+    @JsonKey(name: 'primary_area') String primaryArea,
+    String phone,
+    String instagram,
+    int score,
+    List<String> reasons,
+  });
+}
+
+/// @nodoc
+class _$LeadMergeCandidateCopyWithImpl<$Res, $Val extends LeadMergeCandidate>
+    implements $LeadMergeCandidateCopyWith<$Res> {
+  _$LeadMergeCandidateCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of LeadMergeCandidate
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? name = null,
+    Object? leadName = null,
+    Object? category = null,
+    Object? branchCount = null,
+    Object? primaryArea = null,
+    Object? phone = null,
+    Object? instagram = null,
+    Object? score = null,
+    Object? reasons = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            leadName: null == leadName
+                ? _value.leadName
+                : leadName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            category: null == category
+                ? _value.category
+                : category // ignore: cast_nullable_to_non_nullable
+                      as String,
+            branchCount: null == branchCount
+                ? _value.branchCount
+                : branchCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            primaryArea: null == primaryArea
+                ? _value.primaryArea
+                : primaryArea // ignore: cast_nullable_to_non_nullable
+                      as String,
+            phone: null == phone
+                ? _value.phone
+                : phone // ignore: cast_nullable_to_non_nullable
+                      as String,
+            instagram: null == instagram
+                ? _value.instagram
+                : instagram // ignore: cast_nullable_to_non_nullable
+                      as String,
+            score: null == score
+                ? _value.score
+                : score // ignore: cast_nullable_to_non_nullable
+                      as int,
+            reasons: null == reasons
+                ? _value.reasons
+                : reasons // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$LeadMergeCandidateImplCopyWith<$Res>
+    implements $LeadMergeCandidateCopyWith<$Res> {
+  factory _$$LeadMergeCandidateImplCopyWith(
+    _$LeadMergeCandidateImpl value,
+    $Res Function(_$LeadMergeCandidateImpl) then,
+  ) = __$$LeadMergeCandidateImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String name,
+    @JsonKey(name: 'lead_name') String leadName,
+    String category,
+    @JsonKey(name: 'branch_count') int branchCount,
+    @JsonKey(name: 'primary_area') String primaryArea,
+    String phone,
+    String instagram,
+    int score,
+    List<String> reasons,
+  });
+}
+
+/// @nodoc
+class __$$LeadMergeCandidateImplCopyWithImpl<$Res>
+    extends _$LeadMergeCandidateCopyWithImpl<$Res, _$LeadMergeCandidateImpl>
+    implements _$$LeadMergeCandidateImplCopyWith<$Res> {
+  __$$LeadMergeCandidateImplCopyWithImpl(
+    _$LeadMergeCandidateImpl _value,
+    $Res Function(_$LeadMergeCandidateImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of LeadMergeCandidate
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? name = null,
+    Object? leadName = null,
+    Object? category = null,
+    Object? branchCount = null,
+    Object? primaryArea = null,
+    Object? phone = null,
+    Object? instagram = null,
+    Object? score = null,
+    Object? reasons = null,
+  }) {
+    return _then(
+      _$LeadMergeCandidateImpl(
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        leadName: null == leadName
+            ? _value.leadName
+            : leadName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        category: null == category
+            ? _value.category
+            : category // ignore: cast_nullable_to_non_nullable
+                  as String,
+        branchCount: null == branchCount
+            ? _value.branchCount
+            : branchCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        primaryArea: null == primaryArea
+            ? _value.primaryArea
+            : primaryArea // ignore: cast_nullable_to_non_nullable
+                  as String,
+        phone: null == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String,
+        instagram: null == instagram
+            ? _value.instagram
+            : instagram // ignore: cast_nullable_to_non_nullable
+                  as String,
+        score: null == score
+            ? _value.score
+            : score // ignore: cast_nullable_to_non_nullable
+                  as int,
+        reasons: null == reasons
+            ? _value._reasons
+            : reasons // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$LeadMergeCandidateImpl implements _LeadMergeCandidate {
+  const _$LeadMergeCandidateImpl({
+    required this.name,
+    @JsonKey(name: 'lead_name') this.leadName = '',
+    this.category = '',
+    @JsonKey(name: 'branch_count') this.branchCount = 0,
+    @JsonKey(name: 'primary_area') this.primaryArea = '',
+    this.phone = '',
+    this.instagram = '',
+    this.score = 0,
+    final List<String> reasons = const <String>[],
+  }) : _reasons = reasons;
+
+  factory _$LeadMergeCandidateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LeadMergeCandidateImplFromJson(json);
+
+  @override
+  final String name;
+  @override
+  @JsonKey(name: 'lead_name')
+  final String leadName;
+  @override
+  @JsonKey()
+  final String category;
+  @override
+  @JsonKey(name: 'branch_count')
+  final int branchCount;
+  @override
+  @JsonKey(name: 'primary_area')
+  final String primaryArea;
+  @override
+  @JsonKey()
+  final String phone;
+  @override
+  @JsonKey()
+  final String instagram;
+  @override
+  @JsonKey()
+  final int score;
+  final List<String> _reasons;
+  @override
+  @JsonKey()
+  List<String> get reasons {
+    if (_reasons is EqualUnmodifiableListView) return _reasons;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_reasons);
+  }
+
+  @override
+  String toString() {
+    return 'LeadMergeCandidate(name: $name, leadName: $leadName, category: $category, branchCount: $branchCount, primaryArea: $primaryArea, phone: $phone, instagram: $instagram, score: $score, reasons: $reasons)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$LeadMergeCandidateImpl &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.leadName, leadName) ||
+                other.leadName == leadName) &&
+            (identical(other.category, category) ||
+                other.category == category) &&
+            (identical(other.branchCount, branchCount) ||
+                other.branchCount == branchCount) &&
+            (identical(other.primaryArea, primaryArea) ||
+                other.primaryArea == primaryArea) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.instagram, instagram) ||
+                other.instagram == instagram) &&
+            (identical(other.score, score) || other.score == score) &&
+            const DeepCollectionEquality().equals(other._reasons, _reasons));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    name,
+    leadName,
+    category,
+    branchCount,
+    primaryArea,
+    phone,
+    instagram,
+    score,
+    const DeepCollectionEquality().hash(_reasons),
+  );
+
+  /// Create a copy of LeadMergeCandidate
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$LeadMergeCandidateImplCopyWith<_$LeadMergeCandidateImpl> get copyWith =>
+      __$$LeadMergeCandidateImplCopyWithImpl<_$LeadMergeCandidateImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$LeadMergeCandidateImplToJson(this);
+  }
+}
+
+abstract class _LeadMergeCandidate implements LeadMergeCandidate {
+  const factory _LeadMergeCandidate({
+    required final String name,
+    @JsonKey(name: 'lead_name') final String leadName,
+    final String category,
+    @JsonKey(name: 'branch_count') final int branchCount,
+    @JsonKey(name: 'primary_area') final String primaryArea,
+    final String phone,
+    final String instagram,
+    final int score,
+    final List<String> reasons,
+  }) = _$LeadMergeCandidateImpl;
+
+  factory _LeadMergeCandidate.fromJson(Map<String, dynamic> json) =
+      _$LeadMergeCandidateImpl.fromJson;
+
+  @override
+  String get name;
+  @override
+  @JsonKey(name: 'lead_name')
+  String get leadName;
+  @override
+  String get category;
+  @override
+  @JsonKey(name: 'branch_count')
+  int get branchCount;
+  @override
+  @JsonKey(name: 'primary_area')
+  String get primaryArea;
+  @override
+  String get phone;
+  @override
+  String get instagram;
+  @override
+  int get score;
+  @override
+  List<String> get reasons;
+
+  /// Create a copy of LeadMergeCandidate
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$LeadMergeCandidateImplCopyWith<_$LeadMergeCandidateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 

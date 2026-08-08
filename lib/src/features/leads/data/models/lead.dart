@@ -51,6 +51,13 @@ class Lead with _$Lead {
     @JsonKey(name: 'not_suitable_notes') @Default('') String notSuitableNotes,
     @JsonKey(name: 'not_suitable_on') String? notSuitableOn,
     @JsonKey(name: 'not_suitable_by') @Default('') String notSuitableBy,
+    // ── Duplicate-merge bookkeeping ────────────────────────────────────────
+    // Non-empty on a lead that was merged INTO another as a duplicate. Such a
+    // lead is excluded from the catalog server-side, so this is normally only
+    // seen when a merged record is opened directly.
+    @JsonKey(name: 'merged_into') @Default('') String mergedInto,
+    @JsonKey(name: 'merged_on') String? mergedOn,
+    @JsonKey(name: 'merged_by') @Default('') String mergedBy,
     // ── Detail-only fields (present on get_lead, null on get_leads) ────────
     @JsonKey(name: 'branches') @Default(<LeadBranch>[]) List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
@@ -102,6 +109,30 @@ class LeadAddress with _$LeadAddress {
 
   factory LeadAddress.fromJson(Map<String, dynamic> json) =>
       _$LeadAddressFromJson(json);
+}
+
+/// A lead the backend thinks might be a duplicate of another.
+///
+/// [reasons] carries the human-readable signals that matched ("Same brand
+/// name", "Same phone"), and [score] is how many of them did. Both are shown
+/// rather than just ranking silently: merging is destructive enough that a rep
+/// should see WHY something was suggested before folding it in.
+@freezed
+class LeadMergeCandidate with _$LeadMergeCandidate {
+  const factory LeadMergeCandidate({
+    required String name,
+    @JsonKey(name: 'lead_name') @Default('') String leadName,
+    @Default('') String category,
+    @JsonKey(name: 'branch_count') @Default(0) int branchCount,
+    @JsonKey(name: 'primary_area') @Default('') String primaryArea,
+    @Default('') String phone,
+    @Default('') String instagram,
+    @Default(0) int score,
+    @Default(<String>[]) List<String> reasons,
+  }) = _LeadMergeCandidate;
+
+  factory LeadMergeCandidate.fromJson(Map<String, dynamic> json) =>
+      _$LeadMergeCandidateFromJson(json);
 }
 
 /// A lead category (used for filter chips + the add-lead form dropdown).

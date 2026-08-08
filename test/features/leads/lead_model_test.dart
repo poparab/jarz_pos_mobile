@@ -130,6 +130,23 @@ void main() {
       expect(marked.notSuitableBy, 'rep@jarz.com');
     });
 
+    test('decodes the merge bookkeeping, and defaults it off when absent', () {
+      final live = Lead.fromJson(fullJson);
+      expect(live.mergedInto, '');
+      expect(live.mergedOn, isNull);
+      expect(live.mergedBy, '');
+
+      final merged = Lead.fromJson({
+        ...fullJson,
+        'merged_into': 'LEAD-0002',
+        'merged_on': '2026-08-09 09:15:00',
+        'merged_by': 'rep@jarz.com',
+      });
+      expect(merged.mergedInto, 'LEAD-0002');
+      expect(merged.mergedOn, '2026-08-09 09:15:00');
+      expect(merged.mergedBy, 'rep@jarz.com');
+    });
+
     test('parses list fields', () {
       final lead = Lead.fromJson(fullJson);
 
@@ -301,6 +318,39 @@ void main() {
 
       final decoded = LeadAddress.fromJson(address.toJson());
       expect(decoded, address);
+    });
+  });
+
+  group('LeadMergeCandidate.fromJson — get_merge_candidates contract', () {
+    test('decodes the row the backend sends, reasons included', () {
+      final candidate = LeadMergeCandidate.fromJson(const {
+        'name': 'LEAD-0007',
+        'lead_name': 'Zooba Sahel',
+        'category': 'Restaurant',
+        'branch_count': 3,
+        'primary_area': 'Sahel',
+        'phone': '+201234567890',
+        'instagram': '@zooba',
+        'score': 2,
+        'reasons': ['Same brand name', 'Same phone'],
+      });
+
+      expect(candidate.name, 'LEAD-0007');
+      expect(candidate.leadName, 'Zooba Sahel');
+      expect(candidate.branchCount, 3);
+      expect(candidate.score, 2);
+      expect(candidate.reasons, ['Same brand name', 'Same phone']);
+    });
+
+    test('a name-search row carries no score and still decodes', () {
+      // The search path returns score 0 and a single generic reason; the UI
+      // must not require the heuristic fields to be present.
+      final candidate =
+          LeadMergeCandidate.fromJson(const {'name': 'LEAD-0008'});
+      expect(candidate.leadName, '');
+      expect(candidate.branchCount, 0);
+      expect(candidate.score, 0);
+      expect(candidate.reasons, isEmpty);
     });
   });
 }

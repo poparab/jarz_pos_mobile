@@ -48,6 +48,9 @@ _$LeadImpl _$$LeadImplFromJson(Map<String, dynamic> json) => _$LeadImpl(
   notSuitableNotes: json['not_suitable_notes'] as String? ?? '',
   notSuitableOn: json['not_suitable_on'] as String?,
   notSuitableBy: json['not_suitable_by'] as String? ?? '',
+  mergedInto: json['merged_into'] as String? ?? '',
+  mergedOn: json['merged_on'] as String?,
+  mergedBy: json['merged_by'] as String? ?? '',
   branches:
       (json['branches'] as List<dynamic>?)
           ?.map((e) => LeadBranch.fromJson(e as Map<String, dynamic>))
@@ -97,6 +100,9 @@ Map<String, dynamic> _$$LeadImplToJson(_$LeadImpl instance) =>
       'not_suitable_notes': instance.notSuitableNotes,
       'not_suitable_on': instance.notSuitableOn,
       'not_suitable_by': instance.notSuitableBy,
+      'merged_into': instance.mergedInto,
+      'merged_on': instance.mergedOn,
+      'merged_by': instance.mergedBy,
       'branches': instance.branches,
       'primary_address': instance.primaryAddress,
       'shipping_address': instance.shippingAddress,
@@ -164,6 +170,36 @@ Map<String, dynamic> _$$LeadAddressImplToJson(_$LeadAddressImpl instance) =>
       'pincode': instance.pincode,
       'phone': instance.phone,
     };
+
+_$LeadMergeCandidateImpl _$$LeadMergeCandidateImplFromJson(
+  Map<String, dynamic> json,
+) => _$LeadMergeCandidateImpl(
+  name: json['name'] as String,
+  leadName: json['lead_name'] as String? ?? '',
+  category: json['category'] as String? ?? '',
+  branchCount: (json['branch_count'] as num?)?.toInt() ?? 0,
+  primaryArea: json['primary_area'] as String? ?? '',
+  phone: json['phone'] as String? ?? '',
+  instagram: json['instagram'] as String? ?? '',
+  score: (json['score'] as num?)?.toInt() ?? 0,
+  reasons:
+      (json['reasons'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const <String>[],
+);
+
+Map<String, dynamic> _$$LeadMergeCandidateImplToJson(
+  _$LeadMergeCandidateImpl instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'lead_name': instance.leadName,
+  'category': instance.category,
+  'branch_count': instance.branchCount,
+  'primary_area': instance.primaryArea,
+  'phone': instance.phone,
+  'instagram': instance.instagram,
+  'score': instance.score,
+  'reasons': instance.reasons,
+};
 
 _$LeadCategoryImpl _$$LeadCategoryImplFromJson(Map<String, dynamic> json) =>
     _$LeadCategoryImpl(

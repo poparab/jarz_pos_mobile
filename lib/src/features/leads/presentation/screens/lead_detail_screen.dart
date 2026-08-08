@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../b2b/data/b2b_repository.dart' show b2bRepositoryProvider;
@@ -13,6 +14,7 @@ import '../../state/leads_notifier.dart' show leadsProvider;
 import '../../state/not_suitable_reasons_notifier.dart';
 import '../leads_theme.dart';
 import '../widgets/lead_actions.dart';
+import '../widgets/merge_leads_sheet.dart';
 import '../widgets/sahel_badge.dart';
 import '../widgets/score_bar.dart';
 import '../widgets/tier_pill.dart';
@@ -82,6 +84,10 @@ class _DetailBody extends ConsumerWidget {
           const SizedBox(height: 12),
           _NotSuitableBanner(lead: lead),
         ],
+        if (lead.mergedInto.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _MergedAwayBanner(lead: lead),
+        ],
         const SizedBox(height: 16),
         _ContactRow(lead: lead),
         const SizedBox(height: 20),
@@ -93,6 +99,10 @@ class _DetailBody extends ConsumerWidget {
         const SizedBox(height: 20),
         _SuitabilitySection(lead: lead, leadName: leadName),
         const SizedBox(height: 20),
+        if (lead.mergedInto.isEmpty) ...[
+          _MergeSection(lead: lead, leadName: leadName),
+          const SizedBox(height: 20),
+        ],
         _AddressesSection(lead: lead, leadName: leadName),
         const SizedBox(height: 20),
         if (lead.branches.isNotEmpty) ...[
@@ -928,6 +938,129 @@ class _NotSuitableDialogState extends State<_NotSuitableDialog> {
                   ),
           style: FilledButton.styleFrom(backgroundColor: LeadsTheme.rejected),
           child: const Text('Mark not suitable'),
+        ),
+      ],
+    );
+  }
+}
+
+/// Shown on a lead that has itself been merged into another as a duplicate.
+/// These are excluded from the catalog, so this is normally only reached from
+/// a bookmark or a Desk link — which is exactly when a rep needs telling that
+/// the record they are reading is not the live one.
+class _MergedAwayBanner extends StatelessWidget {
+  const _MergedAwayBanner({required this.lead});
+
+  final Lead lead;
+
+  @override
+  Widget build(BuildContext context) {
+    final detail = [
+      if (lead.mergedBy.isNotEmpty) 'by ${lead.mergedBy}',
+      if (lead.mergedOn != null && lead.mergedOn!.isNotEmpty)
+        'on ${lead.mergedOn!.split(' ').first}',
+    ].join(' · ');
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: LeadsTheme.sahelBlueBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: LeadsTheme.sahelBlue.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.merge_type, size: 18, color: LeadsTheme.sahelBlue),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Merged into another lead',
+                  style: LeadsTheme.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: LeadsTheme.sahelBlue,
+                  ),
+                ),
+                if (detail.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(detail, style: LeadsTheme.bodyMuted),
+                ],
+                const SizedBox(height: 6),
+                OutlinedButton.icon(
+                  onPressed: () => context.push(
+                    '/leads/${Uri.encodeComponent(lead.mergedInto)}',
+                  ),
+                  icon: const Icon(Icons.open_in_new, size: 15),
+                  label: const Text('Open the surviving lead'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: LeadsTheme.sahelBlue,
+                    side: BorderSide(
+                      color: LeadsTheme.sahelBlue.withValues(alpha: 0.4),
+                    ),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Entry point for folding duplicate records of the same brand into this lead.
+class _MergeSection extends ConsumerWidget {
+  const _MergeSection({required this.lead, required this.leadName});
+
+  final Lead lead;
+  final String leadName;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _SectionCard(
+      title: 'Duplicates',
+      children: [
+        Text(
+          'The catalog was built per location, so one brand can appear as '
+          'several leads. Merge them here to keep every branch on one record.',
+          style: LeadsTheme.bodyMuted,
+        ),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerRight,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              final merged = await MergeLeadsSheet.show(context, lead);
+              if (!merged) return;
+              // The survivor gained branches/areas/contacts, and the sources
+              // left the catalog — refresh both so neither surface is stale.
+              await ref.read(leadDetailProvider(leadName).notifier).refresh();
+              try {
+                await ref.read(leadsProvider.notifier).refresh();
+              } catch (_) {
+                // Leads catalog not available in this context; ignore.
+              }
+              try {
+                await ref.read(b2bPipelineProvider.notifier).refresh();
+              } catch (_) {
+                // B2B pipeline not available in this context; ignore.
+              }
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Leads merged')),
+              );
+            },
+            icon: const Icon(Icons.merge_type, size: 16),
+            label: const Text('Merge duplicates'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: LeadsTheme.deepPlum,
+              side: const BorderSide(color: LeadsTheme.line),
+            ),
+          ),
         ),
       ],
     );
