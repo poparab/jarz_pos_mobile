@@ -164,6 +164,15 @@ class AppDrawer extends ConsumerWidget {
     ];
 
     final deliveryChildren = <Widget>[
+      // Supervisor-only, mirroring the tracking API's `_ensure_ops_permission`,
+      // which deliberately excludes couriers: a courier may see their own run,
+      // never a colleague's live position.
+      if (canAccessManagerDashboardRole)
+        navTile(
+          icon: Icons.map_outlined,
+          title: l10n.menuLiveCourierMap,
+          onTap: () => navigate(AppRoutes.fleetMap),
+        ),
       navTile(
         icon: Icons.local_shipping_outlined,
         title: l10n.menuDeliveryTrips,
@@ -270,7 +279,7 @@ class AppDrawer extends ConsumerWidget {
     const posRoutes = [AppRoutes.pos, AppRoutes.shiftEnd, AppRoutes.kanban];
     const crmRoutes = [AppRoutes.b2b, AppRoutes.leads];
     const pricingRoutes = [AppRoutes.pricing];
-    const deliveryRoutes = [AppRoutes.trips];
+    const deliveryRoutes = [AppRoutes.trips, AppRoutes.fleetMap];
     const financeRoutes = [AppRoutes.expenses, AppRoutes.cashTransfer];
     const purchasingRoutes = [
       AppRoutes.purchase,

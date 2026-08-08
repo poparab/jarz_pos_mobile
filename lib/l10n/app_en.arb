@@ -2694,6 +2694,9 @@
   "purchaseBillDateLabel": "Bill date",
   "purchaseTaxesLabel": "Taxes",
   "purchaseTaxesNone": "No tax",
+  "purchaseNoVat": "No VAT",
+  "purchaseVatValue": "VAT: {amount}",
+  "purchaseNetTotalValue": "Net: {amount}",
   "purchaseNewSupplier": "New supplier",
   "purchaseNewSupplierName": "Supplier name",
   "purchaseNewSupplierGroup": "Supplier group",
@@ -2799,5 +2802,146 @@
         "type": "int"
       }
     }
-  }
+  },
+  "menuLiveCourierMap": "Live courier map",
+  "fleetTitle": "Live courier map",
+  "fleetRefreshTooltip": "Refresh now",
+  "fleetUpdatedAgo": "Updated {ago}",
+  "@fleetUpdatedAgo": {
+    "description": "Header line showing how long ago the last successful poll landed.",
+    "placeholders": {
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
+  "fleetUpdating": "Updating…",
+  "fleetCouriersOnMap": "{count, plural, =1{1 courier on the map} other{{count} couriers on the map}}",
+  "@fleetCouriersOnMap": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fleetRefreshFailed": "Refresh failed — these positions are only getting older",
+  "fleetLegendTitle": "How old is each dot",
+  "fleetLegendFresh": "Fresh · under {minutes} min",
+  "@fleetLegendFresh": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "fleetLegendAgeing": "Ageing · {from}–{to} min",
+  "@fleetLegendAgeing": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "fleetLegendStale": "Stale · over {minutes} min, do not act on it",
+  "@fleetLegendStale": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "fleetFreshnessFresh": "Fresh",
+  "fleetFreshnessAgeing": "Ageing",
+  "fleetFreshnessStale": "Stale",
+  "fleetStaleWarning": "Some couriers have not reported recently — check before dispatching",
+  "fleetAgeJustNow": "just now",
+  "fleetAgeMinutes": "{minutes, plural, =1{1 min ago} other{{minutes} min ago}}",
+  "@fleetAgeMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "fleetAgeHours": "{hours, plural, =1{1 hr ago} other{{hours} hr ago}}",
+  "@fleetAgeHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "fleetAgeDays": "{days, plural, =1{1 day ago} other{{days} days ago}}",
+  "@fleetAgeDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "fleetAgeUnknown": "no timestamp",
+  "fleetAgeShortNow": "now",
+  "fleetAgeShortMinutes": "{minutes}m",
+  "@fleetAgeShortMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "fleetAgeShortHours": "{hours}h",
+  "@fleetAgeShortHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "fleetAgeShortDays": "{days}d",
+  "@fleetAgeShortDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "fleetBranchLabel": "Branch",
+  "fleetBranchUnknown": "No branch",
+  "fleetLastFixLabel": "Last fix",
+  "fleetAccuracyLabel": "Accuracy",
+  "fleetAccuracyValue": "±{meters} m",
+  "@fleetAccuracyValue": {
+    "placeholders": {
+      "meters": {
+        "type": "String"
+      }
+    }
+  },
+  "fleetAccuracyUnknown": "Not reported",
+  "fleetEmptyNoCouriersTitle": "No couriers on shift",
+  "fleetEmptyNoCouriersBody": "Nobody is signed on to the courier app right now, so there is nothing to track. Positions appear here as soon as a courier starts their shift.",
+  "fleetEmptyNoPositionsTitle": "On shift, but no position yet",
+  "fleetEmptyNoPositionsBody": "These couriers are signed on, but their phones have not sent a location. Check that the courier app has location permission and a signal.",
+  "fleetEmptyNoPositionsNames": "Waiting on: {names}",
+  "@fleetEmptyNoPositionsNames": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "fleetUnlocatedBanner": "{count, plural, =1{1 courier on shift has sent no position} other{{count} couriers on shift have sent no position}}",
+  "@fleetUnlocatedBanner": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fleetForbiddenTitle": "Supervisors only",
+  "fleetForbiddenBody": "Live courier positions are limited to managers and supervisors. Retrying will not help — ask a manager to open this screen.",
+  "fleetErrorTitle": "Could not load courier positions"
 }

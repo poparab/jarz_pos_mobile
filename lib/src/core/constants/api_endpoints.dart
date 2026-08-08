@@ -199,6 +199,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.purchase.get_supplier_groups';
   static const getPurchaseTaxesTemplates =
       '/api/method/jarz_pos.api.purchase.get_purchase_taxes_templates';
+  static const getItemTaxTemplates =
+      '/api/method/jarz_pos.api.purchase.get_item_tax_templates';
   static const payPurchaseInvoice =
       '/api/method/jarz_pos.api.purchase.pay_purchase_invoice';
   static const returnPurchaseInvoice =
@@ -419,6 +421,17 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.leads.get_lead_categories';
   static const saveLeadCategory =
       '/api/method/jarz_pos.api.leads.save_lead_category';
+  static const getNotSuitableReasons =
+      '/api/method/jarz_pos.api.leads.get_not_suitable_reasons';
+  static const setLeadSuitability =
+      '/api/method/jarz_pos.api.leads.set_lead_suitability';
+
+  // ── Courier tracking (jarz_courier app) ───────────────────────────────
+  // Supervisor-only and Redis-backed, so it is safe to poll. Couriers are
+  // deliberately excluded server-side: a courier may see their own run, never
+  // a colleague's live position.
+  static const getLiveCourierPositions =
+      '/api/method/jarz_courier.api.tracking.get_live_positions';
 
   // ── Custom Shipping ───────────────────────────────────────────────────
   static const requestCustomShipping =

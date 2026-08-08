@@ -5199,6 +5199,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get purchaseTaxesNone => 'No tax';
 
   @override
+  String get purchaseNoVat => 'No VAT';
+
+  @override
+  String purchaseVatValue(Object amount) {
+    return 'VAT: $amount';
+  }
+
+  @override
+  String purchaseNetTotalValue(Object amount) {
+    return 'Net: $amount';
+  }
+
+  @override
   String get purchaseNewSupplier => 'New supplier';
 
   @override
@@ -5328,4 +5341,184 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return 'This stop was attempted $_temp0 and has not been delivered';
   }
+
+  @override
+  String get menuLiveCourierMap => 'Live courier map';
+
+  @override
+  String get fleetTitle => 'Live courier map';
+
+  @override
+  String get fleetRefreshTooltip => 'Refresh now';
+
+  @override
+  String fleetUpdatedAgo(String ago) {
+    return 'Updated $ago';
+  }
+
+  @override
+  String get fleetUpdating => 'Updating…';
+
+  @override
+  String fleetCouriersOnMap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count couriers on the map',
+      one: '1 courier on the map',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fleetRefreshFailed =>
+      'Refresh failed — these positions are only getting older';
+
+  @override
+  String get fleetLegendTitle => 'How old is each dot';
+
+  @override
+  String fleetLegendFresh(int minutes) {
+    return 'Fresh · under $minutes min';
+  }
+
+  @override
+  String fleetLegendAgeing(int from, int to) {
+    return 'Ageing · $from–$to min';
+  }
+
+  @override
+  String fleetLegendStale(int minutes) {
+    return 'Stale · over $minutes min, do not act on it';
+  }
+
+  @override
+  String get fleetFreshnessFresh => 'Fresh';
+
+  @override
+  String get fleetFreshnessAgeing => 'Ageing';
+
+  @override
+  String get fleetFreshnessStale => 'Stale';
+
+  @override
+  String get fleetStaleWarning =>
+      'Some couriers have not reported recently — check before dispatching';
+
+  @override
+  String get fleetAgeJustNow => 'just now';
+
+  @override
+  String fleetAgeMinutes(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes min ago',
+      one: '1 min ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String fleetAgeHours(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '$hours hr ago',
+      one: '1 hr ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String fleetAgeDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fleetAgeUnknown => 'no timestamp';
+
+  @override
+  String get fleetAgeShortNow => 'now';
+
+  @override
+  String fleetAgeShortMinutes(int minutes) {
+    return '${minutes}m';
+  }
+
+  @override
+  String fleetAgeShortHours(int hours) {
+    return '${hours}h';
+  }
+
+  @override
+  String fleetAgeShortDays(int days) {
+    return '${days}d';
+  }
+
+  @override
+  String get fleetBranchLabel => 'Branch';
+
+  @override
+  String get fleetBranchUnknown => 'No branch';
+
+  @override
+  String get fleetLastFixLabel => 'Last fix';
+
+  @override
+  String get fleetAccuracyLabel => 'Accuracy';
+
+  @override
+  String fleetAccuracyValue(String meters) {
+    return '±$meters m';
+  }
+
+  @override
+  String get fleetAccuracyUnknown => 'Not reported';
+
+  @override
+  String get fleetEmptyNoCouriersTitle => 'No couriers on shift';
+
+  @override
+  String get fleetEmptyNoCouriersBody =>
+      'Nobody is signed on to the courier app right now, so there is nothing to track. Positions appear here as soon as a courier starts their shift.';
+
+  @override
+  String get fleetEmptyNoPositionsTitle => 'On shift, but no position yet';
+
+  @override
+  String get fleetEmptyNoPositionsBody =>
+      'These couriers are signed on, but their phones have not sent a location. Check that the courier app has location permission and a signal.';
+
+  @override
+  String fleetEmptyNoPositionsNames(String names) {
+    return 'Waiting on: $names';
+  }
+
+  @override
+  String fleetUnlocatedBanner(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count couriers on shift have sent no position',
+      one: '1 courier on shift has sent no position',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fleetForbiddenTitle => 'Supervisors only';
+
+  @override
+  String get fleetForbiddenBody =>
+      'Live courier positions are limited to managers and supervisors. Retrying will not help — ask a manager to open this screen.';
+
+  @override
+  String get fleetErrorTitle => 'Could not load courier positions';
 }

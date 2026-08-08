@@ -5173,6 +5173,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get purchaseTaxesNone => 'بدون ضريبة';
 
   @override
+  String get purchaseNoVat => 'بدون ضريبة قيمة مضافة';
+
+  @override
+  String purchaseVatValue(Object amount) {
+    return 'ض.ق.م: $amount';
+  }
+
+  @override
+  String purchaseNetTotalValue(Object amount) {
+    return 'الصافي: $amount';
+  }
+
+  @override
   String get purchaseNewSupplier => 'مورد جديد';
 
   @override
@@ -5302,4 +5315,184 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return 'المحطة دي اتجرب فيها $_temp0 ولسه مش متسلمة';
   }
+
+  @override
+  String get menuLiveCourierMap => 'خريطة المندوبين لايف';
+
+  @override
+  String get fleetTitle => 'خريطة المندوبين لايف';
+
+  @override
+  String get fleetRefreshTooltip => 'حدّث دلوقتي';
+
+  @override
+  String fleetUpdatedAgo(String ago) {
+    return 'اتحدّث $ago';
+  }
+
+  @override
+  String get fleetUpdating => 'بيحدّث…';
+
+  @override
+  String fleetCouriersOnMap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مندوبين على الخريطة',
+      one: 'مندوب واحد على الخريطة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fleetRefreshFailed =>
+      'التحديث فشل — المواقع اللي شايفها بتقدم وبتبقى أقدم';
+
+  @override
+  String get fleetLegendTitle => 'كل نقطة عمرها قد إيه';
+
+  @override
+  String fleetLegendFresh(int minutes) {
+    return 'جديدة · أقل من $minutes دقيقة';
+  }
+
+  @override
+  String fleetLegendAgeing(int from, int to) {
+    return 'بتقدم · من $from لـ $to دقيقة';
+  }
+
+  @override
+  String fleetLegendStale(int minutes) {
+    return 'قديمة · أكتر من $minutes دقيقة، متعتمدش عليها';
+  }
+
+  @override
+  String get fleetFreshnessFresh => 'جديدة';
+
+  @override
+  String get fleetFreshnessAgeing => 'بتقدم';
+
+  @override
+  String get fleetFreshnessStale => 'قديمة';
+
+  @override
+  String get fleetStaleWarning =>
+      'فيه مندوبين مبعتوش موقعهم من مدة — اتأكد قبل ما تبعتلهم طلب';
+
+  @override
+  String get fleetAgeJustNow => 'دلوقتي';
+
+  @override
+  String fleetAgeMinutes(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'من $minutes دقيقة',
+      one: 'من دقيقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String fleetAgeHours(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'من $hours ساعة',
+      one: 'من ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String fleetAgeDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'من $days يوم',
+      one: 'من يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fleetAgeUnknown => 'من غير وقت';
+
+  @override
+  String get fleetAgeShortNow => 'دلوقتي';
+
+  @override
+  String fleetAgeShortMinutes(int minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String fleetAgeShortHours(int hours) {
+    return '$hours س';
+  }
+
+  @override
+  String fleetAgeShortDays(int days) {
+    return '$days ي';
+  }
+
+  @override
+  String get fleetBranchLabel => 'الفرع';
+
+  @override
+  String get fleetBranchUnknown => 'من غير فرع';
+
+  @override
+  String get fleetLastFixLabel => 'آخر موقع';
+
+  @override
+  String get fleetAccuracyLabel => 'الدقة';
+
+  @override
+  String fleetAccuracyValue(String meters) {
+    return '±$meters متر';
+  }
+
+  @override
+  String get fleetAccuracyUnknown => 'مش متبعتة';
+
+  @override
+  String get fleetEmptyNoCouriersTitle => 'مفيش مندوبين على الشيفت';
+
+  @override
+  String get fleetEmptyNoCouriersBody =>
+      'محدش داخل على أبليكيشن المندوبين دلوقتي، يعني مفيش حاجة نتابعها. المواقع هتظهر هنا أول ما مندوب يبدأ شيفته.';
+
+  @override
+  String get fleetEmptyNoPositionsTitle => 'على الشيفت بس لسه مبعتوش موقع';
+
+  @override
+  String get fleetEmptyNoPositionsBody =>
+      'المندوبين دول داخلين بس تليفوناتهم مبعتتش موقع. اتأكد إن أبليكيشن المندوب واخد إذن الموقع وإن فيه شبكة.';
+
+  @override
+  String fleetEmptyNoPositionsNames(String names) {
+    return 'مستنيين: $names';
+  }
+
+  @override
+  String fleetUnlocatedBanner(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مندوبين على الشيفت مبعتوش موقع',
+      one: 'مندوب واحد على الشيفت مبعتش موقع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fleetForbiddenTitle => 'للمشرفين بس';
+
+  @override
+  String get fleetForbiddenBody =>
+      'مواقع المندوبين اللايف متاحة للمديرين والمشرفين بس. إعادة المحاولة مش هتفرق — كلّم مدير يفتحلك الشاشة دي.';
+
+  @override
+  String get fleetErrorTitle => 'مش قادر يجيب مواقع المندوبين';
 }

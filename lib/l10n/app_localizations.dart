@@ -9079,6 +9079,24 @@ abstract class AppLocalizations {
   /// **'No tax'**
   String get purchaseTaxesNone;
 
+  /// No description provided for @purchaseNoVat.
+  ///
+  /// In en, this message translates to:
+  /// **'No VAT'**
+  String get purchaseNoVat;
+
+  /// No description provided for @purchaseVatValue.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT: {amount}'**
+  String purchaseVatValue(Object amount);
+
+  /// No description provided for @purchaseNetTotalValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Net: {amount}'**
+  String purchaseNetTotalValue(Object amount);
+
   /// No description provided for @purchaseNewSupplier.
   ///
   /// In en, this message translates to:
@@ -9252,6 +9270,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This stop was attempted {attempts, plural, =1{once} other{{attempts} times}} and has not been delivered'**
   String kanbanRunAttemptFailedTooltip(int attempts);
+
+  /// No description provided for @menuLiveCourierMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Live courier map'**
+  String get menuLiveCourierMap;
+
+  /// No description provided for @fleetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live courier map'**
+  String get fleetTitle;
+
+  /// No description provided for @fleetRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh now'**
+  String get fleetRefreshTooltip;
+
+  /// Header line showing how long ago the last successful poll landed.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {ago}'**
+  String fleetUpdatedAgo(String ago);
+
+  /// No description provided for @fleetUpdating.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating…'**
+  String get fleetUpdating;
+
+  /// No description provided for @fleetCouriersOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 courier on the map} other{{count} couriers on the map}}'**
+  String fleetCouriersOnMap(int count);
+
+  /// No description provided for @fleetRefreshFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh failed — these positions are only getting older'**
+  String get fleetRefreshFailed;
+
+  /// No description provided for @fleetLegendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How old is each dot'**
+  String get fleetLegendTitle;
+
+  /// No description provided for @fleetLegendFresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Fresh · under {minutes} min'**
+  String fleetLegendFresh(int minutes);
+
+  /// No description provided for @fleetLegendAgeing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ageing · {from}–{to} min'**
+  String fleetLegendAgeing(int from, int to);
+
+  /// No description provided for @fleetLegendStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Stale · over {minutes} min, do not act on it'**
+  String fleetLegendStale(int minutes);
+
+  /// No description provided for @fleetFreshnessFresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Fresh'**
+  String get fleetFreshnessFresh;
+
+  /// No description provided for @fleetFreshnessAgeing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ageing'**
+  String get fleetFreshnessAgeing;
+
+  /// No description provided for @fleetFreshnessStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Stale'**
+  String get fleetFreshnessStale;
+
+  /// No description provided for @fleetStaleWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Some couriers have not reported recently — check before dispatching'**
+  String get fleetStaleWarning;
+
+  /// No description provided for @fleetAgeJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get fleetAgeJustNow;
+
+  /// No description provided for @fleetAgeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{1 min ago} other{{minutes} min ago}}'**
+  String fleetAgeMinutes(int minutes);
+
+  /// No description provided for @fleetAgeHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours, plural, =1{1 hr ago} other{{hours} hr ago}}'**
+  String fleetAgeHours(int hours);
+
+  /// No description provided for @fleetAgeDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day ago} other{{days} days ago}}'**
+  String fleetAgeDays(int days);
+
+  /// No description provided for @fleetAgeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'no timestamp'**
+  String get fleetAgeUnknown;
+
+  /// No description provided for @fleetAgeShortNow.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get fleetAgeShortNow;
+
+  /// No description provided for @fleetAgeShortMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m'**
+  String fleetAgeShortMinutes(int minutes);
+
+  /// No description provided for @fleetAgeShortHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h'**
+  String fleetAgeShortHours(int hours);
+
+  /// No description provided for @fleetAgeShortDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d'**
+  String fleetAgeShortDays(int days);
+
+  /// No description provided for @fleetBranchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get fleetBranchLabel;
+
+  /// No description provided for @fleetBranchUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'No branch'**
+  String get fleetBranchUnknown;
+
+  /// No description provided for @fleetLastFixLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last fix'**
+  String get fleetLastFixLabel;
+
+  /// No description provided for @fleetAccuracyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Accuracy'**
+  String get fleetAccuracyLabel;
+
+  /// No description provided for @fleetAccuracyValue.
+  ///
+  /// In en, this message translates to:
+  /// **'±{meters} m'**
+  String fleetAccuracyValue(String meters);
+
+  /// No description provided for @fleetAccuracyUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not reported'**
+  String get fleetAccuracyUnknown;
+
+  /// No description provided for @fleetEmptyNoCouriersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No couriers on shift'**
+  String get fleetEmptyNoCouriersTitle;
+
+  /// No description provided for @fleetEmptyNoCouriersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody is signed on to the courier app right now, so there is nothing to track. Positions appear here as soon as a courier starts their shift.'**
+  String get fleetEmptyNoCouriersBody;
+
+  /// No description provided for @fleetEmptyNoPositionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'On shift, but no position yet'**
+  String get fleetEmptyNoPositionsTitle;
+
+  /// No description provided for @fleetEmptyNoPositionsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These couriers are signed on, but their phones have not sent a location. Check that the courier app has location permission and a signal.'**
+  String get fleetEmptyNoPositionsBody;
+
+  /// No description provided for @fleetEmptyNoPositionsNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting on: {names}'**
+  String fleetEmptyNoPositionsNames(String names);
+
+  /// No description provided for @fleetUnlocatedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 courier on shift has sent no position} other{{count} couriers on shift have sent no position}}'**
+  String fleetUnlocatedBanner(int count);
+
+  /// No description provided for @fleetForbiddenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Supervisors only'**
+  String get fleetForbiddenTitle;
+
+  /// No description provided for @fleetForbiddenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Live courier positions are limited to managers and supervisors. Retrying will not help — ask a manager to open this screen.'**
+  String get fleetForbiddenBody;
+
+  /// No description provided for @fleetErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load courier positions'**
+  String get fleetErrorTitle;
 }
 
 class _AppLocalizationsDelegate

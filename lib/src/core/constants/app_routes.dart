@@ -27,6 +27,10 @@ abstract final class AppRoutes {
   static const inventoryCount = '/inventory-count';
   static const expenses = '/expenses';
   static const trips = '/trips';
+
+  /// Live courier map. Supervisor-only: the tracking API deliberately refuses
+  /// couriers, who may see their own run but never a colleague's position.
+  static const fleetMap = '/fleet';
   static const reports = '/reports';
   static const reportsShipping = '/reports/shipping';
   static const reportsInventory = '/reports/inventory';

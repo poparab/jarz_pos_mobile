@@ -29,6 +29,7 @@ import '../features/settings/presentation/user_profile_screen.dart';
 import '../features/shift/presentation/shift_start_screen.dart';
 import '../features/shift/presentation/shift_end_screen.dart';
 import '../features/trips/screens/trips_screen.dart';
+import '../features/fleet/presentation/screens/fleet_map_screen.dart';
 import '../features/reports/presentation/reports_screen.dart';
 import '../features/reports/presentation/screens/shipping_analytics_screen.dart';
 import '../features/reports/presentation/screens/inventory_intelligence_screen.dart';
@@ -397,6 +398,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.trips,
         name: 'trips',
         builder: (context, state) => const TripsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.fleetMap,
+        name: 'fleet-map',
+        builder: (context, state) => const FleetMapScreen(),
       ),
       GoRoute(
         path: AppRoutes.reports,
