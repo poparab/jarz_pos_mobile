@@ -215,6 +215,24 @@ void main() {
       expect(line.sources, hasLength(2));
     });
 
+    test('carries the item tax template so a bought line keeps its VAT', () {
+      final line = RequestDemandLine.fromJson({
+        ...json,
+        'item_tax_template': 'VAT 14% - JZ',
+      });
+      expect(line.itemTaxTemplate, 'VAT 14% - JZ');
+    });
+
+    test('a missing or blank tax template reads as no VAT, not an empty name',
+        () {
+      expect(RequestDemandLine.fromJson(json).itemTaxTemplate, isNull);
+      expect(
+        RequestDemandLine.fromJson({...json, 'item_tax_template': ''})
+            .itemTaxTemplate,
+        isNull,
+      );
+    });
+
     test('source quantities sum to the rolled-up outstanding total', () {
       // If these ever diverge, the cart would allocate the wrong amounts back
       // to the requests.

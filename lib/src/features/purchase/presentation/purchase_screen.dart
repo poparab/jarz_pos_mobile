@@ -35,6 +35,11 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   String? taxesTemplate;
   List<Map<String, dynamic>> taxesTemplates = const [];
 
+  /// Per-item VAT options. Each cart line carries its own choice, because a
+  /// single purchase routinely mixes taxed and untaxed goods — an invoice-level
+  /// template cannot express that.
+  List<Map<String, dynamic>> itemTaxTemplates = const [];
+
   /// Guards the submit path. Without it a double tap on a slow connection
   /// created two invoices — double stock and double cash out.
   bool _submitting = false;
@@ -69,6 +74,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _runItemSearch(itemQuery);
       _loadTaxesTemplates();
+      _loadItemTaxTemplates();
     });
   }
 
@@ -134,6 +140,38 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     } catch (_) {
       // Tax templates are optional; a failure here must not block purchasing.
     }
+  }
+
+  Future<void> _loadItemTaxTemplates() async {
+    try {
+      final templates =
+          await ref.read(purchaseServiceProvider).getItemTaxTemplates();
+      if (!mounted) return;
+      setState(() => itemTaxTemplates = templates);
+    } catch (_) {
+      // Same as above: without these the per-line picker simply stays hidden
+      // and the item's own default still applies server-side.
+    }
+  }
+
+  /// "VAT 14%" rather than the raw template name — the buyer is picking a rate,
+  /// not a document.
+  String _taxTemplateLabel(String name) {
+    for (final t in itemTaxTemplates) {
+      if (t['name'] != name) continue;
+      final title = (t['title'] ?? t['name']).toString();
+      final rate = _num(t['rate']);
+      return rate == 0 ? title : '$title (${_fmtQty(rate)}%)';
+    }
+    return name;
+  }
+
+  double _taxRateFor(String? template) {
+    if (template == null || template.isEmpty) return 0;
+    for (final t in itemTaxTemplates) {
+      if (t['name'] == template) return _num(t['rate']);
+    }
+    return 0;
   }
 
   @override
@@ -298,10 +336,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                       ),
                     ),
                     const Spacer(),
-                    Builder(builder: (ctx) {
-                      final total = _cartSubtotal() + shippingAmount;
-                      return Text(l10n.commonTotalValue(total.toStringAsFixed(2)));
-                    }),
+                    _buildTotalsBreakdown(context),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -351,7 +386,6 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                 _sheetSetState = setSheetState;
                 final l10n = context.l10n;
                 final colorScheme = Theme.of(context).colorScheme;
-                final total = _cartSubtotal() + shippingAmount;
                 return Container(
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
@@ -448,7 +482,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                                   ),
                                 ),
                                 const Spacer(),
-                                Text(l10n.commonTotalValue(total.toStringAsFixed(2))),
+                                _buildTotalsBreakdown(context),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -589,6 +623,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
             const SizedBox(width: 12),
             Text(l10n.commonAmountValue(amount.toStringAsFixed(2))),
           ]),
+          _buildLineTaxRow(line, onChanged: onChanged),
           if (line['requested_qty'] != null)
             _requestedChip(context, line, qty),
         ],
@@ -604,6 +639,67 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
           _sheetSetState?.call(() {});
         },
       ),
+    );
+  }
+
+  /// Per-line VAT picker.
+  ///
+  /// Defaults to whatever the Item master declares, so the buyer only touches
+  /// the exceptions. `null` on the line means "no VAT" — an explicit choice
+  /// that the submit path forwards as such, rather than letting the server
+  /// silently re-apply the item's default.
+  Widget _buildLineTaxRow(Map<String, dynamic> line, {required VoidCallback onChanged}) {
+    if (itemTaxTemplates.isEmpty) return const SizedBox.shrink();
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final selected = line['item_tax_template'] as String?;
+    // A template the item carries but which this company's list does not offer
+    // would otherwise make DropdownButton assert on an unmatched value.
+    final known =
+        selected != null && itemTaxTemplates.any((t) => t['name'] == selected);
+    final value = known ? selected : null;
+    final taxAmount = _num(line['qty']) * _num(line['rate']) * _taxRateFor(value) / 100.0;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(children: [
+        Icon(Icons.receipt_long_outlined, size: 14, color: theme.colorScheme.outline),
+        const SizedBox(width: 6),
+        Flexible(
+          child: DropdownButton<String?>(
+            value: value,
+            isDense: true,
+            underline: const SizedBox.shrink(),
+            style: theme.textTheme.bodySmall,
+            items: [
+              DropdownMenuItem<String?>(
+                value: null,
+                child: Text(l10n.purchaseNoVat),
+              ),
+              for (final t in itemTaxTemplates)
+                DropdownMenuItem<String?>(
+                  value: t['name'] as String,
+                  child: Text(
+                    _taxTemplateLabel(t['name'] as String),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
+            onChanged: (v) {
+              setState(() => line['item_tax_template'] = v);
+              onChanged();
+            },
+          ),
+        ),
+        if (taxAmount > 0) ...[
+          const SizedBox(width: 8),
+          Text(
+            l10n.purchaseVatValue(taxAmount.toStringAsFixed(2)),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.outline),
+          ),
+        ],
+      ]),
     );
   }
 
@@ -1080,6 +1176,8 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
         'stock_uom': stockUom,
         'uoms': uoms,
         'prices': prices,
+        // Pre-filled from the Item master; the buyer overrides the exceptions.
+        'item_tax_template': it['item_tax_template'] as String?,
       });
     });
   }
@@ -1123,6 +1221,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
             {'uom': demand.stockUom, 'conversion_factor': 1}
           ],
           'prices': const <Map<String, dynamic>>[],
+          'item_tax_template': demand.itemTaxTemplate,
           // Kept on the line so the cart can show "requested N, buying M" and
           // the submit call can split the purchase across source requests.
           'requested_qty': demand.outstandingQty,
@@ -1145,6 +1244,10 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       'item_code': line['item_code'],
       'uom': line['uom'],
       'rate': (line['rate'] as num).toDouble(),
+      // Always sent, even when empty. The empty string is how the buyer says
+      // "not taxed" for an item whose master declares VAT — omitting the key
+      // would let the server fall back to that default and silently re-add it.
+      'item_tax_template': (line['item_tax_template'] as String?) ?? '',
     };
 
     final targets = ((line['request_links'] as List?) ?? const [])
@@ -1324,6 +1427,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                 const SizedBox(width: 16),
                 Text(itemL10n.commonAmountValue(amount.toStringAsFixed(2))),
               ]),
+              _buildLineTaxRow(line, onChanged: () => setState(() {})),
               if (line['requested_qty'] != null)
                 _requestedChip(context, line, qty),
             ],
@@ -1424,6 +1528,56 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       sum += qty * rate;
     }
     return sum;
+  }
+
+  /// VAT the server will charge, summed per line.
+  ///
+  /// A local estimate rather than a server round-trip, so it tracks the cart
+  /// as the buyer edits it. It mirrors ERPNext's own "On Net Total" arithmetic
+  /// on the item lines; shipping is a separate Actual charge and carries no
+  /// VAT here, which is what the backend posts.
+  double _cartTaxTotal() {
+    double sum = 0.0;
+    for (final l in cart) {
+      final template = l['item_tax_template'] as String?;
+      final rate = _taxRateFor(template);
+      if (rate == 0) continue;
+      final qty = (l['qty'] as num).toDouble();
+      sum += qty * (l['rate'] as num).toDouble() * rate / 100.0;
+    }
+    return sum;
+  }
+
+  double _cartGrandTotal() =>
+      _cartSubtotal() + _cartTaxTotal() + shippingAmount;
+
+  /// Net / VAT / total, shown only once VAT is actually in play — a purchase
+  /// with no taxed line keeps the single-total layout it had before.
+  Widget _buildTotalsBreakdown(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final tax = _cartTaxTotal();
+    if (tax == 0) {
+      return Text(l10n.commonTotalValue(_cartGrandTotal().toStringAsFixed(2)));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          l10n.purchaseNetTotalValue(_cartSubtotal().toStringAsFixed(2)),
+          style: theme.textTheme.bodySmall,
+        ),
+        Text(
+          l10n.purchaseVatValue(tax.toStringAsFixed(2)),
+          style: theme.textTheme.bodySmall,
+        ),
+        Text(
+          l10n.commonTotalValue(_cartGrandTotal().toStringAsFixed(2)),
+          style: theme.textTheme.titleSmall,
+        ),
+      ],
+    );
   }
 
   void _resetForm() {
@@ -1897,6 +2051,11 @@ class _PurchaseInvoiceCardState extends State<_PurchaseInvoiceCard> {
     final currency = (inv['currency'] ?? '').toString();
     final billNo = (inv['bill_no'] ?? '').toString();
     final items = (inv['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    // Zero-amount rows exist on every invoice that uses per-item VAT: the
+    // 0%-base row we add so ERPNext consults the item templates at all.
+    final taxRows = ((inv['taxes'] as List?)?.cast<Map<String, dynamic>>() ?? [])
+        .where((t) => _parseDouble(t['tax_amount']) != 0)
+        .toList();
 
     final statusColor = switch (status.toLowerCase()) {
       'paid' => Colors.green,
@@ -2006,10 +2165,25 @@ class _PurchaseInvoiceCardState extends State<_PurchaseInvoiceCard> {
                         children: [
                           Expanded(
                             flex: 3,
-                            child: Text(
-                              (item['item_name'] ?? item['item_code'] ?? '').toString(),
-                              style: const TextStyle(fontSize: 12),
-                              overflow: TextOverflow.ellipsis,
+                            child: Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    (item['item_name'] ?? item['item_code'] ?? '').toString(),
+                                    style: const TextStyle(fontSize: 12),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                // Which lines carried VAT is otherwise
+                                // invisible once the invoice is filed.
+                                if ((item['item_tax_template'] ?? '')
+                                    .toString()
+                                    .isNotEmpty) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.receipt_long_outlined,
+                                      size: 12, color: Colors.grey[600]),
+                                ],
+                              ],
                             ),
                           ),
                           SizedBox(
@@ -2039,6 +2213,34 @@ class _PurchaseInvoiceCardState extends State<_PurchaseInvoiceCard> {
                         ],
                       ),
                     ),
+                  // Net plus one line per tax row, labelled by its own
+                  // description. Rendering the rows rather than the single
+                  // `total_taxes_and_charges` keeps VAT and the shipping
+                  // charge apart, which that total does not.
+                  if (taxRows.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            context.l10n.purchaseNetTotalValue(formatCurrency(
+                                context, _parseDouble(inv['net_total']),
+                                currencyCode: currency)),
+                            style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                          ),
+                          for (final tax in taxRows)
+                            Text(
+                              '${(tax['description'] ?? tax['account_head'] ?? '').toString()}: '
+                              '${formatCurrency(context, _parseDouble(tax['tax_amount']), currencyCode: currency)}',
+                              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                   if (billNo.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Row(

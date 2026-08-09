@@ -253,6 +253,10 @@ class RequestDemandLine {
   final double receivedQty;
   final double onHandQty;
   final double lastPurchaseRate;
+
+  /// The item's own Item Tax Template, so a line bought straight off this list
+  /// carries the same VAT it would if the buyer had searched for it by hand.
+  final String? itemTaxTemplate;
   final DateTime? earliestNeededBy;
   final List<RequestDemandSource> sources;
 
@@ -265,6 +269,7 @@ class RequestDemandLine {
     required this.receivedQty,
     required this.onHandQty,
     required this.lastPurchaseRate,
+    this.itemTaxTemplate,
     required this.earliestNeededBy,
     required this.sources,
   });
@@ -298,6 +303,9 @@ class RequestDemandLine {
       receivedQty: _toDouble(json['received_qty']),
       onHandQty: _toDouble(json['on_hand_qty']),
       lastPurchaseRate: _toDouble(json['last_purchase_rate']),
+      itemTaxTemplate: _toStr(json['item_tax_template']).isEmpty
+          ? null
+          : _toStr(json['item_tax_template']),
       earliestNeededBy: _toDate(json['earliest_needed_by']),
       sources: ((json['sources'] as List?) ?? const [])
           .whereType<Map>()

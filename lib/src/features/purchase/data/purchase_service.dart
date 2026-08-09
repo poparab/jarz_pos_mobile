@@ -173,6 +173,20 @@ class PurchaseService {
     return _asMap(resp.data, 'taxes templates');
   }
 
+  /// Item Tax Templates a cart line can carry — the per-item VAT options.
+  Future<List<Map<String, dynamic>>> getItemTaxTemplates({String? company}) async {
+    final resp = await _dio.post(
+      ApiEndpoints.getItemTaxTemplates,
+      data: {if (company != null) 'company': company},
+    );
+    final payload = resp.data;
+    if (payload is Map && payload['message'] is List) {
+      return (payload['message'] as List).cast<Map<String, dynamic>>();
+    }
+    if (payload is List) return payload.cast<Map<String, dynamic>>();
+    return [];
+  }
+
   Future<Map<String, dynamic>> payPurchaseInvoice({
     required String purchaseInvoice,
     String? paymentOption,

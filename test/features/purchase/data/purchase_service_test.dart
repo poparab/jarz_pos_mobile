@@ -175,6 +175,54 @@ void main() {
       });
     });
 
+    group('getItemTaxTemplates', () {
+      test('returns the per-item VAT options with their rates', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.purchase.get_item_tax_templates',
+          {
+            'message': [
+              {
+                'name': 'VAT 14% - JZ',
+                'title': 'VAT 14%',
+                'rate': 14.0,
+                'taxes': [
+                  {'account': 'VAT - JZ', 'rate': 14.0},
+                ],
+              },
+            ],
+          },
+        );
+
+        final result = await service.getItemTaxTemplates();
+
+        expect(result, hasLength(1));
+        expect(result.first['rate'], equals(14.0));
+      });
+
+      test('returns empty list when no templates are configured', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.purchase.get_item_tax_templates',
+          {'message': []},
+        );
+
+        expect(await service.getItemTaxTemplates(), isEmpty);
+      });
+
+      test('forwards company when given', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.purchase.get_item_tax_templates',
+          {'message': []},
+        );
+
+        await service.getItemTaxTemplates(company: 'Test Company');
+
+        expect(
+          mockDio.requestLog.first['data']['company'],
+          equals('Test Company'),
+        );
+      });
+    });
+
     group('createPurchaseInvoice', () {
       test('creates purchase invoice with required parameters', () async {
         final response = {'name': 'PINV-001', 'status': 'Submitted'};
