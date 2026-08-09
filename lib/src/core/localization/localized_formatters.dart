@@ -3,25 +3,27 @@ import 'package:intl/intl.dart';
 
 import 'localization_extensions.dart';
 
-String formatCurrency(
-  BuildContext context,
-  num amount, {
-  String? currencyCode,
-}) {
-  final locale = context.l10n.localeName;
+/// The symbol to put in front of a bare amount (input prefixes, axis labels).
+String currencySymbol(BuildContext context, {String? currencyCode}) {
   final normalizedCurrency = currencyCode?.trim().toUpperCase();
   final effectiveCurrency =
       normalizedCurrency == null || normalizedCurrency.isEmpty
           ? 'EGP'
           : normalizedCurrency;
-  final symbol = switch (effectiveCurrency) {
-    'EGP' => locale.startsWith('ar') ? 'ج.م' : 'EGP',
+  return switch (effectiveCurrency) {
+    'EGP' => context.l10n.localeName.startsWith('ar') ? 'ج.م' : 'EGP',
     _ => effectiveCurrency,
   };
+}
 
+String formatCurrency(
+  BuildContext context,
+  num amount, {
+  String? currencyCode,
+}) {
   return NumberFormat.currency(
-    locale: locale,
-    symbol: symbol,
+    locale: context.l10n.localeName,
+    symbol: currencySymbol(context, currencyCode: currencyCode),
     decimalDigits: 2,
   ).format(amount);
 }

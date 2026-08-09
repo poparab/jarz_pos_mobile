@@ -192,6 +192,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                 child: KanbanFiltersWidget(
                   filters: kanbanState.filters,
                   customers: kanbanState.customers,
+                  resultCount: _visibleCardCount(kanbanState),
+                  isLoading: kanbanState.isLoading,
                   onFiltersChanged: (newFilters) {
                     ref.read(kanbanProvider.notifier).updateFilters(newFilters);
                   },
@@ -250,6 +252,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       orElse: () => 0,
     );
     final hasUnconfirmed = unconfirmedCount > 0;
+    final activeFilterCount = ref.watch(
+      kanbanProvider.select((s) => s.filters.activeCount),
+    );
 
     // Primary actions always visible
     final primaryActions = <Widget>[
@@ -273,9 +278,16 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       ),
       const _BranchFilterButton(),
       if (!isPhone) _buildPrinterChip(context),
+      // Badged so an active filter can never be the silent reason the board
+      // looks empty — the commonest "the board is broken" report was a filter
+      // someone else had left on.
       IconButton(
         tooltip: _showFilters ? context.l10n.kanbanHideFilters : context.l10n.kanbanShowFilters,
-        icon: Icon(_showFilters ? Icons.filter_alt_off : Icons.filter_alt),
+        icon: Badge(
+          isLabelVisible: activeFilterCount > 0,
+          label: Text('$activeFilterCount'),
+          child: Icon(_showFilters ? Icons.filter_alt_off : Icons.filter_alt),
+        ),
         visualDensity: isPhone ? VisualDensity.compact : VisualDensity.standard,
         onPressed: () {
           if (isPhone) {
@@ -463,6 +475,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                   child: KanbanFiltersWidget(
                     filters: kanbanState.filters,
                     customers: kanbanState.customers,
+                    resultCount: _visibleCardCount(kanbanState),
+                    isLoading: kanbanState.isLoading,
+                    onClose: () => Navigator.of(sheetContext).pop(),
                     onFiltersChanged: (newFilters) {
                       ref.read(kanbanProvider.notifier).updateFilters(newFilters);
                     },
@@ -665,7 +680,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
               const SizedBox(height: 8),
               Text(
                 context.l10n.kanbanFilterActiveCount(
-                  _getActiveFilterCount(kanbanState.filters),
+                  kanbanState.filters.activeCount,
                 ),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -836,15 +851,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     );
   }
 
-  int _getActiveFilterCount(KanbanFilters filters) {
-    int count = 0;
-    if (filters.searchTerm.trim().isNotEmpty) count++;
-    if (filters.customer?.isNotEmpty == true) count++;
-    if (filters.status?.isNotEmpty == true) count++;
-    if (filters.dateFrom != null || filters.dateTo != null) count++;
-    if (filters.amountFrom != null || filters.amountTo != null) count++;
-    return count;
-  }
+  /// Total cards on the board — what the filter bar reports as the match count.
+  int _visibleCardCount(KanbanState state) =>
+      state.invoices.values.fold(0, (sum, cards) => sum + cards.length);
 
   Widget _buildOFDTripGroupedList( List<InvoiceCard> invoices, TripState tripState) {
     if (invoices.isEmpty) {

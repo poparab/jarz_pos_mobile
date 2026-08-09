@@ -1,31 +1,55 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/kanban_models.dart';
 import '../../../core/constants/business_constants.dart';
 import '../../../core/localization/localized_display_mappers.dart';
+import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/utils/responsive_utils.dart';
 
+/// The Kanban board's filter bar.
+///
+/// Everything is reachable without opening anything: the search field is always
+/// visible and each dimension is one chip that shows its current value. A set
+/// chip carries its own clear affordance, so there is no second "active
+/// filters" row duplicating the same state.
 class KanbanFiltersWidget extends StatefulWidget {
   final KanbanFilters filters;
   final List<CustomerOption> customers;
   final Function(KanbanFilters) onFiltersChanged;
+
+  /// Cards currently on the board. Shown next to the filters so staff can see
+  /// at a glance that a filter is why the board looks empty.
+  final int resultCount;
+  final bool isLoading;
+
+  /// Supplied by the phone bottom sheet; adds a "Done" affordance.
+  final VoidCallback? onClose;
 
   const KanbanFiltersWidget({
     super.key,
     required this.filters,
     required this.customers,
     required this.onFiltersChanged,
+    this.resultCount = 0,
+    this.isLoading = false,
+    this.onClose,
   });
 
   @override
   State<KanbanFiltersWidget> createState() => _KanbanFiltersWidgetState();
 }
 
+/// Long enough that a fast typist issues one request, short enough that the
+/// board feels like it is reacting to the keystroke.
+const _searchDebounce = Duration(milliseconds: 350);
+
 class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
   late KanbanFilters _currentFilters;
   late final TextEditingController _searchController;
-  bool _isExpanded = false;
+  Timer? _searchDebounceTimer;
 
   @override
   void initState() {
@@ -37,7 +61,11 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
   @override
   void didUpdateWidget(KanbanFiltersWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.filters != widget.filters) {
+    if (oldWidget.filters != widget.filters && widget.filters != _currentFilters) {
+      // The board cleared or replaced the filters from elsewhere (the empty-state
+      // "Clear all" button). Drop any keystroke still waiting to be sent, or it
+      // would land afterwards and put the search term straight back.
+      _searchDebounceTimer?.cancel();
       setState(() {
         _currentFilters = widget.filters;
       });
@@ -47,6 +75,7 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
 
   @override
   void dispose() {
+    _searchDebounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -59,15 +88,27 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
     );
   }
 
-  void _applyFilters() {
-    widget.onFiltersChanged(_currentFilters);
+  /// Commit [filters] to the board. Every path except typing is immediate —
+  /// picking a customer or a date is a deliberate act and should feel instant.
+  void _apply(KanbanFilters filters) {
+    _searchDebounceTimer?.cancel();
+    setState(() => _currentFilters = filters);
+    widget.onFiltersChanged(filters);
   }
 
   void _onSearchChanged(String value) {
     setState(() {
       _currentFilters = _currentFilters.copyWith(searchTerm: value);
     });
-    _applyFilters();
+    _searchDebounceTimer?.cancel();
+    _searchDebounceTimer = Timer(_searchDebounce, () {
+      widget.onFiltersChanged(_currentFilters);
+    });
+  }
+
+  void _submitSearch() {
+    _searchDebounceTimer?.cancel();
+    widget.onFiltersChanged(_currentFilters);
   }
 
   void _clearSearch() {
@@ -75,272 +116,214 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
       return;
     }
     _searchController.clear();
-    setState(() {
-      _currentFilters = _currentFilters.copyWith(searchTerm: '');
-    });
-    _applyFilters();
+    _apply(_currentFilters.copyWith(searchTerm: ''));
+  }
+
+  void _clearAllFilters() {
+    _searchController.clear();
+    _apply(const KanbanFilters());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Filter header with expand/collapse
-          ListTile(
-            title: Text(
-              context.l10n.kanbanFilterTitle,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            subtitle: _hasActiveFilters()
-                ? Text(context.l10n.kanbanFilterActiveCount(_getActiveFiltersCount()))
-                : null,
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (_hasActiveFilters())
-                  TextButton(
-                    onPressed: _clearAllFilters,
-                    child: Text(context.l10n.kanbanFilterClearAll),
-                  ),
-                IconButton(
-                  icon: Icon(
-                    _isExpanded ? Icons.expand_less : Icons.expand_more,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isExpanded = !_isExpanded;
-                    });
-                  },
-                ),
-              ],
-            ),
-            tileColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
-          ),
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final hasFilters = _currentFilters.hasFilters;
 
-          // Collapsible filter content
-          if (_isExpanded) ...[
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // Search term
-                  TextField(
+    return Card(
+      margin: const EdgeInsets.all(12),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
                     controller: _searchController,
+                    autofocus: widget.onClose != null,
+                    textInputAction: TextInputAction.search,
+                    onChanged: _onSearchChanged,
+                    onSubmitted: (_) => _submitSearch(),
                     decoration: InputDecoration(
-                      labelText: context.l10n.kanbanFilterSearch,
-                      hintText: context.l10n.kanbanFilterSearchHint,
+                      isDense: true,
+                      hintText: l10n.kanbanFilterSearchHint,
                       prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _currentFilters.searchTerm.trim().isNotEmpty
+                      suffixIcon: _currentFilters.searchTerm.isNotEmpty
                           ? IconButton(
+                              tooltip: l10n.commonClear,
                               icon: const Icon(Icons.clear),
                               onPressed: _clearSearch,
                             )
                           : null,
                       border: const OutlineInputBorder(),
                     ),
-                    textInputAction: TextInputAction.search,
-                    onChanged: _onSearchChanged,
                   ),
-
-                  const SizedBox(height: 16),
-
-                  // Quick filter chips
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      // Customer filter
-                      FilterChip(
-                        label: Text(_customerFilterLabel(context)),
-                        selected: _currentFilters.customer?.isNotEmpty == true,
-                        onSelected: (_) => _showCustomerPicker(context),
-                      ),
-
-                      // Status filter
-                      FilterChip(
-                        label: Text(
-                          (_currentFilters.status?.isEmpty ?? true)
-                              ? context.l10n.kanbanFilterAllStatuses
-                              : localizedStatusLabel(context, _currentFilters.status),
-                        ),
-                        selected: _currentFilters.status?.isNotEmpty == true,
-                        onSelected: (_) => _showStatusPicker(context),
-                      ),
-
-                      // Date range filter
-                      FilterChip(
-                        label: Text(_getDateRangeText()),
-                        selected:
-                            _currentFilters.dateFrom != null ||
-                            _currentFilters.dateTo != null,
-                        onSelected: (_) => _showDateRangePicker(context),
-                      ),
-
-                      // Amount range filter
-                      FilterChip(
-                        label: Text(_getAmountRangeText()),
-                        selected:
-                            _currentFilters.amountFrom != null ||
-                            _currentFilters.amountTo != null,
-                        onSelected: (_) => _showAmountRangePicker(context),
-                      ),
-                    ],
+                ),
+                if (widget.onClose != null) ...[
+                  const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: widget.onClose,
+                    child: Text(l10n.kanbanFilterDone),
                   ),
+                ],
+              ],
+            ),
 
-                  const SizedBox(height: 16),
+            const SizedBox(height: 10),
 
-                  // Active filters display
-                  if (_hasActiveFilters()) ...[
-                    Align(
-                      alignment: AlignmentDirectional.centerStart,
+            // One chip per dimension, horizontally scrollable so a long
+            // customer name never forces the row to wrap on a phone.
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _dimensionChip(
+                    icon: Icons.person_outline,
+                    label: _customerFilterLabel(context),
+                    selected: _currentFilters.customer?.isNotEmpty == true,
+                    onTap: () => _showCustomerPicker(context),
+                    onClear: () =>
+                        _apply(_currentFilters.copyWith(clearCustomer: true)),
+                  ),
+                  const SizedBox(width: 8),
+                  _dimensionChip(
+                    icon: Icons.payments_outlined,
+                    label: (_currentFilters.status?.isEmpty ?? true)
+                        ? l10n.kanbanFilterAllStatuses
+                        : localizedStatusLabel(context, _currentFilters.status),
+                    selected: _currentFilters.status?.isNotEmpty == true,
+                    onTap: () => _showStatusPicker(context),
+                    onClear: () =>
+                        _apply(_currentFilters.copyWith(clearStatus: true)),
+                  ),
+                  const SizedBox(width: 8),
+                  _dimensionChip(
+                    icon: Icons.event_outlined,
+                    label: _dateChipLabel(context),
+                    selected: _currentFilters.dateFrom != null ||
+                        _currentFilters.dateTo != null,
+                    onTap: () => _showDatePicker(context),
+                    onClear: () => _apply(_currentFilters.copyWith(
+                      clearDateFrom: true,
+                      clearDateTo: true,
+                    )),
+                  ),
+                  const SizedBox(width: 8),
+                  _dimensionChip(
+                    icon: Icons.sell_outlined,
+                    label: _amountChipLabel(context),
+                    selected: _currentFilters.amountFrom != null ||
+                        _currentFilters.amountTo != null,
+                    onTap: () => _showAmountRangePicker(context),
+                    onClear: () => _apply(_currentFilters.copyWith(
+                      clearAmountFrom: true,
+                      clearAmountTo: true,
+                    )),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 4),
+
+            SizedBox(
+              height: 36,
+              child: Row(
+                children: [
+                  if (widget.isLoading)
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else if (hasFilters)
+                    Flexible(
                       child: Text(
-                        context.l10n.kanbanFilterActiveLabel,
-                        style: Theme.of(context).textTheme.titleSmall,
+                        l10n.kanbanFilterMatchCount(widget.resultCount),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: _buildActiveFilterChips(),
+                  const Spacer(),
+                  if (hasFilters)
+                    TextButton.icon(
+                      onPressed: _clearAllFilters,
+                      icon: const Icon(Icons.filter_alt_off, size: 18),
+                      label: Text(l10n.kanbanFilterClearAll),
                     ),
-                  ],
                 ],
               ),
             ),
           ],
-        ],
+        ),
       ),
     );
   }
 
-  bool _hasActiveFilters() {
-    return _currentFilters.hasFilters;
-  }
-
-  int _getActiveFiltersCount() {
-    int count = 0;
-    if (_currentFilters.searchTerm.trim().isNotEmpty) count++;
-    if (_currentFilters.customer?.isNotEmpty == true) count++;
-    if (_currentFilters.status?.isNotEmpty == true) count++;
-    if (_currentFilters.dateFrom != null || _currentFilters.dateTo != null) {
-      count++;
-    }
-    if (_currentFilters.amountFrom != null || _currentFilters.amountTo != null) {
-      count++;
-    }
-    return count;
-  }
-
-  List<Widget> _buildActiveFilterChips() {
-    List<Widget> chips = [];
-
-    final searchTerm = _currentFilters.searchTerm.trim();
-    if (searchTerm.isNotEmpty) {
-      chips.add(
-        _buildRemovableChip('${context.l10n.kanbanFilterSearch}: $searchTerm', () {
-          _searchController.clear();
-          setState(() {
-            _currentFilters = _currentFilters.copyWith(searchTerm: '');
-          });
-          _applyFilters();
-        }),
-      );
-    }
-
-    if (_currentFilters.customer?.isNotEmpty == true) {
-      chips.add(
-        _buildRemovableChip('${context.l10n.commonCustomerLabel}: ${_customerDisplayName(_currentFilters.customer!)}', () {
-          setState(() {
-            _currentFilters = _currentFilters.copyWith(clearCustomer: true);
-          });
-          _applyFilters();
-        }),
-      );
-    }
-
-    if (_currentFilters.status?.isNotEmpty == true) {
-      chips.add(
-        _buildRemovableChip('${context.l10n.kanbanFilterStatusTitle}: ${localizedStatusLabel(context, _currentFilters.status)}', () {
-          setState(() {
-            _currentFilters = _currentFilters.copyWith(clearStatus: true);
-          });
-          _applyFilters();
-        }),
-      );
-    }
-
-    if (_currentFilters.dateFrom != null || _currentFilters.dateTo != null) {
-      chips.add(
-        _buildRemovableChip(_dateRangeChipLabel(context), () {
-          setState(() {
-            _currentFilters = _currentFilters.copyWith(
-              clearDateFrom: true,
-              clearDateTo: true,
-            );
-          });
-          _applyFilters();
-        }),
-      );
-    }
-
-    if (_currentFilters.amountFrom != null || _currentFilters.amountTo != null) {
-      chips.add(
-        _buildRemovableChip(_amountRangeChipLabel(context), () {
-          setState(() {
-            _currentFilters = _currentFilters.copyWith(
-              clearAmountFrom: true,
-              clearAmountTo: true,
-            );
-          });
-          _applyFilters();
-        }),
-      );
-    }
-
-    return chips;
-  }
-
-  Widget _buildRemovableChip(String label, VoidCallback onRemove) {
-    return Chip(
-      label: Text(label),
-      deleteIcon: const Icon(Icons.close, size: 18),
-      onDeleted: onRemove,
+  Widget _dimensionChip({
+    required IconData icon,
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+    required VoidCallback onClear,
+  }) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 220),
+      child: InputChip(
+        avatar: Icon(icon, size: 18),
+        label: Text(label, overflow: TextOverflow.ellipsis),
+        selected: selected,
+        showCheckmark: false,
+        onPressed: onTap,
+        onDeleted: selected ? onClear : null,
+        deleteIcon: const Icon(Icons.close, size: 16),
+      ),
     );
   }
 
-  void _clearAllFilters() {
-    _searchController.clear();
-    setState(() {
-      _currentFilters = const KanbanFilters();
-    });
-    _applyFilters();
+  // ── Labels ───────────────────────────────────────────────────────────────
+
+  String _formatDate(BuildContext context, DateTime date) {
+    return DateFormat.yMd(Localizations.localeOf(context).toLanguageTag())
+        .format(date);
   }
 
-  String _getDateRangeText() {
-    if (_currentFilters.dateFrom != null && _currentFilters.dateTo != null) {
-      return context.l10n.kanbanFilterDateRange;
-    } else if (_currentFilters.dateFrom != null) {
-      return context.l10n.kanbanFilterFromDate;
-    } else if (_currentFilters.dateTo != null) {
-      return context.l10n.kanbanFilterToDate;
+  String _formatAmount(double amount) {
+    if (amount == amount.truncateToDouble()) {
+      return amount.toStringAsFixed(0);
     }
-    return context.l10n.kanbanFilterAllDates;
+    return amount.toStringAsFixed(2);
   }
 
-  String _getAmountRangeText() {
-    if (_currentFilters.amountFrom != null &&
-        _currentFilters.amountTo != null) {
-      return context.l10n.kanbanFilterAmountRange;
-    } else if (_currentFilters.amountFrom != null) {
-      return context.l10n.kanbanFilterMinAmount;
-    } else if (_currentFilters.amountTo != null) {
-      return context.l10n.kanbanFilterMaxAmount;
+  String _dateChipLabel(BuildContext context) {
+    final from = _currentFilters.dateFrom;
+    final to = _currentFilters.dateTo;
+    if (from == null && to == null) return context.l10n.kanbanFilterAllDates;
+    if (from != null && to != null) {
+      if (_isSameDay(from, to)) return _formatDate(context, from);
+      return '${_formatDate(context, from)} – ${_formatDate(context, to)}';
     }
-    return context.l10n.kanbanFilterAllAmounts;
+    if (from != null) {
+      return '${context.l10n.kanbanFilterFromDate}: ${_formatDate(context, from)}';
+    }
+    return '${context.l10n.kanbanFilterToDate}: ${_formatDate(context, to!)}';
+  }
+
+  String _amountChipLabel(BuildContext context) {
+    final from = _currentFilters.amountFrom;
+    final to = _currentFilters.amountTo;
+    if (from == null && to == null) return context.l10n.kanbanFilterAllAmounts;
+    final symbol = currencySymbol(context);
+    if (from != null && to != null) {
+      return '$symbol ${_formatAmount(from)} – ${_formatAmount(to)}';
+    }
+    if (from != null) return '≥ $symbol ${_formatAmount(from)}';
+    return '≤ $symbol ${_formatAmount(to!)}';
   }
 
   String _customerFilterLabel(BuildContext context) {
@@ -365,40 +348,8 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
     return option?.customer ?? customer;
   }
 
-  String _formatDate(BuildContext context, DateTime date) {
-    return DateFormat.yMd(Localizations.localeOf(context).toLanguageTag()).format(date);
-  }
-
-  String _formatAmount(double amount) {
-    if (amount == amount.truncateToDouble()) {
-      return amount.toStringAsFixed(0);
-    }
-    return amount.toStringAsFixed(2);
-  }
-
-  String _dateRangeChipLabel(BuildContext context) {
-    final from = _currentFilters.dateFrom;
-    final to = _currentFilters.dateTo;
-    if (from != null && to != null) {
-      return '${context.l10n.kanbanFilterDateRange}: ${_formatDate(context, from)} - ${_formatDate(context, to)}';
-    }
-    if (from != null) {
-      return '${context.l10n.kanbanFilterFromDate}: ${_formatDate(context, from)}';
-    }
-    return '${context.l10n.kanbanFilterToDate}: ${_formatDate(context, to!)}';
-  }
-
-  String _amountRangeChipLabel(BuildContext context) {
-    final from = _currentFilters.amountFrom;
-    final to = _currentFilters.amountTo;
-    if (from != null && to != null) {
-      return '${context.l10n.kanbanFilterAmountRange}: ${_formatAmount(from)} - ${_formatAmount(to)}';
-    }
-    if (from != null) {
-      return '${context.l10n.kanbanFilterMinAmount}: ${_formatAmount(from)}';
-    }
-    return '${context.l10n.kanbanFilterMaxAmount}: ${_formatAmount(to!)}';
-  }
+  static bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   double? _parseAmount(String value) {
     final normalized = value.trim().replaceAll(',', '.');
@@ -406,279 +357,416 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
     return double.tryParse(normalized);
   }
 
-  void _showCustomerPicker(BuildContext context) {
-    final l10n = context.l10n;
-    final searchController = TextEditingController();
-    final dialogHeight = ResponsiveUtils.getDialogHeight(
-      context,
-      phoneFraction: 0.72,
-      tabletFraction: 0.5,
-      max: 360,
-    );
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          final query = searchController.text.trim().toLowerCase();
-          final filteredCustomers = widget.customers.where((customer) {
-            if (query.isEmpty) return true;
-            return customer.customer.toLowerCase().contains(query) ||
-                customer.customerName.toLowerCase().contains(query);
-          }).toList();
+  // ── Pickers ──────────────────────────────────────────────────────────────
 
-          return AlertDialog(
-            title: Text(l10n.kanbanFilterCustomerTitle),
-            content: SizedBox(
-              width: ResponsiveUtils.getDialogWidth(
-                context,
-                small: 500,
-                medium: 560,
-                large: 640,
-              ),
-              height: dialogHeight,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: searchController,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      labelText: l10n.kanbanFilterCustomerName,
-                      hintText: l10n.kanbanFilterCustomerHint,
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                searchController.clear();
-                                setDialogState(() {});
-                              },
-                            )
-                          : null,
-                    ),
-                    onChanged: (_) => setDialogState(() {}),
-                  ),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: ListView(
-                      children: [
-                        ListTile(
-                          leading: const Icon(Icons.people_alt_outlined),
-                          title: Text(l10n.kanbanFilterAllCustomers),
-                          trailing: _currentFilters.customer?.isNotEmpty == true
-                              ? null
-                              : const Icon(Icons.check),
-                          onTap: () {
-                            setState(() {
-                              _currentFilters = _currentFilters.copyWith(clearCustomer: true);
-                            });
-                            Navigator.of(context).pop();
-                            _applyFilters();
-                          },
-                        ),
-                        if (filteredCustomers.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 24),
-                            child: Center(child: Text(l10n.masterOrdersNoResults)),
-                          )
-                        else
-                          ...filteredCustomers.map(
-                            (customer) => ListTile(
-                              title: Text(
-                                customer.customerName.isNotEmpty
-                                    ? customer.customerName
-                                    : customer.customer,
-                              ),
-                              subtitle: customer.customerName.isNotEmpty
-                                  ? Text(customer.customer)
-                                  : null,
-                              trailing: _currentFilters.customer == customer.customer
-                                  ? const Icon(Icons.check)
-                                  : null,
-                              onTap: () {
-                                setState(() {
-                                  _currentFilters = _currentFilters.copyWith(
-                                    customer: customer.customer,
-                                  );
-                                });
-                                Navigator.of(context).pop();
-                                _applyFilters();
-                              },
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(l10n.commonCancel),
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _currentFilters = _currentFilters.copyWith(clearCustomer: true);
-                  });
-                  Navigator.of(context).pop();
-                  _applyFilters();
-                },
-                child: Text(l10n.commonClear),
-              ),
-            ],
-          );
-        },
+  Future<void> _showCustomerPicker(BuildContext context) async {
+    final selection = await showDialog<_CustomerSelection>(
+      context: context,
+      builder: (_) => _CustomerPickerDialog(
+        customers: widget.customers,
+        selected: _currentFilters.customer,
       ),
     );
+    if (selection == null || !mounted) return;
+    _apply(selection.customer == null
+        ? _currentFilters.copyWith(clearCustomer: true)
+        : _currentFilters.copyWith(customer: selection.customer));
   }
 
   void _showStatusPicker(BuildContext context) {
     final l10n = context.l10n;
-    final statuses = [InvoiceStatus.paid, InvoiceStatus.unpaid, InvoiceStatus.cancelled, InvoiceStatus.returnStatus];
+    const statuses = [
+      InvoiceStatus.paid,
+      InvoiceStatus.unpaid,
+      InvoiceStatus.cancelled,
+      InvoiceStatus.returnStatus,
+    ];
 
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => SimpleDialog(
         title: Text(l10n.kanbanFilterStatusTitle),
-        content: Column(
+        children: [
+          _statusOption(
+            context,
+            label: l10n.kanbanFilterAllStatuses,
+            value: null,
+          ),
+          ...statuses.map(
+            (status) => _statusOption(
+              context,
+              label: localizedStatusLabel(context, status),
+              value: status,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statusOption(
+    BuildContext dialogContext, {
+    required String label,
+    required String? value,
+  }) {
+    final selected = _currentFilters.status == value;
+    return ListTile(
+      title: Text(label),
+      trailing: selected ? const Icon(Icons.check) : null,
+      selected: selected,
+      onTap: () {
+        Navigator.of(dialogContext).pop();
+        _apply(value == null
+            ? _currentFilters.copyWith(clearStatus: true)
+            : _currentFilters.copyWith(status: value));
+      },
+    );
+  }
+
+  /// Date presets first, custom range last. Dispatchers almost always want
+  /// "today" or "this week"; making them drive a two-ended calendar for that
+  /// was the slowest interaction on the board.
+  void _showDatePicker(BuildContext context) {
+    final l10n = context.l10n;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: Text(l10n.kanbanFilterDateRange),
+        children: [
+          ListTile(
+            title: Text(l10n.kanbanFilterAllDates),
+            trailing: (_currentFilters.dateFrom == null &&
+                    _currentFilters.dateTo == null)
+                ? const Icon(Icons.check)
+                : null,
+            onTap: () {
+              Navigator.of(dialogContext).pop();
+              _apply(_currentFilters.copyWith(
+                clearDateFrom: true,
+                clearDateTo: true,
+              ));
+            },
+          ),
+          ListTile(
+            title: Text(l10n.kanbanFilterDateToday),
+            onTap: () {
+              Navigator.of(dialogContext).pop();
+              _apply(_currentFilters.copyWith(dateFrom: today, dateTo: today));
+            },
+          ),
+          ListTile(
+            title: Text(l10n.kanbanFilterDateLast7Days),
+            onTap: () {
+              Navigator.of(dialogContext).pop();
+              _apply(_currentFilters.copyWith(
+                dateFrom: today.subtract(const Duration(days: 6)),
+                dateTo: today,
+              ));
+            },
+          ),
+          ListTile(
+            title: Text(l10n.kanbanFilterDateLast30Days),
+            onTap: () {
+              Navigator.of(dialogContext).pop();
+              _apply(_currentFilters.copyWith(
+                dateFrom: today.subtract(const Duration(days: 29)),
+                dateTo: today,
+              ));
+            },
+          ),
+          ListTile(
+            title: Text(l10n.kanbanFilterDateThisMonth),
+            onTap: () {
+              Navigator.of(dialogContext).pop();
+              _apply(_currentFilters.copyWith(
+                dateFrom: DateTime(today.year, today.month, 1),
+                dateTo: today,
+              ));
+            },
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.date_range),
+            title: Text(l10n.kanbanFilterDateCustom),
+            onTap: () async {
+              Navigator.of(dialogContext).pop();
+              await _showCustomDateRangePicker(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showCustomDateRangePicker(BuildContext context) async {
+    final from = _currentFilters.dateFrom;
+    final to = _currentFilters.dateTo;
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDateRange: from != null && to != null
+          ? DateTimeRange(start: from, end: to)
+          : null,
+    );
+
+    if (picked != null) {
+      _apply(_currentFilters.copyWith(
+        dateFrom: picked.start,
+        dateTo: picked.end,
+      ));
+    }
+  }
+
+  Future<void> _showAmountRangePicker(BuildContext context) async {
+    final range = await showDialog<_AmountRange>(
+      context: context,
+      builder: (_) => _AmountRangeDialog(
+        from: _currentFilters.amountFrom,
+        to: _currentFilters.amountTo,
+        format: _formatAmount,
+        parse: _parseAmount,
+      ),
+    );
+    if (range == null || !mounted) return;
+    _apply(_currentFilters.copyWith(
+      amountFrom: range.from,
+      amountTo: range.to,
+      clearAmountFrom: range.from == null,
+      clearAmountTo: range.to == null,
+    ));
+  }
+}
+
+/// Result of the customer picker. `customer == null` means "all customers";
+/// dismissing the dialog returns null instead, so "cleared" and "cancelled"
+/// stay distinguishable.
+class _CustomerSelection {
+  const _CustomerSelection(this.customer);
+  final String? customer;
+}
+
+class _CustomerPickerDialog extends StatefulWidget {
+  const _CustomerPickerDialog({required this.customers, required this.selected});
+
+  final List<CustomerOption> customers;
+  final String? selected;
+
+  @override
+  State<_CustomerPickerDialog> createState() => _CustomerPickerDialogState();
+}
+
+class _CustomerPickerDialogState extends State<_CustomerPickerDialog> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final query = _searchController.text.trim().toLowerCase();
+    final filteredCustomers = widget.customers.where((customer) {
+      if (query.isEmpty) return true;
+      return customer.customer.toLowerCase().contains(query) ||
+          customer.customerName.toLowerCase().contains(query);
+    }).toList();
+
+    return AlertDialog(
+      title: Text(l10n.kanbanFilterCustomerTitle),
+      content: SizedBox(
+        width: ResponsiveUtils.getDialogWidth(
+          context,
+          small: 500,
+          medium: 560,
+          large: 640,
+        ),
+        height: ResponsiveUtils.getDialogHeight(
+          context,
+          phoneFraction: 0.72,
+          tabletFraction: 0.5,
+          max: 360,
+        ),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            RadioGroup<String?>(
-              groupValue: _currentFilters.status,
-              onChanged: (value) {
-                setState(() {
-                  _currentFilters = value == null
-                      ? _currentFilters.copyWith(clearStatus: true)
-                      : _currentFilters.copyWith(status: value);
-                });
-                Navigator.of(context).pop();
-                _applyFilters();
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+            TextField(
+              controller: _searchController,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: l10n.kanbanFilterCustomerName,
+                hintText: l10n.kanbanFilterCustomerHint,
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: ListView(
                 children: [
-                  RadioListTile<String?>(
-                    title: Text(l10n.kanbanFilterAllStatuses),
-                    value: null,
-                    dense: true,
+                  ListTile(
+                    leading: const Icon(Icons.people_alt_outlined),
+                    title: Text(l10n.kanbanFilterAllCustomers),
+                    trailing: widget.selected?.isNotEmpty == true
+                        ? null
+                        : const Icon(Icons.check),
+                    onTap: () => Navigator.of(context)
+                        .pop(const _CustomerSelection(null)),
                   ),
-                  ...statuses.map(
-                    (status) => RadioListTile<String?>(
-                      title: Text(localizedStatusLabel(context, status)),
-                      value: status,
-                      dense: true,
+                  if (filteredCustomers.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Center(child: Text(l10n.masterOrdersNoResults)),
+                    )
+                  else
+                    ...filteredCustomers.map(
+                      (customer) => ListTile(
+                        title: Text(
+                          customer.customerName.isNotEmpty
+                              ? customer.customerName
+                              : customer.customer,
+                        ),
+                        subtitle: customer.customerName.isNotEmpty
+                            ? Text(customer.customer)
+                            : null,
+                        trailing: widget.selected == customer.customer
+                            ? const Icon(Icons.check)
+                            : null,
+                        onTap: () => Navigator.of(context)
+                            .pop(_CustomerSelection(customer.customer)),
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  void _showDateRangePicker(BuildContext context) async {
-    final DateTimeRange? picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      initialDateRange:
-          _currentFilters.dateFrom != null && _currentFilters.dateTo != null
-          ? DateTimeRange(
-              start: _currentFilters.dateFrom!,
-              end: _currentFilters.dateTo!,
-            )
-          : null,
-    );
-
-    if (picked != null) {
-      setState(() {
-        _currentFilters = _currentFilters.copyWith(
-          dateFrom: picked.start,
-          dateTo: picked.end,
-        );
-      });
-      _applyFilters();
-    }
-  }
-
-  void _showAmountRangePicker(BuildContext context) {
-    final l10n = context.l10n;
-    final fromController = TextEditingController(
-      text: _currentFilters.amountFrom?.toString() ?? '',
-    );
-    final toController = TextEditingController(
-      text: _currentFilters.amountTo?.toString() ?? '',
-    );
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.kanbanFilterAmountRange),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: fromController,
-              decoration: InputDecoration(
-                labelText: l10n.kanbanFilterFromAmount,
-                prefixText: '\$',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: toController,
-              decoration: InputDecoration(
-                labelText: l10n.kanbanFilterToAmount,
-                prefixText: '\$',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-          ],
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.commonCancel),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _currentFilters = _currentFilters.copyWith(
-                    clearAmountFrom: true,
-                    clearAmountTo: true,
-                );
-              });
-              Navigator.of(context).pop();
-              _applyFilters();
-            },
-            child: Text(l10n.commonClear),
-          ),
-          TextButton(
-            onPressed: () {
-              var fromAmount = _parseAmount(fromController.text);
-              var toAmount = _parseAmount(toController.text);
-              if (fromAmount != null && toAmount != null && fromAmount > toAmount) {
-                final temp = fromAmount;
-                fromAmount = toAmount;
-                toAmount = temp;
-              }
+      ],
+    );
+  }
+}
 
-              setState(() {
-                _currentFilters = _currentFilters.copyWith(
-                  amountFrom: fromAmount,
-                  amountTo: toAmount,
-                  clearAmountFrom: fromAmount == null,
-                  clearAmountTo: toAmount == null,
-                );
-              });
-              Navigator.of(context).pop();
-              _applyFilters();
-            },
-            child: Text(l10n.kanbanFilterApply),
+class _AmountRange {
+  const _AmountRange(this.from, this.to);
+  final double? from;
+  final double? to;
+}
+
+class _AmountRangeDialog extends StatefulWidget {
+  const _AmountRangeDialog({
+    required this.from,
+    required this.to,
+    required this.format,
+    required this.parse,
+  });
+
+  final double? from;
+  final double? to;
+  final String Function(double) format;
+  final double? Function(String) parse;
+
+  @override
+  State<_AmountRangeDialog> createState() => _AmountRangeDialogState();
+}
+
+class _AmountRangeDialogState extends State<_AmountRangeDialog> {
+  late final TextEditingController _fromController;
+  late final TextEditingController _toController;
+
+  @override
+  void initState() {
+    super.initState();
+    _fromController = TextEditingController(
+      text: widget.from == null ? '' : widget.format(widget.from!),
+    );
+    _toController = TextEditingController(
+      text: widget.to == null ? '' : widget.format(widget.to!),
+    );
+  }
+
+  @override
+  void dispose() {
+    _fromController.dispose();
+    _toController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final symbol = currencySymbol(context);
+
+    return AlertDialog(
+      title: Text(l10n.kanbanFilterAmountRange),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _fromController,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: l10n.kanbanFilterFromAmount,
+              prefixText: '$symbol ',
+            ),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _toController,
+            decoration: InputDecoration(
+              labelText: l10n.kanbanFilterToAmount,
+              prefixText: '$symbol ',
+            ),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onSubmitted: (_) => _submit(),
           ),
         ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () =>
+              Navigator.of(context).pop(const _AmountRange(null, null)),
+          child: Text(l10n.commonClear),
+        ),
+        TextButton(
+          onPressed: _submit,
+          child: Text(l10n.kanbanFilterApply),
+        ),
+      ],
     );
+  }
+
+  void _submit() {
+    var from = widget.parse(_fromController.text);
+    var to = widget.parse(_toController.text);
+    // A reversed range is a typo, not an empty result — swap rather than
+    // silently returning nothing.
+    if (from != null && to != null && from > to) {
+      final temp = from;
+      from = to;
+      to = temp;
+    }
+    Navigator.of(context).pop(_AmountRange(from, to));
   }
 }
