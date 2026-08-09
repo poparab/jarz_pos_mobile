@@ -30,6 +30,22 @@ class _LeadsListScreenState extends ConsumerState<LeadsListScreen> {
   void initState() {
     super.initState();
     _searchController.text = ref.read(leadFilterProvider).searchText;
+    // Revalidate whenever the screen is entered. The catalog is a Hive-backed
+    // cache and every filter runs against it client-side, so a stage or
+    // suitability change made on the server — by this rep on the detail screen,
+    // or by a colleague — would otherwise keep filtering against stale rows
+    // until someone thought to press refresh. The refresh keeps the current
+    // rows on screen while it runs, so this is invisible when nothing changed.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(leadsProvider.notifier).refresh();
+    });
+  }
+
+  /// Opens a lead and revalidates on the way back, so an edit made in there is
+  /// reflected by the filters immediately rather than after a manual refresh.
+  Future<void> _openLead(String name) async {
+    await context.push('/leads/${Uri.encodeComponent(name)}');
+    if (mounted) ref.read(leadsProvider.notifier).refresh();
   }
 
   @override
@@ -90,23 +106,38 @@ class _LeadsListScreenState extends ConsumerState<LeadsListScreen> {
             ),
             const Divider(height: 1, color: LeadsTheme.line),
             Expanded(
-              child: filtered.isEmpty
-                  ? const _EmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.only(top: 4, bottom: 96),
-                      itemCount: filtered.length,
-                      itemExtent: null,
-                      itemBuilder: (context, index) {
-                        final lead = filtered[index];
-                        return LeadCard(
-                          key: ValueKey(lead.name),
-                          lead: lead,
-                          onTap: () => context.push(
-                            '/leads/${Uri.encodeComponent(lead.name)}',
-                          ),
-                        );
-                      },
-                    ),
+              // Pull-to-refresh as well as the automatic revalidation: when a
+              // rep is already looking at the list and knows something changed,
+              // the gesture is faster than leaving and coming back.
+              child: RefreshIndicator(
+                color: LeadsTheme.berryPink,
+                onRefresh: () => ref.read(leadsProvider.notifier).refresh(),
+                // AlwaysScrollable so the pull gesture is available even when
+                // the filters have left too few rows to fill the viewport —
+                // which is exactly when a rep most wants to re-check.
+                child: filtered.isEmpty
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 80),
+                          _EmptyState(),
+                        ],
+                      )
+                    : ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.only(top: 4, bottom: 96),
+                        itemCount: filtered.length,
+                        itemExtent: null,
+                        itemBuilder: (context, index) {
+                          final lead = filtered[index];
+                          return LeadCard(
+                            key: ValueKey(lead.name),
+                            lead: lead,
+                            onTap: () => _openLead(lead.name),
+                          );
+                        },
+                      ),
+              ),
             ),
           ],
         ),

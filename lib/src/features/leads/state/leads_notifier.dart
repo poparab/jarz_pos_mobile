@@ -38,13 +38,29 @@ class LeadsNotifier extends AsyncNotifier<List<Lead>> {
   }
 
   /// Force-refreshes from the network, updating the cache on success.
+  ///
+  /// Keeps the current catalog on screen while the request is in flight rather
+  /// than emitting a bare [AsyncValue.loading]: a bare loading state replaces
+  /// the whole list with a spinner, losing scroll position and making a
+  /// routine revalidation look like a reload. `copyWithPrevious` keeps the old
+  /// rows visible and merely marks them stale, which is what lets this be
+  /// called automatically instead of only from a button.
   Future<void> refresh() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    final previous = state;
+    state = const AsyncValue<List<Lead>>.loading().copyWithPrevious(previous);
+    final next = await AsyncValue.guard(() async {
       final fresh = await _repo.getLeads();
       await _writeCache(fresh);
       return fresh;
     });
+    // A failed background revalidation must not blank a catalog the rep is
+    // reading — keep the last good data and let the next attempt fix it. With
+    // no previous data there is nothing to preserve, so the error surfaces.
+    if (next.hasError && previous.hasValue) {
+      state = previous;
+      return;
+    }
+    state = next;
   }
 
   Future<Box> _openBox() async {

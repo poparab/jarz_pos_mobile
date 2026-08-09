@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../data/models/lead.dart';
 import '../../state/lead_filter.dart';
+import '../../state/leads_notifier.dart';
 import '../leads_theme.dart';
 import '../widgets/filter_sheet.dart';
 import '../widgets/lead_map.dart';
@@ -28,6 +29,18 @@ class LeadsMapScreen extends ConsumerStatefulWidget {
 
 class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
   Lead? _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    // Same reason as the list: every filter here runs against the cached
+    // catalog, so a stage changed on the server has to be pulled in or the
+    // stage strip filters against stale pins. The refresh keeps the current
+    // markers up while it runs.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(leadsProvider.notifier).refresh();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
