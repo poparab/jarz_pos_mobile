@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/models/lead.dart';
+import '../../domain/lead_clustering.dart';
+import '../../state/lead_categories_notifier.dart';
 import '../../state/lead_filter.dart';
 import '../../state/leads_notifier.dart';
+import '../../state/my_location_notifier.dart';
 import '../leads_theme.dart';
 import '../widgets/filter_sheet.dart';
 import '../widgets/lead_map.dart';
@@ -29,6 +33,8 @@ class LeadsMapScreen extends ConsumerStatefulWidget {
 
 class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
   Lead? _selected;
+  final _mapController = MapController();
+  bool _showLegend = false;
 
   @override
   void initState() {
@@ -42,13 +48,56 @@ class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
     });
   }
 
+  /// Ask for a fix, then centre on it. Every refusal gets an explanation and,
+  /// where one exists, a way out — a map that just fails to grow a blue dot is
+  /// indistinguishable from a broken map.
+  Future<void> _locate(MyLocationState current) async {
+    final notifier = ref.read(myLocationProvider.notifier);
+    await notifier.locate();
+    if (!mounted) return;
+
+    final state = ref.read(myLocationProvider);
+    if (state.hasPosition) {
+      _mapController.move(state.position!, 14);
+      return;
+    }
+
+    final message = switch (state.status) {
+      MyLocationStatus.serviceDisabled =>
+        'Location services are off. Turn them on in your device settings.',
+      MyLocationStatus.deniedForever =>
+        'Location permission is blocked for this app.',
+      MyLocationStatus.denied => 'Location permission was declined.',
+      _ => 'Could not get a location fix. Try again outdoors.',
+    };
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        action: state.status == MyLocationStatus.deniedForever
+            ? SnackBarAction(
+                label: 'Settings',
+                onPressed: () => notifier.openSettings(),
+              )
+            : null,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final filtered = ref.watch(filteredLeadsProvider);
     final filter = ref.watch(leadFilterProvider);
-    final located = filtered
-        .where((l) => l.latitude != null && l.longitude != null)
-        .toList();
+    final location = ref.watch(myLocationProvider);
+    final located = locatableLeads(filtered);
+
+    // Colour source for the pins: the colour configured on each category
+    // master, so the map, the filter chips and Desk all agree.
+    final categoryColors = <String, String?>{
+      for (final c in ref.watch(leadCategoriesProvider).valueOrNull ??
+          const <LeadCategory>[])
+        c.name: c.color,
+    };
 
     return Scaffold(
       backgroundColor: LeadsTheme.bg,
@@ -77,6 +126,11 @@ class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
         children: [
           LeadMap(
             leads: filtered,
+            mapController: _mapController,
+            categoryColors: categoryColors,
+            myLocation: location.position,
+            myLocationAccuracy: location.accuracyMetres,
+            selected: _selected,
             onMarkerTap: (lead) => setState(() => _selected = lead),
           ),
           // Count pill.
@@ -104,6 +158,48 @@ class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
               ),
             ),
           ),
+          // Locate-me + legend, stacked bottom-right clear of the marker card.
+          Positioned(
+            right: 12,
+            bottom: _selected == null ? 20 : 150,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (categoryColors.isNotEmpty)
+                  _RoundMapButton(
+                    icon: _showLegend ? Icons.close : Icons.palette_outlined,
+                    tooltip: _showLegend ? 'Hide legend' : 'Category legend',
+                    onTap: () => setState(() => _showLegend = !_showLegend),
+                  ),
+                const SizedBox(height: 10),
+                _RoundMapButton(
+                  icon: location.hasPosition
+                      ? Icons.my_location
+                      : Icons.location_searching,
+                  tooltip: 'Show my location',
+                  busy: location.isBusy,
+                  active: location.hasPosition,
+                  onTap: () => _locate(location),
+                ),
+              ],
+            ),
+          ),
+
+          if (_showLegend && categoryColors.isNotEmpty)
+            Positioned(
+              right: 12,
+              bottom: _selected == null ? 90 : 220,
+              child: _CategoryLegend(
+                // Only categories actually on screen: a legend listing
+                // categories the filters have excluded is noise.
+                categories: {
+                  for (final lead in located)
+                    if ((lead.category ?? '').isNotEmpty)
+                      lead.category!: categoryColors[lead.category],
+                },
+              ),
+            ),
+
           if (_selected != null)
             Positioned(
               left: 12,
@@ -111,6 +207,9 @@ class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
               bottom: 20,
               child: _MarkerCard(
                 lead: _selected!,
+                distanceMetres: location.position == null
+                    ? null
+                    : metresToLead(location.position!, _selected!),
                 onClose: () => setState(() => _selected = null),
                 onOpen: () => context.push(
                   '/leads/${Uri.encodeComponent(_selected!.name)}',
@@ -181,9 +280,13 @@ class _MarkerCard extends StatelessWidget {
     required this.lead,
     required this.onClose,
     required this.onOpen,
+    this.distanceMetres,
   });
 
   final Lead lead;
+
+  /// Straight-line metres from the rep. Null when no position is known.
+  final double? distanceMetres;
   final VoidCallback onClose;
   final VoidCallback onOpen;
 
@@ -234,6 +337,28 @@ class _MarkerCard extends StatelessWidget {
                       ].join('  ·  '),
                       style: LeadsTheme.bodyMuted,
                     ),
+                    if (distanceMetres != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.straighten,
+                              size: 13, color: Color(0xFF1B6CA8)),
+                          const SizedBox(width: 4),
+                          Text(
+                            // "straight line" is stated, not implied: this is
+                            // not a driving distance and a rep planning a
+                            // route must not read it as one.
+                            '${formatDistance(distanceMetres!)} away '
+                            '(straight line)',
+                            style: LeadsTheme.bodyMuted.copyWith(
+                              color: const Color(0xFF1B6CA8),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -246,6 +371,125 @@ class _MarkerCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// A circular white map control. Sized for a thumb on a phone held one-handed.
+class _RoundMapButton extends StatelessWidget {
+  const _RoundMapButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.busy = false,
+    this.active = false,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final bool busy;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.white,
+        shape: const CircleBorder(),
+        elevation: 3,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: busy ? null : onTap,
+          child: SizedBox(
+            width: 46,
+            height: 46,
+            child: busy
+                ? const Padding(
+                    padding: EdgeInsets.all(13),
+                    child: CircularProgressIndicator(strokeWidth: 2.4),
+                  )
+                : Icon(
+                    icon,
+                    color: active
+                        ? const Color(0xFF1B6CA8)
+                        : LeadsTheme.deepPlum,
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Which colour means which category. Without it the pins are decorative.
+class _CategoryLegend extends StatelessWidget {
+  const _CategoryLegend({required this.categories});
+
+  /// Category name -> configured colour (null falls back to the palette).
+  final Map<String, String?> categories;
+
+  @override
+  Widget build(BuildContext context) {
+    final names = categories.keys.toList()..sort();
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 210, maxHeight: 260),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Categories',
+              style: LeadsTheme.body.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 6),
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final name in names)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 13,
+                            height: 13,
+                            decoration: BoxDecoration(
+                              color: LeadsTheme.categoryColor(
+                                name,
+                                configuredColor: categories[name],
+                              ),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: Colors.white, width: 1.5),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: LeadsTheme.bodyMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

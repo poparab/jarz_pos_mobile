@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models/lead.dart';
+import '../../domain/lead_clustering.dart';
 import '../leads_theme.dart';
 import 'lead_actions.dart';
 import 'sahel_badge.dart';
@@ -10,10 +11,20 @@ import 'tier_pill.dart';
 /// A single row in the leads list: score + bar on the left, the brand's
 /// identity + metrics in the middle, quick contact actions at the bottom.
 class LeadCard extends StatelessWidget {
-  const LeadCard({super.key, required this.lead, required this.onTap});
+  const LeadCard({
+    super.key,
+    required this.lead,
+    required this.onTap,
+    this.distanceMetres,
+  });
 
   final Lead lead;
   final VoidCallback onTap;
+
+  /// Straight-line metres from the rep, when a position is known. Null hides
+  /// the badge entirely rather than showing a placeholder — an unknown
+  /// distance is not a distance.
+  final double? distanceMetres;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +76,12 @@ class LeadCard extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         if (lead.notSuitable) const _NotSuitableBadge(),
+                        if (distanceMetres != null)
+                          _Metric(
+                            icon: Icons.straighten,
+                            iconColor: const Color(0xFF1B6CA8),
+                            label: formatDistance(distanceMetres!),
+                          ),
                         if (lead.sahelBranches > 0)
                           SahelBadge(lead.sahelBranches),
                         _Metric(

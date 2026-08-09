@@ -66,6 +66,7 @@ dependencies:
 
   # Charts for analytics dashboards
   fl_chart: ^0.69.0
+  geolocator: ^14.0.2
 
 dev_dependencies:
   flutter_test:

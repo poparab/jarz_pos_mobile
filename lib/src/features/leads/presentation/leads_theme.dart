@@ -76,6 +76,50 @@ abstract final class LeadsTheme {
 
   // ── Tier pill colors ──────────────────────────────────────────────────
   /// Returns background + foreground for a tier pill.
+  /// Fallback palette for lead categories the backend has given no colour.
+  ///
+  /// Picked to stay distinguishable against OSM tiles — which are pale beige,
+  /// grey and green — so no entry is a washed-out pastel or a road-yellow.
+  /// Assignment is by a stable hash of the category name, so a category keeps
+  /// its colour across sessions and devices without anything being stored.
+  static const categoryPalette = <Color>[
+    Color(0xFFD7263D), // red
+    Color(0xFF1B6CA8), // blue
+    Color(0xFF2E933C), // green
+    Color(0xFF7B2CBF), // purple
+    Color(0xFFE07A00), // orange
+    Color(0xFF00838F), // teal
+    Color(0xFFB5179E), // magenta
+    Color(0xFF5C4033), // brown
+  ];
+
+  /// The colour for a category. Prefers the colour configured on the
+  /// `Jarz Lead Category` master so the map agrees with the filter chips;
+  /// falls back to a stable palette entry when none is set.
+  static Color categoryColor(String? category, {String? configuredColor}) {
+    final parsed = parseHexColor(configuredColor);
+    if (parsed != null) return parsed;
+    final key = (category ?? '').trim().toLowerCase();
+    if (key.isEmpty) return muted;
+    var hash = 0;
+    for (final unit in key.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+    return categoryPalette[hash % categoryPalette.length];
+  }
+
+  /// Parses `#RRGGBB` / `#AARRGGBB` / bare hex. Null when unusable, so a
+  /// mistyped colour in Desk degrades to the palette instead of crashing.
+  static Color? parseHexColor(String? value) {
+    var hex = (value ?? '').trim();
+    if (hex.isEmpty) return null;
+    if (hex.startsWith('#')) hex = hex.substring(1);
+    if (hex.length == 6) hex = 'FF$hex';
+    if (hex.length != 8) return null;
+    final parsed = int.tryParse(hex, radix: 16);
+    return parsed == null ? null : Color(parsed);
+  }
+
   static ({Color bg, Color fg}) tierColors(String tier) {
     switch (tier.trim().toUpperCase()) {
       case 'A':

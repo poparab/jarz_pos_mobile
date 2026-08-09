@@ -1,11 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../b2b/presentation/widgets/b2b_stage_chip.dart' show kDefaultB2bStage;
 import '../data/models/lead.dart';
+import '../domain/lead_clustering.dart';
 import 'leads_notifier.dart';
+import 'my_location_notifier.dart';
 
 /// How the filtered list is ordered.
-enum LeadSortBy { score, rating, reviews, branches, name }
+///
+/// [distance] needs the device position and is ignored without one, so the
+/// catalog silently keeps its previous order rather than shuffling into an
+/// arbitrary one when a fix is unavailable.
+enum LeadSortBy { score, rating, reviews, branches, name, distance }
 
 /// The full set of filters applied to the lead catalog. Immutable; mutate via
 /// [copyWith]. Search is case-insensitive and Arabic-friendly.
@@ -194,16 +201,23 @@ String _norm(String value) => value.toLowerCase().trim();
 final filteredLeadsProvider = Provider<List<Lead>>((ref) {
   final catalog = ref.watch(leadsProvider).valueOrNull ?? const <Lead>[];
   final f = ref.watch(leadFilterProvider);
-  return applyLeadFilter(catalog, f);
+  // Only watched so a "nearest first" sort re-runs when a fix arrives; with
+  // any other sort the position is unused and this is inert.
+  final origin = ref.watch(myLocationProvider).position;
+  return applyLeadFilter(catalog, f, origin: origin);
 });
 
 /// Pure filter + sort applied by [filteredLeadsProvider]. Extracted so it can be
 /// unit-tested without a network/Hive-backed catalog. Never mutates [catalog];
 /// returns a fresh, sorted list.
-List<Lead> applyLeadFilter(List<Lead> catalog, LeadFilter f) {
+List<Lead> applyLeadFilter(
+  List<Lead> catalog,
+  LeadFilter f, {
+  LatLng? origin,
+}) {
   final query = _norm(f.searchText);
   final result = catalog.where((lead) => _matchesLead(lead, f, query)).toList();
-  sortLeads(result, f);
+  sortLeads(result, f, origin: origin);
   return result;
 }
 
@@ -281,7 +295,20 @@ bool _matchesLead(Lead lead, LeadFilter f, String query) {
 }
 
 /// Sorts [leads] in place per [f]'s sort key + direction.
-void sortLeads(List<Lead> leads, LeadFilter f) {
+///
+/// [origin] is required only by [LeadSortBy.distance]; without it that sort is
+/// a no-op, because ordering by a distance nobody can compute would silently
+/// reorder the catalog for no reason the rep could see.
+void sortLeads(List<Lead> leads, LeadFilter f, {LatLng? origin}) {
+  if (f.sortBy == LeadSortBy.distance) {
+    if (origin == null) return;
+    final byDistance = sortByDistance(leads, origin);
+    leads
+      ..clear()
+      ..addAll(f.sortDescending ? byDistance.reversed : byDistance);
+    return;
+  }
+
   int cmp(Lead a, Lead b) {
     switch (f.sortBy) {
       case LeadSortBy.score:
@@ -294,6 +321,8 @@ void sortLeads(List<Lead> leads, LeadFilter f) {
         return a.branchCount.compareTo(b.branchCount);
       case LeadSortBy.name:
         return a.leadName.toLowerCase().compareTo(b.leadName.toLowerCase());
+      case LeadSortBy.distance:
+        return 0; // handled above, where the origin is in scope
     }
   }
 

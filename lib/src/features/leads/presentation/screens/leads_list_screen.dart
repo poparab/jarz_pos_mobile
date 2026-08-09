@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../data/models/lead.dart';
+import '../../domain/lead_clustering.dart';
 import '../../state/lead_categories_notifier.dart';
 import '../../state/lead_filter.dart';
 import '../../state/leads_notifier.dart';
+import '../../state/my_location_notifier.dart';
 import '../leads_theme.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/filter_sheet.dart';
@@ -59,6 +61,7 @@ class _LeadsListScreenState extends ConsumerState<LeadsListScreen> {
     final leadsAsync = ref.watch(leadsProvider);
     final filtered = ref.watch(filteredLeadsProvider);
     final filter = ref.watch(leadFilterProvider);
+    final origin = ref.watch(myLocationProvider).position;
 
     return Scaffold(
       backgroundColor: LeadsTheme.bg,
@@ -133,6 +136,9 @@ class _LeadsListScreenState extends ConsumerState<LeadsListScreen> {
                           return LeadCard(
                             key: ValueKey(lead.name),
                             lead: lead,
+                            distanceMetres: origin == null
+                                ? null
+                                : metresToLead(origin, lead),
                             onTap: () => _openLead(lead.name),
                           );
                         },
@@ -410,6 +416,7 @@ class _SortButton extends ConsumerWidget {
     LeadSortBy.reviews: 'Reviews',
     LeadSortBy.branches: 'Branches',
     LeadSortBy.name: 'Name',
+    LeadSortBy.distance: 'Nearest',
   };
 
   @override
@@ -419,6 +426,12 @@ class _SortButton extends ConsumerWidget {
       tooltip: 'Sort',
       icon: const Icon(Icons.sort, color: LeadsTheme.deepPlum),
       onSelected: (sortBy) {
+        // "Nearest" is meaningless without a fix, and silently doing nothing
+        // would read as a broken menu item — so choosing it asks for one.
+        if (sortBy == LeadSortBy.distance &&
+            ref.read(myLocationProvider).position == null) {
+          ref.read(myLocationProvider.notifier).locate();
+        }
         // Tapping the current sort toggles direction.
         final descending =
             filter.sortBy == sortBy ? !filter.sortDescending : true;
