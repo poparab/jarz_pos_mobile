@@ -195,11 +195,81 @@ void main() {
         catalog,
         const LeadFilter(
           selectedTiers: {'A', 'B', 'C', 'REF'},
-          selectedArea: 'Zamalek',
+          selectedAreas: {'Zamalek'},
         ),
       );
       expect(result.every((l) => l.primaryArea == 'Zamalek'), isTrue);
       expect(_names(result), containsAll(['L-A1', 'L-REF1', 'L-B2']));
+    });
+
+    test('empty selection means every area', () {
+      final result = applyLeadFilter(
+        catalog,
+        const LeadFilter(selectedTiers: {'A', 'B', 'C', 'REF'}),
+      );
+      expect(result, hasLength(catalog.length));
+    });
+
+    test('several areas at once are an OR, not successive narrowing', () {
+      // The whole point of the change: one trip covers several
+      // neighbourhoods, so picking two must widen the result, not empty it.
+      final result = applyLeadFilter(
+        catalog,
+        const LeadFilter(
+          selectedTiers: {'A', 'B', 'C', 'REF'},
+          selectedAreas: {'Zamalek', 'Maadi'},
+        ),
+      );
+      expect(
+        _names(result).toSet(),
+        {'L-A1', 'L-REF1', 'L-B2', 'L-B1', 'L-A3'},
+      );
+      expect(_names(result), isNot(contains('L-C1'))); // Nasr City
+      expect(_names(result), isNot(contains('L-B3'))); // Downtown
+    });
+
+    test('adding an area never shrinks the result', () {
+      const oneArea = LeadFilter(
+        selectedTiers: {'A', 'B', 'C', 'REF'},
+        selectedAreas: {'Zamalek'},
+      );
+      const twoAreas = LeadFilter(
+        selectedTiers: {'A', 'B', 'C', 'REF'},
+        selectedAreas: {'Zamalek', 'Downtown'},
+      );
+      expect(
+        applyLeadFilter(catalog, twoAreas).length,
+        greaterThan(applyLeadFilter(catalog, oneArea).length),
+      );
+    });
+
+    test('an area nothing sits in returns nothing', () {
+      final result = applyLeadFilter(
+        catalog,
+        const LeadFilter(
+          selectedTiers: {'A', 'B', 'C', 'REF'},
+          selectedAreas: {'Alexandria'},
+        ),
+      );
+      expect(result, isEmpty);
+    });
+
+    test('area ANDs with the other filters rather than replacing them', () {
+      // Zamalek OR Maadi, but only tier B — the area set widens within
+      // itself and still intersects everything else.
+      final result = applyLeadFilter(
+        catalog,
+        const LeadFilter(
+          selectedTiers: {'B'},
+          selectedAreas: {'Zamalek', 'Maadi'},
+        ),
+      );
+      expect(_names(result).toSet(), {'L-B1', 'L-B2'});
+    });
+
+    test('clearedAdvanced keeps the area selection', () {
+      const on = LeadFilter(selectedAreas: {'Zamalek', 'Maadi'});
+      expect(on.clearedAdvanced().selectedAreas, {'Zamalek', 'Maadi'});
     });
   });
 
@@ -626,7 +696,7 @@ void main() {
         const LeadFilter(
           selectedTiers: {'A'},
           selectedCategory: 'Cafe',
-          selectedArea: 'Zamalek',
+          selectedAreas: {'Zamalek'},
           hasPhone: true,
         ),
       );
@@ -653,7 +723,7 @@ void main() {
       const custom = LeadFilter(
         selectedTiers: {'C'},
         selectedCategory: 'Cafe',
-        selectedArea: 'Maadi',
+        selectedAreas: {'Maadi'},
         searchText: 'x',
         ratingMin: 2,
         minBranches: 5,

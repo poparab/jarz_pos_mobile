@@ -6,6 +6,7 @@ import '../../../b2b/presentation/widgets/b2b_stage_chip.dart'
 import '../../state/lead_filter.dart';
 import '../../state/leads_notifier.dart';
 import '../leads_theme.dart';
+import 'area_picker_sheet.dart';
 
 /// Bottom sheet with the advanced filters: pipeline stage, rating range, min
 /// reviews, min branch count, has-Sahel, specialty-only, presence toggles,
@@ -43,8 +44,17 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
     final filter = ref.watch(leadFilterProvider);
     final notifier = ref.read(leadFilterProvider.notifier);
 
-    // Distinct price bands present in the catalog.
     final catalog = ref.watch(leadsProvider).valueOrNull ?? const [];
+
+    // Distinct areas present in the catalog — same source as the list bar's
+    // picker, so both surfaces offer exactly the options that can match.
+    final areas = <String>{
+      for (final l in catalog)
+        if (l.primaryArea.trim().isNotEmpty) l.primaryArea.trim(),
+    }.toList()
+      ..sort();
+
+    // Distinct price bands present in the catalog.
     final priceBands = <String>{
       for (final l in catalog)
         if (l.priceBand.trim().isNotEmpty) l.priceBand.trim(),
@@ -100,6 +110,16 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             ),
             const SizedBox(height: 16),
 
+            // Areas. Reachable from here because the map has no filter bar of
+            // its own, and area is one of the two narrowings a rep changes
+            // while planning a route.
+            _label('Areas'),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: AreaFilterButton(areas: areas),
+            ),
+
+            const SizedBox(height: 12),
             // Pipeline stage. "All" is a real chip rather than an implicit
             // empty state, so clearing the narrowing is one tap and the sheet
             // never looks like it has no stage selected by accident.

@@ -25,7 +25,11 @@ class LeadFilter {
   /// would read as a bug.
   final Set<String> selectedStages;
   final String? selectedCategory;
-  final String? selectedArea; // null / '' == all areas
+  /// Areas to keep. EMPTY means "every area" — the same opt-in-narrowing rule
+  /// as [selectedStages], and the opposite of [selectedTiers] where empty
+  /// means none. A rep works several neighbourhoods in one trip, so this is a
+  /// set rather than the single choice it used to be.
+  final Set<String> selectedAreas;
   final String searchText;
   final double ratingMin;
   final double ratingMax;
@@ -47,7 +51,7 @@ class LeadFilter {
     this.selectedTiers = const {'A', 'B'},
     this.selectedStages = const {},
     this.selectedCategory,
-    this.selectedArea,
+    this.selectedAreas = const {},
     this.searchText = '',
     this.ratingMin = 0.0,
     this.ratingMax = 5.0,
@@ -68,7 +72,7 @@ class LeadFilter {
     Set<String>? selectedTiers,
     Set<String>? selectedStages,
     Object? selectedCategory = _sentinel,
-    Object? selectedArea = _sentinel,
+    Set<String>? selectedAreas,
     String? searchText,
     double? ratingMin,
     double? ratingMax,
@@ -90,8 +94,7 @@ class LeadFilter {
       selectedCategory: selectedCategory == _sentinel
           ? this.selectedCategory
           : selectedCategory as String?,
-      selectedArea:
-          selectedArea == _sentinel ? this.selectedArea : selectedArea as String?,
+      selectedAreas: selectedAreas ?? this.selectedAreas,
       searchText: searchText ?? this.searchText,
       ratingMin: ratingMin ?? this.ratingMin,
       ratingMax: ratingMax ?? this.ratingMax,
@@ -136,7 +139,7 @@ class LeadFilter {
     return LeadFilter(
       selectedTiers: selectedTiers,
       selectedCategory: selectedCategory,
-      selectedArea: selectedArea,
+      selectedAreas: selectedAreas,
       searchText: searchText,
       sortBy: sortBy,
       sortDescending: sortDescending,
@@ -178,7 +181,20 @@ class LeadFilterNotifier extends Notifier<LeadFilter> {
   void setCategory(String? category) =>
       state = state.copyWith(selectedCategory: category);
 
-  void setArea(String? area) => state = state.copyWith(selectedArea: area);
+  void toggleArea(String area) {
+    final next = Set<String>.from(state.selectedAreas);
+    if (next.contains(area)) {
+      next.remove(area);
+    } else {
+      next.add(area);
+    }
+    state = state.copyWith(selectedAreas: next);
+  }
+
+  void setAreas(Set<String> areas) =>
+      state = state.copyWith(selectedAreas: areas);
+
+  void clearAreas() => state = state.copyWith(selectedAreas: const {});
 
   void setSearch(String text) => state = state.copyWith(searchText: text);
 
@@ -249,9 +265,11 @@ bool _matchesLead(Lead lead, LeadFilter f, String query) {
     if ((lead.category ?? '') != f.selectedCategory) return false;
   }
 
-  // Area (matches primary area).
-  if (f.selectedArea != null && f.selectedArea!.isNotEmpty) {
-    if (lead.primaryArea != f.selectedArea) return false;
+  // Area: OR across the selection, matched on the lead's PRIMARY area — the
+  // same field the options list is built from, so every option can actually
+  // match something. Empty selection means every area.
+  if (f.selectedAreas.isNotEmpty) {
+    if (!f.selectedAreas.contains(lead.primaryArea.trim())) return false;
   }
 
   // Rating range (leads with no rating pass only when range is the default).

@@ -11,6 +11,7 @@ import '../../state/lead_filter.dart';
 import '../../state/leads_notifier.dart';
 import '../../state/my_location_notifier.dart';
 import '../leads_theme.dart';
+import '../widgets/area_picker_sheet.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/filter_sheet.dart';
 import '../widgets/lead_card.dart';
@@ -321,41 +322,11 @@ class _FilterBar extends ConsumerWidget {
                     ),
                   ),
                 const Spacer(),
-                _AreaDropdown(areas: areas, selected: filter.selectedArea),
+                AreaFilterButton(areas: areas),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _AreaDropdown extends ConsumerWidget {
-  const _AreaDropdown({required this.areas, required this.selected});
-
-  final List<String> areas;
-  final String? selected;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return DropdownButtonHideUnderline(
-      child: DropdownButton<String?>(
-        value: selected,
-        hint: const Text('All areas', style: LeadsTheme.bodyMuted),
-        isDense: true,
-        icon: const Icon(Icons.expand_more, size: 18),
-        style: LeadsTheme.body,
-        items: [
-          const DropdownMenuItem<String?>(
-            value: null,
-            child: Text('All areas'),
-          ),
-          for (final area in areas)
-            DropdownMenuItem<String?>(value: area, child: Text(area)),
-        ],
-        onChanged: (value) =>
-            ref.read(leadFilterProvider.notifier).setArea(value),
       ),
     );
   }
