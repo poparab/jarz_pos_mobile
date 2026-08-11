@@ -18,9 +18,28 @@ class B2bPipelineNotifier extends AsyncNotifier<B2bPipeline> {
     return _repo.getPipeline();
   }
 
+  /// Re-fetches the board.
+  ///
+  /// Keeps the current columns on screen while the request is in flight rather
+  /// than emitting a bare [AsyncValue.loading], which would replace the whole
+  /// board with a spinner. That matters now the screen refreshes automatically
+  /// on entry: a spinner flash on every visit would be worse than the staleness
+  /// it fixes. `AsyncValue.when` shows the retained data during a refresh, so
+  /// only the genuine first load renders a spinner.
+  ///
+  /// A failed background revalidation keeps the last good board instead of
+  /// replacing it with an error page — a dropped connection should not wipe
+  /// the cards a rep is looking at. With nothing to fall back on the error
+  /// surfaces, because then there is nothing else to show.
   Future<void> refresh() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(_repo.getPipeline);
+    final previous = state;
+    state = const AsyncValue<B2bPipeline>.loading().copyWithPrevious(previous);
+    final next = await AsyncValue.guard(_repo.getPipeline);
+    if (next.hasError && previous.hasValue) {
+      state = previous;
+      return;
+    }
+    state = next;
   }
 
   /// Optimistically moves [card] to [stage], then confirms with the server.

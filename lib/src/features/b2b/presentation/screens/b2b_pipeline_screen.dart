@@ -12,11 +12,38 @@ import '../widgets/b2b_pipeline_column.dart';
 /// The B2B sales Pipeline Kanban: columns are stages, cards are draggable to
 /// advance a Lead/Opportunity to a new stage. This is a SEPARATE board from the
 /// dispatch (fulfillment) Kanban.
-class B2bPipelineScreen extends ConsumerWidget {
+class B2bPipelineScreen extends ConsumerStatefulWidget {
   const B2bPipelineScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<B2bPipelineScreen> createState() => _B2bPipelineScreenState();
+}
+
+class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Revalidate on every entry.
+    //
+    // b2bPipelineProvider is a keep-alive AsyncNotifier that nothing
+    // invalidates, so its build() ran exactly ONCE per app process: whatever
+    // that first attempt produced — stale columns, or an error from a cold
+    // start before the session was attached — was then frozen for the rest of
+    // the session, and the header Refresh button was the only way out. That is
+    // the "doesn't load automatically" report.
+    //
+    // Its sibling b2bTodayProvider is autoDispose and re-fetches on every
+    // visit; this board was simply the odd one out. Refreshing here gives the
+    // same behaviour without changing the provider's lifetime, which several
+    // other screens call refresh() on. The refresh keeps the current columns
+    // on screen, so this is invisible when nothing changed.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(b2bPipelineProvider.notifier).refresh();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final pipelineAsync = ref.watch(b2bPipelineProvider);
     final notifier = ref.read(b2bPipelineProvider.notifier);
     final rolesAsync = ref.watch(userRolesFutureProvider);
@@ -80,11 +107,14 @@ class B2bPipelineScreen extends ConsumerWidget {
     );
   }
 
-  void _openAccount(BuildContext context, B2bCard card) {
-    context.push(
+  /// Opens an account and revalidates on the way back, so a stage change made
+  /// in there is on the board immediately rather than after a manual refresh.
+  Future<void> _openAccount(BuildContext context, B2bCard card) async {
+    await context.push(
       AppRoutes.b2bAccount,
       extra: <String, dynamic>{'doctype': card.doctype, 'name': card.name},
     );
+    if (mounted) ref.read(b2bPipelineProvider.notifier).refresh();
   }
 
   /// The forward stages that warrant a follow-up reminder, with a smart default

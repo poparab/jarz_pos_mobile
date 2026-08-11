@@ -8,6 +8,7 @@ import '../data/auth_repository.dart';
 import '../../../core/router.dart';
 import '../../../core/constants/storage_keys.dart';
 import '../../../core/network/user_service.dart';
+import '../../b2b/state/b2b_pipeline_notifier.dart';
 import '../../manager/state/manager_providers.dart';
 import '../../shift/state/shift_notifier.dart';
 import '../../pos/state/pos_notifier.dart';
@@ -98,8 +99,9 @@ class LoginNotifier extends AsyncNotifier<bool> {
 
   /// Reset all user-scoped Riverpod state and per-user Hive caches so that no
   /// previous-user data (POS profile/cart/customer/promos/amendment context,
-  /// shift, roles + derived permissions, manager filters, draft carts, leads
-  /// and inventory-count caches) leaks across a logout → login-as-another-user
+  /// shift, roles + derived permissions, manager filters, draft carts, the B2B
+  /// pipeline board, leads and inventory-count caches) leaks across a
+  /// logout → login-as-another-user
   /// switch.
   ///
   /// Deliberately does NOT touch device-global state that must survive a user
@@ -127,6 +129,10 @@ class LoginNotifier extends AsyncNotifier<bool> {
     ref.invalidate(canAccessB2bProvider);
     ref.invalidate(canMuteNotificationsProvider);
     ref.invalidate(requirePosShiftProvider);
+    // The B2B pipeline board. It is a keep-alive AsyncNotifier whose build()
+    // runs once per app process, so without this the previous rep's columns
+    // survived a user switch — exactly the leak this method exists to stop.
+    ref.invalidate(b2bPipelineProvider);
     // Manager dashboard access + filter selections.
     ref.invalidate(managerAccessProvider);
     ref.invalidate(selectedBranchProvider);

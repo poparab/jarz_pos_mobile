@@ -47,8 +47,15 @@ class _FakeB2bRepository extends B2bRepository {
   bool advanceShouldThrow = false;
   final List<String> advanceCalls = [];
 
+  /// Fails the NEXT getPipeline call — used to reproduce the cold-start
+  /// failure that used to freeze the board for the whole app session.
+  bool pipelineShouldThrow = false;
+  int pipelineCalls = 0;
+
   @override
   Future<B2bPipeline> getPipeline() async {
+    pipelineCalls++;
+    if (pipelineShouldThrow) throw Exception('pipeline unavailable');
     return B2bPipeline.fromJson(Map<String, dynamic>.from(_samplePayload));
   }
 
@@ -80,6 +87,73 @@ ProviderContainer _container(_FakeB2bRepository repo) {
 }
 
 void main() {
+  group('refresh recovers a board that failed to load', () {
+    test('a first load that fails leaves an error the refresh clears', () async {
+      // The reported bug: b2bPipelineProvider is keep-alive, so build() runs
+      // once per app process. A cold start that failed — before the session
+      // was attached, or a moment offline — stayed failed until the header
+      // Refresh was pressed, because nothing ever re-ran build().
+      final repo = _FakeB2bRepository()..pipelineShouldThrow = true;
+      final container = _container(repo);
+
+      await expectLater(
+        container.read(b2bPipelineProvider.future),
+        throwsA(isA<Exception>()),
+      );
+      expect(container.read(b2bPipelineProvider).hasError, isTrue);
+
+      repo.pipelineShouldThrow = false;
+      await container.read(b2bPipelineProvider.notifier).refresh();
+
+      final state = container.read(b2bPipelineProvider);
+      expect(state.hasError, isFalse);
+      expect(state.value?.stages, hasLength(8));
+    });
+
+    test('keeps the board on screen while revalidating', () async {
+      final repo = _FakeB2bRepository();
+      final container = _container(repo);
+      await container.read(b2bPipelineProvider.future);
+
+      final pending = container.read(b2bPipelineProvider.notifier).refresh();
+
+      // Mid-flight: loading, but the columns are still there. A bare
+      // AsyncValue.loading() would blank the board on every auto-refresh.
+      final midFlight = container.read(b2bPipelineProvider);
+      expect(midFlight.isLoading, isTrue);
+      expect(midFlight.value?.stages, hasLength(8),
+          reason: 'refresh must not drop the board it is revalidating');
+
+      await pending;
+      expect(container.read(b2bPipelineProvider).value?.stages, hasLength(8));
+    });
+
+    test('a failed revalidation keeps the last good board', () async {
+      final repo = _FakeB2bRepository();
+      final container = _container(repo);
+      await container.read(b2bPipelineProvider.future);
+
+      repo.pipelineShouldThrow = true;
+      await container.read(b2bPipelineProvider.notifier).refresh();
+
+      final state = container.read(b2bPipelineProvider);
+      expect(state.hasError, isFalse,
+          reason: 'a dropped connection must not wipe the cards on screen');
+      expect(state.value?.stages, hasLength(8));
+    });
+
+    test('each refresh actually re-fetches', () async {
+      final repo = _FakeB2bRepository();
+      final container = _container(repo);
+      await container.read(b2bPipelineProvider.future);
+      expect(repo.pipelineCalls, 1);
+
+      await container.read(b2bPipelineProvider.notifier).refresh();
+      await container.read(b2bPipelineProvider.notifier).refresh();
+      expect(repo.pipelineCalls, 3);
+    });
+  });
+
   group('B2bPipeline.fromJson', () {
     test('parses stages and columns from a mocked payload', () {
       final pipeline =
