@@ -42,7 +42,17 @@ mixin _$Lead {
   @JsonKey(name: 'sahel_branches')
   int get sahelBranches => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_specialty')
-  bool get isSpecialty => throw _privateConstructorUsedError;
+  bool get isSpecialty => throw _privateConstructorUsedError; // ── Google service signals ─────────────────────────────────────────────
+  // TRUE means Google positively confirms it. FALSE means UNKNOWN, never
+  // "no" — the Places API omits these fields entirely unless they are true.
+  // So filter on `takeout == true` to find confirmed-takeaway venues, but
+  // never treat `takeout == false` as "this place has no takeaway".
+  @JsonKey(name: 'takeout')
+  bool get takeout => throw _privateConstructorUsedError;
+  @JsonKey(name: 'dine_in')
+  bool get dineIn => throw _privateConstructorUsedError;
+  @JsonKey(name: 'serves_dessert')
+  bool get servesDessert => throw _privateConstructorUsedError;
   @JsonKey(name: 'primary_area')
   String get primaryArea => throw _privateConstructorUsedError;
   List<String> get regions => throw _privateConstructorUsedError;
@@ -121,6 +131,9 @@ abstract class $LeadCopyWith<$Res> {
     @JsonKey(name: 'open_status') String openStatus,
     @JsonKey(name: 'sahel_branches') int sahelBranches,
     @JsonKey(name: 'is_specialty') bool isSpecialty,
+    @JsonKey(name: 'takeout') bool takeout,
+    @JsonKey(name: 'dine_in') bool dineIn,
+    @JsonKey(name: 'serves_dessert') bool servesDessert,
     @JsonKey(name: 'primary_area') String primaryArea,
     List<String> regions,
     List<String> governorates,
@@ -182,6 +195,9 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
     Object? openStatus = null,
     Object? sahelBranches = null,
     Object? isSpecialty = null,
+    Object? takeout = null,
+    Object? dineIn = null,
+    Object? servesDessert = null,
     Object? primaryArea = null,
     Object? regions = null,
     Object? governorates = null,
@@ -263,6 +279,18 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
             isSpecialty: null == isSpecialty
                 ? _value.isSpecialty
                 : isSpecialty // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            takeout: null == takeout
+                ? _value.takeout
+                : takeout // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            dineIn: null == dineIn
+                ? _value.dineIn
+                : dineIn // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            servesDessert: null == servesDessert
+                ? _value.servesDessert
+                : servesDessert // ignore: cast_nullable_to_non_nullable
                       as bool,
             primaryArea: null == primaryArea
                 ? _value.primaryArea
@@ -428,6 +456,9 @@ abstract class _$$LeadImplCopyWith<$Res> implements $LeadCopyWith<$Res> {
     @JsonKey(name: 'open_status') String openStatus,
     @JsonKey(name: 'sahel_branches') int sahelBranches,
     @JsonKey(name: 'is_specialty') bool isSpecialty,
+    @JsonKey(name: 'takeout') bool takeout,
+    @JsonKey(name: 'dine_in') bool dineIn,
+    @JsonKey(name: 'serves_dessert') bool servesDessert,
     @JsonKey(name: 'primary_area') String primaryArea,
     List<String> regions,
     List<String> governorates,
@@ -488,6 +519,9 @@ class __$$LeadImplCopyWithImpl<$Res>
     Object? openStatus = null,
     Object? sahelBranches = null,
     Object? isSpecialty = null,
+    Object? takeout = null,
+    Object? dineIn = null,
+    Object? servesDessert = null,
     Object? primaryArea = null,
     Object? regions = null,
     Object? governorates = null,
@@ -569,6 +603,18 @@ class __$$LeadImplCopyWithImpl<$Res>
         isSpecialty: null == isSpecialty
             ? _value.isSpecialty
             : isSpecialty // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        takeout: null == takeout
+            ? _value.takeout
+            : takeout // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        dineIn: null == dineIn
+            ? _value.dineIn
+            : dineIn // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        servesDessert: null == servesDessert
+            ? _value.servesDessert
+            : servesDessert // ignore: cast_nullable_to_non_nullable
                   as bool,
         primaryArea: null == primaryArea
             ? _value.primaryArea
@@ -700,6 +746,9 @@ class _$LeadImpl implements _Lead {
     @JsonKey(name: 'open_status') this.openStatus = '',
     @JsonKey(name: 'sahel_branches') this.sahelBranches = 0,
     @JsonKey(name: 'is_specialty') this.isSpecialty = false,
+    @JsonKey(name: 'takeout') this.takeout = false,
+    @JsonKey(name: 'dine_in') this.dineIn = false,
+    @JsonKey(name: 'serves_dessert') this.servesDessert = false,
     @JsonKey(name: 'primary_area') this.primaryArea = '',
     final List<String> regions = const <String>[],
     final List<String> governorates = const <String>[],
@@ -773,6 +822,20 @@ class _$LeadImpl implements _Lead {
   @override
   @JsonKey(name: 'is_specialty')
   final bool isSpecialty;
+  // ── Google service signals ─────────────────────────────────────────────
+  // TRUE means Google positively confirms it. FALSE means UNKNOWN, never
+  // "no" — the Places API omits these fields entirely unless they are true.
+  // So filter on `takeout == true` to find confirmed-takeaway venues, but
+  // never treat `takeout == false` as "this place has no takeaway".
+  @override
+  @JsonKey(name: 'takeout')
+  final bool takeout;
+  @override
+  @JsonKey(name: 'dine_in')
+  final bool dineIn;
+  @override
+  @JsonKey(name: 'serves_dessert')
+  final bool servesDessert;
   @override
   @JsonKey(name: 'primary_area')
   final String primaryArea;
@@ -889,7 +952,7 @@ class _$LeadImpl implements _Lead {
 
   @override
   String toString() {
-    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes)';
+    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, takeout: $takeout, dineIn: $dineIn, servesDessert: $servesDessert, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes)';
   }
 
   @override
@@ -920,6 +983,10 @@ class _$LeadImpl implements _Lead {
                 other.sahelBranches == sahelBranches) &&
             (identical(other.isSpecialty, isSpecialty) ||
                 other.isSpecialty == isSpecialty) &&
+            (identical(other.takeout, takeout) || other.takeout == takeout) &&
+            (identical(other.dineIn, dineIn) || other.dineIn == dineIn) &&
+            (identical(other.servesDessert, servesDessert) ||
+                other.servesDessert == servesDessert) &&
             (identical(other.primaryArea, primaryArea) ||
                 other.primaryArea == primaryArea) &&
             const DeepCollectionEquality().equals(other._regions, _regions) &&
@@ -987,6 +1054,9 @@ class _$LeadImpl implements _Lead {
     openStatus,
     sahelBranches,
     isSpecialty,
+    takeout,
+    dineIn,
+    servesDessert,
     primaryArea,
     const DeepCollectionEquality().hash(_regions),
     const DeepCollectionEquality().hash(_governorates),
@@ -1045,6 +1115,9 @@ abstract class _Lead implements Lead {
     @JsonKey(name: 'open_status') final String openStatus,
     @JsonKey(name: 'sahel_branches') final int sahelBranches,
     @JsonKey(name: 'is_specialty') final bool isSpecialty,
+    @JsonKey(name: 'takeout') final bool takeout,
+    @JsonKey(name: 'dine_in') final bool dineIn,
+    @JsonKey(name: 'serves_dessert') final bool servesDessert,
     @JsonKey(name: 'primary_area') final String primaryArea,
     final List<String> regions,
     final List<String> governorates,
@@ -1110,7 +1183,20 @@ abstract class _Lead implements Lead {
   int get sahelBranches;
   @override
   @JsonKey(name: 'is_specialty')
-  bool get isSpecialty;
+  bool get isSpecialty; // ── Google service signals ─────────────────────────────────────────────
+  // TRUE means Google positively confirms it. FALSE means UNKNOWN, never
+  // "no" — the Places API omits these fields entirely unless they are true.
+  // So filter on `takeout == true` to find confirmed-takeaway venues, but
+  // never treat `takeout == false` as "this place has no takeaway".
+  @override
+  @JsonKey(name: 'takeout')
+  bool get takeout;
+  @override
+  @JsonKey(name: 'dine_in')
+  bool get dineIn;
+  @override
+  @JsonKey(name: 'serves_dessert')
+  bool get servesDessert;
   @override
   @JsonKey(name: 'primary_area')
   String get primaryArea;

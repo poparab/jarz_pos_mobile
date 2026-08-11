@@ -20,6 +20,9 @@ _$LeadImpl _$$LeadImplFromJson(Map<String, dynamic> json) => _$LeadImpl(
   openStatus: json['open_status'] as String? ?? '',
   sahelBranches: (json['sahel_branches'] as num?)?.toInt() ?? 0,
   isSpecialty: json['is_specialty'] as bool? ?? false,
+  takeout: json['takeout'] as bool? ?? false,
+  dineIn: json['dine_in'] as bool? ?? false,
+  servesDessert: json['serves_dessert'] as bool? ?? false,
   primaryArea: json['primary_area'] as String? ?? '',
   regions:
       (json['regions'] as List<dynamic>?)?.map((e) => e as String).toList() ??
@@ -80,6 +83,9 @@ Map<String, dynamic> _$$LeadImplToJson(_$LeadImpl instance) =>
       'open_status': instance.openStatus,
       'sahel_branches': instance.sahelBranches,
       'is_specialty': instance.isSpecialty,
+      'takeout': instance.takeout,
+      'dine_in': instance.dineIn,
+      'serves_dessert': instance.servesDessert,
       'primary_area': instance.primaryArea,
       'regions': instance.regions,
       'governorates': instance.governorates,

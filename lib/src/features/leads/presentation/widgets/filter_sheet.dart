@@ -201,6 +201,11 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                 (v) => notifier.update((f) => f.copyWith(hasSahel: v))),
             _toggle('Specialty only', filter.specialtyOnly,
                 (v) => notifier.update((f) => f.copyWith(specialtyOnly: v))),
+            // Narrows to venues Google confirms do takeaway. Labelled
+            // "confirmed" on purpose: leads without the flag are unknown, not
+            // dine-in-only, so this can only ever narrow the list.
+            _toggle('Takeaway confirmed', filter.takeawayOnly,
+                (v) => notifier.update((f) => f.copyWith(takeawayOnly: v))),
             _toggle('Has phone', filter.hasPhone,
                 (v) => notifier.update((f) => f.copyWith(hasPhone: v))),
             _toggle('Has Instagram', filter.hasInstagram,

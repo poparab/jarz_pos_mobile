@@ -27,6 +27,14 @@ class Lead with _$Lead {
     @JsonKey(name: 'open_status') @Default('') String openStatus,
     @JsonKey(name: 'sahel_branches') @Default(0) int sahelBranches,
     @JsonKey(name: 'is_specialty') @Default(false) bool isSpecialty,
+    // ── Google service signals ─────────────────────────────────────────────
+    // TRUE means Google positively confirms it. FALSE means UNKNOWN, never
+    // "no" — the Places API omits these fields entirely unless they are true.
+    // So filter on `takeout == true` to find confirmed-takeaway venues, but
+    // never treat `takeout == false` as "this place has no takeaway".
+    @JsonKey(name: 'takeout') @Default(false) bool takeout,
+    @JsonKey(name: 'dine_in') @Default(false) bool dineIn,
+    @JsonKey(name: 'serves_dessert') @Default(false) bool servesDessert,
     @JsonKey(name: 'primary_area') @Default('') String primaryArea,
     @Default(<String>[]) List<String> regions,
     @Default(<String>[]) List<String> governorates,

@@ -37,6 +37,10 @@ class LeadFilter {
   final int minBranches;
   final bool hasSahel;
   final bool specialtyOnly;
+  /// Keep only venues Google confirms do takeaway (drinks in takeaway cups).
+  /// One-way filter by design: `takeout == false` means UNKNOWN, not "no
+  /// takeaway", so there is deliberately no "hide takeaway venues" option.
+  final bool takeawayOnly;
   final bool hasPhone;
   final bool hasInstagram;
   final bool hasWebsite;
@@ -59,6 +63,7 @@ class LeadFilter {
     this.minBranches = 0,
     this.hasSahel = false,
     this.specialtyOnly = false,
+    this.takeawayOnly = false,
     this.hasPhone = false,
     this.hasInstagram = false,
     this.hasWebsite = false,
@@ -80,6 +85,7 @@ class LeadFilter {
     int? minBranches,
     bool? hasSahel,
     bool? specialtyOnly,
+    bool? takeawayOnly,
     bool? hasPhone,
     bool? hasInstagram,
     bool? hasWebsite,
@@ -102,6 +108,7 @@ class LeadFilter {
       minBranches: minBranches ?? this.minBranches,
       hasSahel: hasSahel ?? this.hasSahel,
       specialtyOnly: specialtyOnly ?? this.specialtyOnly,
+      takeawayOnly: takeawayOnly ?? this.takeawayOnly,
       hasPhone: hasPhone ?? this.hasPhone,
       hasInstagram: hasInstagram ?? this.hasInstagram,
       hasWebsite: hasWebsite ?? this.hasWebsite,
@@ -125,6 +132,7 @@ class LeadFilter {
     if (minBranches > 0) count++;
     if (hasSahel) count++;
     if (specialtyOnly) count++;
+    if (takeawayOnly) count++;
     if (hasPhone) count++;
     if (hasInstagram) count++;
     if (hasWebsite) count++;
@@ -285,6 +293,8 @@ bool _matchesLead(Lead lead, LeadFilter f, String query) {
 
   if (f.hasSahel && lead.sahelBranches <= 0) return false;
   if (f.specialtyOnly && !lead.isSpecialty) return false;
+  // One-way: false is "unknown", so this only ever narrows to confirmed.
+  if (f.takeawayOnly && !lead.takeout) return false;
 
   if (f.hasPhone && lead.phone.trim().isEmpty) return false;
   if (f.hasInstagram && lead.instagram.trim().isEmpty) return false;
