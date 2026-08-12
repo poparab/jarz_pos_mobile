@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../journey/presentation/widgets/journey_badge.dart';
 import '../../data/models/b2b_models.dart';
 import 'b2b_stage_chip.dart';
 
@@ -17,12 +18,17 @@ class B2bPipelineCard extends StatelessWidget {
   /// change stage without fighting the long-press drag.
   final void Function(B2bCard card, String stage)? onMove;
 
+  /// Jumps straight to the lead's catalog page. Null for Opportunity cards,
+  /// which have no lead page behind them.
+  final void Function(B2bCard card)? onOpenLead;
+
   const B2bPipelineCard({
     super.key,
     required this.card,
     this.onTap,
     this.stages = const [],
     this.onMove,
+    this.onOpenLead,
   });
 
   @override
@@ -33,6 +39,7 @@ class B2bPipelineCard extends StatelessWidget {
     final moveTargets =
         stages.where((s) => s != card.stage).toList(growable: false);
     final canMove = onMove != null && moveTargets.isNotEmpty;
+    final canOpenLead = isLead && onOpenLead != null;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       child: InkWell(
@@ -62,11 +69,12 @@ class B2bPipelineCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (canMove)
-                    _MoveMenu(
+                  if (canMove || canOpenLead)
+                    _CardMenu(
                       card: card,
-                      targets: moveTargets,
-                      onMove: onMove!,
+                      targets: canMove ? moveTargets : const [],
+                      onMove: onMove,
+                      onOpenLead: canOpenLead ? onOpenLead : null,
                     ),
                 ],
               ),
@@ -91,7 +99,13 @@ class B2bPipelineCard extends StatelessWidget {
                     _chip(context, card.customer!, Icons.account_circle_outlined),
                 ],
               ),
-              if (card.lastActivity != null &&
+              // The journey read-out: when this prospect was last visited and
+              // what is due. Replaces the raw `modified` timestamp, which said
+              // when the ROW changed — not when anyone actually spoke to them.
+              if (!card.journey.isEmpty) ...[
+                const SizedBox(height: 6),
+                JourneyCardBadge(summary: card.journey),
+              ] else if (card.lastActivity != null &&
                   card.lastActivity!.isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Text(
@@ -130,19 +144,24 @@ class B2bPipelineCard extends StatelessWidget {
   }
 }
 
-/// The explicit "Move to" affordance on a pipeline card: a compact overflow
-/// (⋮) menu listing every stage the card can move to. Selecting one calls the
-/// same [onMove] path the drag-and-drop uses.
-class _MoveMenu extends StatelessWidget {
-  const _MoveMenu({
+/// The overflow (⋮) menu on a pipeline card: "Open lead page" plus every stage
+/// the card can move to. Selecting a stage calls the same [onMove] path the
+/// drag-and-drop uses; the lead entry jumps to the full catalog page, which is
+/// otherwise several taps away from the board.
+class _CardMenu extends StatelessWidget {
+  const _CardMenu({
     required this.card,
     required this.targets,
     required this.onMove,
+    required this.onOpenLead,
   });
+
+  static const _openLeadValue = '__open_lead__';
 
   final B2bCard card;
   final List<String> targets;
-  final void Function(B2bCard card, String stage) onMove;
+  final void Function(B2bCard card, String stage)? onMove;
+  final void Function(B2bCard card)? onOpenLead;
 
   @override
   Widget build(BuildContext context) {
@@ -153,36 +172,57 @@ class _MoveMenu extends StatelessWidget {
       padding: EdgeInsets.zero,
       splashRadius: 18,
       constraints: const BoxConstraints(minWidth: 180),
-      onSelected: (stage) => onMove(card, stage),
+      onSelected: (value) {
+        if (value == _openLeadValue) {
+          onOpenLead?.call(card);
+          return;
+        }
+        onMove?.call(card, value);
+      },
       itemBuilder: (context) => [
-        PopupMenuItem<String>(
-          enabled: false,
-          child: Text(
-            context.l10n.b2bMoveTo,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        const PopupMenuDivider(),
-        for (final stage in targets)
-          PopupMenuItem<String>(
-            value: stage,
+        if (onOpenLead != null) ...[
+          const PopupMenuItem<String>(
+            value: _openLeadValue,
             child: Row(
               children: [
-                B2bStageChip(stage: stage),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    stage,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ),
+                Icon(Icons.open_in_new, size: 16),
+                SizedBox(width: 8),
+                Text('Open lead page'),
               ],
             ),
           ),
+          if (targets.isNotEmpty) const PopupMenuDivider(),
+        ],
+        if (targets.isNotEmpty) ...[
+          PopupMenuItem<String>(
+            enabled: false,
+            child: Text(
+              context.l10n.b2bMoveTo,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const PopupMenuDivider(),
+          for (final stage in targets)
+            PopupMenuItem<String>(
+              value: stage,
+              child: Row(
+                children: [
+                  B2bStageChip(stage: stage),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      stage,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ],
     );
   }

@@ -429,6 +429,20 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.leads.get_merge_candidates';
   static const mergeLeads = '/api/method/jarz_pos.api.leads.merge_leads';
 
+  // ── Journey notes (the rep's dated field diary) ───────────────────────
+  // Shared by the leads catalog and the B2B pipeline: the same note timeline
+  // hangs off a Lead, an Opportunity or a Customer.
+  static const getJourneyNotes =
+      '/api/method/jarz_pos.api.journey.get_journey_notes';
+  static const addJourneyNote =
+      '/api/method/jarz_pos.api.journey.add_journey_note';
+  static const updateJourneyNote =
+      '/api/method/jarz_pos.api.journey.update_journey_note';
+  static const deleteJourneyNote =
+      '/api/method/jarz_pos.api.journey.delete_journey_note';
+  static const getJourneyOptions =
+      '/api/method/jarz_pos.api.journey.get_journey_options';
+
   // ── Courier tracking (jarz_courier app) ───────────────────────────────
   // Supervisor-only and Redis-backed, so it is safe to poll. Couriers are
   // deliberately excluded server-side: a courier may see their own run, never

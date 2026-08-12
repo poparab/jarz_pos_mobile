@@ -7,6 +7,7 @@ import '../../../b2b/data/b2b_repository.dart' show b2bRepositoryProvider;
 import '../../../b2b/presentation/widgets/b2b_stage_chip.dart'
     show B2bStageChip, kB2bStages, kDefaultB2bStage;
 import '../../../b2b/state/b2b_pipeline_notifier.dart' show b2bPipelineProvider;
+import '../../../journey/presentation/widgets/journey_notes_section.dart';
 import '../../data/models/lead.dart';
 import '../../state/lead_categories_notifier.dart';
 import '../../state/lead_detail_notifier.dart';
@@ -90,6 +91,19 @@ class _DetailBody extends ConsumerWidget {
         ],
         const SizedBox(height: 16),
         _ContactRow(lead: lead),
+        const SizedBox(height: 20),
+        // The field diary sits high on the page, right under the contacts: it
+        // is what a rep standing outside the venue actually needs to read
+        // before walking in, and what they add the moment they walk out.
+        JourneyNotesSection(
+          referenceDoctype: 'Lead',
+          referenceName: leadName,
+          defaultContactPhone: lead.phone,
+          // A next-action date restamps the lead's follow-up server-side, so
+          // refresh the detail (and the catalog) to pick that up.
+          onChanged: () =>
+              ref.read(leadDetailProvider(leadName).notifier).refresh(),
+        ),
         const SizedBox(height: 20),
         _EditableSection(lead: lead, leadName: leadName),
         const SizedBox(height: 20),

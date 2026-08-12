@@ -66,6 +66,18 @@ _$LeadImpl _$$LeadImplFromJson(Map<String, dynamic> json) => _$LeadImpl(
       ? null
       : LeadAddress.fromJson(json['shipping_address'] as Map<String, dynamic>),
   notes: json['notes'] as String? ?? '',
+  journeyCount: (json['journey_count'] as num?)?.toInt() ?? 0,
+  lastJourneyDate: json['last_journey_date'] as String?,
+  lastJourneyType: json['last_journey_type'] as String?,
+  lastJourneyNote: json['last_journey_note'] as String?,
+  lastJourneyContact: json['last_journey_contact'] as String?,
+  nextActionDate: json['next_action_date'] as String?,
+  nextAction: json['next_action'] as String?,
+  journeyNotes:
+      (json['journey_notes'] as List<dynamic>?)
+          ?.map((e) => JourneyNote.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <JourneyNote>[],
 );
 
 Map<String, dynamic> _$$LeadImplToJson(_$LeadImpl instance) =>
@@ -113,6 +125,14 @@ Map<String, dynamic> _$$LeadImplToJson(_$LeadImpl instance) =>
       'primary_address': instance.primaryAddress,
       'shipping_address': instance.shippingAddress,
       'notes': instance.notes,
+      'journey_count': instance.journeyCount,
+      'last_journey_date': instance.lastJourneyDate,
+      'last_journey_type': instance.lastJourneyType,
+      'last_journey_note': instance.lastJourneyNote,
+      'last_journey_contact': instance.lastJourneyContact,
+      'next_action_date': instance.nextActionDate,
+      'next_action': instance.nextAction,
+      'journey_notes': instance.journeyNotes,
     };
 
 _$LeadBranchImpl _$$LeadBranchImplFromJson(Map<String, dynamic> json) =>

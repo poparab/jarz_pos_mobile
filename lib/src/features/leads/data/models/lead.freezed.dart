@@ -101,7 +101,27 @@ mixin _$Lead {
   LeadAddress? get primaryAddress => throw _privateConstructorUsedError;
   @JsonKey(name: 'shipping_address')
   LeadAddress? get shippingAddress => throw _privateConstructorUsedError;
-  String get notes => throw _privateConstructorUsedError;
+  String get notes =>
+      throw _privateConstructorUsedError; // ── Journey diary ─────────────────────────────────────────────────────
+  // The summary rides on BOTH the catalog row and the detail (so a list card
+  // can show "visited 3 days ago, call due Thursday" without a request per
+  // lead); the note list itself is detail-only.
+  @JsonKey(name: 'journey_count')
+  int get journeyCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_journey_date')
+  String? get lastJourneyDate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_journey_type')
+  String? get lastJourneyType => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_journey_note')
+  String? get lastJourneyNote => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_journey_contact')
+  String? get lastJourneyContact => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_action_date')
+  String? get nextActionDate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_action')
+  String? get nextAction => throw _privateConstructorUsedError;
+  @JsonKey(name: 'journey_notes')
+  List<JourneyNote> get journeyNotes => throw _privateConstructorUsedError;
 
   /// Serializes this Lead to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -161,6 +181,14 @@ abstract class $LeadCopyWith<$Res> {
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') LeadAddress? shippingAddress,
     String notes,
+    @JsonKey(name: 'journey_count') int journeyCount,
+    @JsonKey(name: 'last_journey_date') String? lastJourneyDate,
+    @JsonKey(name: 'last_journey_type') String? lastJourneyType,
+    @JsonKey(name: 'last_journey_note') String? lastJourneyNote,
+    @JsonKey(name: 'last_journey_contact') String? lastJourneyContact,
+    @JsonKey(name: 'next_action_date') String? nextActionDate,
+    @JsonKey(name: 'next_action') String? nextAction,
+    @JsonKey(name: 'journey_notes') List<JourneyNote> journeyNotes,
   });
 
   $LeadAddressCopyWith<$Res>? get primaryAddress;
@@ -225,6 +253,14 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
     Object? primaryAddress = freezed,
     Object? shippingAddress = freezed,
     Object? notes = null,
+    Object? journeyCount = null,
+    Object? lastJourneyDate = freezed,
+    Object? lastJourneyType = freezed,
+    Object? lastJourneyNote = freezed,
+    Object? lastJourneyContact = freezed,
+    Object? nextActionDate = freezed,
+    Object? nextAction = freezed,
+    Object? journeyNotes = null,
   }) {
     return _then(
       _value.copyWith(
@@ -400,6 +436,38 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
                 ? _value.notes
                 : notes // ignore: cast_nullable_to_non_nullable
                       as String,
+            journeyCount: null == journeyCount
+                ? _value.journeyCount
+                : journeyCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            lastJourneyDate: freezed == lastJourneyDate
+                ? _value.lastJourneyDate
+                : lastJourneyDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lastJourneyType: freezed == lastJourneyType
+                ? _value.lastJourneyType
+                : lastJourneyType // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lastJourneyNote: freezed == lastJourneyNote
+                ? _value.lastJourneyNote
+                : lastJourneyNote // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lastJourneyContact: freezed == lastJourneyContact
+                ? _value.lastJourneyContact
+                : lastJourneyContact // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            nextActionDate: freezed == nextActionDate
+                ? _value.nextActionDate
+                : nextActionDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            nextAction: freezed == nextAction
+                ? _value.nextAction
+                : nextAction // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            journeyNotes: null == journeyNotes
+                ? _value.journeyNotes
+                : journeyNotes // ignore: cast_nullable_to_non_nullable
+                      as List<JourneyNote>,
           )
           as $Val,
     );
@@ -486,6 +554,14 @@ abstract class _$$LeadImplCopyWith<$Res> implements $LeadCopyWith<$Res> {
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') LeadAddress? shippingAddress,
     String notes,
+    @JsonKey(name: 'journey_count') int journeyCount,
+    @JsonKey(name: 'last_journey_date') String? lastJourneyDate,
+    @JsonKey(name: 'last_journey_type') String? lastJourneyType,
+    @JsonKey(name: 'last_journey_note') String? lastJourneyNote,
+    @JsonKey(name: 'last_journey_contact') String? lastJourneyContact,
+    @JsonKey(name: 'next_action_date') String? nextActionDate,
+    @JsonKey(name: 'next_action') String? nextAction,
+    @JsonKey(name: 'journey_notes') List<JourneyNote> journeyNotes,
   });
 
   @override
@@ -549,6 +625,14 @@ class __$$LeadImplCopyWithImpl<$Res>
     Object? primaryAddress = freezed,
     Object? shippingAddress = freezed,
     Object? notes = null,
+    Object? journeyCount = null,
+    Object? lastJourneyDate = freezed,
+    Object? lastJourneyType = freezed,
+    Object? lastJourneyNote = freezed,
+    Object? lastJourneyContact = freezed,
+    Object? nextActionDate = freezed,
+    Object? nextAction = freezed,
+    Object? journeyNotes = null,
   }) {
     return _then(
       _$LeadImpl(
@@ -724,6 +808,38 @@ class __$$LeadImplCopyWithImpl<$Res>
             ? _value.notes
             : notes // ignore: cast_nullable_to_non_nullable
                   as String,
+        journeyCount: null == journeyCount
+            ? _value.journeyCount
+            : journeyCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        lastJourneyDate: freezed == lastJourneyDate
+            ? _value.lastJourneyDate
+            : lastJourneyDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lastJourneyType: freezed == lastJourneyType
+            ? _value.lastJourneyType
+            : lastJourneyType // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lastJourneyNote: freezed == lastJourneyNote
+            ? _value.lastJourneyNote
+            : lastJourneyNote // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lastJourneyContact: freezed == lastJourneyContact
+            ? _value.lastJourneyContact
+            : lastJourneyContact // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        nextActionDate: freezed == nextActionDate
+            ? _value.nextActionDate
+            : nextActionDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        nextAction: freezed == nextAction
+            ? _value.nextAction
+            : nextAction // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        journeyNotes: null == journeyNotes
+            ? _value._journeyNotes
+            : journeyNotes // ignore: cast_nullable_to_non_nullable
+                  as List<JourneyNote>,
       ),
     );
   }
@@ -731,7 +847,7 @@ class __$$LeadImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$LeadImpl implements _Lead {
+class _$LeadImpl extends _Lead {
   const _$LeadImpl({
     required this.name,
     @JsonKey(name: 'source_brand_id') this.sourceBrandId,
@@ -777,10 +893,21 @@ class _$LeadImpl implements _Lead {
     @JsonKey(name: 'primary_address') this.primaryAddress,
     @JsonKey(name: 'shipping_address') this.shippingAddress,
     this.notes = '',
+    @JsonKey(name: 'journey_count') this.journeyCount = 0,
+    @JsonKey(name: 'last_journey_date') this.lastJourneyDate,
+    @JsonKey(name: 'last_journey_type') this.lastJourneyType,
+    @JsonKey(name: 'last_journey_note') this.lastJourneyNote,
+    @JsonKey(name: 'last_journey_contact') this.lastJourneyContact,
+    @JsonKey(name: 'next_action_date') this.nextActionDate,
+    @JsonKey(name: 'next_action') this.nextAction,
+    @JsonKey(name: 'journey_notes')
+    final List<JourneyNote> journeyNotes = const <JourneyNote>[],
   }) : _regions = regions,
        _governorates = governorates,
        _areas = areas,
-       _branches = branches;
+       _branches = branches,
+       _journeyNotes = journeyNotes,
+       super._();
 
   factory _$LeadImpl.fromJson(Map<String, dynamic> json) =>
       _$$LeadImplFromJson(json);
@@ -949,10 +1076,43 @@ class _$LeadImpl implements _Lead {
   @override
   @JsonKey()
   final String notes;
+  // ── Journey diary ─────────────────────────────────────────────────────
+  // The summary rides on BOTH the catalog row and the detail (so a list card
+  // can show "visited 3 days ago, call due Thursday" without a request per
+  // lead); the note list itself is detail-only.
+  @override
+  @JsonKey(name: 'journey_count')
+  final int journeyCount;
+  @override
+  @JsonKey(name: 'last_journey_date')
+  final String? lastJourneyDate;
+  @override
+  @JsonKey(name: 'last_journey_type')
+  final String? lastJourneyType;
+  @override
+  @JsonKey(name: 'last_journey_note')
+  final String? lastJourneyNote;
+  @override
+  @JsonKey(name: 'last_journey_contact')
+  final String? lastJourneyContact;
+  @override
+  @JsonKey(name: 'next_action_date')
+  final String? nextActionDate;
+  @override
+  @JsonKey(name: 'next_action')
+  final String? nextAction;
+  final List<JourneyNote> _journeyNotes;
+  @override
+  @JsonKey(name: 'journey_notes')
+  List<JourneyNote> get journeyNotes {
+    if (_journeyNotes is EqualUnmodifiableListView) return _journeyNotes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_journeyNotes);
+  }
 
   @override
   String toString() {
-    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, takeout: $takeout, dineIn: $dineIn, servesDessert: $servesDessert, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes)';
+    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, takeout: $takeout, dineIn: $dineIn, servesDessert: $servesDessert, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes, journeyCount: $journeyCount, lastJourneyDate: $lastJourneyDate, lastJourneyType: $lastJourneyType, lastJourneyNote: $lastJourneyNote, lastJourneyContact: $lastJourneyContact, nextActionDate: $nextActionDate, nextAction: $nextAction, journeyNotes: $journeyNotes)';
   }
 
   @override
@@ -1034,7 +1194,25 @@ class _$LeadImpl implements _Lead {
                 other.primaryAddress == primaryAddress) &&
             (identical(other.shippingAddress, shippingAddress) ||
                 other.shippingAddress == shippingAddress) &&
-            (identical(other.notes, notes) || other.notes == notes));
+            (identical(other.notes, notes) || other.notes == notes) &&
+            (identical(other.journeyCount, journeyCount) ||
+                other.journeyCount == journeyCount) &&
+            (identical(other.lastJourneyDate, lastJourneyDate) ||
+                other.lastJourneyDate == lastJourneyDate) &&
+            (identical(other.lastJourneyType, lastJourneyType) ||
+                other.lastJourneyType == lastJourneyType) &&
+            (identical(other.lastJourneyNote, lastJourneyNote) ||
+                other.lastJourneyNote == lastJourneyNote) &&
+            (identical(other.lastJourneyContact, lastJourneyContact) ||
+                other.lastJourneyContact == lastJourneyContact) &&
+            (identical(other.nextActionDate, nextActionDate) ||
+                other.nextActionDate == nextActionDate) &&
+            (identical(other.nextAction, nextAction) ||
+                other.nextAction == nextAction) &&
+            const DeepCollectionEquality().equals(
+              other._journeyNotes,
+              _journeyNotes,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1084,6 +1262,14 @@ class _$LeadImpl implements _Lead {
     primaryAddress,
     shippingAddress,
     notes,
+    journeyCount,
+    lastJourneyDate,
+    lastJourneyType,
+    lastJourneyNote,
+    lastJourneyContact,
+    nextActionDate,
+    nextAction,
+    const DeepCollectionEquality().hash(_journeyNotes),
   ]);
 
   /// Create a copy of Lead
@@ -1100,7 +1286,7 @@ class _$LeadImpl implements _Lead {
   }
 }
 
-abstract class _Lead implements Lead {
+abstract class _Lead extends Lead {
   const factory _Lead({
     required final String name,
     @JsonKey(name: 'source_brand_id') final String? sourceBrandId,
@@ -1145,7 +1331,16 @@ abstract class _Lead implements Lead {
     @JsonKey(name: 'primary_address') final LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') final LeadAddress? shippingAddress,
     final String notes,
+    @JsonKey(name: 'journey_count') final int journeyCount,
+    @JsonKey(name: 'last_journey_date') final String? lastJourneyDate,
+    @JsonKey(name: 'last_journey_type') final String? lastJourneyType,
+    @JsonKey(name: 'last_journey_note') final String? lastJourneyNote,
+    @JsonKey(name: 'last_journey_contact') final String? lastJourneyContact,
+    @JsonKey(name: 'next_action_date') final String? nextActionDate,
+    @JsonKey(name: 'next_action') final String? nextAction,
+    @JsonKey(name: 'journey_notes') final List<JourneyNote> journeyNotes,
   }) = _$LeadImpl;
+  const _Lead._() : super._();
 
   factory _Lead.fromJson(Map<String, dynamic> json) = _$LeadImpl.fromJson;
 
@@ -1271,7 +1466,34 @@ abstract class _Lead implements Lead {
   @JsonKey(name: 'shipping_address')
   LeadAddress? get shippingAddress;
   @override
-  String get notes;
+  String get notes; // ── Journey diary ─────────────────────────────────────────────────────
+  // The summary rides on BOTH the catalog row and the detail (so a list card
+  // can show "visited 3 days ago, call due Thursday" without a request per
+  // lead); the note list itself is detail-only.
+  @override
+  @JsonKey(name: 'journey_count')
+  int get journeyCount;
+  @override
+  @JsonKey(name: 'last_journey_date')
+  String? get lastJourneyDate;
+  @override
+  @JsonKey(name: 'last_journey_type')
+  String? get lastJourneyType;
+  @override
+  @JsonKey(name: 'last_journey_note')
+  String? get lastJourneyNote;
+  @override
+  @JsonKey(name: 'last_journey_contact')
+  String? get lastJourneyContact;
+  @override
+  @JsonKey(name: 'next_action_date')
+  String? get nextActionDate;
+  @override
+  @JsonKey(name: 'next_action')
+  String? get nextAction;
+  @override
+  @JsonKey(name: 'journey_notes')
+  List<JourneyNote> get journeyNotes;
 
   /// Create a copy of Lead
   /// with the given fields replaced by the non-null parameter values.

@@ -1,6 +1,8 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../journey/data/models/journey_note.dart';
+
 part 'lead.freezed.dart';
 part 'lead.g.dart';
 
@@ -13,6 +15,8 @@ part 'lead.g.dart';
 /// a partial/missing payload never throws. Ratings/lat/lng stay nullable.
 @freezed
 class Lead with _$Lead {
+  const Lead._();
+
   const factory Lead({
     required String name,
     @JsonKey(name: 'source_brand_id') String? sourceBrandId,
@@ -71,9 +75,34 @@ class Lead with _$Lead {
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') LeadAddress? shippingAddress,
     @Default('') String notes,
+    // ── Journey diary ─────────────────────────────────────────────────────
+    // The summary rides on BOTH the catalog row and the detail (so a list card
+    // can show "visited 3 days ago, call due Thursday" without a request per
+    // lead); the note list itself is detail-only.
+    @JsonKey(name: 'journey_count') @Default(0) int journeyCount,
+    @JsonKey(name: 'last_journey_date') String? lastJourneyDate,
+    @JsonKey(name: 'last_journey_type') String? lastJourneyType,
+    @JsonKey(name: 'last_journey_note') String? lastJourneyNote,
+    @JsonKey(name: 'last_journey_contact') String? lastJourneyContact,
+    @JsonKey(name: 'next_action_date') String? nextActionDate,
+    @JsonKey(name: 'next_action') String? nextAction,
+    @JsonKey(name: 'journey_notes')
+    @Default(<JourneyNote>[])
+    List<JourneyNote> journeyNotes,
   }) = _Lead;
 
   factory Lead.fromJson(Map<String, dynamic> json) => _$LeadFromJson(json);
+
+  /// The lead's journey read-out, in the shape the shared badge widget takes.
+  JourneySummary get journey => JourneySummary(
+    journeyCount: journeyCount,
+    lastJourneyDate: lastJourneyDate,
+    lastJourneyType: lastJourneyType,
+    lastJourneyNote: lastJourneyNote,
+    lastJourneyContact: lastJourneyContact,
+    nextActionDate: nextActionDate,
+    nextAction: nextAction,
+  );
 }
 
 /// A single branch/location of a lead brand.

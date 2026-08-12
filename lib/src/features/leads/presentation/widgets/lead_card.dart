@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../journey/presentation/widgets/journey_badge.dart';
 import '../../data/models/lead.dart';
 import '../../domain/lead_clustering.dart';
 import '../leads_theme.dart';
@@ -108,6 +109,13 @@ class LeadCard extends StatelessWidget {
                           ),
                       ],
                     ),
+                    // Last touch + what is due, when this lead has a diary.
+                    // A rep scanning the catalog needs to see who was visited
+                    // recently before deciding where to go next.
+                    if (!lead.journey.isEmpty) ...[
+                      const SizedBox(height: 8),
+                      JourneyCardBadge(summary: lead.journey, dense: false),
+                    ],
                     const SizedBox(height: 8),
                     Row(
                       children: [

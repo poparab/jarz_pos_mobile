@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../journey/presentation/widgets/journey_notes_section.dart';
 import '../../../leads/data/leads_repository.dart';
 import '../../../leads/data/models/lead.dart';
 import '../../../leads/presentation/leads_theme.dart';
@@ -91,6 +93,9 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
             onPlaceOrder: () => _bindAndOrder(account, isSample: false),
             onLogCall: () => _logCall(account),
             onMarkLost: () => _markLost(account),
+            onJourneyChanged: _reload,
+            // Only a Lead has a catalog page to open; an Opportunity does not.
+            onOpenLead: _isLead ? _openLeadPage : null,
             onViewPricing: (customer != null && customer.isNotEmpty)
                 ? () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
@@ -106,6 +111,15 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
   }
 
   bool get _isLead => widget.doctype == 'Lead';
+
+  /// Opens the full lead catalog page for this card — the rich profile, the
+  /// branches, the addresses and the merge tools the account view only
+  /// summarises. Revalidates on the way back so an edit made there (stage,
+  /// suitability, a journey note) is reflected here immediately.
+  Future<void> _openLeadPage() async {
+    await context.push('/leads/${Uri.encodeComponent(widget.name)}');
+    if (mounted) _reload();
+  }
 
   Future<void> _bindAndOrder(
     B2bAccount account, {
@@ -411,6 +425,8 @@ class _AccountBody extends StatelessWidget {
   final VoidCallback onPlaceOrder;
   final VoidCallback onLogCall;
   final VoidCallback onMarkLost;
+  final VoidCallback onJourneyChanged;
+  final VoidCallback? onOpenLead;
   final VoidCallback? onViewPricing;
 
   const _AccountBody({
@@ -420,6 +436,8 @@ class _AccountBody extends StatelessWidget {
     required this.onPlaceOrder,
     required this.onLogCall,
     required this.onMarkLost,
+    required this.onJourneyChanged,
+    this.onOpenLead,
     this.onViewPricing,
   });
 
@@ -446,6 +464,17 @@ class _AccountBody extends StatelessWidget {
                 B2bStageChip(stage: account.stage),
               ],
             ),
+            if (onOpenLead != null) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: busy ? null : onOpenLead,
+                  icon: const Icon(Icons.open_in_new, size: 18),
+                  label: const Text('Open lead page'),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             _section(context, 'Contact', [
               if (account.contact.mobileNo != null)
@@ -459,6 +488,17 @@ class _AccountBody extends StatelessWidget {
             ]),
             if (account.doctype == 'Lead')
               _LeadProfileSection(leadName: account.name),
+            const SizedBox(height: 16),
+            // The same diary the lead page shows — one journey per account, not
+            // one per screen. `onJourneyChanged` reloads the account because a
+            // dated next action restamps its follow-up server-side.
+            JourneyNotesSection(
+              referenceDoctype: account.doctype,
+              referenceName: account.name,
+              defaultContactPhone:
+                  account.contact.mobileNo ?? account.contact.phone,
+              onChanged: onJourneyChanged,
+            ),
             _section(context, 'Insights', [
               if (account.predictedNextOrder != null)
                 _kv(context, 'Predicted next order',

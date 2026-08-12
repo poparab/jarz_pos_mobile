@@ -102,6 +102,7 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
           onAdvance: (card, stage) =>
               _advance(context, ref, card, stage),
           onCardTap: (card) => _openAccount(context, card),
+          onOpenLead: _openLead,
         ),
       ),
     );
@@ -114,6 +115,16 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
       AppRoutes.b2bAccount,
       extra: <String, dynamic>{'doctype': card.doctype, 'name': card.name},
     );
+    if (mounted) ref.read(b2bPipelineProvider.notifier).refresh();
+  }
+
+  /// Opens a Lead card's full catalog page (profile, branches, addresses,
+  /// journey diary) straight from the board, then revalidates: a stage change
+  /// or a logged visit made there belongs on the board without a manual
+  /// refresh. Opportunity cards have no lead page, so this is a no-op for them.
+  Future<void> _openLead(B2bCard card) async {
+    if (card.doctype != 'Lead') return;
+    await context.push('/leads/${Uri.encodeComponent(card.name)}');
     if (mounted) ref.read(b2bPipelineProvider.notifier).refresh();
   }
 
@@ -266,11 +277,13 @@ class _Board extends StatelessWidget {
   final B2bPipeline pipeline;
   final void Function(B2bCard card, String stage) onAdvance;
   final void Function(B2bCard card) onCardTap;
+  final void Function(B2bCard card) onOpenLead;
 
   const _Board({
     required this.pipeline,
     required this.onAdvance,
     required this.onCardTap,
+    required this.onOpenLead,
   });
 
   @override
@@ -288,6 +301,7 @@ class _Board extends StatelessWidget {
               onAccept: (card) => onAdvance(card, stage),
               onMove: onAdvance,
               onCardTap: onCardTap,
+              onOpenLead: onOpenLead,
             ),
         ],
       ),

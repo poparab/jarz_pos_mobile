@@ -2,6 +2,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../../core/utils/order_display_id.dart';
+import '../../../journey/data/models/journey_note.dart';
 
 part 'b2b_models.freezed.dart';
 part 'b2b_models.g.dart';
@@ -9,6 +10,8 @@ part 'b2b_models.g.dart';
 /// A card on the B2B sales pipeline (Lead or Opportunity).
 @freezed
 class B2bCard with _$B2bCard {
+  const B2bCard._();
+
   const factory B2bCard({
     required String doctype,
     required String name,
@@ -18,10 +21,31 @@ class B2bCard with _$B2bCard {
     @JsonKey(name: 'lead_score') int? leadScore,
     String? customer,
     @JsonKey(name: 'last_activity') String? lastActivity,
+    // ── Journey diary summary ──────────────────────────────────────────
+    // Folded in by `crm.get_b2b_pipeline` so the board shows when a prospect
+    // was last visited and what is due, without a request per card.
+    @JsonKey(name: 'journey_count') @Default(0) int journeyCount,
+    @JsonKey(name: 'last_journey_date') String? lastJourneyDate,
+    @JsonKey(name: 'last_journey_type') String? lastJourneyType,
+    @JsonKey(name: 'last_journey_note') String? lastJourneyNote,
+    @JsonKey(name: 'last_journey_contact') String? lastJourneyContact,
+    @JsonKey(name: 'next_action_date') String? nextActionDate,
+    @JsonKey(name: 'next_action') String? nextAction,
   }) = _B2bCard;
 
   factory B2bCard.fromJson(Map<String, dynamic> json) =>
       _$B2bCardFromJson(json);
+
+  /// The card's journey read-out, in the shape the shared badge widget takes.
+  JourneySummary get journey => JourneySummary(
+    journeyCount: journeyCount,
+    lastJourneyDate: lastJourneyDate,
+    lastJourneyType: lastJourneyType,
+    lastJourneyNote: lastJourneyNote,
+    lastJourneyContact: lastJourneyContact,
+    nextActionDate: nextActionDate,
+    nextAction: nextAction,
+  );
 }
 
 /// The full pipeline: ordered stage names + cards grouped by stage.
@@ -114,6 +138,12 @@ class B2bAccount with _$B2bAccount {
     @Default(<B2bRecentInvoice>[])
     List<B2bRecentInvoice> recentInvoices,
     @JsonKey(name: 'open_todos') @Default(<B2bTodo>[]) List<B2bTodo> openTodos,
+    /// The rep's dated field diary for this account, newest touch first. The
+    /// account screen renders it through the shared journey timeline, which
+    /// also owns the live (re-fetched) copy — this is the load-time snapshot.
+    @JsonKey(name: 'journey_notes')
+    @Default(<JourneyNote>[])
+    List<JourneyNote> journeyNotes,
   }) = _B2bAccount;
 
   factory B2bAccount.fromJson(Map<String, dynamic> json) =>

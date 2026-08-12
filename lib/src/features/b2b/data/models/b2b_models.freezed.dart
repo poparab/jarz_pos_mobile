@@ -30,7 +30,23 @@ mixin _$B2bCard {
   int? get leadScore => throw _privateConstructorUsedError;
   String? get customer => throw _privateConstructorUsedError;
   @JsonKey(name: 'last_activity')
-  String? get lastActivity => throw _privateConstructorUsedError;
+  String? get lastActivity => throw _privateConstructorUsedError; // ── Journey diary summary ──────────────────────────────────────────
+  // Folded in by `crm.get_b2b_pipeline` so the board shows when a prospect
+  // was last visited and what is due, without a request per card.
+  @JsonKey(name: 'journey_count')
+  int get journeyCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_journey_date')
+  String? get lastJourneyDate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_journey_type')
+  String? get lastJourneyType => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_journey_note')
+  String? get lastJourneyNote => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_journey_contact')
+  String? get lastJourneyContact => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_action_date')
+  String? get nextActionDate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_action')
+  String? get nextAction => throw _privateConstructorUsedError;
 
   /// Serializes this B2bCard to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -55,6 +71,13 @@ abstract class $B2bCardCopyWith<$Res> {
     @JsonKey(name: 'lead_score') int? leadScore,
     String? customer,
     @JsonKey(name: 'last_activity') String? lastActivity,
+    @JsonKey(name: 'journey_count') int journeyCount,
+    @JsonKey(name: 'last_journey_date') String? lastJourneyDate,
+    @JsonKey(name: 'last_journey_type') String? lastJourneyType,
+    @JsonKey(name: 'last_journey_note') String? lastJourneyNote,
+    @JsonKey(name: 'last_journey_contact') String? lastJourneyContact,
+    @JsonKey(name: 'next_action_date') String? nextActionDate,
+    @JsonKey(name: 'next_action') String? nextAction,
   });
 }
 
@@ -81,6 +104,13 @@ class _$B2bCardCopyWithImpl<$Res, $Val extends B2bCard>
     Object? leadScore = freezed,
     Object? customer = freezed,
     Object? lastActivity = freezed,
+    Object? journeyCount = null,
+    Object? lastJourneyDate = freezed,
+    Object? lastJourneyType = freezed,
+    Object? lastJourneyNote = freezed,
+    Object? lastJourneyContact = freezed,
+    Object? nextActionDate = freezed,
+    Object? nextAction = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -116,6 +146,34 @@ class _$B2bCardCopyWithImpl<$Res, $Val extends B2bCard>
                 ? _value.lastActivity
                 : lastActivity // ignore: cast_nullable_to_non_nullable
                       as String?,
+            journeyCount: null == journeyCount
+                ? _value.journeyCount
+                : journeyCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            lastJourneyDate: freezed == lastJourneyDate
+                ? _value.lastJourneyDate
+                : lastJourneyDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lastJourneyType: freezed == lastJourneyType
+                ? _value.lastJourneyType
+                : lastJourneyType // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lastJourneyNote: freezed == lastJourneyNote
+                ? _value.lastJourneyNote
+                : lastJourneyNote // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lastJourneyContact: freezed == lastJourneyContact
+                ? _value.lastJourneyContact
+                : lastJourneyContact // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            nextActionDate: freezed == nextActionDate
+                ? _value.nextActionDate
+                : nextActionDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            nextAction: freezed == nextAction
+                ? _value.nextAction
+                : nextAction // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -139,6 +197,13 @@ abstract class _$$B2bCardImplCopyWith<$Res> implements $B2bCardCopyWith<$Res> {
     @JsonKey(name: 'lead_score') int? leadScore,
     String? customer,
     @JsonKey(name: 'last_activity') String? lastActivity,
+    @JsonKey(name: 'journey_count') int journeyCount,
+    @JsonKey(name: 'last_journey_date') String? lastJourneyDate,
+    @JsonKey(name: 'last_journey_type') String? lastJourneyType,
+    @JsonKey(name: 'last_journey_note') String? lastJourneyNote,
+    @JsonKey(name: 'last_journey_contact') String? lastJourneyContact,
+    @JsonKey(name: 'next_action_date') String? nextActionDate,
+    @JsonKey(name: 'next_action') String? nextAction,
   });
 }
 
@@ -164,6 +229,13 @@ class __$$B2bCardImplCopyWithImpl<$Res>
     Object? leadScore = freezed,
     Object? customer = freezed,
     Object? lastActivity = freezed,
+    Object? journeyCount = null,
+    Object? lastJourneyDate = freezed,
+    Object? lastJourneyType = freezed,
+    Object? lastJourneyNote = freezed,
+    Object? lastJourneyContact = freezed,
+    Object? nextActionDate = freezed,
+    Object? nextAction = freezed,
   }) {
     return _then(
       _$B2bCardImpl(
@@ -199,6 +271,34 @@ class __$$B2bCardImplCopyWithImpl<$Res>
             ? _value.lastActivity
             : lastActivity // ignore: cast_nullable_to_non_nullable
                   as String?,
+        journeyCount: null == journeyCount
+            ? _value.journeyCount
+            : journeyCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        lastJourneyDate: freezed == lastJourneyDate
+            ? _value.lastJourneyDate
+            : lastJourneyDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lastJourneyType: freezed == lastJourneyType
+            ? _value.lastJourneyType
+            : lastJourneyType // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lastJourneyNote: freezed == lastJourneyNote
+            ? _value.lastJourneyNote
+            : lastJourneyNote // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lastJourneyContact: freezed == lastJourneyContact
+            ? _value.lastJourneyContact
+            : lastJourneyContact // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        nextActionDate: freezed == nextActionDate
+            ? _value.nextActionDate
+            : nextActionDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        nextAction: freezed == nextAction
+            ? _value.nextAction
+            : nextAction // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -206,7 +306,7 @@ class __$$B2bCardImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$B2bCardImpl implements _B2bCard {
+class _$B2bCardImpl extends _B2bCard {
   const _$B2bCardImpl({
     required this.doctype,
     required this.name,
@@ -216,7 +316,14 @@ class _$B2bCardImpl implements _B2bCard {
     @JsonKey(name: 'lead_score') this.leadScore,
     this.customer,
     @JsonKey(name: 'last_activity') this.lastActivity,
-  });
+    @JsonKey(name: 'journey_count') this.journeyCount = 0,
+    @JsonKey(name: 'last_journey_date') this.lastJourneyDate,
+    @JsonKey(name: 'last_journey_type') this.lastJourneyType,
+    @JsonKey(name: 'last_journey_note') this.lastJourneyNote,
+    @JsonKey(name: 'last_journey_contact') this.lastJourneyContact,
+    @JsonKey(name: 'next_action_date') this.nextActionDate,
+    @JsonKey(name: 'next_action') this.nextAction,
+  }) : super._();
 
   factory _$B2bCardImpl.fromJson(Map<String, dynamic> json) =>
       _$$B2bCardImplFromJson(json);
@@ -239,10 +346,34 @@ class _$B2bCardImpl implements _B2bCard {
   @override
   @JsonKey(name: 'last_activity')
   final String? lastActivity;
+  // ── Journey diary summary ──────────────────────────────────────────
+  // Folded in by `crm.get_b2b_pipeline` so the board shows when a prospect
+  // was last visited and what is due, without a request per card.
+  @override
+  @JsonKey(name: 'journey_count')
+  final int journeyCount;
+  @override
+  @JsonKey(name: 'last_journey_date')
+  final String? lastJourneyDate;
+  @override
+  @JsonKey(name: 'last_journey_type')
+  final String? lastJourneyType;
+  @override
+  @JsonKey(name: 'last_journey_note')
+  final String? lastJourneyNote;
+  @override
+  @JsonKey(name: 'last_journey_contact')
+  final String? lastJourneyContact;
+  @override
+  @JsonKey(name: 'next_action_date')
+  final String? nextActionDate;
+  @override
+  @JsonKey(name: 'next_action')
+  final String? nextAction;
 
   @override
   String toString() {
-    return 'B2bCard(doctype: $doctype, name: $name, title: $title, stage: $stage, owner: $owner, leadScore: $leadScore, customer: $customer, lastActivity: $lastActivity)';
+    return 'B2bCard(doctype: $doctype, name: $name, title: $title, stage: $stage, owner: $owner, leadScore: $leadScore, customer: $customer, lastActivity: $lastActivity, journeyCount: $journeyCount, lastJourneyDate: $lastJourneyDate, lastJourneyType: $lastJourneyType, lastJourneyNote: $lastJourneyNote, lastJourneyContact: $lastJourneyContact, nextActionDate: $nextActionDate, nextAction: $nextAction)';
   }
 
   @override
@@ -260,7 +391,21 @@ class _$B2bCardImpl implements _B2bCard {
             (identical(other.customer, customer) ||
                 other.customer == customer) &&
             (identical(other.lastActivity, lastActivity) ||
-                other.lastActivity == lastActivity));
+                other.lastActivity == lastActivity) &&
+            (identical(other.journeyCount, journeyCount) ||
+                other.journeyCount == journeyCount) &&
+            (identical(other.lastJourneyDate, lastJourneyDate) ||
+                other.lastJourneyDate == lastJourneyDate) &&
+            (identical(other.lastJourneyType, lastJourneyType) ||
+                other.lastJourneyType == lastJourneyType) &&
+            (identical(other.lastJourneyNote, lastJourneyNote) ||
+                other.lastJourneyNote == lastJourneyNote) &&
+            (identical(other.lastJourneyContact, lastJourneyContact) ||
+                other.lastJourneyContact == lastJourneyContact) &&
+            (identical(other.nextActionDate, nextActionDate) ||
+                other.nextActionDate == nextActionDate) &&
+            (identical(other.nextAction, nextAction) ||
+                other.nextAction == nextAction));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -275,6 +420,13 @@ class _$B2bCardImpl implements _B2bCard {
     leadScore,
     customer,
     lastActivity,
+    journeyCount,
+    lastJourneyDate,
+    lastJourneyType,
+    lastJourneyNote,
+    lastJourneyContact,
+    nextActionDate,
+    nextAction,
   );
 
   /// Create a copy of B2bCard
@@ -291,7 +443,7 @@ class _$B2bCardImpl implements _B2bCard {
   }
 }
 
-abstract class _B2bCard implements B2bCard {
+abstract class _B2bCard extends B2bCard {
   const factory _B2bCard({
     required final String doctype,
     required final String name,
@@ -301,7 +453,15 @@ abstract class _B2bCard implements B2bCard {
     @JsonKey(name: 'lead_score') final int? leadScore,
     final String? customer,
     @JsonKey(name: 'last_activity') final String? lastActivity,
+    @JsonKey(name: 'journey_count') final int journeyCount,
+    @JsonKey(name: 'last_journey_date') final String? lastJourneyDate,
+    @JsonKey(name: 'last_journey_type') final String? lastJourneyType,
+    @JsonKey(name: 'last_journey_note') final String? lastJourneyNote,
+    @JsonKey(name: 'last_journey_contact') final String? lastJourneyContact,
+    @JsonKey(name: 'next_action_date') final String? nextActionDate,
+    @JsonKey(name: 'next_action') final String? nextAction,
   }) = _$B2bCardImpl;
+  const _B2bCard._() : super._();
 
   factory _B2bCard.fromJson(Map<String, dynamic> json) = _$B2bCardImpl.fromJson;
 
@@ -322,7 +482,30 @@ abstract class _B2bCard implements B2bCard {
   String? get customer;
   @override
   @JsonKey(name: 'last_activity')
-  String? get lastActivity;
+  String? get lastActivity; // ── Journey diary summary ──────────────────────────────────────────
+  // Folded in by `crm.get_b2b_pipeline` so the board shows when a prospect
+  // was last visited and what is due, without a request per card.
+  @override
+  @JsonKey(name: 'journey_count')
+  int get journeyCount;
+  @override
+  @JsonKey(name: 'last_journey_date')
+  String? get lastJourneyDate;
+  @override
+  @JsonKey(name: 'last_journey_type')
+  String? get lastJourneyType;
+  @override
+  @JsonKey(name: 'last_journey_note')
+  String? get lastJourneyNote;
+  @override
+  @JsonKey(name: 'last_journey_contact')
+  String? get lastJourneyContact;
+  @override
+  @JsonKey(name: 'next_action_date')
+  String? get nextActionDate;
+  @override
+  @JsonKey(name: 'next_action')
+  String? get nextAction;
 
   /// Create a copy of B2bCard
   /// with the given fields replaced by the non-null parameter values.
@@ -1211,6 +1394,12 @@ mixin _$B2bAccount {
   @JsonKey(name: 'open_todos')
   List<B2bTodo> get openTodos => throw _privateConstructorUsedError;
 
+  /// The rep's dated field diary for this account, newest touch first. The
+  /// account screen renders it through the shared journey timeline, which
+  /// also owns the live (re-fetched) copy — this is the load-time snapshot.
+  @JsonKey(name: 'journey_notes')
+  List<JourneyNote> get journeyNotes => throw _privateConstructorUsedError;
+
   /// Serializes this B2bAccount to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -1240,6 +1429,7 @@ abstract class $B2bAccountCopyWith<$Res> {
     @JsonKey(name: 'avg_order_cycle_days') double? avgOrderCycleDays,
     @JsonKey(name: 'recent_invoices') List<B2bRecentInvoice> recentInvoices,
     @JsonKey(name: 'open_todos') List<B2bTodo> openTodos,
+    @JsonKey(name: 'journey_notes') List<JourneyNote> journeyNotes,
   });
 
   $B2bContactCopyWith<$Res> get contact;
@@ -1271,6 +1461,7 @@ class _$B2bAccountCopyWithImpl<$Res, $Val extends B2bAccount>
     Object? avgOrderCycleDays = freezed,
     Object? recentInvoices = null,
     Object? openTodos = null,
+    Object? journeyNotes = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1318,6 +1509,10 @@ class _$B2bAccountCopyWithImpl<$Res, $Val extends B2bAccount>
                 ? _value.openTodos
                 : openTodos // ignore: cast_nullable_to_non_nullable
                       as List<B2bTodo>,
+            journeyNotes: null == journeyNotes
+                ? _value.journeyNotes
+                : journeyNotes // ignore: cast_nullable_to_non_nullable
+                      as List<JourneyNote>,
           )
           as $Val,
     );
@@ -1355,6 +1550,7 @@ abstract class _$$B2bAccountImplCopyWith<$Res>
     @JsonKey(name: 'avg_order_cycle_days') double? avgOrderCycleDays,
     @JsonKey(name: 'recent_invoices') List<B2bRecentInvoice> recentInvoices,
     @JsonKey(name: 'open_todos') List<B2bTodo> openTodos,
+    @JsonKey(name: 'journey_notes') List<JourneyNote> journeyNotes,
   });
 
   @override
@@ -1386,6 +1582,7 @@ class __$$B2bAccountImplCopyWithImpl<$Res>
     Object? avgOrderCycleDays = freezed,
     Object? recentInvoices = null,
     Object? openTodos = null,
+    Object? journeyNotes = null,
   }) {
     return _then(
       _$B2bAccountImpl(
@@ -1433,6 +1630,10 @@ class __$$B2bAccountImplCopyWithImpl<$Res>
             ? _value._openTodos
             : openTodos // ignore: cast_nullable_to_non_nullable
                   as List<B2bTodo>,
+        journeyNotes: null == journeyNotes
+            ? _value._journeyNotes
+            : journeyNotes // ignore: cast_nullable_to_non_nullable
+                  as List<JourneyNote>,
       ),
     );
   }
@@ -1455,8 +1656,11 @@ class _$B2bAccountImpl implements _B2bAccount {
     final List<B2bRecentInvoice> recentInvoices = const <B2bRecentInvoice>[],
     @JsonKey(name: 'open_todos')
     final List<B2bTodo> openTodos = const <B2bTodo>[],
+    @JsonKey(name: 'journey_notes')
+    final List<JourneyNote> journeyNotes = const <JourneyNote>[],
   }) : _recentInvoices = recentInvoices,
-       _openTodos = openTodos;
+       _openTodos = openTodos,
+       _journeyNotes = journeyNotes;
 
   factory _$B2bAccountImpl.fromJson(Map<String, dynamic> json) =>
       _$$B2bAccountImplFromJson(json);
@@ -1500,9 +1704,25 @@ class _$B2bAccountImpl implements _B2bAccount {
     return EqualUnmodifiableListView(_openTodos);
   }
 
+  /// The rep's dated field diary for this account, newest touch first. The
+  /// account screen renders it through the shared journey timeline, which
+  /// also owns the live (re-fetched) copy — this is the load-time snapshot.
+  final List<JourneyNote> _journeyNotes;
+
+  /// The rep's dated field diary for this account, newest touch first. The
+  /// account screen renders it through the shared journey timeline, which
+  /// also owns the live (re-fetched) copy — this is the load-time snapshot.
+  @override
+  @JsonKey(name: 'journey_notes')
+  List<JourneyNote> get journeyNotes {
+    if (_journeyNotes is EqualUnmodifiableListView) return _journeyNotes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_journeyNotes);
+  }
+
   @override
   String toString() {
-    return 'B2bAccount(doctype: $doctype, name: $name, title: $title, stage: $stage, owner: $owner, contact: $contact, customer: $customer, predictedNextOrder: $predictedNextOrder, avgOrderCycleDays: $avgOrderCycleDays, recentInvoices: $recentInvoices, openTodos: $openTodos)';
+    return 'B2bAccount(doctype: $doctype, name: $name, title: $title, stage: $stage, owner: $owner, contact: $contact, customer: $customer, predictedNextOrder: $predictedNextOrder, avgOrderCycleDays: $avgOrderCycleDays, recentInvoices: $recentInvoices, openTodos: $openTodos, journeyNotes: $journeyNotes)';
   }
 
   @override
@@ -1529,6 +1749,10 @@ class _$B2bAccountImpl implements _B2bAccount {
             const DeepCollectionEquality().equals(
               other._openTodos,
               _openTodos,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._journeyNotes,
+              _journeyNotes,
             ));
   }
 
@@ -1547,6 +1771,7 @@ class _$B2bAccountImpl implements _B2bAccount {
     avgOrderCycleDays,
     const DeepCollectionEquality().hash(_recentInvoices),
     const DeepCollectionEquality().hash(_openTodos),
+    const DeepCollectionEquality().hash(_journeyNotes),
   );
 
   /// Create a copy of B2bAccount
@@ -1577,6 +1802,7 @@ abstract class _B2bAccount implements B2bAccount {
     @JsonKey(name: 'recent_invoices')
     final List<B2bRecentInvoice> recentInvoices,
     @JsonKey(name: 'open_todos') final List<B2bTodo> openTodos,
+    @JsonKey(name: 'journey_notes') final List<JourneyNote> journeyNotes,
   }) = _$B2bAccountImpl;
 
   factory _B2bAccount.fromJson(Map<String, dynamic> json) =
@@ -1608,6 +1834,13 @@ abstract class _B2bAccount implements B2bAccount {
   @override
   @JsonKey(name: 'open_todos')
   List<B2bTodo> get openTodos;
+
+  /// The rep's dated field diary for this account, newest touch first. The
+  /// account screen renders it through the shared journey timeline, which
+  /// also owns the live (re-fetched) copy — this is the load-time snapshot.
+  @override
+  @JsonKey(name: 'journey_notes')
+  List<JourneyNote> get journeyNotes;
 
   /// Create a copy of B2bAccount
   /// with the given fields replaced by the non-null parameter values.

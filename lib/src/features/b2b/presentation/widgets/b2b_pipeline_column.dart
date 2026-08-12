@@ -18,6 +18,10 @@ class B2bPipelineColumn extends StatelessWidget {
   /// Explicit (tap-based) stage move for a card. Mirrors the drag path.
   final void Function(B2bCard card, String stage)? onMove;
   final void Function(B2bCard card) onCardTap;
+
+  /// Jumps a Lead card straight to its catalog page. Passed through to the card
+  /// so the board is one tap from the full lead profile.
+  final void Function(B2bCard card)? onOpenLead;
   final double width;
 
   const B2bPipelineColumn({
@@ -28,6 +32,7 @@ class B2bPipelineColumn extends StatelessWidget {
     required this.onAccept,
     this.onMove,
     required this.onCardTap,
+    this.onOpenLead,
     this.width = 260,
   });
 
@@ -110,6 +115,7 @@ class B2bPipelineColumn extends StatelessWidget {
                               card: card,
                               stages: stages,
                               onMove: onMove,
+                              onOpenLead: onOpenLead,
                               onTap: () => onCardTap(card),
                             ),
                           );

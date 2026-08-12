@@ -16,6 +16,13 @@ _$B2bCardImpl _$$B2bCardImplFromJson(Map<String, dynamic> json) =>
       leadScore: (json['lead_score'] as num?)?.toInt(),
       customer: json['customer'] as String?,
       lastActivity: json['last_activity'] as String?,
+      journeyCount: (json['journey_count'] as num?)?.toInt() ?? 0,
+      lastJourneyDate: json['last_journey_date'] as String?,
+      lastJourneyType: json['last_journey_type'] as String?,
+      lastJourneyNote: json['last_journey_note'] as String?,
+      lastJourneyContact: json['last_journey_contact'] as String?,
+      nextActionDate: json['next_action_date'] as String?,
+      nextAction: json['next_action'] as String?,
     );
 
 Map<String, dynamic> _$$B2bCardImplToJson(_$B2bCardImpl instance) =>
@@ -28,6 +35,13 @@ Map<String, dynamic> _$$B2bCardImplToJson(_$B2bCardImpl instance) =>
       'lead_score': instance.leadScore,
       'customer': instance.customer,
       'last_activity': instance.lastActivity,
+      'journey_count': instance.journeyCount,
+      'last_journey_date': instance.lastJourneyDate,
+      'last_journey_type': instance.lastJourneyType,
+      'last_journey_note': instance.lastJourneyNote,
+      'last_journey_contact': instance.lastJourneyContact,
+      'next_action_date': instance.nextActionDate,
+      'next_action': instance.nextAction,
     };
 
 _$B2bContactImpl _$$B2bContactImplFromJson(Map<String, dynamic> json) =>
@@ -103,6 +117,11 @@ _$B2bAccountImpl _$$B2bAccountImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => B2bTodo.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const <B2bTodo>[],
+      journeyNotes:
+          (json['journey_notes'] as List<dynamic>?)
+              ?.map((e) => JourneyNote.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <JourneyNote>[],
     );
 
 Map<String, dynamic> _$$B2bAccountImplToJson(_$B2bAccountImpl instance) =>
@@ -118,6 +137,7 @@ Map<String, dynamic> _$$B2bAccountImplToJson(_$B2bAccountImpl instance) =>
       'avg_order_cycle_days': instance.avgOrderCycleDays,
       'recent_invoices': instance.recentInvoices,
       'open_todos': instance.openTodos,
+      'journey_notes': instance.journeyNotes,
     };
 
 _$FollowupItemImpl _$$FollowupItemImplFromJson(Map<String, dynamic> json) =>
