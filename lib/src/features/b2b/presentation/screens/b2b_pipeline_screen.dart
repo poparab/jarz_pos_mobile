@@ -6,6 +6,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../data/models/b2b_models.dart';
+import '../../../labels/state/labels_notifier.dart';
 import '../../state/b2b_pipeline_notifier.dart';
 import '../widgets/b2b_pipeline_column.dart';
 
@@ -62,6 +63,10 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
             icon: const Icon(Icons.today),
             onPressed: () => context.push(AppRoutes.b2bToday),
           ),
+          // Printed-label stock. Surfaced here as well as in the drawer because
+          // the rep who owns these accounts lives on this board, and a label
+          // that needs printing is a days-long lead time, not a same-day fix.
+          const _LabelAlertAction(),
           IconButton(
             tooltip: 'Refresh',
             icon: const Icon(Icons.refresh),
@@ -355,6 +360,33 @@ class _ErrorView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Header shortcut to the customer-label board, badged with how many labels
+/// need printing. Renders as a plain icon while the count is loading or if the
+/// call fails — a wrong badge is worse than no badge.
+class _LabelAlertAction extends ConsumerWidget {
+  const _LabelAlertAction();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(labelAlertCountProvider).maybeWhen(
+          data: (summary) => summary.needsAttention,
+          orElse: () => 0,
+        );
+
+    return IconButton(
+      tooltip: count == 0
+          ? 'Customer labels'
+          : '$count label${count == 1 ? '' : 's'} need printing',
+      icon: Badge(
+        isLabelVisible: count > 0,
+        label: Text('$count'),
+        child: const Icon(Icons.label_important_outline),
+      ),
+      onPressed: () => context.push(AppRoutes.labels),
     );
   }
 }

@@ -53,6 +53,10 @@ abstract final class AppRoutes {
   // ── Pricing (Price Lists) ─────────────────────────────────────────────
   static const pricing = '/pricing';
 
+  // ── B2B customer labels (printed-label stock + reorder alerts) ────────
+  static const labels = '/labels';
+  static const labelDetail = '/labels/detail';
+
   // ── Leads (B2B prospect research) ─────────────────────────────────────
   static const leads = '/leads';
   static const leadsMap = '/leads/map';

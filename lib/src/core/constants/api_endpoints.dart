@@ -450,6 +450,31 @@ abstract final class ApiEndpoints {
   static const getLiveCourierPositions =
       '/api/method/jarz_courier.api.tracking.get_live_positions';
 
+  // ── B2B customer labels ───────────────────────────────────────────────
+  // Printed-label stock per B2B customer: how many are left, how fast they are
+  // going, and when a batch has to go to the print house to land before they
+  // run out. Gated server-side on B2B or manager access.
+  static const getLabelDashboard =
+      '/api/method/jarz_pos.api.labels.get_label_dashboard';
+  static const getLabelAlertCount =
+      '/api/method/jarz_pos.api.labels.get_label_alert_count';
+  static const getLabelDetail =
+      '/api/method/jarz_pos.api.labels.get_label_detail';
+  static const searchLabelCustomers =
+      '/api/method/jarz_pos.api.labels.search_label_customers';
+  static const getLabelItemGroups =
+      '/api/method/jarz_pos.api.labels.get_label_item_groups';
+  static const createLabel = '/api/method/jarz_pos.api.labels.create_label';
+  static const updateLabel = '/api/method/jarz_pos.api.labels.update_label';
+  static const recordLabelMovement =
+      '/api/method/jarz_pos.api.labels.record_movement';
+  static const recordLabelCount =
+      '/api/method/jarz_pos.api.labels.record_count';
+  static const createLabelPrintOrder =
+      '/api/method/jarz_pos.api.labels.create_print_order';
+  static const updateLabelPrintOrder =
+      '/api/method/jarz_pos.api.labels.update_print_order';
+
   // ── Custom Shipping ───────────────────────────────────────────────────
   static const requestCustomShipping =
       '/api/method/jarz_pos.api.custom_shipping.request_custom_shipping';

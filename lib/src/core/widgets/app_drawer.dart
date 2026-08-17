@@ -11,6 +11,7 @@ import '../localization/localization_extensions.dart';
 import '../network/user_service.dart';
 import '../../features/pos/state/pos_notifier.dart';
 import '../../features/shift/state/shift_notifier.dart';
+import '../../features/labels/state/labels_notifier.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -151,6 +152,12 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuLeads,
           onTap: () => navigate(AppRoutes.leads),
         ),
+      // Printed-label stock per B2B customer. The badge carries the count that
+      // has to go to the print house, so the shortage is visible from the drawer
+      // without opening the board — printing takes days, so noticing late is the
+      // whole failure mode.
+      if (canAccessB2b)
+        _LabelsNavTile(onTap: () => navigate(AppRoutes.labels)),
     ];
 
     final canViewPricing = canAccessManagerDashboardRole || canAccessB2b;
@@ -277,7 +284,7 @@ class AppDrawer extends ConsumerWidget {
 
     // Auto-expand the group containing the active route; fall back to POS/Sales.
     const posRoutes = [AppRoutes.pos, AppRoutes.shiftEnd, AppRoutes.kanban];
-    const crmRoutes = [AppRoutes.b2b, AppRoutes.leads];
+    const crmRoutes = [AppRoutes.b2b, AppRoutes.leads, AppRoutes.labels];
     const pricingRoutes = [AppRoutes.pricing];
     const deliveryRoutes = [AppRoutes.trips, AppRoutes.fleetMap];
     const financeRoutes = [AppRoutes.expenses, AppRoutes.cashTransfer];
@@ -445,6 +452,51 @@ class _DrawerHeaderTitle extends StatelessWidget {
           style: const TextStyle(color: Colors.white70, fontSize: 14),
         ),
       ],
+    );
+  }
+}
+
+/// Drawer entry for the B2B customer-label board, badged with how many labels
+/// currently need printing.
+///
+/// The count is its own cheap endpoint rather than the full board payload, and
+/// the provider is `autoDispose`, so opening the drawer re-asks instead of
+/// showing whatever the first read of the session returned. A failed or pending
+/// read simply renders no badge — a stale or wrong number here would be worse
+/// than none.
+class _LabelsNavTile extends ConsumerWidget {
+  final VoidCallback onTap;
+
+  const _LabelsNavTile({required this.onTap});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(labelAlertCountProvider).maybeWhen(
+          data: (summary) => summary.needsAttention,
+          orElse: () => 0,
+        );
+
+    return ListTile(
+      leading: const Icon(Icons.label_important_outline),
+      title: const Text('Customer Labels'),
+      trailing: count == 0
+          ? null
+          : Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: const Color(0xFFB3261E),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '$count',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+      onTap: onTap,
     );
   }
 }

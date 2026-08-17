@@ -42,6 +42,8 @@ import '../features/instapay_reconciliation/presentation/instapay_reconciliation
 import 'network/user_service.dart';
 import '../features/about/presentation/screens/about_screen.dart';
 import '../features/b2b/presentation/screens/b2b_pipeline_screen.dart';
+import '../features/labels/presentation/screens/labels_screen.dart';
+import '../features/labels/presentation/screens/label_detail_screen.dart';
 import '../features/b2b/presentation/screens/b2b_account_screen.dart';
 import '../features/b2b/presentation/screens/b2b_today_screen.dart';
 import '../features/pricing/presentation/screens/pricing_screen.dart';
@@ -489,6 +491,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.pricing,
         name: 'pricing',
         builder: (context, state) => const PricingScreen(),
+      ),
+      // ── B2B customer labels ───────────────────────────────────────────
+      // `/labels/detail` is declared before nothing else, but it must stay
+      // ahead of any future `/labels/:id` for the same reason the leads block
+      // documents: static segments have to win the match.
+      GoRoute(
+        path: AppRoutes.labels,
+        name: 'labels',
+        builder: (context, state) => const LabelsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.labelDetail,
+        name: 'label-detail',
+        builder: (context, state) =>
+            LabelDetailScreen(labelName: (state.extra ?? '').toString()),
       ),
       // ── Leads (B2B prospect research) ─────────────────────────────────
       // Note: the literal `/leads/map` and `/leads/new` routes must be
