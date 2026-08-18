@@ -9,14 +9,16 @@ final labelsRepositoryProvider = Provider<LabelsRepository>((ref) {
   return LabelsRepository(ref.watch(dioProvider));
 });
 
-/// Item Groups a label can be scoped to. Small and stable, so it is fetched once
-/// and cached for the life of the provider rather than on every sheet open.
-final labelItemGroupsProvider = FutureProvider<List<String>>((ref) async {
-  return ref.watch(labelsRepositoryProvider).getItemGroups();
+/// Warehouses a label can live in. Small and stable, so it is fetched once and
+/// cached for the life of the provider rather than on every sheet open.
+final labelStorageLocationsProvider =
+    FutureProvider<List<LabelStorageLocation>>((ref) async {
+  return ref.watch(labelsRepositoryProvider).getStorageLocations();
 });
 
 /// HTTP repository for `jarz_pos.api.labels.*`. Every call is gated server-side
-/// on B2B or manager access and throws otherwise.
+/// on B2B or manager access and throws otherwise; billing a batch additionally
+/// requires the manager tier.
 class LabelsRepository {
   final Dio _dio;
   LabelsRepository(this._dio);
@@ -74,35 +76,83 @@ class LabelsRepository {
         .toList();
   }
 
-  Future<List<String>> getItemGroups() async {
+  /// The flavours a customer deals in (price list + order history), flagged
+  /// with whether a label already tracks them — the setup wizard's checklist.
+  Future<LabelFlavourOptions> getFlavourOptions(String customer) async {
+    final response = await _dio
+        .post(ApiEndpoints.getLabelFlavourOptions, data: {'customer': customer});
+    return LabelFlavourOptions.fromJson(_asMap(_unwrap(response)));
+  }
+
+  Future<List<LabelStorageLocation>> getStorageLocations() async {
     final response =
-        await _dio.post(ApiEndpoints.getLabelItemGroups, data: const {});
+        await _dio.post(ApiEndpoints.getLabelStorageLocations, data: const {});
     final payload = _asMap(_unwrap(response));
-    return (payload['item_groups'] as List? ?? const [])
-        .map((e) => e.toString())
+    return (payload['locations'] as List? ?? const [])
+        .whereType<Map>()
+        .map((e) =>
+            LabelStorageLocation.fromJson(Map<String, dynamic>.from(e)))
         .toList();
+  }
+
+  Future<List<LabelSupplierOption>> searchPrintSuppliers(String query) async {
+    final response = await _dio
+        .post(ApiEndpoints.getLabelPrintSuppliers, data: {'query': query});
+    final payload = _asMap(_unwrap(response));
+    return (payload['suppliers'] as List? ?? const [])
+        .whereType<Map>()
+        .map((e) => LabelSupplierOption.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
+  /// One-shot account setup: creates a label per picked flavour. Existing
+  /// labels are skipped server-side, so re-running is additive.
+  Future<LabelSetupResult> setupCustomerLabels({
+    required String customer,
+    required List<LabelSetupFlavour> flavours,
+    String? storageLocation,
+    String? priceList,
+    int defaultPrintSheets = 0,
+    bool wePrint = true,
+  }) async {
+    final response = await _dio.post(ApiEndpoints.setupCustomerLabels, data: {
+      'customer': customer,
+      'flavours': flavours.map((f) => f.toJson()).toList(),
+      if (storageLocation != null && storageLocation.trim().isNotEmpty)
+        'storage_location': storageLocation.trim(),
+      if (priceList != null && priceList.trim().isNotEmpty)
+        'price_list': priceList.trim(),
+      if (defaultPrintSheets > 0) 'default_print_sheets': defaultPrintSheets,
+      'we_print': wePrint ? 1 : 0,
+    });
+    return LabelSetupResult.fromJson(_asMap(_unwrap(response)));
   }
 
   Future<CustomerLabel> createLabel({
     required String customer,
-    String labelTitle = 'Default',
+    required String item,
+    String? labelTitle,
     bool wePrint = true,
-    String? appliesToItemGroup,
+    String? storageLocation,
     double labelsPerUnit = 1,
+    int labelsPerSheet = 0,
+    int defaultPrintSheets = 0,
     int minStockQty = 0,
-    int reorderQty = 0,
     int openingQty = 0,
     String? notes,
   }) async {
     final response = await _dio.post(ApiEndpoints.createLabel, data: {
       'customer': customer,
-      'label_title': labelTitle,
+      'item': item,
+      if (labelTitle != null && labelTitle.trim().isNotEmpty)
+        'label_title': labelTitle.trim(),
       'we_print': wePrint ? 1 : 0,
-      if (appliesToItemGroup != null && appliesToItemGroup.trim().isNotEmpty)
-        'applies_to_item_group': appliesToItemGroup.trim(),
+      if (storageLocation != null && storageLocation.trim().isNotEmpty)
+        'storage_location': storageLocation.trim(),
       'labels_per_unit': labelsPerUnit,
+      'labels_per_sheet': labelsPerSheet,
+      'default_print_sheets': defaultPrintSheets,
       'min_stock_qty': minStockQty,
-      'reorder_qty': reorderQty,
       'opening_qty': openingQty,
       if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
     });
@@ -114,24 +164,29 @@ class LabelsRepository {
   Future<CustomerLabel> updateLabel({
     required String label,
     String? labelTitle,
+    String? item,
     bool? enabled,
     bool? wePrint,
-    String? appliesToItemGroup,
+    String? storageLocation,
     double? labelsPerUnit,
+    int? labelsPerSheet,
+    int? defaultPrintSheets,
     int? minStockQty,
-    int? reorderQty,
     String? notes,
   }) async {
     final response = await _dio.post(ApiEndpoints.updateLabel, data: {
       'label': label,
       if (labelTitle != null) 'label_title': labelTitle,
+      if (item != null) 'item': item,
       if (enabled != null) 'enabled': enabled ? 1 : 0,
       if (wePrint != null) 'we_print': wePrint ? 1 : 0,
-      // An empty string is meaningful: it clears the scope back to catch-all.
-      if (appliesToItemGroup != null) 'applies_to_item_group': appliesToItemGroup,
+      // An empty string is meaningful: it clears the home location.
+      if (storageLocation != null) 'storage_location': storageLocation,
       if (labelsPerUnit != null) 'labels_per_unit': labelsPerUnit,
+      if (labelsPerSheet != null) 'labels_per_sheet': labelsPerSheet,
+      if (defaultPrintSheets != null)
+        'default_print_sheets': defaultPrintSheets,
       if (minStockQty != null) 'min_stock_qty': minStockQty,
-      if (reorderQty != null) 'reorder_qty': reorderQty,
       if (notes != null) 'notes': notes,
     });
     return CustomerLabel.fromJson(_asMap(_unwrap(response)));
@@ -170,18 +225,25 @@ class LabelsRepository {
     return CustomerLabel.fromJson(_asMap(payload['label']));
   }
 
+  /// Sends a batch to the print house, in SHEETS — the label quantity and the
+  /// expected-ready date are computed server-side.
   Future<CustomerLabel> createPrintOrder({
     required String label,
-    required int qty,
+    required int qtySheets,
+    String? supplier,
     String? printerName,
+    double? totalCost,
     String? requestedOn,
     String? notes,
   }) async {
     final response = await _dio.post(ApiEndpoints.createLabelPrintOrder, data: {
       'label': label,
-      'qty': qty,
+      'qty_sheets': qtySheets,
+      if (supplier != null && supplier.trim().isNotEmpty)
+        'supplier': supplier.trim(),
       if (printerName != null && printerName.trim().isNotEmpty)
         'printer_name': printerName.trim(),
+      if (totalCost != null && totalCost > 0) 'total_cost': totalCost,
       if (requestedOn != null) 'requested_on': requestedOn,
       if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
     });
@@ -194,6 +256,8 @@ class LabelsRepository {
     String? status,
     int? receivedQty,
     String? receivedOn,
+    double? totalCost,
+    String? supplier,
     String? printerName,
     String? notes,
   }) async {
@@ -202,8 +266,32 @@ class LabelsRepository {
       if (status != null) 'status': status,
       if (receivedQty != null) 'received_qty': receivedQty,
       if (receivedOn != null) 'received_on': receivedOn,
+      if (totalCost != null) 'total_cost': totalCost,
+      if (supplier != null) 'supplier': supplier,
       if (printerName != null) 'printer_name': printerName,
       if (notes != null) 'notes': notes,
+    });
+    final payload = _asMap(_unwrap(response));
+    return CustomerLabel.fromJson(_asMap(payload['label']));
+  }
+
+  /// Books the printer's bill as a supplier Purchase Invoice. Manager-gated
+  /// server-side — reps receive boxes; managers commit money.
+  Future<CustomerLabel> billPrintOrder({
+    required String printOrder,
+    String? supplier,
+    double? totalCost,
+    String? billNo,
+    String? billDate,
+  }) async {
+    final response = await _dio.post(ApiEndpoints.billLabelPrintOrder, data: {
+      'print_order': printOrder,
+      if (supplier != null && supplier.trim().isNotEmpty)
+        'supplier': supplier.trim(),
+      if (totalCost != null && totalCost > 0) 'total_cost': totalCost,
+      if (billNo != null && billNo.trim().isNotEmpty) 'bill_no': billNo.trim(),
+      if (billDate != null && billDate.trim().isNotEmpty)
+        'bill_date': billDate.trim(),
     });
     final payload = _asMap(_unwrap(response));
     return CustomerLabel.fromJson(_asMap(payload['label']));

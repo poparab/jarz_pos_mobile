@@ -31,6 +31,9 @@ class LabelsState {
   final String? error;
   final LabelDashboard dashboard;
   final LabelFilter filter;
+
+  /// Selected storage location, or null for every location.
+  final String? location;
   final String search;
 
   const LabelsState({
@@ -40,6 +43,7 @@ class LabelsState {
     required this.error,
     required this.dashboard,
     required this.filter,
+    required this.location,
     required this.search,
   });
 
@@ -53,22 +57,31 @@ class LabelsState {
         error = null,
         dashboard = const LabelDashboard.empty(),
         filter = LabelFilter.attention,
+        location = null,
         search = '';
 
   LabelSummary get summary => dashboard.summary;
   LabelSettings get settings => dashboard.settings;
 
-  /// The rows to render: filtered, then narrowed by the search box.
+  /// The rows to render: filtered, narrowed by location, then by the search box.
   List<CustomerLabel> get visibleLabels {
     final query = search.trim().toLowerCase();
+    final where = location?.trim();
     return dashboard.labels.where((label) {
       if (!filter.matches(label)) return false;
+      if (where != null && where.isNotEmpty && label.storageLocation != where) {
+        return false;
+      }
       if (query.isEmpty) return true;
       return label.customerName.toLowerCase().contains(query) ||
           label.customer.toLowerCase().contains(query) ||
           label.labelTitle.toLowerCase().contains(query);
     }).toList();
   }
+
+  /// The visible rows grouped one customer at a time, board order preserved.
+  List<LabelCustomerGroup> get visibleGroups =>
+      groupLabelsByCustomer(visibleLabels);
 
   bool get hasAlerts => summary.needsAttention > 0;
 
@@ -80,6 +93,8 @@ class LabelsState {
     bool clearError = false,
     LabelDashboard? dashboard,
     LabelFilter? filter,
+    String? location,
+    bool clearLocation = false,
     String? search,
   }) {
     return LabelsState(
@@ -89,6 +104,7 @@ class LabelsState {
       error: clearError ? null : (error ?? this.error),
       dashboard: dashboard ?? this.dashboard,
       filter: filter ?? this.filter,
+      location: clearLocation ? null : (location ?? this.location),
       search: search ?? this.search,
     );
   }
@@ -159,6 +175,15 @@ class LabelsNotifier extends StateNotifier<LabelsState> {
 
   void setFilter(LabelFilter filter) => state = state.copyWith(filter: filter);
 
+  /// Null (or an empty string) selects every location.
+  void setLocation(String? location) {
+    if (location == null || location.trim().isEmpty) {
+      state = state.copyWith(clearLocation: true);
+    } else {
+      state = state.copyWith(location: location);
+    }
+  }
+
   void setSearch(String search) => state = state.copyWith(search: search);
 
   void clearError() => state = state.copyWith(clearError: true);
@@ -177,6 +202,7 @@ class LabelsNotifier extends StateNotifier<LabelsState> {
       dashboard: LabelDashboard(
         summary: state.dashboard.summary,
         labels: labels,
+        locations: state.dashboard.locations,
         settings: state.dashboard.settings,
       ),
     );
@@ -202,12 +228,15 @@ class LabelsNotifier extends StateNotifier<LabelsState> {
     }
   }
 
-  String _message(Object error) {
-    final text = error.toString();
-    // Frappe puts the useful sentence inside its own exception wrapper; strip
-    // the Dio noise so the snackbar is readable.
-    final match = RegExp(r'"?_server_messages"?\s*:\s*"(.*?)"').firstMatch(text);
-    if (match != null) return match.group(1) ?? text;
-    return text.replaceFirst('Exception: ', '');
-  }
+  String _message(Object error) => labelErrorMessage(error);
+}
+
+/// Frappe puts the useful sentence inside its own exception wrapper; strip
+/// the Dio noise so the snackbar is readable. Shared with the detail screen so
+/// a manager-gate rejection reads as the server's sentence, not a stack trace.
+String labelErrorMessage(Object error) {
+  final text = error.toString();
+  final match = RegExp(r'"?_server_messages"?\s*:\s*"(.*?)"').firstMatch(text);
+  if (match != null) return match.group(1) ?? text;
+  return text.replaceFirst('Exception: ', '');
 }

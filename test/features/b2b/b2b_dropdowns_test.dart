@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/b2b/data/b2b_repository.dart';
+import 'package:jarz_pos/src/features/b2b/data/models/b2b_account_labels.dart';
 import 'package:jarz_pos/src/features/b2b/data/models/b2b_models.dart';
 import 'package:jarz_pos/src/features/b2b/presentation/screens/b2b_account_screen.dart';
 import 'package:jarz_pos/src/features/leads/data/leads_repository.dart';
@@ -27,16 +28,19 @@ class _FakeB2bRepository extends B2bRepository {
   Future<List<String>> getLeadSources() async => _leadSources;
 
   @override
-  Future<B2bAccount> getAccount({
+  Future<B2bAccountDetail> getAccount({
     required String doctype,
     required String name,
   }) async {
-    return const B2bAccount(
-      doctype: 'Lead',
-      name: 'LEAD-001',
-      title: 'Acme Co',
-      stage: 'Lead',
-      contact: B2bContact(mobileNo: '01000000000'),
+    return const B2bAccountDetail(
+      account: B2bAccount(
+        doctype: 'Lead',
+        name: 'LEAD-001',
+        title: 'Acme Co',
+        stage: 'Lead',
+        contact: B2bContact(mobileNo: '01000000000'),
+      ),
+      labels: null,
     );
   }
 }

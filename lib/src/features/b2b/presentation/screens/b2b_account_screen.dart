@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../journey/presentation/widgets/journey_notes_section.dart';
+import '../../../labels/models/label_models.dart' show LabelStatus;
+import '../../../labels/presentation/widgets/label_status_chip.dart';
 import '../../../leads/data/leads_repository.dart';
 import '../../../leads/data/models/lead.dart';
 import '../../../leads/presentation/leads_theme.dart';
@@ -15,6 +18,7 @@ import '../../../pos/presentation/widgets/customer_search_widget.dart'
     show territoriesProvider;
 import '../../../pricing/presentation/screens/customer_pricing_screen.dart';
 import '../../data/b2b_repository.dart';
+import '../../data/models/b2b_account_labels.dart';
 import '../../data/models/b2b_models.dart';
 import '../b2b_order_launch.dart';
 import '../widgets/b2b_stage_chip.dart';
@@ -37,7 +41,7 @@ class B2bAccountScreen extends ConsumerStatefulWidget {
 }
 
 class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
-  late Future<B2bAccount> _future;
+  late Future<B2bAccountDetail> _future;
   bool _busy = false;
 
   @override
@@ -46,7 +50,7 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
     _future = _load();
   }
 
-  Future<B2bAccount> _load() {
+  Future<B2bAccountDetail> _load() {
     return ref
         .read(b2bRepositoryProvider)
         .getAccount(doctype: widget.doctype, name: widget.name);
@@ -62,7 +66,7 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Account')),
-      body: FutureBuilder<B2bAccount>(
+      body: FutureBuilder<B2bAccountDetail>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
@@ -84,10 +88,12 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
               ),
             );
           }
-          final account = snapshot.requireData;
+          final detail = snapshot.requireData;
+          final account = detail.account;
           final customer = account.customer;
           return _AccountBody(
             account: account,
+            labels: detail.labels,
             busy: _busy,
             onSendSample: () => _bindAndOrder(account, isSample: true),
             onPlaceOrder: () => _bindAndOrder(account, isSample: false),
@@ -96,6 +102,11 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
             onJourneyChanged: _reload,
             // Only a Lead has a catalog page to open; an Opportunity does not.
             onOpenLead: _isLead ? _openLeadPage : null,
+            onOpenLabel: _openLabelDetail,
+            // Setting up labels needs a real Customer behind the account.
+            onSetupLabels: (customer != null && customer.isNotEmpty)
+                ? () => _openLabelSetup(customer, account.title)
+                : null,
             onViewPricing: (customer != null && customer.isNotEmpty)
                 ? () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
@@ -108,6 +119,25 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
         },
       ),
     );
+  }
+
+  /// Opens one flavour's label detail, then revalidates: a batch ordered or
+  /// received there changes the status chips shown here.
+  Future<void> _openLabelDetail(String label) async {
+    await context.push(AppRoutes.labelDetail, extra: label);
+    if (mounted) _reload();
+  }
+
+  /// Launches the label setup wizard with this account's customer preselected.
+  Future<void> _openLabelSetup(String customer, String customerName) async {
+    await context.push(
+      AppRoutes.labelSetup,
+      extra: <String, dynamic>{
+        'customer': customer,
+        'customer_name': customerName,
+      },
+    );
+    if (mounted) _reload();
   }
 
   bool get _isLead => widget.doctype == 'Lead';
@@ -420,6 +450,7 @@ class _LeadCustomerFields {
 
 class _AccountBody extends StatelessWidget {
   final B2bAccount account;
+  final B2bAccountLabels? labels;
   final bool busy;
   final VoidCallback onSendSample;
   final VoidCallback onPlaceOrder;
@@ -427,10 +458,13 @@ class _AccountBody extends StatelessWidget {
   final VoidCallback onMarkLost;
   final VoidCallback onJourneyChanged;
   final VoidCallback? onOpenLead;
+  final void Function(String label)? onOpenLabel;
+  final VoidCallback? onSetupLabels;
   final VoidCallback? onViewPricing;
 
   const _AccountBody({
     required this.account,
+    required this.labels,
     required this.busy,
     required this.onSendSample,
     required this.onPlaceOrder,
@@ -438,6 +472,8 @@ class _AccountBody extends StatelessWidget {
     required this.onMarkLost,
     required this.onJourneyChanged,
     this.onOpenLead,
+    this.onOpenLabel,
+    this.onSetupLabels,
     this.onViewPricing,
   });
 
@@ -507,6 +543,11 @@ class _AccountBody extends StatelessWidget {
                 _kv(context, 'Avg order cycle',
                     '${account.avgOrderCycleDays!.toStringAsFixed(1)} days'),
             ]),
+            _LabelsSection(
+              labels: labels,
+              onOpenLabel: busy ? null : onOpenLabel,
+              onSetupLabels: busy ? null : onSetupLabels,
+            ),
             _section(
               context,
               'Recent invoices',
@@ -639,6 +680,100 @@ class _AccountBody extends StatelessWidget {
           Expanded(child: Text(value)),
         ],
       ),
+    );
+  }
+}
+
+/// Printed-label stock for this account, one row per flavour, straight off the
+/// account payload. Tapping a row opens the label's own detail screen; an
+/// account with nothing tracked gets a "Set up labels" shortcut into the
+/// wizard (shown only when a real Customer is linked — labels hang off the
+/// Customer, not the Lead).
+class _LabelsSection extends StatelessWidget {
+  final B2bAccountLabels? labels;
+  final void Function(String label)? onOpenLabel;
+  final VoidCallback? onSetupLabels;
+
+  const _LabelsSection({
+    required this.labels,
+    this.onOpenLabel,
+    this.onSetupLabels,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final data = labels;
+    final empty = data == null || data.isEmpty;
+
+    // No labels and no way to create any: stay out of the way entirely.
+    if (empty && onSetupLabels == null) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Text('Labels', style: theme.textTheme.titleMedium),
+            if (!empty && data.needsAttention > 0) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFB3261E).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${data.needsAttention} need${data.needsAttention == 1 ? 's' : ''} printing',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: const Color(0xFFB3261E),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const Divider(),
+        if (empty) ...[
+          Text(
+            'No labels tracked for this customer yet.',
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.tonalIcon(
+              onPressed: onSetupLabels,
+              icon: const Icon(Icons.label_outline, size: 18),
+              label: const Text('Set up labels'),
+            ),
+          ),
+        ] else
+          ...data.flavours.map(
+            (flavour) => ListTile(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              leading: const Icon(Icons.label_outline, size: 20),
+              title: Text(flavour.title),
+              subtitle: Text(
+                [
+                  if (flavour.size.isNotEmpty) flavour.size,
+                  '${flavour.onHandQty} on hand',
+                ].join(' · '),
+              ),
+              trailing: LabelStatusChip(
+                status: LabelStatus.parse(flavour.status),
+                dense: true,
+              ),
+              onTap: (onOpenLabel == null || flavour.label.isEmpty)
+                  ? null
+                  : () => onOpenLabel!(flavour.label),
+            ),
+          ),
+      ],
     );
   }
 }

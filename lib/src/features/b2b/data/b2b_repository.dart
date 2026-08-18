@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/dio_provider.dart';
 import '../../../core/constants/api_endpoints.dart';
+import 'models/b2b_account_labels.dart';
 import 'models/b2b_models.dart';
 
 final b2bRepositoryProvider = Provider<B2bRepository>((ref) {
@@ -38,7 +39,7 @@ class B2bRepository {
     return B2bPipeline.fromJson(_asMap(_unwrap(response)));
   }
 
-  Future<B2bAccount> getAccount({
+  Future<B2bAccountDetail> getAccount({
     required String doctype,
     required String name,
   }) async {
@@ -46,7 +47,13 @@ class B2bRepository {
       ApiEndpoints.getB2bAccount,
       data: {'doctype': doctype, 'name': name},
     );
-    return B2bAccount.fromJson(_asMap(_unwrap(response)));
+    final payload = _asMap(_unwrap(response));
+    // `labels` is parsed OFF the Freezed model on purpose: it is nullable,
+    // absent on older backends, and hand-coerced — see b2b_account_labels.dart.
+    return B2bAccountDetail(
+      account: B2bAccount.fromJson(payload),
+      labels: B2bAccountLabels.tryParse(payload['labels']),
+    );
   }
 
   /// Advances a card to [stage]. Returns the server-confirmed

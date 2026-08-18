@@ -462,8 +462,14 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.labels.get_label_detail';
   static const searchLabelCustomers =
       '/api/method/jarz_pos.api.labels.search_label_customers';
-  static const getLabelItemGroups =
-      '/api/method/jarz_pos.api.labels.get_label_item_groups';
+  static const getLabelFlavourOptions =
+      '/api/method/jarz_pos.api.labels.get_flavour_options';
+  static const getLabelStorageLocations =
+      '/api/method/jarz_pos.api.labels.get_storage_locations';
+  static const getLabelPrintSuppliers =
+      '/api/method/jarz_pos.api.labels.get_print_suppliers';
+  static const setupCustomerLabels =
+      '/api/method/jarz_pos.api.labels.setup_customer_labels';
   static const createLabel = '/api/method/jarz_pos.api.labels.create_label';
   static const updateLabel = '/api/method/jarz_pos.api.labels.update_label';
   static const recordLabelMovement =
@@ -474,6 +480,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.labels.create_print_order';
   static const updateLabelPrintOrder =
       '/api/method/jarz_pos.api.labels.update_print_order';
+  static const billLabelPrintOrder =
+      '/api/method/jarz_pos.api.labels.bill_print_order';
 
   // ── Custom Shipping ───────────────────────────────────────────────────
   static const requestCustomShipping =

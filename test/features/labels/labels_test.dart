@@ -40,12 +40,19 @@ Map<String, dynamic> _labelJson({
   String name = 'JLBL-00001',
   String customer = 'CUST-A',
   String customerName = 'Cafe X',
-  String title = 'Default',
+  String title = 'Mango',
+  String? item = 'Mango Jar',
+  String? size = 'Medium',
+  String? storageLocation = 'Factory - J',
   String status = 'Reorder Now',
   int onHand = 40,
   dynamic daysOfCover = 4.0,
   bool wePrint = true,
   bool tracked = true,
+  int labelsPerSheet = 21,
+  int suggestedSheets = 3,
+  double stockValue = 0,
+  double avgCost = 0,
   List<Map<String, dynamic>> openOrders = const [],
 }) {
   return {
@@ -53,15 +60,21 @@ Map<String, dynamic> _labelJson({
     'customer': customer,
     'customer_name': customerName,
     'label_title': title,
+    'item': item,
+    'size': size,
+    'storage_location': storageLocation,
     'enabled': 1,
     'we_print': wePrint ? 1 : 0,
     'tracked': tracked ? 1 : 0,
-    'applies_to_item_group': null,
     'labels_per_unit': 1,
+    'labels_per_sheet': labelsPerSheet,
+    'default_print_sheets': 2,
     'on_hand_qty': onHand,
     'min_stock_qty': 0,
-    'reorder_qty': 500,
-    'suggested_print_qty': 500,
+    'stock_value': stockValue,
+    'avg_cost_per_label': avgCost,
+    'suggested_print_sheets': suggestedSheets,
+    'suggested_print_qty': suggestedSheets * labelsPerSheet,
     'avg_daily_usage': 10.0,
     'days_of_cover': daysOfCover,
     'consumed_in_window': 300,
@@ -87,6 +100,7 @@ LabelsState _stateWith(List<Map<String, dynamic>> labels) {
     dashboard: LabelDashboard.fromJson({
       'summary': const <String, dynamic>{},
       'labels': labels,
+      'locations': const <String>[],
       'settings': const <String, dynamic>{},
     }),
   );
@@ -129,6 +143,14 @@ void main() {
       expect(label.status, LabelStatus.reorderNow);
       expect(label.needsAttention, isTrue);
       expect(label.runsOutOn, DateTime(2026, 8, 21));
+      // v2 fields.
+      expect(label.item, 'Mango Jar');
+      expect(label.size, 'Medium');
+      expect(label.storageLocation, 'Factory - J');
+      expect(label.labelsPerSheet, 21);
+      expect(label.defaultPrintSheets, 2);
+      expect(label.suggestedPrintSheets, 3);
+      expect(label.suggestedPrintQty, 63);
     });
 
     test('a null days-of-cover stays null rather than becoming zero', () {
@@ -143,14 +165,6 @@ void main() {
       expect(CustomerLabel.fromJson(json).customerName, 'CUST-A');
     });
 
-    test('display title hides the "Default" label name', () {
-      expect(CustomerLabel.fromJson(_labelJson()).displayTitle, 'Cafe X');
-      expect(
-        CustomerLabel.fromJson(_labelJson(title: '250g')).displayTitle,
-        'Cafe X · 250g',
-      );
-    });
-
     test('missing list fields parse as empty, not null', () {
       final json = _labelJson()..remove('open_print_orders');
       final label = CustomerLabel.fromJson(json);
@@ -158,13 +172,69 @@ void main() {
       expect(label.movements, isEmpty);
       expect(label.nextArrival, isNull);
     });
+
+    test('missing money fields read as zero, not a crash', () {
+      final json = _labelJson()
+        ..remove('stock_value')
+        ..remove('avg_cost_per_label');
+      final label = CustomerLabel.fromJson(json);
+      expect(label.stockValue, 0);
+      expect(label.avgCostPerLabel, 0);
+    });
+
+    test('sheet equivalence: N sheets = N x labels-per-sheet', () {
+      final label = CustomerLabel.fromJson(_labelJson(labelsPerSheet: 21));
+      expect(label.labelsForSheets(2), 42);
+      expect(label.labelsForSheets(1), 21);
+      // No geometry known → no equivalence claimed, rather than a made-up 0x.
+      final unknown = CustomerLabel.fromJson(_labelJson(labelsPerSheet: 0));
+      expect(unknown.labelsForSheets(2), 0);
+      // Nonsense input never yields a negative label count.
+      expect(label.labelsForSheets(-3), 0);
+      expect(label.labelsForSheets(0), 0);
+    });
+  });
+
+  group('groupLabelsByCustomer', () {
+    test('groups rows per customer, preserving board order', () {
+      final labels = [
+        _labelJson(name: 'A1', customer: 'A', customerName: 'Alpha',
+            status: 'Out of Stock'),
+        _labelJson(name: 'B1', customer: 'B', customerName: 'Beta',
+            status: 'Reorder Soon'),
+        _labelJson(name: 'A2', customer: 'A', customerName: 'Alpha',
+            status: 'OK'),
+      ].map(CustomerLabel.fromJson).toList();
+
+      final groups = groupLabelsByCustomer(labels);
+      expect(groups.map((g) => g.customer), ['A', 'B']);
+      expect(groups.first.labels.map((l) => l.name), ['A1', 'A2']);
+      expect(groups.last.labels.map((l) => l.name), ['B1']);
+    });
+
+    test('the header stripe carries the WORST status in the group', () {
+      final labels = [
+        _labelJson(name: 'A1', customer: 'A', status: 'OK'),
+        _labelJson(name: 'A2', customer: 'A', status: 'Out of Stock'),
+        _labelJson(name: 'A3', customer: 'A', status: 'On Order'),
+      ].map(CustomerLabel.fromJson).toList();
+
+      final group = groupLabelsByCustomer(labels).single;
+      expect(group.worstStatus, LabelStatus.outOfStock);
+      expect(group.needsAttentionCount, 1);
+    });
+
+    test('an empty list groups to an empty list', () {
+      expect(groupLabelsByCustomer(const []), isEmpty);
+    });
   });
 
   group('LabelPrintOrder', () {
     LabelPrintOrder order(String status, String? due) =>
         LabelPrintOrder.fromJson({
           'name': 'JLPO-00001',
-          'qty': 500,
+          'qty': 42,
+          'qty_sheets': 2,
           'status': status,
           'requested_on': '2026-08-17',
           'expected_ready_date': due,
@@ -195,23 +265,69 @@ void main() {
     test('no due date means overdue cannot be claimed', () {
       expect(order('Requested', null).isOverdue, isFalse);
     });
+
+    test('carries sheets alongside labels', () {
+      final o = order('Requested', null);
+      expect(o.qtySheets, 2);
+      expect(o.qty, 42);
+    });
+  });
+
+  group('LabelPrintOrder billing', () {
+    LabelPrintOrder billedAs(dynamic billingStatus, {String status = 'Received'}) =>
+        LabelPrintOrder.fromJson({
+          'name': 'JLPO-00001',
+          'qty': 42,
+          'qty_sheets': 2,
+          'status': status,
+          'billing_status': billingStatus,
+          'purchase_invoice':
+              billingStatus == 'Billed' ? 'ACC-PINV-2026-00001' : null,
+        });
+
+    test('parses Billed with its purchase invoice', () {
+      final order = billedAs('Billed');
+      expect(order.isBilled, isTrue);
+      expect(order.awaitsBill, isFalse);
+      expect(order.purchaseInvoice, 'ACC-PINV-2026-00001');
+    });
+
+    test('a missing billing status defaults to Unbilled', () {
+      // Rows written before the money fields existed carry no billing_status;
+      // "not billed" is the truthful default, never "billed".
+      final order = billedAs(null);
+      expect(order.billingStatus, 'Unbilled');
+      expect(order.isBilled, isFalse);
+      expect(order.awaitsBill, isTrue);
+    });
+
+    test('awaitsBill is only true once the batch is actually received', () {
+      final open = billedAs(null, status: 'Printing');
+      expect(open.isBilled, isFalse);
+      expect(open.awaitsBill, isFalse);
+    });
   });
 
   group('LabelsState filtering', () {
     final labels = [
-      _labelJson(name: 'A', customerName: 'Alpha Cafe', status: 'Out of Stock'),
-      _labelJson(name: 'B', customerName: 'Beta Roasters', status: 'Reorder Soon'),
+      _labelJson(name: 'A', customer: 'CUST-A', customerName: 'Alpha Cafe',
+          status: 'Out of Stock', storageLocation: 'Factory - J'),
+      _labelJson(name: 'B', customer: 'CUST-B', customerName: 'Beta Roasters',
+          status: 'Reorder Soon', storageLocation: 'Branch - Zamalek'),
       _labelJson(
         name: 'C',
+        customer: 'CUST-C',
         customerName: 'Gamma Coffee',
         status: 'On Order',
         openOrders: [
-          {'name': 'JLPO-1', 'qty': 500, 'status': 'Printing'}
+          {'name': 'JLPO-1', 'qty': 42, 'qty_sheets': 2, 'status': 'Printing'}
         ],
       ),
-      _labelJson(name: 'D', customerName: 'Delta Beans', status: 'OK'),
+      _labelJson(name: 'D', customer: 'CUST-D', customerName: 'Delta Beans',
+          status: 'OK'),
       _labelJson(
         name: 'E',
+        customer: 'CUST-E',
         customerName: 'Epsilon Bakery',
         status: 'Not Tracked',
         wePrint: false,
@@ -251,6 +367,25 @@ void main() {
           _stateWith(labels).copyWith(filter: LabelFilter.all, search: 'zzz');
       expect(state.visibleLabels, isEmpty);
     });
+
+    test('the location filter narrows to labels stored there', () {
+      final state = _stateWith(labels)
+          .copyWith(filter: LabelFilter.all, location: 'Branch - Zamalek');
+      expect(state.visibleLabels.map((l) => l.name), ['B']);
+    });
+
+    test('clearing the location shows every location again', () {
+      final narrowed = _stateWith(labels)
+          .copyWith(filter: LabelFilter.all, location: 'Branch - Zamalek');
+      final cleared = narrowed.copyWith(clearLocation: true);
+      expect(cleared.visibleLabels.length, 5);
+    });
+
+    test('visibleGroups groups the filtered rows by customer', () {
+      final state = _stateWith(labels).copyWith(filter: LabelFilter.all);
+      expect(state.visibleGroups.length, 5); // five distinct customers
+      expect(state.visibleGroups.first.labels, hasLength(1));
+    });
   });
 
   group('LabelsRepository wire format', () {
@@ -259,6 +394,7 @@ void main() {
       dio.nextMessage = {
         'summary': <String, dynamic>{},
         'labels': <dynamic>[],
+        'locations': <dynamic>[],
         'settings': <String, dynamic>{},
       };
 
@@ -268,6 +404,19 @@ void main() {
       final body = dio.calls.single.data as Map;
       expect(body['only_attention'], 1);
       expect(body['include_untracked'], 1);
+    });
+
+    test('dashboard parses the distinct storage locations', () async {
+      final dio = _FakeDio();
+      dio.nextMessage = {
+        'summary': <String, dynamic>{},
+        'labels': <dynamic>[],
+        'locations': ['Branch - Zamalek', 'Factory - J'],
+        'settings': <String, dynamic>{},
+      };
+
+      final dashboard = await LabelsRepository(dio).getDashboard();
+      expect(dashboard.locations, ['Branch - Zamalek', 'Factory - J']);
     });
 
     test('updateLabel sends only the fields the caller passed', () async {
@@ -281,20 +430,21 @@ void main() {
       expect(body['min_stock_qty'], 250);
       // Untouched policy must not be overwritten with a default.
       expect(body.containsKey('we_print'), isFalse);
-      expect(body.containsKey('reorder_qty'), isFalse);
+      expect(body.containsKey('default_print_sheets'), isFalse);
+      expect(body.containsKey('storage_location'), isFalse);
       expect(body.containsKey('label_title'), isFalse);
     });
 
-    test('an empty item group is still sent, so the scope can be cleared', () async {
+    test('an empty storage location is still sent, so it can be cleared', () async {
       final dio = _FakeDio();
       dio.nextMessage = _labelJson();
 
       await LabelsRepository(dio)
-          .updateLabel(label: 'JLBL-1', appliesToItemGroup: '');
+          .updateLabel(label: 'JLBL-1', storageLocation: '');
 
       final body = dio.calls.single.data as Map;
-      expect(body.containsKey('applies_to_item_group'), isTrue);
-      expect(body['applies_to_item_group'], '');
+      expect(body.containsKey('storage_location'), isTrue);
+      expect(body['storage_location'], '');
     });
 
     test('recordCount unwraps the label from the envelope', () async {
@@ -313,16 +463,144 @@ void main() {
       expect(label.onHandQty, 35);
     });
 
-    test('createPrintOrder omits blank optional fields', () async {
+    test('createPrintOrder posts SHEETS and omits blank optional fields', () async {
       final dio = _FakeDio();
       dio.nextMessage = {'print_order': 'JLPO-1', 'label': _labelJson()};
 
       await LabelsRepository(dio)
-          .createPrintOrder(label: 'JLBL-1', qty: 500, printerName: '   ');
+          .createPrintOrder(label: 'JLBL-1', qtySheets: 3, printerName: '   ');
+
+      expect(dio.calls.single.path, ApiEndpoints.createLabelPrintOrder);
+      final body = dio.calls.single.data as Map;
+      expect(body['qty_sheets'], 3);
+      // Labels are computed server-side from the sheets — never sent.
+      expect(body.containsKey('qty'), isFalse);
+      expect(body.containsKey('printer_name'), isFalse);
+      expect(body.containsKey('supplier'), isFalse);
+      expect(body.containsKey('total_cost'), isFalse);
+    });
+
+    test('createPrintOrder carries supplier and net cost when given', () async {
+      final dio = _FakeDio();
+      dio.nextMessage = {'print_order': 'JLPO-1', 'label': _labelJson()};
+
+      await LabelsRepository(dio).createPrintOrder(
+        label: 'JLBL-1',
+        qtySheets: 2,
+        supplier: 'Print House Co',
+        totalCost: 350.5,
+      );
 
       final body = dio.calls.single.data as Map;
-      expect(body['qty'], 500);
-      expect(body.containsKey('printer_name'), isFalse);
+      expect(body['supplier'], 'Print House Co');
+      expect(body['total_cost'], 350.5);
+    });
+
+    test('billPrintOrder posts to bill_print_order and unwraps the label', () async {
+      final dio = _FakeDio();
+      dio.nextMessage = {
+        'print_order': 'JLPO-1',
+        'purchase_invoice': 'ACC-PINV-2026-00001',
+        'label': _labelJson(stockValue: 350.5, avgCost: 8.35),
+      };
+
+      final label = await LabelsRepository(dio).billPrintOrder(
+        printOrder: 'JLPO-1',
+        supplier: 'Print House Co',
+        totalCost: 350.5,
+        billNo: 'PH-118',
+      );
+
+      expect(dio.calls.single.path, ApiEndpoints.billLabelPrintOrder);
+      final body = dio.calls.single.data as Map;
+      expect(body['print_order'], 'JLPO-1');
+      expect(body['supplier'], 'Print House Co');
+      expect(body['total_cost'], 350.5);
+      expect(body['bill_no'], 'PH-118');
+      expect(label.stockValue, 350.5);
+    });
+
+    test('setupCustomerLabels serialises flavours as a JSON list', () async {
+      final dio = _FakeDio();
+      dio.nextMessage = {
+        'created': ['JLBL-1', 'JLBL-2'],
+        'skipped': [
+          {'item_code': 'Mango Jar', 'label': 'JLBL-0'}
+        ],
+        'price_list': null,
+        'labels': <dynamic>[],
+        'summary': <String, dynamic>{},
+      };
+
+      final result = await LabelsRepository(dio).setupCustomerLabels(
+        customer: 'CUST-A',
+        flavours: const [
+          LabelSetupFlavour(itemCode: 'Berry Jar', openingQty: 30),
+          LabelSetupFlavour(itemCode: 'Lemon Jar'),
+        ],
+        storageLocation: 'Factory - J',
+        defaultPrintSheets: 2,
+      );
+
+      expect(dio.calls.single.path, ApiEndpoints.setupCustomerLabels);
+      final body = dio.calls.single.data as Map;
+      expect(body['customer'], 'CUST-A');
+      final flavours = body['flavours'] as List;
+      expect(flavours, hasLength(2));
+      expect(flavours.first, {'item_code': 'Berry Jar', 'opening_qty': 30});
+      // Zero opening stock is simply omitted — the server treats absent as 0.
+      expect(flavours.last, {'item_code': 'Lemon Jar'});
+      expect(body['storage_location'], 'Factory - J');
+      expect(body['default_print_sheets'], 2);
+      expect(body['we_print'], 1);
+
+      expect(result.createdCount, 2);
+      expect(result.skippedCount, 1);
+      expect(result.skippedItems, ['Mango Jar']);
+    });
+
+    test('flavour options parse with sources and tracked flags', () async {
+      final dio = _FakeDio();
+      dio.nextMessage = {
+        'customer': 'CUST-A',
+        'price_list': 'Cafe X Prices',
+        'flavours': [
+          {
+            'item_code': 'Mango Jar',
+            'item_name': 'Mango',
+            'size': 'Medium',
+            'sources': ['price_list', 'history', 'label'],
+            'has_label': 1,
+            'label': 'JLBL-1',
+          },
+          {
+            'item_code': 'Berry Jar',
+            'item_name': 'Berry',
+            'size': 'Large',
+            'sources': ['history'],
+            'has_label': 0,
+            'label': null,
+          },
+        ],
+      };
+
+      final options = await LabelsRepository(dio).getFlavourOptions('CUST-A');
+
+      expect(dio.calls.single.path, ApiEndpoints.getLabelFlavourOptions);
+      expect(options.priceList, 'Cafe X Prices');
+      expect(options.flavours, hasLength(2));
+
+      final tracked = options.flavours.first;
+      expect(tracked.hasLabel, isTrue);
+      expect(tracked.label, 'JLBL-1');
+      expect(tracked.onPriceList, isTrue);
+      expect(tracked.orderedBefore, isTrue);
+
+      final fresh = options.flavours.last;
+      expect(fresh.hasLabel, isFalse);
+      expect(fresh.onPriceList, isFalse);
+      expect(fresh.orderedBefore, isTrue);
+      expect(fresh.size, 'Large');
     });
 
     test('alert count maps the badge payload', () async {
@@ -344,14 +622,17 @@ void main() {
   });
 
   group('LabelSettings fallbacks', () {
-    test('an empty payload still describes the real lead time', () {
-      // A partial response must never render "0-0 working days".
+    test('an empty payload still describes the real lead time and sheets', () {
+      // A partial response must never render "0-0 working days" or "0 per sheet".
       const s = LabelSettings.fallback();
       final parsed = LabelSettings.fromJson(const {});
       expect(parsed.leadDaysMin, s.leadDaysMin);
       expect(parsed.leadDaysMax, s.leadDaysMax);
       expect(parsed.restDay, s.restDay);
       expect(parsed.bufferDays, s.bufferDays);
+      expect(parsed.sheetMedium, 21);
+      expect(parsed.sheetLarge, 18);
+      expect(parsed.defaultPrintSheets, 2);
     });
 
     test('an explicit zero buffer is honoured, unlike a zero lead time', () {
@@ -367,6 +648,19 @@ void main() {
       final parsed = LabelSettings.fromJson(const {'alerts_enabled': 0});
       expect(parsed.alertsEnabled, isFalse);
       expect(parsed.autoConsume, isTrue);
+    });
+
+    test('sheet geometry from the server wins over the fallback', () {
+      final parsed = LabelSettings.fromJson(const {
+        'sheet_medium': 24,
+        'sheet_large': 15,
+        'default_print_sheets': 4,
+        'accounting_ready': 1,
+      });
+      expect(parsed.sheetMedium, 24);
+      expect(parsed.sheetLarge, 15);
+      expect(parsed.defaultPrintSheets, 4);
+      expect(parsed.accountingReady, isTrue);
     });
   });
 }

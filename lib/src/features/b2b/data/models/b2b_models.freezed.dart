@@ -30,7 +30,10 @@ mixin _$B2bCard {
   int? get leadScore => throw _privateConstructorUsedError;
   String? get customer => throw _privateConstructorUsedError;
   @JsonKey(name: 'last_activity')
-  String? get lastActivity => throw _privateConstructorUsedError; // ── Journey diary summary ──────────────────────────────────────────
+  String? get lastActivity => throw _privateConstructorUsedError; // How many of this account's labels need printing (0 when none / when the
+  // backend predates the labels feature — absent keys default here).
+  @JsonKey(name: 'label_alert')
+  int get labelAlert => throw _privateConstructorUsedError; // ── Journey diary summary ──────────────────────────────────────────
   // Folded in by `crm.get_b2b_pipeline` so the board shows when a prospect
   // was last visited and what is due, without a request per card.
   @JsonKey(name: 'journey_count')
@@ -71,6 +74,7 @@ abstract class $B2bCardCopyWith<$Res> {
     @JsonKey(name: 'lead_score') int? leadScore,
     String? customer,
     @JsonKey(name: 'last_activity') String? lastActivity,
+    @JsonKey(name: 'label_alert') int labelAlert,
     @JsonKey(name: 'journey_count') int journeyCount,
     @JsonKey(name: 'last_journey_date') String? lastJourneyDate,
     @JsonKey(name: 'last_journey_type') String? lastJourneyType,
@@ -104,6 +108,7 @@ class _$B2bCardCopyWithImpl<$Res, $Val extends B2bCard>
     Object? leadScore = freezed,
     Object? customer = freezed,
     Object? lastActivity = freezed,
+    Object? labelAlert = null,
     Object? journeyCount = null,
     Object? lastJourneyDate = freezed,
     Object? lastJourneyType = freezed,
@@ -146,6 +151,10 @@ class _$B2bCardCopyWithImpl<$Res, $Val extends B2bCard>
                 ? _value.lastActivity
                 : lastActivity // ignore: cast_nullable_to_non_nullable
                       as String?,
+            labelAlert: null == labelAlert
+                ? _value.labelAlert
+                : labelAlert // ignore: cast_nullable_to_non_nullable
+                      as int,
             journeyCount: null == journeyCount
                 ? _value.journeyCount
                 : journeyCount // ignore: cast_nullable_to_non_nullable
@@ -197,6 +206,7 @@ abstract class _$$B2bCardImplCopyWith<$Res> implements $B2bCardCopyWith<$Res> {
     @JsonKey(name: 'lead_score') int? leadScore,
     String? customer,
     @JsonKey(name: 'last_activity') String? lastActivity,
+    @JsonKey(name: 'label_alert') int labelAlert,
     @JsonKey(name: 'journey_count') int journeyCount,
     @JsonKey(name: 'last_journey_date') String? lastJourneyDate,
     @JsonKey(name: 'last_journey_type') String? lastJourneyType,
@@ -229,6 +239,7 @@ class __$$B2bCardImplCopyWithImpl<$Res>
     Object? leadScore = freezed,
     Object? customer = freezed,
     Object? lastActivity = freezed,
+    Object? labelAlert = null,
     Object? journeyCount = null,
     Object? lastJourneyDate = freezed,
     Object? lastJourneyType = freezed,
@@ -271,6 +282,10 @@ class __$$B2bCardImplCopyWithImpl<$Res>
             ? _value.lastActivity
             : lastActivity // ignore: cast_nullable_to_non_nullable
                   as String?,
+        labelAlert: null == labelAlert
+            ? _value.labelAlert
+            : labelAlert // ignore: cast_nullable_to_non_nullable
+                  as int,
         journeyCount: null == journeyCount
             ? _value.journeyCount
             : journeyCount // ignore: cast_nullable_to_non_nullable
@@ -316,6 +331,7 @@ class _$B2bCardImpl extends _B2bCard {
     @JsonKey(name: 'lead_score') this.leadScore,
     this.customer,
     @JsonKey(name: 'last_activity') this.lastActivity,
+    @JsonKey(name: 'label_alert') this.labelAlert = 0,
     @JsonKey(name: 'journey_count') this.journeyCount = 0,
     @JsonKey(name: 'last_journey_date') this.lastJourneyDate,
     @JsonKey(name: 'last_journey_type') this.lastJourneyType,
@@ -346,6 +362,11 @@ class _$B2bCardImpl extends _B2bCard {
   @override
   @JsonKey(name: 'last_activity')
   final String? lastActivity;
+  // How many of this account's labels need printing (0 when none / when the
+  // backend predates the labels feature — absent keys default here).
+  @override
+  @JsonKey(name: 'label_alert')
+  final int labelAlert;
   // ── Journey diary summary ──────────────────────────────────────────
   // Folded in by `crm.get_b2b_pipeline` so the board shows when a prospect
   // was last visited and what is due, without a request per card.
@@ -373,7 +394,7 @@ class _$B2bCardImpl extends _B2bCard {
 
   @override
   String toString() {
-    return 'B2bCard(doctype: $doctype, name: $name, title: $title, stage: $stage, owner: $owner, leadScore: $leadScore, customer: $customer, lastActivity: $lastActivity, journeyCount: $journeyCount, lastJourneyDate: $lastJourneyDate, lastJourneyType: $lastJourneyType, lastJourneyNote: $lastJourneyNote, lastJourneyContact: $lastJourneyContact, nextActionDate: $nextActionDate, nextAction: $nextAction)';
+    return 'B2bCard(doctype: $doctype, name: $name, title: $title, stage: $stage, owner: $owner, leadScore: $leadScore, customer: $customer, lastActivity: $lastActivity, labelAlert: $labelAlert, journeyCount: $journeyCount, lastJourneyDate: $lastJourneyDate, lastJourneyType: $lastJourneyType, lastJourneyNote: $lastJourneyNote, lastJourneyContact: $lastJourneyContact, nextActionDate: $nextActionDate, nextAction: $nextAction)';
   }
 
   @override
@@ -392,6 +413,8 @@ class _$B2bCardImpl extends _B2bCard {
                 other.customer == customer) &&
             (identical(other.lastActivity, lastActivity) ||
                 other.lastActivity == lastActivity) &&
+            (identical(other.labelAlert, labelAlert) ||
+                other.labelAlert == labelAlert) &&
             (identical(other.journeyCount, journeyCount) ||
                 other.journeyCount == journeyCount) &&
             (identical(other.lastJourneyDate, lastJourneyDate) ||
@@ -420,6 +443,7 @@ class _$B2bCardImpl extends _B2bCard {
     leadScore,
     customer,
     lastActivity,
+    labelAlert,
     journeyCount,
     lastJourneyDate,
     lastJourneyType,
@@ -453,6 +477,7 @@ abstract class _B2bCard extends B2bCard {
     @JsonKey(name: 'lead_score') final int? leadScore,
     final String? customer,
     @JsonKey(name: 'last_activity') final String? lastActivity,
+    @JsonKey(name: 'label_alert') final int labelAlert,
     @JsonKey(name: 'journey_count') final int journeyCount,
     @JsonKey(name: 'last_journey_date') final String? lastJourneyDate,
     @JsonKey(name: 'last_journey_type') final String? lastJourneyType,
@@ -482,7 +507,11 @@ abstract class _B2bCard extends B2bCard {
   String? get customer;
   @override
   @JsonKey(name: 'last_activity')
-  String? get lastActivity; // ── Journey diary summary ──────────────────────────────────────────
+  String? get lastActivity; // How many of this account's labels need printing (0 when none / when the
+  // backend predates the labels feature — absent keys default here).
+  @override
+  @JsonKey(name: 'label_alert')
+  int get labelAlert; // ── Journey diary summary ──────────────────────────────────────────
   // Folded in by `crm.get_b2b_pipeline` so the board shows when a prospect
   // was last visited and what is due, without a request per card.
   @override

@@ -21,6 +21,9 @@ class B2bCard with _$B2bCard {
     @JsonKey(name: 'lead_score') int? leadScore,
     String? customer,
     @JsonKey(name: 'last_activity') String? lastActivity,
+    // How many of this account's labels need printing (0 when none / when the
+    // backend predates the labels feature — absent keys default here).
+    @JsonKey(name: 'label_alert') @Default(0) int labelAlert,
     // ── Journey diary summary ──────────────────────────────────────────
     // Folded in by `crm.get_b2b_pipeline` so the board shows when a prospect
     // was last visited and what is due, without a request per card.

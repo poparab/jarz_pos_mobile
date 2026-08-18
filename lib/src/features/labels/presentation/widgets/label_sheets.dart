@@ -7,41 +7,32 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/labels_repository.dart';
 import '../../models/label_models.dart';
 
-/// What [NewLabelSheet] collects.
-class NewLabelRequest {
-  final String customer;
-  final String labelTitle;
-  final bool wePrint;
-  final String? itemGroup;
-  final double labelsPerUnit;
-  final int minStockQty;
-  final int reorderQty;
-  final int openingQty;
+/// What [PrintOrderSheet] collects. Ordering happens in SHEETS — the print
+/// house sells sheets, not labels.
+class PrintOrderRequest {
+  final int qtySheets;
+  final String? supplier;
+  final double? totalCost;
   final String? notes;
 
-  const NewLabelRequest({
-    required this.customer,
-    required this.labelTitle,
-    required this.wePrint,
-    required this.itemGroup,
-    required this.labelsPerUnit,
-    required this.minStockQty,
-    required this.reorderQty,
-    required this.openingQty,
+  const PrintOrderRequest({
+    required this.qtySheets,
+    required this.supplier,
+    required this.totalCost,
     required this.notes,
   });
 }
 
-/// What [PrintOrderSheet] collects.
-class PrintOrderRequest {
-  final int qty;
-  final String? printerName;
-  final String? notes;
+/// What [RecordBillSheet] collects — the printer's bill for one batch.
+class BillRequest {
+  final String supplier;
+  final double totalCost;
+  final String? billNo;
 
-  const PrintOrderRequest({
-    required this.qty,
-    required this.printerName,
-    required this.notes,
+  const BillRequest({
+    required this.supplier,
+    required this.totalCost,
+    required this.billNo,
   });
 }
 
@@ -75,20 +66,26 @@ class LabelPolicyRequest {
   final String labelTitle;
   final bool wePrint;
   final bool enabled;
-  final String itemGroup;
+
+  /// Empty string clears the home location server-side.
+  final String storageLocation;
   final double labelsPerUnit;
+
+  /// Zero means "use the size default" (21 Medium / 18 Large).
+  final int labelsPerSheet;
+  final int defaultPrintSheets;
   final int minStockQty;
-  final int reorderQty;
   final String notes;
 
   const LabelPolicyRequest({
     required this.labelTitle,
     required this.wePrint,
     required this.enabled,
-    required this.itemGroup,
+    required this.storageLocation,
     required this.labelsPerUnit,
+    required this.labelsPerSheet,
+    required this.defaultPrintSheets,
     required this.minStockQty,
-    required this.reorderQty,
     required this.notes,
   });
 }
@@ -172,52 +169,56 @@ int _parseInt(TextEditingController controller, {int fallback = 0}) {
   return int.tryParse(controller.text.trim()) ?? fallback;
 }
 
-// ---------------------------------------------------------------------------
-// Start tracking a customer's label
-// ---------------------------------------------------------------------------
-class NewLabelSheet extends ConsumerStatefulWidget {
-  const NewLabelSheet({super.key});
-
-  @override
-  ConsumerState<NewLabelSheet> createState() => _NewLabelSheetState();
+double? _parseCost(TextEditingController controller) {
+  final value = double.tryParse(controller.text.trim());
+  return (value == null || value <= 0) ? null : value;
 }
 
-class _NewLabelSheetState extends ConsumerState<NewLabelSheet> {
-  final _searchController = TextEditingController();
-  final _titleController = TextEditingController(text: 'Default');
-  final _perUnitController = TextEditingController(text: '1');
-  final _minStockController = TextEditingController(text: '0');
-  final _batchController = TextEditingController(text: '0');
-  final _openingController = TextEditingController(text: '0');
-  final _notesController = TextEditingController();
+// ---------------------------------------------------------------------------
+// Print supplier picker
+// ---------------------------------------------------------------------------
+/// Searchable supplier field backed by `get_print_suppliers`. Selecting a
+/// result locks it in; typing again clears the selection and searches anew.
+class SupplierField extends ConsumerStatefulWidget {
+  final String? initialSupplier;
+  final ValueChanged<LabelSupplierOption?> onChanged;
+  final String label;
 
+  const SupplierField({
+    super.key,
+    required this.onChanged,
+    this.initialSupplier,
+    this.label = 'Print supplier (optional)',
+  });
+
+  @override
+  ConsumerState<SupplierField> createState() => _SupplierFieldState();
+}
+
+class _SupplierFieldState extends ConsumerState<SupplierField> {
+  final _controller = TextEditingController();
   Timer? _debounce;
-  List<LabelCustomerOption> _results = const [];
-  LabelCustomerOption? _selected;
+  List<LabelSupplierOption> _results = const [];
+  LabelSupplierOption? _selected;
   bool _searching = false;
-  bool _wePrint = true;
-  String? _itemGroup;
 
   @override
   void initState() {
     super.initState();
-    _search('');
+    final initial = widget.initialSupplier?.trim();
+    if (initial != null && initial.isNotEmpty) {
+      _selected = LabelSupplierOption(name: initial, supplierName: initial);
+    }
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
-    _searchController.dispose();
-    _titleController.dispose();
-    _perUnitController.dispose();
-    _minStockController.dispose();
-    _batchController.dispose();
-    _openingController.dispose();
-    _notesController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  void _onSearchChanged(String value) {
+  void _onChanged(String value) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 350), () => _search(value));
   }
@@ -226,7 +227,7 @@ class _NewLabelSheetState extends ConsumerState<NewLabelSheet> {
     setState(() => _searching = true);
     try {
       final results =
-          await ref.read(labelsRepositoryProvider).searchCustomers(query);
+          await ref.read(labelsRepositoryProvider).searchPrintSuppliers(query);
       if (mounted) setState(() => _results = results);
     } catch (_) {
       if (mounted) setState(() => _results = const []);
@@ -235,203 +236,79 @@ class _NewLabelSheetState extends ConsumerState<NewLabelSheet> {
     }
   }
 
+  void _select(LabelSupplierOption? option) {
+    setState(() {
+      _selected = option;
+      _results = const [];
+      _controller.clear();
+    });
+    widget.onChanged(option);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final itemGroups = ref.watch(labelItemGroupsProvider);
-
-    return _SheetScaffold(
-      title: 'Track a label',
-      subtitle:
-          'Pick the B2B customer whose labels JARZ prints. Leave "We print this '
-          'label" off for customers who bring their own.',
-      fields: [
-        if (_selected == null) ...[
-          TextField(
-            controller: _searchController,
-            autofocus: true,
-            decoration: _fieldDecoration('Search customers').copyWith(
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _searching
-                  ? const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    )
-                  : null,
-            ),
-            onChanged: _onSearchChanged,
-          ),
-          const SizedBox(height: 10),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 260),
-            child: _results.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      _searching ? 'Searching…' : 'No company customers matched.',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  )
-                : ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _results.length,
-                    itemBuilder: (context, index) {
-                      final option = _results[index];
-                      return ListTile(
-                        dense: true,
-                        title: Text(option.customerName),
-                        subtitle: option.customerGroup == null
-                            ? null
-                            : Text(option.customerGroup!),
-                        trailing: option.labelCount > 0
-                            ? Chip(
-                                label: Text('${option.labelCount}'),
-                                visualDensity: VisualDensity.compact,
-                              )
-                            : const Icon(Icons.chevron_right),
-                        onTap: () => setState(() => _selected = option),
-                      );
-                    },
-                  ),
-          ),
-        ] else ...[
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.storefront),
-            title: Text(_selected!.customerName),
-            subtitle: Text(_selected!.customer),
-            trailing: TextButton(
-              onPressed: () => setState(() => _selected = null),
-              child: const Text('Change'),
-            ),
-          ),
-          const Divider(),
-          TextField(
-            controller: _titleController,
-            decoration: _fieldDecoration(
-              'Label name',
-              helper: 'Name this design, e.g. "250g Jar". Use one label per '
-                  'design when a customer has more than one.',
-            ),
-          ),
-          const SizedBox(height: 12),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            value: _wePrint,
-            onChanged: (value) => setState(() => _wePrint = value),
-            title: const Text('We print this label'),
-            subtitle: const Text(
-              'Off means the customer supplies their own — nothing is counted '
-              'and no alerts are raised.',
-            ),
-          ),
-          if (_wePrint) ...[
-            const SizedBox(height: 4),
-            itemGroups.when(
-              loading: () => const LinearProgressIndicator(),
-              error: (_, _) => const SizedBox.shrink(),
-              data: (groups) => DropdownButtonFormField<String?>(
-                initialValue: _itemGroup,
-                isExpanded: true,
-                decoration: _fieldDecoration(
-                  'Applies to item group (optional)',
-                  helper: 'Leave blank when this label covers everything the '
-                      'customer buys.',
-                ),
-                items: [
-                  const DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text('Everything'),
-                  ),
-                  ...groups.map(
-                    (group) => DropdownMenuItem<String?>(
-                      value: group,
-                      child: Text(group, overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-                ],
-                onChanged: (value) => setState(() => _itemGroup = value),
+    final selected = _selected;
+    if (selected != null) {
+      return InputDecorator(
+        decoration: _fieldDecoration(widget.label),
+        child: Row(
+          children: [
+            const Icon(Icons.factory_outlined, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                selected.supplierName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _openingController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: _digits,
-                    decoration: _fieldDecoration('Labels in stock now'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _perUnitController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    decoration: _fieldDecoration('Labels per jar'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _minStockController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: _digits,
-                    decoration: _fieldDecoration('Minimum stock'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _batchController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: _digits,
-                    decoration: _fieldDecoration('Usual print batch'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _notesController,
-              maxLines: 2,
-              decoration: _fieldDecoration('Notes (optional)'),
+            InkWell(
+              onTap: () => _select(null),
+              child: const Icon(Icons.clear, size: 18),
             ),
           ],
-        ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          controller: _controller,
+          decoration: _fieldDecoration(widget.label).copyWith(
+            prefixIcon: const Icon(Icons.search),
+            suffixIcon: _searching
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : null,
+          ),
+          onChanged: _onChanged,
+        ),
+        if (_results.isNotEmpty)
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 170),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _results.length,
+              itemBuilder: (context, index) {
+                final option = _results[index];
+                return ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.factory_outlined, size: 18),
+                  title: Text(option.supplierName),
+                  onTap: () => _select(option),
+                );
+              },
+            ),
+          ),
       ],
-      action: FilledButton(
-        onPressed: _selected == null
-            ? null
-            : () => Navigator.of(context).pop(
-                  NewLabelRequest(
-                    customer: _selected!.customer,
-                    labelTitle: _titleController.text.trim().isEmpty
-                        ? 'Default'
-                        : _titleController.text.trim(),
-                    wePrint: _wePrint,
-                    itemGroup: _itemGroup,
-                    labelsPerUnit:
-                        double.tryParse(_perUnitController.text.trim()) ?? 1,
-                    minStockQty: _parseInt(_minStockController),
-                    reorderQty: _parseInt(_batchController),
-                    openingQty: _wePrint ? _parseInt(_openingController) : 0,
-                    notes: _notesController.text.trim().isEmpty
-                        ? null
-                        : _notesController.text.trim(),
-                  ),
-                ),
-        child: const Text('Start tracking'),
-      ),
     );
   }
 }
@@ -528,28 +405,30 @@ class _CountSheetState extends State<CountSheet> {
 }
 
 // ---------------------------------------------------------------------------
-// Send a batch to the printer
+// Send a batch to the printer (in sheets)
 // ---------------------------------------------------------------------------
-class PrintOrderSheet extends StatefulWidget {
+class PrintOrderSheet extends ConsumerStatefulWidget {
   final CustomerLabel label;
 
   const PrintOrderSheet({super.key, required this.label});
 
   @override
-  State<PrintOrderSheet> createState() => _PrintOrderSheetState();
+  ConsumerState<PrintOrderSheet> createState() => _PrintOrderSheetState();
 }
 
-class _PrintOrderSheetState extends State<PrintOrderSheet> {
-  late final TextEditingController _qtyController = TextEditingController(
-    text: '${widget.label.suggestedPrintQty > 0 ? widget.label.suggestedPrintQty : widget.label.reorderQty}',
+class _PrintOrderSheetState extends ConsumerState<PrintOrderSheet> {
+  late final TextEditingController _sheetsController = TextEditingController(
+    text:
+        '${widget.label.suggestedPrintSheets > 0 ? widget.label.suggestedPrintSheets : widget.label.defaultPrintSheets}',
   );
-  final _printerController = TextEditingController();
+  final _costController = TextEditingController();
   final _notesController = TextEditingController();
+  LabelSupplierOption? _supplier;
 
   @override
   void dispose() {
-    _qtyController.dispose();
-    _printerController.dispose();
+    _sheetsController.dispose();
+    _costController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -558,11 +437,13 @@ class _PrintOrderSheetState extends State<PrintOrderSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final label = widget.label;
-    final qty = int.tryParse(_qtyController.text.trim()) ?? 0;
+    final sheets = int.tryParse(_sheetsController.text.trim()) ?? 0;
+    final labels = label.labelsForSheets(sheets);
 
     return _SheetScaffold(
       title: 'Order a print batch',
-      subtitle: '${label.customerName} · ${label.labelTitle}',
+      subtitle: '${label.customerName} · ${label.labelTitle}'
+          '${label.size == null ? '' : ' · ${label.size}'}',
       fields: [
         Container(
           padding: const EdgeInsets.all(12),
@@ -591,23 +472,49 @@ class _PrintOrderSheetState extends State<PrintOrderSheet> {
         ),
         const SizedBox(height: 14),
         TextField(
-          controller: _qtyController,
+          controller: _sheetsController,
           autofocus: true,
           keyboardType: TextInputType.number,
           inputFormatters: _digits,
           decoration: _fieldDecoration(
-            'Quantity to print',
-            helper: label.suggestedPrintQty > 0
-                ? 'Suggested ${label.suggestedPrintQty}, based on the usual '
-                    'batch and current usage.'
+            'Sheets to print',
+            helper: label.suggestedPrintSheets > 0
+                ? 'Suggested ${label.suggestedPrintSheets} sheet'
+                    '${label.suggestedPrintSheets == 1 ? '' : 's'}, based on '
+                    'current usage and the usual batch.'
                 : null,
           ),
           onChanged: (_) => setState(() {}),
         ),
+        if (sheets > 0 && labels > 0) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.grid_on, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                '$sheets sheet${sheets == 1 ? '' : 's'} = $labels labels',
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 12),
+        SupplierField(
+          initialSupplier: null,
+          onChanged: (option) => setState(() => _supplier = option),
+        ),
         const SizedBox(height: 12),
         TextField(
-          controller: _printerController,
-          decoration: _fieldDecoration('Printer / supplier (optional)'),
+          controller: _costController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: _fieldDecoration(
+            'Net cost (optional)',
+            helper: 'What the printer quoted for the batch, before VAT. The '
+                'bill itself is recorded when it arrives.',
+            suffix: 'EGP',
+          ),
         ),
         const SizedBox(height: 12),
         TextField(
@@ -617,14 +524,13 @@ class _PrintOrderSheetState extends State<PrintOrderSheet> {
         ),
       ],
       action: FilledButton.icon(
-        onPressed: qty <= 0
+        onPressed: sheets <= 0
             ? null
             : () => Navigator.of(context).pop(
                   PrintOrderRequest(
-                    qty: qty,
-                    printerName: _printerController.text.trim().isEmpty
-                        ? null
-                        : _printerController.text.trim(),
+                    qtySheets: sheets,
+                    supplier: _supplier?.name,
+                    totalCost: _parseCost(_costController),
                     notes: _notesController.text.trim().isEmpty
                         ? null
                         : _notesController.text.trim(),
@@ -661,10 +567,14 @@ class _ReceiveBatchSheetState extends State<ReceiveBatchSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final order = widget.order;
     final received = int.tryParse(_controller.text.trim()) ?? 0;
+    final ordered = order.qtySheets > 0
+        ? '${order.qtySheets} sheet${order.qtySheets == 1 ? '' : 's'} · ${order.qty} labels'
+        : '${order.qty} labels';
     return _SheetScaffold(
       title: 'Receive batch',
-      subtitle: '${widget.order.name} · ordered ${widget.order.qty}',
+      subtitle: '${order.name} · ordered $ordered',
       fields: [
         TextField(
           controller: _controller,
@@ -672,7 +582,7 @@ class _ReceiveBatchSheetState extends State<ReceiveBatchSheet> {
           keyboardType: TextInputType.number,
           inputFormatters: _digits,
           decoration: _fieldDecoration(
-            'Quantity received',
+            'Labels received',
             helper: 'Adjust if the printer delivered short. Only this many are '
                 'added to stock.',
           ),
@@ -683,6 +593,101 @@ class _ReceiveBatchSheetState extends State<ReceiveBatchSheet> {
         onPressed: received <= 0 ? null : () => Navigator.of(context).pop(received),
         icon: const Icon(Icons.inventory_2),
         label: const Text('Add to stock'),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Record the printer's bill
+// ---------------------------------------------------------------------------
+class RecordBillSheet extends StatefulWidget {
+  final LabelPrintOrder order;
+
+  const RecordBillSheet({super.key, required this.order});
+
+  @override
+  State<RecordBillSheet> createState() => _RecordBillSheetState();
+}
+
+class _RecordBillSheetState extends State<RecordBillSheet> {
+  late final TextEditingController _costController = TextEditingController(
+    text: widget.order.totalCost > 0
+        ? widget.order.totalCost.toStringAsFixed(
+            widget.order.totalCost == widget.order.totalCost.roundToDouble()
+                ? 0
+                : 2)
+        : '',
+  );
+  final _billNoController = TextEditingController();
+  LabelSupplierOption? _supplier;
+
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.order.supplier;
+    if (existing != null && existing.isNotEmpty) {
+      _supplier = LabelSupplierOption(name: existing, supplierName: existing);
+    }
+  }
+
+  @override
+  void dispose() {
+    _costController.dispose();
+    _billNoController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final order = widget.order;
+    final cost = _parseCost(_costController);
+    final ordered = order.qtySheets > 0
+        ? '${order.qtySheets} sheet${order.qtySheets == 1 ? '' : 's'}'
+        : '${order.qty} labels';
+
+    return _SheetScaffold(
+      title: "Record the printer's bill",
+      subtitle: '${order.name} · $ordered. This books a supplier purchase '
+          'invoice, so the batch lands on the books at its real cost.',
+      fields: [
+        SupplierField(
+          initialSupplier: order.supplier,
+          label: 'Print supplier',
+          onChanged: (option) => setState(() => _supplier = option),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _costController,
+          autofocus: order.totalCost <= 0,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: _fieldDecoration(
+            'Net cost',
+            helper: 'What the printer charged for this batch, before VAT.',
+            suffix: 'EGP',
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _billNoController,
+          decoration: _fieldDecoration("Supplier's bill no. (optional)"),
+        ),
+      ],
+      action: FilledButton.icon(
+        onPressed: (_supplier == null || cost == null)
+            ? null
+            : () => Navigator.of(context).pop(
+                  BillRequest(
+                    supplier: _supplier!.name,
+                    totalCost: cost,
+                    billNo: _billNoController.text.trim().isEmpty
+                        ? null
+                        : _billNoController.text.trim(),
+                  ),
+                ),
+        icon: const Icon(Icons.receipt_long),
+        label: const Text('Record bill'),
       ),
     );
   }
@@ -799,32 +804,36 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
               : 2));
   late final TextEditingController _minStockController =
       TextEditingController(text: '${widget.label.minStockQty}');
-  late final TextEditingController _batchController =
-      TextEditingController(text: '${widget.label.reorderQty}');
+  late final TextEditingController _sheetsController =
+      TextEditingController(text: '${widget.label.defaultPrintSheets}');
+  late final TextEditingController _perSheetController =
+      TextEditingController(text: '${widget.label.labelsPerSheet}');
   late final TextEditingController _notesController =
       TextEditingController(text: widget.label.notes ?? '');
 
   late bool _wePrint = widget.label.wePrint;
   late bool _enabled = widget.label.enabled;
-  late String? _itemGroup = widget.label.appliesToItemGroup;
+  late String? _location = widget.label.storageLocation;
 
   @override
   void dispose() {
     _titleController.dispose();
     _perUnitController.dispose();
     _minStockController.dispose();
-    _batchController.dispose();
+    _sheetsController.dispose();
+    _perSheetController.dispose();
     _notesController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final itemGroups = ref.watch(labelItemGroupsProvider);
+    final locations = ref.watch(labelStorageLocationsProvider);
 
     return _SheetScaffold(
       title: 'Label settings',
-      subtitle: widget.label.customerName,
+      subtitle: '${widget.label.customerName}'
+          '${widget.label.size == null ? '' : ' · ${widget.label.size}'}',
       fields: [
         TextField(
           controller: _titleController,
@@ -849,28 +858,35 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
           subtitle: const Text('Turn off to retire a design that is no longer used.'),
         ),
         const SizedBox(height: 8),
-        itemGroups.when(
+        locations.when(
           loading: () => const LinearProgressIndicator(),
           error: (_, _) => const SizedBox.shrink(),
-          data: (groups) {
-            final options = {...groups, if (_itemGroup != null) _itemGroup!};
+          data: (options) {
+            final known = options.map((o) => o.name).toSet();
             return DropdownButtonFormField<String?>(
-              initialValue: _itemGroup,
+              initialValue:
+                  (_location != null && known.contains(_location)) ||
+                          _location == null
+                      ? _location
+                      : null,
               isExpanded: true,
-              decoration: _fieldDecoration('Applies to item group'),
+              decoration: _fieldDecoration(
+                'Stored at',
+                helper: 'The branch or factory where this label physically lives.',
+              ),
               items: [
                 const DropdownMenuItem<String?>(
                   value: null,
-                  child: Text('Everything'),
+                  child: Text('Not set'),
                 ),
                 ...options.map(
-                  (group) => DropdownMenuItem<String?>(
-                    value: group,
-                    child: Text(group, overflow: TextOverflow.ellipsis),
+                  (option) => DropdownMenuItem<String?>(
+                    value: option.name,
+                    child: Text(option.label, overflow: TextOverflow.ellipsis),
                   ),
                 ),
               ],
-              onChanged: (value) => setState(() => _itemGroup = value),
+              onChanged: (value) => setState(() => _location = value),
             );
           },
         ),
@@ -888,22 +904,41 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
             const SizedBox(width: 12),
             Expanded(
               child: TextField(
-                controller: _batchController,
+                controller: _sheetsController,
                 keyboardType: TextInputType.number,
                 inputFormatters: _digits,
-                decoration: _fieldDecoration('Usual print batch'),
+                decoration: _fieldDecoration('Usual batch (sheets)'),
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        TextField(
-          controller: _perUnitController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: _fieldDecoration(
-            'Labels per jar',
-            helper: 'Usually 1. Raise it when a jar carries more than one label.',
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _perSheetController,
+                keyboardType: TextInputType.number,
+                inputFormatters: _digits,
+                decoration: _fieldDecoration(
+                  'Labels per sheet',
+                  helper: 'Leave 0 for the size default: 21 Medium, 18 Large.',
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                controller: _perUnitController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: _fieldDecoration(
+                  'Labels per jar',
+                  helper: 'Usually 1.',
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         TextField(
@@ -920,12 +955,13 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
                 : _titleController.text.trim(),
             wePrint: _wePrint,
             enabled: _enabled,
-            // An empty string clears the scope back to catch-all server-side.
-            itemGroup: _itemGroup ?? '',
+            // An empty string clears the home location server-side.
+            storageLocation: _location ?? '',
             labelsPerUnit:
                 double.tryParse(_perUnitController.text.trim()) ?? 1,
+            labelsPerSheet: _parseInt(_perSheetController),
+            defaultPrintSheets: _parseInt(_sheetsController),
             minStockQty: _parseInt(_minStockController),
-            reorderQty: _parseInt(_batchController),
             notes: _notesController.text.trim(),
           ),
         ),

@@ -11,8 +11,8 @@ import '../../state/labels_notifier.dart';
 import '../widgets/label_card.dart';
 import '../widgets/label_sheets.dart';
 
-/// The label board: every B2B customer whose labels JARZ prints, ordered by how
-/// close they are to running out.
+/// The label board: every B2B customer whose labels JARZ prints, one block per
+/// customer with a row per flavour, ordered by how close they are to running out.
 ///
 /// Printing is outsourced and takes working days, so the question this screen
 /// exists to answer is not "how many labels do we have" but "which of these has
@@ -63,7 +63,7 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(labelsNotifierProvider);
     final notifier = ref.read(labelsNotifierProvider.notifier);
-    final labels = state.visibleLabels;
+    final groups = state.visibleGroups;
 
     return ScaffoldMessenger(
       key: _messengerKey,
@@ -85,9 +85,9 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: state.isSubmitting ? null : () => _addLabel(context),
-          icon: const Icon(Icons.add),
-          label: const Text('Track a label'),
+          onPressed: state.isSubmitting ? null : () => _openSetupWizard(),
+          icon: const Icon(Icons.add_business),
+          label: const Text('Set up customer'),
         ),
         body: !state.initialized && state.isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -102,7 +102,10 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
                     _FilterBar(
                       filter: state.filter,
                       summary: state.summary,
+                      locations: state.dashboard.locations,
+                      location: state.location,
                       onChanged: notifier.setFilter,
+                      onLocationChanged: notifier.setLocation,
                     ),
                     _SearchField(
                       controller: _searchController,
@@ -110,7 +113,7 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
                     ),
                     if (state.isLoading) const LinearProgressIndicator(),
                     Expanded(
-                      child: labels.isEmpty
+                      child: groups.isEmpty
                           ? _EmptyState(
                               filter: state.filter,
                               hasAnyLabels: state.dashboard.labels.isNotEmpty,
@@ -121,13 +124,19 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
                               physics:
                                   const AlwaysScrollableScrollPhysics(),
                               padding: const EdgeInsets.only(bottom: 90, top: 4),
-                              itemCount: labels.length,
+                              itemCount: groups.length,
                               itemBuilder: (context, index) {
-                                final label = labels[index];
-                                return LabelCard(
-                                  label: label,
-                                  onTap: () => _openDetail(context, label),
-                                  onPrint: () => _orderBatch(context, label),
+                                final group = groups[index];
+                                return LabelCustomerCard(
+                                  group: group,
+                                  onOpen: (label) =>
+                                      _openDetail(context, label),
+                                  onPrint: (label) =>
+                                      _orderBatch(context, label),
+                                  onAddFlavour: () => _openSetupWizard(
+                                    customer: group.customer,
+                                    customerName: group.customerName,
+                                  ),
                                 );
                               },
                             ),
@@ -144,32 +153,33 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
     if (mounted) ref.read(labelsNotifierProvider.notifier).refresh();
   }
 
-  Future<void> _addLabel(BuildContext context) async {
-    final request = await showModalBottomSheet<NewLabelRequest>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => const NewLabelSheet(),
+  /// Launches the setup wizard, optionally with a customer already picked
+  /// (the "Add flavour" path from a customer header).
+  Future<void> _openSetupWizard({String? customer, String? customerName}) async {
+    final result = await context.push<LabelSetupResult>(
+      AppRoutes.labelSetup,
+      extra: customer == null
+          ? null
+          : <String, dynamic>{
+              'customer': customer,
+              if (customerName != null) 'customer_name': customerName,
+            },
     );
-    if (request == null || !mounted) return;
-
-    final notifier = ref.read(labelsNotifierProvider.notifier);
-    final created = await notifier.run(
-      () => ref.read(labelsRepositoryProvider).createLabel(
-            customer: request.customer,
-            labelTitle: request.labelTitle,
-            wePrint: request.wePrint,
-            appliesToItemGroup: request.itemGroup,
-            labelsPerUnit: request.labelsPerUnit,
-            minStockQty: request.minStockQty,
-            reorderQty: request.reorderQty,
-            openingQty: request.openingQty,
-            notes: request.notes,
-          ),
-    );
-    if (created != null && mounted) {
-      notifier.applyUpdated(created);
+    if (!mounted) return;
+    ref.read(labelsNotifierProvider.notifier).refresh();
+    if (result != null) {
+      final created = result.createdCount;
+      final skipped = result.skippedCount;
       _messengerKey.currentState?.showSnackBar(
-        SnackBar(content: Text('Now tracking ${created.displayTitle}')),
+        SnackBar(
+          content: Text(
+            created == 0
+                ? 'Nothing new to track'
+                    '${skipped > 0 ? ' — $skipped flavour${skipped == 1 ? ' was' : 's were'} already tracked' : ''}.'
+                : 'Now tracking $created flavour${created == 1 ? '' : 's'}'
+                    '${skipped > 0 ? ' ($skipped already tracked)' : ''}.',
+          ),
+        ),
       );
     }
   }
@@ -186,20 +196,23 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
     final updated = await notifier.run(
       () => ref.read(labelsRepositoryProvider).createPrintOrder(
             label: label.name,
-            qty: request.qty,
-            printerName: request.printerName,
+            qtySheets: request.qtySheets,
+            supplier: request.supplier,
+            totalCost: request.totalCost,
             notes: request.notes,
           ),
     );
     if (updated != null && mounted) {
       notifier.applyUpdated(updated);
       final due = updated.nextArrival?.expectedReadyDate;
+      final sheets =
+          '${request.qtySheets} sheet${request.qtySheets == 1 ? '' : 's'}';
       _messengerKey.currentState?.showSnackBar(
         SnackBar(
           content: Text(
             due == null
-                ? 'Batch of ${request.qty} sent to the printer'
-                : '${request.qty} ordered — due back ${DateFormat('d MMM').format(due)}',
+                ? '$sheets sent to the printer'
+                : '$sheets ordered — due back ${DateFormat('d MMM').format(due)}',
           ),
         ),
       );
@@ -217,10 +230,16 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Labels come off stock automatically when an invoice is '
-                'submitted for a customer whose labels we print. Customers who '
-                'bring their own are marked "Customer prints" and are never '
-                'counted.',
+                'Every flavour has its own label design, so each is tracked on '
+                'its own row. Labels come off stock automatically when an '
+                'invoice is submitted for a customer whose labels we print. '
+                'Customers who bring their own are marked "Customer prints" '
+                'and are never counted.',
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Printing is ordered in sheets — ${settings.sheetMedium} Medium '
+                'or ${settings.sheetLarge} Large labels per sheet.',
               ),
               const SizedBox(height: 12),
               Text(
@@ -316,12 +335,18 @@ class _SummaryHeader extends StatelessWidget {
 class _FilterBar extends StatelessWidget {
   final LabelFilter filter;
   final LabelSummary summary;
+  final List<String> locations;
+  final String? location;
   final ValueChanged<LabelFilter> onChanged;
+  final ValueChanged<String?> onLocationChanged;
 
   const _FilterBar({
     required this.filter,
     required this.summary,
+    required this.locations,
+    required this.location,
     required this.onChanged,
+    required this.onLocationChanged,
   });
 
   @override
@@ -335,19 +360,75 @@ class _FilterBar extends StatelessWidget {
 
     return SizedBox(
       height: 48,
-      child: ListView.separated(
+      child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        itemCount: entries.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final (value, text, count) = entries[index];
-          return ChoiceChip(
-            selected: filter == value,
-            onSelected: (_) => onChanged(value),
-            label: Text(count == null || count == 0 ? text : '$text ($count)'),
-          );
-        },
+        children: [
+          for (final (value, text, count) in entries)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                selected: filter == value,
+                onSelected: (_) => onChanged(value),
+                label: Text(count == null || count == 0 ? text : '$text ($count)'),
+              ),
+            ),
+          if (locations.isNotEmpty)
+            _LocationFilter(
+              locations: locations,
+              location: location,
+              onChanged: onLocationChanged,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Compact "where is it stored" dropdown, living alongside the status chips.
+class _LocationFilter extends StatelessWidget {
+  final List<String> locations;
+  final String? location;
+  final ValueChanged<String?> onChanged;
+
+  const _LocationFilter({
+    required this.locations,
+    required this.location,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final selected = location != null && locations.contains(location);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: selected
+            ? theme.colorScheme.secondaryContainer
+            : theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: selected ? location : null,
+          icon: const Icon(Icons.place_outlined, size: 18),
+          style: theme.textTheme.labelLarge
+              ?.copyWith(color: theme.colorScheme.onSurface),
+          items: [
+            const DropdownMenuItem<String?>(
+              value: null,
+              child: Text('All locations'),
+            ),
+            for (final loc in locations)
+              DropdownMenuItem<String?>(
+                value: loc,
+                child: Text(loc, overflow: TextOverflow.ellipsis),
+              ),
+          ],
+          onChanged: onChanged,
+        ),
       ),
     );
   }
@@ -367,7 +448,7 @@ class _SearchField extends StatelessWidget {
         controller: controller,
         onChanged: onChanged,
         decoration: InputDecoration(
-          hintText: 'Search customer or label',
+          hintText: 'Search customer or flavour',
           prefixIcon: const Icon(Icons.search),
           isDense: true,
           border: const OutlineInputBorder(),
@@ -417,8 +498,9 @@ class _EmptyState extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Text(
-              'Add the B2B customers whose jar labels JARZ prints. Stock then '
-              'comes down on its own as their orders are invoiced.',
+              'Set up the B2B customers whose jar labels JARZ prints — one '
+              'label per flavour. Stock then comes down on its own as their '
+              'orders are invoiced.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),

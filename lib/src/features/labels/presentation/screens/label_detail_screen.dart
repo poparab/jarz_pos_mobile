@@ -4,11 +4,13 @@ import 'package:intl/intl.dart';
 
 import '../../data/labels_repository.dart';
 import '../../models/label_models.dart';
+import '../../state/labels_notifier.dart' show labelErrorMessage;
+import '../widgets/label_card.dart' show LabelSizeChip;
 import '../widgets/label_sheets.dart';
 import '../widgets/label_status_chip.dart';
 
-/// One customer's label: where it stands, what is at the printer, and the full
-/// ledger of how it got there.
+/// One flavour's label: where it stands, what is at the printer, what it is
+/// worth, and the full ledger of how it got there.
 class LabelDetailScreen extends ConsumerStatefulWidget {
   final String labelName;
 
@@ -44,32 +46,35 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
           await ref.read(labelsRepositoryProvider).getDetail(widget.labelName);
       if (mounted) setState(() => _label = label);
     } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+      if (mounted) setState(() => _error = labelErrorMessage(error));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
   /// Runs a write, swaps in the label the server returns, and reports failure
-  /// once — so no action handler has to repeat this.
-  Future<void> _act(
+  /// once — so no action handler has to repeat this. Returns the fresh label
+  /// so a caller can chain a follow-up (the receive-then-bill flow).
+  Future<CustomerLabel?> _act(
     Future<CustomerLabel> Function() action, {
     String? success,
   }) async {
-    if (_busy) return;
+    if (_busy) return null;
     setState(() => _busy = true);
     try {
       final label = await action();
-      if (!mounted) return;
+      if (!mounted) return null;
       setState(() => _label = label);
       if (success != null) {
         _messengerKey.currentState
             ?.showSnackBar(SnackBar(content: Text(success)));
       }
+      return label;
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted) return null;
       _messengerKey.currentState
-          ?.showSnackBar(SnackBar(content: Text(error.toString())));
+          ?.showSnackBar(SnackBar(content: Text(labelErrorMessage(error))));
+      return null;
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -146,6 +151,7 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
               busy: _busy,
               onReceive: (order) => _receive(label, order),
               onAdvance: (order, status) => _advance(label, order, status),
+              onBill: (order) => _bill(order),
             ),
           _Policy(label: label, dateFormat: _dateFormat),
           _Ledger(movements: label.movements, dateFormat: _shortDate),
@@ -162,14 +168,18 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
       builder: (_) => PrintOrderSheet(label: label),
     );
     if (request == null || !mounted) return;
+    final labels = label.labelsForSheets(request.qtySheets);
     await _act(
       () => ref.read(labelsRepositoryProvider).createPrintOrder(
             label: label.name,
-            qty: request.qty,
-            printerName: request.printerName,
+            qtySheets: request.qtySheets,
+            supplier: request.supplier,
+            totalCost: request.totalCost,
             notes: request.notes,
           ),
-      success: '${request.qty} labels sent to the printer',
+      success:
+          '${request.qtySheets} sheet${request.qtySheets == 1 ? '' : 's'}'
+          '${labels > 0 ? ' ($labels labels)' : ''} sent to the printer',
     );
   }
 
@@ -215,7 +225,7 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
       builder: (_) => ReceiveBatchSheet(order: order),
     );
     if (received == null || !mounted) return;
-    await _act(
+    final updated = await _act(
       () => ref.read(labelsRepositoryProvider).updatePrintOrder(
             printOrder: order.name,
             status: 'Received',
@@ -223,6 +233,20 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
           ),
       success: '$received labels added to stock',
     );
+    if (updated == null || !mounted) return;
+
+    // The batch is on the shelf; if the printer's bill was never booked, offer
+    // to record it now — otherwise the stock sits on the books at zero cost.
+    LabelPrintOrder? fresh;
+    for (final o in updated.printOrders) {
+      if (o.name == order.name) {
+        fresh = o;
+        break;
+      }
+    }
+    if (fresh != null && fresh.awaitsBill) {
+      await _bill(fresh);
+    }
   }
 
   Future<void> _advance(
@@ -239,6 +263,26 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
     );
   }
 
+  /// Books the printer's bill for [order]. Manager-gated server-side; a
+  /// rejection surfaces as the server's own sentence in the snackbar.
+  Future<void> _bill(LabelPrintOrder order) async {
+    final request = await showModalBottomSheet<BillRequest>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => RecordBillSheet(order: order),
+    );
+    if (request == null || !mounted) return;
+    await _act(
+      () => ref.read(labelsRepositoryProvider).billPrintOrder(
+            printOrder: order.name,
+            supplier: request.supplier,
+            totalCost: request.totalCost,
+            billNo: request.billNo,
+          ),
+      success: 'Bill recorded — purchase invoice created',
+    );
+  }
+
   Future<void> _editPolicy(CustomerLabel label) async {
     final request = await showModalBottomSheet<LabelPolicyRequest>(
       context: context,
@@ -252,10 +296,11 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
             labelTitle: request.labelTitle,
             enabled: request.enabled,
             wePrint: request.wePrint,
-            appliesToItemGroup: request.itemGroup,
+            storageLocation: request.storageLocation,
             labelsPerUnit: request.labelsPerUnit,
+            labelsPerSheet: request.labelsPerSheet,
+            defaultPrintSheets: request.defaultPrintSheets,
             minStockQty: request.minStockQty,
-            reorderQty: request.reorderQty,
             notes: request.notes,
           ),
       success: 'Settings saved',
@@ -288,10 +333,22 @@ class _Header extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  label.labelTitle,
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        label.labelTitle,
+                        style: theme.textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (label.size != null) ...[
+                      const SizedBox(width: 8),
+                      LabelSizeChip(size: label.size!),
+                    ],
+                  ],
                 ),
               ),
               LabelStatusChip(
@@ -300,6 +357,25 @@ class _Header extends StatelessWidget {
               ),
             ],
           ),
+          if (label.storageLocation != null) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.place_outlined,
+                    size: 15, color: theme.colorScheme.onSurfaceVariant),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    'Stored at ${label.storageLocation}',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 14),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -352,6 +428,18 @@ class _Header extends StatelessWidget {
                   label: 'Used in ${label.usageWindowDays}d',
                   value: '${label.consumedInWindow}',
                 ),
+                // Money stats only once a batch has been billed — a column of
+                // zeroes would just say "accounting not set up" in a loud way.
+                if (label.stockValue > 0)
+                  _Stat(
+                    label: 'Stock value',
+                    value: 'EGP ${label.stockValue.toStringAsFixed(2)}',
+                  ),
+                if (label.avgCostPerLabel > 0)
+                  _Stat(
+                    label: 'Avg cost/label',
+                    value: 'EGP ${label.avgCostPerLabel.toStringAsFixed(2)}',
+                  ),
               ],
             ),
           ],
@@ -456,6 +544,7 @@ class _PrintOrders extends StatelessWidget {
   final bool busy;
   final void Function(LabelPrintOrder) onReceive;
   final void Function(LabelPrintOrder, String) onAdvance;
+  final void Function(LabelPrintOrder) onBill;
 
   const _PrintOrders({
     required this.orders,
@@ -463,6 +552,7 @@ class _PrintOrders extends StatelessWidget {
     required this.busy,
     required this.onReceive,
     required this.onAdvance,
+    required this.onBill,
   });
 
   @override
@@ -484,54 +574,133 @@ class _PrintOrders extends StatelessWidget {
             if (order.isReceived && order.receivedOn != null)
               'received ${dateFormat.format(order.receivedOn!)}'
                   '${order.receivedQty != order.qty ? ' (${order.receivedQty})' : ''}',
-            if (order.printerName != null) order.printerName!,
+            if (order.supplier != null)
+              order.supplier!
+            else if (order.printerName != null)
+              order.printerName!,
           ];
+
+          final title = order.qtySheets > 0
+              ? '${order.qtySheets} sheet${order.qtySheets == 1 ? '' : 's'} · ${order.qty} labels · ${order.status}'
+              : '${order.qty} labels · ${order.status}';
+
+          final cancelled = order.status == 'Cancelled';
+          final canBill = !cancelled && !order.isBilled;
 
           return ListTile(
             leading: Icon(
               order.isReceived
                   ? Icons.inventory_2
-                  : order.status == 'Cancelled'
+                  : cancelled
                       ? Icons.cancel
                       : Icons.local_shipping,
               color: order.isOverdue ? const Color(0xFFE65100) : null,
             ),
-            title: Text('${order.qty} labels · ${order.status}'),
-            subtitle: Text(
-              subtitleBits.join(' · '),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: order.isOverdue ? const Color(0xFFE65100) : null,
-              ),
+            title: Text(title),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  subtitleBits.join(' · '),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: order.isOverdue ? const Color(0xFFE65100) : null,
+                  ),
+                ),
+                if (!cancelled) ...[
+                  const SizedBox(height: 4),
+                  _BillingChip(order: order),
+                ],
+              ],
             ),
-            trailing: !order.isOpen
+            isThreeLine: !cancelled,
+            trailing: !order.isOpen && !(order.isReceived && canBill)
                 ? null
                 : PopupMenuButton<String>(
                     enabled: !busy,
                     onSelected: (value) {
                       if (value == 'receive') {
                         onReceive(order);
+                      } else if (value == 'bill') {
+                        onBill(order);
                       } else {
                         onAdvance(order, value);
                       }
                     },
                     itemBuilder: (_) => [
-                      const PopupMenuItem(
-                        value: 'receive',
-                        child: Text('Receive into stock'),
-                      ),
-                      if (order.status == 'Requested')
+                      if (order.isOpen)
+                        const PopupMenuItem(
+                          value: 'receive',
+                          child: Text('Receive into stock'),
+                        ),
+                      if (order.isOpen && order.status == 'Requested')
                         const PopupMenuItem(
                             value: 'Printing', child: Text('Mark printing')),
-                      if (order.status != 'Ready')
+                      if (order.isOpen && order.status != 'Ready')
                         const PopupMenuItem(
                             value: 'Ready', child: Text('Mark ready')),
-                      const PopupMenuItem(
-                          value: 'Cancelled', child: Text('Cancel batch')),
+                      if (canBill)
+                        const PopupMenuItem(
+                          value: 'bill',
+                          child: Text("Record the printer's bill"),
+                        ),
+                      if (order.isOpen)
+                        const PopupMenuItem(
+                            value: 'Cancelled', child: Text('Cancel batch')),
                     ],
                   ),
           );
         }),
       ],
+    );
+  }
+}
+
+/// Amber until the printer's bill is booked; green with the purchase invoice
+/// once it is. Money that never arrived on the books stays visibly amber.
+class _BillingChip extends StatelessWidget {
+  final LabelPrintOrder order;
+
+  const _BillingChip({required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    final billed = order.isBilled;
+    final color = billed ? const Color(0xFF2E7D32) : const Color(0xFFF9A825);
+    final text = billed
+        ? 'Billed${order.purchaseInvoice == null ? '' : ' · ${order.purchaseInvoice}'}'
+        : 'Unbilled'
+            '${order.totalCost > 0 ? ' · quoted EGP ${order.totalCost.toStringAsFixed(2)}' : ''}';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            billed ? Icons.receipt_long : Icons.pending_actions,
+            size: 13,
+            color: color,
+          ),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w600,
+                fontSize: 11.5,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -546,11 +715,17 @@ class _Policy extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final rows = <(String, String)>[
+      if (label.item != null) ('Flavour', label.item!),
+      if (label.size != null) ('Size', label.size!),
+      ('Stored at', label.storageLocation ?? 'Not set'),
       ('Minimum stock', '${label.minStockQty}'),
-      ('Usual print batch', '${label.reorderQty}'),
+      (
+        'Usual print batch',
+        '${label.defaultPrintSheets} sheet${label.defaultPrintSheets == 1 ? '' : 's'}'
+      ),
+      ('Labels per sheet', '${label.labelsPerSheet}'),
       ('Labels per jar', label.labelsPerUnit.toStringAsFixed(
           label.labelsPerUnit == label.labelsPerUnit.roundToDouble() ? 0 : 2)),
-      ('Applies to', label.appliesToItemGroup ?? 'Everything'),
       (
         'Print lead time',
         '${label.leadDaysMin}–${label.leadDaysMax} working days '
@@ -639,6 +814,7 @@ class _Ledger extends StatelessWidget {
         const _SectionTitle('History'),
         ...movements.map((movement) {
           final positive = movement.isIncoming;
+          final hasValue = movement.value != 0;
           return ListTile(
             dense: true,
             leading: Icon(
@@ -664,13 +840,31 @@ class _Ledger extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall,
             ),
-            trailing: movement.isAutomatic
-                ? Tooltip(
+            trailing: (!hasValue && !movement.isAutomatic)
+                ? null
+                : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasValue)
+                  Text(
+                    '${movement.value > 0 ? '+' : '−'}EGP ${movement.value.abs().toStringAsFixed(2)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: movement.value > 0
+                          ? const Color(0xFF2E7D32)
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                if (movement.isAutomatic) ...[
+                  if (hasValue) const SizedBox(width: 6),
+                  Tooltip(
                     message: 'Posted automatically from the invoice',
                     child: Icon(Icons.bolt,
                         size: 16, color: theme.colorScheme.outline),
-                  )
-                : null,
+                  ),
+                ],
+              ],
+            ),
           );
         }),
       ],

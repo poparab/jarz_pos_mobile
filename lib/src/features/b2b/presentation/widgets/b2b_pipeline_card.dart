@@ -97,6 +97,9 @@ class B2bPipelineCard extends StatelessWidget {
                     ),
                   if (card.customer != null && card.customer!.isNotEmpty)
                     _chip(context, card.customer!, Icons.account_circle_outlined),
+                  // Printed-label shortage flag: red because a label that needs
+                  // printing is a days-long lead time, not a same-day fix.
+                  if (card.labelAlert > 0) _LabelAlertChip(count: card.labelAlert),
                 ],
               ),
               // The journey read-out: when this prospect was last visited and
@@ -139,6 +142,46 @@ class B2bPipelineCard extends StatelessWidget {
           const SizedBox(width: 3),
           Text(label, style: theme.textTheme.labelSmall),
         ],
+      ),
+    );
+  }
+}
+
+/// Small red label badge: how many of this account's printed labels currently
+/// need attention (out of stock / reorder now / reorder soon).
+class _LabelAlertChip extends StatelessWidget {
+  final int count;
+
+  const _LabelAlertChip({required this.count});
+
+  static const _red = Color(0xFFB3261E);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Tooltip(
+      message: '$count label${count == 1 ? '' : 's'} need printing',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: _red.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _red.withValues(alpha: 0.45)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.label_important, size: 12, color: _red),
+            const SizedBox(width: 3),
+            Text(
+              '$count',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: _red,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -44,6 +44,7 @@ import '../features/about/presentation/screens/about_screen.dart';
 import '../features/b2b/presentation/screens/b2b_pipeline_screen.dart';
 import '../features/labels/presentation/screens/labels_screen.dart';
 import '../features/labels/presentation/screens/label_detail_screen.dart';
+import '../features/labels/presentation/screens/label_setup_wizard.dart';
 import '../features/b2b/presentation/screens/b2b_account_screen.dart';
 import '../features/b2b/presentation/screens/b2b_today_screen.dart';
 import '../features/pricing/presentation/screens/pricing_screen.dart';
@@ -506,6 +507,27 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'label-detail',
         builder: (context, state) =>
             LabelDetailScreen(labelName: (state.extra ?? '').toString()),
+      ),
+      GoRoute(
+        path: AppRoutes.labelSetup,
+        name: 'label-setup',
+        builder: (context, state) {
+          // Extra is either a bare customer id (String) or a map carrying the
+          // display name too; both preselect the customer in the wizard.
+          final extra = state.extra;
+          String? customer;
+          String? customerName;
+          if (extra is String && extra.trim().isNotEmpty) {
+            customer = extra.trim();
+          } else if (extra is Map) {
+            customer = extra['customer']?.toString();
+            customerName = extra['customer_name']?.toString();
+          }
+          return LabelSetupWizardScreen(
+            initialCustomer: customer,
+            initialCustomerName: customerName,
+          );
+        },
       ),
       // ── Leads (B2B prospect research) ─────────────────────────────────
       // Note: the literal `/leads/map` and `/leads/new` routes must be
