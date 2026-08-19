@@ -10,7 +10,11 @@ param(
     [string]$ReleaseVersion = 'latest',
     [string]$Track,
     [string]$BuildName,
-    [string]$BuildNumber
+    [string]$BuildNumber,
+
+    # Flutter version to build the release with. Defaults to the FLUTTER_VERSION
+    # the workflow already pins for every other build step.
+    [string]$FlutterVersion = $env:FLUTTER_VERSION
 )
 
 $ErrorActionPreference = 'Stop'
@@ -91,8 +95,23 @@ if ($Action -eq 'release') {
         $buildArgs += "--build-number=$($env:BUILD_NUMBER)"
     }
 
+    # Pin the Flutter version. Left unset, `shorebird release` ignores the Flutter
+    # the workflow set up and pulls the LATEST stable instead, which is how a
+    # production release build died on "your project's Gradle version (8.12.0) is
+    # lower than Flutter's minimum supported version of 8.14.0" while every patch
+    # kept building - a patch inherits the Flutter of the release it targets, so
+    # only the release path ever saw the newer toolchain.
+    $releaseArgs = @('release', 'android', '--artifact', 'apk', '--flavor', $config.Flavor)
+    if ($FlutterVersion) {
+        $releaseArgs += @('--flutter-version', $FlutterVersion)
+        Write-Host "[shorebird_android] Pinning release to Flutter $FlutterVersion"
+    }
+    else {
+        Write-Warning "[shorebird_android] No FlutterVersion/FLUTTER_VERSION set; Shorebird will use the latest stable Flutter, which may not match this project's Gradle version."
+    }
+
     Write-Host "[shorebird_android] Creating $Environment Shorebird Android release for flavor $($config.Flavor)"
-    & shorebird release android --artifact apk --flavor $config.Flavor '--' @buildArgs
+    & shorebird @releaseArgs '--' @buildArgs
     if ($LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE
     }
