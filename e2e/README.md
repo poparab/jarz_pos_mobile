@@ -31,9 +31,28 @@ Flutter `integration_test` does not support web devices. This harness drives Chr
 
 ## Environment Variables
 
-- `E2E_USER` / `E2E_PASSWORD`: required for the shared login smoke
-- `E2E_MANAGER_USER` / `E2E_MANAGER_PASSWORD`: optional manager route smoke
+Three DISTINCT accounts, one per capability tier. `E2E_USER` and
+`E2E_LINE_MANAGER_*` deliberately have **no** fallback to `STAGING_*`: aliasing
+them collapsed all three tiers onto the owner account, so every "staff is denied
+X" assertion was really testing the account that is allowed to do X. A tier
+whose credentials are absent now SKIPS LOUDLY instead of quietly running as
+somebody else.
+
+- `E2E_USER` / `E2E_PASSWORD`: **staff** tier. A `Jarz POS Staff` account with no
+  manager role. No alias.
+- `E2E_LINE_MANAGER_USER` / `E2E_LINE_MANAGER_PASSWORD`: **line manager** tier. A
+  `JARZ line manager` that is not also JARZ Manager / System Manager /
+  Administrator / B2B Sales Rep / any production role. No alias. Drives
+  `specs/line-manager.api.spec.js`.
+- `E2E_MANAGER_USER` / `E2E_MANAGER_PASSWORD`: **manager** tier. Falls back to
+  `STAGING_USER` / `STAGING_PASSWORD`, because the owner credential genuinely is
+  this tier.
+- `E2E_POS_PROFILE`: POS profile for the staff workflow suite. Falls back to
+  `STAGING_POS_PROFILE`.
 - `E2E_LOGIN_MODE`: optional post-login choice, `employee` or `line-manager`
+- `E2E_STRICT_CREDENTIALS=1`: turn every "missing credentials" skip into a hard
+  failure. Recommended in CI so a permission suite cannot go green off an empty
+  `.env`.
 - `E2E_BASE_URL`: optional override for local preview or ad hoc targets
 
 ## Defaults

@@ -1,5 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const { loginThroughUi, startShiftIfRequired } = require('../support/auth');
+const { requireCredentialTierForTest } = require('../support/credentials');
 
 function waitForApiResponse(page, pathFragment, expectedStatus) {
   return page.waitForResponse(
@@ -10,7 +11,9 @@ function waitForApiResponse(page, pathFragment, expectedStatus) {
 }
 
 test.describe('Authenticated route access', () => {
-  test('loads Sales Kanban data after the required shift flow @staff @phase1', async ({ page }) => {
+  test('loads Sales Kanban data after the required shift flow @staff @phase1', async ({ page }, testInfo) => {
+    requireCredentialTierForTest('staff', testInfo);
+
     await loginThroughUi(page);
     await startShiftIfRequired(page);
 
@@ -30,11 +33,11 @@ test.describe('Authenticated route access', () => {
     expect(page.url()).not.toContain('/login');
   });
 
-  test('loads Manager Dashboard data when manager credentials are configured @manager @phase3', async ({ page }) => {
-    test.skip(
-      !process.env.E2E_MANAGER_USER || !process.env.E2E_MANAGER_PASSWORD,
-      'Set E2E_MANAGER_USER and E2E_MANAGER_PASSWORD to run the manager route smoke test.',
-    );
+  test('loads Manager Dashboard data when manager credentials are configured @manager @phase3', async ({ page }, testInfo) => {
+    // Was `!process.env.E2E_MANAGER_USER`, which read the RAW env and so
+    // bypassed the E2E_MANAGER_USER -> STAGING_USER alias: with only the
+    // documented STAGING_* defaults set this test skipped every single run.
+    requireCredentialTierForTest('manager', testInfo);
 
     await loginThroughUi(page, {
       userEnv: 'E2E_MANAGER_USER',
@@ -66,7 +69,9 @@ test.describe('Authenticated route access', () => {
     expect(page.url()).not.toContain('/login');
   });
 
-  test('blocks staff access to the Manager Dashboard when opened directly @staff @phase1 @phase3', async ({ page }) => {
+  test('blocks staff access to the Manager Dashboard when opened directly @staff @phase1 @phase3', async ({ page }, testInfo) => {
+    requireCredentialTierForTest('staff', testInfo);
+
     await loginThroughUi(page);
     await startShiftIfRequired(page);
 
@@ -83,7 +88,9 @@ test.describe('Authenticated route access', () => {
     expect(JSON.stringify(await response.json())).toMatch(/Manager Dashboard access required/i);
   });
 
-  test('blocks staff access to Purchase when opened directly @staff @phase1 @phase3', async ({ page }) => {
+  test('blocks staff access to Purchase when opened directly @staff @phase1 @phase3', async ({ page }, testInfo) => {
+    requireCredentialTierForTest('staff', testInfo);
+
     await loginThroughUi(page);
     await startShiftIfRequired(page);
 

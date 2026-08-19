@@ -1,5 +1,6 @@
 const { test, expect, request } = require('@playwright/test');
-const { requireEnv } = require('../support/env');
+const { envValue, hasCredentials, requireEnv } = require('../support/env');
+const { requireCredentialTierForTest } = require('../support/credentials');
 
 const managerOnlyEndpoints = [
   {
@@ -55,6 +56,16 @@ async function createAuthenticatedContext(baseURL, userEnv, passwordEnv) {
 
 test.describe('Permission enforcement API', () => {
   test('staff is denied manager-only endpoints @staff @phase3', async ({}, testInfo) => {
+    requireCredentialTierForTest('staff', testInfo);
+
+    // A staff credential that resolves to the manager account proves nothing:
+    // the endpoints would answer 200 and this spec would fail for the wrong
+    // reason. That is exactly what the old E2E_USER -> STAGING_USER alias did.
+    expect(
+      envValue('E2E_USER').trim().toLowerCase(),
+      'E2E_USER must be a real staff account, distinct from E2E_MANAGER_USER',
+    ).not.toBe(envValue('E2E_MANAGER_USER').trim().toLowerCase());
+
     const apiContext = await createAuthenticatedContext(
       testInfo.project.use.baseURL,
       'E2E_USER',
@@ -73,10 +84,11 @@ test.describe('Permission enforcement API', () => {
   });
 
   test('manager can access manager-only endpoints @manager @phase3', async ({}, testInfo) => {
-    test.skip(
-      !process.env.E2E_MANAGER_USER || !process.env.E2E_MANAGER_PASSWORD,
-      'Set E2E_MANAGER_USER and E2E_MANAGER_PASSWORD to run manager-only API checks.',
-    );
+    // Was `!process.env.E2E_MANAGER_USER`, which read the RAW env and so
+    // bypassed the E2E_MANAGER_USER -> STAGING_USER alias: with only the
+    // documented STAGING_* defaults set, this test skipped every single run.
+    // hasCredentials() resolves through the alias, so it now actually runs.
+    requireCredentialTierForTest('manager', testInfo);
 
     const apiContext = await createAuthenticatedContext(
       testInfo.project.use.baseURL,
@@ -93,5 +105,16 @@ test.describe('Permission enforcement API', () => {
     } finally {
       await apiContext.dispose();
     }
+  });
+});
+
+// Guard against the whole file quietly degrading to "nothing ran".
+test.describe('Permission enforcement coverage', () => {
+  test('at least the staff and manager tiers are configured @meta', async () => {
+    expect(
+      hasCredentials('staff') || hasCredentials('manager'),
+      'Neither the staff nor the manager credential tier is configured, so no ' +
+        'permission boundary was exercised. See .env.e2e.example.',
+    ).toBeTruthy();
   });
 });

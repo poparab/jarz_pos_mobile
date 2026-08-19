@@ -7,6 +7,9 @@
 /// Also includes financial verification helpers for querying linked
 /// Journal Entries, Payment Entries, GL Entries, Courier Transactions,
 /// Sales Partner Transactions, Delivery Notes, and Stock Ledger Entries.
+// Cleanup reports its own failures on stdout so a tear-down problem is visible
+// in the test log next to the document name it happened to.
+// ignore_for_file: avoid_print
 library;
 
 import 'dart:convert' show jsonEncode;
@@ -97,11 +100,29 @@ Future<List<Map<String, dynamic>>> listDocsFromErp(
   return const [];
 }
 
-/// Cancel a submitted ERPNext document (set `docstatus` to 2).
-Future<void> cancelDocInErp(StagingApiClient api, String doctype, String name) async {
+/// Cancel a submitted ERPNext document.
+///
+/// MUST go through `frappe.client.cancel`. This used to POST `{'docstatus': 2}`
+/// to `/api/resource/<doctype>/<name>`, which does NOT patch fields: Frappe
+/// routes POST on an *instance* path to `execute_doc_method`
+/// (`frappe/api/v1.py`), whose first statement is
+/// `method = method or frappe.form_dict.pop("run_method")`. With no
+/// `run_method` in the body that raises `KeyError` on every single call, so the
+/// cancel always failed, the follow-up delete of a still-submitted document
+/// always failed too, and the `catch (_) {}` in [cleanupTestInvoice] threw both
+/// away — leaving every test-created invoice submitted and live on staging.
+///
+/// `frappe.client.cancel` is whitelisted for POST/PUT and takes
+/// `{doctype, name}`. (`POST /api/resource/<dt>/<name>` with
+/// `{'run_method': 'cancel'}` is the equivalent instance-path form.)
+Future<void> cancelDocInErp(
+  StagingApiClient api,
+  String doctype,
+  String name,
+) async {
   await api.rawPost(
-    '/api/resource/$doctype/$name',
-    data: {'docstatus': 2},
+    '/api/method/frappe.client.cancel',
+    data: {'doctype': doctype, 'name': name},
     options: null,
   );
 }
@@ -111,20 +132,128 @@ Future<void> deleteDocInErp(StagingApiClient api, String doctype, String name) a
   await api.dio.delete('/api/resource/$doctype/$name');
 }
 
-/// Clean up a test-created invoice:
-/// - If submitted (docstatus=1): cancel then delete.
+/// Best-effort HTTP status extraction that does not depend on the Dio types.
+///
+/// Deliberately duck-typed (`dynamic` field access inside a `catch`) so this
+/// file keeps using generic `catch (e)` — an `on DioException catch` here would
+/// let any non-Dio error escape tear-down and cascade into unrelated failures.
+int? httpStatusOf(Object error) {
+  try {
+    final dynamic err = error;
+    final dynamic response = err.response;
+    if (response == null) return null;
+    final dynamic code = response.statusCode;
+    return code is int ? code : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+bool _isNotFound(Object error) => httpStatusOf(error) == 404;
+
+/// Clean up a test-created invoice and PROVE it worked.
+///
+/// - If submitted (docstatus=1): cancel, then delete.
 /// - If draft (docstatus=0): just delete.
-/// - Silently ignores 404 (already deleted).
+/// - Already absent (404 on the first read): nothing to do.
+///
+/// Then re-reads the document and requires one of two end states:
+///   * gone (404), or
+///   * still present with `docstatus == 2` (cancelled). ERPNext legitimately
+///     refuses to delete a document other submitted documents link to; a
+///     cancelled invoice posts no balances, so that is an acceptable outcome.
+///
+/// Anything else — still draft, still submitted, or unreadable — throws
+/// [StateError] naming the invoice and every underlying error collected along
+/// the way. Cleanup runs in `tearDownAll`, so that surfaces as a suite failure
+/// instead of quietly leaving live financial documents on staging.
 Future<void> cleanupTestInvoice(StagingApiClient api, String invoiceName) async {
+  final errors = <String>[];
+
+  int? initialDocstatus;
   try {
     final doc = await getDocFromErp(api, 'Sales Invoice', invoiceName);
-    final docstatus = doc['docstatus'];
-    if (docstatus == 1) {
+    initialDocstatus = (doc['docstatus'] as num?)?.toInt();
+  } catch (e) {
+    if (_isNotFound(e)) return; // Already gone — nothing to clean up.
+    errors.add('initial read failed: $e');
+  }
+
+  if (initialDocstatus == 1) {
+    try {
       await cancelDocInErp(api, 'Sales Invoice', invoiceName);
+    } catch (e) {
+      errors.add('cancel failed: $e');
     }
+  }
+
+  try {
     await deleteDocInErp(api, 'Sales Invoice', invoiceName);
-  } catch (_) {
-    // Best effort — don't fail the test on cleanup errors
+  } catch (e) {
+    if (!_isNotFound(e)) errors.add('delete failed: $e');
+  }
+
+  // ── Verify the outcome instead of assuming it ────────────────────────
+  int? finalDocstatus;
+  try {
+    final doc = await getDocFromErp(api, 'Sales Invoice', invoiceName);
+    finalDocstatus = (doc['docstatus'] as num?)?.toInt();
+  } catch (e) {
+    if (_isNotFound(e)) return; // Deleted. Clean.
+    errors.add('verification read failed: $e');
+    throw StateError(
+      'CLEANUP FAILED for Sales Invoice "$invoiceName": could not verify the '
+      'outcome, so it may still be live on staging. Errors: '
+      '${errors.join(' | ')}',
+    );
+  }
+
+  if (finalDocstatus == 2) {
+    // Cancelled but not deletable (linked documents). No live financial
+    // effect, so this is a pass — but say so, with the name, so nobody has to
+    // guess why the record is still there.
+    print(
+      '[cleanup] Sales Invoice "$invoiceName" cancelled (docstatus=2) but not '
+      'deleted; ERPNext keeps documents that others link to. '
+      '${errors.isEmpty ? '' : 'Non-fatal errors: ${errors.join(' | ')}'}',
+    );
+    return;
+  }
+
+  final failure = StateError(
+    'CLEANUP FAILED for Sales Invoice "$invoiceName": still present with '
+    'docstatus=$finalDocstatus (expected 2 = cancelled, or deleted). '
+    'A test-created invoice is LIVE on the server. Errors: '
+    '${errors.isEmpty ? '<none reported>' : errors.join(' | ')}',
+  );
+  print('[cleanup] ${failure.message}');
+  throw failure;
+}
+
+/// Clean up several test-created invoices, attempting EVERY one before
+/// reporting.
+///
+/// Prefer this over a bare `for (final inv in created) await
+/// cleanupTestInvoice(...)`: [cleanupTestInvoice] now throws on an unverified
+/// cleanup, and inside a loop that would abandon the remaining invoices.
+Future<void> cleanupTestInvoices(
+  StagingApiClient api,
+  Iterable<String> invoiceNames,
+) async {
+  final failures = <String>[];
+  for (final name in invoiceNames) {
+    if (name.isEmpty) continue;
+    try {
+      await cleanupTestInvoice(api, name);
+    } catch (e) {
+      failures.add('$name -> $e');
+    }
+  }
+  if (failures.isNotEmpty) {
+    throw StateError(
+      'CLEANUP FAILED for ${failures.length} invoice(s):\n'
+      '${failures.join('\n')}',
+    );
   }
 }
 

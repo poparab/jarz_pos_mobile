@@ -39,12 +39,18 @@ const {
   updateInvoiceDeliverySlot,
   uploadReceiptImage,
 } = require('../support/api');
-const { repoRoot } = require('../support/env');
+const { hasCredentials, repoRoot } = require('../support/env');
+const { requireCredentialTier } = require('../support/credentials');
 
 const latestArtifactsDir = path.join(repoRoot, 'artifacts', 'e2e', 'staff', 'latest');
 const createdDocsPath = path.join(latestArtifactsDir, 'created-docs.json');
 
 test.describe('Staff workflow API phases @staff', () => {
+  // E2E_USER no longer falls back to STAGING_USER. Without an explicit staff
+  // credential this whole suite would have run as the owner/manager account and
+  // called the result "staff can ...". Skip LOUDLY instead.
+  requireCredentialTier('staff');
+
   let staffApi;
   let managerApi;
   let verificationApi;
@@ -78,7 +84,10 @@ test.describe('Staff workflow API phases @staff', () => {
   }
 
   async function ensureManagerContext(baseURL) {
-    if (!process.env.E2E_MANAGER_USER || !process.env.E2E_MANAGER_PASSWORD) {
+    // hasCredentials() resolves through the E2E_MANAGER_USER -> STAGING_USER
+    // alias; the old raw process.env read did not, so the manager verification
+    // context was silently null on every documented setup.
+    if (!hasCredentials('manager')) {
       return null;
     }
 

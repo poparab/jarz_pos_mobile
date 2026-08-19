@@ -118,6 +118,32 @@ function Invoke-Remote {
     return ($output -join "`n").TrimEnd()
 }
 
+# bench draws progress bars by redrawing one line; with no TTY on the far side of
+# ssh every redraw arrives as a separate line -- a no-op staging migrate emitted
+# 1,529 progress lines against 89 lines of real content. Collapse each run to its
+# final state so a patch's summary is not buried in bar spam. Non-progress lines
+# are passed through untouched.
+function Compress-MigrateProgress([string]$Text) {
+    if (-not $Text) { return $Text }
+
+    $progressPattern = '^(?<label>.*?):\s*\[[ =#]*\]\s*\d+%\s*$'
+    $lines = $Text -split "`r?`n"
+    $kept = New-Object 'System.Collections.Generic.List[string]'
+
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($lines[$i] -match $progressPattern) {
+            $label = $Matches['label']
+            # Drop this redraw only when the next line continues the same bar.
+            if (($i + 1) -lt $lines.Count -and $lines[$i + 1] -match $progressPattern -and $Matches['label'] -eq $label) {
+                continue
+            }
+        }
+        $kept.Add($lines[$i])
+    }
+
+    return ($kept -join [Environment]::NewLine)
+}
+
 function ConvertTo-BashLiteral([string]$Value) {
     $singleQuote = [char]39
     $replacement = ([string]$singleQuote) + '"' + ([string]$singleQuote) + '"' + ([string]$singleQuote)
@@ -736,7 +762,18 @@ else {
 
     if (-not $SkipMigrate) {
         Write-Step 'Running bench migrate...'
-        $null = Invoke-Remote "docker exec $backendContainer bench --site frontend migrate"
+        # Surface the migrate output instead of discarding it. Data-migration
+        # patches print their summaries to stdout, and sending them to $null made
+        # them invisible to the operator -- hit for real on 2026-08-19 by
+        # set_woo_invoice_is_pos, which backfills is_pos across hundreds of
+        # submitted invoices. Invoke-Remote already folds stderr in and throws on
+        # a non-zero exit, so this changes visibility only, not failure handling.
+        $migrateOutput = Compress-MigrateProgress (Invoke-Remote "docker exec $backendContainer bench --site frontend migrate")
+        if ($migrateOutput) {
+            Write-Host '----- bench migrate output -----' -ForegroundColor DarkGray
+            Write-Host $migrateOutput
+            Write-Host '----- end bench migrate output -----' -ForegroundColor DarkGray
+        }
         Write-Info 'Migration complete'
     }
     else {
