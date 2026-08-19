@@ -4278,9 +4278,18 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ),
       );
 
-      // Parse delivery duration
+      // Length of the slot the operator just picked. Reusing the invoice's old
+      // duration stretched a 60-minute slot to whatever the previous one was —
+      // a move onto the anchored 12:00 AM - 01:00 AM slot came out as 90
+      // minutes, ending after the branch had closed.
       int durationSeconds = 7200; // default 2 hours
-      if (widget.invoice.deliveryDuration != null) {
+      final pickedStart = DateTime.tryParse(picked.datetime);
+      final pickedEnd = DateTime.tryParse(picked.endDatetime);
+      if (pickedStart != null &&
+          pickedEnd != null &&
+          pickedEnd.isAfter(pickedStart)) {
+        durationSeconds = pickedEnd.difference(pickedStart).inSeconds;
+      } else if (widget.invoice.deliveryDuration != null) {
         if (widget.invoice.deliveryDuration is int) {
           durationSeconds = widget.invoice.deliveryDuration as int;
         } else if (widget.invoice.deliveryDuration is String) {

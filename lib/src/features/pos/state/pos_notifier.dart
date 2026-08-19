@@ -1563,6 +1563,48 @@ class PosNotifier extends StateNotifier<PosState> {
     }
   }
 
+  /// Replace a selected delivery slot whose start has already passed.
+  ///
+  /// [_prefetchDeliverySlots] picks a default when the cart is opened and never
+  /// revisits it, so an order finished an hour later still carries the slot that
+  /// was next back then. Re-fetching here keeps the operator's own choice when
+  /// it is still on the grid, and otherwise moves them to the next slot the
+  /// profile actually offers rather than letting the backend improvise one.
+  Future<void> _refreshStaleDeliverySlot() async {
+    if (state.isPickup) return;
+    final selected = state.selectedDeliverySlot;
+    if (selected == null) return;
+
+    final start = DateTime.tryParse(selected.datetime);
+    if (start == null || start.isAfter(DateTime.now())) return;
+
+    final profileName = state.selectedProfile?['name']?.toString();
+    if (profileName == null || profileName.isEmpty) return;
+
+    try {
+      final slots = await _repository.getDeliverySlots(profileName);
+      if (slots.isEmpty) return;
+      final replacement = slots.firstWhere(
+        (s) => s.isDefault,
+        orElse: () => slots.first,
+      );
+      state = state.copyWith(
+        deliverySlots: slots,
+        selectedDeliverySlot: replacement,
+      );
+      if (kDebugMode) {
+        debugPrint(
+          'Delivery slot ${selected.label} had passed; '
+          'moved to ${replacement.label}',
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Could not refresh a stale delivery slot: $e');
+      }
+    }
+  }
+
   bool _coerceBool(dynamic value) {
     if (value is bool) return value;
     if (value is num) return value != 0;
@@ -2903,6 +2945,12 @@ class PosNotifier extends StateNotifier<PosState> {
         }
       }
     }
+
+    // A cart that stays open outlives the slot it auto-selected. Submitting a
+    // start time that has already gone by used to be silently rewritten server
+    // side to "now + 5 minutes", booking a window no timetable sells, so refresh
+    // the grid and take the next real slot before we send anything.
+    await _refreshStaleDeliverySlot();
 
     state = state.copyWith(isLoading: true, clearError: true);
     try {
