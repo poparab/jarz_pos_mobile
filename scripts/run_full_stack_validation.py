@@ -116,7 +116,7 @@ def _extract_report(raw: str) -> dict:
     return json.loads(payload)
 
 
-def _kwargs_literal(only: str | None, skip: str | None, cleanup: bool) -> str:
+def _kwargs_literal(only: str | None, skip: str | None, cleanup: bool, woo_mutations: bool = False) -> str:
     """Build the ``--kwargs`` value using DOUBLE quotes inside.
 
     Two constraints meet here and only one spelling satisfies both. ``bench
@@ -134,6 +134,8 @@ def _kwargs_literal(only: str | None, skip: str | None, cleanup: bool) -> str:
     if skip:
         keys = ", ".join(f'"{s.strip()}"' for s in skip.split(",") if s.strip())
         parts.append(f'"skip": [{keys}]')
+    if woo_mutations:
+        parts.append('"allow_woo_mutations": True')
     return "{" + ", ".join(parts) + "}"
 
 
@@ -225,6 +227,14 @@ def main() -> int:
         "--keep-fixtures", action="store_true",
         help="do not clean up; skips the sweep and therefore the clean-site check",
     )
+    parser.add_argument(
+        "--woo-mutations", action="store_true",
+        help=(
+            "let the Woo suite create real orders and customers on the WooCommerce "
+            "store. Off by default: staging's store shares an id space with the "
+            "cloned production data, so this is a deliberate choice, not a default."
+        ),
+    )
     parser.add_argument("--run-id", default=None)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
@@ -252,7 +262,9 @@ def main() -> int:
         return 2
     print(f"      container = {container or '<dry-run>'}")
 
-    kwargs = _kwargs_literal(args.only, args.skip, not args.keep_fixtures)
+    kwargs = _kwargs_literal(
+        args.only, args.skip, not args.keep_fixtures, woo_mutations=args.woo_mutations
+    )
     # Single quotes around the kwargs, not escaped double quotes. subprocess
     # hands this string to ssh as one argv element and ssh replays it through
     # the *remote* shell, so any escaping has to survive one shell parse on the
