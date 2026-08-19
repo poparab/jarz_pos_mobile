@@ -197,6 +197,21 @@ def _render_markdown(report: dict, run_id: str) -> str:
             out.append(f"| `{suite_key}` | `{name}` | {safe} |")
         return out
 
+    # A suite may report failures outside its checks list (cases that raised,
+    # preflight assertions). Surface them, or the totals and the tables disagree
+    # and the reader trusts neither.
+    for suite in report.get("suites") or []:
+        for case_id in suite.get("failing_cases") or []:
+            failures.append((suite.get("key"), f"case:{case_id}", "case raised; see errors"))
+        for infra in suite.get("infra_failures") or []:
+            failures.append((
+                suite.get("key"),
+                f"preflight:{infra.get('assertion_id')}",
+                str(infra.get("detail") or infra.get("description") or ""),
+            ))
+        for err in (suite.get("errors") or [])[:20]:
+            failures.append((suite.get("key"), "error", str(err)[:300]))
+
     lines += ["", f"## Failures ({len(failures)})", ""]
     lines += _table(failures) if failures else ["None."]
 
