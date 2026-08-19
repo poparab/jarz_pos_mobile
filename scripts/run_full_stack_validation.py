@@ -76,7 +76,16 @@ def _ssh(host: str, key: Path, command: str, dry_run: bool = False) -> str:
     if dry_run:
         print("DRY RUN:", " ".join(argv))
         return ""
-    proc = subprocess.run(argv, capture_output=True, text=True)
+    # encoding + errors are load-bearing on Windows. `text=True` alone decodes
+    # with the ANSI codepage (cp1252 here), and bench output carries bytes it
+    # cannot map — the tick marks in the test runner's own output are enough.
+    # The decode raises inside subprocess's reader thread, which dies, and
+    # `proc.stdout` then comes back as None rather than as an error: the run
+    # looks like it produced nothing at all. Decode as UTF-8 and replace what
+    # will not map, so a stray byte costs one character instead of the report.
+    proc = subprocess.run(
+        argv, capture_output=True, text=True, encoding="utf-8", errors="replace"
+    )
     if proc.returncode != 0 and not proc.stdout:
         raise RuntimeError(
             f"ssh failed ({proc.returncode})\ncommand: {command}\nstderr: {proc.stderr[:2000]}"
