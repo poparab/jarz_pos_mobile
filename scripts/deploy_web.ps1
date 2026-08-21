@@ -17,6 +17,8 @@ if (-not $SshKeyPath) {
 }
 
 $remoteWebDir = '/home/ubuntu/pos-web/web'
+$remoteDownloadStore = '/home/ubuntu/pos-web/downloads'
+$remoteServedDownloadDir = "$remoteWebDir/download"
 $remoteMetaPath = "$remoteWebDir/release-metadata.json"
 $localNginxConfigPath = Join-Path $repoRoot 'scripts\pos-web\nginx.conf'
 $remoteNginxConfigPath = '/home/ubuntu/pos-web/nginx.conf'
@@ -342,6 +344,19 @@ $null = Invoke-Remote "rm -rf $remoteWebDir"
 & scp -o StrictHostKeyChecking=no -i $SshKeyPath -r "$repoRoot\build\web" "${sshTarget}:$remoteWebParentDir/" 2>&1 | ForEach-Object { Write-Host $_ }
 if ($LASTEXITCODE -ne 0) {
     throw 'Web bundle upload failed'
+}
+Write-Host ''
+
+Write-Step 'Restoring the APK download bundle...'
+# The web upload above wipes $remoteWebDir, so the internal APK download page is re-mirrored
+# from its durable store (populated by scripts/publish_apk.ps1). Missing store is not an
+# error: it just means no APK has been published to this server yet.
+$restoreResult = Invoke-Remote "if [ -d $remoteDownloadStore ]; then mkdir -p $remoteServedDownloadDir && cp -a $remoteDownloadStore/. $remoteServedDownloadDir/ && echo restored; else echo absent; fi"
+if ($restoreResult -eq 'restored') {
+    Write-Info "APK download bundle restored to $remoteServedDownloadDir"
+}
+else {
+    Write-Info 'No APK download store on this server yet; skipping'
 }
 Write-Host ''
 

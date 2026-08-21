@@ -487,6 +487,10 @@ jobs:
         with:
           appId: 1:91050591321:android:d71f35bd6e626244bd1d48
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          # Tester groups are managed in the Firebase console, so people join through a
+          # group invite link instead of being added to the secret above one email at a
+          # time. An unset variable is an empty --groups, which is what runs today.
+          groups: ${{ vars.FIREBASE_GROUPS_STAGING }}
           testers: ${{ secrets.FIREBASE_TESTERS_STAGING }}
           file: ${{ steps.artifact.outputs.artifact_path }}
           releaseNotesFile: ${{ steps.meta.outputs.release_notes_file }}
@@ -497,6 +501,10 @@ jobs:
         with:
           appId: 1:91050591321:android:51e8d24563ad8989bd1d48
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          # Tester groups are managed in the Firebase console, so people join through a
+          # group invite link instead of being added to the secret above one email at a
+          # time. An unset variable is an empty --groups, which is what runs today.
+          groups: ${{ vars.FIREBASE_GROUPS_PRODUCTION }}
           testers: ${{ secrets.FIREBASE_TESTERS_PRODUCTION }}
           file: ${{ steps.artifact.outputs.artifact_path }}
           releaseNotesFile: ${{ steps.meta.outputs.release_notes_file }}

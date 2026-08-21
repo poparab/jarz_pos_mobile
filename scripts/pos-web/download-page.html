@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Jarz POS {{ENV_LABEL}} — Install</title>
+<style>
+  /* Deliberately self-contained: this page's whole job is to work on a phone on
+     patchy mobile data, so it pulls no fonts, scripts or stylesheets. */
+  :root { --brand:#E85D04; --brand-dark:#9A3412; --brand-light:#FFF7ED; --ink:#1C1917; --muted:#78716C; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; background:var(--brand-light); color:var(--ink);
+         font-family:'Cairo','Segoe UI',system-ui,-apple-system,'Helvetica Neue',sans-serif;
+         display:flex; align-items:center; justify-content:center; padding:24px; }
+  .card { width:100%; max-width:420px; background:#fff; border-radius:18px; overflow:hidden;
+          box-shadow:0 10px 30px rgba(28,25,23,.12); }
+  .head { background:var(--brand); color:#fff; text-align:center; padding:32px 24px; }
+  .head .name { font-size:30px; font-weight:700; letter-spacing:.04em; }
+  .head .sub { margin-top:4px; font-size:13px; color:#FFE8D6; }
+  .badge { display:inline-block; margin-top:12px; padding:3px 12px; border-radius:999px;
+           background:rgba(255,255,255,.18); font-size:12px; font-weight:600; }
+  .body { padding:26px 24px 8px; }
+  .btn { display:block; text-align:center; text-decoration:none; background:var(--brand); color:#fff;
+         font-size:18px; font-weight:700; padding:17px 20px; border-radius:14px;
+         box-shadow:0 4px 12px rgba(232,93,4,.3); }
+  .btn:active { background:var(--brand-dark); }
+  .btn .sz { display:block; margin-top:3px; font-size:12px; font-weight:400; color:#FFE8D6; }
+  .steps { margin:24px 0 0; padding:0; list-style:none; font-size:14px; line-height:1.65; }
+  .steps li { padding:7px 0 7px 26px; position:relative; color:#44403C; }
+  .steps li::before { content:"→"; position:absolute; left:0; color:var(--brand); font-weight:700; }
+  .rtl { direction:rtl; text-align:right; }
+  .rtl .steps li { padding:7px 26px 7px 0; }
+  .rtl .steps li::before { content:"←"; left:auto; right:0; }
+  .rule { height:1px; background:#F5F5F4; margin:22px 0; }
+  .meta { padding:0 24px 22px; font-size:11px; color:var(--muted); line-height:1.7; }
+  .meta code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:10px; word-break:break-all; }
+  .meta .row { display:flex; justify-content:space-between; gap:12px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="head">
+      <div class="name">JARZ POS</div>
+      <div class="sub">Android app · تطبيق أندرويد</div>
+      <div class="badge">{{ENV_LABEL}} · v{{VERSION}}</div>
+    </div>
+
+    <div class="body">
+      <a class="btn" href="{{APK_FILE}}" download>
+        Download &amp; install · نزّل التطبيق
+        <span class="sz">{{SIZE_MB}} MB · build {{BUILD_NUMBER}}</span>
+      </a>
+
+      <ul class="steps">
+        <li>Tap the button, then open the downloaded file.</li>
+        <li>If Android warns about unknown sources, allow your browser to install apps, then tap the file again.</li>
+        <li>Sign in with your normal ERPNext account.</li>
+        <li>Updates arrive on their own — reinstall only when you are told to.</li>
+      </ul>
+
+      <div class="rule"></div>
+
+      <div class="rtl">
+        <ul class="steps">
+          <li>اضغط على الزر، وبعدين افتح الملف اللي اتحمّل.</li>
+          <li>لو أندرويد حذّرك من مصدر غير معروف، اسمح للمتصفح إنه يثبّت تطبيقات، وبعدين اضغط على الملف تاني.</li>
+          <li>سجّل دخولك بحساب ERPNext بتاعك زي ما بتعمل عادي.</li>
+          <li>التحديثات بتيجي لوحدها — ما تعيدش التثبيت غير لما نقولّك.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div class="rule" style="margin:0 0 14px"></div>
+      <div class="row"><span>Commit</span><code>{{COMMIT}}</code></div>
+      <div class="row"><span>Published (UTC)</span><span>{{BUILT_AT}}</span></div>
+      <div style="margin-top:8px">SHA-256<br><code>{{SHA256}}</code></div>
+    </div>
+  </div>
+</body>
+</html>
