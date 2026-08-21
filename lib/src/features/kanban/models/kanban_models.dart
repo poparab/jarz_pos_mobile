@@ -109,6 +109,11 @@ class InvoiceCard {
   final String? courierPartyType; // Employee/Supplier
   final String? courierParty; // party id
   final bool hasUnsettledCourierTxn; // new flag from backend
+  // Customer cash still to be collected at the door (unsettled Courier Transaction
+  // customer leg). Narrower than [hasUnsettledCourierTxn]: a COD order switched to an
+  // online method keeps an unsettled SHIPPING leg while the customer has already paid.
+  // Absent on an older backend, where it falls back to [hasUnsettledCourierTxn].
+  final bool hasUnsettledCustomerAmount;
   final String? salesPartner; // optional sales partner on the invoice
   final bool isPickup; // new: pickup orders
   final String? acceptanceStatus; // new: Pending/Accepted status for order acceptance
@@ -220,6 +225,7 @@ class InvoiceCard {
   this.courierPartyType,
   this.courierParty,
   this.hasUnsettledCourierTxn = false,
+  this.hasUnsettledCustomerAmount = false,
   this.salesPartner,
   this.isPickup = false,
   this.acceptanceStatus,
@@ -367,6 +373,11 @@ class InvoiceCard {
   // Backend may return 0/1 int, bool, or string variants; normalize to bool
   hasUnsettledCourierTxn: [1, true, '1', 'true', 'True']
       .contains(json['has_unsettled_courier_txn']),
+  hasUnsettledCustomerAmount: json['has_unsettled_customer_amount'] == null
+      ? [1, true, '1', 'true', 'True']
+          .contains(json['has_unsettled_courier_txn'])
+      : [1, true, '1', 'true', 'True']
+          .contains(json['has_unsettled_customer_amount']),
   salesPartner: (json['sales_partner'] ?? json['salesPartner'] ?? json['partner'])?.toString(),
       isPickup: [1, true, '1', 'true', 'True'].contains(json['is_pickup']) ||
           ((json['remarks'] ?? '').toString().toLowerCase().contains('[pickup]')),
@@ -496,6 +507,7 @@ class InvoiceCard {
   'party_type': courierPartyType,
   'party': courierParty,
   'has_unsettled_courier_txn': hasUnsettledCourierTxn,
+  'has_unsettled_customer_amount': hasUnsettledCustomerAmount,
   'sales_partner': salesPartner,
   'is_pickup': isPickup,
   'acceptance_status': acceptanceStatus,
@@ -575,6 +587,7 @@ class InvoiceCard {
   String? courierPartyType,
   String? courierParty,
   bool? hasUnsettledCourierTxn,
+  bool? hasUnsettledCustomerAmount,
   String? salesPartner,
   bool? isPickup,
   String? acceptanceStatus,
@@ -655,6 +668,8 @@ class InvoiceCard {
   courierPartyType: courierPartyType ?? this.courierPartyType,
   courierParty: courierParty ?? this.courierParty,
   hasUnsettledCourierTxn: hasUnsettledCourierTxn ?? this.hasUnsettledCourierTxn,
+  hasUnsettledCustomerAmount:
+      hasUnsettledCustomerAmount ?? this.hasUnsettledCustomerAmount,
   salesPartner: salesPartner ?? this.salesPartner,
   isPickup: isPickup ?? this.isPickup,
   acceptanceStatus: acceptanceStatus ?? this.acceptanceStatus,

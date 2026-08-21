@@ -21,10 +21,19 @@ PrintableInvoice buildPrintableInvoiceFromCards({
           ),
         ];
 
-  final isPaid = ((effective.docStatus ?? '').toLowerCase() ==
-              InvoiceStatus.paidLower ||
+  // Paid = the CUSTOMER has settled, which is what a customer-facing receipt states.
+  // Two things must both hold, and neither is sufficient alone:
+  //   * the invoice carries no outstanding amount, and
+  //   * no courier is still due to collect cash at the door.
+  // The second guard is what keeps a COD order — settled against Courier Outstanding
+  // the moment it goes Out for Delivery, hence outstanding 0 — off the PAID line.
+  // It deliberately reads the customer leg, NOT hasUnsettledCourierTxn: once the
+  // collection method is switched to an online one the customer has paid, while the
+  // courier transaction stays unsettled for the shipping leg alone.
+  final isPaid = (effective.isFullyPaid ||
+          (effective.docStatus ?? '').toLowerCase() == InvoiceStatus.paidLower ||
           effective.effectiveStatus.toLowerCase() == InvoiceStatus.paidLower) &&
-      !effective.hasUnsettledCourierTxn;
+      !effective.hasUnsettledCustomerAmount;
   final rawOutstanding = effective.outstandingAmount > 0
       ? effective.outstandingAmount
       : (isPaid ? 0.0 : effective.total);
@@ -47,12 +56,30 @@ PrintableInvoice buildPrintableInvoiceFromCards({
     shipping: effective.isPickup ? 0.0 : effective.shippingIncome,
     items: items,
     orderNo: _resolveOrderNo(effective),
-    paymentMethod: _trimToNull(effective.paymentMethod ?? effective.actualPaymentMethod),
+    paymentMethod: _resolvePrintablePaymentMethod(effective, isPaid: isPaid),
     orderDate: _formatPostingDate(effective.postingDate),
     deliveryTimeRange: _buildDeliveryTimeRange(effective),
     deliveryDateFormatted: _buildDeliveryDateFormatted(effective),
     hasUnsettledCourierTxn: effective.hasUnsettledCourierTxn,
   );
+}
+
+/// The payment method to print, mirroring what the kanban card shows.
+///
+/// Once the customer has paid, the method that actually moved the money wins over the
+/// one originally requested on the order — otherwise a COD order collected by InstaPay
+/// keeps printing "Cash" forever.
+String? _resolvePrintablePaymentMethod(
+  InvoiceCard invoice, {
+  required bool isPaid,
+}) {
+  final actual = _trimToNull(invoice.actualPaymentMethod);
+  if (isPaid && actual != null) {
+    return actual;
+  }
+  return _trimToNull(invoice.effectiveCollectionMethod) ??
+      _trimToNull(invoice.paymentMethod) ??
+      actual;
 }
 
 InvoiceCard _mergePrintableSource(InvoiceCard source, InvoiceCard? details) {
@@ -61,6 +88,12 @@ InvoiceCard _mergePrintableSource(InvoiceCard source, InvoiceCard? details) {
   }
 
   return details.copyWith(
+    // Payment fields are carried by both payloads; an older backend omits
+    // actual_payment_method from the details response, so fall back to the board card
+    // rather than dropping the method off the receipt entirely.
+    paymentMethod: _preferNonEmpty(details.paymentMethod, source.paymentMethod),
+    actualPaymentMethod:
+        _preferNonEmpty(details.actualPaymentMethod, source.actualPaymentMethod),
     fullAddress: _preferNonEmpty(details.fullAddress, source.fullAddress),
     customerPhone: _preferNonEmpty(details.customerPhone, source.customerPhone),
     territoryDisplay:

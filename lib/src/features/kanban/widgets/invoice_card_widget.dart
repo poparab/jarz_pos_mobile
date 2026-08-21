@@ -353,44 +353,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     }
   }
 
-  Future<void> _previewInvoiceReceipt(BuildContext context) async {
-    final printer = ref.read(posPrinterServiceProvider);
-    final inv = await _buildPrintableInvoice(context);
-    final preview = await printer.buildReceiptPreview(inv);
-    if (!context.mounted) return;
-
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.receiptPreviewTitle),
-        content: SingleChildScrollView(
-          child: SelectableText(
-            preview,
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(context.l10n.commonClose),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              _printInvoice(context);
-            },
-            icon: const Icon(Icons.print),
-            label: Text(context.l10n.commonPrint),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<PrintableInvoice> _buildPrintableInvoice(BuildContext context) async {
     final l10n = context.l10n;
     InvoiceCard? details;
     try {
+      // invoiceDetailsProvider caches for the life of the session, so a receipt built
+      // from it would keep printing the payment method and paid state the invoice had
+      // the first time this card was opened. Refetch: the board card next to it is
+      // patched on every transition, and the two must not disagree on paper.
+      ref.invalidate(invoiceDetailsProvider(widget.invoice.id));
       details = await ref.read(invoiceDetailsProvider(widget.invoice.id).future);
     } catch (_) {}
     return buildPrintableInvoiceFromCards(
@@ -771,8 +742,6 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               await _openInvoiceNotes(context);
             } else if (value == 'edit_address') {
               await _editCustomerAddress(context);
-            } else if (value == 'preview_receipt') {
-              await _previewInvoiceReceipt(context);
             } else if (value == 'print') {
               await _printInvoice(context);
             } else if (value == 'transfer_order') {
@@ -859,22 +828,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 ),
               ),
             PopupMenuItem(
-              value: 'preview_receipt',
-              child: Row(
-                children: [
-                  const Icon(Icons.receipt_long, size: 18),
-                  const SizedBox(width: 8),
-                  Text(l10n.receiptPreviewButton),
-                ],
-              ),
-            ),
-            PopupMenuItem(
               value: 'print',
               child: Row(
                 children: [
                   const Icon(Icons.print, size: 18),
                   const SizedBox(width: 8),
-                  Text(l10n.printerTestPrint),
+                  Text(l10n.commonPrint),
                 ],
               ),
             ),

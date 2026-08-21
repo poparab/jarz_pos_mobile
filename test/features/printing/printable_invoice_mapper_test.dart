@@ -79,6 +79,98 @@ void main() {
 
       expect(printable.territory, isNull);
     });
+
+    test('prints UNPAID for a COD order the courier has yet to collect', () {
+      // Out for Delivery settles the invoice against Courier Outstanding, so
+      // outstanding is already 0 while the customer has not paid a pound.
+      final card = _invoiceCard(
+        status: 'Out for Delivery',
+        docStatus: 'Paid',
+        paymentMethod: 'Cash',
+        actualPaymentMethod: 'Cash',
+        outstandingAmount: 0,
+        hasUnsettledCourierTxn: true,
+        hasUnsettledCustomerAmount: true,
+      );
+
+      final printable = buildPrintableInvoiceFromCards(
+        source: card,
+        details: card,
+        fallbackItemLabel: 'Items',
+      );
+
+      expect(printable.outstanding, printable.total);
+      expect(printable.paid, 0);
+    });
+
+    test('prints PAID with the new method after the collection method changes', () {
+      // The courier transaction stays unsettled for the SHIPPING leg, but the
+      // customer leg is zeroed because the transfer already landed.
+      final card = _invoiceCard(
+        status: 'Out for Delivery',
+        docStatus: 'Paid',
+        paymentMethod: 'Instapay',
+        actualPaymentMethod: 'Instapay',
+        outstandingAmount: 0,
+        hasUnsettledCourierTxn: true,
+        hasUnsettledCustomerAmount: false,
+      );
+
+      final printable = buildPrintableInvoiceFromCards(
+        source: card,
+        details: card,
+        fallbackItemLabel: 'Items',
+      );
+
+      expect(printable.outstanding, 0);
+      expect(printable.paid, printable.total);
+      expect(printable.paymentMethod, 'Instapay');
+    });
+
+    test('falls back to the board card when details omits the actual method', () {
+      // An un-upgraded backend leaves actual_payment_method off get_invoice_details.
+      final source = _invoiceCard(
+        status: 'Out for Delivery',
+        docStatus: 'Paid',
+        paymentMethod: 'Instapay',
+        actualPaymentMethod: 'Instapay',
+        outstandingAmount: 0,
+      );
+      final details = _invoiceCard(
+        status: 'Out for Delivery',
+        docStatus: 'Paid',
+        paymentMethod: 'Instapay',
+        outstandingAmount: 0,
+      );
+
+      final printable = buildPrintableInvoiceFromCards(
+        source: source,
+        details: details,
+        fallbackItemLabel: 'Items',
+      );
+
+      expect(printable.paymentMethod, 'Instapay');
+      expect(printable.paid, printable.total);
+    });
+
+    test('prints UNPAID for an order still carrying an outstanding balance', () {
+      final card = _invoiceCard(
+        status: 'Received',
+        docStatus: 'Unpaid',
+        paymentMethod: 'Cash',
+        outstandingAmount: 720,
+      );
+
+      final printable = buildPrintableInvoiceFromCards(
+        source: card,
+        details: card,
+        fallbackItemLabel: 'Items',
+      );
+
+      expect(printable.outstanding, 720);
+      expect(printable.paid, 0);
+      expect(printable.paymentMethod, 'Cash');
+    });
   });
 }
 
@@ -87,6 +179,13 @@ InvoiceCard _invoiceCard({
   String fullAddress = '1 Example St, Cairo',
   String? territoryNameAr,
   List<InvoiceItem> items = const <InvoiceItem>[],
+  String status = 'Received',
+  String? docStatus,
+  String? paymentMethod,
+  String? actualPaymentMethod,
+  double outstandingAmount = 0,
+  bool hasUnsettledCourierTxn = false,
+  bool hasUnsettledCustomerAmount = false,
 }) {
   return InvoiceCard(
     id: 'ACC-SINV-2026-15723',
@@ -96,7 +195,13 @@ InvoiceCard _invoiceCard({
     territory: territory,
     deliveryDate: '2026-05-05',
     deliveryTimeFrom: '13:00:00',
-    status: 'Received',
+    status: status,
+    docStatus: docStatus,
+    paymentMethod: paymentMethod,
+    actualPaymentMethod: actualPaymentMethod,
+    outstandingAmount: outstandingAmount,
+    hasUnsettledCourierTxn: hasUnsettledCourierTxn,
+    hasUnsettledCustomerAmount: hasUnsettledCustomerAmount,
     postingDate: '2026-05-05',
     grandTotal: 720,
     netTotal: 660,

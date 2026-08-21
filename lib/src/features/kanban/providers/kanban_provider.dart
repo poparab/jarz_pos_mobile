@@ -225,6 +225,10 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
 
   Future<void> refreshSingle(String invoiceId) async {
     try {
+      // The details payload backs the receipt and the order-details sheet, and it is
+      // NOT autoDispose — without this it would serve whatever the invoice looked like
+      // the first time it was opened, long after the card itself moved on.
+      _ref.invalidate(invoiceDetailsProvider(invoiceId));
       final data = await fetchInvoices();
       // Find updated invoice card in result set, then patch existing state without full reload
       InvoiceCard? updated;
