@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../data/labels_repository.dart';
 import '../../models/label_models.dart';
 import '../../state/labels_notifier.dart'
@@ -219,7 +220,7 @@ class _LabelSetupWizardScreenState
     return ScaffoldMessenger(
       key: _messengerKey,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Set up customer labels')),
+        appBar: AppBar(title: Text(context.l10n.labelWizardTitle)),
         body: Stepper(
           currentStep: _step,
           onStepContinue: _stepValid && !_submitting ? _continue : null,
@@ -241,13 +242,15 @@ class _LabelSetupWizardScreenState
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Text(_step == 3 ? 'Start tracking' : 'Continue'),
+                        : Text(_step == 3
+                            ? context.l10n.labelWizardStartTracking
+                            : context.l10n.labelWizardContinue),
                   ),
                   const SizedBox(width: 8),
                   if (details.onStepCancel != null)
                     TextButton(
                       onPressed: details.onStepCancel,
-                      child: const Text('Back'),
+                      child: Text(context.l10n.labelWizardBack),
                     ),
                 ],
               ),
@@ -255,7 +258,7 @@ class _LabelSetupWizardScreenState
           },
           steps: [
             Step(
-              title: const Text('Customer'),
+              title: Text(context.l10n.labelWizardStepCustomer),
               subtitle: _customer == null
                   ? null
                   : Text(_customer!.customerName),
@@ -272,10 +275,10 @@ class _LabelSetupWizardScreenState
               ),
             ),
             Step(
-              title: const Text('Flavours'),
+              title: Text(context.l10n.labelWizardStepFlavours),
               subtitle: _picked.isEmpty
                   ? null
-                  : Text('${_picked.length} picked'),
+                  : Text(context.l10n.labelWizardPickedCount(_picked.length)),
               isActive: _step >= 1,
               state: _picked.isEmpty ? StepState.indexed : StepState.complete,
               content: _FlavourStep(
@@ -297,7 +300,7 @@ class _LabelSetupWizardScreenState
               ),
             ),
             Step(
-              title: const Text('Where the labels live'),
+              title: Text(context.l10n.labelWizardStepLocation),
               subtitle: _location == null ? null : Text(_location!),
               isActive: _step >= 2,
               content: _LocationStep(
@@ -308,7 +311,7 @@ class _LabelSetupWizardScreenState
               ),
             ),
             Step(
-              title: const Text('Confirm'),
+              title: Text(context.l10n.labelWizardStepConfirm),
               isActive: _step >= 3,
               content: _ConfirmStep(
                 customer: _customer,
@@ -350,6 +353,7 @@ class _CustomerStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final chosen = selected;
 
     if (chosen != null) {
@@ -360,9 +364,11 @@ class _CustomerStep extends StatelessWidget {
         subtitle: Text(
           chosen.defaultPriceList == null
               ? chosen.customer
-              : '${chosen.customer} · price list: ${chosen.defaultPriceList}',
+              : l10n.labelWizardCustomerPriceList(
+                  chosen.customer, chosen.defaultPriceList!),
         ),
-        trailing: TextButton(onPressed: onClear, child: const Text('Change')),
+        trailing:
+            TextButton(onPressed: onClear, child: Text(l10n.labelWizardChange)),
       );
     }
 
@@ -372,7 +378,7 @@ class _CustomerStep extends StatelessWidget {
         TextField(
           controller: controller,
           decoration: InputDecoration(
-            labelText: 'Search customers',
+            labelText: l10n.labelWizardSearchCustomers,
             prefixIcon: const Icon(Icons.search),
             isDense: true,
             border: const OutlineInputBorder(),
@@ -396,7 +402,9 @@ class _CustomerStep extends StatelessWidget {
               ? Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    searching ? 'Searching…' : 'No company customers matched.',
+                    searching
+                        ? l10n.labelWizardSearching
+                        : l10n.labelWizardNoCustomers,
                     style: theme.textTheme.bodySmall,
                   ),
                 )
@@ -412,7 +420,8 @@ class _CustomerStep extends StatelessWidget {
                           ? (option.customerGroup == null
                               ? null
                               : Text(option.customerGroup!))
-                          : Text('Price list: ${option.defaultPriceList}'),
+                          : Text(l10n
+                              .labelWizardPriceList(option.defaultPriceList!)),
                       trailing: option.labelCount > 0
                           ? Chip(
                               label: Text('${option.labelCount}'),
@@ -454,6 +463,7 @@ class _FlavourStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     if (loading) {
       return const Padding(
@@ -465,20 +475,20 @@ class _FlavourStep extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Could not load flavours.\n$error'),
+          Text(l10n.labelWizardFlavoursLoadFailed(error!)),
           const SizedBox(height: 8),
-          OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+          OutlinedButton(onPressed: onRetry, child: Text(l10n.commonRetry)),
         ],
       );
     }
     final data = options;
     if (data == null) {
-      return Text('Pick a customer first.', style: theme.textTheme.bodySmall);
+      return Text(l10n.labelWizardPickCustomerFirst,
+          style: theme.textTheme.bodySmall);
     }
     if (data.flavours.isEmpty) {
       return Text(
-        'No flavours found for this customer — nothing on their price list '
-        'and no order history yet.',
+        l10n.labelWizardNoFlavours,
         style: theme.textTheme.bodyMedium,
       );
     }
@@ -487,7 +497,8 @@ class _FlavourStep extends StatelessWidget {
     final sizes = <String>[];
     final bySize = <String, List<LabelFlavourOption>>{};
     for (final flavour in data.flavours) {
-      final size = flavour.size.isEmpty ? 'Other' : flavour.size;
+      final size =
+          flavour.size.isEmpty ? l10n.labelWizardSizeOther : flavour.size;
       if (!bySize.containsKey(size)) {
         sizes.add(size);
         bySize[size] = [];
@@ -499,8 +510,7 @@ class _FlavourStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Tick every flavour whose label JARZ prints. Enter what is already '
-          'on the shelf so nothing starts life as Out of Stock.',
+          l10n.labelWizardFlavourHelp,
           style: theme.textTheme.bodySmall
               ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
@@ -547,6 +557,7 @@ class _FlavourTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final tracked = flavour.hasLabel;
 
     return Column(
@@ -569,12 +580,13 @@ class _FlavourTile extends StatelessWidget {
             runSpacing: 4,
             children: [
               if (tracked)
-                const _SourceBadge(text: 'Already tracked', muted: true)
+                _SourceBadge(
+                    text: l10n.labelWizardAlreadyTracked, muted: true)
               else ...[
                 if (flavour.onPriceList)
-                  const _SourceBadge(text: 'On price list'),
+                  _SourceBadge(text: l10n.labelWizardOnPriceList),
                 if (flavour.orderedBefore)
-                  const _SourceBadge(text: 'Ordered before'),
+                  _SourceBadge(text: l10n.labelWizardOrderedBefore),
               ],
             ],
           ),
@@ -586,10 +598,10 @@ class _FlavourTile extends StatelessWidget {
               controller: openingController,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(
-                labelText: 'Labels in stock now',
+              decoration: InputDecoration(
+                labelText: l10n.labelWizardLabelsInStock,
                 isDense: true,
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
             ),
           ),
@@ -641,6 +653,7 @@ class _LocationStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final locations = ref.watch(labelStorageLocationsProvider);
 
     return Column(
@@ -649,25 +662,24 @@ class _LocationStep extends ConsumerWidget {
         locations.when(
           loading: () => const LinearProgressIndicator(),
           error: (_, _) => Text(
-            'Could not load locations — you can set one per label later.',
+            l10n.labelWizardLocationsLoadFailed,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           data: (options) => DropdownButtonFormField<String?>(
             initialValue:
                 options.any((o) => o.name == location) ? location : null,
             isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Stored at',
-              helperText:
-                  'The branch or factory where these labels physically live.',
+            decoration: InputDecoration(
+              labelText: l10n.labelDetailPolicyStoredAt,
+              helperText: l10n.labelWizardStoredAtHelper,
               helperMaxLines: 2,
               isDense: true,
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
             items: [
-              const DropdownMenuItem<String?>(
+              DropdownMenuItem<String?>(
                 value: null,
-                child: Text('Not set'),
+                child: Text(l10n.labelDetailPolicyNotSet),
               ),
               ...options.map(
                 (option) => DropdownMenuItem<String?>(
@@ -684,12 +696,12 @@ class _LocationStep extends ConsumerWidget {
           controller: sheetsController,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          decoration: const InputDecoration(
-            labelText: 'Usual print batch (sheets)',
-            helperText: 'Applied to every flavour; changeable per label later.',
+          decoration: InputDecoration(
+            labelText: l10n.labelWizardUsualBatchSheets,
+            helperText: l10n.labelWizardUsualBatchHelper,
             helperMaxLines: 2,
             isDense: true,
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
           ),
         ),
       ],
@@ -718,12 +730,22 @@ class _ConfirmStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final rows = <(String, String)>[
-      ('Customer', customer?.customerName ?? '—'),
-      if (priceList != null) ('Price list', priceList!),
-      ('Flavours', '$pickedCount'),
-      ('Stored at', location ?? 'Not set'),
-      ('Usual batch', '$sheets sheet${sheets == 1 ? '' : 's'}'),
+      (
+        l10n.commonCustomerLabel,
+        customer?.customerName ?? l10n.labelCardCoverNone
+      ),
+      if (priceList != null) (l10n.labelWizardConfirmPriceList, priceList!),
+      (l10n.labelWizardStepFlavours, '$pickedCount'),
+      (
+        l10n.labelDetailPolicyStoredAt,
+        location ?? l10n.labelDetailPolicyNotSet
+      ),
+      (
+        l10n.labelWizardConfirmUsualBatch,
+        l10n.labelCardSheetsCount(sheets)
+      ),
     ];
 
     return Column(
@@ -752,8 +774,7 @@ class _ConfirmStep extends StatelessWidget {
           ),
         const SizedBox(height: 8),
         Text(
-          'Flavours already tracked are left untouched — running this again '
-          'is always safe.',
+          l10n.labelWizardSafeToRerun,
           style: theme.textTheme.bodySmall
               ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),

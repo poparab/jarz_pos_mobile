@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../models/label_models.dart';
 
 /// Colour, icon and wording for a label's reorder status.
@@ -21,58 +22,60 @@ class LabelStatusStyle {
     required this.explanation,
   });
 
-  static LabelStatusStyle of(LabelStatus status, {int leadDaysMax = 3}) {
+  static LabelStatusStyle of(
+    BuildContext context,
+    LabelStatus status, {
+    int leadDaysMax = 3,
+  }) {
+    final l10n = context.l10n;
     switch (status) {
       case LabelStatus.outOfStock:
-        return const LabelStatusStyle(
-          color: Color(0xFFB3261E),
+        return LabelStatusStyle(
+          color: const Color(0xFFB3261E),
           icon: Icons.error,
-          text: 'Out of stock',
-          explanation: 'No labels left. This customer cannot be packed.',
+          text: l10n.labelStatusOutOfStock,
+          explanation: l10n.labelStatusOutOfStockWhy,
         );
       case LabelStatus.reorderNow:
         return LabelStatusStyle(
           color: const Color(0xFFE65100),
           icon: Icons.local_printshop,
-          text: 'Print now',
-          explanation:
-              'Stock runs out before a new batch could arrive '
-              '($leadDaysMax working days).',
+          text: l10n.labelStatusPrintNow,
+          explanation: l10n.labelStatusPrintNowWhy(leadDaysMax),
         );
       case LabelStatus.reorderSoon:
-        return const LabelStatusStyle(
-          color: Color(0xFFF9A825),
+        return LabelStatusStyle(
+          color: const Color(0xFFF9A825),
           icon: Icons.schedule,
-          text: 'Print soon',
-          explanation: 'Getting close to the point of no return.',
+          text: l10n.labelStatusPrintSoon,
+          explanation: l10n.labelStatusPrintSoonWhy,
         );
       case LabelStatus.onOrder:
-        return const LabelStatusStyle(
-          color: Color(0xFF1565C0),
+        return LabelStatusStyle(
+          color: const Color(0xFF1565C0),
           icon: Icons.local_shipping,
-          text: 'At the printer',
-          explanation: 'A batch is already on its way.',
+          text: l10n.labelStatusAtPrinter,
+          explanation: l10n.labelStatusAtPrinterWhy,
         );
       case LabelStatus.ok:
-        return const LabelStatusStyle(
-          color: Color(0xFF2E7D32),
+        return LabelStatusStyle(
+          color: const Color(0xFF2E7D32),
           icon: Icons.check_circle,
-          text: 'OK',
-          explanation: 'Comfortable cover.',
+          text: l10n.labelStatusOk,
+          explanation: l10n.labelStatusOkWhy,
         );
       case LabelStatus.notTracked:
-        return const LabelStatusStyle(
-          color: Color(0xFF757575),
+        return LabelStatusStyle(
+          color: const Color(0xFF757575),
           icon: Icons.do_not_disturb_on,
-          text: 'Customer prints',
-          explanation:
-              'This customer supplies their own labels, so nothing is counted.',
+          text: l10n.labelStatusCustomerPrints,
+          explanation: l10n.labelStatusCustomerPrintsWhy,
         );
       case LabelStatus.unknown:
-        return const LabelStatusStyle(
-          color: Color(0xFF757575),
+        return LabelStatusStyle(
+          color: const Color(0xFF757575),
           icon: Icons.help_outline,
-          text: 'Unknown',
+          text: l10n.labelStatusUnknown,
           explanation: '',
         );
     }
@@ -94,7 +97,8 @@ class LabelStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = LabelStatusStyle.of(status, leadDaysMax: leadDaysMax);
+    final style =
+        LabelStatusStyle.of(context, status, leadDaysMax: leadDaysMax);
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: dense ? 8 : 10,

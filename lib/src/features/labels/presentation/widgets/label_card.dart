@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../models/label_models.dart';
 import 'label_status_chip.dart';
 
@@ -26,7 +27,7 @@ class LabelCustomerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = LabelStatusStyle.of(group.worstStatus);
+    final style = LabelStatusStyle.of(context, group.worstStatus);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -68,6 +69,7 @@ class _CustomerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final attention = group.needsAttentionCount;
 
     return Padding(
@@ -86,9 +88,10 @@ class _CustomerHeader extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  attention > 0
-                      ? '${group.labels.length} flavour${group.labels.length == 1 ? '' : 's'} · $attention need${attention == 1 ? 's' : ''} printing'
-                      : '${group.labels.length} flavour${group.labels.length == 1 ? '' : 's'}',
+                  l10n.labelCardFlavours(group.labels.length) +
+                      (attention > 0
+                          ? l10n.labelCardNeedPrintingSuffix(attention)
+                          : ''),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: attention > 0
                         ? const Color(0xFFB3261E)
@@ -101,13 +104,16 @@ class _CustomerHeader extends StatelessWidget {
           ),
           if (onAddFlavour != null)
             PopupMenuButton<String>(
-              tooltip: 'Customer actions',
+              tooltip: l10n.labelCardCustomerActions,
               icon: const Icon(Icons.more_vert, size: 20),
               onSelected: (value) {
                 if (value == 'add') onAddFlavour!();
               },
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'add', child: Text('Add flavour')),
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  value: 'add',
+                  child: Text(l10n.labelCardAddFlavour),
+                ),
               ],
             ),
         ],
@@ -133,8 +139,10 @@ class LabelFlavourRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final style = LabelStatusStyle.of(label.status, leadDaysMax: label.leadDaysMax);
-    final dateFormat = DateFormat('d MMM');
+    final l10n = context.l10n;
+    final style = LabelStatusStyle.of(context, label.status,
+        leadDaysMax: label.leadDaysMax);
+    final dateFormat = DateFormat('d MMM', l10n.localeName);
 
     return InkWell(
       onTap: onTap,
@@ -177,13 +185,18 @@ class LabelFlavourRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 _Metric(
-                  value: label.tracked ? '${label.onHandQty}' : '—',
-                  unit: 'on hand',
+                  value: label.tracked
+                      ? '${label.onHandQty}'
+                      : l10n.labelCardCoverNone,
+                  unit: l10n.labelCardOnHand,
                   emphasis: true,
                   color: style.color,
                 ),
                 const SizedBox(width: 18),
-                _Metric(value: _coverText(label), unit: 'of cover'),
+                _Metric(
+                  value: _coverText(context, label),
+                  unit: l10n.labelCardOfCover,
+                ),
                 const Spacer(),
                 if (onPrint != null && label.needsAttention)
                   FilledButton.tonalIcon(
@@ -191,8 +204,8 @@ class LabelFlavourRow extends StatelessWidget {
                     icon: const Icon(Icons.local_printshop, size: 16),
                     label: Text(
                       label.suggestedPrintSheets > 0
-                          ? 'Order ${label.suggestedPrintSheets} sheet${label.suggestedPrintSheets == 1 ? '' : 's'}'
-                          : 'Order a batch',
+                          ? l10n.labelCardOrderSheets(label.suggestedPrintSheets)
+                          : l10n.labelCardOrderBatch,
                     ),
                     style: FilledButton.styleFrom(
                       visualDensity: VisualDensity.compact,
@@ -209,12 +222,15 @@ class LabelFlavourRow extends StatelessWidget {
     );
   }
 
-  String _coverText(CustomerLabel label) {
-    if (!label.tracked) return '—';
+  String _coverText(BuildContext context, CustomerLabel label) {
+    final l10n = context.l10n;
+    if (!label.tracked) return l10n.labelCardCoverNone;
     final cover = label.daysOfCover;
-    if (cover == null) return '—';
-    if (cover >= 100) return '99+ d';
-    return '${cover.toStringAsFixed(cover >= 10 ? 0 : 1)} d';
+    if (cover == null) return l10n.labelCardCoverNone;
+    if (cover >= 100) return l10n.labelCardCoverOver99;
+    return l10n.labelCardCoverDays(
+      cover.toStringAsFixed(cover >= 10 ? 0 : 1),
+    );
   }
 }
 
@@ -297,11 +313,12 @@ class _Footnote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final muted = theme.textTheme.bodySmall
         ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
     if (!label.tracked) {
-      return Text('Customer supplies their own labels', style: muted);
+      return Text(l10n.labelCardCustomerSupplies, style: muted);
     }
 
     final arrival = label.nextArrival;
@@ -309,8 +326,8 @@ class _Footnote extends StatelessWidget {
       final due = arrival.expectedReadyDate;
       final overdue = arrival.isOverdue;
       final what = arrival.qtySheets > 0
-          ? '${arrival.qtySheets} sheet${arrival.qtySheets == 1 ? '' : 's'}'
-          : '${arrival.qty} labels';
+          ? l10n.labelCardSheetsCount(arrival.qtySheets)
+          : l10n.labelCardLabelsCount(arrival.qty);
       return Row(
         children: [
           Icon(
@@ -324,10 +341,11 @@ class _Footnote extends StatelessWidget {
           Expanded(
             child: Text(
               due == null
-                  ? '$what at the printer'
+                  ? l10n.labelCardAtPrinter(what)
                   : overdue
-                      ? '$what overdue at the printer since ${dateFormat.format(due)}'
-                      : '$what due back ${dateFormat.format(due)}',
+                      ? l10n.labelCardOverdueSince(
+                          what, dateFormat.format(due))
+                      : l10n.labelCardDueBack(what, dateFormat.format(due)),
               style: muted?.copyWith(
                 color: overdue ? const Color(0xFFE65100) : null,
                 fontWeight: overdue ? FontWeight.w600 : null,
@@ -342,11 +360,17 @@ class _Footnote extends StatelessWidget {
 
     final runsOut = label.runsOutOn;
     if (runsOut != null) {
-      return Text('Runs out around ${dateFormat.format(runsOut)}', style: muted);
+      return Text(
+        l10n.labelCardRunsOutAround(dateFormat.format(runsOut)),
+        style: muted,
+      );
     }
     if (label.avgDailyUsage <= 0) {
-      return Text('No usage recorded yet', style: muted);
+      return Text(l10n.labelCardNoUsage, style: muted);
     }
-    return Text('Order ${label.leadDaysMax} working days ahead', style: muted);
+    return Text(
+      l10n.labelCardOrderAhead(label.leadDaysMax),
+      style: muted,
+    );
   }
 }

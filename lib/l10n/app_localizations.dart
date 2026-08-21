@@ -9510,6 +9510,1252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load courier positions'**
   String get fleetErrorTitle;
+
+  /// No description provided for @labelsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Labels'**
+  String get labelsTitle;
+
+  /// No description provided for @labelsHelpTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'How this works'**
+  String get labelsHelpTooltip;
+
+  /// No description provided for @labelsRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get labelsRefreshTooltip;
+
+  /// No description provided for @labelsSetUpCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up customer'**
+  String get labelsSetUpCustomer;
+
+  /// No description provided for @labelsSetupNothingNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing new to track'**
+  String get labelsSetupNothingNew;
+
+  /// No description provided for @labelsSetupTrackingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Now tracking 1 flavour} other{Now tracking {count} flavours}}'**
+  String labelsSetupTrackingCount(int count);
+
+  /// No description provided for @labelsSetupSkippedSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{ (1 already tracked)} other{ ({count} already tracked)}}'**
+  String labelsSetupSkippedSuffix(int count);
+
+  /// No description provided for @labelsPrintOrderSent.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 sheet sent to the printer} other{{count} sheets sent to the printer}}'**
+  String labelsPrintOrderSent(int count);
+
+  /// No description provided for @labelsPrintOrderDueBack.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 sheet ordered — due back {date}} other{{count} sheets ordered — due back {date}}}'**
+  String labelsPrintOrderDueBack(int count, String date);
+
+  /// No description provided for @labelsHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How label tracking works'**
+  String get labelsHelpTitle;
+
+  /// No description provided for @labelsHelpRows.
+  ///
+  /// In en, this message translates to:
+  /// **'Every flavour has its own label design, so each is tracked on its own row. Labels come off stock automatically when an invoice is submitted for a customer whose labels we print. Customers who bring their own are marked \"Customer prints\" and are never counted.'**
+  String get labelsHelpRows;
+
+  /// No description provided for @labelsHelpSheets.
+  ///
+  /// In en, this message translates to:
+  /// **'Printing is ordered in sheets — {medium} Medium or {large} Large labels per sheet.'**
+  String labelsHelpSheets(Object medium, Object large);
+
+  /// No description provided for @labelsHelpLeadTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Printing takes {min}–{max} working days with {restDay} excluded, so a label is flagged \"Print now\" once its remaining stock would not survive that wait — and \"Print soon\" {buffer} days before that point.'**
+  String labelsHelpLeadTime(
+    Object min,
+    Object max,
+    String restDay,
+    Object buffer,
+  );
+
+  /// No description provided for @labelsHelpQuiet.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a batch is at the printer the label goes quiet and shows its due-back date instead, so the same shortage is not raised every morning.'**
+  String get labelsHelpQuiet;
+
+  /// No description provided for @labelsHelpAlertsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily alerts are currently switched off in Jarz POS Settings.'**
+  String get labelsHelpAlertsOff;
+
+  /// No description provided for @labelsHelpGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get labelsHelpGotIt;
+
+  /// No description provided for @labelsSummaryUrgent.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 label must go to the printer now} other{{count} labels must go to the printer now}}'**
+  String labelsSummaryUrgent(int count);
+
+  /// No description provided for @labelsSummarySoon.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 label to print soon} other{{count} labels to print soon}}'**
+  String labelsSummarySoon(int count);
+
+  /// No description provided for @labelsSummaryNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needs printing'**
+  String get labelsSummaryNothing;
+
+  /// No description provided for @labelsSummaryLeadTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Printing takes {min}–{max} working days · {restDay} excluded'**
+  String labelsSummaryLeadTime(Object min, Object max, String restDay);
+
+  /// No description provided for @labelsSummaryReadySuffix.
+  ///
+  /// In en, this message translates to:
+  /// **' · order today, ready {date}'**
+  String labelsSummaryReadySuffix(String date);
+
+  /// No description provided for @labelsFilterNeedsPrinting.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs printing'**
+  String get labelsFilterNeedsPrinting;
+
+  /// No description provided for @labelsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get labelsFilterAll;
+
+  /// No description provided for @labelsFilterAtPrinter.
+  ///
+  /// In en, this message translates to:
+  /// **'At printer'**
+  String get labelsFilterAtPrinter;
+
+  /// No description provided for @labelsFilterCustomerPrints.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer prints'**
+  String get labelsFilterCustomerPrints;
+
+  /// No description provided for @labelsFilterWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{text} ({count})'**
+  String labelsFilterWithCount(String text, int count);
+
+  /// No description provided for @labelsAllLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'All locations'**
+  String get labelsAllLocations;
+
+  /// No description provided for @labelsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search customer or flavour'**
+  String get labelsSearchHint;
+
+  /// No description provided for @labelsEmptyNoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No labels tracked yet'**
+  String get labelsEmptyNoneTitle;
+
+  /// No description provided for @labelsEmptyNoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up the B2B customers whose jar labels JARZ prints — one label per flavour. Stock then comes down on its own as their orders are invoiced.'**
+  String get labelsEmptyNoneBody;
+
+  /// No description provided for @labelsEmptyEnoughCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Every label has enough cover'**
+  String get labelsEmptyEnoughCover;
+
+  /// No description provided for @labelsEmptyNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches this filter'**
+  String get labelsEmptyNoMatch;
+
+  /// No description provided for @labelsShowAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all labels'**
+  String get labelsShowAll;
+
+  /// No description provided for @labelStatusOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get labelStatusOutOfStock;
+
+  /// No description provided for @labelStatusOutOfStockWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'No labels left. This customer cannot be packed.'**
+  String get labelStatusOutOfStockWhy;
+
+  /// No description provided for @labelStatusPrintNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Print now'**
+  String get labelStatusPrintNow;
+
+  /// No description provided for @labelStatusPrintNowWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock runs out before a new batch could arrive ({days} working days).'**
+  String labelStatusPrintNowWhy(int days);
+
+  /// No description provided for @labelStatusPrintSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Print soon'**
+  String get labelStatusPrintSoon;
+
+  /// No description provided for @labelStatusPrintSoonWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting close to the point of no return.'**
+  String get labelStatusPrintSoonWhy;
+
+  /// No description provided for @labelStatusAtPrinter.
+  ///
+  /// In en, this message translates to:
+  /// **'At the printer'**
+  String get labelStatusAtPrinter;
+
+  /// No description provided for @labelStatusAtPrinterWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'A batch is already on its way.'**
+  String get labelStatusAtPrinterWhy;
+
+  /// No description provided for @labelStatusOk.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get labelStatusOk;
+
+  /// No description provided for @labelStatusOkWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfortable cover.'**
+  String get labelStatusOkWhy;
+
+  /// No description provided for @labelStatusCustomerPrints.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer prints'**
+  String get labelStatusCustomerPrints;
+
+  /// No description provided for @labelStatusCustomerPrintsWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'This customer supplies their own labels, so nothing is counted.'**
+  String get labelStatusCustomerPrintsWhy;
+
+  /// No description provided for @labelStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get labelStatusUnknown;
+
+  /// No description provided for @labelCardFlavours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 flavour} other{{count} flavours}}'**
+  String labelCardFlavours(int count);
+
+  /// No description provided for @labelCardNeedPrintingSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{ · 1 needs printing} other{ · {count} need printing}}'**
+  String labelCardNeedPrintingSuffix(int count);
+
+  /// No description provided for @labelCardCustomerActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer actions'**
+  String get labelCardCustomerActions;
+
+  /// No description provided for @labelCardAddFlavour.
+  ///
+  /// In en, this message translates to:
+  /// **'Add flavour'**
+  String get labelCardAddFlavour;
+
+  /// No description provided for @labelCardOnHand.
+  ///
+  /// In en, this message translates to:
+  /// **'on hand'**
+  String get labelCardOnHand;
+
+  /// No description provided for @labelCardOfCover.
+  ///
+  /// In en, this message translates to:
+  /// **'of cover'**
+  String get labelCardOfCover;
+
+  /// No description provided for @labelCardOrderSheets.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Order 1 sheet} other{Order {count} sheets}}'**
+  String labelCardOrderSheets(int count);
+
+  /// No description provided for @labelCardOrderBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Order a batch'**
+  String get labelCardOrderBatch;
+
+  /// No description provided for @labelCardCoverOver99.
+  ///
+  /// In en, this message translates to:
+  /// **'99+ d'**
+  String get labelCardCoverOver99;
+
+  /// No description provided for @labelCardCoverDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d'**
+  String labelCardCoverDays(String days);
+
+  /// No description provided for @labelCardCoverNone.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get labelCardCoverNone;
+
+  /// No description provided for @labelCardCustomerSupplies.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer supplies their own labels'**
+  String get labelCardCustomerSupplies;
+
+  /// No description provided for @labelCardSheetsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 sheet} other{{count} sheets}}'**
+  String labelCardSheetsCount(int count);
+
+  /// No description provided for @labelCardLabelsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 label} other{{count} labels}}'**
+  String labelCardLabelsCount(int count);
+
+  /// No description provided for @labelCardAtPrinter.
+  ///
+  /// In en, this message translates to:
+  /// **'{what} at the printer'**
+  String labelCardAtPrinter(String what);
+
+  /// No description provided for @labelCardOverdueSince.
+  ///
+  /// In en, this message translates to:
+  /// **'{what} overdue at the printer since {date}'**
+  String labelCardOverdueSince(String what, String date);
+
+  /// No description provided for @labelCardDueBack.
+  ///
+  /// In en, this message translates to:
+  /// **'{what} due back {date}'**
+  String labelCardDueBack(String what, String date);
+
+  /// No description provided for @labelCardRunsOutAround.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs out around {date}'**
+  String labelCardRunsOutAround(String date);
+
+  /// No description provided for @labelCardNoUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'No usage recorded yet'**
+  String get labelCardNoUsage;
+
+  /// No description provided for @labelCardOrderAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Order {days} working days ahead'**
+  String labelCardOrderAhead(int days);
+
+  /// No description provided for @labelPrintStatusRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested'**
+  String get labelPrintStatusRequested;
+
+  /// No description provided for @labelPrintStatusPrinting.
+  ///
+  /// In en, this message translates to:
+  /// **'Printing'**
+  String get labelPrintStatusPrinting;
+
+  /// No description provided for @labelPrintStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get labelPrintStatusReady;
+
+  /// No description provided for @labelPrintStatusReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get labelPrintStatusReceived;
+
+  /// No description provided for @labelPrintStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get labelPrintStatusCancelled;
+
+  /// No description provided for @labelMovementConsumed.
+  ///
+  /// In en, this message translates to:
+  /// **'Used on jars'**
+  String get labelMovementConsumed;
+
+  /// No description provided for @labelMovementPrintReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Received from the printer'**
+  String get labelMovementPrintReceived;
+
+  /// No description provided for @labelMovementScrapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Damaged or thrown away'**
+  String get labelMovementScrapped;
+
+  /// No description provided for @labelMovementAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction (+/-)'**
+  String get labelMovementAdjustment;
+
+  /// No description provided for @labelDetailFallbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get labelDetailFallbackTitle;
+
+  /// No description provided for @labelDetailSettingsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Label settings'**
+  String get labelDetailSettingsTooltip;
+
+  /// No description provided for @labelDetailLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this label.\n{error}'**
+  String labelDetailLoadFailed(String error);
+
+  /// No description provided for @labelDetailSentToPrinter.
+  ///
+  /// In en, this message translates to:
+  /// **'{what} sent to the printer'**
+  String labelDetailSentToPrinter(String what);
+
+  /// No description provided for @labelDetailCountSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Count saved'**
+  String get labelDetailCountSaved;
+
+  /// No description provided for @labelDetailMovementRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement recorded'**
+  String get labelDetailMovementRecorded;
+
+  /// No description provided for @labelDetailReceivedAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 label added to stock} other{{count} labels added to stock}}'**
+  String labelDetailReceivedAdded(int count);
+
+  /// No description provided for @labelDetailBatchMarked.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch marked {status}'**
+  String labelDetailBatchMarked(String status);
+
+  /// No description provided for @labelDetailBillRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill recorded — purchase invoice created'**
+  String get labelDetailBillRecorded;
+
+  /// No description provided for @labelDetailSettingsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings saved'**
+  String get labelDetailSettingsSaved;
+
+  /// No description provided for @labelDetailStoredAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored at {location}'**
+  String labelDetailStoredAt(String location);
+
+  /// No description provided for @labelDetailLabelsOnHand.
+  ///
+  /// In en, this message translates to:
+  /// **'labels on hand'**
+  String get labelDetailLabelsOnHand;
+
+  /// No description provided for @labelDetailDaysOfCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Days of cover'**
+  String get labelDetailDaysOfCover;
+
+  /// No description provided for @labelDetailUnknownValue.
+  ///
+  /// In en, this message translates to:
+  /// **'unknown'**
+  String get labelDetailUnknownValue;
+
+  /// No description provided for @labelDetailUsedPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Used per day'**
+  String get labelDetailUsedPerDay;
+
+  /// No description provided for @labelDetailRunsOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs out'**
+  String get labelDetailRunsOut;
+
+  /// No description provided for @labelDetailUsedInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Used in {days}d'**
+  String labelDetailUsedInDays(int days);
+
+  /// No description provided for @labelDetailStockValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock value'**
+  String get labelDetailStockValue;
+
+  /// No description provided for @labelDetailAvgCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg cost/label'**
+  String get labelDetailAvgCost;
+
+  /// No description provided for @labelDetailRetired.
+  ///
+  /// In en, this message translates to:
+  /// **'This label is retired. Turn it back on in label settings to resume counting.'**
+  String get labelDetailRetired;
+
+  /// No description provided for @labelDetailCustomerSupplies.
+  ///
+  /// In en, this message translates to:
+  /// **'This customer supplies their own labels, so nothing is counted and no alerts are raised. Turn on \"We print this label\" in settings if that changes.'**
+  String get labelDetailCustomerSupplies;
+
+  /// No description provided for @labelDetailActionOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get labelDetailActionOrder;
+
+  /// No description provided for @labelDetailActionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get labelDetailActionCount;
+
+  /// No description provided for @labelDetailActionRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get labelDetailActionRecord;
+
+  /// No description provided for @labelDetailSectionBatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Print batches'**
+  String get labelDetailSectionBatches;
+
+  /// No description provided for @labelDetailOrderedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'ordered {date}'**
+  String labelDetailOrderedOn(String date);
+
+  /// No description provided for @labelDetailOverdueSince.
+  ///
+  /// In en, this message translates to:
+  /// **'overdue since {date}'**
+  String labelDetailOverdueSince(String date);
+
+  /// No description provided for @labelDetailDueOn.
+  ///
+  /// In en, this message translates to:
+  /// **'due {date}'**
+  String labelDetailDueOn(String date);
+
+  /// No description provided for @labelDetailReceivedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'received {date}'**
+  String labelDetailReceivedOn(String date);
+
+  /// No description provided for @labelDetailReceivedOnQty.
+  ///
+  /// In en, this message translates to:
+  /// **'received {date} ({qty})'**
+  String labelDetailReceivedOnQty(String date, int qty);
+
+  /// No description provided for @labelDetailReceiveIntoStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive into stock'**
+  String get labelDetailReceiveIntoStock;
+
+  /// No description provided for @labelDetailMarkPrinting.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark printing'**
+  String get labelDetailMarkPrinting;
+
+  /// No description provided for @labelDetailMarkReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark ready'**
+  String get labelDetailMarkReady;
+
+  /// No description provided for @labelDetailRecordBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Record the printer\'\'s bill'**
+  String get labelDetailRecordBill;
+
+  /// No description provided for @labelDetailCancelBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel batch'**
+  String get labelDetailCancelBatch;
+
+  /// No description provided for @labelDetailBilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed'**
+  String get labelDetailBilled;
+
+  /// No description provided for @labelDetailBilledWithInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed · {invoice}'**
+  String labelDetailBilledWithInvoice(String invoice);
+
+  /// No description provided for @labelDetailUnbilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Unbilled'**
+  String get labelDetailUnbilled;
+
+  /// No description provided for @labelDetailUnbilledQuoted.
+  ///
+  /// In en, this message translates to:
+  /// **'Unbilled · quoted {amount}'**
+  String labelDetailUnbilledQuoted(String amount);
+
+  /// No description provided for @labelDetailPolicyFlavour.
+  ///
+  /// In en, this message translates to:
+  /// **'Flavour'**
+  String get labelDetailPolicyFlavour;
+
+  /// No description provided for @labelDetailPolicySize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get labelDetailPolicySize;
+
+  /// No description provided for @labelDetailPolicyStoredAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored at'**
+  String get labelDetailPolicyStoredAt;
+
+  /// No description provided for @labelDetailPolicyNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get labelDetailPolicyNotSet;
+
+  /// No description provided for @labelDetailPolicyMinStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum stock'**
+  String get labelDetailPolicyMinStock;
+
+  /// No description provided for @labelDetailPolicyUsualBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Usual print batch'**
+  String get labelDetailPolicyUsualBatch;
+
+  /// No description provided for @labelDetailPolicyLabelsPerSheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels per sheet'**
+  String get labelDetailPolicyLabelsPerSheet;
+
+  /// No description provided for @labelDetailPolicyLabelsPerJar.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels per jar'**
+  String get labelDetailPolicyLabelsPerJar;
+
+  /// No description provided for @labelDetailPolicyLeadTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Print lead time'**
+  String get labelDetailPolicyLeadTime;
+
+  /// No description provided for @labelDetailPolicyLeadTimeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{min}–{max} working days ({restDay} excluded)'**
+  String labelDetailPolicyLeadTimeValue(Object min, Object max, String restDay);
+
+  /// No description provided for @labelDetailPolicyLastCounted.
+  ///
+  /// In en, this message translates to:
+  /// **'Last counted'**
+  String get labelDetailPolicyLastCounted;
+
+  /// No description provided for @labelDetailPolicyLastMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'Last movement'**
+  String get labelDetailPolicyLastMovement;
+
+  /// No description provided for @labelDetailSectionSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup'**
+  String get labelDetailSectionSetup;
+
+  /// No description provided for @labelDetailSectionHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get labelDetailSectionHistory;
+
+  /// No description provided for @labelDetailHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing recorded yet. Labels come off automatically as this customer\'\'s orders are invoiced.'**
+  String get labelDetailHistoryEmpty;
+
+  /// No description provided for @labelDetailAutoPosted.
+  ///
+  /// In en, this message translates to:
+  /// **'Posted automatically from the invoice'**
+  String get labelDetailAutoPosted;
+
+  /// No description provided for @labelSheetSupplierOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Print supplier (optional)'**
+  String get labelSheetSupplierOptional;
+
+  /// No description provided for @labelSheetPrintSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Print supplier'**
+  String get labelSheetPrintSupplier;
+
+  /// No description provided for @labelSheetCountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Count labels'**
+  String get labelSheetCountTitle;
+
+  /// No description provided for @labelSheetCountSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter what is physically on the shelf. The difference is posted to the ledger, so a label that keeps going missing shows up as a run of corrections rather than vanishing quietly.'**
+  String get labelSheetCountSubtitle;
+
+  /// No description provided for @labelSheetCountedQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted quantity'**
+  String get labelSheetCountedQty;
+
+  /// No description provided for @labelSheetSystemShows.
+  ///
+  /// In en, this message translates to:
+  /// **'System currently shows {qty}.'**
+  String labelSheetSystemShows(int qty);
+
+  /// No description provided for @labelSheetDeltaMore.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more than recorded'**
+  String labelSheetDeltaMore(int count);
+
+  /// No description provided for @labelSheetDeltaFewer.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} fewer than recorded'**
+  String labelSheetDeltaFewer(int count);
+
+  /// No description provided for @labelSheetNoteOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get labelSheetNoteOptional;
+
+  /// No description provided for @labelSheetNotesOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get labelSheetNotesOptional;
+
+  /// No description provided for @labelSheetSaveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Save count'**
+  String get labelSheetSaveCount;
+
+  /// No description provided for @labelSheetOrderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order a print batch'**
+  String get labelSheetOrderTitle;
+
+  /// No description provided for @labelSheetLeadPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Printing takes {min}–{max} working days ({restDay} excluded).'**
+  String labelSheetLeadPlain(Object min, Object max, String restDay);
+
+  /// No description provided for @labelSheetLeadReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered today, ready around {date} — {min}–{max} working days, {restDay} excluded.'**
+  String labelSheetLeadReady(
+    String date,
+    Object min,
+    Object max,
+    String restDay,
+  );
+
+  /// No description provided for @labelSheetSheetsToPrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sheets to print'**
+  String get labelSheetSheetsToPrint;
+
+  /// No description provided for @labelSheetSuggestedSheets.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Suggested 1 sheet, based on current usage and the usual batch.} other{Suggested {count} sheets, based on current usage and the usual batch.}}'**
+  String labelSheetSuggestedSheets(int count);
+
+  /// No description provided for @labelSheetSheetsEquals.
+  ///
+  /// In en, this message translates to:
+  /// **'{sheets} = {labels}'**
+  String labelSheetSheetsEquals(String sheets, String labels);
+
+  /// No description provided for @labelSheetNetCostOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Net cost (optional)'**
+  String get labelSheetNetCostOptional;
+
+  /// No description provided for @labelSheetNetCostQuoteHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'What the printer quoted for the batch, before VAT. The bill itself is recorded when it arrives.'**
+  String get labelSheetNetCostQuoteHelper;
+
+  /// No description provided for @labelSheetSendToPrinter.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to printer'**
+  String get labelSheetSendToPrinter;
+
+  /// No description provided for @labelSheetReceiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive batch'**
+  String get labelSheetReceiveTitle;
+
+  /// No description provided for @labelSheetReceiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · ordered {ordered}'**
+  String labelSheetReceiveSubtitle(String name, String ordered);
+
+  /// No description provided for @labelSheetLabelsReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels received'**
+  String get labelSheetLabelsReceived;
+
+  /// No description provided for @labelSheetReceivedHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust if the printer delivered short. Only this many are added to stock.'**
+  String get labelSheetReceivedHelper;
+
+  /// No description provided for @labelSheetAddToStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to stock'**
+  String get labelSheetAddToStock;
+
+  /// No description provided for @labelSheetBillTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record the printer\'\'s bill'**
+  String get labelSheetBillTitle;
+
+  /// No description provided for @labelSheetBillSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {ordered}. This books a supplier purchase invoice, so the batch lands on the books at its real cost.'**
+  String labelSheetBillSubtitle(String name, String ordered);
+
+  /// No description provided for @labelSheetNetCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Net cost'**
+  String get labelSheetNetCost;
+
+  /// No description provided for @labelSheetNetCostBillHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'What the printer charged for this batch, before VAT.'**
+  String get labelSheetNetCostBillHelper;
+
+  /// No description provided for @labelSheetBillNoOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier\'\'s bill no. (optional)'**
+  String get labelSheetBillNoOptional;
+
+  /// No description provided for @labelSheetRecordBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Record bill'**
+  String get labelSheetRecordBill;
+
+  /// No description provided for @labelSheetMovementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a movement'**
+  String get labelSheetMovementTitle;
+
+  /// No description provided for @labelSheetWhatHappened.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened'**
+  String get labelSheetWhatHappened;
+
+  /// No description provided for @labelSheetQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get labelSheetQuantity;
+
+  /// No description provided for @labelSheetAdjustmentHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a minus sign to reduce stock.'**
+  String get labelSheetAdjustmentHelper;
+
+  /// No description provided for @labelSheetQtyHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a plain number — the direction follows from the type.'**
+  String get labelSheetQtyHelper;
+
+  /// No description provided for @labelSheetLabelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Label name'**
+  String get labelSheetLabelName;
+
+  /// No description provided for @labelSheetWePrint.
+  ///
+  /// In en, this message translates to:
+  /// **'We print this label'**
+  String get labelSheetWePrint;
+
+  /// No description provided for @labelSheetWePrintHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Off means the customer supplies their own — stops all counting and alerting without losing the history.'**
+  String get labelSheetWePrintHelp;
+
+  /// No description provided for @labelSheetActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get labelSheetActive;
+
+  /// No description provided for @labelSheetActiveHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off to retire a design that is no longer used.'**
+  String get labelSheetActiveHelp;
+
+  /// No description provided for @labelSheetStoredAtHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The branch or factory where this label physically lives.'**
+  String get labelSheetStoredAtHelper;
+
+  /// No description provided for @labelSheetUsualBatchSheets.
+  ///
+  /// In en, this message translates to:
+  /// **'Usual batch (sheets)'**
+  String get labelSheetUsualBatchSheets;
+
+  /// No description provided for @labelSheetLabelsPerSheetHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave 0 for the size default: 21 Medium, 18 Large.'**
+  String get labelSheetLabelsPerSheetHelper;
+
+  /// No description provided for @labelSheetLabelsPerJarHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Usually 1.'**
+  String get labelSheetLabelsPerJarHelper;
+
+  /// No description provided for @labelWizardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up customer labels'**
+  String get labelWizardTitle;
+
+  /// No description provided for @labelWizardStartTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Start tracking'**
+  String get labelWizardStartTracking;
+
+  /// No description provided for @labelWizardContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get labelWizardContinue;
+
+  /// No description provided for @labelWizardBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get labelWizardBack;
+
+  /// No description provided for @labelWizardStepCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get labelWizardStepCustomer;
+
+  /// No description provided for @labelWizardStepFlavours.
+  ///
+  /// In en, this message translates to:
+  /// **'Flavours'**
+  String get labelWizardStepFlavours;
+
+  /// No description provided for @labelWizardPickedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} picked'**
+  String labelWizardPickedCount(int count);
+
+  /// No description provided for @labelWizardStepLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the labels live'**
+  String get labelWizardStepLocation;
+
+  /// No description provided for @labelWizardStepConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get labelWizardStepConfirm;
+
+  /// No description provided for @labelWizardChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get labelWizardChange;
+
+  /// No description provided for @labelWizardCustomerPriceList.
+  ///
+  /// In en, this message translates to:
+  /// **'{customer} · price list: {priceList}'**
+  String labelWizardCustomerPriceList(String customer, String priceList);
+
+  /// No description provided for @labelWizardSearchCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Search customers'**
+  String get labelWizardSearchCustomers;
+
+  /// No description provided for @labelWizardSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching…'**
+  String get labelWizardSearching;
+
+  /// No description provided for @labelWizardNoCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'No company customers matched.'**
+  String get labelWizardNoCustomers;
+
+  /// No description provided for @labelWizardPriceList.
+  ///
+  /// In en, this message translates to:
+  /// **'Price list: {priceList}'**
+  String labelWizardPriceList(String priceList);
+
+  /// No description provided for @labelWizardFlavoursLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load flavours.\n{error}'**
+  String labelWizardFlavoursLoadFailed(String error);
+
+  /// No description provided for @labelWizardPickCustomerFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a customer first.'**
+  String get labelWizardPickCustomerFirst;
+
+  /// No description provided for @labelWizardNoFlavours.
+  ///
+  /// In en, this message translates to:
+  /// **'No flavours found for this customer — nothing on their price list and no order history yet.'**
+  String get labelWizardNoFlavours;
+
+  /// No description provided for @labelWizardSizeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get labelWizardSizeOther;
+
+  /// No description provided for @labelWizardFlavourHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick every flavour whose label JARZ prints. Enter what is already on the shelf so nothing starts life as Out of Stock.'**
+  String get labelWizardFlavourHelp;
+
+  /// No description provided for @labelWizardAlreadyTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Already tracked'**
+  String get labelWizardAlreadyTracked;
+
+  /// No description provided for @labelWizardOnPriceList.
+  ///
+  /// In en, this message translates to:
+  /// **'On price list'**
+  String get labelWizardOnPriceList;
+
+  /// No description provided for @labelWizardOrderedBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered before'**
+  String get labelWizardOrderedBefore;
+
+  /// No description provided for @labelWizardLabelsInStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels in stock now'**
+  String get labelWizardLabelsInStock;
+
+  /// No description provided for @labelWizardLocationsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load locations — you can set one per label later.'**
+  String get labelWizardLocationsLoadFailed;
+
+  /// No description provided for @labelWizardStoredAtHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The branch or factory where these labels physically live.'**
+  String get labelWizardStoredAtHelper;
+
+  /// No description provided for @labelWizardUsualBatchSheets.
+  ///
+  /// In en, this message translates to:
+  /// **'Usual print batch (sheets)'**
+  String get labelWizardUsualBatchSheets;
+
+  /// No description provided for @labelWizardUsualBatchHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied to every flavour; changeable per label later.'**
+  String get labelWizardUsualBatchHelper;
+
+  /// No description provided for @labelWizardConfirmPriceList.
+  ///
+  /// In en, this message translates to:
+  /// **'Price list'**
+  String get labelWizardConfirmPriceList;
+
+  /// No description provided for @labelWizardConfirmUsualBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Usual batch'**
+  String get labelWizardConfirmUsualBatch;
+
+  /// No description provided for @labelWizardSafeToRerun.
+  ///
+  /// In en, this message translates to:
+  /// **'Flavours already tracked are left untouched — running this again is always safe.'**
+  String get labelWizardSafeToRerun;
 }
 
 class _AppLocalizationsDelegate

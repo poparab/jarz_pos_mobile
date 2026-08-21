@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
+import '../../../../core/localization/localized_formatters.dart';
 import '../../data/labels_repository.dart';
 import '../../models/label_models.dart';
 import '../../state/labels_notifier.dart' show labelErrorMessage;
@@ -22,8 +25,10 @@ class LabelDetailScreen extends ConsumerStatefulWidget {
 
 class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
   final _messengerKey = GlobalKey<ScaffoldMessengerState>();
-  final _dateFormat = DateFormat('d MMM yyyy');
-  final _shortDate = DateFormat('d MMM');
+  late final DateFormat _dateFormat =
+      DateFormat('d MMM yyyy', context.l10n.localeName);
+  late final DateFormat _shortDate =
+      DateFormat('d MMM', context.l10n.localeName);
 
   CustomerLabel? _label;
   String? _error;
@@ -88,16 +93,16 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
       key: _messengerKey,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(label?.customerName ?? 'Label'),
+          title: Text(label?.customerName ?? context.l10n.labelDetailFallbackTitle),
           actions: [
             if (label != null)
               IconButton(
-                tooltip: 'Label settings',
+                tooltip: context.l10n.labelDetailSettingsTooltip,
                 icon: const Icon(Icons.tune),
                 onPressed: _busy ? null : () => _editPolicy(label),
               ),
             IconButton(
-              tooltip: 'Refresh',
+              tooltip: context.l10n.labelsRefreshTooltip,
               icon: const Icon(Icons.refresh),
               onPressed: _loading ? null : _load,
             ),
@@ -119,10 +124,11 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Could not load this label.\n${_error ?? ''}',
+              Text(context.l10n.labelDetailLoadFailed(_error ?? ''),
                   textAlign: TextAlign.center),
               const SizedBox(height: 12),
-              FilledButton(onPressed: _load, child: const Text('Retry')),
+              FilledButton(
+                  onPressed: _load, child: Text(context.l10n.commonRetry)),
             ],
           ),
         ),
@@ -168,7 +174,10 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
       builder: (_) => PrintOrderSheet(label: label),
     );
     if (request == null || !mounted) return;
+    final l10n = context.l10n;
     final labels = label.labelsForSheets(request.qtySheets);
+    final what = l10n.labelCardSheetsCount(request.qtySheets) +
+        (labels > 0 ? ' (${l10n.labelCardLabelsCount(labels)})' : '');
     await _act(
       () => ref.read(labelsRepositoryProvider).createPrintOrder(
             label: label.name,
@@ -177,13 +186,12 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
             totalCost: request.totalCost,
             notes: request.notes,
           ),
-      success:
-          '${request.qtySheets} sheet${request.qtySheets == 1 ? '' : 's'}'
-          '${labels > 0 ? ' ($labels labels)' : ''} sent to the printer',
+      success: l10n.labelDetailSentToPrinter(what),
     );
   }
 
   Future<void> _count(CustomerLabel label) async {
+    final l10n = context.l10n;
     final request = await showModalBottomSheet<CountRequest>(
       context: context,
       isScrollControlled: true,
@@ -196,11 +204,12 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
             countedQty: request.countedQty,
             remarks: request.remarks,
           ),
-      success: 'Count saved',
+      success: l10n.labelDetailCountSaved,
     );
   }
 
   Future<void> _recordMovement(CustomerLabel label) async {
+    final l10n = context.l10n;
     final request = await showModalBottomSheet<MovementRequest>(
       context: context,
       isScrollControlled: true,
@@ -214,11 +223,12 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
             qty: request.qty,
             remarks: request.remarks,
           ),
-      success: 'Movement recorded',
+      success: l10n.labelDetailMovementRecorded,
     );
   }
 
   Future<void> _receive(CustomerLabel label, LabelPrintOrder order) async {
+    final l10n = context.l10n;
     final received = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
@@ -231,7 +241,7 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
             status: 'Received',
             receivedQty: received,
           ),
-      success: '$received labels added to stock',
+      success: l10n.labelDetailReceivedAdded(received),
     );
     if (updated == null || !mounted) return;
 
@@ -254,18 +264,20 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
     LabelPrintOrder order,
     String status,
   ) async {
+    final statusText = localizedLabelPrintStatus(context, status);
     await _act(
       () => ref.read(labelsRepositoryProvider).updatePrintOrder(
             printOrder: order.name,
             status: status,
           ),
-      success: 'Batch marked $status',
+      success: context.l10n.labelDetailBatchMarked(statusText),
     );
   }
 
   /// Books the printer's bill for [order]. Manager-gated server-side; a
   /// rejection surfaces as the server's own sentence in the snackbar.
   Future<void> _bill(LabelPrintOrder order) async {
+    final l10n = context.l10n;
     final request = await showModalBottomSheet<BillRequest>(
       context: context,
       isScrollControlled: true,
@@ -279,11 +291,12 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
             totalCost: request.totalCost,
             billNo: request.billNo,
           ),
-      success: 'Bill recorded — purchase invoice created',
+      success: l10n.labelDetailBillRecorded,
     );
   }
 
   Future<void> _editPolicy(CustomerLabel label) async {
+    final l10n = context.l10n;
     final request = await showModalBottomSheet<LabelPolicyRequest>(
       context: context,
       isScrollControlled: true,
@@ -303,7 +316,7 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
             minStockQty: request.minStockQty,
             notes: request.notes,
           ),
-      success: 'Settings saved',
+      success: l10n.labelDetailSettingsSaved,
     );
   }
 }
@@ -320,8 +333,10 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final style =
-        LabelStatusStyle.of(label.status, leadDaysMax: label.leadDaysMax);
+        LabelStatusStyle.of(context, label.status,
+            leadDaysMax: label.leadDaysMax);
 
     return Container(
       width: double.infinity,
@@ -366,7 +381,7 @@ class _Header extends StatelessWidget {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    'Stored at ${label.storageLocation}',
+                    l10n.labelDetailStoredAt(label.storageLocation!),
                     style: theme.textTheme.bodySmall
                         ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                     maxLines: 1,
@@ -381,7 +396,9 @@ class _Header extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                label.tracked ? '${label.onHandQty}' : '—',
+                label.tracked
+                    ? '${label.onHandQty}'
+                    : l10n.labelCardCoverNone,
                 style: theme.textTheme.displaySmall?.copyWith(
                   fontWeight: FontWeight.w800,
                   color: style.color,
@@ -391,7 +408,7 @@ class _Header extends StatelessWidget {
               const SizedBox(width: 8),
               Padding(
                 padding: const EdgeInsets.only(bottom: 5),
-                child: Text('labels on hand',
+                child: Text(l10n.labelDetailLabelsOnHand,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     )),
@@ -407,38 +424,38 @@ class _Header extends StatelessWidget {
               runSpacing: 10,
               children: [
                 _Stat(
-                  label: 'Days of cover',
+                  label: l10n.labelDetailDaysOfCover,
                   value: label.daysOfCover == null
-                      ? 'unknown'
+                      ? l10n.labelDetailUnknownValue
                       : label.daysOfCover!.toStringAsFixed(1),
                 ),
                 _Stat(
-                  label: 'Used per day',
+                  label: l10n.labelDetailUsedPerDay,
                   value: label.avgDailyUsage > 0
                       ? label.avgDailyUsage.toStringAsFixed(2)
-                      : '—',
+                      : l10n.labelCardCoverNone,
                 ),
                 _Stat(
-                  label: 'Runs out',
+                  label: l10n.labelDetailRunsOut,
                   value: label.runsOutOn == null
-                      ? '—'
+                      ? l10n.labelCardCoverNone
                       : shortDate.format(label.runsOutOn!),
                 ),
                 _Stat(
-                  label: 'Used in ${label.usageWindowDays}d',
+                  label: l10n.labelDetailUsedInDays(label.usageWindowDays),
                   value: '${label.consumedInWindow}',
                 ),
                 // Money stats only once a batch has been billed — a column of
                 // zeroes would just say "accounting not set up" in a loud way.
                 if (label.stockValue > 0)
                   _Stat(
-                    label: 'Stock value',
-                    value: 'EGP ${label.stockValue.toStringAsFixed(2)}',
+                    label: l10n.labelDetailStockValue,
+                    value: formatCurrency(context, label.stockValue),
                   ),
                 if (label.avgCostPerLabel > 0)
                   _Stat(
-                    label: 'Avg cost/label',
-                    value: 'EGP ${label.avgCostPerLabel.toStringAsFixed(2)}',
+                    label: l10n.labelDetailAvgCost,
+                    value: formatCurrency(context, label.avgCostPerLabel),
                   ),
               ],
             ),
@@ -495,11 +512,8 @@ class _Actions extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
         child: Text(
           label.wePrint
-              ? 'This label is retired. Turn it back on in label settings to '
-                  'resume counting.'
-              : 'This customer supplies their own labels, so nothing is counted '
-                  'and no alerts are raised. Turn on "We print this label" in '
-                  'settings if that changes.',
+              ? context.l10n.labelDetailRetired
+              : context.l10n.labelDetailCustomerSupplies,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       );
@@ -513,7 +527,7 @@ class _Actions extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: busy ? null : onOrder,
               icon: const Icon(Icons.local_printshop, size: 18),
-              label: const Text('Order'),
+              label: Text(context.l10n.labelDetailActionOrder),
             ),
           ),
           const SizedBox(width: 8),
@@ -521,7 +535,7 @@ class _Actions extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: busy ? null : onCount,
               icon: const Icon(Icons.checklist, size: 18),
-              label: const Text('Count'),
+              label: Text(context.l10n.labelDetailActionCount),
             ),
           ),
           const SizedBox(width: 8),
@@ -529,7 +543,7 @@ class _Actions extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: busy ? null : onMovement,
               icon: const Icon(Icons.edit_note, size: 18),
-              label: const Text('Record'),
+              label: Text(context.l10n.labelDetailActionRecord),
             ),
           ),
         ],
@@ -558,31 +572,36 @@ class _PrintOrders extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionTitle('Print batches'),
+        _SectionTitle(l10n.labelDetailSectionBatches),
         ...orders.map((order) {
           final due = order.expectedReadyDate;
           final subtitleBits = <String>[
             if (order.requestedOn != null)
-              'ordered ${dateFormat.format(order.requestedOn!)}',
+              l10n.labelDetailOrderedOn(dateFormat.format(order.requestedOn!)),
             if (order.isOpen && due != null)
               order.isOverdue
-                  ? 'overdue since ${dateFormat.format(due)}'
-                  : 'due ${dateFormat.format(due)}',
+                  ? l10n.labelDetailOverdueSince(dateFormat.format(due))
+                  : l10n.labelDetailDueOn(dateFormat.format(due)),
             if (order.isReceived && order.receivedOn != null)
-              'received ${dateFormat.format(order.receivedOn!)}'
-                  '${order.receivedQty != order.qty ? ' (${order.receivedQty})' : ''}',
+              order.receivedQty != order.qty
+                  ? l10n.labelDetailReceivedOnQty(
+                      dateFormat.format(order.receivedOn!), order.receivedQty)
+                  : l10n.labelDetailReceivedOn(
+                      dateFormat.format(order.receivedOn!)),
             if (order.supplier != null)
               order.supplier!
             else if (order.printerName != null)
               order.printerName!,
           ];
 
+          final statusText = localizedLabelPrintStatus(context, order.status);
           final title = order.qtySheets > 0
-              ? '${order.qtySheets} sheet${order.qtySheets == 1 ? '' : 's'} · ${order.qty} labels · ${order.status}'
-              : '${order.qty} labels · ${order.status}';
+              ? '${l10n.labelCardSheetsCount(order.qtySheets)} · ${l10n.labelCardLabelsCount(order.qty)} · $statusText'
+              : '${l10n.labelCardLabelsCount(order.qty)} · $statusText';
 
           final cancelled = order.status == 'Cancelled';
           final canBill = !cancelled && !order.isBilled;
@@ -628,24 +647,27 @@ class _PrintOrders extends StatelessWidget {
                     },
                     itemBuilder: (_) => [
                       if (order.isOpen)
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'receive',
-                          child: Text('Receive into stock'),
+                          child: Text(l10n.labelDetailReceiveIntoStock),
                         ),
                       if (order.isOpen && order.status == 'Requested')
-                        const PopupMenuItem(
-                            value: 'Printing', child: Text('Mark printing')),
+                        PopupMenuItem(
+                            value: 'Printing',
+                            child: Text(l10n.labelDetailMarkPrinting)),
                       if (order.isOpen && order.status != 'Ready')
-                        const PopupMenuItem(
-                            value: 'Ready', child: Text('Mark ready')),
+                        PopupMenuItem(
+                            value: 'Ready',
+                            child: Text(l10n.labelDetailMarkReady)),
                       if (canBill)
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'bill',
-                          child: Text("Record the printer's bill"),
+                          child: Text(l10n.labelDetailRecordBill),
                         ),
                       if (order.isOpen)
-                        const PopupMenuItem(
-                            value: 'Cancelled', child: Text('Cancel batch')),
+                        PopupMenuItem(
+                            value: 'Cancelled',
+                            child: Text(l10n.labelDetailCancelBatch)),
                     ],
                   ),
           );
@@ -664,12 +686,17 @@ class _BillingChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final billed = order.isBilled;
     final color = billed ? const Color(0xFF2E7D32) : const Color(0xFFF9A825);
     final text = billed
-        ? 'Billed${order.purchaseInvoice == null ? '' : ' · ${order.purchaseInvoice}'}'
-        : 'Unbilled'
-            '${order.totalCost > 0 ? ' · quoted EGP ${order.totalCost.toStringAsFixed(2)}' : ''}';
+        ? (order.purchaseInvoice == null
+            ? l10n.labelDetailBilled
+            : l10n.labelDetailBilledWithInvoice(order.purchaseInvoice!))
+        : (order.totalCost > 0
+            ? l10n.labelDetailUnbilledQuoted(
+                formatCurrency(context, order.totalCost))
+            : l10n.labelDetailUnbilled);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -714,33 +741,46 @@ class _Policy extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final rows = <(String, String)>[
-      if (label.item != null) ('Flavour', label.item!),
-      if (label.size != null) ('Size', label.size!),
-      ('Stored at', label.storageLocation ?? 'Not set'),
-      ('Minimum stock', '${label.minStockQty}'),
+      if (label.item != null) (l10n.labelDetailPolicyFlavour, label.item!),
+      if (label.size != null) (l10n.labelDetailPolicySize, label.size!),
       (
-        'Usual print batch',
-        '${label.defaultPrintSheets} sheet${label.defaultPrintSheets == 1 ? '' : 's'}'
+        l10n.labelDetailPolicyStoredAt,
+        label.storageLocation ?? l10n.labelDetailPolicyNotSet
       ),
-      ('Labels per sheet', '${label.labelsPerSheet}'),
-      ('Labels per jar', label.labelsPerUnit.toStringAsFixed(
-          label.labelsPerUnit == label.labelsPerUnit.roundToDouble() ? 0 : 2)),
+      (l10n.labelDetailPolicyMinStock, '${label.minStockQty}'),
       (
-        'Print lead time',
-        '${label.leadDaysMin}–${label.leadDaysMax} working days '
-            '(${label.restDay} excluded)'
+        l10n.labelDetailPolicyUsualBatch,
+        l10n.labelCardSheetsCount(label.defaultPrintSheets)
+      ),
+      (l10n.labelDetailPolicyLabelsPerSheet, '${label.labelsPerSheet}'),
+      (
+        l10n.labelDetailPolicyLabelsPerJar,
+        label.labelsPerUnit.toStringAsFixed(
+            label.labelsPerUnit == label.labelsPerUnit.roundToDouble() ? 0 : 2)
+      ),
+      (
+        l10n.labelDetailPolicyLeadTime,
+        l10n.labelDetailPolicyLeadTimeValue(
+            label.leadDaysMin, label.leadDaysMax, label.restDay)
       ),
       if (label.lastCountedOn != null)
-        ('Last counted', dateFormat.format(label.lastCountedOn!)),
+        (
+          l10n.labelDetailPolicyLastCounted,
+          dateFormat.format(label.lastCountedOn!)
+        ),
       if (label.lastMovementOn != null)
-        ('Last movement', dateFormat.format(label.lastMovementOn!)),
+        (
+          l10n.labelDetailPolicyLastMovement,
+          dateFormat.format(label.lastMovementOn!)
+        ),
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionTitle('Setup'),
+        _SectionTitle(l10n.labelDetailSectionSetup),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
@@ -790,16 +830,16 @@ class _Ledger extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     if (movements.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SectionTitle('History'),
+          _SectionTitle(l10n.labelDetailSectionHistory),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              'Nothing recorded yet. Labels come off automatically as this '
-              'customer\'s orders are invoiced.',
+              l10n.labelDetailHistoryEmpty,
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
@@ -811,7 +851,7 @@ class _Ledger extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionTitle('History'),
+        _SectionTitle(l10n.labelDetailSectionHistory),
         ...movements.map((movement) {
           final positive = movement.isIncoming;
           final hasValue = movement.value != 0;
@@ -825,7 +865,7 @@ class _Ledger extends StatelessWidget {
               size: 20,
             ),
             title: Text(
-              '${positive ? '+' : ''}${movement.qty}   ${movement.movementType}',
+              '${positive ? '+' : ''}${movement.qty}   ${localizedLabelMovementType(context, movement.movementType)}',
               style: theme.textTheme.bodyMedium
                   ?.copyWith(fontWeight: FontWeight.w600),
             ),
@@ -847,7 +887,7 @@ class _Ledger extends StatelessWidget {
               children: [
                 if (hasValue)
                   Text(
-                    '${movement.value > 0 ? '+' : '−'}EGP ${movement.value.abs().toStringAsFixed(2)}',
+                    '${movement.value > 0 ? '+' : '−'}${formatCurrency(context, movement.value.abs())}',
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: movement.value > 0
@@ -858,7 +898,7 @@ class _Ledger extends StatelessWidget {
                 if (movement.isAutomatic) ...[
                   if (hasValue) const SizedBox(width: 6),
                   Tooltip(
-                    message: 'Posted automatically from the invoice',
+                    message: l10n.labelDetailAutoPosted,
                     child: Icon(Icons.bolt,
                         size: 16, color: theme.colorScheme.outline),
                   ),

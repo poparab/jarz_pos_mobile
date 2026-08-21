@@ -3,7 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
+import '../../../../core/localization/localized_formatters.dart';
 import '../../data/labels_repository.dart';
 import '../../models/label_models.dart';
 
@@ -182,13 +186,15 @@ double? _parseCost(TextEditingController controller) {
 class SupplierField extends ConsumerStatefulWidget {
   final String? initialSupplier;
   final ValueChanged<LabelSupplierOption?> onChanged;
-  final String label;
+
+  /// Defaults to the localized "Print supplier (optional)" when omitted.
+  final String? label;
 
   const SupplierField({
     super.key,
     required this.onChanged,
     this.initialSupplier,
-    this.label = 'Print supplier (optional)',
+    this.label,
   });
 
   @override
@@ -248,9 +254,11 @@ class _SupplierFieldState extends ConsumerState<SupplierField> {
   @override
   Widget build(BuildContext context) {
     final selected = _selected;
+    final fieldLabel =
+        widget.label ?? context.l10n.labelSheetSupplierOptional;
     if (selected != null) {
       return InputDecorator(
-        decoration: _fieldDecoration(widget.label),
+        decoration: _fieldDecoration(fieldLabel),
         child: Row(
           children: [
             const Icon(Icons.factory_outlined, size: 18),
@@ -276,7 +284,7 @@ class _SupplierFieldState extends ConsumerState<SupplierField> {
       children: [
         TextField(
           controller: _controller,
-          decoration: _fieldDecoration(widget.label).copyWith(
+          decoration: _fieldDecoration(fieldLabel).copyWith(
             prefixIcon: const Icon(Icons.search),
             suffixIcon: _searching
                 ? const Padding(
@@ -339,15 +347,13 @@ class _CountSheetState extends State<CountSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final counted = int.tryParse(_controller.text.trim());
     final delta = counted == null ? null : counted - widget.label.onHandQty;
 
     return _SheetScaffold(
-      title: 'Count labels',
-      subtitle:
-          'Enter what is physically on the shelf. The difference is posted to '
-          'the ledger, so a label that keeps going missing shows up as a run of '
-          'corrections rather than vanishing quietly.',
+      title: l10n.labelSheetCountTitle,
+      subtitle: l10n.labelSheetCountSubtitle,
       fields: [
         TextField(
           controller: _controller,
@@ -355,8 +361,8 @@ class _CountSheetState extends State<CountSheet> {
           keyboardType: TextInputType.number,
           inputFormatters: _digits,
           decoration: _fieldDecoration(
-            'Counted quantity',
-            helper: 'System currently shows ${widget.label.onHandQty}.',
+            l10n.labelSheetCountedQty,
+            helper: l10n.labelSheetSystemShows(widget.label.onHandQty),
           ),
           onChanged: (_) => setState(() {}),
         ),
@@ -374,8 +380,8 @@ class _CountSheetState extends State<CountSheet> {
               const SizedBox(width: 6),
               Text(
                 delta > 0
-                    ? '$delta more than recorded'
-                    : '${delta.abs()} fewer than recorded',
+                    ? l10n.labelSheetDeltaMore(delta)
+                    : l10n.labelSheetDeltaFewer(delta.abs()),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],
@@ -384,7 +390,7 @@ class _CountSheetState extends State<CountSheet> {
         const SizedBox(height: 12),
         TextField(
           controller: _remarksController,
-          decoration: _fieldDecoration('Note (optional)'),
+          decoration: _fieldDecoration(l10n.labelSheetNoteOptional),
         ),
       ],
       action: FilledButton(
@@ -398,7 +404,7 @@ class _CountSheetState extends State<CountSheet> {
                         : _remarksController.text.trim(),
                   ),
                 ),
-        child: const Text('Save count'),
+        child: Text(l10n.labelSheetSaveCount),
       ),
     );
   }
@@ -436,12 +442,13 @@ class _PrintOrderSheetState extends ConsumerState<PrintOrderSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final label = widget.label;
     final sheets = int.tryParse(_sheetsController.text.trim()) ?? 0;
     final labels = label.labelsForSheets(sheets);
 
     return _SheetScaffold(
-      title: 'Order a print batch',
+      title: l10n.labelSheetOrderTitle,
       subtitle: '${label.customerName} · ${label.labelTitle}'
           '${label.size == null ? '' : ' · ${label.size}'}',
       fields: [
@@ -458,12 +465,17 @@ class _PrintOrderSheetState extends ConsumerState<PrintOrderSheet> {
               Expanded(
                 child: Text(
                   label.expectedReadyIfOrderedToday == null
-                      ? 'Printing takes ${label.leadDaysMin}–${label.leadDaysMax} '
-                          'working days (${label.restDay} excluded).'
-                      : 'Ordered today, ready around '
-                          '${_dmy(label.expectedReadyIfOrderedToday!)} — '
-                          '${label.leadDaysMin}–${label.leadDaysMax} working days, '
-                          '${label.restDay} excluded.',
+                      ? l10n.labelSheetLeadPlain(
+                          label.leadDaysMin,
+                          label.leadDaysMax,
+                          label.restDay,
+                        )
+                      : l10n.labelSheetLeadReady(
+                          _dmy(context, label.expectedReadyIfOrderedToday!),
+                          label.leadDaysMin,
+                          label.leadDaysMax,
+                          label.restDay,
+                        ),
                   style: theme.textTheme.bodySmall,
                 ),
               ),
@@ -477,11 +489,9 @@ class _PrintOrderSheetState extends ConsumerState<PrintOrderSheet> {
           keyboardType: TextInputType.number,
           inputFormatters: _digits,
           decoration: _fieldDecoration(
-            'Sheets to print',
+            l10n.labelSheetSheetsToPrint,
             helper: label.suggestedPrintSheets > 0
-                ? 'Suggested ${label.suggestedPrintSheets} sheet'
-                    '${label.suggestedPrintSheets == 1 ? '' : 's'}, based on '
-                    'current usage and the usual batch.'
+                ? l10n.labelSheetSuggestedSheets(label.suggestedPrintSheets)
                 : null,
           ),
           onChanged: (_) => setState(() {}),
@@ -493,7 +503,10 @@ class _PrintOrderSheetState extends ConsumerState<PrintOrderSheet> {
               const Icon(Icons.grid_on, size: 16),
               const SizedBox(width: 6),
               Text(
-                '$sheets sheet${sheets == 1 ? '' : 's'} = $labels labels',
+                l10n.labelSheetSheetsEquals(
+                  l10n.labelCardSheetsCount(sheets),
+                  l10n.labelCardLabelsCount(labels),
+                ),
                 style: theme.textTheme.bodyMedium
                     ?.copyWith(fontWeight: FontWeight.w600),
               ),
@@ -510,17 +523,16 @@ class _PrintOrderSheetState extends ConsumerState<PrintOrderSheet> {
           controller: _costController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: _fieldDecoration(
-            'Net cost (optional)',
-            helper: 'What the printer quoted for the batch, before VAT. The '
-                'bill itself is recorded when it arrives.',
-            suffix: 'EGP',
+            l10n.labelSheetNetCostOptional,
+            helper: l10n.labelSheetNetCostQuoteHelper,
+            suffix: currencySymbol(context),
           ),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _notesController,
           maxLines: 2,
-          decoration: _fieldDecoration('Notes (optional)'),
+          decoration: _fieldDecoration(l10n.labelSheetNotesOptional),
         ),
       ],
       action: FilledButton.icon(
@@ -537,7 +549,7 @@ class _PrintOrderSheetState extends ConsumerState<PrintOrderSheet> {
                   ),
                 ),
         icon: const Icon(Icons.local_printshop),
-        label: const Text('Send to printer'),
+        label: Text(l10n.labelSheetSendToPrinter),
       ),
     );
   }
@@ -567,14 +579,15 @@ class _ReceiveBatchSheetState extends State<ReceiveBatchSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final order = widget.order;
     final received = int.tryParse(_controller.text.trim()) ?? 0;
     final ordered = order.qtySheets > 0
-        ? '${order.qtySheets} sheet${order.qtySheets == 1 ? '' : 's'} · ${order.qty} labels'
-        : '${order.qty} labels';
+        ? '${l10n.labelCardSheetsCount(order.qtySheets)} · ${l10n.labelCardLabelsCount(order.qty)}'
+        : l10n.labelCardLabelsCount(order.qty);
     return _SheetScaffold(
-      title: 'Receive batch',
-      subtitle: '${order.name} · ordered $ordered',
+      title: l10n.labelSheetReceiveTitle,
+      subtitle: l10n.labelSheetReceiveSubtitle(order.name, ordered),
       fields: [
         TextField(
           controller: _controller,
@@ -582,9 +595,8 @@ class _ReceiveBatchSheetState extends State<ReceiveBatchSheet> {
           keyboardType: TextInputType.number,
           inputFormatters: _digits,
           decoration: _fieldDecoration(
-            'Labels received',
-            helper: 'Adjust if the printer delivered short. Only this many are '
-                'added to stock.',
+            l10n.labelSheetLabelsReceived,
+            helper: l10n.labelSheetReceivedHelper,
           ),
           onChanged: (_) => setState(() {}),
         ),
@@ -592,7 +604,7 @@ class _ReceiveBatchSheetState extends State<ReceiveBatchSheet> {
       action: FilledButton.icon(
         onPressed: received <= 0 ? null : () => Navigator.of(context).pop(received),
         icon: const Icon(Icons.inventory_2),
-        label: const Text('Add to stock'),
+        label: Text(l10n.labelSheetAddToStock),
       ),
     );
   }
@@ -640,20 +652,20 @@ class _RecordBillSheetState extends State<RecordBillSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final order = widget.order;
     final cost = _parseCost(_costController);
     final ordered = order.qtySheets > 0
-        ? '${order.qtySheets} sheet${order.qtySheets == 1 ? '' : 's'}'
-        : '${order.qty} labels';
+        ? l10n.labelCardSheetsCount(order.qtySheets)
+        : l10n.labelCardLabelsCount(order.qty);
 
     return _SheetScaffold(
-      title: "Record the printer's bill",
-      subtitle: '${order.name} · $ordered. This books a supplier purchase '
-          'invoice, so the batch lands on the books at its real cost.',
+      title: l10n.labelSheetBillTitle,
+      subtitle: l10n.labelSheetBillSubtitle(order.name, ordered),
       fields: [
         SupplierField(
           initialSupplier: order.supplier,
-          label: 'Print supplier',
+          label: l10n.labelSheetPrintSupplier,
           onChanged: (option) => setState(() => _supplier = option),
         ),
         const SizedBox(height: 12),
@@ -662,16 +674,16 @@ class _RecordBillSheetState extends State<RecordBillSheet> {
           autofocus: order.totalCost <= 0,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: _fieldDecoration(
-            'Net cost',
-            helper: 'What the printer charged for this batch, before VAT.',
-            suffix: 'EGP',
+            l10n.labelSheetNetCost,
+            helper: l10n.labelSheetNetCostBillHelper,
+            suffix: currencySymbol(context),
           ),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _billNoController,
-          decoration: _fieldDecoration("Supplier's bill no. (optional)"),
+          decoration: _fieldDecoration(l10n.labelSheetBillNoOptional),
         ),
       ],
       action: FilledButton.icon(
@@ -687,7 +699,7 @@ class _RecordBillSheetState extends State<RecordBillSheet> {
                   ),
                 ),
         icon: const Icon(Icons.receipt_long),
-        label: const Text('Record bill'),
+        label: Text(l10n.labelSheetRecordBill),
       ),
     );
   }
@@ -710,12 +722,12 @@ class _MovementSheetState extends State<MovementSheet> {
   final _remarksController = TextEditingController();
   String _type = 'Consumed';
 
-  static const _types = <String, String>{
-    'Consumed': 'Used on jars',
-    'Print Received': 'Received from the printer',
-    'Scrapped': 'Damaged or thrown away',
-    'Adjustment': 'Correction (+/-)',
-  };
+  static const _types = <String>[
+    'Consumed',
+    'Print Received',
+    'Scrapped',
+    'Adjustment',
+  ];
 
   @override
   void dispose() {
@@ -726,19 +738,23 @@ class _MovementSheetState extends State<MovementSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final qty = int.tryParse(_qtyController.text.trim()) ?? 0;
     final isAdjustment = _type == 'Adjustment';
 
     return _SheetScaffold(
-      title: 'Record a movement',
+      title: l10n.labelSheetMovementTitle,
       subtitle: '${widget.label.customerName} · ${widget.label.labelTitle}',
       fields: [
         DropdownButtonFormField<String>(
           initialValue: _type,
           isExpanded: true,
-          decoration: _fieldDecoration('What happened'),
-          items: _types.entries
-              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+          decoration: _fieldDecoration(l10n.labelSheetWhatHappened),
+          items: _types
+              .map((type) => DropdownMenuItem(
+                    value: type,
+                    child: Text(localizedLabelMovementType(context, type)),
+                  ))
               .toList(),
           onChanged: (value) => setState(() => _type = value ?? _type),
         ),
@@ -751,17 +767,17 @@ class _MovementSheetState extends State<MovementSheet> {
               ? [FilteringTextInputFormatter.allow(RegExp(r'^-?\d*'))]
               : _digits,
           decoration: _fieldDecoration(
-            'Quantity',
+            l10n.labelSheetQuantity,
             helper: isAdjustment
-                ? 'Use a minus sign to reduce stock.'
-                : 'Enter a plain number — the direction follows from the type.',
+                ? l10n.labelSheetAdjustmentHelper
+                : l10n.labelSheetQtyHelper,
           ),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _remarksController,
-          decoration: _fieldDecoration('Note (optional)'),
+          decoration: _fieldDecoration(l10n.labelSheetNoteOptional),
         ),
       ],
       action: FilledButton(
@@ -776,7 +792,7 @@ class _MovementSheetState extends State<MovementSheet> {
                         : _remarksController.text.trim(),
                   ),
                 ),
-        child: const Text('Record'),
+        child: Text(l10n.labelDetailActionRecord),
       ),
     );
   }
@@ -828,34 +844,32 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final locations = ref.watch(labelStorageLocationsProvider);
 
     return _SheetScaffold(
-      title: 'Label settings',
+      title: l10n.labelDetailSettingsTooltip,
       subtitle: '${widget.label.customerName}'
           '${widget.label.size == null ? '' : ' · ${widget.label.size}'}',
       fields: [
         TextField(
           controller: _titleController,
-          decoration: _fieldDecoration('Label name'),
+          decoration: _fieldDecoration(l10n.labelSheetLabelName),
         ),
         const SizedBox(height: 8),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           value: _wePrint,
           onChanged: (value) => setState(() => _wePrint = value),
-          title: const Text('We print this label'),
-          subtitle: const Text(
-            'Off means the customer supplies their own — stops all counting and '
-            'alerting without losing the history.',
-          ),
+          title: Text(l10n.labelSheetWePrint),
+          subtitle: Text(l10n.labelSheetWePrintHelp),
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           value: _enabled,
           onChanged: (value) => setState(() => _enabled = value),
-          title: const Text('Active'),
-          subtitle: const Text('Turn off to retire a design that is no longer used.'),
+          title: Text(l10n.labelSheetActive),
+          subtitle: Text(l10n.labelSheetActiveHelp),
         ),
         const SizedBox(height: 8),
         locations.when(
@@ -871,13 +885,13 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
                       : null,
               isExpanded: true,
               decoration: _fieldDecoration(
-                'Stored at',
-                helper: 'The branch or factory where this label physically lives.',
+                l10n.labelDetailPolicyStoredAt,
+                helper: l10n.labelSheetStoredAtHelper,
               ),
               items: [
-                const DropdownMenuItem<String?>(
+                DropdownMenuItem<String?>(
                   value: null,
-                  child: Text('Not set'),
+                  child: Text(l10n.labelDetailPolicyNotSet),
                 ),
                 ...options.map(
                   (option) => DropdownMenuItem<String?>(
@@ -898,7 +912,7 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
                 controller: _minStockController,
                 keyboardType: TextInputType.number,
                 inputFormatters: _digits,
-                decoration: _fieldDecoration('Minimum stock'),
+                decoration: _fieldDecoration(l10n.labelDetailPolicyMinStock),
               ),
             ),
             const SizedBox(width: 12),
@@ -907,7 +921,8 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
                 controller: _sheetsController,
                 keyboardType: TextInputType.number,
                 inputFormatters: _digits,
-                decoration: _fieldDecoration('Usual batch (sheets)'),
+                decoration:
+                    _fieldDecoration(l10n.labelSheetUsualBatchSheets),
               ),
             ),
           ],
@@ -921,8 +936,8 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
                 keyboardType: TextInputType.number,
                 inputFormatters: _digits,
                 decoration: _fieldDecoration(
-                  'Labels per sheet',
-                  helper: 'Leave 0 for the size default: 21 Medium, 18 Large.',
+                  l10n.labelDetailPolicyLabelsPerSheet,
+                  helper: l10n.labelSheetLabelsPerSheetHelper,
                 ),
               ),
             ),
@@ -933,8 +948,8 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 decoration: _fieldDecoration(
-                  'Labels per jar',
-                  helper: 'Usually 1.',
+                  l10n.labelDetailPolicyLabelsPerJar,
+                  helper: l10n.labelSheetLabelsPerJarHelper,
                 ),
               ),
             ),
@@ -944,7 +959,7 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
         TextField(
           controller: _notesController,
           maxLines: 2,
-          decoration: _fieldDecoration('Notes'),
+          decoration: _fieldDecoration(l10n.commonNotesLabel),
         ),
       ],
       action: FilledButton(
@@ -965,16 +980,12 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
             notes: _notesController.text.trim(),
           ),
         ),
-        child: const Text('Save'),
+        child: Text(l10n.commonSave),
       ),
     );
   }
 }
 
-String _dmy(DateTime date) {
-  const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-  return '${date.day} ${months[date.month - 1]}';
+String _dmy(BuildContext context, DateTime date) {
+  return DateFormat('d MMM', context.l10n.localeName).format(date);
 }

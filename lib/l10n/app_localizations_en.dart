@@ -5526,4 +5526,841 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fleetErrorTitle => 'Could not load courier positions';
+
+  @override
+  String get labelsTitle => 'Customer Labels';
+
+  @override
+  String get labelsHelpTooltip => 'How this works';
+
+  @override
+  String get labelsRefreshTooltip => 'Refresh';
+
+  @override
+  String get labelsSetUpCustomer => 'Set up customer';
+
+  @override
+  String get labelsSetupNothingNew => 'Nothing new to track';
+
+  @override
+  String labelsSetupTrackingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Now tracking $count flavours',
+      one: 'Now tracking 1 flavour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelsSetupSkippedSuffix(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: ' ($count already tracked)',
+      one: ' (1 already tracked)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelsPrintOrderSent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sheets sent to the printer',
+      one: '1 sheet sent to the printer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelsPrintOrderDueBack(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sheets ordered — due back $date',
+      one: '1 sheet ordered — due back $date',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get labelsHelpTitle => 'How label tracking works';
+
+  @override
+  String get labelsHelpRows =>
+      'Every flavour has its own label design, so each is tracked on its own row. Labels come off stock automatically when an invoice is submitted for a customer whose labels we print. Customers who bring their own are marked \"Customer prints\" and are never counted.';
+
+  @override
+  String labelsHelpSheets(Object medium, Object large) {
+    return 'Printing is ordered in sheets — $medium Medium or $large Large labels per sheet.';
+  }
+
+  @override
+  String labelsHelpLeadTime(
+    Object min,
+    Object max,
+    String restDay,
+    Object buffer,
+  ) {
+    return 'Printing takes $min–$max working days with $restDay excluded, so a label is flagged \"Print now\" once its remaining stock would not survive that wait — and \"Print soon\" $buffer days before that point.';
+  }
+
+  @override
+  String get labelsHelpQuiet =>
+      'Once a batch is at the printer the label goes quiet and shows its due-back date instead, so the same shortage is not raised every morning.';
+
+  @override
+  String get labelsHelpAlertsOff =>
+      'Daily alerts are currently switched off in Jarz POS Settings.';
+
+  @override
+  String get labelsHelpGotIt => 'Got it';
+
+  @override
+  String labelsSummaryUrgent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count labels must go to the printer now',
+      one: '1 label must go to the printer now',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelsSummarySoon(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count labels to print soon',
+      one: '1 label to print soon',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get labelsSummaryNothing => 'Nothing needs printing';
+
+  @override
+  String labelsSummaryLeadTime(Object min, Object max, String restDay) {
+    return 'Printing takes $min–$max working days · $restDay excluded';
+  }
+
+  @override
+  String labelsSummaryReadySuffix(String date) {
+    return ' · order today, ready $date';
+  }
+
+  @override
+  String get labelsFilterNeedsPrinting => 'Needs printing';
+
+  @override
+  String get labelsFilterAll => 'All';
+
+  @override
+  String get labelsFilterAtPrinter => 'At printer';
+
+  @override
+  String get labelsFilterCustomerPrints => 'Customer prints';
+
+  @override
+  String labelsFilterWithCount(String text, int count) {
+    return '$text ($count)';
+  }
+
+  @override
+  String get labelsAllLocations => 'All locations';
+
+  @override
+  String get labelsSearchHint => 'Search customer or flavour';
+
+  @override
+  String get labelsEmptyNoneTitle => 'No labels tracked yet';
+
+  @override
+  String get labelsEmptyNoneBody =>
+      'Set up the B2B customers whose jar labels JARZ prints — one label per flavour. Stock then comes down on its own as their orders are invoiced.';
+
+  @override
+  String get labelsEmptyEnoughCover => 'Every label has enough cover';
+
+  @override
+  String get labelsEmptyNoMatch => 'Nothing matches this filter';
+
+  @override
+  String get labelsShowAll => 'Show all labels';
+
+  @override
+  String get labelStatusOutOfStock => 'Out of stock';
+
+  @override
+  String get labelStatusOutOfStockWhy =>
+      'No labels left. This customer cannot be packed.';
+
+  @override
+  String get labelStatusPrintNow => 'Print now';
+
+  @override
+  String labelStatusPrintNowWhy(int days) {
+    return 'Stock runs out before a new batch could arrive ($days working days).';
+  }
+
+  @override
+  String get labelStatusPrintSoon => 'Print soon';
+
+  @override
+  String get labelStatusPrintSoonWhy =>
+      'Getting close to the point of no return.';
+
+  @override
+  String get labelStatusAtPrinter => 'At the printer';
+
+  @override
+  String get labelStatusAtPrinterWhy => 'A batch is already on its way.';
+
+  @override
+  String get labelStatusOk => 'OK';
+
+  @override
+  String get labelStatusOkWhy => 'Comfortable cover.';
+
+  @override
+  String get labelStatusCustomerPrints => 'Customer prints';
+
+  @override
+  String get labelStatusCustomerPrintsWhy =>
+      'This customer supplies their own labels, so nothing is counted.';
+
+  @override
+  String get labelStatusUnknown => 'Unknown';
+
+  @override
+  String labelCardFlavours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flavours',
+      one: '1 flavour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelCardNeedPrintingSuffix(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: ' · $count need printing',
+      one: ' · 1 needs printing',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get labelCardCustomerActions => 'Customer actions';
+
+  @override
+  String get labelCardAddFlavour => 'Add flavour';
+
+  @override
+  String get labelCardOnHand => 'on hand';
+
+  @override
+  String get labelCardOfCover => 'of cover';
+
+  @override
+  String labelCardOrderSheets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Order $count sheets',
+      one: 'Order 1 sheet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get labelCardOrderBatch => 'Order a batch';
+
+  @override
+  String get labelCardCoverOver99 => '99+ d';
+
+  @override
+  String labelCardCoverDays(String days) {
+    return '$days d';
+  }
+
+  @override
+  String get labelCardCoverNone => '—';
+
+  @override
+  String get labelCardCustomerSupplies => 'Customer supplies their own labels';
+
+  @override
+  String labelCardSheetsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sheets',
+      one: '1 sheet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelCardLabelsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count labels',
+      one: '1 label',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelCardAtPrinter(String what) {
+    return '$what at the printer';
+  }
+
+  @override
+  String labelCardOverdueSince(String what, String date) {
+    return '$what overdue at the printer since $date';
+  }
+
+  @override
+  String labelCardDueBack(String what, String date) {
+    return '$what due back $date';
+  }
+
+  @override
+  String labelCardRunsOutAround(String date) {
+    return 'Runs out around $date';
+  }
+
+  @override
+  String get labelCardNoUsage => 'No usage recorded yet';
+
+  @override
+  String labelCardOrderAhead(int days) {
+    return 'Order $days working days ahead';
+  }
+
+  @override
+  String get labelPrintStatusRequested => 'Requested';
+
+  @override
+  String get labelPrintStatusPrinting => 'Printing';
+
+  @override
+  String get labelPrintStatusReady => 'Ready';
+
+  @override
+  String get labelPrintStatusReceived => 'Received';
+
+  @override
+  String get labelPrintStatusCancelled => 'Cancelled';
+
+  @override
+  String get labelMovementConsumed => 'Used on jars';
+
+  @override
+  String get labelMovementPrintReceived => 'Received from the printer';
+
+  @override
+  String get labelMovementScrapped => 'Damaged or thrown away';
+
+  @override
+  String get labelMovementAdjustment => 'Correction (+/-)';
+
+  @override
+  String get labelDetailFallbackTitle => 'Label';
+
+  @override
+  String get labelDetailSettingsTooltip => 'Label settings';
+
+  @override
+  String labelDetailLoadFailed(String error) {
+    return 'Could not load this label.\n$error';
+  }
+
+  @override
+  String labelDetailSentToPrinter(String what) {
+    return '$what sent to the printer';
+  }
+
+  @override
+  String get labelDetailCountSaved => 'Count saved';
+
+  @override
+  String get labelDetailMovementRecorded => 'Movement recorded';
+
+  @override
+  String labelDetailReceivedAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count labels added to stock',
+      one: '1 label added to stock',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelDetailBatchMarked(String status) {
+    return 'Batch marked $status';
+  }
+
+  @override
+  String get labelDetailBillRecorded =>
+      'Bill recorded — purchase invoice created';
+
+  @override
+  String get labelDetailSettingsSaved => 'Settings saved';
+
+  @override
+  String labelDetailStoredAt(String location) {
+    return 'Stored at $location';
+  }
+
+  @override
+  String get labelDetailLabelsOnHand => 'labels on hand';
+
+  @override
+  String get labelDetailDaysOfCover => 'Days of cover';
+
+  @override
+  String get labelDetailUnknownValue => 'unknown';
+
+  @override
+  String get labelDetailUsedPerDay => 'Used per day';
+
+  @override
+  String get labelDetailRunsOut => 'Runs out';
+
+  @override
+  String labelDetailUsedInDays(int days) {
+    return 'Used in ${days}d';
+  }
+
+  @override
+  String get labelDetailStockValue => 'Stock value';
+
+  @override
+  String get labelDetailAvgCost => 'Avg cost/label';
+
+  @override
+  String get labelDetailRetired =>
+      'This label is retired. Turn it back on in label settings to resume counting.';
+
+  @override
+  String get labelDetailCustomerSupplies =>
+      'This customer supplies their own labels, so nothing is counted and no alerts are raised. Turn on \"We print this label\" in settings if that changes.';
+
+  @override
+  String get labelDetailActionOrder => 'Order';
+
+  @override
+  String get labelDetailActionCount => 'Count';
+
+  @override
+  String get labelDetailActionRecord => 'Record';
+
+  @override
+  String get labelDetailSectionBatches => 'Print batches';
+
+  @override
+  String labelDetailOrderedOn(String date) {
+    return 'ordered $date';
+  }
+
+  @override
+  String labelDetailOverdueSince(String date) {
+    return 'overdue since $date';
+  }
+
+  @override
+  String labelDetailDueOn(String date) {
+    return 'due $date';
+  }
+
+  @override
+  String labelDetailReceivedOn(String date) {
+    return 'received $date';
+  }
+
+  @override
+  String labelDetailReceivedOnQty(String date, int qty) {
+    return 'received $date ($qty)';
+  }
+
+  @override
+  String get labelDetailReceiveIntoStock => 'Receive into stock';
+
+  @override
+  String get labelDetailMarkPrinting => 'Mark printing';
+
+  @override
+  String get labelDetailMarkReady => 'Mark ready';
+
+  @override
+  String get labelDetailRecordBill => 'Record the printer\'s bill';
+
+  @override
+  String get labelDetailCancelBatch => 'Cancel batch';
+
+  @override
+  String get labelDetailBilled => 'Billed';
+
+  @override
+  String labelDetailBilledWithInvoice(String invoice) {
+    return 'Billed · $invoice';
+  }
+
+  @override
+  String get labelDetailUnbilled => 'Unbilled';
+
+  @override
+  String labelDetailUnbilledQuoted(String amount) {
+    return 'Unbilled · quoted $amount';
+  }
+
+  @override
+  String get labelDetailPolicyFlavour => 'Flavour';
+
+  @override
+  String get labelDetailPolicySize => 'Size';
+
+  @override
+  String get labelDetailPolicyStoredAt => 'Stored at';
+
+  @override
+  String get labelDetailPolicyNotSet => 'Not set';
+
+  @override
+  String get labelDetailPolicyMinStock => 'Minimum stock';
+
+  @override
+  String get labelDetailPolicyUsualBatch => 'Usual print batch';
+
+  @override
+  String get labelDetailPolicyLabelsPerSheet => 'Labels per sheet';
+
+  @override
+  String get labelDetailPolicyLabelsPerJar => 'Labels per jar';
+
+  @override
+  String get labelDetailPolicyLeadTime => 'Print lead time';
+
+  @override
+  String labelDetailPolicyLeadTimeValue(
+    Object min,
+    Object max,
+    String restDay,
+  ) {
+    return '$min–$max working days ($restDay excluded)';
+  }
+
+  @override
+  String get labelDetailPolicyLastCounted => 'Last counted';
+
+  @override
+  String get labelDetailPolicyLastMovement => 'Last movement';
+
+  @override
+  String get labelDetailSectionSetup => 'Setup';
+
+  @override
+  String get labelDetailSectionHistory => 'History';
+
+  @override
+  String get labelDetailHistoryEmpty =>
+      'Nothing recorded yet. Labels come off automatically as this customer\'s orders are invoiced.';
+
+  @override
+  String get labelDetailAutoPosted => 'Posted automatically from the invoice';
+
+  @override
+  String get labelSheetSupplierOptional => 'Print supplier (optional)';
+
+  @override
+  String get labelSheetPrintSupplier => 'Print supplier';
+
+  @override
+  String get labelSheetCountTitle => 'Count labels';
+
+  @override
+  String get labelSheetCountSubtitle =>
+      'Enter what is physically on the shelf. The difference is posted to the ledger, so a label that keeps going missing shows up as a run of corrections rather than vanishing quietly.';
+
+  @override
+  String get labelSheetCountedQty => 'Counted quantity';
+
+  @override
+  String labelSheetSystemShows(int qty) {
+    return 'System currently shows $qty.';
+  }
+
+  @override
+  String labelSheetDeltaMore(int count) {
+    return '$count more than recorded';
+  }
+
+  @override
+  String labelSheetDeltaFewer(int count) {
+    return '$count fewer than recorded';
+  }
+
+  @override
+  String get labelSheetNoteOptional => 'Note (optional)';
+
+  @override
+  String get labelSheetNotesOptional => 'Notes (optional)';
+
+  @override
+  String get labelSheetSaveCount => 'Save count';
+
+  @override
+  String get labelSheetOrderTitle => 'Order a print batch';
+
+  @override
+  String labelSheetLeadPlain(Object min, Object max, String restDay) {
+    return 'Printing takes $min–$max working days ($restDay excluded).';
+  }
+
+  @override
+  String labelSheetLeadReady(
+    String date,
+    Object min,
+    Object max,
+    String restDay,
+  ) {
+    return 'Ordered today, ready around $date — $min–$max working days, $restDay excluded.';
+  }
+
+  @override
+  String get labelSheetSheetsToPrint => 'Sheets to print';
+
+  @override
+  String labelSheetSuggestedSheets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Suggested $count sheets, based on current usage and the usual batch.',
+      one: 'Suggested 1 sheet, based on current usage and the usual batch.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelSheetSheetsEquals(String sheets, String labels) {
+    return '$sheets = $labels';
+  }
+
+  @override
+  String get labelSheetNetCostOptional => 'Net cost (optional)';
+
+  @override
+  String get labelSheetNetCostQuoteHelper =>
+      'What the printer quoted for the batch, before VAT. The bill itself is recorded when it arrives.';
+
+  @override
+  String get labelSheetSendToPrinter => 'Send to printer';
+
+  @override
+  String get labelSheetReceiveTitle => 'Receive batch';
+
+  @override
+  String labelSheetReceiveSubtitle(String name, String ordered) {
+    return '$name · ordered $ordered';
+  }
+
+  @override
+  String get labelSheetLabelsReceived => 'Labels received';
+
+  @override
+  String get labelSheetReceivedHelper =>
+      'Adjust if the printer delivered short. Only this many are added to stock.';
+
+  @override
+  String get labelSheetAddToStock => 'Add to stock';
+
+  @override
+  String get labelSheetBillTitle => 'Record the printer\'s bill';
+
+  @override
+  String labelSheetBillSubtitle(String name, String ordered) {
+    return '$name · $ordered. This books a supplier purchase invoice, so the batch lands on the books at its real cost.';
+  }
+
+  @override
+  String get labelSheetNetCost => 'Net cost';
+
+  @override
+  String get labelSheetNetCostBillHelper =>
+      'What the printer charged for this batch, before VAT.';
+
+  @override
+  String get labelSheetBillNoOptional => 'Supplier\'s bill no. (optional)';
+
+  @override
+  String get labelSheetRecordBill => 'Record bill';
+
+  @override
+  String get labelSheetMovementTitle => 'Record a movement';
+
+  @override
+  String get labelSheetWhatHappened => 'What happened';
+
+  @override
+  String get labelSheetQuantity => 'Quantity';
+
+  @override
+  String get labelSheetAdjustmentHelper => 'Use a minus sign to reduce stock.';
+
+  @override
+  String get labelSheetQtyHelper =>
+      'Enter a plain number — the direction follows from the type.';
+
+  @override
+  String get labelSheetLabelName => 'Label name';
+
+  @override
+  String get labelSheetWePrint => 'We print this label';
+
+  @override
+  String get labelSheetWePrintHelp =>
+      'Off means the customer supplies their own — stops all counting and alerting without losing the history.';
+
+  @override
+  String get labelSheetActive => 'Active';
+
+  @override
+  String get labelSheetActiveHelp =>
+      'Turn off to retire a design that is no longer used.';
+
+  @override
+  String get labelSheetStoredAtHelper =>
+      'The branch or factory where this label physically lives.';
+
+  @override
+  String get labelSheetUsualBatchSheets => 'Usual batch (sheets)';
+
+  @override
+  String get labelSheetLabelsPerSheetHelper =>
+      'Leave 0 for the size default: 21 Medium, 18 Large.';
+
+  @override
+  String get labelSheetLabelsPerJarHelper => 'Usually 1.';
+
+  @override
+  String get labelWizardTitle => 'Set up customer labels';
+
+  @override
+  String get labelWizardStartTracking => 'Start tracking';
+
+  @override
+  String get labelWizardContinue => 'Continue';
+
+  @override
+  String get labelWizardBack => 'Back';
+
+  @override
+  String get labelWizardStepCustomer => 'Customer';
+
+  @override
+  String get labelWizardStepFlavours => 'Flavours';
+
+  @override
+  String labelWizardPickedCount(int count) {
+    return '$count picked';
+  }
+
+  @override
+  String get labelWizardStepLocation => 'Where the labels live';
+
+  @override
+  String get labelWizardStepConfirm => 'Confirm';
+
+  @override
+  String get labelWizardChange => 'Change';
+
+  @override
+  String labelWizardCustomerPriceList(String customer, String priceList) {
+    return '$customer · price list: $priceList';
+  }
+
+  @override
+  String get labelWizardSearchCustomers => 'Search customers';
+
+  @override
+  String get labelWizardSearching => 'Searching…';
+
+  @override
+  String get labelWizardNoCustomers => 'No company customers matched.';
+
+  @override
+  String labelWizardPriceList(String priceList) {
+    return 'Price list: $priceList';
+  }
+
+  @override
+  String labelWizardFlavoursLoadFailed(String error) {
+    return 'Could not load flavours.\n$error';
+  }
+
+  @override
+  String get labelWizardPickCustomerFirst => 'Pick a customer first.';
+
+  @override
+  String get labelWizardNoFlavours =>
+      'No flavours found for this customer — nothing on their price list and no order history yet.';
+
+  @override
+  String get labelWizardSizeOther => 'Other';
+
+  @override
+  String get labelWizardFlavourHelp =>
+      'Tick every flavour whose label JARZ prints. Enter what is already on the shelf so nothing starts life as Out of Stock.';
+
+  @override
+  String get labelWizardAlreadyTracked => 'Already tracked';
+
+  @override
+  String get labelWizardOnPriceList => 'On price list';
+
+  @override
+  String get labelWizardOrderedBefore => 'Ordered before';
+
+  @override
+  String get labelWizardLabelsInStock => 'Labels in stock now';
+
+  @override
+  String get labelWizardLocationsLoadFailed =>
+      'Could not load locations — you can set one per label later.';
+
+  @override
+  String get labelWizardStoredAtHelper =>
+      'The branch or factory where these labels physically live.';
+
+  @override
+  String get labelWizardUsualBatchSheets => 'Usual print batch (sheets)';
+
+  @override
+  String get labelWizardUsualBatchHelper =>
+      'Applied to every flavour; changeable per label later.';
+
+  @override
+  String get labelWizardConfirmPriceList => 'Price list';
+
+  @override
+  String get labelWizardConfirmUsualBatch => 'Usual batch';
+
+  @override
+  String get labelWizardSafeToRerun =>
+      'Flavours already tracked are left untouched — running this again is always safe.';
 }

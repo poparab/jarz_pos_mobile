@@ -5500,4 +5500,839 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get fleetErrorTitle => 'مش قادر يجيب مواقع المندوبين';
+
+  @override
+  String get labelsTitle => 'ليبلات العملاء';
+
+  @override
+  String get labelsHelpTooltip => 'الشاشة دي بتشتغل إزاي';
+
+  @override
+  String get labelsRefreshTooltip => 'تحديث';
+
+  @override
+  String get labelsSetUpCustomer => 'ضيف عميل';
+
+  @override
+  String get labelsSetupNothingNew => 'مفيش حاجة جديدة نتابعها';
+
+  @override
+  String labelsSetupTrackingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بنتابع دلوقتي $count نكهات',
+      one: 'بنتابع دلوقتي نكهة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelsSetupSkippedSuffix(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: ' ($count كانوا متتابعين قبل كده)',
+      one: ' (واحدة كانت متتابعة قبل كده)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelsPrintOrderSent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فرخ اتبعتوا للمطبعة',
+      one: 'فرخ واحد اتبعت للمطبعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelsPrintOrderDueBack(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فرخ اتطلبوا — مفروض يرجعوا $date',
+      one: 'فرخ واحد اتطلب — مفروض يرجع $date',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get labelsHelpTitle => 'متابعة الليبلات بتشتغل إزاي';
+
+  @override
+  String get labelsHelpRows =>
+      'كل نكهة ليها تصميم ليبل خاص بيها، فكل واحدة بتتتابع في سطر لوحدها. الليبلات بتتخصم من المخزن لوحدها أول ما فاتورة تتعمل لعميل إحنا اللي بنطبعله. العملاء اللي بيجيبوا ليبلاتهم بنفسهم بيتعلّموا \"العميل بيطبع\" وعمرهم ما بيتحسبوا.';
+
+  @override
+  String labelsHelpSheets(Object medium, Object large) {
+    return 'الطباعة بتتطلب بالفرخ — $medium ليبل ميديم أو $large ليبل لارج في الفرخ.';
+  }
+
+  @override
+  String labelsHelpLeadTime(
+    Object min,
+    Object max,
+    String restDay,
+    Object buffer,
+  ) {
+    return 'الطباعة بتاخد من $min لـ $max يوم شغل من غير $restDay، فالليبل بيتعلّم \"اطبع دلوقتي\" أول ما الرصيد اللي فاضل ميكفيش المدة دي — و\"اطبع قريب\" قبلها بـ $buffer يوم.';
+  }
+
+  @override
+  String get labelsHelpQuiet =>
+      'أول ما الدفعة تروح المطبعة الليبل بيسكت وبيوريك تاريخ رجوعه بدل التنبيه، عشان نفس النقص ميتقالش عليك كل يوم الصبح.';
+
+  @override
+  String get labelsHelpAlertsOff =>
+      'التنبيهات اليومية مقفولة حاليًا من إعدادات Jarz POS.';
+
+  @override
+  String get labelsHelpGotIt => 'تمام';
+
+  @override
+  String labelsSummaryUrgent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ليبل لازم يروحوا المطبعة دلوقتي',
+      one: 'ليبل واحد لازم يروح المطبعة دلوقتي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelsSummarySoon(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ليبل محتاجين طباعة قريب',
+      one: 'ليبل واحد محتاج طباعة قريب',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get labelsSummaryNothing => 'مفيش حاجة محتاجة طباعة';
+
+  @override
+  String labelsSummaryLeadTime(Object min, Object max, String restDay) {
+    return 'الطباعة بتاخد من $min لـ $max يوم شغل · من غير $restDay';
+  }
+
+  @override
+  String labelsSummaryReadySuffix(String date) {
+    return ' · اطلب النهارده، يجهز $date';
+  }
+
+  @override
+  String get labelsFilterNeedsPrinting => 'محتاج طباعة';
+
+  @override
+  String get labelsFilterAll => 'الكل';
+
+  @override
+  String get labelsFilterAtPrinter => 'في المطبعة';
+
+  @override
+  String get labelsFilterCustomerPrints => 'العميل بيطبع';
+
+  @override
+  String labelsFilterWithCount(String text, int count) {
+    return '$text ($count)';
+  }
+
+  @override
+  String get labelsAllLocations => 'كل الأماكن';
+
+  @override
+  String get labelsSearchHint => 'دوّر على عميل أو نكهة';
+
+  @override
+  String get labelsEmptyNoneTitle => 'لسه مفيش ليبلات متتابعة';
+
+  @override
+  String get labelsEmptyNoneBody =>
+      'ضيف عملاء الجملة اللي JARZ بتطبعلهم ليبل البرطمانات — ليبل لكل نكهة. بعد كده الرصيد بينزل لوحده مع كل فاتورة ليهم.';
+
+  @override
+  String get labelsEmptyEnoughCover => 'كل الليبلات رصيدها مكفي';
+
+  @override
+  String get labelsEmptyNoMatch => 'مفيش حاجة مطابقة للفلتر ده';
+
+  @override
+  String get labelsShowAll => 'وريني كل الليبلات';
+
+  @override
+  String get labelStatusOutOfStock => 'خلصان';
+
+  @override
+  String get labelStatusOutOfStockWhy =>
+      'مفيش ليبلات خالص. العميل ده مش هينفع يتعبّى.';
+
+  @override
+  String get labelStatusPrintNow => 'اطبع دلوقتي';
+
+  @override
+  String labelStatusPrintNowWhy(int days) {
+    return 'الرصيد هيخلص قبل ما دفعة جديدة توصل ($days يوم شغل).';
+  }
+
+  @override
+  String get labelStatusPrintSoon => 'اطبع قريب';
+
+  @override
+  String get labelStatusPrintSoonWhy =>
+      'قرّبنا على النقطة اللي مفيش بعدها رجوع.';
+
+  @override
+  String get labelStatusAtPrinter => 'في المطبعة';
+
+  @override
+  String get labelStatusAtPrinterWhy => 'فيه دفعة جاية بالفعل.';
+
+  @override
+  String get labelStatusOk => 'تمام';
+
+  @override
+  String get labelStatusOkWhy => 'الرصيد مريح.';
+
+  @override
+  String get labelStatusCustomerPrints => 'العميل بيطبع';
+
+  @override
+  String get labelStatusCustomerPrintsWhy =>
+      'العميل ده بيجيب ليبلاته بنفسه، فمفيش حاجة بتتحسب.';
+
+  @override
+  String get labelStatusUnknown => 'غير معروف';
+
+  @override
+  String labelCardFlavours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نكهات',
+      one: 'نكهة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelCardNeedPrintingSuffix(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: ' · $count محتاجين طباعة',
+      one: ' · واحدة محتاجة طباعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get labelCardCustomerActions => 'إجراءات العميل';
+
+  @override
+  String get labelCardAddFlavour => 'ضيف نكهة';
+
+  @override
+  String get labelCardOnHand => 'بالمخزن';
+
+  @override
+  String get labelCardOfCover => 'تغطية';
+
+  @override
+  String labelCardOrderSheets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'اطلب $count فرخ',
+      one: 'اطلب فرخ واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get labelCardOrderBatch => 'اطلب دفعة';
+
+  @override
+  String get labelCardCoverOver99 => '‏99+ يوم';
+
+  @override
+  String labelCardCoverDays(String days) {
+    return '$days يوم';
+  }
+
+  @override
+  String get labelCardCoverNone => '—';
+
+  @override
+  String get labelCardCustomerSupplies => 'العميل بيجيب ليبلاته بنفسه';
+
+  @override
+  String labelCardSheetsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فرخ',
+      one: 'فرخ واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelCardLabelsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ليبل',
+      one: 'ليبل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelCardAtPrinter(String what) {
+    return '$what في المطبعة';
+  }
+
+  @override
+  String labelCardOverdueSince(String what, String date) {
+    return '$what متأخرين في المطبعة من $date';
+  }
+
+  @override
+  String labelCardDueBack(String what, String date) {
+    return '$what مفروض يرجعوا $date';
+  }
+
+  @override
+  String labelCardRunsOutAround(String date) {
+    return 'هيخلص حوالي $date';
+  }
+
+  @override
+  String get labelCardNoUsage => 'لسه مفيش استهلاك مسجّل';
+
+  @override
+  String labelCardOrderAhead(int days) {
+    return 'اطلب قبلها بـ $days يوم شغل';
+  }
+
+  @override
+  String get labelPrintStatusRequested => 'متطلبة';
+
+  @override
+  String get labelPrintStatusPrinting => 'بتتطبع';
+
+  @override
+  String get labelPrintStatusReady => 'جاهزة';
+
+  @override
+  String get labelPrintStatusReceived => 'اتستلمت';
+
+  @override
+  String get labelPrintStatusCancelled => 'ملغية';
+
+  @override
+  String get labelMovementConsumed => 'اتستخدمت على برطمانات';
+
+  @override
+  String get labelMovementPrintReceived => 'اتستلمت من المطبعة';
+
+  @override
+  String get labelMovementScrapped => 'تلفت أو اترمت';
+
+  @override
+  String get labelMovementAdjustment => 'تصحيح (+/-)';
+
+  @override
+  String get labelDetailFallbackTitle => 'ليبل';
+
+  @override
+  String get labelDetailSettingsTooltip => 'إعدادات الليبل';
+
+  @override
+  String labelDetailLoadFailed(String error) {
+    return 'مش قادر يفتح الليبل ده.\n$error';
+  }
+
+  @override
+  String labelDetailSentToPrinter(String what) {
+    return '$what اتبعتوا للمطبعة';
+  }
+
+  @override
+  String get labelDetailCountSaved => 'الجرد اتحفظ';
+
+  @override
+  String get labelDetailMovementRecorded => 'الحركة اتسجّلت';
+
+  @override
+  String labelDetailReceivedAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ليبل اتضافوا للمخزن',
+      one: 'ليبل واحد اتضاف للمخزن',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelDetailBatchMarked(String status) {
+    return 'الدفعة اتعلّمت $status';
+  }
+
+  @override
+  String get labelDetailBillRecorded =>
+      'الفاتورة اتسجّلت — واتعملت فاتورة شراء';
+
+  @override
+  String get labelDetailSettingsSaved => 'الإعدادات اتحفظت';
+
+  @override
+  String labelDetailStoredAt(String location) {
+    return 'متخزّن في $location';
+  }
+
+  @override
+  String get labelDetailLabelsOnHand => 'ليبل بالمخزن';
+
+  @override
+  String get labelDetailDaysOfCover => 'أيام التغطية';
+
+  @override
+  String get labelDetailUnknownValue => 'مش معروف';
+
+  @override
+  String get labelDetailUsedPerDay => 'الاستهلاك اليومي';
+
+  @override
+  String get labelDetailRunsOut => 'هيخلص';
+
+  @override
+  String labelDetailUsedInDays(int days) {
+    return 'اتستهلك في $days يوم';
+  }
+
+  @override
+  String get labelDetailStockValue => 'قيمة المخزون';
+
+  @override
+  String get labelDetailAvgCost => 'متوسط تكلفة الليبل';
+
+  @override
+  String get labelDetailRetired =>
+      'الليبل ده متوقف. رجّعه من إعدادات الليبل عشان العد يكمّل.';
+
+  @override
+  String get labelDetailCustomerSupplies =>
+      'العميل ده بيجيب ليبلاته بنفسه، فمفيش حاجة بتتحسب ولا تنبيهات بتطلع. شغّل \"إحنا بنطبع الليبل ده\" من الإعدادات لو الوضع اتغيّر.';
+
+  @override
+  String get labelDetailActionOrder => 'اطلب';
+
+  @override
+  String get labelDetailActionCount => 'جرد';
+
+  @override
+  String get labelDetailActionRecord => 'سجّل';
+
+  @override
+  String get labelDetailSectionBatches => 'دفعات الطباعة';
+
+  @override
+  String labelDetailOrderedOn(String date) {
+    return 'اتطلبت $date';
+  }
+
+  @override
+  String labelDetailOverdueSince(String date) {
+    return 'متأخرة من $date';
+  }
+
+  @override
+  String labelDetailDueOn(String date) {
+    return 'موعدها $date';
+  }
+
+  @override
+  String labelDetailReceivedOn(String date) {
+    return 'اتستلمت $date';
+  }
+
+  @override
+  String labelDetailReceivedOnQty(String date, int qty) {
+    return 'اتستلمت $date ($qty)';
+  }
+
+  @override
+  String get labelDetailReceiveIntoStock => 'استلام للمخزن';
+
+  @override
+  String get labelDetailMarkPrinting => 'علّمها بتتطبع';
+
+  @override
+  String get labelDetailMarkReady => 'علّمها جاهزة';
+
+  @override
+  String get labelDetailRecordBill => 'سجّل فاتورة المطبعة';
+
+  @override
+  String get labelDetailCancelBatch => 'إلغاء الدفعة';
+
+  @override
+  String get labelDetailBilled => 'متفوترة';
+
+  @override
+  String labelDetailBilledWithInvoice(String invoice) {
+    return 'متفوترة · $invoice';
+  }
+
+  @override
+  String get labelDetailUnbilled => 'مش متفوترة';
+
+  @override
+  String labelDetailUnbilledQuoted(String amount) {
+    return 'مش متفوترة · عرض سعر $amount';
+  }
+
+  @override
+  String get labelDetailPolicyFlavour => 'النكهة';
+
+  @override
+  String get labelDetailPolicySize => 'المقاس';
+
+  @override
+  String get labelDetailPolicyStoredAt => 'مكان التخزين';
+
+  @override
+  String get labelDetailPolicyNotSet => 'مش متحدد';
+
+  @override
+  String get labelDetailPolicyMinStock => 'الحد الأدنى للمخزون';
+
+  @override
+  String get labelDetailPolicyUsualBatch => 'دفعة الطباعة المعتادة';
+
+  @override
+  String get labelDetailPolicyLabelsPerSheet => 'ليبل في الفرخ';
+
+  @override
+  String get labelDetailPolicyLabelsPerJar => 'ليبل في البرطمان';
+
+  @override
+  String get labelDetailPolicyLeadTime => 'مدة الطباعة';
+
+  @override
+  String labelDetailPolicyLeadTimeValue(
+    Object min,
+    Object max,
+    String restDay,
+  ) {
+    return 'من $min لـ $max يوم شغل (من غير $restDay)';
+  }
+
+  @override
+  String get labelDetailPolicyLastCounted => 'آخر جرد';
+
+  @override
+  String get labelDetailPolicyLastMovement => 'آخر حركة';
+
+  @override
+  String get labelDetailSectionSetup => 'الإعداد';
+
+  @override
+  String get labelDetailSectionHistory => 'السجل';
+
+  @override
+  String get labelDetailHistoryEmpty =>
+      'لسه مفيش حاجة متسجّلة. الليبلات بتتخصم لوحدها مع كل فاتورة للعميل ده.';
+
+  @override
+  String get labelDetailAutoPosted => 'اتسجّلت أوتوماتيك من الفاتورة';
+
+  @override
+  String get labelSheetSupplierOptional => 'مورّد الطباعة (اختياري)';
+
+  @override
+  String get labelSheetPrintSupplier => 'مورّد الطباعة';
+
+  @override
+  String get labelSheetCountTitle => 'جرد الليبلات';
+
+  @override
+  String get labelSheetCountSubtitle =>
+      'اكتب اللي موجود فعلًا على الرف. الفرق بيتسجّل في السجل، فالليبل اللي بيقل على طول بيبان كسلسلة تصحيحات مش بيضيع في الساكت.';
+
+  @override
+  String get labelSheetCountedQty => 'الكمية المعدودة';
+
+  @override
+  String labelSheetSystemShows(int qty) {
+    return 'النظام مسجّل حاليًا $qty.';
+  }
+
+  @override
+  String labelSheetDeltaMore(int count) {
+    return '$count أكتر من المسجّل';
+  }
+
+  @override
+  String labelSheetDeltaFewer(int count) {
+    return '$count أقل من المسجّل';
+  }
+
+  @override
+  String get labelSheetNoteOptional => 'ملاحظة (اختياري)';
+
+  @override
+  String get labelSheetNotesOptional => 'ملاحظات (اختياري)';
+
+  @override
+  String get labelSheetSaveCount => 'احفظ الجرد';
+
+  @override
+  String get labelSheetOrderTitle => 'اطلب دفعة طباعة';
+
+  @override
+  String labelSheetLeadPlain(Object min, Object max, String restDay) {
+    return 'الطباعة بتاخد من $min لـ $max يوم شغل (من غير $restDay).';
+  }
+
+  @override
+  String labelSheetLeadReady(
+    String date,
+    Object min,
+    Object max,
+    String restDay,
+  ) {
+    return 'لو اتطلبت النهارده هتجهز حوالي $date — من $min لـ $max يوم شغل، من غير $restDay.';
+  }
+
+  @override
+  String get labelSheetSheetsToPrint => 'عدد الفروخ للطباعة';
+
+  @override
+  String labelSheetSuggestedSheets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'المقترح $count فرخ، على أساس الاستهلاك الحالي والدفعة المعتادة.',
+      one: 'المقترح فرخ واحد، على أساس الاستهلاك الحالي والدفعة المعتادة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelSheetSheetsEquals(String sheets, String labels) {
+    return '$sheets = $labels';
+  }
+
+  @override
+  String get labelSheetNetCostOptional => 'التكلفة الصافية (اختياري)';
+
+  @override
+  String get labelSheetNetCostQuoteHelper =>
+      'السعر اللي المطبعة قالته على الدفعة، قبل الضريبة. الفاتورة نفسها بتتسجّل أول ما توصل.';
+
+  @override
+  String get labelSheetSendToPrinter => 'ابعت للمطبعة';
+
+  @override
+  String get labelSheetReceiveTitle => 'استلام دفعة';
+
+  @override
+  String labelSheetReceiveSubtitle(String name, String ordered) {
+    return '$name · المطلوب $ordered';
+  }
+
+  @override
+  String get labelSheetLabelsReceived => 'الليبلات المستلمة';
+
+  @override
+  String get labelSheetReceivedHelper =>
+      'عدّل الرقم لو المطبعة سلّمت ناقص. العدد ده بس هو اللي هيتضاف للمخزن.';
+
+  @override
+  String get labelSheetAddToStock => 'ضيف للمخزن';
+
+  @override
+  String get labelSheetBillTitle => 'سجّل فاتورة المطبعة';
+
+  @override
+  String labelSheetBillSubtitle(String name, String ordered) {
+    return '$name · $ordered. ده بيعمل فاتورة شراء للمورّد، فالدفعة بتتسجّل في الدفاتر بتكلفتها الحقيقية.';
+  }
+
+  @override
+  String get labelSheetNetCost => 'التكلفة الصافية';
+
+  @override
+  String get labelSheetNetCostBillHelper =>
+      'المبلغ اللي المطبعة حاسبته على الدفعة دي، قبل الضريبة.';
+
+  @override
+  String get labelSheetBillNoOptional => 'رقم فاتورة المورّد (اختياري)';
+
+  @override
+  String get labelSheetRecordBill => 'سجّل الفاتورة';
+
+  @override
+  String get labelSheetMovementTitle => 'سجّل حركة';
+
+  @override
+  String get labelSheetWhatHappened => 'اللي حصل';
+
+  @override
+  String get labelSheetQuantity => 'الكمية';
+
+  @override
+  String get labelSheetAdjustmentHelper => 'حط علامة ناقص عشان تقلّل المخزون.';
+
+  @override
+  String get labelSheetQtyHelper =>
+      'اكتب رقم عادي — الاتجاه بيتحدد من نوع الحركة.';
+
+  @override
+  String get labelSheetLabelName => 'اسم الليبل';
+
+  @override
+  String get labelSheetWePrint => 'إحنا بنطبع الليبل ده';
+
+  @override
+  String get labelSheetWePrintHelp =>
+      'لو مقفول يبقى العميل بيجيب ليبلاته بنفسه — بيوقف كل العد والتنبيهات من غير ما يضيّع السجل.';
+
+  @override
+  String get labelSheetActive => 'شغّال';
+
+  @override
+  String get labelSheetActiveHelp => 'اقفله عشان توقف تصميم مابقاش بيتستخدم.';
+
+  @override
+  String get labelSheetStoredAtHelper =>
+      'الفرع أو المصنع اللي الليبل ده متخزّن فيه فعلًا.';
+
+  @override
+  String get labelSheetUsualBatchSheets => 'الدفعة المعتادة (فروخ)';
+
+  @override
+  String get labelSheetLabelsPerSheetHelper =>
+      'سيبها 0 عشان تاخد الافتراضي حسب المقاس: 21 ميديم، 18 لارج.';
+
+  @override
+  String get labelSheetLabelsPerJarHelper => 'عادةً 1.';
+
+  @override
+  String get labelWizardTitle => 'إعداد ليبلات العميل';
+
+  @override
+  String get labelWizardStartTracking => 'ابدأ المتابعة';
+
+  @override
+  String get labelWizardContinue => 'كمّل';
+
+  @override
+  String get labelWizardBack => 'رجوع';
+
+  @override
+  String get labelWizardStepCustomer => 'العميل';
+
+  @override
+  String get labelWizardStepFlavours => 'النكهات';
+
+  @override
+  String labelWizardPickedCount(int count) {
+    return 'متختار $count';
+  }
+
+  @override
+  String get labelWizardStepLocation => 'مكان تخزين الليبلات';
+
+  @override
+  String get labelWizardStepConfirm => 'تأكيد';
+
+  @override
+  String get labelWizardChange => 'غيّر';
+
+  @override
+  String labelWizardCustomerPriceList(String customer, String priceList) {
+    return '$customer · قائمة الأسعار: $priceList';
+  }
+
+  @override
+  String get labelWizardSearchCustomers => 'دوّر على عملاء';
+
+  @override
+  String get labelWizardSearching => 'بيدوّر…';
+
+  @override
+  String get labelWizardNoCustomers => 'مفيش عملاء شركات مطابقين.';
+
+  @override
+  String labelWizardPriceList(String priceList) {
+    return 'قائمة الأسعار: $priceList';
+  }
+
+  @override
+  String labelWizardFlavoursLoadFailed(String error) {
+    return 'مش قادر يجيب النكهات.\n$error';
+  }
+
+  @override
+  String get labelWizardPickCustomerFirst => 'اختار عميل الأول.';
+
+  @override
+  String get labelWizardNoFlavours =>
+      'مفيش نكهات للعميل ده — لا حاجة في قائمة أسعاره ولا طلبات سابقة.';
+
+  @override
+  String get labelWizardSizeOther => 'أخرى';
+
+  @override
+  String get labelWizardFlavourHelp =>
+      'علّم على كل نكهة JARZ بتطبع ليبلها. واكتب اللي موجود على الرف دلوقتي عشان محدش يبدأ خلصان.';
+
+  @override
+  String get labelWizardAlreadyTracked => 'متتابعة بالفعل';
+
+  @override
+  String get labelWizardOnPriceList => 'في قائمة الأسعار';
+
+  @override
+  String get labelWizardOrderedBefore => 'اتطلبت قبل كده';
+
+  @override
+  String get labelWizardLabelsInStock => 'الليبلات الموجودة دلوقتي';
+
+  @override
+  String get labelWizardLocationsLoadFailed =>
+      'مش قادر يجيب الأماكن — تقدر تحدد مكان لكل ليبل بعدين.';
+
+  @override
+  String get labelWizardStoredAtHelper =>
+      'الفرع أو المصنع اللي الليبلات دي متخزّنة فيه فعلًا.';
+
+  @override
+  String get labelWizardUsualBatchSheets => 'دفعة الطباعة المعتادة (فروخ)';
+
+  @override
+  String get labelWizardUsualBatchHelper =>
+      'بتتطبق على كل النكهات، وتقدر تغيّرها لكل ليبل بعدين.';
+
+  @override
+  String get labelWizardConfirmPriceList => 'قائمة الأسعار';
+
+  @override
+  String get labelWizardConfirmUsualBatch => 'الدفعة المعتادة';
+
+  @override
+  String get labelWizardSafeToRerun =>
+      'النكهات المتتابعة بالفعل مش بتتلمس — تقدر تعيد ده في أي وقت من غير قلق.';
 }

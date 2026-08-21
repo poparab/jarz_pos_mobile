@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/widgets/app_drawer.dart';
+
 import '../../data/labels_repository.dart';
 import '../../models/label_models.dart';
 import '../../state/labels_notifier.dart';
@@ -70,15 +73,15 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
       child: Scaffold(
         drawer: const AppDrawer(),
         appBar: AppBar(
-          title: const Text('Customer Labels'),
+          title: Text(context.l10n.labelsTitle),
           actions: [
             IconButton(
-              tooltip: 'How this works',
+              tooltip: context.l10n.labelsHelpTooltip,
               icon: const Icon(Icons.help_outline),
               onPressed: () => _showHelp(context, state.settings),
             ),
             IconButton(
-              tooltip: 'Refresh',
+              tooltip: context.l10n.labelsRefreshTooltip,
               icon: const Icon(Icons.refresh),
               onPressed: state.isLoading ? null : notifier.refresh,
             ),
@@ -87,7 +90,7 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
         floatingActionButton: FloatingActionButton.extended(
           onPressed: state.isSubmitting ? null : () => _openSetupWizard(),
           icon: const Icon(Icons.add_business),
-          label: const Text('Set up customer'),
+          label: Text(context.l10n.labelsSetUpCustomer),
         ),
         body: !state.initialized && state.isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -168,23 +171,23 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
     if (!mounted) return;
     ref.read(labelsNotifierProvider.notifier).refresh();
     if (result != null) {
+      final l10n = context.l10n;
       final created = result.createdCount;
       final skipped = result.skippedCount;
+      final base = created == 0
+          ? l10n.labelsSetupNothingNew
+          : l10n.labelsSetupTrackingCount(created);
+      final suffix =
+          skipped > 0 ? l10n.labelsSetupSkippedSuffix(skipped) : '';
       _messengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text(
-            created == 0
-                ? 'Nothing new to track'
-                    '${skipped > 0 ? ' — $skipped flavour${skipped == 1 ? ' was' : 's were'} already tracked' : ''}.'
-                : 'Now tracking $created flavour${created == 1 ? '' : 's'}'
-                    '${skipped > 0 ? ' ($skipped already tracked)' : ''}.',
-          ),
-        ),
+        SnackBar(content: Text('$base$suffix.')),
       );
     }
   }
 
   Future<void> _orderBatch(BuildContext context, CustomerLabel label) async {
+    final l10n = context.l10n;
+    final localeName = l10n.localeName;
     final request = await showModalBottomSheet<PrintOrderRequest>(
       context: context,
       isScrollControlled: true,
@@ -205,14 +208,15 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
     if (updated != null && mounted) {
       notifier.applyUpdated(updated);
       final due = updated.nextArrival?.expectedReadyDate;
-      final sheets =
-          '${request.qtySheets} sheet${request.qtySheets == 1 ? '' : 's'}';
       _messengerKey.currentState?.showSnackBar(
         SnackBar(
           content: Text(
             due == null
-                ? '$sheets sent to the printer'
-                : '$sheets ordered — due back ${DateFormat('d MMM').format(due)}',
+                ? l10n.labelsPrintOrderSent(request.qtySheets)
+                : l10n.labelsPrintOrderDueBack(
+                    request.qtySheets,
+                    DateFormat('d MMM', localeName).format(due),
+                  ),
           ),
         ),
       );
@@ -220,46 +224,40 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
   }
 
   void _showHelp(BuildContext context, LabelSettings settings) {
+    final l10n = context.l10n;
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('How label tracking works'),
+        title: Text(l10n.labelsHelpTitle),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Every flavour has its own label design, so each is tracked on '
-                'its own row. Labels come off stock automatically when an '
-                'invoice is submitted for a customer whose labels we print. '
-                'Customers who bring their own are marked "Customer prints" '
-                'and are never counted.',
+              Text(l10n.labelsHelpRows),
+              const SizedBox(height: 12),
+              Text(
+                l10n.labelsHelpSheets(
+                  settings.sheetMedium,
+                  settings.sheetLarge,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
-                'Printing is ordered in sheets — ${settings.sheetMedium} Medium '
-                'or ${settings.sheetLarge} Large labels per sheet.',
+                l10n.labelsHelpLeadTime(
+                  settings.leadDaysMin,
+                  settings.leadDaysMax,
+                  settings.restDay,
+                  settings.bufferDays,
+                ),
               ),
               const SizedBox(height: 12),
-              Text(
-                'Printing takes ${settings.leadDaysMin}–${settings.leadDaysMax} '
-                'working days with ${settings.restDay} excluded, so a label is '
-                'flagged "Print now" once its remaining stock would not survive '
-                'that wait — and "Print soon" ${settings.bufferDays} days before '
-                'that point.',
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Once a batch is at the printer the label goes quiet and shows '
-                'its due-back date instead, so the same shortage is not raised '
-                'every morning.',
-              ),
+              Text(l10n.labelsHelpQuiet),
               if (!settings.alertsEnabled) ...[
                 const SizedBox(height: 12),
-                const Text(
-                  'Daily alerts are currently switched off in Jarz POS Settings.',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                Text(
+                  l10n.labelsHelpAlertsOff,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ],
             ],
@@ -268,7 +266,7 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Got it'),
+            child: Text(l10n.labelsHelpGotIt),
           ),
         ],
       ),
@@ -285,6 +283,7 @@ class _SummaryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final urgent = summary.urgent;
 
     return Container(
@@ -308,10 +307,10 @@ class _SummaryHeader extends StatelessWidget {
               Expanded(
                 child: Text(
                   urgent > 0
-                      ? '$urgent label${urgent == 1 ? '' : 's'} must go to the printer now'
+                      ? l10n.labelsSummaryUrgent(urgent)
                       : summary.reorderSoon > 0
-                          ? '${summary.reorderSoon} label${summary.reorderSoon == 1 ? '' : 's'} to print soon'
-                          : 'Nothing needs printing',
+                          ? l10n.labelsSummarySoon(summary.reorderSoon)
+                          : l10n.labelsSummaryNothing,
                   style: theme.textTheme.titleSmall
                       ?.copyWith(fontWeight: FontWeight.w700),
                 ),
@@ -320,9 +319,18 @@ class _SummaryHeader extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Printing takes ${settings.leadDaysMin}–${settings.leadDaysMax} working '
-            'days · ${settings.restDay} excluded'
-            '${settings.expectedReadyIfOrderedToday == null ? '' : ' · order today, ready ${DateFormat('d MMM').format(settings.expectedReadyIfOrderedToday!)}'}',
+            l10n.labelsSummaryLeadTime(
+                  settings.leadDaysMin,
+                  settings.leadDaysMax,
+                  settings.restDay,
+                ) +
+                (settings.expectedReadyIfOrderedToday == null
+                    ? ''
+                    : l10n.labelsSummaryReadySuffix(formatDate(
+                        context,
+                        settings.expectedReadyIfOrderedToday!,
+                        pattern: 'd MMM',
+                      ))),
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
@@ -351,11 +359,20 @@ class _FilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final entries = <(LabelFilter, String, int?)>[
-      (LabelFilter.attention, 'Needs printing', summary.needsAttention),
-      (LabelFilter.all, 'All', summary.total),
-      (LabelFilter.onOrder, 'At printer', summary.onOrder),
-      (LabelFilter.notTracked, 'Customer prints', summary.notTracked),
+      (
+        LabelFilter.attention,
+        l10n.labelsFilterNeedsPrinting,
+        summary.needsAttention
+      ),
+      (LabelFilter.all, l10n.labelsFilterAll, summary.total),
+      (LabelFilter.onOrder, l10n.labelsFilterAtPrinter, summary.onOrder),
+      (
+        LabelFilter.notTracked,
+        l10n.labelsFilterCustomerPrints,
+        summary.notTracked
+      ),
     ];
 
     return SizedBox(
@@ -370,7 +387,9 @@ class _FilterBar extends StatelessWidget {
               child: ChoiceChip(
                 selected: filter == value,
                 onSelected: (_) => onChanged(value),
-                label: Text(count == null || count == 0 ? text : '$text ($count)'),
+                label: Text(count == null || count == 0
+                    ? text
+                    : l10n.labelsFilterWithCount(text, count)),
               ),
             ),
           if (locations.isNotEmpty)
@@ -417,9 +436,9 @@ class _LocationFilter extends StatelessWidget {
           style: theme.textTheme.labelLarge
               ?.copyWith(color: theme.colorScheme.onSurface),
           items: [
-            const DropdownMenuItem<String?>(
+            DropdownMenuItem<String?>(
               value: null,
-              child: Text('All locations'),
+              child: Text(context.l10n.labelsAllLocations),
             ),
             for (final loc in locations)
               DropdownMenuItem<String?>(
@@ -448,7 +467,7 @@ class _SearchField extends StatelessWidget {
         controller: controller,
         onChanged: onChanged,
         decoration: InputDecoration(
-          hintText: 'Search customer or flavour',
+          hintText: context.l10n.labelsSearchHint,
           prefixIcon: const Icon(Icons.search),
           isDense: true,
           border: const OutlineInputBorder(),
@@ -481,6 +500,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     if (!hasAnyLabels) {
       return ListView(
@@ -491,16 +511,14 @@ class _EmptyState extends StatelessWidget {
               size: 56, color: theme.colorScheme.outlineVariant),
           const SizedBox(height: 16),
           Center(
-            child: Text('No labels tracked yet',
+            child: Text(l10n.labelsEmptyNoneTitle,
                 style: theme.textTheme.titleMedium),
           ),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Text(
-              'Set up the B2B customers whose jar labels JARZ prints — one '
-              'label per flavour. Stock then comes down on its own as their '
-              'orders are invoiced.',
+              l10n.labelsEmptyNoneBody,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
@@ -525,8 +543,8 @@ class _EmptyState extends StatelessWidget {
         Center(
           child: Text(
             filter == LabelFilter.attention
-                ? 'Every label has enough cover'
-                : 'Nothing matches this filter',
+                ? l10n.labelsEmptyEnoughCover
+                : l10n.labelsEmptyNoMatch,
             style: theme.textTheme.titleMedium,
           ),
         ),
@@ -534,7 +552,7 @@ class _EmptyState extends StatelessWidget {
         Center(
           child: TextButton(
             onPressed: onShowAll,
-            child: const Text('Show all labels'),
+            child: Text(l10n.labelsShowAll),
           ),
         ),
       ],

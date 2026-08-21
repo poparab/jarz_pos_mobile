@@ -83,3 +83,38 @@ String localizedPartyTypeLabel(BuildContext context, String? rawType) {
       return type.isEmpty ? context.l10n.commonNotSpecified : type;
   }
 }
+/// Print-order lifecycle for a customer label batch, as ERPNext stores it.
+String localizedLabelPrintStatus(BuildContext context, String? rawStatus) {
+  final status = rawStatus?.trim() ?? '';
+  switch (status.toLowerCase()) {
+    case 'requested':
+      return context.l10n.labelPrintStatusRequested;
+    case 'printing':
+      return context.l10n.labelPrintStatusPrinting;
+    case 'ready':
+      return context.l10n.labelPrintStatusReady;
+    case 'received':
+      return context.l10n.labelPrintStatusReceived;
+    case 'cancelled':
+      return context.l10n.labelPrintStatusCancelled;
+    default:
+      return status.isEmpty ? context.l10n.commonNotSpecified : status;
+  }
+}
+
+/// Why a label's stock moved, as ERPNext stores it.
+String localizedLabelMovementType(BuildContext context, String? rawType) {
+  final type = rawType?.trim() ?? '';
+  switch (type.toLowerCase()) {
+    case 'consumed':
+      return context.l10n.labelMovementConsumed;
+    case 'print received':
+      return context.l10n.labelMovementPrintReceived;
+    case 'scrapped':
+      return context.l10n.labelMovementScrapped;
+    case 'adjustment':
+      return context.l10n.labelMovementAdjustment;
+    default:
+      return type.isEmpty ? context.l10n.commonNotSpecified : type;
+  }
+}

@@ -1082,31 +1082,97 @@
   "dailyPlanNoItems": "No fillable items have a default BOM yet.",
   "dailyPlanNoMix": "No cheesecake mix",
   "dailyPlanPerBatch": "{count} per batch",
-  "@dailyPlanPerBatch": {"placeholders": {"count": {"type": "int"}}},
+  "@dailyPlanPerBatch": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dailyPlanTotalJars": "{count} jars planned",
-  "@dailyPlanTotalJars": {"placeholders": {"count": {"type": "int"}}},
+  "@dailyPlanTotalJars": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dailyPlanEnterQuantities": "Enter how many jars you plan to fill.",
   "dailyPlanMixTotal": "{qty} {uom} of mix = {batches} batches",
-  "@dailyPlanMixTotal": {"placeholders": {"qty": {"type": "String"}, "uom": {"type": "String"}, "batches": {"type": "String"}}},
+  "@dailyPlanMixTotal": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "uom": {
+        "type": "String"
+      },
+      "batches": {
+        "type": "String"
+      }
+    }
+  },
   "dailyPlanNoRuns": "The mixer is not configured, so the split cannot be calculated.",
   "dailyPlanRunPreferred": "ideal",
   "dailyPlanRunAcceptable": "stretching",
   "dailyPlanRunPoor": "mixes badly",
   "dailyPlanSpareMix": "{batches} batches of spare mix from rounding to whole runs.",
-  "@dailyPlanSpareMix": {"placeholders": {"batches": {"type": "String"}}},
+  "@dailyPlanSpareMix": {
+    "placeholders": {
+      "batches": {
+        "type": "String"
+      }
+    }
+  },
   "dailyPlanCheckMaterials": "Check stock",
   "dailyPlanSave": "Save plan",
   "dailyPlanSaved": "Plan {name} saved.",
-  "@dailyPlanSaved": {"placeholders": {"name": {"type": "String"}}},
+  "@dailyPlanSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "dailyPlanShortages": "{count} materials short",
-  "@dailyPlanShortages": {"placeholders": {"count": {"type": "int"}}},
+  "@dailyPlanShortages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dailyPlanShortageLine": "{item}: {qty} {uom} short",
-  "@dailyPlanShortageLine": {"placeholders": {"item": {"type": "String"}, "qty": {"type": "String"}, "uom": {"type": "String"}}},
+  "@dailyPlanShortageLine": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      },
+      "qty": {
+        "type": "String"
+      },
+      "uom": {
+        "type": "String"
+      }
+    }
+  },
   "dailyPlanShortagesMore": "and {count} more",
-  "@dailyPlanShortagesMore": {"placeholders": {"count": {"type": "int"}}},
+  "@dailyPlanShortagesMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dailyPlanMaterialsUnavailable": "Stock could not be checked for this plan.",
   "dailyPlanBomIssues": "{count} BOMs need attention before the mix total is right",
-  "@dailyPlanBomIssues": {"placeholders": {"count": {"type": "int"}}},
+  "@dailyPlanBomIssues": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dailyPlanBomIssuesTitle": "BOM issues affecting the plan",
   "productionTabBatch": "Batch",
   "productionAccessDenied": "Production access required",
@@ -1306,7 +1372,9 @@
   "kanbanFilterMatchCount": "{count, plural, =0{No matching orders} =1{1 matching order} other{{count} matching orders}}",
   "@kanbanFilterMatchCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "kanbanFilterDone": "Done",
@@ -2949,5 +3017,627 @@
   },
   "fleetForbiddenTitle": "Supervisors only",
   "fleetForbiddenBody": "Live courier positions are limited to managers and supervisors. Retrying will not help — ask a manager to open this screen.",
-  "fleetErrorTitle": "Could not load courier positions"
+  "fleetErrorTitle": "Could not load courier positions",
+  "labelsTitle": "Customer Labels",
+  "labelsHelpTooltip": "How this works",
+  "labelsRefreshTooltip": "Refresh",
+  "labelsSetUpCustomer": "Set up customer",
+  "labelsSetupNothingNew": "Nothing new to track",
+  "labelsSetupTrackingCount": "{count, plural, =1{Now tracking 1 flavour} other{Now tracking {count} flavours}}",
+  "@labelsSetupTrackingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelsSetupSkippedSuffix": "{count, plural, =1{ (1 already tracked)} other{ ({count} already tracked)}}",
+  "@labelsSetupSkippedSuffix": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelsPrintOrderSent": "{count, plural, =1{1 sheet sent to the printer} other{{count} sheets sent to the printer}}",
+  "@labelsPrintOrderSent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelsPrintOrderDueBack": "{count, plural, =1{1 sheet ordered — due back {date}} other{{count} sheets ordered — due back {date}}}",
+  "@labelsPrintOrderDueBack": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "labelsHelpTitle": "How label tracking works",
+  "labelsHelpRows": "Every flavour has its own label design, so each is tracked on its own row. Labels come off stock automatically when an invoice is submitted for a customer whose labels we print. Customers who bring their own are marked \"Customer prints\" and are never counted.",
+  "labelsHelpSheets": "Printing is ordered in sheets — {medium} Medium or {large} Large labels per sheet.",
+  "@labelsHelpSheets": {
+    "placeholders": {
+      "medium": {
+        "type": "Object"
+      },
+      "large": {
+        "type": "Object"
+      }
+    }
+  },
+  "labelsHelpLeadTime": "Printing takes {min}–{max} working days with {restDay} excluded, so a label is flagged \"Print now\" once its remaining stock would not survive that wait — and \"Print soon\" {buffer} days before that point.",
+  "@labelsHelpLeadTime": {
+    "placeholders": {
+      "min": {
+        "type": "Object"
+      },
+      "max": {
+        "type": "Object"
+      },
+      "restDay": {
+        "type": "String"
+      },
+      "buffer": {
+        "type": "Object"
+      }
+    }
+  },
+  "labelsHelpQuiet": "Once a batch is at the printer the label goes quiet and shows its due-back date instead, so the same shortage is not raised every morning.",
+  "labelsHelpAlertsOff": "Daily alerts are currently switched off in Jarz POS Settings.",
+  "labelsHelpGotIt": "Got it",
+  "labelsSummaryUrgent": "{count, plural, =1{1 label must go to the printer now} other{{count} labels must go to the printer now}}",
+  "@labelsSummaryUrgent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelsSummarySoon": "{count, plural, =1{1 label to print soon} other{{count} labels to print soon}}",
+  "@labelsSummarySoon": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelsSummaryNothing": "Nothing needs printing",
+  "labelsSummaryLeadTime": "Printing takes {min}–{max} working days · {restDay} excluded",
+  "@labelsSummaryLeadTime": {
+    "placeholders": {
+      "min": {
+        "type": "Object"
+      },
+      "max": {
+        "type": "Object"
+      },
+      "restDay": {
+        "type": "String"
+      }
+    }
+  },
+  "labelsSummaryReadySuffix": " · order today, ready {date}",
+  "@labelsSummaryReadySuffix": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "labelsFilterNeedsPrinting": "Needs printing",
+  "labelsFilterAll": "All",
+  "labelsFilterAtPrinter": "At printer",
+  "labelsFilterCustomerPrints": "Customer prints",
+  "labelsFilterWithCount": "{text} ({count})",
+  "@labelsFilterWithCount": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelsAllLocations": "All locations",
+  "labelsSearchHint": "Search customer or flavour",
+  "labelsEmptyNoneTitle": "No labels tracked yet",
+  "labelsEmptyNoneBody": "Set up the B2B customers whose jar labels JARZ prints — one label per flavour. Stock then comes down on its own as their orders are invoiced.",
+  "labelsEmptyEnoughCover": "Every label has enough cover",
+  "labelsEmptyNoMatch": "Nothing matches this filter",
+  "labelsShowAll": "Show all labels",
+  "labelStatusOutOfStock": "Out of stock",
+  "labelStatusOutOfStockWhy": "No labels left. This customer cannot be packed.",
+  "labelStatusPrintNow": "Print now",
+  "labelStatusPrintNowWhy": "Stock runs out before a new batch could arrive ({days} working days).",
+  "@labelStatusPrintNowWhy": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "labelStatusPrintSoon": "Print soon",
+  "labelStatusPrintSoonWhy": "Getting close to the point of no return.",
+  "labelStatusAtPrinter": "At the printer",
+  "labelStatusAtPrinterWhy": "A batch is already on its way.",
+  "labelStatusOk": "OK",
+  "labelStatusOkWhy": "Comfortable cover.",
+  "labelStatusCustomerPrints": "Customer prints",
+  "labelStatusCustomerPrintsWhy": "This customer supplies their own labels, so nothing is counted.",
+  "labelStatusUnknown": "Unknown",
+  "labelCardFlavours": "{count, plural, =1{1 flavour} other{{count} flavours}}",
+  "@labelCardFlavours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelCardNeedPrintingSuffix": "{count, plural, =1{ · 1 needs printing} other{ · {count} need printing}}",
+  "@labelCardNeedPrintingSuffix": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelCardCustomerActions": "Customer actions",
+  "labelCardAddFlavour": "Add flavour",
+  "labelCardOnHand": "on hand",
+  "labelCardOfCover": "of cover",
+  "labelCardOrderSheets": "{count, plural, =1{Order 1 sheet} other{Order {count} sheets}}",
+  "@labelCardOrderSheets": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelCardOrderBatch": "Order a batch",
+  "labelCardCoverOver99": "99+ d",
+  "labelCardCoverDays": "{days} d",
+  "@labelCardCoverDays": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "labelCardCoverNone": "—",
+  "labelCardCustomerSupplies": "Customer supplies their own labels",
+  "labelCardSheetsCount": "{count, plural, =1{1 sheet} other{{count} sheets}}",
+  "@labelCardSheetsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelCardLabelsCount": "{count, plural, =1{1 label} other{{count} labels}}",
+  "@labelCardLabelsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelCardAtPrinter": "{what} at the printer",
+  "@labelCardAtPrinter": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "labelCardOverdueSince": "{what} overdue at the printer since {date}",
+  "@labelCardOverdueSince": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "labelCardDueBack": "{what} due back {date}",
+  "@labelCardDueBack": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "labelCardRunsOutAround": "Runs out around {date}",
+  "@labelCardRunsOutAround": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "labelCardNoUsage": "No usage recorded yet",
+  "labelCardOrderAhead": "Order {days} working days ahead",
+  "@labelCardOrderAhead": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "labelPrintStatusRequested": "Requested",
+  "labelPrintStatusPrinting": "Printing",
+  "labelPrintStatusReady": "Ready",
+  "labelPrintStatusReceived": "Received",
+  "labelPrintStatusCancelled": "Cancelled",
+  "labelMovementConsumed": "Used on jars",
+  "labelMovementPrintReceived": "Received from the printer",
+  "labelMovementScrapped": "Damaged or thrown away",
+  "labelMovementAdjustment": "Correction (+/-)",
+  "labelDetailFallbackTitle": "Label",
+  "labelDetailSettingsTooltip": "Label settings",
+  "labelDetailLoadFailed": "Could not load this label.\n{error}",
+  "@labelDetailLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "labelDetailSentToPrinter": "{what} sent to the printer",
+  "@labelDetailSentToPrinter": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "labelDetailCountSaved": "Count saved",
+  "labelDetailMovementRecorded": "Movement recorded",
+  "labelDetailReceivedAdded": "{count, plural, =1{1 label added to stock} other{{count} labels added to stock}}",
+  "@labelDetailReceivedAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelDetailBatchMarked": "Batch marked {status}",
+  "@labelDetailBatchMarked": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "labelDetailBillRecorded": "Bill recorded — purchase invoice created",
+  "labelDetailSettingsSaved": "Settings saved",
+  "labelDetailStoredAt": "Stored at {location}",
+  "@labelDetailStoredAt": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "labelDetailLabelsOnHand": "labels on hand",
+  "labelDetailDaysOfCover": "Days of cover",
+  "labelDetailUnknownValue": "unknown",
+  "labelDetailUsedPerDay": "Used per day",
+  "labelDetailRunsOut": "Runs out",
+  "labelDetailUsedInDays": "Used in {days}d",
+  "@labelDetailUsedInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "labelDetailStockValue": "Stock value",
+  "labelDetailAvgCost": "Avg cost/label",
+  "labelDetailRetired": "This label is retired. Turn it back on in label settings to resume counting.",
+  "labelDetailCustomerSupplies": "This customer supplies their own labels, so nothing is counted and no alerts are raised. Turn on \"We print this label\" in settings if that changes.",
+  "labelDetailActionOrder": "Order",
+  "labelDetailActionCount": "Count",
+  "labelDetailActionRecord": "Record",
+  "labelDetailSectionBatches": "Print batches",
+  "labelDetailOrderedOn": "ordered {date}",
+  "@labelDetailOrderedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "labelDetailOverdueSince": "overdue since {date}",
+  "@labelDetailOverdueSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "labelDetailDueOn": "due {date}",
+  "@labelDetailDueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "labelDetailReceivedOn": "received {date}",
+  "@labelDetailReceivedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "labelDetailReceivedOnQty": "received {date} ({qty})",
+  "@labelDetailReceivedOnQty": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "labelDetailReceiveIntoStock": "Receive into stock",
+  "labelDetailMarkPrinting": "Mark printing",
+  "labelDetailMarkReady": "Mark ready",
+  "labelDetailRecordBill": "Record the printer''s bill",
+  "labelDetailCancelBatch": "Cancel batch",
+  "labelDetailBilled": "Billed",
+  "labelDetailBilledWithInvoice": "Billed · {invoice}",
+  "@labelDetailBilledWithInvoice": {
+    "placeholders": {
+      "invoice": {
+        "type": "String"
+      }
+    }
+  },
+  "labelDetailUnbilled": "Unbilled",
+  "labelDetailUnbilledQuoted": "Unbilled · quoted {amount}",
+  "@labelDetailUnbilledQuoted": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "labelDetailPolicyFlavour": "Flavour",
+  "labelDetailPolicySize": "Size",
+  "labelDetailPolicyStoredAt": "Stored at",
+  "labelDetailPolicyNotSet": "Not set",
+  "labelDetailPolicyMinStock": "Minimum stock",
+  "labelDetailPolicyUsualBatch": "Usual print batch",
+  "labelDetailPolicyLabelsPerSheet": "Labels per sheet",
+  "labelDetailPolicyLabelsPerJar": "Labels per jar",
+  "labelDetailPolicyLeadTime": "Print lead time",
+  "labelDetailPolicyLeadTimeValue": "{min}–{max} working days ({restDay} excluded)",
+  "@labelDetailPolicyLeadTimeValue": {
+    "placeholders": {
+      "min": {
+        "type": "Object"
+      },
+      "max": {
+        "type": "Object"
+      },
+      "restDay": {
+        "type": "String"
+      }
+    }
+  },
+  "labelDetailPolicyLastCounted": "Last counted",
+  "labelDetailPolicyLastMovement": "Last movement",
+  "labelDetailSectionSetup": "Setup",
+  "labelDetailSectionHistory": "History",
+  "labelDetailHistoryEmpty": "Nothing recorded yet. Labels come off automatically as this customer''s orders are invoiced.",
+  "labelDetailAutoPosted": "Posted automatically from the invoice",
+  "labelSheetSupplierOptional": "Print supplier (optional)",
+  "labelSheetPrintSupplier": "Print supplier",
+  "labelSheetCountTitle": "Count labels",
+  "labelSheetCountSubtitle": "Enter what is physically on the shelf. The difference is posted to the ledger, so a label that keeps going missing shows up as a run of corrections rather than vanishing quietly.",
+  "labelSheetCountedQty": "Counted quantity",
+  "labelSheetSystemShows": "System currently shows {qty}.",
+  "@labelSheetSystemShows": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "labelSheetDeltaMore": "{count} more than recorded",
+  "@labelSheetDeltaMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelSheetDeltaFewer": "{count} fewer than recorded",
+  "@labelSheetDeltaFewer": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelSheetNoteOptional": "Note (optional)",
+  "labelSheetNotesOptional": "Notes (optional)",
+  "labelSheetSaveCount": "Save count",
+  "labelSheetOrderTitle": "Order a print batch",
+  "labelSheetLeadPlain": "Printing takes {min}–{max} working days ({restDay} excluded).",
+  "@labelSheetLeadPlain": {
+    "placeholders": {
+      "min": {
+        "type": "Object"
+      },
+      "max": {
+        "type": "Object"
+      },
+      "restDay": {
+        "type": "String"
+      }
+    }
+  },
+  "labelSheetLeadReady": "Ordered today, ready around {date} — {min}–{max} working days, {restDay} excluded.",
+  "@labelSheetLeadReady": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "min": {
+        "type": "Object"
+      },
+      "max": {
+        "type": "Object"
+      },
+      "restDay": {
+        "type": "String"
+      }
+    }
+  },
+  "labelSheetSheetsToPrint": "Sheets to print",
+  "labelSheetSuggestedSheets": "{count, plural, =1{Suggested 1 sheet, based on current usage and the usual batch.} other{Suggested {count} sheets, based on current usage and the usual batch.}}",
+  "@labelSheetSuggestedSheets": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelSheetSheetsEquals": "{sheets} = {labels}",
+  "@labelSheetSheetsEquals": {
+    "placeholders": {
+      "sheets": {
+        "type": "String"
+      },
+      "labels": {
+        "type": "String"
+      }
+    }
+  },
+  "labelSheetNetCostOptional": "Net cost (optional)",
+  "labelSheetNetCostQuoteHelper": "What the printer quoted for the batch, before VAT. The bill itself is recorded when it arrives.",
+  "labelSheetSendToPrinter": "Send to printer",
+  "labelSheetReceiveTitle": "Receive batch",
+  "labelSheetReceiveSubtitle": "{name} · ordered {ordered}",
+  "@labelSheetReceiveSubtitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ordered": {
+        "type": "String"
+      }
+    }
+  },
+  "labelSheetLabelsReceived": "Labels received",
+  "labelSheetReceivedHelper": "Adjust if the printer delivered short. Only this many are added to stock.",
+  "labelSheetAddToStock": "Add to stock",
+  "labelSheetBillTitle": "Record the printer''s bill",
+  "labelSheetBillSubtitle": "{name} · {ordered}. This books a supplier purchase invoice, so the batch lands on the books at its real cost.",
+  "@labelSheetBillSubtitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ordered": {
+        "type": "String"
+      }
+    }
+  },
+  "labelSheetNetCost": "Net cost",
+  "labelSheetNetCostBillHelper": "What the printer charged for this batch, before VAT.",
+  "labelSheetBillNoOptional": "Supplier''s bill no. (optional)",
+  "labelSheetRecordBill": "Record bill",
+  "labelSheetMovementTitle": "Record a movement",
+  "labelSheetWhatHappened": "What happened",
+  "labelSheetQuantity": "Quantity",
+  "labelSheetAdjustmentHelper": "Use a minus sign to reduce stock.",
+  "labelSheetQtyHelper": "Enter a plain number — the direction follows from the type.",
+  "labelSheetLabelName": "Label name",
+  "labelSheetWePrint": "We print this label",
+  "labelSheetWePrintHelp": "Off means the customer supplies their own — stops all counting and alerting without losing the history.",
+  "labelSheetActive": "Active",
+  "labelSheetActiveHelp": "Turn off to retire a design that is no longer used.",
+  "labelSheetStoredAtHelper": "The branch or factory where this label physically lives.",
+  "labelSheetUsualBatchSheets": "Usual batch (sheets)",
+  "labelSheetLabelsPerSheetHelper": "Leave 0 for the size default: 21 Medium, 18 Large.",
+  "labelSheetLabelsPerJarHelper": "Usually 1.",
+  "labelWizardTitle": "Set up customer labels",
+  "labelWizardStartTracking": "Start tracking",
+  "labelWizardContinue": "Continue",
+  "labelWizardBack": "Back",
+  "labelWizardStepCustomer": "Customer",
+  "labelWizardStepFlavours": "Flavours",
+  "labelWizardPickedCount": "{count} picked",
+  "@labelWizardPickedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelWizardStepLocation": "Where the labels live",
+  "labelWizardStepConfirm": "Confirm",
+  "labelWizardChange": "Change",
+  "labelWizardCustomerPriceList": "{customer} · price list: {priceList}",
+  "@labelWizardCustomerPriceList": {
+    "placeholders": {
+      "customer": {
+        "type": "String"
+      },
+      "priceList": {
+        "type": "String"
+      }
+    }
+  },
+  "labelWizardSearchCustomers": "Search customers",
+  "labelWizardSearching": "Searching…",
+  "labelWizardNoCustomers": "No company customers matched.",
+  "labelWizardPriceList": "Price list: {priceList}",
+  "@labelWizardPriceList": {
+    "placeholders": {
+      "priceList": {
+        "type": "String"
+      }
+    }
+  },
+  "labelWizardFlavoursLoadFailed": "Could not load flavours.\n{error}",
+  "@labelWizardFlavoursLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "labelWizardPickCustomerFirst": "Pick a customer first.",
+  "labelWizardNoFlavours": "No flavours found for this customer — nothing on their price list and no order history yet.",
+  "labelWizardSizeOther": "Other",
+  "labelWizardFlavourHelp": "Tick every flavour whose label JARZ prints. Enter what is already on the shelf so nothing starts life as Out of Stock.",
+  "labelWizardAlreadyTracked": "Already tracked",
+  "labelWizardOnPriceList": "On price list",
+  "labelWizardOrderedBefore": "Ordered before",
+  "labelWizardLabelsInStock": "Labels in stock now",
+  "labelWizardLocationsLoadFailed": "Could not load locations — you can set one per label later.",
+  "labelWizardStoredAtHelper": "The branch or factory where these labels physically live.",
+  "labelWizardUsualBatchSheets": "Usual print batch (sheets)",
+  "labelWizardUsualBatchHelper": "Applied to every flavour; changeable per label later.",
+  "labelWizardConfirmPriceList": "Price list",
+  "labelWizardConfirmUsualBatch": "Usual batch",
+  "labelWizardSafeToRerun": "Flavours already tracked are left untouched — running this again is always safe."
 }
