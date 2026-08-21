@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../b2b/data/b2b_repository.dart' show b2bRepositoryProvider;
 import '../../../b2b/presentation/widgets/b2b_stage_chip.dart'
     show B2bStageChip, kB2bStages, kDefaultB2bStage;
@@ -37,7 +38,8 @@ class LeadDetailScreen extends ConsumerWidget {
         backgroundColor: Colors.white,
         foregroundColor: LeadsTheme.deepPlum,
         elevation: 0,
-        title: Text('Lead', style: LeadsTheme.heading.copyWith(fontSize: 22)),
+        title: Text(context.l10n.leadDetailTitle,
+            style: LeadsTheme.heading.copyWith(fontSize: 22)),
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -57,7 +59,7 @@ class LeadDetailScreen extends ConsumerWidget {
                       ref.read(leadDetailProvider(leadName).notifier).refresh(),
                   style: FilledButton.styleFrom(
                       backgroundColor: LeadsTheme.berryPink),
-                  child: const Text('Retry'),
+                  child: Text(context.l10n.commonRetry),
                 ),
               ],
             ),
@@ -120,7 +122,8 @@ class _DetailBody extends ConsumerWidget {
         _AddressesSection(lead: lead, leadName: leadName),
         const SizedBox(height: 20),
         if (lead.branches.isNotEmpty) ...[
-          Text('Branches (${lead.branches.length})', style: LeadsTheme.heading),
+          Text(context.l10n.leadDetailBranchesCount(lead.branches.length),
+              style: LeadsTheme.heading),
           const SizedBox(height: 8),
           for (final branch in lead.branches) _BranchTile(branch: branch),
         ],
@@ -206,26 +209,26 @@ class _ContactRow extends StatelessWidget {
       children: [
         _ContactAction(
           icon: Icons.call,
-          label: 'Call',
+          label: context.l10n.leadActionCall,
           enabled: lead.phone.trim().isNotEmpty,
           onTap: () => LeadActions.call(lead.phone),
         ),
         _ContactAction(
           icon: Icons.camera_alt_outlined,
-          label: 'Instagram',
+          label: context.l10n.leadActionInstagram,
           color: LeadsTheme.berryPink,
           enabled: lead.instagram.trim().isNotEmpty,
           onTap: () => LeadActions.instagram(lead.instagram),
         ),
         _ContactAction(
           icon: Icons.language,
-          label: 'Website',
+          label: context.l10n.leadActionWebsite,
           enabled: lead.website.trim().isNotEmpty,
           onTap: () => LeadActions.website(lead.website),
         ),
         _ContactAction(
           icon: Icons.map_outlined,
-          label: 'Map',
+          label: context.l10n.leadActionMap,
           enabled: lead.mapsUrl.trim().isNotEmpty ||
               (lead.latitude != null && lead.longitude != null),
           onTap: () {
@@ -322,13 +325,14 @@ class _EditableSectionState extends ConsumerState<_EditableSection> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lead updated')),
+          SnackBar(content: Text(context.l10n.leadDetailUpdated)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed: $e')));
+            .showSnackBar(SnackBar(
+                content: Text(context.l10n.leadDetailFailed('$e'))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -337,14 +341,15 @@ class _EditableSectionState extends ConsumerState<_EditableSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final categoriesAsync = ref.watch(leadCategoriesProvider);
     return _SectionCard(
-      title: 'Status & notes',
+      title: l10n.leadDetailStatusNotes,
       children: [
         TextField(
           controller: _statusController,
           style: LeadsTheme.body,
-          decoration: _dec('Status'),
+          decoration: _dec(l10n.leadDetailStatusField),
         ),
         const SizedBox(height: 12),
         categoriesAsync.maybeWhen(
@@ -353,12 +358,12 @@ class _EditableSectionState extends ConsumerState<_EditableSection> {
                 ? _category
                 : null,
             isExpanded: true,
-            decoration: _dec('Category'),
+            decoration: _dec(l10n.leadDetailCategoryField),
             style: LeadsTheme.body,
             items: [
-              const DropdownMenuItem<String?>(
+              DropdownMenuItem<String?>(
                 value: null,
-                child: Text('None'),
+                child: Text(l10n.leadDetailCategoryNone),
               ),
               for (final cat in categories)
                 DropdownMenuItem<String?>(
@@ -377,7 +382,7 @@ class _EditableSectionState extends ConsumerState<_EditableSection> {
           controller: _notesController,
           style: LeadsTheme.body,
           maxLines: 4,
-          decoration: _dec('Notes'),
+          decoration: _dec(l10n.commonNotesLabel),
         ),
         const SizedBox(height: 12),
         Align(
@@ -391,7 +396,7 @@ class _EditableSectionState extends ConsumerState<_EditableSection> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.save_outlined, size: 18),
-            label: const Text('Save'),
+            label: Text(context.l10n.commonSave),
             style:
                 FilledButton.styleFrom(backgroundColor: LeadsTheme.berryPink),
           ),
@@ -452,13 +457,14 @@ class _FitScoreSectionState extends ConsumerState<_FitScoreSection> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fit score updated')),
+          SnackBar(content: Text(context.l10n.leadDetailFitScoreUpdated)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed: $e')));
+            .showSnackBar(SnackBar(
+                content: Text(context.l10n.leadDetailFailed('$e'))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -475,7 +481,7 @@ class _FitScoreSectionState extends ConsumerState<_FitScoreSection> {
             ScoreBar(_score, width: 44),
             const SizedBox(width: 12),
             Text(
-              '$_score / 100',
+              context.l10n.leadDetailScoreOutOf(_score),
               style: LeadsTheme.body.copyWith(
                 fontWeight: FontWeight.w700,
                 fontFeatures: LeadsTheme.tabular,
@@ -505,7 +511,7 @@ class _FitScoreSectionState extends ConsumerState<_FitScoreSection> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.save_outlined, size: 18),
-            label: const Text('Save'),
+            label: Text(context.l10n.commonSave),
             style:
                 FilledButton.styleFrom(backgroundColor: LeadsTheme.berryPink),
           ),
@@ -576,13 +582,16 @@ class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Stage updated to $stage')),
+          SnackBar(
+              content: Text(context.l10n.leadDetailStageUpdated(
+                  localizedLeadStage(context, stage)))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed: $e')));
+            .showSnackBar(SnackBar(
+                content: Text(context.l10n.leadDetailFailed('$e'))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -594,22 +603,22 @@ class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
     return showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Reason'),
+        title: Text(context.l10n.leadDetailReasonTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Why is this lost / on hold?',
+          decoration: InputDecoration(
+            hintText: context.l10n.leadDetailReasonHint,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('Confirm'),
+            child: Text(context.l10n.commonConfirm),
           ),
         ],
       ),
@@ -649,7 +658,9 @@ class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
           style: LeadsTheme.body,
           items: [
             for (final stage in kB2bStages)
-              DropdownMenuItem<String>(value: stage, child: Text(stage)),
+              DropdownMenuItem<String>(
+                  value: stage,
+                  child: Text(localizedLeadStage(context, stage))),
           ],
           onChanged: _saving
               ? null
@@ -673,9 +684,11 @@ class _NotSuitableBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final detail = [
       if (lead.notSuitableReason.isNotEmpty) lead.notSuitableReason,
-      if (lead.notSuitableBy.isNotEmpty) 'by ${lead.notSuitableBy}',
+      if (lead.notSuitableBy.isNotEmpty)
+        context.l10n.leadDetailByWhom(lead.notSuitableBy),
       if (lead.notSuitableOn != null && lead.notSuitableOn!.isNotEmpty)
-        'on ${lead.notSuitableOn!.split(' ').first}',
+        context.l10n
+            .leadDetailOnDate(lead.notSuitableOn!.split(' ').first),
     ].join(' · ');
 
     return Container(
@@ -695,7 +708,7 @@ class _NotSuitableBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Not suitable',
+                  context.l10n.leadDetailNotSuitable,
                   style: LeadsTheme.body.copyWith(
                     fontWeight: FontWeight.w700,
                     color: LeadsTheme.rejected,
@@ -737,6 +750,7 @@ class _SuitabilitySectionState extends ConsumerState<_SuitabilitySection> {
   bool _saving = false;
 
   Future<void> _mark() async {
+    final markedMessage = context.l10n.leadDetailMarkedNotSuitable;
     final reasons = await ref.read(notSuitableReasonsProvider.future);
     if (!mounted) return;
 
@@ -750,34 +764,32 @@ class _SuitabilitySectionState extends ConsumerState<_SuitabilitySection> {
       notSuitable: true,
       reason: verdict.reason,
       notes: verdict.notes,
-      message: 'Marked not suitable',
+      message: markedMessage,
     );
   }
 
   Future<void> _clear() async {
+    final restoredMessage = context.l10n.leadDetailRestored;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Restore lead?'),
-        content: const Text(
-          'This clears the not-suitable verdict and puts the lead back in the '
-          'catalog at the Lead stage.',
-        ),
+        title: Text(context.l10n.leadDetailRestoreTitle),
+        content: Text(context.l10n.leadDetailRestoreBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Restore'),
+            child: Text(context.l10n.leadDetailRestore),
           ),
         ],
       ),
     );
     if (confirmed != true) return;
 
-    await _apply(notSuitable: false, message: 'Lead restored');
+    await _apply(notSuitable: false, message: restoredMessage);
   }
 
   Future<void> _apply({
@@ -809,7 +821,8 @@ class _SuitabilitySectionState extends ConsumerState<_SuitabilitySection> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed: $e')));
+            .showSnackBar(SnackBar(
+                content: Text(context.l10n.leadDetailFailed('$e'))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -818,16 +831,15 @@ class _SuitabilitySectionState extends ConsumerState<_SuitabilitySection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final marked = widget.lead.notSuitable;
     return _SectionCard(
-      title: 'Suitability',
+      title: l10n.leadDetailSuitability,
       children: [
         Text(
           marked
-              ? 'This prospect was judged not suitable after manual inspection. '
-                  'It is hidden from the catalog and off the pipeline board.'
-              : 'Inspected this prospect and it is not worth pursuing? Mark it '
-                  'not suitable to take it out of the working catalog.',
+              ? l10n.leadDetailSuitabilityMarked
+              : l10n.leadDetailSuitabilityPrompt,
           style: LeadsTheme.bodyMuted,
         ),
         const SizedBox(height: 12),
@@ -843,7 +855,7 @@ class _SuitabilitySectionState extends ConsumerState<_SuitabilitySection> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.undo, size: 16),
-                  label: const Text('Restore lead'),
+                  label: Text(l10n.leadDetailRestoreLead),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: LeadsTheme.deepPlum,
                     side: const BorderSide(color: LeadsTheme.line),
@@ -858,7 +870,7 @@ class _SuitabilitySectionState extends ConsumerState<_SuitabilitySection> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.block, size: 16),
-                  label: const Text('Mark not suitable'),
+                  label: Text(l10n.leadDetailMarkNotSuitable),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: LeadsTheme.rejected,
                     side: BorderSide(
@@ -903,8 +915,9 @@ class _NotSuitableDialogState extends State<_NotSuitableDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
-      title: const Text('Mark not suitable'),
+      title: Text(l10n.leadDetailMarkNotSuitable),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -912,7 +925,7 @@ class _NotSuitableDialogState extends State<_NotSuitableDialog> {
             initialValue: _reason,
             isExpanded: true,
             decoration: InputDecoration(
-              labelText: 'Reason',
+              labelText: l10n.leadDetailReasonTitle,
               isDense: true,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             ),
@@ -927,8 +940,8 @@ class _NotSuitableDialogState extends State<_NotSuitableDialog> {
             controller: _notesController,
             maxLines: 3,
             decoration: InputDecoration(
-              labelText: 'Notes (optional)',
-              hintText: 'What did the inspection show?',
+              labelText: l10n.leadDetailNotesOptional,
+              hintText: l10n.leadDetailInspectionHint,
               isDense: true,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             ),
@@ -938,7 +951,7 @@ class _NotSuitableDialogState extends State<_NotSuitableDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           onPressed: _reason == null
@@ -951,7 +964,7 @@ class _NotSuitableDialogState extends State<_NotSuitableDialog> {
                     ),
                   ),
           style: FilledButton.styleFrom(backgroundColor: LeadsTheme.rejected),
-          child: const Text('Mark not suitable'),
+          child: Text(l10n.leadDetailMarkNotSuitable),
         ),
       ],
     );
@@ -970,9 +983,10 @@ class _MergedAwayBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final detail = [
-      if (lead.mergedBy.isNotEmpty) 'by ${lead.mergedBy}',
+      if (lead.mergedBy.isNotEmpty)
+        context.l10n.leadDetailByWhom(lead.mergedBy),
       if (lead.mergedOn != null && lead.mergedOn!.isNotEmpty)
-        'on ${lead.mergedOn!.split(' ').first}',
+        context.l10n.leadDetailOnDate(lead.mergedOn!.split(' ').first),
     ].join(' · ');
 
     return Container(
@@ -992,7 +1006,7 @@ class _MergedAwayBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Merged into another lead',
+                  context.l10n.leadDetailMergedAway,
                   style: LeadsTheme.body.copyWith(
                     fontWeight: FontWeight.w700,
                     color: LeadsTheme.sahelBlue,
@@ -1008,7 +1022,7 @@ class _MergedAwayBanner extends StatelessWidget {
                     '/leads/${Uri.encodeComponent(lead.mergedInto)}',
                   ),
                   icon: const Icon(Icons.open_in_new, size: 15),
-                  label: const Text('Open the surviving lead'),
+                  label: Text(context.l10n.leadDetailOpenSurvivor),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: LeadsTheme.sahelBlue,
                     side: BorderSide(
@@ -1036,11 +1050,10 @@ class _MergeSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return _SectionCard(
-      title: 'Duplicates',
+      title: context.l10n.leadDetailDuplicates,
       children: [
         Text(
-          'The catalog was built per location, so one brand can appear as '
-          'several leads. Merge them here to keep every branch on one record.',
+          context.l10n.leadDetailDuplicatesBody,
           style: LeadsTheme.bodyMuted,
         ),
         const SizedBox(height: 12),
@@ -1065,11 +1078,11 @@ class _MergeSection extends ConsumerWidget {
               }
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Leads merged')),
+                SnackBar(content: Text(context.l10n.leadsMergedSuccess)),
               );
             },
             icon: const Icon(Icons.merge_type, size: 16),
-            label: const Text('Merge duplicates'),
+            label: Text(context.l10n.leadsMergeTitle),
             style: OutlinedButton.styleFrom(
               foregroundColor: LeadsTheme.deepPlum,
               side: const BorderSide(color: LeadsTheme.line),
@@ -1091,18 +1104,18 @@ class _AddressesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return _SectionCard(
-      title: 'Addresses',
+      title: context.l10n.leadDetailAddresses,
       children: [
         _AddressEditor(
           kind: 'primary',
-          title: 'Primary address',
+          title: context.l10n.leadDetailPrimaryAddress,
           leadName: leadName,
           address: lead.primaryAddress,
         ),
         const Divider(height: 24, color: LeadsTheme.line),
         _AddressEditor(
           kind: 'shipping',
-          title: 'Shipping address',
+          title: context.l10n.leadDetailShippingAddress,
           leadName: leadName,
           address: lead.shippingAddress,
         ),
@@ -1174,13 +1187,16 @@ class _AddressEditorState extends ConsumerState<_AddressEditor> {
           );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${widget.title} saved')),
+          SnackBar(
+              content:
+                  Text(context.l10n.leadDetailAddressSaved(widget.title))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed: $e')));
+            .showSnackBar(SnackBar(
+                content: Text(context.l10n.leadDetailFailed('$e'))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -1195,23 +1211,23 @@ class _AddressEditorState extends ConsumerState<_AddressEditor> {
         Text(widget.title,
             style: LeadsTheme.body.copyWith(fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
-        _field('line1', 'Address line 1'),
-        _field('line2', 'Address line 2'),
+        _field('line1', context.l10n.leadFieldAddressLine1),
+        _field('line2', context.l10n.leadFieldAddressLine2),
         Row(
           children: [
-            Expanded(child: _field('city', 'City')),
+            Expanded(child: _field('city', context.l10n.leadFieldCity)),
             const SizedBox(width: 8),
-            Expanded(child: _field('state', 'State')),
+            Expanded(child: _field('state', context.l10n.leadFieldState)),
           ],
         ),
         Row(
           children: [
-            Expanded(child: _field('country', 'Country')),
+            Expanded(child: _field('country', context.l10n.leadFieldCountry)),
             const SizedBox(width: 8),
-            Expanded(child: _field('pincode', 'Pincode')),
+            Expanded(child: _field('pincode', context.l10n.leadFieldPincode)),
           ],
         ),
-        _field('phone', 'Phone'),
+        _field('phone', context.l10n.leadFieldPhone),
         const SizedBox(height: 8),
         Align(
           alignment: Alignment.centerRight,
@@ -1224,7 +1240,7 @@ class _AddressEditorState extends ConsumerState<_AddressEditor> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.save_outlined, size: 16),
-            label: Text('Save ${widget.title.toLowerCase()}'),
+            label: Text(context.l10n.leadDetailSaveAddress(widget.title)),
             style: OutlinedButton.styleFrom(
               foregroundColor: LeadsTheme.deepPlum,
               side: const BorderSide(color: LeadsTheme.line),
@@ -1316,7 +1332,7 @@ class _BranchTile extends StatelessWidget {
                 TextButton.icon(
                   onPressed: () => LeadActions.call(branch.phone),
                   icon: const Icon(Icons.call, size: 16),
-                  label: const Text('Call'),
+                  label: Text(context.l10n.leadActionCall),
                   style: TextButton.styleFrom(
                       foregroundColor: LeadsTheme.deepPlum),
                 ),
@@ -1331,7 +1347,7 @@ class _BranchTile extends StatelessWidget {
                     }
                   },
                   icon: const Icon(Icons.map_outlined, size: 16),
-                  label: const Text('Map'),
+                  label: Text(context.l10n.leadActionMap),
                   style: TextButton.styleFrom(
                       foregroundColor: LeadsTheme.deepPlum),
                 ),

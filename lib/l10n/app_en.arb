@@ -3639,5 +3639,344 @@
   "labelWizardUsualBatchHelper": "Applied to every flavour; changeable per label later.",
   "labelWizardConfirmPriceList": "Price list",
   "labelWizardConfirmUsualBatch": "Usual batch",
-  "labelWizardSafeToRerun": "Flavours already tracked are left untouched — running this again is always safe."
+  "labelWizardSafeToRerun": "Flavours already tracked are left untouched — running this again is always safe.",
+  "b2bStageLead": "Lead",
+  "b2bStageQualify": "Qualify",
+  "b2bStageSample": "Sample",
+  "b2bStageApproved": "Approved",
+  "b2bStageTrial": "Trial",
+  "b2bStageCheckup": "Check-up",
+  "b2bStageActive": "Active",
+  "b2bStageLostOnHold": "Lost/On-hold",
+  "leadsTitle": "Leads",
+  "leadsMapTitle": "Leads map",
+  "leadsMapViewTooltip": "Map view",
+  "leadsListViewTooltip": "List view",
+  "leadsRefreshTooltip": "Refresh",
+  "leadsAddLead": "Add lead",
+  "leadsStatShowing": "Showing",
+  "leadsStatTierA": "Tier A",
+  "leadsStatBranches": "Branches",
+  "leadsSearchHint": "Search leads…",
+  "leadsAdvancedFilters": "Advanced filters",
+  "leadsEmptyFiltered": "No leads match these filters",
+  "leadsDistanceMetres": "{value} m",
+  "@leadsDistanceMetres": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "leadsDistanceKm": "{value} km",
+  "@leadsDistanceKm": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "leadsLocationServicesOff": "Location services are off. Turn them on in your device settings.",
+  "leadsLocationBlocked": "Location permission is blocked for this app.",
+  "leadsLocationDenied": "Location permission was declined.",
+  "leadsLocationNoFix": "Could not get a location fix. Try again outdoors.",
+  "leadsLocationSettings": "Settings",
+  "leadsOnMapCount": "{count} on map",
+  "@leadsOnMapCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadsOnMapWithStages": "{count} on map  ·  {stages}",
+  "@leadsOnMapWithStages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "stages": {
+        "type": "String"
+      }
+    }
+  },
+  "leadsStageSummaryCount": "{count} stages",
+  "@leadsStageSummaryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadsHideLegend": "Hide legend",
+  "leadsCategoryLegend": "Category legend",
+  "leadsShowMyLocation": "Show my location",
+  "leadsBranchesCount": "{count, plural, =1{1 branch} other{{count} branches}}",
+  "@leadsBranchesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadsDistanceAway": "{distance} away (straight line)",
+  "@leadsDistanceAway": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "leadsFilterActiveCount": "{count} active",
+  "@leadsFilterActiveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadsFilterPipelineStage": "Pipeline stage",
+  "leadsFilterRatingRange": "Rating range",
+  "leadsFilterMinReviews": "Minimum reviews: {count}",
+  "@leadsFilterMinReviews": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadsFilterMinBranches": "Minimum branch count",
+  "leadsFilterHasSahel": "Has Sahel branches",
+  "leadsFilterSpecialtyOnly": "Specialty only",
+  "leadsFilterTakeawayOnly": "Takeaway confirmed",
+  "leadsFilterHasPhone": "Has phone",
+  "leadsFilterHasInstagram": "Has Instagram",
+  "leadsFilterHasWebsite": "Has website",
+  "leadsFilterShowNotSuitable": "Show not suitable",
+  "leadsFilterPriceBand": "Price band",
+  "leadsFilterClearAll": "Clear all",
+  "leadsAreaClearCount": "Clear ({count})",
+  "@leadsAreaClearCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadsAreaSearchHint": "Search areas",
+  "leadsAreaNoMatch": "No area matches \"{query}\"",
+  "@leadsAreaNoMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "leadsAreaAll": "All areas",
+  "leadsAreaSelectedCount": "{count} areas",
+  "@leadsAreaSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadsMergeConfirmTitle": "Merge {count} into \"{survivor}\"?",
+  "@leadsMergeConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "survivor": {
+        "type": "String"
+      }
+    }
+  },
+  "leadsMergeConfirmBody": "Their branches, areas and any details \"{survivor}\" is missing move onto it. The merged leads stay on file for audit but leave the catalog and the pipeline board.",
+  "@leadsMergeConfirmBody": {
+    "placeholders": {
+      "survivor": {
+        "type": "String"
+      }
+    }
+  },
+  "leadsMergeFailed": "Merge failed: {error}",
+  "@leadsMergeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "leadsMergeTitle": "Merge duplicates",
+  "leadsMergeSubtitle": "Fold other records of the same brand into \"{name}\".",
+  "@leadsMergeSubtitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leadsMergeSearchHint": "Search by name, or leave blank for suggestions",
+  "leadsMergeAction": "Merge {count}",
+  "@leadsMergeAction": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadsMergeNoDuplicates": "No likely duplicates found. Search by name if you know of one.",
+  "leadsMergeNoMatch": "No leads match that search.",
+  "leadsMergedSuccess": "Leads merged",
+  "leadsAllStages": "All stages",
+  "leadsFilterTitle": "Filters",
+  "leadsFilterAreas": "Areas",
+  "leadsFilterAny": "Any",
+  "leadsFilterAll": "All",
+  "leadsFilterDone": "Done",
+  "leadDetailTitle": "Lead",
+  "leadDetailBranchesCount": "Branches ({count})",
+  "@leadDetailBranchesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadDetailStatusNotes": "Status & notes",
+  "leadDetailStatusField": "Status",
+  "leadDetailCategoryField": "Category",
+  "leadDetailCategoryNone": "None",
+  "leadDetailUpdated": "Lead updated",
+  "leadDetailFailed": "Failed: {error}",
+  "@leadDetailFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "leadDetailFitScoreUpdated": "Fit score updated",
+  "leadDetailScoreOutOf": "{score} / 100",
+  "@leadDetailScoreOutOf": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "leadDetailStageUpdated": "Stage updated to {stage}",
+  "@leadDetailStageUpdated": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "leadDetailReasonTitle": "Reason",
+  "leadDetailReasonHint": "Why is this lost / on hold?",
+  "leadDetailNotSuitable": "Not suitable",
+  "leadDetailByWhom": "by {user}",
+  "@leadDetailByWhom": {
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "leadDetailOnDate": "on {date}",
+  "@leadDetailOnDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "leadDetailMarkedNotSuitable": "Marked not suitable",
+  "leadDetailRestoreTitle": "Restore lead?",
+  "leadDetailRestoreBody": "This clears the not-suitable verdict and puts the lead back in the catalog at the Lead stage.",
+  "leadDetailRestore": "Restore",
+  "leadDetailRestored": "Lead restored",
+  "leadDetailSuitability": "Suitability",
+  "leadDetailSuitabilityMarked": "This prospect was judged not suitable after manual inspection. It is hidden from the catalog and off the pipeline board.",
+  "leadDetailSuitabilityPrompt": "Inspected this prospect and it is not worth pursuing? Mark it not suitable to take it out of the working catalog.",
+  "leadDetailRestoreLead": "Restore lead",
+  "leadDetailMarkNotSuitable": "Mark not suitable",
+  "leadDetailNotesOptional": "Notes (optional)",
+  "leadDetailInspectionHint": "What did the inspection show?",
+  "leadDetailMergedAway": "Merged into another lead",
+  "leadDetailOpenSurvivor": "Open the surviving lead",
+  "leadDetailDuplicates": "Duplicates",
+  "leadDetailDuplicatesBody": "The catalog was built per location, so one brand can appear as several leads. Merge them here to keep every branch on one record.",
+  "leadDetailAddresses": "Addresses",
+  "leadDetailPrimaryAddress": "Primary address",
+  "leadDetailShippingAddress": "Shipping address",
+  "leadDetailAddressSaved": "{title} saved",
+  "@leadDetailAddressSaved": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "leadDetailSaveAddress": "Save {title}",
+  "@leadDetailSaveAddress": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "leadFieldAddressLine1": "Address line 1",
+  "leadFieldAddressLine2": "Address line 2",
+  "leadFieldCity": "City",
+  "leadFieldState": "State",
+  "leadFieldCountry": "Country",
+  "leadFieldPincode": "Pincode",
+  "leadFieldPhone": "Phone",
+  "leadFormEditTitle": "Edit lead",
+  "leadFormSaved": "Lead saved",
+  "leadFormNewCategory": "New category",
+  "leadFormCategoryName": "Category name",
+  "leadFormAddCategory": "Add category",
+  "leadFormLeadName": "Lead name *",
+  "leadFormCompanyName": "Company name",
+  "leadFormPrimaryArea": "Primary area",
+  "leadFormPriceBand": "Price band",
+  "leadFormFitScoreRange": "{label} (0–100)",
+  "@leadFormFitScoreRange": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "leadFormSaveChanges": "Save changes",
+  "leadFormCreate": "Create lead",
+  "leadFormCardBrand": "Brand",
+  "leadFormCardClassification": "Classification",
+  "leadFormCardContact": "Contact",
+  "leadFormTier": "Tier",
+  "leadFormSpecialty": "Specialty",
+  "leadFieldMobile": "Mobile",
+  "leadFieldWebsite": "Website",
+  "leadFieldInstagram": "Instagram",
+  "leadFieldFacebook": "Facebook",
+  "leadFormRequired": "Required",
+  "leadFormScoreRangeError": "0–100",
+  "leadFormCategoryLabel": "Category",
+  "leadsSortTooltip": "Sort",
+  "leadsSortScore": "Score",
+  "leadsSortRating": "Rating",
+  "leadsSortReviews": "Reviews",
+  "leadsSortBranches": "Branches",
+  "leadsSortName": "Name",
+  "leadsSortNearest": "Nearest",
+  "leadsMapCategories": "Categories",
+  "leadActionCall": "Call",
+  "leadActionInstagram": "Instagram",
+  "leadActionWebsite": "Website",
+  "leadActionMap": "Map",
+  "leadsMergeConfirmAction": "Merge"
 }

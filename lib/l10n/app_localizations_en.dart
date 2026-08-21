@@ -6363,4 +6363,524 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get labelWizardSafeToRerun =>
       'Flavours already tracked are left untouched — running this again is always safe.';
+
+  @override
+  String get b2bStageLead => 'Lead';
+
+  @override
+  String get b2bStageQualify => 'Qualify';
+
+  @override
+  String get b2bStageSample => 'Sample';
+
+  @override
+  String get b2bStageApproved => 'Approved';
+
+  @override
+  String get b2bStageTrial => 'Trial';
+
+  @override
+  String get b2bStageCheckup => 'Check-up';
+
+  @override
+  String get b2bStageActive => 'Active';
+
+  @override
+  String get b2bStageLostOnHold => 'Lost/On-hold';
+
+  @override
+  String get leadsTitle => 'Leads';
+
+  @override
+  String get leadsMapTitle => 'Leads map';
+
+  @override
+  String get leadsMapViewTooltip => 'Map view';
+
+  @override
+  String get leadsListViewTooltip => 'List view';
+
+  @override
+  String get leadsRefreshTooltip => 'Refresh';
+
+  @override
+  String get leadsAddLead => 'Add lead';
+
+  @override
+  String get leadsStatShowing => 'Showing';
+
+  @override
+  String get leadsStatTierA => 'Tier A';
+
+  @override
+  String get leadsStatBranches => 'Branches';
+
+  @override
+  String get leadsSearchHint => 'Search leads…';
+
+  @override
+  String get leadsAdvancedFilters => 'Advanced filters';
+
+  @override
+  String get leadsEmptyFiltered => 'No leads match these filters';
+
+  @override
+  String leadsDistanceMetres(String value) {
+    return '$value m';
+  }
+
+  @override
+  String leadsDistanceKm(String value) {
+    return '$value km';
+  }
+
+  @override
+  String get leadsLocationServicesOff =>
+      'Location services are off. Turn them on in your device settings.';
+
+  @override
+  String get leadsLocationBlocked =>
+      'Location permission is blocked for this app.';
+
+  @override
+  String get leadsLocationDenied => 'Location permission was declined.';
+
+  @override
+  String get leadsLocationNoFix =>
+      'Could not get a location fix. Try again outdoors.';
+
+  @override
+  String get leadsLocationSettings => 'Settings';
+
+  @override
+  String leadsOnMapCount(int count) {
+    return '$count on map';
+  }
+
+  @override
+  String leadsOnMapWithStages(int count, String stages) {
+    return '$count on map  ·  $stages';
+  }
+
+  @override
+  String leadsStageSummaryCount(int count) {
+    return '$count stages';
+  }
+
+  @override
+  String get leadsHideLegend => 'Hide legend';
+
+  @override
+  String get leadsCategoryLegend => 'Category legend';
+
+  @override
+  String get leadsShowMyLocation => 'Show my location';
+
+  @override
+  String leadsBranchesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count branches',
+      one: '1 branch',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String leadsDistanceAway(String distance) {
+    return '$distance away (straight line)';
+  }
+
+  @override
+  String leadsFilterActiveCount(int count) {
+    return '$count active';
+  }
+
+  @override
+  String get leadsFilterPipelineStage => 'Pipeline stage';
+
+  @override
+  String get leadsFilterRatingRange => 'Rating range';
+
+  @override
+  String leadsFilterMinReviews(int count) {
+    return 'Minimum reviews: $count';
+  }
+
+  @override
+  String get leadsFilterMinBranches => 'Minimum branch count';
+
+  @override
+  String get leadsFilterHasSahel => 'Has Sahel branches';
+
+  @override
+  String get leadsFilterSpecialtyOnly => 'Specialty only';
+
+  @override
+  String get leadsFilterTakeawayOnly => 'Takeaway confirmed';
+
+  @override
+  String get leadsFilterHasPhone => 'Has phone';
+
+  @override
+  String get leadsFilterHasInstagram => 'Has Instagram';
+
+  @override
+  String get leadsFilterHasWebsite => 'Has website';
+
+  @override
+  String get leadsFilterShowNotSuitable => 'Show not suitable';
+
+  @override
+  String get leadsFilterPriceBand => 'Price band';
+
+  @override
+  String get leadsFilterClearAll => 'Clear all';
+
+  @override
+  String leadsAreaClearCount(int count) {
+    return 'Clear ($count)';
+  }
+
+  @override
+  String get leadsAreaSearchHint => 'Search areas';
+
+  @override
+  String leadsAreaNoMatch(String query) {
+    return 'No area matches \"$query\"';
+  }
+
+  @override
+  String get leadsAreaAll => 'All areas';
+
+  @override
+  String leadsAreaSelectedCount(int count) {
+    return '$count areas';
+  }
+
+  @override
+  String leadsMergeConfirmTitle(int count, String survivor) {
+    return 'Merge $count into \"$survivor\"?';
+  }
+
+  @override
+  String leadsMergeConfirmBody(String survivor) {
+    return 'Their branches, areas and any details \"$survivor\" is missing move onto it. The merged leads stay on file for audit but leave the catalog and the pipeline board.';
+  }
+
+  @override
+  String leadsMergeFailed(String error) {
+    return 'Merge failed: $error';
+  }
+
+  @override
+  String get leadsMergeTitle => 'Merge duplicates';
+
+  @override
+  String leadsMergeSubtitle(String name) {
+    return 'Fold other records of the same brand into \"$name\".';
+  }
+
+  @override
+  String get leadsMergeSearchHint =>
+      'Search by name, or leave blank for suggestions';
+
+  @override
+  String leadsMergeAction(int count) {
+    return 'Merge $count';
+  }
+
+  @override
+  String get leadsMergeNoDuplicates =>
+      'No likely duplicates found. Search by name if you know of one.';
+
+  @override
+  String get leadsMergeNoMatch => 'No leads match that search.';
+
+  @override
+  String get leadsMergedSuccess => 'Leads merged';
+
+  @override
+  String get leadsAllStages => 'All stages';
+
+  @override
+  String get leadsFilterTitle => 'Filters';
+
+  @override
+  String get leadsFilterAreas => 'Areas';
+
+  @override
+  String get leadsFilterAny => 'Any';
+
+  @override
+  String get leadsFilterAll => 'All';
+
+  @override
+  String get leadsFilterDone => 'Done';
+
+  @override
+  String get leadDetailTitle => 'Lead';
+
+  @override
+  String leadDetailBranchesCount(int count) {
+    return 'Branches ($count)';
+  }
+
+  @override
+  String get leadDetailStatusNotes => 'Status & notes';
+
+  @override
+  String get leadDetailStatusField => 'Status';
+
+  @override
+  String get leadDetailCategoryField => 'Category';
+
+  @override
+  String get leadDetailCategoryNone => 'None';
+
+  @override
+  String get leadDetailUpdated => 'Lead updated';
+
+  @override
+  String leadDetailFailed(String error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String get leadDetailFitScoreUpdated => 'Fit score updated';
+
+  @override
+  String leadDetailScoreOutOf(int score) {
+    return '$score / 100';
+  }
+
+  @override
+  String leadDetailStageUpdated(String stage) {
+    return 'Stage updated to $stage';
+  }
+
+  @override
+  String get leadDetailReasonTitle => 'Reason';
+
+  @override
+  String get leadDetailReasonHint => 'Why is this lost / on hold?';
+
+  @override
+  String get leadDetailNotSuitable => 'Not suitable';
+
+  @override
+  String leadDetailByWhom(String user) {
+    return 'by $user';
+  }
+
+  @override
+  String leadDetailOnDate(String date) {
+    return 'on $date';
+  }
+
+  @override
+  String get leadDetailMarkedNotSuitable => 'Marked not suitable';
+
+  @override
+  String get leadDetailRestoreTitle => 'Restore lead?';
+
+  @override
+  String get leadDetailRestoreBody =>
+      'This clears the not-suitable verdict and puts the lead back in the catalog at the Lead stage.';
+
+  @override
+  String get leadDetailRestore => 'Restore';
+
+  @override
+  String get leadDetailRestored => 'Lead restored';
+
+  @override
+  String get leadDetailSuitability => 'Suitability';
+
+  @override
+  String get leadDetailSuitabilityMarked =>
+      'This prospect was judged not suitable after manual inspection. It is hidden from the catalog and off the pipeline board.';
+
+  @override
+  String get leadDetailSuitabilityPrompt =>
+      'Inspected this prospect and it is not worth pursuing? Mark it not suitable to take it out of the working catalog.';
+
+  @override
+  String get leadDetailRestoreLead => 'Restore lead';
+
+  @override
+  String get leadDetailMarkNotSuitable => 'Mark not suitable';
+
+  @override
+  String get leadDetailNotesOptional => 'Notes (optional)';
+
+  @override
+  String get leadDetailInspectionHint => 'What did the inspection show?';
+
+  @override
+  String get leadDetailMergedAway => 'Merged into another lead';
+
+  @override
+  String get leadDetailOpenSurvivor => 'Open the surviving lead';
+
+  @override
+  String get leadDetailDuplicates => 'Duplicates';
+
+  @override
+  String get leadDetailDuplicatesBody =>
+      'The catalog was built per location, so one brand can appear as several leads. Merge them here to keep every branch on one record.';
+
+  @override
+  String get leadDetailAddresses => 'Addresses';
+
+  @override
+  String get leadDetailPrimaryAddress => 'Primary address';
+
+  @override
+  String get leadDetailShippingAddress => 'Shipping address';
+
+  @override
+  String leadDetailAddressSaved(String title) {
+    return '$title saved';
+  }
+
+  @override
+  String leadDetailSaveAddress(String title) {
+    return 'Save $title';
+  }
+
+  @override
+  String get leadFieldAddressLine1 => 'Address line 1';
+
+  @override
+  String get leadFieldAddressLine2 => 'Address line 2';
+
+  @override
+  String get leadFieldCity => 'City';
+
+  @override
+  String get leadFieldState => 'State';
+
+  @override
+  String get leadFieldCountry => 'Country';
+
+  @override
+  String get leadFieldPincode => 'Pincode';
+
+  @override
+  String get leadFieldPhone => 'Phone';
+
+  @override
+  String get leadFormEditTitle => 'Edit lead';
+
+  @override
+  String get leadFormSaved => 'Lead saved';
+
+  @override
+  String get leadFormNewCategory => 'New category';
+
+  @override
+  String get leadFormCategoryName => 'Category name';
+
+  @override
+  String get leadFormAddCategory => 'Add category';
+
+  @override
+  String get leadFormLeadName => 'Lead name *';
+
+  @override
+  String get leadFormCompanyName => 'Company name';
+
+  @override
+  String get leadFormPrimaryArea => 'Primary area';
+
+  @override
+  String get leadFormPriceBand => 'Price band';
+
+  @override
+  String leadFormFitScoreRange(String label) {
+    return '$label (0–100)';
+  }
+
+  @override
+  String get leadFormSaveChanges => 'Save changes';
+
+  @override
+  String get leadFormCreate => 'Create lead';
+
+  @override
+  String get leadFormCardBrand => 'Brand';
+
+  @override
+  String get leadFormCardClassification => 'Classification';
+
+  @override
+  String get leadFormCardContact => 'Contact';
+
+  @override
+  String get leadFormTier => 'Tier';
+
+  @override
+  String get leadFormSpecialty => 'Specialty';
+
+  @override
+  String get leadFieldMobile => 'Mobile';
+
+  @override
+  String get leadFieldWebsite => 'Website';
+
+  @override
+  String get leadFieldInstagram => 'Instagram';
+
+  @override
+  String get leadFieldFacebook => 'Facebook';
+
+  @override
+  String get leadFormRequired => 'Required';
+
+  @override
+  String get leadFormScoreRangeError => '0–100';
+
+  @override
+  String get leadFormCategoryLabel => 'Category';
+
+  @override
+  String get leadsSortTooltip => 'Sort';
+
+  @override
+  String get leadsSortScore => 'Score';
+
+  @override
+  String get leadsSortRating => 'Rating';
+
+  @override
+  String get leadsSortReviews => 'Reviews';
+
+  @override
+  String get leadsSortBranches => 'Branches';
+
+  @override
+  String get leadsSortName => 'Name';
+
+  @override
+  String get leadsSortNearest => 'Nearest';
+
+  @override
+  String get leadsMapCategories => 'Categories';
+
+  @override
+  String get leadActionCall => 'Call';
+
+  @override
+  String get leadActionInstagram => 'Instagram';
+
+  @override
+  String get leadActionWebsite => 'Website';
+
+  @override
+  String get leadActionMap => 'Map';
+
+  @override
+  String get leadsMergeConfirmAction => 'Merge';
 }

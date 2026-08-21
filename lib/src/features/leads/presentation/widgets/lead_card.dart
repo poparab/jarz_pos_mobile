@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../journey/presentation/widgets/journey_badge.dart';
 import '../../data/models/lead.dart';
 import '../../domain/lead_clustering.dart';
+import '../../../../core/localization/localization_extensions.dart';
 import '../leads_theme.dart';
 import 'lead_actions.dart';
 import 'sahel_badge.dart';
@@ -81,7 +82,7 @@ class LeadCard extends StatelessWidget {
                           _Metric(
                             icon: Icons.straighten,
                             iconColor: const Color(0xFF1B6CA8),
-                            label: formatDistance(distanceMetres!),
+                            label: formatDistance(context, distanceMetres!),
                           ),
                         if (lead.sahelBranches > 0)
                           SahelBadge(lead.sahelBranches),
@@ -122,27 +123,27 @@ class LeadCard extends StatelessWidget {
                         LeadActionButton(
                           icon: Icons.call_outlined,
                           enabled: lead.phone.trim().isNotEmpty,
-                          tooltip: 'Call',
+                          tooltip: context.l10n.leadActionCall,
                           onTap: () => LeadActions.call(lead.phone),
                         ),
                         LeadActionButton(
                           icon: Icons.camera_alt_outlined,
                           enabled: lead.instagram.trim().isNotEmpty,
-                          tooltip: 'Instagram',
+                          tooltip: context.l10n.leadActionInstagram,
                           color: LeadsTheme.berryPink,
                           onTap: () => LeadActions.instagram(lead.instagram),
                         ),
                         LeadActionButton(
                           icon: Icons.language_outlined,
                           enabled: lead.website.trim().isNotEmpty,
-                          tooltip: 'Website',
+                          tooltip: context.l10n.leadActionWebsite,
                           onTap: () => LeadActions.website(lead.website),
                         ),
                         LeadActionButton(
                           icon: Icons.map_outlined,
                           enabled: lead.mapsUrl.trim().isNotEmpty ||
                               (lead.latitude != null && lead.longitude != null),
-                          tooltip: 'Map',
+                          tooltip: context.l10n.leadActionMap,
                           onTap: () {
                             if (lead.mapsUrl.trim().isNotEmpty) {
                               LeadActions.maps(lead.mapsUrl);

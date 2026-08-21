@@ -6335,4 +6335,522 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get labelWizardSafeToRerun =>
       'النكهات المتتابعة بالفعل مش بتتلمس — تقدر تعيد ده في أي وقت من غير قلق.';
+
+  @override
+  String get b2bStageLead => 'عميل محتمل';
+
+  @override
+  String get b2bStageQualify => 'تأهيل';
+
+  @override
+  String get b2bStageSample => 'عينة';
+
+  @override
+  String get b2bStageApproved => 'موافقة';
+
+  @override
+  String get b2bStageTrial => 'تجربة';
+
+  @override
+  String get b2bStageCheckup => 'متابعة';
+
+  @override
+  String get b2bStageActive => 'نشط';
+
+  @override
+  String get b2bStageLostOnHold => 'خسران/معلّق';
+
+  @override
+  String get leadsTitle => 'العملاء المحتملين';
+
+  @override
+  String get leadsMapTitle => 'خريطة العملاء المحتملين';
+
+  @override
+  String get leadsMapViewTooltip => 'عرض الخريطة';
+
+  @override
+  String get leadsListViewTooltip => 'عرض القايمة';
+
+  @override
+  String get leadsRefreshTooltip => 'تحديث';
+
+  @override
+  String get leadsAddLead => 'ضيف عميل محتمل';
+
+  @override
+  String get leadsStatShowing => 'المعروض';
+
+  @override
+  String get leadsStatTierA => 'الفئة A';
+
+  @override
+  String get leadsStatBranches => 'الفروع';
+
+  @override
+  String get leadsSearchHint => 'دوّر على عميل محتمل…';
+
+  @override
+  String get leadsAdvancedFilters => 'فلاتر متقدمة';
+
+  @override
+  String get leadsEmptyFiltered => 'مفيش عملاء محتملين مطابقين للفلاتر دي';
+
+  @override
+  String leadsDistanceMetres(String value) {
+    return '$value م';
+  }
+
+  @override
+  String leadsDistanceKm(String value) {
+    return '$value كم';
+  }
+
+  @override
+  String get leadsLocationServicesOff =>
+      'خدمات الموقع مقفولة. شغّلها من إعدادات الجهاز.';
+
+  @override
+  String get leadsLocationBlocked => 'إذن الموقع محظور للتطبيق ده.';
+
+  @override
+  String get leadsLocationDenied => 'إذن الموقع اترفض.';
+
+  @override
+  String get leadsLocationNoFix => 'مش قادر يحدد موقعك. جرّب تاني وإنت برّه.';
+
+  @override
+  String get leadsLocationSettings => 'الإعدادات';
+
+  @override
+  String leadsOnMapCount(int count) {
+    return '$count على الخريطة';
+  }
+
+  @override
+  String leadsOnMapWithStages(int count, String stages) {
+    return '$count على الخريطة  ·  $stages';
+  }
+
+  @override
+  String leadsStageSummaryCount(int count) {
+    return '$count مراحل';
+  }
+
+  @override
+  String get leadsHideLegend => 'اخفي المفتاح';
+
+  @override
+  String get leadsCategoryLegend => 'مفتاح التصنيفات';
+
+  @override
+  String get leadsShowMyLocation => 'وريني موقعي';
+
+  @override
+  String leadsBranchesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فروع',
+      one: 'فرع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String leadsDistanceAway(String distance) {
+    return 'على بعد $distance (خط مستقيم)';
+  }
+
+  @override
+  String leadsFilterActiveCount(int count) {
+    return '$count مفعّلين';
+  }
+
+  @override
+  String get leadsFilterPipelineStage => 'مرحلة المسار';
+
+  @override
+  String get leadsFilterRatingRange => 'نطاق التقييم';
+
+  @override
+  String leadsFilterMinReviews(int count) {
+    return 'أقل عدد تقييمات: $count';
+  }
+
+  @override
+  String get leadsFilterMinBranches => 'أقل عدد فروع';
+
+  @override
+  String get leadsFilterHasSahel => 'عنده فروع في الساحل';
+
+  @override
+  String get leadsFilterSpecialtyOnly => 'سبيشالتي بس';
+
+  @override
+  String get leadsFilterTakeawayOnly => 'تيك أواي مؤكد';
+
+  @override
+  String get leadsFilterHasPhone => 'عنده تليفون';
+
+  @override
+  String get leadsFilterHasInstagram => 'عنده إنستجرام';
+
+  @override
+  String get leadsFilterHasWebsite => 'عنده موقع';
+
+  @override
+  String get leadsFilterShowNotSuitable => 'وريني غير المناسبين';
+
+  @override
+  String get leadsFilterPriceBand => 'شريحة السعر';
+
+  @override
+  String get leadsFilterClearAll => 'امسح الكل';
+
+  @override
+  String leadsAreaClearCount(int count) {
+    return 'امسح ($count)';
+  }
+
+  @override
+  String get leadsAreaSearchHint => 'دوّر على مناطق';
+
+  @override
+  String leadsAreaNoMatch(String query) {
+    return 'مفيش منطقة مطابقة لـ \"$query\"';
+  }
+
+  @override
+  String get leadsAreaAll => 'كل المناطق';
+
+  @override
+  String leadsAreaSelectedCount(int count) {
+    return '$count مناطق';
+  }
+
+  @override
+  String leadsMergeConfirmTitle(int count, String survivor) {
+    return 'تدمج $count في \"$survivor\"؟';
+  }
+
+  @override
+  String leadsMergeConfirmBody(String survivor) {
+    return 'فروعهم ومناطقهم وأي بيانات ناقصة عند \"$survivor\" هتتنقل ليه. العملاء المدموجين هيفضلوا محفوظين للمراجعة بس هيخرجوا من الكتالوج ومن بورد المسار.';
+  }
+
+  @override
+  String leadsMergeFailed(String error) {
+    return 'الدمج فشل: $error';
+  }
+
+  @override
+  String get leadsMergeTitle => 'دمج المكرر';
+
+  @override
+  String leadsMergeSubtitle(String name) {
+    return 'ادمج سجلات تانية لنفس البراند في \"$name\".';
+  }
+
+  @override
+  String get leadsMergeSearchHint =>
+      'دوّر بالاسم، أو سيبها فاضية عشان تشوف اقتراحات';
+
+  @override
+  String leadsMergeAction(int count) {
+    return 'ادمج $count';
+  }
+
+  @override
+  String get leadsMergeNoDuplicates =>
+      'مفيش مكرر محتمل. دوّر بالاسم لو تعرف واحد.';
+
+  @override
+  String get leadsMergeNoMatch => 'مفيش عملاء محتملين مطابقين للبحث ده.';
+
+  @override
+  String get leadsMergedSuccess => 'العملاء المحتملين اتدمجوا';
+
+  @override
+  String get leadsAllStages => 'كل المراحل';
+
+  @override
+  String get leadsFilterTitle => 'الفلاتر';
+
+  @override
+  String get leadsFilterAreas => 'المناطق';
+
+  @override
+  String get leadsFilterAny => 'أي';
+
+  @override
+  String get leadsFilterAll => 'الكل';
+
+  @override
+  String get leadsFilterDone => 'تمام';
+
+  @override
+  String get leadDetailTitle => 'عميل محتمل';
+
+  @override
+  String leadDetailBranchesCount(int count) {
+    return 'الفروع ($count)';
+  }
+
+  @override
+  String get leadDetailStatusNotes => 'الحالة والملاحظات';
+
+  @override
+  String get leadDetailStatusField => 'الحالة';
+
+  @override
+  String get leadDetailCategoryField => 'التصنيف';
+
+  @override
+  String get leadDetailCategoryNone => 'بدون';
+
+  @override
+  String get leadDetailUpdated => 'العميل المحتمل اتحدّث';
+
+  @override
+  String leadDetailFailed(String error) {
+    return 'فشل: $error';
+  }
+
+  @override
+  String get leadDetailFitScoreUpdated => 'درجة الملاءمة اتحدّثت';
+
+  @override
+  String leadDetailScoreOutOf(int score) {
+    return '$score / 100';
+  }
+
+  @override
+  String leadDetailStageUpdated(String stage) {
+    return 'المرحلة اتغيّرت لـ $stage';
+  }
+
+  @override
+  String get leadDetailReasonTitle => 'السبب';
+
+  @override
+  String get leadDetailReasonHint => 'ليه ده خسران / معلّق؟';
+
+  @override
+  String get leadDetailNotSuitable => 'غير مناسب';
+
+  @override
+  String leadDetailByWhom(String user) {
+    return 'بواسطة $user';
+  }
+
+  @override
+  String leadDetailOnDate(String date) {
+    return 'بتاريخ $date';
+  }
+
+  @override
+  String get leadDetailMarkedNotSuitable => 'اتعلّم غير مناسب';
+
+  @override
+  String get leadDetailRestoreTitle => 'ترجّع العميل المحتمل؟';
+
+  @override
+  String get leadDetailRestoreBody =>
+      'ده بيشيل حكم \"غير مناسب\" ويرجّع العميل للكتالوج عند مرحلة \"عميل محتمل\".';
+
+  @override
+  String get leadDetailRestore => 'رجّع';
+
+  @override
+  String get leadDetailRestored => 'العميل المحتمل رجع';
+
+  @override
+  String get leadDetailSuitability => 'الملاءمة';
+
+  @override
+  String get leadDetailSuitabilityMarked =>
+      'العميل ده اتحكم عليه إنه غير مناسب بعد معاينة يدوية. مخفي من الكتالوج وبرّه بورد المسار.';
+
+  @override
+  String get leadDetailSuitabilityPrompt =>
+      'عاينت العميل ده ولقيته مش مستاهل؟ علّمه غير مناسب عشان يخرج من كتالوج الشغل.';
+
+  @override
+  String get leadDetailRestoreLead => 'رجّع العميل المحتمل';
+
+  @override
+  String get leadDetailMarkNotSuitable => 'علّمه غير مناسب';
+
+  @override
+  String get leadDetailNotesOptional => 'ملاحظات (اختياري)';
+
+  @override
+  String get leadDetailInspectionHint => 'المعاينة أظهرت إيه؟';
+
+  @override
+  String get leadDetailMergedAway => 'اتدمج في عميل محتمل تاني';
+
+  @override
+  String get leadDetailOpenSurvivor => 'افتح العميل الأصلي';
+
+  @override
+  String get leadDetailDuplicates => 'المكرر';
+
+  @override
+  String get leadDetailDuplicatesBody =>
+      'الكتالوج اتبنى لكل فرع لوحده، فالبراند الواحد ممكن يظهر كذا عميل محتمل. ادمجهم هنا عشان كل الفروع تبقى على سجل واحد.';
+
+  @override
+  String get leadDetailAddresses => 'العناوين';
+
+  @override
+  String get leadDetailPrimaryAddress => 'العنوان الأساسي';
+
+  @override
+  String get leadDetailShippingAddress => 'عنوان الشحن';
+
+  @override
+  String leadDetailAddressSaved(String title) {
+    return '$title اتحفظ';
+  }
+
+  @override
+  String leadDetailSaveAddress(String title) {
+    return 'احفظ $title';
+  }
+
+  @override
+  String get leadFieldAddressLine1 => 'العنوان سطر 1';
+
+  @override
+  String get leadFieldAddressLine2 => 'العنوان سطر 2';
+
+  @override
+  String get leadFieldCity => 'المدينة';
+
+  @override
+  String get leadFieldState => 'المحافظة';
+
+  @override
+  String get leadFieldCountry => 'الدولة';
+
+  @override
+  String get leadFieldPincode => 'الرمز البريدي';
+
+  @override
+  String get leadFieldPhone => 'التليفون';
+
+  @override
+  String get leadFormEditTitle => 'تعديل عميل محتمل';
+
+  @override
+  String get leadFormSaved => 'العميل المحتمل اتحفظ';
+
+  @override
+  String get leadFormNewCategory => 'تصنيف جديد';
+
+  @override
+  String get leadFormCategoryName => 'اسم التصنيف';
+
+  @override
+  String get leadFormAddCategory => 'ضيف تصنيف';
+
+  @override
+  String get leadFormLeadName => 'اسم العميل المحتمل *';
+
+  @override
+  String get leadFormCompanyName => 'اسم الشركة';
+
+  @override
+  String get leadFormPrimaryArea => 'المنطقة الأساسية';
+
+  @override
+  String get leadFormPriceBand => 'شريحة السعر';
+
+  @override
+  String leadFormFitScoreRange(String label) {
+    return '$label (0–100)';
+  }
+
+  @override
+  String get leadFormSaveChanges => 'احفظ التعديلات';
+
+  @override
+  String get leadFormCreate => 'اعمل عميل محتمل';
+
+  @override
+  String get leadFormCardBrand => 'البراند';
+
+  @override
+  String get leadFormCardClassification => 'التصنيف';
+
+  @override
+  String get leadFormCardContact => 'بيانات التواصل';
+
+  @override
+  String get leadFormTier => 'الفئة';
+
+  @override
+  String get leadFormSpecialty => 'سبيشالتي';
+
+  @override
+  String get leadFieldMobile => 'الموبايل';
+
+  @override
+  String get leadFieldWebsite => 'الموقع';
+
+  @override
+  String get leadFieldInstagram => 'إنستجرام';
+
+  @override
+  String get leadFieldFacebook => 'فيسبوك';
+
+  @override
+  String get leadFormRequired => 'مطلوب';
+
+  @override
+  String get leadFormScoreRangeError => '0–100';
+
+  @override
+  String get leadFormCategoryLabel => 'التصنيف';
+
+  @override
+  String get leadsSortTooltip => 'ترتيب';
+
+  @override
+  String get leadsSortScore => 'الدرجة';
+
+  @override
+  String get leadsSortRating => 'التقييم';
+
+  @override
+  String get leadsSortReviews => 'المراجعات';
+
+  @override
+  String get leadsSortBranches => 'الفروع';
+
+  @override
+  String get leadsSortName => 'الاسم';
+
+  @override
+  String get leadsSortNearest => 'الأقرب';
+
+  @override
+  String get leadsMapCategories => 'التصنيفات';
+
+  @override
+  String get leadActionCall => 'اتصل';
+
+  @override
+  String get leadActionInstagram => 'إنستجرام';
+
+  @override
+  String get leadActionWebsite => 'الموقع';
+
+  @override
+  String get leadActionMap => 'الخريطة';
+
+  @override
+  String get leadsMergeConfirmAction => 'ادمج';
 }

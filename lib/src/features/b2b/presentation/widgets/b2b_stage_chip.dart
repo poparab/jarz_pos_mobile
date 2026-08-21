@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localized_display_mappers.dart';
+
 /// The 8 valid B2B pipeline stages, in pipeline order. Mirrors the backend's
 /// `custom_b2b_stage` Select options. Lives here, next to the colours, so the
 /// pipeline board, the lead detail editor and the leads filter all read one
@@ -58,7 +60,7 @@ class B2bStageChip extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Text(
-        stage,
+        localizedLeadStage(context, stage),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: color,
           fontWeight: FontWeight.w600,

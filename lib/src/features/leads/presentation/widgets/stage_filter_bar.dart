@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../b2b/presentation/widgets/b2b_stage_chip.dart'
     show B2bStageChip, kB2bStages;
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../state/lead_filter.dart';
 
 /// A horizontally scrollable strip of B2B pipeline-stage chips bound to the
@@ -38,7 +40,7 @@ class StageFilterBar extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 3),
             child: ChoiceChip(
-              label: const Text('All stages'),
+              label: Text(context.l10n.leadsAllStages),
               selected: selected.isEmpty,
               showCheckmark: false,
               visualDensity: VisualDensity.compact,
@@ -49,7 +51,7 @@ class StageFilterBar extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 3),
               child: FilterChip(
-                label: Text(stage),
+                label: Text(localizedLeadStage(context, stage)),
                 selected: selected.contains(stage),
                 visualDensity: VisualDensity.compact,
                 selectedColor:

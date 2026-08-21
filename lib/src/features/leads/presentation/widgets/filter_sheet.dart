@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../b2b/presentation/widgets/b2b_stage_chip.dart'
     show B2bStageChip, kB2bStages;
+import '../../../../core/localization/localization_extensions.dart';
 import '../../state/lead_filter.dart';
 import '../../state/leads_notifier.dart';
 import '../leads_theme.dart';
@@ -31,8 +32,9 @@ class FilterSheet extends ConsumerStatefulWidget {
 }
 
 class _FilterSheetState extends ConsumerState<FilterSheet> {
+  /// Zero means "any"; its chip takes the localized wording at build time.
   static const _branchOptions = <int, String>{
-    0: 'Any',
+    0: '',
     2: '2+',
     3: '3+',
     6: '6+',
@@ -41,6 +43,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final filter = ref.watch(leadFilterProvider);
     final notifier = ref.read(leadFilterProvider.notifier);
 
@@ -86,7 +89,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             const SizedBox(height: 12),
             Row(
               children: [
-                Text('Filters', style: LeadsTheme.heading),
+                Text(l10n.leadsFilterTitle, style: LeadsTheme.heading),
                 const Spacer(),
                 if (filter.activeAdvancedCount > 0)
                   Container(
@@ -97,7 +100,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '${filter.activeAdvancedCount} active',
+                      l10n.leadsFilterActiveCount(filter.activeAdvancedCount),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11,
@@ -113,7 +116,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             // Areas. Reachable from here because the map has no filter bar of
             // its own, and area is one of the two narrowings a rep changes
             // while planning a route.
-            _label('Areas'),
+            _label(l10n.leadsFilterAreas),
             Align(
               alignment: Alignment.centerLeft,
               child: AreaFilterButton(areas: areas),
@@ -123,13 +126,13 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             // Pipeline stage. "All" is a real chip rather than an implicit
             // empty state, so clearing the narrowing is one tap and the sheet
             // never looks like it has no stage selected by accident.
-            _label('Pipeline stage'),
+            _label(l10n.leadsFilterPipelineStage),
             Wrap(
               spacing: 6,
               runSpacing: 6,
               children: [
                 ChoiceChip(
-                  label: const Text('All'),
+                  label: Text(l10n.leadsFilterAll),
                   selected: filter.selectedStages.isEmpty,
                   selectedColor: LeadsTheme.blush,
                   showCheckmark: false,
@@ -148,7 +151,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             ),
 
             const SizedBox(height: 12),
-            _label('Rating range'),
+            _label(l10n.leadsFilterRatingRange),
             RangeSlider(
               values: RangeValues(filter.ratingMin, filter.ratingMax),
               min: 0,
@@ -166,7 +169,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             ),
 
             const SizedBox(height: 8),
-            _label('Minimum reviews: ${filter.minReviews}'),
+            _label(l10n.leadsFilterMinReviews(filter.minReviews)),
             Slider(
               value: filter.minReviews.toDouble().clamp(0, 1000),
               min: 0,
@@ -180,13 +183,15 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             ),
 
             const SizedBox(height: 8),
-            _label('Minimum branch count'),
+            _label(l10n.leadsFilterMinBranches),
             Wrap(
               spacing: 6,
               children: [
                 for (final entry in _branchOptions.entries)
                   ChoiceChip(
-                    label: Text(entry.value),
+                    label: Text(entry.value.isEmpty
+                        ? l10n.leadsFilterAny
+                        : entry.value),
                     selected: filter.minBranches == entry.key,
                     selectedColor: LeadsTheme.blush,
                     showCheckmark: false,
@@ -197,32 +202,32 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             ),
 
             const SizedBox(height: 12),
-            _toggle('Has Sahel branches', filter.hasSahel,
+            _toggle(l10n.leadsFilterHasSahel, filter.hasSahel,
                 (v) => notifier.update((f) => f.copyWith(hasSahel: v))),
-            _toggle('Specialty only', filter.specialtyOnly,
+            _toggle(l10n.leadsFilterSpecialtyOnly, filter.specialtyOnly,
                 (v) => notifier.update((f) => f.copyWith(specialtyOnly: v))),
             // Narrows to venues Google confirms do takeaway. Labelled
             // "confirmed" on purpose: leads without the flag are unknown, not
             // dine-in-only, so this can only ever narrow the list.
-            _toggle('Takeaway confirmed', filter.takeawayOnly,
+            _toggle(l10n.leadsFilterTakeawayOnly, filter.takeawayOnly,
                 (v) => notifier.update((f) => f.copyWith(takeawayOnly: v))),
-            _toggle('Has phone', filter.hasPhone,
+            _toggle(l10n.leadsFilterHasPhone, filter.hasPhone,
                 (v) => notifier.update((f) => f.copyWith(hasPhone: v))),
-            _toggle('Has Instagram', filter.hasInstagram,
+            _toggle(l10n.leadsFilterHasInstagram, filter.hasInstagram,
                 (v) => notifier.update((f) => f.copyWith(hasInstagram: v))),
-            _toggle('Has website', filter.hasWebsite,
+            _toggle(l10n.leadsFilterHasWebsite, filter.hasWebsite,
                 (v) => notifier.update((f) => f.copyWith(hasWebsite: v))),
-            _toggle('Show not suitable', filter.showNotSuitable,
+            _toggle(l10n.leadsFilterShowNotSuitable, filter.showNotSuitable,
                 (v) => notifier.setShowNotSuitable(v)),
 
             if (priceBands.isNotEmpty) ...[
               const SizedBox(height: 12),
-              _label('Price band'),
+              _label(l10n.leadsFilterPriceBand),
               Wrap(
                 spacing: 6,
                 children: [
                   ChoiceChip(
-                    label: const Text('Any'),
+                    label: Text(l10n.leadsFilterAny),
                     selected: filter.priceBand == null,
                     selectedColor: LeadsTheme.blush,
                     showCheckmark: false,
@@ -252,7 +257,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                       foregroundColor: LeadsTheme.deepPlum,
                       side: const BorderSide(color: LeadsTheme.line),
                     ),
-                    child: const Text('Clear all'),
+                    child: Text(l10n.leadsFilterClearAll),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -262,7 +267,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                     style: FilledButton.styleFrom(
                       backgroundColor: LeadsTheme.berryPink,
                     ),
-                    child: const Text('Done'),
+                    child: Text(l10n.leadsFilterDone),
                   ),
                 ),
               ],

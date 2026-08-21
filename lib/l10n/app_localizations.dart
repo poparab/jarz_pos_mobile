@@ -10756,6 +10756,912 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Flavours already tracked are left untouched — running this again is always safe.'**
   String get labelWizardSafeToRerun;
+
+  /// No description provided for @b2bStageLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead'**
+  String get b2bStageLead;
+
+  /// No description provided for @b2bStageQualify.
+  ///
+  /// In en, this message translates to:
+  /// **'Qualify'**
+  String get b2bStageQualify;
+
+  /// No description provided for @b2bStageSample.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample'**
+  String get b2bStageSample;
+
+  /// No description provided for @b2bStageApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get b2bStageApproved;
+
+  /// No description provided for @b2bStageTrial.
+  ///
+  /// In en, this message translates to:
+  /// **'Trial'**
+  String get b2bStageTrial;
+
+  /// No description provided for @b2bStageCheckup.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-up'**
+  String get b2bStageCheckup;
+
+  /// No description provided for @b2bStageActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get b2bStageActive;
+
+  /// No description provided for @b2bStageLostOnHold.
+  ///
+  /// In en, this message translates to:
+  /// **'Lost/On-hold'**
+  String get b2bStageLostOnHold;
+
+  /// No description provided for @leadsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leads'**
+  String get leadsTitle;
+
+  /// No description provided for @leadsMapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leads map'**
+  String get leadsMapTitle;
+
+  /// No description provided for @leadsMapViewTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Map view'**
+  String get leadsMapViewTooltip;
+
+  /// No description provided for @leadsListViewTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'List view'**
+  String get leadsListViewTooltip;
+
+  /// No description provided for @leadsRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get leadsRefreshTooltip;
+
+  /// No description provided for @leadsAddLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Add lead'**
+  String get leadsAddLead;
+
+  /// No description provided for @leadsStatShowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing'**
+  String get leadsStatShowing;
+
+  /// No description provided for @leadsStatTierA.
+  ///
+  /// In en, this message translates to:
+  /// **'Tier A'**
+  String get leadsStatTierA;
+
+  /// No description provided for @leadsStatBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'Branches'**
+  String get leadsStatBranches;
+
+  /// No description provided for @leadsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search leads…'**
+  String get leadsSearchHint;
+
+  /// No description provided for @leadsAdvancedFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced filters'**
+  String get leadsAdvancedFilters;
+
+  /// No description provided for @leadsEmptyFiltered.
+  ///
+  /// In en, this message translates to:
+  /// **'No leads match these filters'**
+  String get leadsEmptyFiltered;
+
+  /// No description provided for @leadsDistanceMetres.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} m'**
+  String leadsDistanceMetres(String value);
+
+  /// No description provided for @leadsDistanceKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} km'**
+  String leadsDistanceKm(String value);
+
+  /// No description provided for @leadsLocationServicesOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Location services are off. Turn them on in your device settings.'**
+  String get leadsLocationServicesOff;
+
+  /// No description provided for @leadsLocationBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is blocked for this app.'**
+  String get leadsLocationBlocked;
+
+  /// No description provided for @leadsLocationDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission was declined.'**
+  String get leadsLocationDenied;
+
+  /// No description provided for @leadsLocationNoFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not get a location fix. Try again outdoors.'**
+  String get leadsLocationNoFix;
+
+  /// No description provided for @leadsLocationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get leadsLocationSettings;
+
+  /// No description provided for @leadsOnMapCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} on map'**
+  String leadsOnMapCount(int count);
+
+  /// No description provided for @leadsOnMapWithStages.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} on map  ·  {stages}'**
+  String leadsOnMapWithStages(int count, String stages);
+
+  /// No description provided for @leadsStageSummaryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} stages'**
+  String leadsStageSummaryCount(int count);
+
+  /// No description provided for @leadsHideLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide legend'**
+  String get leadsHideLegend;
+
+  /// No description provided for @leadsCategoryLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Category legend'**
+  String get leadsCategoryLegend;
+
+  /// No description provided for @leadsShowMyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Show my location'**
+  String get leadsShowMyLocation;
+
+  /// No description provided for @leadsBranchesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 branch} other{{count} branches}}'**
+  String leadsBranchesCount(int count);
+
+  /// No description provided for @leadsDistanceAway.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} away (straight line)'**
+  String leadsDistanceAway(String distance);
+
+  /// No description provided for @leadsFilterActiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active'**
+  String leadsFilterActiveCount(int count);
+
+  /// No description provided for @leadsFilterPipelineStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Pipeline stage'**
+  String get leadsFilterPipelineStage;
+
+  /// No description provided for @leadsFilterRatingRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating range'**
+  String get leadsFilterRatingRange;
+
+  /// No description provided for @leadsFilterMinReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum reviews: {count}'**
+  String leadsFilterMinReviews(int count);
+
+  /// No description provided for @leadsFilterMinBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum branch count'**
+  String get leadsFilterMinBranches;
+
+  /// No description provided for @leadsFilterHasSahel.
+  ///
+  /// In en, this message translates to:
+  /// **'Has Sahel branches'**
+  String get leadsFilterHasSahel;
+
+  /// No description provided for @leadsFilterSpecialtyOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialty only'**
+  String get leadsFilterSpecialtyOnly;
+
+  /// No description provided for @leadsFilterTakeawayOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Takeaway confirmed'**
+  String get leadsFilterTakeawayOnly;
+
+  /// No description provided for @leadsFilterHasPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Has phone'**
+  String get leadsFilterHasPhone;
+
+  /// No description provided for @leadsFilterHasInstagram.
+  ///
+  /// In en, this message translates to:
+  /// **'Has Instagram'**
+  String get leadsFilterHasInstagram;
+
+  /// No description provided for @leadsFilterHasWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Has website'**
+  String get leadsFilterHasWebsite;
+
+  /// No description provided for @leadsFilterShowNotSuitable.
+  ///
+  /// In en, this message translates to:
+  /// **'Show not suitable'**
+  String get leadsFilterShowNotSuitable;
+
+  /// No description provided for @leadsFilterPriceBand.
+  ///
+  /// In en, this message translates to:
+  /// **'Price band'**
+  String get leadsFilterPriceBand;
+
+  /// No description provided for @leadsFilterClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get leadsFilterClearAll;
+
+  /// No description provided for @leadsAreaClearCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear ({count})'**
+  String leadsAreaClearCount(int count);
+
+  /// No description provided for @leadsAreaSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search areas'**
+  String get leadsAreaSearchHint;
+
+  /// No description provided for @leadsAreaNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No area matches \"{query}\"'**
+  String leadsAreaNoMatch(String query);
+
+  /// No description provided for @leadsAreaAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All areas'**
+  String get leadsAreaAll;
+
+  /// No description provided for @leadsAreaSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} areas'**
+  String leadsAreaSelectedCount(int count);
+
+  /// No description provided for @leadsMergeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge {count} into \"{survivor}\"?'**
+  String leadsMergeConfirmTitle(int count, String survivor);
+
+  /// No description provided for @leadsMergeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Their branches, areas and any details \"{survivor}\" is missing move onto it. The merged leads stay on file for audit but leave the catalog and the pipeline board.'**
+  String leadsMergeConfirmBody(String survivor);
+
+  /// No description provided for @leadsMergeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge failed: {error}'**
+  String leadsMergeFailed(String error);
+
+  /// No description provided for @leadsMergeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge duplicates'**
+  String get leadsMergeTitle;
+
+  /// No description provided for @leadsMergeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fold other records of the same brand into \"{name}\".'**
+  String leadsMergeSubtitle(String name);
+
+  /// No description provided for @leadsMergeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, or leave blank for suggestions'**
+  String get leadsMergeSearchHint;
+
+  /// No description provided for @leadsMergeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge {count}'**
+  String leadsMergeAction(int count);
+
+  /// No description provided for @leadsMergeNoDuplicates.
+  ///
+  /// In en, this message translates to:
+  /// **'No likely duplicates found. Search by name if you know of one.'**
+  String get leadsMergeNoDuplicates;
+
+  /// No description provided for @leadsMergeNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No leads match that search.'**
+  String get leadsMergeNoMatch;
+
+  /// No description provided for @leadsMergedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Leads merged'**
+  String get leadsMergedSuccess;
+
+  /// No description provided for @leadsAllStages.
+  ///
+  /// In en, this message translates to:
+  /// **'All stages'**
+  String get leadsAllStages;
+
+  /// No description provided for @leadsFilterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get leadsFilterTitle;
+
+  /// No description provided for @leadsFilterAreas.
+  ///
+  /// In en, this message translates to:
+  /// **'Areas'**
+  String get leadsFilterAreas;
+
+  /// No description provided for @leadsFilterAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get leadsFilterAny;
+
+  /// No description provided for @leadsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get leadsFilterAll;
+
+  /// No description provided for @leadsFilterDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get leadsFilterDone;
+
+  /// No description provided for @leadDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead'**
+  String get leadDetailTitle;
+
+  /// No description provided for @leadDetailBranchesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Branches ({count})'**
+  String leadDetailBranchesCount(int count);
+
+  /// No description provided for @leadDetailStatusNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Status & notes'**
+  String get leadDetailStatusNotes;
+
+  /// No description provided for @leadDetailStatusField.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get leadDetailStatusField;
+
+  /// No description provided for @leadDetailCategoryField.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get leadDetailCategoryField;
+
+  /// No description provided for @leadDetailCategoryNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get leadDetailCategoryNone;
+
+  /// No description provided for @leadDetailUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead updated'**
+  String get leadDetailUpdated;
+
+  /// No description provided for @leadDetailFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String leadDetailFailed(String error);
+
+  /// No description provided for @leadDetailFitScoreUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Fit score updated'**
+  String get leadDetailFitScoreUpdated;
+
+  /// No description provided for @leadDetailScoreOutOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{score} / 100'**
+  String leadDetailScoreOutOf(int score);
+
+  /// No description provided for @leadDetailStageUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage updated to {stage}'**
+  String leadDetailStageUpdated(String stage);
+
+  /// No description provided for @leadDetailReasonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get leadDetailReasonTitle;
+
+  /// No description provided for @leadDetailReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is this lost / on hold?'**
+  String get leadDetailReasonHint;
+
+  /// No description provided for @leadDetailNotSuitable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not suitable'**
+  String get leadDetailNotSuitable;
+
+  /// No description provided for @leadDetailByWhom.
+  ///
+  /// In en, this message translates to:
+  /// **'by {user}'**
+  String leadDetailByWhom(String user);
+
+  /// No description provided for @leadDetailOnDate.
+  ///
+  /// In en, this message translates to:
+  /// **'on {date}'**
+  String leadDetailOnDate(String date);
+
+  /// No description provided for @leadDetailMarkedNotSuitable.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked not suitable'**
+  String get leadDetailMarkedNotSuitable;
+
+  /// No description provided for @leadDetailRestoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore lead?'**
+  String get leadDetailRestoreTitle;
+
+  /// No description provided for @leadDetailRestoreBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This clears the not-suitable verdict and puts the lead back in the catalog at the Lead stage.'**
+  String get leadDetailRestoreBody;
+
+  /// No description provided for @leadDetailRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get leadDetailRestore;
+
+  /// No description provided for @leadDetailRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead restored'**
+  String get leadDetailRestored;
+
+  /// No description provided for @leadDetailSuitability.
+  ///
+  /// In en, this message translates to:
+  /// **'Suitability'**
+  String get leadDetailSuitability;
+
+  /// No description provided for @leadDetailSuitabilityMarked.
+  ///
+  /// In en, this message translates to:
+  /// **'This prospect was judged not suitable after manual inspection. It is hidden from the catalog and off the pipeline board.'**
+  String get leadDetailSuitabilityMarked;
+
+  /// No description provided for @leadDetailSuitabilityPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspected this prospect and it is not worth pursuing? Mark it not suitable to take it out of the working catalog.'**
+  String get leadDetailSuitabilityPrompt;
+
+  /// No description provided for @leadDetailRestoreLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore lead'**
+  String get leadDetailRestoreLead;
+
+  /// No description provided for @leadDetailMarkNotSuitable.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark not suitable'**
+  String get leadDetailMarkNotSuitable;
+
+  /// No description provided for @leadDetailNotesOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get leadDetailNotesOptional;
+
+  /// No description provided for @leadDetailInspectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What did the inspection show?'**
+  String get leadDetailInspectionHint;
+
+  /// No description provided for @leadDetailMergedAway.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged into another lead'**
+  String get leadDetailMergedAway;
+
+  /// No description provided for @leadDetailOpenSurvivor.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the surviving lead'**
+  String get leadDetailOpenSurvivor;
+
+  /// No description provided for @leadDetailDuplicates.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicates'**
+  String get leadDetailDuplicates;
+
+  /// No description provided for @leadDetailDuplicatesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The catalog was built per location, so one brand can appear as several leads. Merge them here to keep every branch on one record.'**
+  String get leadDetailDuplicatesBody;
+
+  /// No description provided for @leadDetailAddresses.
+  ///
+  /// In en, this message translates to:
+  /// **'Addresses'**
+  String get leadDetailAddresses;
+
+  /// No description provided for @leadDetailPrimaryAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary address'**
+  String get leadDetailPrimaryAddress;
+
+  /// No description provided for @leadDetailShippingAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping address'**
+  String get leadDetailShippingAddress;
+
+  /// No description provided for @leadDetailAddressSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} saved'**
+  String leadDetailAddressSaved(String title);
+
+  /// No description provided for @leadDetailSaveAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {title}'**
+  String leadDetailSaveAddress(String title);
+
+  /// No description provided for @leadFieldAddressLine1.
+  ///
+  /// In en, this message translates to:
+  /// **'Address line 1'**
+  String get leadFieldAddressLine1;
+
+  /// No description provided for @leadFieldAddressLine2.
+  ///
+  /// In en, this message translates to:
+  /// **'Address line 2'**
+  String get leadFieldAddressLine2;
+
+  /// No description provided for @leadFieldCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get leadFieldCity;
+
+  /// No description provided for @leadFieldState.
+  ///
+  /// In en, this message translates to:
+  /// **'State'**
+  String get leadFieldState;
+
+  /// No description provided for @leadFieldCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get leadFieldCountry;
+
+  /// No description provided for @leadFieldPincode.
+  ///
+  /// In en, this message translates to:
+  /// **'Pincode'**
+  String get leadFieldPincode;
+
+  /// No description provided for @leadFieldPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get leadFieldPhone;
+
+  /// No description provided for @leadFormEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit lead'**
+  String get leadFormEditTitle;
+
+  /// No description provided for @leadFormSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead saved'**
+  String get leadFormSaved;
+
+  /// No description provided for @leadFormNewCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'New category'**
+  String get leadFormNewCategory;
+
+  /// No description provided for @leadFormCategoryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name'**
+  String get leadFormCategoryName;
+
+  /// No description provided for @leadFormAddCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get leadFormAddCategory;
+
+  /// No description provided for @leadFormLeadName.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead name *'**
+  String get leadFormLeadName;
+
+  /// No description provided for @leadFormCompanyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Company name'**
+  String get leadFormCompanyName;
+
+  /// No description provided for @leadFormPrimaryArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary area'**
+  String get leadFormPrimaryArea;
+
+  /// No description provided for @leadFormPriceBand.
+  ///
+  /// In en, this message translates to:
+  /// **'Price band'**
+  String get leadFormPriceBand;
+
+  /// No description provided for @leadFormFitScoreRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} (0–100)'**
+  String leadFormFitScoreRange(String label);
+
+  /// No description provided for @leadFormSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get leadFormSaveChanges;
+
+  /// No description provided for @leadFormCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create lead'**
+  String get leadFormCreate;
+
+  /// No description provided for @leadFormCardBrand.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get leadFormCardBrand;
+
+  /// No description provided for @leadFormCardClassification.
+  ///
+  /// In en, this message translates to:
+  /// **'Classification'**
+  String get leadFormCardClassification;
+
+  /// No description provided for @leadFormCardContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get leadFormCardContact;
+
+  /// No description provided for @leadFormTier.
+  ///
+  /// In en, this message translates to:
+  /// **'Tier'**
+  String get leadFormTier;
+
+  /// No description provided for @leadFormSpecialty.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialty'**
+  String get leadFormSpecialty;
+
+  /// No description provided for @leadFieldMobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile'**
+  String get leadFieldMobile;
+
+  /// No description provided for @leadFieldWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get leadFieldWebsite;
+
+  /// No description provided for @leadFieldInstagram.
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram'**
+  String get leadFieldInstagram;
+
+  /// No description provided for @leadFieldFacebook.
+  ///
+  /// In en, this message translates to:
+  /// **'Facebook'**
+  String get leadFieldFacebook;
+
+  /// No description provided for @leadFormRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get leadFormRequired;
+
+  /// No description provided for @leadFormScoreRangeError.
+  ///
+  /// In en, this message translates to:
+  /// **'0–100'**
+  String get leadFormScoreRangeError;
+
+  /// No description provided for @leadFormCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get leadFormCategoryLabel;
+
+  /// No description provided for @leadsSortTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get leadsSortTooltip;
+
+  /// No description provided for @leadsSortScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score'**
+  String get leadsSortScore;
+
+  /// No description provided for @leadsSortRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get leadsSortRating;
+
+  /// No description provided for @leadsSortReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get leadsSortReviews;
+
+  /// No description provided for @leadsSortBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'Branches'**
+  String get leadsSortBranches;
+
+  /// No description provided for @leadsSortName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get leadsSortName;
+
+  /// No description provided for @leadsSortNearest.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest'**
+  String get leadsSortNearest;
+
+  /// No description provided for @leadsMapCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get leadsMapCategories;
+
+  /// No description provided for @leadActionCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get leadActionCall;
+
+  /// No description provided for @leadActionInstagram.
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram'**
+  String get leadActionInstagram;
+
+  /// No description provided for @leadActionWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get leadActionWebsite;
+
+  /// No description provided for @leadActionMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get leadActionMap;
+
+  /// No description provided for @leadsMergeConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get leadsMergeConfirmAction;
 }
 
 class _AppLocalizationsDelegate

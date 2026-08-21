@@ -159,13 +159,14 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lead saved')),
+        SnackBar(content: Text(context.l10n.leadFormSaved)),
       );
       context.pop();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed: $e')));
+            .showSnackBar(SnackBar(
+                content: Text(context.l10n.leadDetailFailed('$e'))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -173,24 +174,26 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
   }
 
   Future<void> _addCategory() async {
+    final l10n = context.l10n;
     final controller = TextEditingController();
     final name = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('New category'),
+        title: Text(l10n.leadFormNewCategory),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(labelText: 'Category name'),
+          decoration:
+              InputDecoration(labelText: l10n.leadFormCategoryName),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
-            child: const Text('Add'),
+            child: Text(l10n.commonAdd),
           ),
         ],
       ),
@@ -205,7 +208,8 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed: $e')));
+            .showSnackBar(SnackBar(
+                content: Text(context.l10n.leadDetailFailed('$e'))));
       }
     }
   }
@@ -221,7 +225,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         foregroundColor: LeadsTheme.deepPlum,
         elevation: 0,
         title: Text(
-          isEdit ? 'Edit lead' : 'Add lead',
+          isEdit ? context.l10n.leadFormEditTitle : context.l10n.leadsAddLead,
           style: LeadsTheme.heading.copyWith(fontSize: 22),
         ),
       ),
@@ -230,10 +234,13 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
-            _card('Brand', [
+            _card(context.l10n.leadFormCardBrand, [
               _grid([
-                _Field.full(_text('lead_name', 'Lead name *', required: true)),
-                _Field.half(_text('company_name', 'Company name')),
+                _Field.full(_text(
+                    'lead_name', context.l10n.leadFormLeadName,
+                    required: true)),
+                _Field.half(
+                    _text('company_name', context.l10n.leadFormCompanyName)),
                 _Field.half(_CategoryField(
                   categoriesAsync: categoriesAsync,
                   value: _category,
@@ -243,10 +250,10 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
               ]),
             ]),
             const SizedBox(height: 16),
-            _card('Classification', [
+            _card(context.l10n.leadFormCardClassification, [
               _grid([
                 _Field.half(_dropdown(
-                  label: 'Tier',
+                  label: context.l10n.leadFormTier,
                   value: _tier,
                   items: _tiers,
                   onChanged: (v) => setState(() => _tier = v ?? 'B'),
@@ -254,37 +261,45 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
                 _Field.half(_priceBandField()),
                 _Field.half(_sourceField()),
                 _Field.half(_territoryField()),
-                _Field.half(_text('primary_area', 'Primary area')),
+                _Field.half(
+                    _text('primary_area', context.l10n.leadFormPrimaryArea)),
                 _Field.half(_scoreField()),
                 _Field.full(SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
                   dense: true,
                   activeThumbColor: LeadsTheme.berryPink,
-                  title: const Text('Specialty', style: LeadsTheme.body),
+                  title: Text(context.l10n.leadFormSpecialty,
+                      style: LeadsTheme.body),
                   value: _isSpecialty,
                   onChanged: (v) => setState(() => _isSpecialty = v),
                 )),
               ]),
             ]),
             const SizedBox(height: 16),
-            _card('Contact', [
+            _card(context.l10n.leadFormCardContact, [
               _grid([
                 _Field.half(_text(
                   'email',
                   context.l10n.leadFieldEmail,
                   keyboard: TextInputType.emailAddress,
                 )),
-                _Field.half(_text('phone', 'Phone', keyboard: TextInputType.phone)),
-                _Field.half(_text('mobile', 'Mobile', keyboard: TextInputType.phone)),
-                _Field.half(_text('website', 'Website')),
-                _Field.half(_text('instagram', 'Instagram')),
-                _Field.half(_text('facebook', 'Facebook')),
+                _Field.half(_text('phone', context.l10n.leadFieldPhone,
+                    keyboard: TextInputType.phone)),
+                _Field.half(_text('mobile', context.l10n.leadFieldMobile,
+                    keyboard: TextInputType.phone)),
+                _Field.half(_text('website', context.l10n.leadFieldWebsite)),
+                _Field.half(
+                    _text('instagram', context.l10n.leadFieldInstagram)),
+                _Field.half(
+                    _text('facebook', context.l10n.leadFieldFacebook)),
               ]),
             ]),
             const SizedBox(height: 16),
-            _card('Primary address', _addressFields(_primary)),
+            _card(context.l10n.leadDetailPrimaryAddress,
+                _addressFields(_primary)),
             const SizedBox(height: 16),
-            _card('Shipping address', _addressFields(_shipping)),
+            _card(context.l10n.leadDetailShippingAddress,
+                _addressFields(_shipping)),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: _saving ? null : _save,
@@ -295,7 +310,9 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.save),
-              label: Text(isEdit ? 'Save changes' : 'Create lead'),
+              label: Text(isEdit
+                  ? context.l10n.leadFormSaveChanges
+                  : context.l10n.leadFormCreate),
               style: FilledButton.styleFrom(
                 backgroundColor: LeadsTheme.berryPink,
                 minimumSize: const Size.fromHeight(48),
@@ -309,14 +326,18 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
 
   List<Widget> _addressFields(Map<String, TextEditingController> src) => [
         _grid([
-          _Field.full(_addrField(src, 'line1', 'Address line 1')),
-          _Field.full(_addrField(src, 'line2', 'Address line 2')),
-          _Field.half(_addrField(src, 'city', 'City')),
-          _Field.half(_addrField(src, 'state', 'State')),
-          _Field.half(_addrField(src, 'country', 'Country')),
-          _Field.half(_addrField(src, 'pincode', 'Pincode')),
+          _Field.full(
+              _addrField(src, 'line1', context.l10n.leadFieldAddressLine1)),
+          _Field.full(
+              _addrField(src, 'line2', context.l10n.leadFieldAddressLine2)),
+          _Field.half(_addrField(src, 'city', context.l10n.leadFieldCity)),
+          _Field.half(_addrField(src, 'state', context.l10n.leadFieldState)),
           _Field.half(
-              _addrField(src, 'phone', 'Phone', keyboard: TextInputType.phone)),
+              _addrField(src, 'country', context.l10n.leadFieldCountry)),
+          _Field.half(
+              _addrField(src, 'pincode', context.l10n.leadFieldPincode)),
+          _Field.half(_addrField(src, 'phone', context.l10n.leadFieldPhone,
+              keyboard: TextInputType.phone)),
         ]),
       ];
 
@@ -352,7 +373,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
   Widget _priceBandField() => TextFormField(
         initialValue: _priceBand,
         style: LeadsTheme.body,
-        decoration: _dec('Price band'),
+        decoration: _dec(context.l10n.leadFormPriceBand),
         onChanged: (v) => _priceBand = v,
       );
 
@@ -360,12 +381,15 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         initialValue: _score?.toString() ?? '',
         style: LeadsTheme.body,
         keyboardType: TextInputType.number,
-        decoration: _dec('${context.l10n.leadFitScore} (0–100)'),
+        decoration: _dec(
+            context.l10n.leadFormFitScoreRange(context.l10n.leadFitScore)),
         validator: (v) {
           final text = v?.trim() ?? '';
           if (text.isEmpty) return null; // optional
           final n = int.tryParse(text);
-          if (n == null || n < 0 || n > 100) return '0–100';
+          if (n == null || n < 0 || n > 100) {
+            return context.l10n.leadFormScoreRangeError;
+          }
           return null;
         },
         onChanged: (v) {
@@ -399,7 +423,9 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
       style: LeadsTheme.body,
       decoration: _dec(label),
       validator: required
-          ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null
+          ? (v) => (v == null || v.trim().isEmpty)
+              ? context.l10n.leadFormRequired
+              : null
           : null,
     );
   }
@@ -552,16 +578,16 @@ class _CategoryField extends StatelessWidget {
                   categories.any((c) => c.name == value) ? value : null,
               isExpanded: true,
               decoration: InputDecoration(
-                labelText: 'Category',
+                labelText: context.l10n.leadFormCategoryLabel,
                 isDense: true,
                 border:
                     OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
               style: LeadsTheme.body,
               items: [
-                const DropdownMenuItem<String?>(
+                DropdownMenuItem<String?>(
                   value: null,
-                  child: Text('None'),
+                  child: Text(context.l10n.leadDetailCategoryNone),
                 ),
                 for (final cat in categories)
                   DropdownMenuItem<String?>(
@@ -575,7 +601,7 @@ class _CategoryField extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: 'Add category',
+            tooltip: context.l10n.leadFormAddCategory,
             icon: const Icon(Icons.add_circle_outline,
                 color: LeadsTheme.berryPink),
             onPressed: onAddNew,

@@ -14,7 +14,10 @@ library;
 
 import 'dart:math' as math;
 
+import 'package:flutter/widgets.dart';
 import 'package:latlong2/latlong.dart';
+
+import '../../../core/localization/localization_extensions.dart';
 
 import '../data/models/lead.dart';
 
@@ -185,12 +188,13 @@ double? metresToLead(LatLng origin, Lead lead) {
 /// door" and "across the square"; past 10 km the decimal is noise on a
 /// straight-line estimate and is dropped rather than implying precision the
 /// measure does not have.
-String formatDistance(double metres) {
+String formatDistance(BuildContext context, double metres) {
+  final l10n = context.l10n;
   if (metres.isNaN || metres.isInfinite || metres < 0) return '';
-  if (metres < 1000) return '${metres.round()} m';
+  if (metres < 1000) return l10n.leadsDistanceMetres('${metres.round()}');
   final km = metres / 1000;
-  if (km < 10) return '${km.toStringAsFixed(1)} km';
-  return '${km.round()} km';
+  if (km < 10) return l10n.leadsDistanceKm(km.toStringAsFixed(1));
+  return l10n.leadsDistanceKm('${km.round()}');
 }
 
 /// Sorts [leads] nearest-first from [origin]. Leads with no coordinates sort

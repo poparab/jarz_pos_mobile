@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../state/lead_filter.dart';
 import '../leads_theme.dart';
 
@@ -90,7 +91,7 @@ class _AreaPickerSheetState extends ConsumerState<AreaPickerSheet> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Text('Areas', style: LeadsTheme.heading),
+              Text(context.l10n.leadsFilterAreas, style: LeadsTheme.heading),
               const Spacer(),
               if (selected.isNotEmpty)
                 TextButton(
@@ -98,7 +99,8 @@ class _AreaPickerSheetState extends ConsumerState<AreaPickerSheet> {
                   style: TextButton.styleFrom(
                     foregroundColor: LeadsTheme.berryPink,
                   ),
-                  child: Text('Clear (${selected.length})'),
+                  child: Text(
+                      context.l10n.leadsAreaClearCount(selected.length)),
                 ),
             ],
           ),
@@ -107,7 +109,7 @@ class _AreaPickerSheetState extends ConsumerState<AreaPickerSheet> {
             controller: _searchController,
             style: LeadsTheme.body,
             decoration: InputDecoration(
-              hintText: 'Search areas',
+              hintText: context.l10n.leadsAreaSearchHint,
               prefixIcon: const Icon(Icons.search, size: 20),
               isDense: true,
               filled: true,
@@ -126,7 +128,7 @@ class _AreaPickerSheetState extends ConsumerState<AreaPickerSheet> {
                     padding: const EdgeInsets.symmetric(vertical: 28),
                     child: Center(
                       child: Text(
-                        'No area matches "$_query"',
+                        context.l10n.leadsAreaNoMatch(_query),
                         style: LeadsTheme.bodyMuted,
                       ),
                     ),
@@ -156,7 +158,7 @@ class _AreaPickerSheetState extends ConsumerState<AreaPickerSheet> {
               style: FilledButton.styleFrom(
                 backgroundColor: LeadsTheme.berryPink,
               ),
-              child: const Text('Done'),
+              child: Text(context.l10n.leadsFilterDone),
             ),
           ),
         ],
@@ -178,9 +180,9 @@ class AreaFilterButton extends ConsumerWidget {
     // Name the one area when there is one — "1 area" would be strictly less
     // information than the area's own name for the same width.
     final label = switch (selected.length) {
-      0 => 'All areas',
+      0 => context.l10n.leadsAreaAll,
       1 => selected.first,
-      _ => '${selected.length} areas',
+      _ => context.l10n.leadsAreaSelectedCount(selected.length),
     };
 
     return TextButton.icon(

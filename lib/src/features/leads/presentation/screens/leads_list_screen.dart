@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../data/models/lead.dart';
 import '../../domain/lead_clustering.dart';
@@ -72,17 +73,17 @@ class _LeadsListScreenState extends ConsumerState<LeadsListScreen> {
         foregroundColor: LeadsTheme.deepPlum,
         elevation: 0,
         title: Text(
-          'Leads',
+          context.l10n.leadsTitle,
           style: LeadsTheme.heading.copyWith(fontSize: 22),
         ),
         actions: [
           IconButton(
-            tooltip: 'Map view',
+            tooltip: context.l10n.leadsMapViewTooltip,
             icon: const Icon(Icons.map_outlined),
             onPressed: () => context.push(AppRoutes.leadsMap),
           ),
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: context.l10n.leadsRefreshTooltip,
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.read(leadsProvider.notifier).refresh(),
           ),
@@ -92,7 +93,7 @@ class _LeadsListScreenState extends ConsumerState<LeadsListScreen> {
         backgroundColor: LeadsTheme.berryPink,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
-        label: const Text('Add lead'),
+        label: Text(context.l10n.leadsAddLead),
         onPressed: () => context.push(AppRoutes.leadForm),
       ),
       body: leadsAsync.when(
@@ -169,9 +170,13 @@ class _SummaryBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Row(
         children: [
-          _Stat(label: 'Showing', value: '${filtered.length}'),
-          _Stat(label: 'Tier A', value: '$tierA'),
-          _Stat(label: 'Branches', value: '$totalBranches'),
+          _Stat(
+              label: context.l10n.leadsStatShowing,
+              value: '${filtered.length}'),
+          _Stat(label: context.l10n.leadsStatTierA, value: '$tierA'),
+          _Stat(
+              label: context.l10n.leadsStatBranches,
+              value: '$totalBranches'),
         ],
       ),
     );
@@ -244,7 +249,7 @@ class _FilterBar extends ConsumerWidget {
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
                       isDense: true,
-                      hintText: 'Search leads…',
+                      hintText: context.l10n.leadsSearchHint,
                       prefixIcon: const Icon(Icons.search, size: 20),
                       suffixIcon: filter.searchText.isEmpty
                           ? null
@@ -343,7 +348,7 @@ class _FilterButton extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         IconButton(
-          tooltip: 'Advanced filters',
+          tooltip: context.l10n.leadsAdvancedFilters,
           icon: const Icon(Icons.tune),
           color: LeadsTheme.deepPlum,
           onPressed: () => FilterSheet.show(context),
@@ -381,20 +386,23 @@ class _SortButton extends ConsumerWidget {
 
   final LeadFilter filter;
 
-  static const _labels = <LeadSortBy, String>{
-    LeadSortBy.score: 'Score',
-    LeadSortBy.rating: 'Rating',
-    LeadSortBy.reviews: 'Reviews',
-    LeadSortBy.branches: 'Branches',
-    LeadSortBy.name: 'Name',
-    LeadSortBy.distance: 'Nearest',
-  };
+  static Map<LeadSortBy, String> _labels(BuildContext context) {
+    final l10n = context.l10n;
+    return <LeadSortBy, String>{
+      LeadSortBy.score: l10n.leadsSortScore,
+      LeadSortBy.rating: l10n.leadsSortRating,
+      LeadSortBy.reviews: l10n.leadsSortReviews,
+      LeadSortBy.branches: l10n.leadsSortBranches,
+      LeadSortBy.name: l10n.leadsSortName,
+      LeadSortBy.distance: l10n.leadsSortNearest,
+    };
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(leadFilterProvider.notifier);
     return PopupMenuButton<LeadSortBy>(
-      tooltip: 'Sort',
+      tooltip: context.l10n.leadsSortTooltip,
       icon: const Icon(Icons.sort, color: LeadsTheme.deepPlum),
       onSelected: (sortBy) {
         // "Nearest" is meaningless without a fix, and silently doing nothing
@@ -409,7 +417,7 @@ class _SortButton extends ConsumerWidget {
         notifier.setSort(sortBy, descending: descending);
       },
       itemBuilder: (context) => [
-        for (final entry in _labels.entries)
+        for (final entry in _labels(context).entries)
           PopupMenuItem<LeadSortBy>(
             value: entry.key,
             child: Row(
@@ -440,10 +448,11 @@ class _EmptyState extends StatelessWidget {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.search_off, size: 48, color: LeadsTheme.muted),
-          SizedBox(height: 8),
-          Text('No leads match these filters', style: LeadsTheme.bodyMuted),
+        children: [
+          const Icon(Icons.search_off, size: 48, color: LeadsTheme.muted),
+          const SizedBox(height: 8),
+          Text(context.l10n.leadsEmptyFiltered,
+              style: LeadsTheme.bodyMuted),
         ],
       ),
     );
@@ -476,7 +485,7 @@ class _ErrorState extends StatelessWidget {
               onPressed: onRetry,
               style:
                   FilledButton.styleFrom(backgroundColor: LeadsTheme.berryPink),
-              child: const Text('Retry'),
+              child: Text(context.l10n.commonRetry),
             ),
           ],
         ),

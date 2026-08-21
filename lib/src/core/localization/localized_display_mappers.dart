@@ -118,3 +118,29 @@ String localizedLabelMovementType(BuildContext context, String? rawType) {
       return type.isEmpty ? context.l10n.commonNotSpecified : type;
   }
 }
+
+/// A lead's B2B pipeline stage, as ERPNext stores it in `custom_b2b_stage`.
+/// The raw value stays the source of truth everywhere except the screen.
+String localizedLeadStage(BuildContext context, String? rawStage) {
+  final stage = rawStage?.trim() ?? '';
+  switch (stage.toLowerCase()) {
+    case 'lead':
+      return context.l10n.b2bStageLead;
+    case 'qualify':
+      return context.l10n.b2bStageQualify;
+    case 'sample':
+      return context.l10n.b2bStageSample;
+    case 'approved':
+      return context.l10n.b2bStageApproved;
+    case 'trial':
+      return context.l10n.b2bStageTrial;
+    case 'check-up':
+      return context.l10n.b2bStageCheckup;
+    case 'active':
+      return context.l10n.b2bStageActive;
+    case 'lost/on-hold':
+      return context.l10n.b2bStageLostOnHold;
+    default:
+      return stage.isEmpty ? context.l10n.commonNotSpecified : stage;
+  }
+}

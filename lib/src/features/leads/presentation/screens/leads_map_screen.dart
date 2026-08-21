@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/models/lead.dart';
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../domain/lead_clustering.dart';
 import '../../state/lead_categories_notifier.dart';
 import '../../state/lead_filter.dart';
@@ -62,13 +64,12 @@ class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
       return;
     }
 
+    final l10n = context.l10n;
     final message = switch (state.status) {
-      MyLocationStatus.serviceDisabled =>
-        'Location services are off. Turn them on in your device settings.',
-      MyLocationStatus.deniedForever =>
-        'Location permission is blocked for this app.',
-      MyLocationStatus.denied => 'Location permission was declined.',
-      _ => 'Could not get a location fix. Try again outdoors.',
+      MyLocationStatus.serviceDisabled => l10n.leadsLocationServicesOff,
+      MyLocationStatus.deniedForever => l10n.leadsLocationBlocked,
+      MyLocationStatus.denied => l10n.leadsLocationDenied,
+      _ => l10n.leadsLocationNoFix,
     };
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -76,7 +77,7 @@ class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
         content: Text(message),
         action: state.status == MyLocationStatus.deniedForever
             ? SnackBarAction(
-                label: 'Settings',
+                label: l10n.leadsLocationSettings,
                 onPressed: () => notifier.openSettings(),
               )
             : null,
@@ -106,13 +107,13 @@ class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
         foregroundColor: LeadsTheme.deepPlum,
         elevation: 0,
         title: Text(
-          'Leads map',
+          context.l10n.leadsMapTitle,
           style: LeadsTheme.heading.copyWith(fontSize: 22),
         ),
         actions: [
           _MapFilterButton(count: filter.activeAdvancedCount),
           IconButton(
-            tooltip: 'List view',
+            tooltip: context.l10n.leadsListViewTooltip,
             icon: const Icon(Icons.list_alt),
             onPressed: () => context.pop(),
           ),
@@ -151,9 +152,11 @@ class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
                 // filtered and then panned away needs to know why the map
                 // looks empty here.
                 filter.selectedStages.isEmpty
-                    ? '${located.length} on map'
-                    : '${located.length} on map  ·  '
-                        '${_stageSummary(filter.selectedStages)}',
+                    ? context.l10n.leadsOnMapCount(located.length)
+                    : context.l10n.leadsOnMapWithStages(
+                        located.length,
+                        _stageSummary(context, filter.selectedStages),
+                      ),
                 style: LeadsTheme.body.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
@@ -168,7 +171,9 @@ class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
                 if (categoryColors.isNotEmpty)
                   _RoundMapButton(
                     icon: _showLegend ? Icons.close : Icons.palette_outlined,
-                    tooltip: _showLegend ? 'Hide legend' : 'Category legend',
+                    tooltip: _showLegend
+                        ? context.l10n.leadsHideLegend
+                        : context.l10n.leadsCategoryLegend,
                     onTap: () => setState(() => _showLegend = !_showLegend),
                   ),
                 const SizedBox(height: 10),
@@ -176,7 +181,7 @@ class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
                   icon: location.hasPosition
                       ? Icons.my_location
                       : Icons.location_searching,
-                  tooltip: 'Show my location',
+                  tooltip: context.l10n.leadsShowMyLocation,
                   busy: location.isBusy,
                   active: location.hasPosition,
                   onTap: () => _locate(location),
@@ -224,9 +229,11 @@ class _LeadsMapScreenState extends ConsumerState<LeadsMapScreen> {
 
 /// "Qualify" for one stage, "3 stages" beyond that — the full list would not
 /// fit the pill and truncating it mid-name reads worse than a count.
-String _stageSummary(Set<String> stages) {
-  if (stages.length == 1) return stages.first;
-  return '${stages.length} stages';
+String _stageSummary(BuildContext context, Set<String> stages) {
+  if (stages.length == 1) {
+    return localizedLeadStage(context, stages.first);
+  }
+  return context.l10n.leadsStageSummaryCount(stages.length);
 }
 
 /// The map's route into the shared advanced-filter sheet, badged with the
@@ -242,7 +249,7 @@ class _MapFilterButton extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         IconButton(
-          tooltip: 'Advanced filters',
+          tooltip: context.l10n.leadsAdvancedFilters,
           icon: const Icon(Icons.tune),
           color: LeadsTheme.deepPlum,
           onPressed: () => FilterSheet.show(context),
@@ -333,7 +340,7 @@ class _MarkerCard extends StatelessWidget {
                         if (lead.primaryArea.isNotEmpty) lead.primaryArea,
                         if (lead.avgRating != null)
                           '★ ${lead.avgRating!.toStringAsFixed(1)}',
-                        '${lead.branchCount} branches',
+                        context.l10n.leadsBranchesCount(lead.branchCount),
                       ].join('  ·  '),
                       style: LeadsTheme.bodyMuted,
                     ),
@@ -349,8 +356,8 @@ class _MarkerCard extends StatelessWidget {
                             // "straight line" is stated, not implied: this is
                             // not a driving distance and a rep planning a
                             // route must not read it as one.
-                            '${formatDistance(distanceMetres!)} away '
-                            '(straight line)',
+                            context.l10n.leadsDistanceAway(
+                                formatDistance(context, distanceMetres!)),
                             style: LeadsTheme.bodyMuted.copyWith(
                               color: const Color(0xFF1B6CA8),
                               fontWeight: FontWeight.w600,
@@ -446,7 +453,7 @@ class _CategoryLegend extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Categories',
+          Text(context.l10n.leadsMapCategories,
               style: LeadsTheme.body.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
           Flexible(

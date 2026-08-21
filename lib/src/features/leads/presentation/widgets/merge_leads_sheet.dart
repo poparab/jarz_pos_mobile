@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/leads_repository.dart';
 import '../../data/models/lead.dart';
+import '../../../../core/localization/localization_extensions.dart';
 import '../leads_theme.dart';
 
 /// Picks duplicates to fold into a surviving lead.
@@ -98,22 +99,21 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Merge ${chosen.length} into "$survivor"?'),
+        title: Text(
+            context.l10n.leadsMergeConfirmTitle(chosen.length, survivor)),
         content: Text(
-          'Their branches, areas and any details "$survivor" is missing move '
-          'onto it. The merged leads stay on file for audit but leave the '
-          'catalog and the pipeline board.',
+          context.l10n.leadsMergeConfirmBody(survivor),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
                 backgroundColor: LeadsTheme.berryPink),
-            child: const Text('Merge'),
+            child: Text(context.l10n.leadsMergeConfirmAction),
           ),
         ],
       ),
@@ -132,7 +132,8 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
       if (!mounted) return;
       setState(() => _merging = false);
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Merge failed: $e')));
+          .showSnackBar(SnackBar(
+            content: Text(context.l10n.leadsMergeFailed('$e'))));
     }
   }
 
@@ -160,11 +161,12 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
             ),
           ),
           const SizedBox(height: 12),
-          Text('Merge duplicates', style: LeadsTheme.heading),
+          Text(context.l10n.leadsMergeTitle, style: LeadsTheme.heading),
           const SizedBox(height: 4),
           Text(
-            'Fold other records of the same brand into '
-            '"${widget.lead.leadName.isEmpty ? widget.lead.name : widget.lead.leadName}".',
+            context.l10n.leadsMergeSubtitle(widget.lead.leadName.isEmpty
+                ? widget.lead.name
+                : widget.lead.leadName),
             style: LeadsTheme.bodyMuted,
           ),
           const SizedBox(height: 12),
@@ -173,7 +175,7 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
             style: LeadsTheme.body,
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'Search by name, or leave blank for suggestions',
+              hintText: context.l10n.leadsMergeSearchHint,
               isDense: true,
               prefixIcon: const Icon(Icons.search, size: 18),
               suffixIcon: _searchController.text.isEmpty
@@ -203,7 +205,7 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
                     foregroundColor: LeadsTheme.deepPlum,
                     side: const BorderSide(color: LeadsTheme.line),
                   ),
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.commonCancel),
                 ),
               ),
               const SizedBox(width: 12),
@@ -221,7 +223,7 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
                   label: Text(
                     _selected.isEmpty
                         ? 'Merge'
-                        : 'Merge ${_selected.length}',
+                        : context.l10n.leadsMergeAction(_selected.length),
                   ),
                   style: FilledButton.styleFrom(
                       backgroundColor: LeadsTheme.berryPink),
@@ -252,7 +254,7 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
               onPressed: () => _load(query: _searchController.text),
               style: FilledButton.styleFrom(
                   backgroundColor: LeadsTheme.berryPink),
-              child: const Text('Retry'),
+              child: Text(context.l10n.commonRetry),
             ),
           ],
         ),
@@ -264,8 +266,8 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
         child: Center(
           child: Text(
             _searchController.text.trim().isEmpty
-                ? 'No likely duplicates found. Search by name if you know of one.'
-                : 'No leads match that search.',
+                ? context.l10n.leadsMergeNoDuplicates
+                : context.l10n.leadsMergeNoMatch,
             textAlign: TextAlign.center,
             style: LeadsTheme.bodyMuted,
           ),
@@ -282,7 +284,7 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
         final candidate = _candidates[index];
         final subtitle = [
           if (candidate.primaryArea.isNotEmpty) candidate.primaryArea,
-          '${candidate.branchCount} branches',
+          context.l10n.leadsBranchesCount(candidate.branchCount),
           if (candidate.phone.isNotEmpty) candidate.phone,
         ].join('  ·  ');
 
