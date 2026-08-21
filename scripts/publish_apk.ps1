@@ -256,7 +256,9 @@ if ($PlanOnly) {
 # --- Render the landing page -------------------------------------------------
 
 Write-Step 'Rendering the download page...'
-$page = Get-Content -Path $localPageTemplate -Raw
+# -Encoding UTF8 is not optional: Windows PowerShell 5.1 reads a BOM-less file as ANSI,
+# which turns the page's Arabic half into mojibake.
+$page = Get-Content -Path $localPageTemplate -Raw -Encoding UTF8
 $replacements = [ordered]@{
     '{{ENV_LABEL}}'    = "$($config.EnvLabel)"
     '{{VERSION}}'      = $version
@@ -272,7 +274,8 @@ foreach ($key in $replacements.Keys) {
 }
 
 $localPage = Join-Path $tempDir 'index.html'
-Set-Content -Path $localPage -Value $page -Encoding UTF8 -NoNewline
+# Set-Content -Encoding UTF8 would prepend a BOM on 5.1; write the bytes directly instead.
+[System.IO.File]::WriteAllText($localPage, $page, (New-Object System.Text.UTF8Encoding($false)))
 
 $downloadMetadata = [ordered]@{
     environment      = $Environment
