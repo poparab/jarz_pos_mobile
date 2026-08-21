@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../data/b2b_repository.dart';
 import '../../data/models/b2b_models.dart';
@@ -16,10 +18,10 @@ class B2bTodayScreen extends ConsumerWidget {
     final followupsAsync = ref.watch(b2bTodayProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Today'),
+        title: Text(context.l10n.b2bTodayTitle),
         actions: [
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: context.l10n.b2bRefresh,
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(b2bTodayProvider),
           ),
@@ -33,12 +35,12 @@ class B2bTodayScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Failed to load follow-ups.\n$error',
+                Text(context.l10n.b2bTodayLoadFailed('$error'),
                     textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: () => ref.invalidate(b2bTodayProvider),
-                  child: const Text('Retry'),
+                  child: Text(context.l10n.commonRetry),
                 ),
               ],
             ),
@@ -51,13 +53,13 @@ class B2bTodayScreen extends ConsumerWidget {
             children: [
               _header(context, 'Follow-ups'),
               if (followups.todos.isEmpty)
-                const _EmptyRow(label: 'No follow-ups today')
+                _EmptyRow(label: context.l10n.b2bNoFollowUpsToday)
               else
                 ...followups.todos.map((t) => _TodoTile(todo: t)),
               const SizedBox(height: 16),
               _header(context, 'Reorder due'),
               if (followups.reorderDue.isEmpty)
-                const _EmptyRow(label: 'No reorders due')
+                _EmptyRow(label: context.l10n.b2bNoReordersDue)
               else
                 ...followups.reorderDue.map((r) => _ReorderTile(item: r)),
             ],
@@ -107,6 +109,7 @@ class _TodoTileState extends ConsumerState<_TodoTile> {
     final todo = widget.todo;
     if (todo.referenceType == null || todo.referenceName == null) return;
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     setState(() => _busy = true);
     try {
       await ref.read(b2bRepositoryProvider).completeFollowup(
@@ -114,13 +117,13 @@ class _TodoTileState extends ConsumerState<_TodoTile> {
             name: todo.referenceName!,
           );
       messenger.showSnackBar(
-        const SnackBar(content: Text('Follow-up marked done')),
+        SnackBar(content: Text(l10n.b2bFollowUpDone)),
       );
       ref.invalidate(b2bTodayProvider);
     } catch (e) {
       if (mounted) setState(() => _busy = false);
       messenger.showSnackBar(
-        SnackBar(content: Text('Could not complete follow-up: $e')),
+        SnackBar(content: Text(l10n.b2bFollowUpFailed('$e'))),
       );
     }
   }
@@ -139,7 +142,9 @@ class _TodoTileState extends ConsumerState<_TodoTile> {
         ),
         title: Text(todo.description ?? todo.name),
         subtitle: todo.date != null
-            ? Text(overdue ? '${todo.date!} · overdue' : todo.date!)
+            ? Text(overdue
+                ? context.l10n.b2bOverdueSuffix(todo.date!)
+                : todo.date!)
             : null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -153,7 +158,7 @@ class _TodoTileState extends ConsumerState<_TodoTile> {
                     )
                   : TextButton.icon(
                       icon: const Icon(Icons.check, size: 18),
-                      label: const Text('Done'),
+                      label: Text(context.l10n.b2bDone),
                       onPressed: _complete,
                     ),
             if (_canReference) const Icon(Icons.chevron_right),
@@ -180,10 +185,13 @@ class _ReorderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final subtitle = [
-      if (item.lastOrderDate != null) 'Last: ${item.lastOrderDate}',
-      if (item.predictedNextOrder != null) 'Next: ${item.predictedNextOrder}',
+      if (item.lastOrderDate != null)
+        context.l10n.b2bLastOrder('${item.lastOrderDate}'),
+      if (item.predictedNextOrder != null)
+        context.l10n.b2bNextOrder('${item.predictedNextOrder}'),
       if (item.avgBasketValue != null)
-        'Avg: ${item.avgBasketValue!.toStringAsFixed(2)}',
+        context.l10n
+            .b2bAvgBasket(formatCurrency(context, item.avgBasketValue!)),
     ].join(' · ');
     return Card(
       child: ListTile(

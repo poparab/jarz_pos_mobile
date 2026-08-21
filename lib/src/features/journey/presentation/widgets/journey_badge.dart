@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../data/models/journey_note.dart';
 import '../journey_format.dart';
 
@@ -23,7 +24,8 @@ class JourneyCardBadge extends StatelessWidget {
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
 
-    final lastLabel = JourneyFormat.relativePast(summary.lastJourneyDate);
+    final lastLabel =
+        JourneyFormat.relativePast(context, summary.lastJourneyDate);
     final type = (summary.lastJourneyType ?? '').trim();
     final contact = (summary.lastJourneyContact ?? '').trim();
 
@@ -43,7 +45,7 @@ class JourneyCardBadge extends StatelessWidget {
               child: Text(
                 [
                   if (lastLabel.isNotEmpty) lastLabel,
-                  if (type.isNotEmpty) type,
+                  if (type.isNotEmpty) localizedJourneyType(context, type),
                   if (contact.isNotEmpty) contact,
                 ].join(' · '),
                 style: theme.textTheme.labelSmall?.copyWith(color: muted),
@@ -91,7 +93,7 @@ class _NextActionPill extends StatelessWidget {
         : theme.colorScheme.onSurfaceVariant;
     final action = (summary.nextAction ?? '').trim();
     final label = [
-      JourneyFormat.relativeFuture(summary.nextActionDate),
+      JourneyFormat.relativeFuture(context, summary.nextActionDate),
       if (action.isNotEmpty) action,
     ].where((s) => s.isNotEmpty).join(' · ');
 

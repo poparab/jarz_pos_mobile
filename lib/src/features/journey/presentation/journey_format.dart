@@ -1,25 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
+import '../../../core/localization/localization_extensions.dart';
 import '../../leads/presentation/leads_theme.dart';
 
 /// Date and label formatting shared by every journey surface (the timeline, the
 /// editor, the pipeline card badge), so a date reads the same everywhere.
 abstract final class JourneyFormat {
-  static const _months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-
   /// Backend wire format: ISO `yyyy-MM-dd`, the only shape the API accepts.
   static String iso(DateTime date) =>
       '${date.year.toString().padLeft(4, '0')}-'
@@ -34,46 +21,53 @@ abstract final class JourneyFormat {
     return DateTime.tryParse(raw.length > 10 ? raw : '${raw}T00:00:00');
   }
 
-  /// Human date: `12 Aug 2026`. Falls back to the raw string when unparseable
-  /// so a rep still sees *something* rather than a blank.
-  static String pretty(String? value) {
+  /// Human date: `12 Aug 2026`, in the reader's locale. Falls back to the raw
+  /// string when unparseable so a rep still sees *something* rather than a
+  /// blank.
+  static String pretty(BuildContext context, String? value) {
     final date = parse(value);
     if (date == null) return (value ?? '').trim();
-    return '${date.day} ${_months[date.month - 1]} ${date.year}';
+    return DateFormat('d MMM yyyy', context.l10n.localeName).format(date);
   }
 
   /// Relative label for a past date: `Today`, `Yesterday`, `5 days ago`,
   /// `3 weeks ago`. Empty when the date is unusable.
-  static String relativePast(String? value, {DateTime? now}) {
+  static String relativePast(
+    BuildContext context,
+    String? value, {
+    DateTime? now,
+  }) {
     final date = parse(value);
     if (date == null) return '';
+    final l10n = context.l10n;
     final days = _dayDelta(date, now ?? DateTime.now());
-    if (days == 0) return 'Today';
-    if (days == 1) return 'Yesterday';
-    if (days < 0) return relativeFuture(value, now: now);
-    if (days < 7) return '$days days ago';
-    if (days < 30) {
-      final weeks = days ~/ 7;
-      return weeks == 1 ? '1 week ago' : '$weeks weeks ago';
-    }
-    final months = days ~/ 30;
-    return months <= 1 ? '1 month ago' : '$months months ago';
+    if (days == 0) return l10n.journeyToday;
+    if (days == 1) return l10n.journeyYesterday;
+    if (days < 0) return relativeFuture(context, value, now: now);
+    if (days < 7) return l10n.journeyDaysAgo(days);
+    if (days < 30) return l10n.journeyWeeksAgo(days ~/ 7);
+    return l10n.journeyMonthsAgo(days ~/ 30);
   }
 
   /// Relative label for a due date: `Overdue by 3 days`, `Today`, `In 4 days`.
-  static String relativeFuture(String? value, {DateTime? now}) {
+  static String relativeFuture(
+    BuildContext context,
+    String? value, {
+    DateTime? now,
+  }) {
     final date = parse(value);
     if (date == null) return '';
+    final l10n = context.l10n;
     final days = _dayDelta(date, now ?? DateTime.now());
-    if (days == 0) return 'Today';
-    if (days == 1) return 'Yesterday';
+    if (days == 0) return l10n.journeyToday;
+    if (days == 1) return l10n.journeyYesterday;
     if (days > 1) {
-      return days < 30 ? 'Overdue by $days days' : 'Overdue';
+      return days < 30 ? l10n.journeyOverdueByDays(days) : l10n.journeyOverdue;
     }
     final ahead = -days;
-    if (ahead == 1) return 'Tomorrow';
-    if (ahead < 30) return 'In $ahead days';
-    return 'In ${ahead ~/ 30} months';
+    if (ahead == 1) return l10n.journeyTomorrow;
+    if (ahead < 30) return l10n.journeyInDays(ahead);
+    return l10n.journeyInMonths(ahead ~/ 30);
   }
 
   /// Whether a next-action date is today or already past — i.e. the rep owes

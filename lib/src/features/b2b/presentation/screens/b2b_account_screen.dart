@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../journey/presentation/widgets/journey_notes_section.dart';
 import '../../../labels/models/label_models.dart' show LabelStatus;
@@ -65,7 +66,7 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Account')),
+      appBar: AppBar(title: Text(context.l10n.b2bAccountTitle)),
       body: FutureBuilder<B2bAccountDetail>(
         future: _future,
         builder: (context, snapshot) {
@@ -79,10 +80,14 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Failed to load account.\n${snapshot.error}',
+                    Text(
+                        context.l10n
+                            .b2bAccountLoadFailed('${snapshot.error}'),
                         textAlign: TextAlign.center),
                     const SizedBox(height: 12),
-                    FilledButton(onPressed: _reload, child: const Text('Retry')),
+                    FilledButton(
+                        onPressed: _reload,
+                        child: Text(context.l10n.commonRetry)),
                   ],
                 ),
               ),
@@ -192,7 +197,7 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed: $e')),
+        SnackBar(content: Text(context.l10n.b2bFailed('$e'))),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -200,9 +205,10 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
   }
 
   Future<void> _logCall(B2bAccount account) async {
+    final l10n = context.l10n;
     final note = await _promptText(
-      title: 'Log call',
-      hint: 'What was discussed?',
+      title: l10n.b2bLogCall,
+      hint: l10n.b2bLogCallHint,
     );
     if (note == null || note.isEmpty) return;
     setState(() => _busy = true);
@@ -214,13 +220,13 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Activity logged')),
+        SnackBar(content: Text(l10n.b2bActivityLogged)),
       );
       _reload();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to log activity: $e')),
+        SnackBar(content: Text(l10n.b2bLogActivityFailed('$e'))),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -228,9 +234,10 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
   }
 
   Future<void> _markLost(B2bAccount account) async {
+    final l10n = context.l10n;
     final reason = await _promptText(
-      title: 'Mark lost / on-hold',
-      hint: 'Reason',
+      title: l10n.b2bMarkLostTitle,
+      hint: l10n.b2bReasonHint,
     );
     if (reason == null) return;
     setState(() => _busy = true);
@@ -243,13 +250,13 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Marked Lost/On-hold')),
+        SnackBar(content: Text(l10n.b2bMarkedLost)),
       );
       _reload();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed: $e')),
+        SnackBar(content: Text(context.l10n.b2bFailed('$e'))),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -275,11 +282,11 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('Save'),
+            child: Text(context.l10n.commonSave),
           ),
         ],
       ),
@@ -332,8 +339,9 @@ class _LeadCustomerDialogState extends ConsumerState<_LeadCustomerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
-      title: const Text('Create customer for lead'),
+      title: Text(l10n.b2bCreateCustomerTitle),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -342,22 +350,27 @@ class _LeadCustomerDialogState extends ConsumerState<_LeadCustomerDialog> {
             children: [
               TextFormField(
                 controller: _nameCtrl,
-                decoration: const InputDecoration(labelText: 'Customer name'),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+                decoration:
+                    InputDecoration(labelText: l10n.b2bCustomerName),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? l10n.leadFormRequired
+                    : null,
               ),
               TextFormField(
                 controller: _mobileCtrl,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Mobile'),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+                decoration:
+                    InputDecoration(labelText: l10n.leadFieldMobile),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? l10n.leadFormRequired
+                    : null,
               ),
               TextFormField(
                 controller: _addressCtrl,
-                decoration: const InputDecoration(labelText: 'Address'),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+                decoration: InputDecoration(labelText: l10n.b2bAddress),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? l10n.leadFormRequired
+                    : null,
               ),
               _buildTerritoryField(),
             ],
@@ -367,7 +380,7 @@ class _LeadCustomerDialogState extends ConsumerState<_LeadCustomerDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () {
@@ -382,20 +395,22 @@ class _LeadCustomerDialogState extends ConsumerState<_LeadCustomerDialog> {
               ),
             );
           },
-          child: const Text('Continue'),
+          child: Text(l10n.b2bContinue),
         ),
       ],
     );
   }
 
   Widget _buildTerritoryField() {
+    final l10n = context.l10n;
     final territoriesAsync = ref.watch(territoriesProvider(null));
     return territoriesAsync.when(
       data: (territories) => DropdownButtonFormField<String>(
         initialValue: _territory,
         isExpanded: true,
         menuMaxHeight: 320,
-        decoration: const InputDecoration(labelText: 'Territory'),
+        decoration:
+            InputDecoration(labelText: l10n.leadFieldTerritory),
         items: territories.map<DropdownMenuItem<String>>((territory) {
           final name = territory['name']?.toString() ?? '';
           final label = (territory['territory_name_ar'] ??
@@ -408,27 +423,28 @@ class _LeadCustomerDialogState extends ConsumerState<_LeadCustomerDialog> {
           );
         }).toList(),
         onChanged: (value) => setState(() => _territory = value),
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+        validator: (v) =>
+            (v == null || v.trim().isEmpty) ? l10n.leadFormRequired : null,
       ),
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
+      loading: () => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Row(
           children: [
-            SizedBox(
+            const SizedBox(
               height: 18,
               width: 18,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
-            SizedBox(width: 12),
-            Text('Loading territories…'),
+            const SizedBox(width: 12),
+            Text(l10n.b2bLoadingTerritories),
           ],
         ),
       ),
-      error: (_, _) => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
+      error: (_, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Text(
-          'Failed to load territories',
-          style: TextStyle(color: Colors.red),
+          l10n.b2bTerritoriesFailed,
+          style: const TextStyle(color: Colors.red),
         ),
       ),
     );
@@ -507,20 +523,24 @@ class _AccountBody extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: busy ? null : onOpenLead,
                   icon: const Icon(Icons.open_in_new, size: 18),
-                  label: const Text('Open lead page'),
+                  label: Text(context.l10n.b2bOpenLeadPage),
                 ),
               ),
             ],
             const SizedBox(height: 12),
-            _section(context, 'Contact', [
+            _section(context, context.l10n.b2bSectionContact, [
               if (account.contact.mobileNo != null)
-                _kv(context, 'Mobile', account.contact.mobileNo!),
+                _kv(context, context.l10n.leadFieldMobile,
+                    account.contact.mobileNo!),
               if (account.contact.phone != null)
-                _kv(context, 'Phone', account.contact.phone!),
+                _kv(context, context.l10n.leadFieldPhone,
+                    account.contact.phone!),
               if (account.contact.emailId != null)
-                _kv(context, 'Email', account.contact.emailId!),
+                _kv(context, context.l10n.leadFieldEmail,
+                    account.contact.emailId!),
               if (account.customer != null)
-                _kv(context, 'Customer', account.customer!),
+                _kv(context, context.l10n.commonCustomerLabel,
+                    account.customer!),
             ]),
             if (account.doctype == 'Lead')
               _LeadProfileSection(leadName: account.name),
@@ -535,13 +555,16 @@ class _AccountBody extends StatelessWidget {
                   account.contact.mobileNo ?? account.contact.phone,
               onChanged: onJourneyChanged,
             ),
-            _section(context, 'Insights', [
+            _section(context, context.l10n.b2bSectionInsights, [
               if (account.predictedNextOrder != null)
-                _kv(context, 'Predicted next order',
+                _kv(context, context.l10n.b2bPredictedNextOrder,
                     account.predictedNextOrder!),
               if (account.avgOrderCycleDays != null)
-                _kv(context, 'Avg order cycle',
-                    '${account.avgOrderCycleDays!.toStringAsFixed(1)} days'),
+                _kv(
+                    context,
+                    context.l10n.b2bAvgOrderCycle,
+                    context.l10n.b2bDaysValue(
+                        account.avgOrderCycleDays!.toStringAsFixed(1))),
             ]),
             _LabelsSection(
               labels: labels,
@@ -550,9 +573,9 @@ class _AccountBody extends StatelessWidget {
             ),
             _section(
               context,
-              'Recent invoices',
+              context.l10n.b2bSectionRecentInvoices,
               account.recentInvoices.isEmpty
-                  ? [const Text('None')]
+                  ? [Text(context.l10n.b2bNone)]
                   : account.recentInvoices
                       .map(
                         (inv) => ListTile(
@@ -572,9 +595,9 @@ class _AccountBody extends StatelessWidget {
             ),
             _section(
               context,
-              'Open to-dos',
+              context.l10n.b2bSectionOpenTodos,
               account.openTodos.isEmpty
-                  ? [const Text('None')]
+                  ? [Text(context.l10n.b2bNone)]
                   : account.openTodos
                       .map(
                         (todo) => ListTile(
@@ -608,28 +631,28 @@ class _AccountBody extends StatelessWidget {
                     FilledButton.icon(
                       onPressed: busy ? null : onSendSample,
                       icon: const Icon(Icons.science_outlined),
-                      label: const Text('Send sample'),
+                      label: Text(context.l10n.b2bSendSample),
                     ),
                     FilledButton.icon(
                       onPressed: busy ? null : onPlaceOrder,
                       icon: const Icon(Icons.shopping_cart_outlined),
-                      label: const Text('Place order'),
+                      label: Text(context.l10n.b2bPlaceOrder),
                     ),
                     OutlinedButton.icon(
                       onPressed: busy ? null : onLogCall,
                       icon: const Icon(Icons.call),
-                      label: const Text('Log call'),
+                      label: Text(context.l10n.b2bLogCall),
                     ),
                     OutlinedButton.icon(
                       onPressed: busy ? null : onMarkLost,
                       icon: const Icon(Icons.block),
-                      label: const Text('Mark lost'),
+                      label: Text(context.l10n.b2bMarkLost),
                     ),
                     if (onViewPricing != null)
                       OutlinedButton.icon(
                         onPressed: busy ? null : onViewPricing,
                         icon: const Icon(Icons.sell_outlined),
-                        label: const Text('View pricing'),
+                        label: Text(context.l10n.b2bViewPricing),
                       ),
                   ],
                 ),
@@ -715,7 +738,8 @@ class _LabelsSection extends StatelessWidget {
         const SizedBox(height: 16),
         Row(
           children: [
-            Text('Labels', style: theme.textTheme.titleMedium),
+            Text(context.l10n.b2bLabelsSection,
+                style: theme.textTheme.titleMedium),
             if (!empty && data.needsAttention > 0) ...[
               const SizedBox(width: 8),
               Container(
@@ -726,7 +750,7 @@ class _LabelsSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '${data.needsAttention} need${data.needsAttention == 1 ? 's' : ''} printing',
+                  context.l10n.b2bLabelsNeedPrinting(data.needsAttention),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: const Color(0xFFB3261E),
                     fontWeight: FontWeight.w700,
@@ -739,7 +763,7 @@ class _LabelsSection extends StatelessWidget {
         const Divider(),
         if (empty) ...[
           Text(
-            'No labels tracked for this customer yet.',
+            context.l10n.b2bNoLabelsTracked,
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 8),
@@ -748,7 +772,7 @@ class _LabelsSection extends StatelessWidget {
             child: FilledButton.tonalIcon(
               onPressed: onSetupLabels,
               icon: const Icon(Icons.label_outline, size: 18),
-              label: const Text('Set up labels'),
+              label: Text(context.l10n.b2bSetUpLabels),
             ),
           ),
         ] else
@@ -820,17 +844,17 @@ class _LeadProfileSectionState extends ConsumerState<_LeadProfileSection> {
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Padding(
-            padding: EdgeInsets.only(top: 16),
+          return Padding(
+            padding: const EdgeInsets.only(top: 16),
             child: Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   height: 16,
                   width: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
-                SizedBox(width: 12),
-                Text('Loading lead profile…'),
+                const SizedBox(width: 12),
+                Text(context.l10n.b2bLoadingLeadProfile),
               ],
             ),
           );
@@ -854,7 +878,8 @@ class _LeadProfileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final metrics = <Widget>[
-      _metric(Icons.storefront_outlined, '${lead.branchCount} branches'),
+      _metric(Icons.storefront_outlined,
+          context.l10n.leadsBranchesCount(lead.branchCount)),
       if (lead.avgRating != null)
         _metric(
           Icons.star_rounded,
@@ -874,7 +899,8 @@ class _LeadProfileCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        Text('Lead profile', style: theme.textTheme.titleMedium),
+        Text(context.l10n.b2bLeadProfile,
+            style: theme.textTheme.titleMedium),
         const Divider(),
         Container(
           padding: const EdgeInsets.all(12),
@@ -920,18 +946,20 @@ class _LeadProfileCard extends StatelessWidget {
                 Wrap(spacing: 8, runSpacing: 8, children: metrics),
               ],
               const SizedBox(height: 12),
-              _contactActions(),
+              _contactActions(context),
               if (primaryAddress != null || shippingAddress != null) ...[
                 const SizedBox(height: 12),
                 if (primaryAddress != null)
-                  _addressRow(context, 'Primary address', primaryAddress),
+                  _addressRow(context, context.l10n.leadDetailPrimaryAddress,
+                      primaryAddress),
                 if (shippingAddress != null)
-                  _addressRow(context, 'Shipping address', shippingAddress),
+                  _addressRow(context, context.l10n.leadDetailShippingAddress,
+                      shippingAddress),
               ],
               if (lead.branches.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(
-                  'Branches (${lead.branches.length})',
+                  context.l10n.leadDetailBranchesCount(lead.branches.length),
                   style: theme.textTheme.titleSmall,
                 ),
                 const SizedBox(height: 6),
@@ -941,7 +969,8 @@ class _LeadProfileCard extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      '+ ${lead.branches.length - 5} more',
+                      context.l10n
+                          .b2bMoreBranches(lead.branches.length - 5),
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
@@ -953,7 +982,7 @@ class _LeadProfileCard extends StatelessWidget {
     );
   }
 
-  Widget _contactActions() {
+  Widget _contactActions(BuildContext context) {
     final hasPhone = lead.phone.trim().isNotEmpty;
     final hasWebsite = lead.website.trim().isNotEmpty;
     final hasInstagram = lead.instagram.trim().isNotEmpty;
@@ -965,26 +994,26 @@ class _LeadProfileCard extends StatelessWidget {
       children: [
         LeadActionButton(
           icon: Icons.call,
-          tooltip: 'Call',
+          tooltip: context.l10n.leadActionCall,
           enabled: hasPhone,
           onTap: () => LeadActions.call(lead.phone),
         ),
         LeadActionButton(
           icon: Icons.language,
-          tooltip: 'Website',
+          tooltip: context.l10n.leadActionWebsite,
           enabled: hasWebsite,
           onTap: () => LeadActions.website(lead.website),
         ),
         LeadActionButton(
           icon: Icons.camera_alt_outlined,
-          tooltip: 'Instagram',
+          tooltip: context.l10n.leadActionInstagram,
           color: LeadsTheme.berryPink,
           enabled: hasInstagram,
           onTap: () => LeadActions.instagram(lead.instagram),
         ),
         LeadActionButton(
           icon: Icons.map_outlined,
-          tooltip: 'Map',
+          tooltip: context.l10n.leadActionMap,
           enabled: hasMaps,
           onTap: () {
             if (lead.mapsUrl.trim().isNotEmpty) {

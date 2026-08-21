@@ -11662,6 +11662,1138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Merge'**
   String get leadsMergeConfirmAction;
+
+  /// No description provided for @b2bAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get b2bAccountTitle;
+
+  /// No description provided for @b2bAccountLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load account.\n{error}'**
+  String b2bAccountLoadFailed(String error);
+
+  /// No description provided for @b2bFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String b2bFailed(String error);
+
+  /// No description provided for @b2bLogCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Log call'**
+  String get b2bLogCall;
+
+  /// No description provided for @b2bLogCallHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What was discussed?'**
+  String get b2bLogCallHint;
+
+  /// No description provided for @b2bActivityLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity logged'**
+  String get b2bActivityLogged;
+
+  /// No description provided for @b2bLogActivityFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to log activity: {error}'**
+  String b2bLogActivityFailed(String error);
+
+  /// No description provided for @b2bMarkLostTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark lost / on-hold'**
+  String get b2bMarkLostTitle;
+
+  /// No description provided for @b2bReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get b2bReasonHint;
+
+  /// No description provided for @b2bMarkedLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked Lost/On-hold'**
+  String get b2bMarkedLost;
+
+  /// No description provided for @b2bCreateCustomerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create customer for lead'**
+  String get b2bCreateCustomerTitle;
+
+  /// No description provided for @b2bCustomerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer name'**
+  String get b2bCustomerName;
+
+  /// No description provided for @b2bAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get b2bAddress;
+
+  /// No description provided for @b2bContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get b2bContinue;
+
+  /// No description provided for @b2bLoadingTerritories.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading territories…'**
+  String get b2bLoadingTerritories;
+
+  /// No description provided for @b2bTerritoriesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load territories'**
+  String get b2bTerritoriesFailed;
+
+  /// No description provided for @b2bOpenLeadPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Open lead page'**
+  String get b2bOpenLeadPage;
+
+  /// No description provided for @b2bSectionContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get b2bSectionContact;
+
+  /// No description provided for @b2bSectionInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get b2bSectionInsights;
+
+  /// No description provided for @b2bSectionRecentInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent invoices'**
+  String get b2bSectionRecentInvoices;
+
+  /// No description provided for @b2bSectionOpenTodos.
+  ///
+  /// In en, this message translates to:
+  /// **'Open to-dos'**
+  String get b2bSectionOpenTodos;
+
+  /// No description provided for @b2bNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get b2bNone;
+
+  /// No description provided for @b2bPredictedNextOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Predicted next order'**
+  String get b2bPredictedNextOrder;
+
+  /// No description provided for @b2bAvgOrderCycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg order cycle'**
+  String get b2bAvgOrderCycle;
+
+  /// No description provided for @b2bDaysValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String b2bDaysValue(String days);
+
+  /// No description provided for @b2bSendSample.
+  ///
+  /// In en, this message translates to:
+  /// **'Send sample'**
+  String get b2bSendSample;
+
+  /// No description provided for @b2bPlaceOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Place order'**
+  String get b2bPlaceOrder;
+
+  /// No description provided for @b2bMarkLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark lost'**
+  String get b2bMarkLost;
+
+  /// No description provided for @b2bViewPricing.
+  ///
+  /// In en, this message translates to:
+  /// **'View pricing'**
+  String get b2bViewPricing;
+
+  /// No description provided for @b2bLabelsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels'**
+  String get b2bLabelsSection;
+
+  /// No description provided for @b2bLabelsNeedPrinting.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 needs printing} other{{count} need printing}}'**
+  String b2bLabelsNeedPrinting(int count);
+
+  /// No description provided for @b2bNoLabelsTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'No labels tracked for this customer yet.'**
+  String get b2bNoLabelsTracked;
+
+  /// No description provided for @b2bSetUpLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up labels'**
+  String get b2bSetUpLabels;
+
+  /// No description provided for @b2bLoadingLeadProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading lead profile…'**
+  String get b2bLoadingLeadProfile;
+
+  /// No description provided for @b2bLeadProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead profile'**
+  String get b2bLeadProfile;
+
+  /// No description provided for @b2bMoreBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {count} more'**
+  String b2bMoreBranches(int count);
+
+  /// No description provided for @b2bPipelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B Pipeline'**
+  String get b2bPipelineTitle;
+
+  /// No description provided for @b2bMyFollowUps.
+  ///
+  /// In en, this message translates to:
+  /// **'My follow-ups'**
+  String get b2bMyFollowUps;
+
+  /// No description provided for @b2bRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get b2bRefresh;
+
+  /// No description provided for @b2bSwitchMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch mode'**
+  String get b2bSwitchMode;
+
+  /// No description provided for @b2bGoToPos.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to POS (B2C)'**
+  String get b2bGoToPos;
+
+  /// No description provided for @b2bGoToKanban.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Dispatch Kanban'**
+  String get b2bGoToKanban;
+
+  /// No description provided for @b2bNewLead.
+  ///
+  /// In en, this message translates to:
+  /// **'New lead'**
+  String get b2bNewLead;
+
+  /// No description provided for @b2bMovedToStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved \"{title}\" to {stage}'**
+  String b2bMovedToStage(String title, String stage);
+
+  /// No description provided for @b2bAdvanceStageFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to advance stage: {error}'**
+  String b2bAdvanceStageFailed(String error);
+
+  /// No description provided for @b2bFollowUpReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up reminder'**
+  String get b2bFollowUpReminder;
+
+  /// No description provided for @b2bFollowUpPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'When should you follow up after moving to \"{stage}\"?'**
+  String b2bFollowUpPrompt(String stage);
+
+  /// No description provided for @b2bSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get b2bSkip;
+
+  /// No description provided for @b2bSetReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Set reminder'**
+  String get b2bSetReminder;
+
+  /// No description provided for @b2bLostReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is this lost / on hold?'**
+  String get b2bLostReasonHint;
+
+  /// No description provided for @b2bPipelineLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the pipeline.\n{error}'**
+  String b2bPipelineLoadFailed(String error);
+
+  /// No description provided for @b2bTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get b2bTodayTitle;
+
+  /// No description provided for @b2bTodayLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load follow-ups.\n{error}'**
+  String b2bTodayLoadFailed(String error);
+
+  /// No description provided for @b2bNoFollowUpsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'No follow-ups today'**
+  String get b2bNoFollowUpsToday;
+
+  /// No description provided for @b2bNoReordersDue.
+  ///
+  /// In en, this message translates to:
+  /// **'No reorders due'**
+  String get b2bNoReordersDue;
+
+  /// No description provided for @b2bFollowUpDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up marked done'**
+  String get b2bFollowUpDone;
+
+  /// No description provided for @b2bFollowUpFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not complete follow-up: {error}'**
+  String b2bFollowUpFailed(String error);
+
+  /// No description provided for @b2bDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get b2bDone;
+
+  /// No description provided for @b2bOverdueSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · overdue'**
+  String b2bOverdueSuffix(String date);
+
+  /// No description provided for @b2bAvgBasket.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg: {amount}'**
+  String b2bAvgBasket(String amount);
+
+  /// No description provided for @b2bScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Score {score}'**
+  String b2bScoreLabel(int score);
+
+  /// No description provided for @b2bNoAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts'**
+  String get b2bNoAccounts;
+
+  /// No description provided for @b2bLabelCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 label} other{{count} labels}}'**
+  String b2bLabelCount(int count);
+
+  /// No description provided for @b2bLastOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Last: {date}'**
+  String b2bLastOrder(String date);
+
+  /// No description provided for @b2bNextOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {date}'**
+  String b2bNextOrder(String date);
+
+  /// No description provided for @b2bCardLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead'**
+  String get b2bCardLead;
+
+  /// No description provided for @b2bCardOpportunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Opportunity'**
+  String get b2bCardOpportunity;
+
+  /// No description provided for @b2bLabelsNeedPrintingTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 label needs printing} other{{count} labels need printing}}'**
+  String b2bLabelsNeedPrintingTooltip(int count);
+
+  /// No description provided for @pricingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Lists'**
+  String get pricingTitle;
+
+  /// No description provided for @pricingCustomerLookup.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer pricing lookup'**
+  String get pricingCustomerLookup;
+
+  /// No description provided for @pricingRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get pricingRefresh;
+
+  /// No description provided for @pricingNewPriceList.
+  ///
+  /// In en, this message translates to:
+  /// **'New price list'**
+  String get pricingNewPriceList;
+
+  /// No description provided for @pricingNoPriceLists.
+  ///
+  /// In en, this message translates to:
+  /// **'No price lists yet.'**
+  String get pricingNoPriceLists;
+
+  /// No description provided for @pricingNameField.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get pricingNameField;
+
+  /// No description provided for @pricingCurrencyField.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get pricingCurrencyField;
+
+  /// No description provided for @pricingCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get pricingCreate;
+
+  /// No description provided for @pricingCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created \"{name}\"'**
+  String pricingCreated(String name);
+
+  /// No description provided for @pricingCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create price list: {error}'**
+  String pricingCreateFailed(String error);
+
+  /// No description provided for @pricingDefaultBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get pricingDefaultBadge;
+
+  /// No description provided for @pricingLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load price lists.\n{error}'**
+  String pricingLoadFailed(String error);
+
+  /// No description provided for @pricingDetailLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load \"{name}\".\n{error}'**
+  String pricingDetailLoadFailed(String name, String error);
+
+  /// No description provided for @pricingSetRateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set {category} rate'**
+  String pricingSetRateTitle(String category);
+
+  /// No description provided for @pricingRateUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} rate updated'**
+  String pricingRateUpdated(String category);
+
+  /// No description provided for @pricingRateSet.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} rate set'**
+  String pricingRateSet(String category);
+
+  /// No description provided for @pricingAllCategoriesHaveRows.
+  ///
+  /// In en, this message translates to:
+  /// **'All categories already have a row.'**
+  String get pricingAllCategoriesHaveRows;
+
+  /// No description provided for @pricingItemCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}'**
+  String pricingItemCount(int count);
+
+  /// No description provided for @pricingOverrideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Override {item}'**
+  String pricingOverrideTitle(String item);
+
+  /// No description provided for @pricingOverrideUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Override updated'**
+  String get pricingOverrideUpdated;
+
+  /// No description provided for @pricingRemoveOverrideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove override?'**
+  String get pricingRemoveOverrideTitle;
+
+  /// No description provided for @pricingRemoveOverrideBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{item} will fall back to its category rate.'**
+  String pricingRemoveOverrideBody(String item);
+
+  /// No description provided for @pricingRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get pricingRemove;
+
+  /// No description provided for @pricingOverrideRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Override removed'**
+  String get pricingOverrideRemoved;
+
+  /// No description provided for @pricingAddOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'Add override'**
+  String get pricingAddOverride;
+
+  /// No description provided for @pricingItemCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Item code'**
+  String get pricingItemCode;
+
+  /// No description provided for @pricingRateField.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate'**
+  String get pricingRateField;
+
+  /// No description provided for @pricingOverrideAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Override added'**
+  String get pricingOverrideAdded;
+
+  /// No description provided for @pricingUnassignTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassign customer?'**
+  String get pricingUnassignTitle;
+
+  /// No description provided for @pricingUnassignBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{customer} will revert to their customer group default.'**
+  String pricingUnassignBody(String customer);
+
+  /// No description provided for @pricingUnassign.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassign'**
+  String get pricingUnassign;
+
+  /// No description provided for @pricingCustomerUnassigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer unassigned'**
+  String get pricingCustomerUnassigned;
+
+  /// No description provided for @pricingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String pricingFailed(String error);
+
+  /// No description provided for @pricingCategoryPrices.
+  ///
+  /// In en, this message translates to:
+  /// **'Category prices'**
+  String get pricingCategoryPrices;
+
+  /// No description provided for @pricingAddCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get pricingAddCategory;
+
+  /// No description provided for @pricingNoCategoryRates.
+  ///
+  /// In en, this message translates to:
+  /// **'No category rates set.'**
+  String get pricingNoCategoryRates;
+
+  /// No description provided for @pricingEditRateTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {category} rate'**
+  String pricingEditRateTooltip(String category);
+
+  /// No description provided for @pricingPerFlavorOverrides.
+  ///
+  /// In en, this message translates to:
+  /// **'Per-flavor overrides'**
+  String get pricingPerFlavorOverrides;
+
+  /// No description provided for @pricingOverrideCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 override} other{{count} overrides}}'**
+  String pricingOverrideCount(int count);
+
+  /// No description provided for @pricingNoOverrides.
+  ///
+  /// In en, this message translates to:
+  /// **'No per-item overrides.'**
+  String get pricingNoOverrides;
+
+  /// No description provided for @pricingEditOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit override'**
+  String get pricingEditOverride;
+
+  /// No description provided for @pricingRemoveOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove override'**
+  String get pricingRemoveOverride;
+
+  /// No description provided for @pricingAssignedCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned customers'**
+  String get pricingAssignedCustomers;
+
+  /// No description provided for @pricingCustomerCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 customer} other{{count} customers}}'**
+  String pricingCustomerCount(int count);
+
+  /// No description provided for @pricingNoCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers use this list.'**
+  String get pricingNoCustomers;
+
+  /// No description provided for @pricingViaGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'via group {group}'**
+  String pricingViaGroup(String group);
+
+  /// No description provided for @pricingDirectAssignment.
+  ///
+  /// In en, this message translates to:
+  /// **'direct assignment'**
+  String get pricingDirectAssignment;
+
+  /// No description provided for @customerPricingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer pricing'**
+  String get customerPricingTitle;
+
+  /// No description provided for @customerPricingSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search company customers…'**
+  String get customerPricingSearchHint;
+
+  /// No description provided for @customerPricingSearchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Search failed.\n{error}'**
+  String customerPricingSearchFailed(String error);
+
+  /// No description provided for @customerPricingNoCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers found.'**
+  String get customerPricingNoCustomers;
+
+  /// No description provided for @customerPricingLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load pricing for \"{customer}\".\n{error}'**
+  String customerPricingLoadFailed(String customer, String error);
+
+  /// No description provided for @customerPricingEffective.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective prices'**
+  String get customerPricingEffective;
+
+  /// No description provided for @customerPricingNoResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'No resolved prices.'**
+  String get customerPricingNoResolved;
+
+  /// No description provided for @customerPricingSource.
+  ///
+  /// In en, this message translates to:
+  /// **'{group} · source: {source}'**
+  String customerPricingSource(String group, String source);
+
+  /// No description provided for @pricingNoCategoryRatesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'No category rates set'**
+  String get pricingNoCategoryRatesShort;
+
+  /// No description provided for @pricingCardSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{customers} · {currency}'**
+  String pricingCardSummary(String customers, String currency);
+
+  /// No description provided for @pricingDisabledSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **' · disabled'**
+  String get pricingDisabledSuffix;
+
+  /// No description provided for @customerPricingGroupLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Group: {group}\nPrice list: {priceList} ({assignment})'**
+  String customerPricingGroupLine(
+    String group,
+    String priceList,
+    String assignment,
+  );
+
+  /// No description provided for @pricingNoneValue.
+  ///
+  /// In en, this message translates to:
+  /// **'(none)'**
+  String get pricingNoneValue;
+
+  /// No description provided for @pricingDash.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get pricingDash;
+
+  /// No description provided for @journeyToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get journeyToday;
+
+  /// No description provided for @journeyYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get journeyYesterday;
+
+  /// No description provided for @journeyTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get journeyTomorrow;
+
+  /// No description provided for @journeyDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day ago} other{{count} days ago}}'**
+  String journeyDaysAgo(int count);
+
+  /// No description provided for @journeyWeeksAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 week ago} other{{count} weeks ago}}'**
+  String journeyWeeksAgo(int count);
+
+  /// No description provided for @journeyMonthsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 month ago} other{{count} months ago}}'**
+  String journeyMonthsAgo(int count);
+
+  /// No description provided for @journeyOverdueByDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Overdue by 1 day} other{Overdue by {count} days}}'**
+  String journeyOverdueByDays(int count);
+
+  /// No description provided for @journeyOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get journeyOverdue;
+
+  /// No description provided for @journeyInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{In 1 day} other{In {count} days}}'**
+  String journeyInDays(int count);
+
+  /// No description provided for @journeyInMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{In 1 month} other{In {count} months}}'**
+  String journeyInMonths(int count);
+
+  /// No description provided for @journeyTypeVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit'**
+  String get journeyTypeVisit;
+
+  /// No description provided for @journeyTypeCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get journeyTypeCall;
+
+  /// No description provided for @journeyTypeWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get journeyTypeWhatsapp;
+
+  /// No description provided for @journeyTypeSampleDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample Drop'**
+  String get journeyTypeSampleDrop;
+
+  /// No description provided for @journeyTypeMeeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Meeting'**
+  String get journeyTypeMeeting;
+
+  /// No description provided for @journeyTypeEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get journeyTypeEmail;
+
+  /// No description provided for @journeyTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get journeyTypeOther;
+
+  /// No description provided for @journeyOutcomeInterested.
+  ///
+  /// In en, this message translates to:
+  /// **'Interested'**
+  String get journeyOutcomeInterested;
+
+  /// No description provided for @journeyOutcomeNeedsFollowUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs Follow-up'**
+  String get journeyOutcomeNeedsFollowUp;
+
+  /// No description provided for @journeyOutcomeSampleRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample Requested'**
+  String get journeyOutcomeSampleRequested;
+
+  /// No description provided for @journeyOutcomeOrderPlaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Placed'**
+  String get journeyOutcomeOrderPlaced;
+
+  /// No description provided for @journeyOutcomeNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Now'**
+  String get journeyOutcomeNotNow;
+
+  /// No description provided for @journeyOutcomeRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get journeyOutcomeRejected;
+
+  /// No description provided for @journeyEditorEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit journey note'**
+  String get journeyEditorEditTitle;
+
+  /// No description provided for @journeyEditorNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a visit or call'**
+  String get journeyEditorNewTitle;
+
+  /// No description provided for @journeyEditorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened, who you spoke to, and what happens next.'**
+  String get journeyEditorSubtitle;
+
+  /// No description provided for @journeyEditorDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get journeyEditorDate;
+
+  /// No description provided for @journeyEditorType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get journeyEditorType;
+
+  /// No description provided for @journeyEditorNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get journeyEditorNote;
+
+  /// No description provided for @journeyEditorNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'They liked the matcha, asked about wholesale pricing…'**
+  String get journeyEditorNoteHint;
+
+  /// No description provided for @journeyEditorWhoSpoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Who you spoke to'**
+  String get journeyEditorWhoSpoke;
+
+  /// No description provided for @journeyEditorPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Person'**
+  String get journeyEditorPerson;
+
+  /// No description provided for @journeyEditorPersonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Mostafa'**
+  String get journeyEditorPersonHint;
+
+  /// No description provided for @journeyEditorRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get journeyEditorRole;
+
+  /// No description provided for @journeyEditorRoleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch manager'**
+  String get journeyEditorRoleHint;
+
+  /// No description provided for @journeyEditorTheirPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Their phone'**
+  String get journeyEditorTheirPhone;
+
+  /// No description provided for @journeyEditorOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Outcome'**
+  String get journeyEditorOutcome;
+
+  /// No description provided for @journeyEditorNextAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Next action'**
+  String get journeyEditorNextAction;
+
+  /// No description provided for @journeyEditorNextActionHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'A date here also sets the follow-up reminder on this account.'**
+  String get journeyEditorNextActionHelp;
+
+  /// No description provided for @journeyEditorWhatToDo.
+  ///
+  /// In en, this message translates to:
+  /// **'What to do'**
+  String get journeyEditorWhatToDo;
+
+  /// No description provided for @journeyEditorWhatToDoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Call the manager to confirm the trial order'**
+  String get journeyEditorWhatToDoHint;
+
+  /// No description provided for @journeyEditorWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get journeyEditorWhen;
+
+  /// No description provided for @journeyEditorNoReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminder'**
+  String get journeyEditorNoReminder;
+
+  /// No description provided for @journeyEditorLogIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Log it'**
+  String get journeyEditorLogIt;
+
+  /// No description provided for @journeyEditorPickDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get journeyEditorPickDate;
+
+  /// No description provided for @journeyEditorClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get journeyEditorClear;
+
+  /// No description provided for @journeySectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Journey'**
+  String get journeySectionTitle;
+
+  /// No description provided for @journeyLogVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Log visit'**
+  String get journeyLogVisit;
+
+  /// No description provided for @journeyNoteAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Journey note added'**
+  String get journeyNoteAdded;
+
+  /// No description provided for @journeyNoteUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Journey note updated'**
+  String get journeyNoteUpdated;
+
+  /// No description provided for @journeyNoteDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Journey note deleted'**
+  String get journeyNoteDeleted;
+
+  /// No description provided for @journeyDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this note?'**
+  String get journeyDeleteTitle;
+
+  /// No description provided for @journeyDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The visit record is removed for everyone. This cannot be undone.'**
+  String get journeyDeleteBody;
+
+  /// No description provided for @journeyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String journeyFailed(String error);
+
+  /// No description provided for @journeyEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get journeyEdit;
+
+  /// No description provided for @journeyLoggedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged by {user}'**
+  String journeyLoggedBy(String user);
+
+  /// No description provided for @journeyEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No visits logged yet.'**
+  String get journeyEmptyTitle;
+
+  /// No description provided for @journeyEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log what was said, who said it, and when to follow up — a dated next action also sets this account\'\'s reminder.'**
+  String get journeyEmptyBody;
+
+  /// No description provided for @journeyLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the journey.'**
+  String get journeyLoadFailed;
 }
 
 class _AppLocalizationsDelegate

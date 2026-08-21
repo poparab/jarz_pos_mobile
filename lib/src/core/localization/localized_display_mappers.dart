@@ -144,3 +144,47 @@ String localizedLeadStage(BuildContext context, String? rawStage) {
       return stage.isEmpty ? context.l10n.commonNotSpecified : stage;
   }
 }
+
+/// A journey entry's type, as ERPNext stores it in the Select field.
+String localizedJourneyType(BuildContext context, String? rawType) {
+  switch ((rawType ?? '').trim().toLowerCase()) {
+    case 'visit':
+      return context.l10n.journeyTypeVisit;
+    case 'call':
+      return context.l10n.journeyTypeCall;
+    case 'whatsapp':
+      return context.l10n.journeyTypeWhatsapp;
+    case 'sample drop':
+      return context.l10n.journeyTypeSampleDrop;
+    case 'meeting':
+      return context.l10n.journeyTypeMeeting;
+    case 'email':
+      return context.l10n.journeyTypeEmail;
+    case 'other':
+      return context.l10n.journeyTypeOther;
+    default:
+      // A Select option added in Desk since this release: show it as stored
+      // rather than swallowing it.
+      return (rawType ?? '').trim();
+  }
+}
+
+/// A journey entry's outcome, as ERPNext stores it in the Select field.
+String localizedJourneyOutcome(BuildContext context, String? rawOutcome) {
+  switch ((rawOutcome ?? '').trim().toLowerCase()) {
+    case 'interested':
+      return context.l10n.journeyOutcomeInterested;
+    case 'needs follow-up':
+      return context.l10n.journeyOutcomeNeedsFollowUp;
+    case 'sample requested':
+      return context.l10n.journeyOutcomeSampleRequested;
+    case 'order placed':
+      return context.l10n.journeyOutcomeOrderPlaced;
+    case 'not now':
+      return context.l10n.journeyOutcomeNotNow;
+    case 'rejected':
+      return context.l10n.journeyOutcomeRejected;
+    default:
+      return (rawOutcome ?? '').trim();
+  }
+}

@@ -6883,4 +6883,747 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leadsMergeConfirmAction => 'Merge';
+
+  @override
+  String get b2bAccountTitle => 'Account';
+
+  @override
+  String b2bAccountLoadFailed(String error) {
+    return 'Failed to load account.\n$error';
+  }
+
+  @override
+  String b2bFailed(String error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String get b2bLogCall => 'Log call';
+
+  @override
+  String get b2bLogCallHint => 'What was discussed?';
+
+  @override
+  String get b2bActivityLogged => 'Activity logged';
+
+  @override
+  String b2bLogActivityFailed(String error) {
+    return 'Failed to log activity: $error';
+  }
+
+  @override
+  String get b2bMarkLostTitle => 'Mark lost / on-hold';
+
+  @override
+  String get b2bReasonHint => 'Reason';
+
+  @override
+  String get b2bMarkedLost => 'Marked Lost/On-hold';
+
+  @override
+  String get b2bCreateCustomerTitle => 'Create customer for lead';
+
+  @override
+  String get b2bCustomerName => 'Customer name';
+
+  @override
+  String get b2bAddress => 'Address';
+
+  @override
+  String get b2bContinue => 'Continue';
+
+  @override
+  String get b2bLoadingTerritories => 'Loading territories…';
+
+  @override
+  String get b2bTerritoriesFailed => 'Failed to load territories';
+
+  @override
+  String get b2bOpenLeadPage => 'Open lead page';
+
+  @override
+  String get b2bSectionContact => 'Contact';
+
+  @override
+  String get b2bSectionInsights => 'Insights';
+
+  @override
+  String get b2bSectionRecentInvoices => 'Recent invoices';
+
+  @override
+  String get b2bSectionOpenTodos => 'Open to-dos';
+
+  @override
+  String get b2bNone => 'None';
+
+  @override
+  String get b2bPredictedNextOrder => 'Predicted next order';
+
+  @override
+  String get b2bAvgOrderCycle => 'Avg order cycle';
+
+  @override
+  String b2bDaysValue(String days) {
+    return '$days days';
+  }
+
+  @override
+  String get b2bSendSample => 'Send sample';
+
+  @override
+  String get b2bPlaceOrder => 'Place order';
+
+  @override
+  String get b2bMarkLost => 'Mark lost';
+
+  @override
+  String get b2bViewPricing => 'View pricing';
+
+  @override
+  String get b2bLabelsSection => 'Labels';
+
+  @override
+  String b2bLabelsNeedPrinting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count need printing',
+      one: '1 needs printing',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get b2bNoLabelsTracked => 'No labels tracked for this customer yet.';
+
+  @override
+  String get b2bSetUpLabels => 'Set up labels';
+
+  @override
+  String get b2bLoadingLeadProfile => 'Loading lead profile…';
+
+  @override
+  String get b2bLeadProfile => 'Lead profile';
+
+  @override
+  String b2bMoreBranches(int count) {
+    return '+ $count more';
+  }
+
+  @override
+  String get b2bPipelineTitle => 'B2B Pipeline';
+
+  @override
+  String get b2bMyFollowUps => 'My follow-ups';
+
+  @override
+  String get b2bRefresh => 'Refresh';
+
+  @override
+  String get b2bSwitchMode => 'Switch mode';
+
+  @override
+  String get b2bGoToPos => 'Go to POS (B2C)';
+
+  @override
+  String get b2bGoToKanban => 'Go to Dispatch Kanban';
+
+  @override
+  String get b2bNewLead => 'New lead';
+
+  @override
+  String b2bMovedToStage(String title, String stage) {
+    return 'Moved \"$title\" to $stage';
+  }
+
+  @override
+  String b2bAdvanceStageFailed(String error) {
+    return 'Failed to advance stage: $error';
+  }
+
+  @override
+  String get b2bFollowUpReminder => 'Follow-up reminder';
+
+  @override
+  String b2bFollowUpPrompt(String stage) {
+    return 'When should you follow up after moving to \"$stage\"?';
+  }
+
+  @override
+  String get b2bSkip => 'Skip';
+
+  @override
+  String get b2bSetReminder => 'Set reminder';
+
+  @override
+  String get b2bLostReasonHint => 'Why is this lost / on hold?';
+
+  @override
+  String b2bPipelineLoadFailed(String error) {
+    return 'Could not load the pipeline.\n$error';
+  }
+
+  @override
+  String get b2bTodayTitle => 'Today';
+
+  @override
+  String b2bTodayLoadFailed(String error) {
+    return 'Failed to load follow-ups.\n$error';
+  }
+
+  @override
+  String get b2bNoFollowUpsToday => 'No follow-ups today';
+
+  @override
+  String get b2bNoReordersDue => 'No reorders due';
+
+  @override
+  String get b2bFollowUpDone => 'Follow-up marked done';
+
+  @override
+  String b2bFollowUpFailed(String error) {
+    return 'Could not complete follow-up: $error';
+  }
+
+  @override
+  String get b2bDone => 'Done';
+
+  @override
+  String b2bOverdueSuffix(String date) {
+    return '$date · overdue';
+  }
+
+  @override
+  String b2bAvgBasket(String amount) {
+    return 'Avg: $amount';
+  }
+
+  @override
+  String b2bScoreLabel(int score) {
+    return 'Score $score';
+  }
+
+  @override
+  String get b2bNoAccounts => 'No accounts';
+
+  @override
+  String b2bLabelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count labels',
+      one: '1 label',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String b2bLastOrder(String date) {
+    return 'Last: $date';
+  }
+
+  @override
+  String b2bNextOrder(String date) {
+    return 'Next: $date';
+  }
+
+  @override
+  String get b2bCardLead => 'Lead';
+
+  @override
+  String get b2bCardOpportunity => 'Opportunity';
+
+  @override
+  String b2bLabelsNeedPrintingTooltip(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count labels need printing',
+      one: '1 label needs printing',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pricingTitle => 'Price Lists';
+
+  @override
+  String get pricingCustomerLookup => 'Customer pricing lookup';
+
+  @override
+  String get pricingRefresh => 'Refresh';
+
+  @override
+  String get pricingNewPriceList => 'New price list';
+
+  @override
+  String get pricingNoPriceLists => 'No price lists yet.';
+
+  @override
+  String get pricingNameField => 'Name';
+
+  @override
+  String get pricingCurrencyField => 'Currency';
+
+  @override
+  String get pricingCreate => 'Create';
+
+  @override
+  String pricingCreated(String name) {
+    return 'Created \"$name\"';
+  }
+
+  @override
+  String pricingCreateFailed(String error) {
+    return 'Could not create price list: $error';
+  }
+
+  @override
+  String get pricingDefaultBadge => 'Default';
+
+  @override
+  String pricingLoadFailed(String error) {
+    return 'Could not load price lists.\n$error';
+  }
+
+  @override
+  String pricingDetailLoadFailed(String name, String error) {
+    return 'Could not load \"$name\".\n$error';
+  }
+
+  @override
+  String pricingSetRateTitle(String category) {
+    return 'Set $category rate';
+  }
+
+  @override
+  String pricingRateUpdated(String category) {
+    return '$category rate updated';
+  }
+
+  @override
+  String pricingRateSet(String category) {
+    return '$category rate set';
+  }
+
+  @override
+  String get pricingAllCategoriesHaveRows =>
+      'All categories already have a row.';
+
+  @override
+  String pricingItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pricingOverrideTitle(String item) {
+    return 'Override $item';
+  }
+
+  @override
+  String get pricingOverrideUpdated => 'Override updated';
+
+  @override
+  String get pricingRemoveOverrideTitle => 'Remove override?';
+
+  @override
+  String pricingRemoveOverrideBody(String item) {
+    return '$item will fall back to its category rate.';
+  }
+
+  @override
+  String get pricingRemove => 'Remove';
+
+  @override
+  String get pricingOverrideRemoved => 'Override removed';
+
+  @override
+  String get pricingAddOverride => 'Add override';
+
+  @override
+  String get pricingItemCode => 'Item code';
+
+  @override
+  String get pricingRateField => 'Rate';
+
+  @override
+  String get pricingOverrideAdded => 'Override added';
+
+  @override
+  String get pricingUnassignTitle => 'Unassign customer?';
+
+  @override
+  String pricingUnassignBody(String customer) {
+    return '$customer will revert to their customer group default.';
+  }
+
+  @override
+  String get pricingUnassign => 'Unassign';
+
+  @override
+  String get pricingCustomerUnassigned => 'Customer unassigned';
+
+  @override
+  String pricingFailed(String error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String get pricingCategoryPrices => 'Category prices';
+
+  @override
+  String get pricingAddCategory => 'Add category';
+
+  @override
+  String get pricingNoCategoryRates => 'No category rates set.';
+
+  @override
+  String pricingEditRateTooltip(String category) {
+    return 'Edit $category rate';
+  }
+
+  @override
+  String get pricingPerFlavorOverrides => 'Per-flavor overrides';
+
+  @override
+  String pricingOverrideCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count overrides',
+      one: '1 override',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pricingNoOverrides => 'No per-item overrides.';
+
+  @override
+  String get pricingEditOverride => 'Edit override';
+
+  @override
+  String get pricingRemoveOverride => 'Remove override';
+
+  @override
+  String get pricingAssignedCustomers => 'Assigned customers';
+
+  @override
+  String pricingCustomerCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count customers',
+      one: '1 customer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pricingNoCustomers => 'No customers use this list.';
+
+  @override
+  String pricingViaGroup(String group) {
+    return 'via group $group';
+  }
+
+  @override
+  String get pricingDirectAssignment => 'direct assignment';
+
+  @override
+  String get customerPricingTitle => 'Customer pricing';
+
+  @override
+  String get customerPricingSearchHint => 'Search company customers…';
+
+  @override
+  String customerPricingSearchFailed(String error) {
+    return 'Search failed.\n$error';
+  }
+
+  @override
+  String get customerPricingNoCustomers => 'No customers found.';
+
+  @override
+  String customerPricingLoadFailed(String customer, String error) {
+    return 'Could not load pricing for \"$customer\".\n$error';
+  }
+
+  @override
+  String get customerPricingEffective => 'Effective prices';
+
+  @override
+  String get customerPricingNoResolved => 'No resolved prices.';
+
+  @override
+  String customerPricingSource(String group, String source) {
+    return '$group · source: $source';
+  }
+
+  @override
+  String get pricingNoCategoryRatesShort => 'No category rates set';
+
+  @override
+  String pricingCardSummary(String customers, String currency) {
+    return '$customers · $currency';
+  }
+
+  @override
+  String get pricingDisabledSuffix => ' · disabled';
+
+  @override
+  String customerPricingGroupLine(
+    String group,
+    String priceList,
+    String assignment,
+  ) {
+    return 'Group: $group\nPrice list: $priceList ($assignment)';
+  }
+
+  @override
+  String get pricingNoneValue => '(none)';
+
+  @override
+  String get pricingDash => '—';
+
+  @override
+  String get journeyToday => 'Today';
+
+  @override
+  String get journeyYesterday => 'Yesterday';
+
+  @override
+  String get journeyTomorrow => 'Tomorrow';
+
+  @override
+  String journeyDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyWeeksAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weeks ago',
+      one: '1 week ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyMonthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months ago',
+      one: '1 month ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyOverdueByDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Overdue by $count days',
+      one: 'Overdue by 1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journeyOverdue => 'Overdue';
+
+  @override
+  String journeyInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'In $count days',
+      one: 'In 1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyInMonths(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'In $count months',
+      one: 'In 1 month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journeyTypeVisit => 'Visit';
+
+  @override
+  String get journeyTypeCall => 'Call';
+
+  @override
+  String get journeyTypeWhatsapp => 'WhatsApp';
+
+  @override
+  String get journeyTypeSampleDrop => 'Sample Drop';
+
+  @override
+  String get journeyTypeMeeting => 'Meeting';
+
+  @override
+  String get journeyTypeEmail => 'Email';
+
+  @override
+  String get journeyTypeOther => 'Other';
+
+  @override
+  String get journeyOutcomeInterested => 'Interested';
+
+  @override
+  String get journeyOutcomeNeedsFollowUp => 'Needs Follow-up';
+
+  @override
+  String get journeyOutcomeSampleRequested => 'Sample Requested';
+
+  @override
+  String get journeyOutcomeOrderPlaced => 'Order Placed';
+
+  @override
+  String get journeyOutcomeNotNow => 'Not Now';
+
+  @override
+  String get journeyOutcomeRejected => 'Rejected';
+
+  @override
+  String get journeyEditorEditTitle => 'Edit journey note';
+
+  @override
+  String get journeyEditorNewTitle => 'Log a visit or call';
+
+  @override
+  String get journeyEditorSubtitle =>
+      'What happened, who you spoke to, and what happens next.';
+
+  @override
+  String get journeyEditorDate => 'Date';
+
+  @override
+  String get journeyEditorType => 'Type';
+
+  @override
+  String get journeyEditorNote => 'Note';
+
+  @override
+  String get journeyEditorNoteHint =>
+      'They liked the matcha, asked about wholesale pricing…';
+
+  @override
+  String get journeyEditorWhoSpoke => 'Who you spoke to';
+
+  @override
+  String get journeyEditorPerson => 'Person';
+
+  @override
+  String get journeyEditorPersonHint => 'Mostafa';
+
+  @override
+  String get journeyEditorRole => 'Role';
+
+  @override
+  String get journeyEditorRoleHint => 'Branch manager';
+
+  @override
+  String get journeyEditorTheirPhone => 'Their phone';
+
+  @override
+  String get journeyEditorOutcome => 'Outcome';
+
+  @override
+  String get journeyEditorNextAction => 'Next action';
+
+  @override
+  String get journeyEditorNextActionHelp =>
+      'A date here also sets the follow-up reminder on this account.';
+
+  @override
+  String get journeyEditorWhatToDo => 'What to do';
+
+  @override
+  String get journeyEditorWhatToDoHint =>
+      'Call the manager to confirm the trial order';
+
+  @override
+  String get journeyEditorWhen => 'When';
+
+  @override
+  String get journeyEditorNoReminder => 'No reminder';
+
+  @override
+  String get journeyEditorLogIt => 'Log it';
+
+  @override
+  String get journeyEditorPickDate => 'Pick a date';
+
+  @override
+  String get journeyEditorClear => 'Clear';
+
+  @override
+  String get journeySectionTitle => 'Journey';
+
+  @override
+  String get journeyLogVisit => 'Log visit';
+
+  @override
+  String get journeyNoteAdded => 'Journey note added';
+
+  @override
+  String get journeyNoteUpdated => 'Journey note updated';
+
+  @override
+  String get journeyNoteDeleted => 'Journey note deleted';
+
+  @override
+  String get journeyDeleteTitle => 'Delete this note?';
+
+  @override
+  String get journeyDeleteBody =>
+      'The visit record is removed for everyone. This cannot be undone.';
+
+  @override
+  String journeyFailed(String error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String get journeyEdit => 'Edit';
+
+  @override
+  String journeyLoggedBy(String user) {
+    return 'Logged by $user';
+  }
+
+  @override
+  String get journeyEmptyTitle => 'No visits logged yet.';
+
+  @override
+  String get journeyEmptyBody =>
+      'Log what was said, who said it, and when to follow up — a dated next action also sets this account\'s reminder.';
+
+  @override
+  String get journeyLoadFailed => 'Could not load the journey.';
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../data/models/b2b_models.dart';
 import 'b2b_pipeline_card.dart';
 import 'b2b_stage_chip.dart';
@@ -87,7 +88,7 @@ class B2bPipelineColumn extends StatelessWidget {
                 child: cards.isEmpty
                     ? Center(
                         child: Text(
-                          'No accounts',
+                          context.l10n.b2bNoAccounts,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),

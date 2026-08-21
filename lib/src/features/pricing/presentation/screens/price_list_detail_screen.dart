@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:jarz_pos/l10n/app_localizations.dart';
+
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/network/user_service.dart';
 import '../../data/models/pricing_models.dart';
 import '../../state/pricing_notifier.dart';
@@ -28,7 +32,7 @@ class PriceListDetailScreen extends ConsumerWidget {
         title: Text(priceList),
         actions: [
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: context.l10n.pricingRefresh,
             icon: const Icon(Icons.refresh),
             onPressed: notifier.refresh,
           ),
@@ -42,12 +46,14 @@ class PriceListDetailScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Could not load "$priceList".\n$error',
+                Text(
+                    context.l10n
+                        .pricingDetailLoadFailed(priceList, '$error'),
                     textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: notifier.refresh,
-                  child: const Text('Retry'),
+                  child: Text(context.l10n.commonRetry),
                 ),
               ],
             ),
@@ -92,9 +98,10 @@ class PriceListDetailScreen extends ConsumerWidget {
     CategoryPrice row,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final rate = await _promptRate(
       context,
-      title: 'Set ${row.itemGroup} rate',
+      title: l10n.pricingSetRateTitle(row.itemGroup),
       initial: row.rate,
     );
     if (rate == null) return;
@@ -103,7 +110,8 @@ class PriceListDetailScreen extends ConsumerWidget {
       () => ref
           .read(priceListDetailProvider(priceList).notifier)
           .setCategoryPrice(row.itemGroup, rate),
-      success: '${row.itemGroup} rate updated',
+      success: l10n.pricingRateUpdated(row.itemGroup),
+      l10n: l10n,
     );
   }
 
@@ -113,6 +121,7 @@ class PriceListDetailScreen extends ConsumerWidget {
     PriceListDetail detail,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final categories = await ref.read(pricingCategoriesProvider.future);
     if (!context.mounted) return;
     final existing = detail.categories.map((c) => c.itemGroup).toSet();
@@ -120,7 +129,7 @@ class PriceListDetailScreen extends ConsumerWidget {
         categories.where((c) => !existing.contains(c.itemGroup)).toList();
     if (options.isEmpty) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('All categories already have a row.')),
+        SnackBar(content: Text(l10n.pricingAllCategoriesHaveRows)),
       );
       return;
     }
@@ -133,7 +142,7 @@ class PriceListDetailScreen extends ConsumerWidget {
             for (final c in options)
               ListTile(
                 title: Text(c.itemGroup),
-                subtitle: Text('${c.itemCount} item(s)'),
+                subtitle: Text(l10n.pricingItemCount(c.itemCount)),
                 onTap: () => Navigator.pop(ctx, c),
               ),
           ],
@@ -143,7 +152,7 @@ class PriceListDetailScreen extends ConsumerWidget {
     if (chosen == null || !context.mounted) return;
     final rate = await _promptRate(
       context,
-      title: 'Set ${chosen.itemGroup} rate',
+      title: l10n.pricingSetRateTitle(chosen.itemGroup),
       initial: null,
     );
     if (rate == null) return;
@@ -152,7 +161,8 @@ class PriceListDetailScreen extends ConsumerWidget {
       () => ref
           .read(priceListDetailProvider(priceList).notifier)
           .setCategoryPrice(chosen.itemGroup, rate),
-      success: '${chosen.itemGroup} rate set',
+      success: l10n.pricingRateSet(chosen.itemGroup),
+      l10n: l10n,
     );
   }
 
@@ -163,9 +173,11 @@ class PriceListDetailScreen extends ConsumerWidget {
     ItemOverride row,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final rate = await _promptRate(
       context,
-      title: 'Override ${row.itemName.isEmpty ? row.itemCode : row.itemName}',
+      title: l10n.pricingOverrideTitle(
+          row.itemName.isEmpty ? row.itemCode : row.itemName),
       initial: row.rate,
     );
     if (rate == null) return;
@@ -174,7 +186,8 @@ class PriceListDetailScreen extends ConsumerWidget {
       () => ref
           .read(priceListDetailProvider(priceList).notifier)
           .setItemOverride(row.itemCode, rate),
-      success: 'Override updated',
+      success: l10n.pricingOverrideUpdated,
+      l10n: l10n,
     );
   }
 
@@ -184,22 +197,23 @@ class PriceListDetailScreen extends ConsumerWidget {
     ItemOverride row,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Remove override?'),
+        title: Text(l10n.pricingRemoveOverrideTitle),
         content: Text(
-          '${row.itemName.isEmpty ? row.itemCode : row.itemName} will fall '
-          'back to its category rate.',
+          l10n.pricingRemoveOverrideBody(
+              row.itemName.isEmpty ? row.itemCode : row.itemName),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Remove'),
+            child: Text(l10n.pricingRemove),
           ),
         ],
       ),
@@ -210,25 +224,27 @@ class PriceListDetailScreen extends ConsumerWidget {
       () => ref
           .read(priceListDetailProvider(priceList).notifier)
           .setItemOverride(row.itemCode, null),
-      success: 'Override removed',
+      success: l10n.pricingOverrideRemoved,
+      l10n: l10n,
     );
   }
 
   Future<void> _addOverride(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final codeController = TextEditingController();
     final rateController = TextEditingController();
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Add override'),
+        title: Text(l10n.pricingAddOverride),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: codeController,
               autofocus: true,
-              decoration: const InputDecoration(labelText: 'Item code'),
+              decoration: InputDecoration(labelText: l10n.pricingItemCode),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -237,18 +253,18 @@ class PriceListDetailScreen extends ConsumerWidget {
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
               ],
-              decoration: const InputDecoration(labelText: 'Rate'),
+              decoration: InputDecoration(labelText: l10n.pricingRateField),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Save'),
+            child: Text(l10n.commonSave),
           ),
         ],
       ),
@@ -262,7 +278,8 @@ class PriceListDetailScreen extends ConsumerWidget {
       () => ref
           .read(priceListDetailProvider(priceList).notifier)
           .setItemOverride(code, rate),
-      success: 'Override added',
+      success: l10n.pricingOverrideAdded,
+      l10n: l10n,
     );
   }
 
@@ -273,22 +290,23 @@ class PriceListDetailScreen extends ConsumerWidget {
     AssignedCustomer c,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Unassign customer?'),
+        title: Text(l10n.pricingUnassignTitle),
         content: Text(
-          '${c.customerName.isEmpty ? c.customer : c.customerName} will revert '
-          'to their customer group default.',
+          l10n.pricingUnassignBody(
+              c.customerName.isEmpty ? c.customer : c.customerName),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Unassign'),
+            child: Text(l10n.pricingUnassign),
           ),
         ],
       ),
@@ -299,7 +317,8 @@ class PriceListDetailScreen extends ConsumerWidget {
       () => ref
           .read(priceListDetailProvider(priceList).notifier)
           .unassignCustomer(c.customer),
-      success: 'Customer unassigned',
+      success: l10n.pricingCustomerUnassigned,
+      l10n: l10n,
     );
   }
 
@@ -323,19 +342,20 @@ class PriceListDetailScreen extends ConsumerWidget {
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
           ],
-          decoration: const InputDecoration(labelText: 'Rate'),
+          decoration:
+              InputDecoration(labelText: context.l10n.pricingRateField),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () {
               final v = num.tryParse(controller.text.trim());
               Navigator.pop(ctx, v);
             },
-            child: const Text('Save'),
+            child: Text(context.l10n.commonSave),
           ),
         ],
       ),
@@ -348,12 +368,14 @@ class PriceListDetailScreen extends ConsumerWidget {
     ScaffoldMessengerState messenger,
     Future<void> Function() action, {
     required String success,
+    required AppLocalizations l10n,
   }) async {
     try {
       await action();
       messenger.showSnackBar(SnackBar(content: Text(success)));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Failed: $e')));
+      messenger.showSnackBar(
+          SnackBar(content: Text(l10n.pricingFailed('$e'))));
     }
   }
 }
@@ -378,38 +400,41 @@ class _CategoriesSection extends StatelessWidget {
         children: [
           ListTile(
             title: Text(
-              'Category prices',
+              context.l10n.pricingCategoryPrices,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             trailing: onAdd == null
                 ? null
                 : IconButton(
-                    tooltip: 'Add category',
+                    tooltip: context.l10n.pricingAddCategory,
                     icon: const Icon(Icons.add),
                     onPressed: onAdd,
                   ),
           ),
           if (detail.categories.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('No category rates set.'),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(context.l10n.pricingNoCategoryRates),
             )
           else
             for (final row in detail.categories)
               ListTile(
                 dense: true,
                 title: Text(row.itemGroup),
-                subtitle: Text('${row.itemCount} item(s)'),
+                subtitle: Text(context.l10n.pricingItemCount(row.itemCount)),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      row.rate == null ? '—' : row.rate!.toStringAsFixed(2),
+                      row.rate == null
+                          ? context.l10n.pricingDash
+                          : formatCurrency(context, row.rate!),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     if (canEdit)
                       IconButton(
-                        tooltip: 'Edit ${row.itemGroup} rate',
+                        tooltip:
+                            context.l10n.pricingEditRateTooltip(row.itemGroup),
                         icon: const Icon(Icons.edit, size: 18),
                         onPressed: () => onEdit(row),
                       ),
@@ -444,20 +469,21 @@ class _OverridesSection extends StatelessWidget {
         // Collapsed by default: overrides are the exception, not the rule.
         initiallyExpanded: false,
         leading: const Icon(Icons.tune),
-        title: const Text('Per-flavor overrides'),
-        subtitle: Text('${detail.itemOverrides.length} override(s)'),
+        title: Text(context.l10n.pricingPerFlavorOverrides),
+        subtitle: Text(
+            context.l10n.pricingOverrideCount(detail.itemOverrides.length)),
         childrenPadding: EdgeInsets.zero,
         children: [
           if (canEdit)
             ListTile(
               leading: const Icon(Icons.add),
-              title: const Text('Add override'),
+              title: Text(context.l10n.pricingAddOverride),
               onTap: onAdd,
             ),
           if (detail.itemOverrides.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('No per-item overrides.'),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(context.l10n.pricingNoOverrides),
             )
           else
             for (final row in detail.itemOverrides)
@@ -470,17 +496,17 @@ class _OverridesSection extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      row.rate.toStringAsFixed(2),
+                      formatCurrency(context, row.rate),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     if (canEdit) ...[
                       IconButton(
-                        tooltip: 'Edit override',
+                        tooltip: context.l10n.pricingEditOverride,
                         icon: const Icon(Icons.edit, size: 18),
                         onPressed: () => onEdit(row),
                       ),
                       IconButton(
-                        tooltip: 'Remove override',
+                        tooltip: context.l10n.pricingRemoveOverride,
                         icon: const Icon(Icons.delete_outline, size: 18),
                         onPressed: () => onRemove(row),
                       ),
@@ -512,15 +538,16 @@ class _CustomersSection extends StatelessWidget {
         children: [
           ListTile(
             title: Text(
-              'Assigned customers',
+              context.l10n.pricingAssignedCustomers,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            subtitle: Text('${detail.customers.length} customer(s)'),
+            subtitle: Text(
+                context.l10n.pricingCustomerCount(detail.customers.length)),
           ),
           if (detail.customers.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('No customers use this list.'),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(context.l10n.pricingNoCustomers),
             )
           else
             for (final c in detail.customers)
@@ -530,12 +557,12 @@ class _CustomersSection extends StatelessWidget {
                 title: Text(c.customerName.isEmpty ? c.customer : c.customerName),
                 subtitle: Text(
                   c.assignment == 'group'
-                      ? 'via group ${c.customerGroup}'
-                      : 'direct assignment',
+                      ? context.l10n.pricingViaGroup(c.customerGroup)
+                      : context.l10n.pricingDirectAssignment,
                 ),
                 trailing: (canEdit && c.assignment == 'direct')
                     ? IconButton(
-                        tooltip: 'Unassign',
+                        tooltip: context.l10n.pricingUnassign,
                         icon: const Icon(Icons.link_off, size: 18),
                         onPressed: () => onUnassign(c),
                       )

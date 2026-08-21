@@ -86,13 +86,15 @@ class B2bPipelineCard extends StatelessWidget {
                 children: [
                   _chip(
                     context,
-                    isLead ? 'Lead' : 'Opportunity',
+                    isLead
+                        ? context.l10n.b2bCardLead
+                        : context.l10n.b2bCardOpportunity,
                     Icons.label_outline,
                   ),
                   if (card.leadScore != null)
                     _chip(
                       context,
-                      'Score ${card.leadScore}',
+                      context.l10n.b2bScoreLabel(card.leadScore!),
                       Icons.star_outline,
                     ),
                   if (card.customer != null && card.customer!.isNotEmpty)
@@ -160,7 +162,7 @@ class _LabelAlertChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Tooltip(
-      message: '$count label${count == 1 ? '' : 's'} need printing',
+      message: context.l10n.b2bLabelsNeedPrintingTooltip(count),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
@@ -224,13 +226,13 @@ class _CardMenu extends StatelessWidget {
       },
       itemBuilder: (context) => [
         if (onOpenLead != null) ...[
-          const PopupMenuItem<String>(
+          PopupMenuItem<String>(
             value: _openLeadValue,
             child: Row(
               children: [
-                Icon(Icons.open_in_new, size: 16),
-                SizedBox(width: 8),
-                Text('Open lead page'),
+                const Icon(Icons.open_in_new, size: 16),
+                const SizedBox(width: 8),
+                Text(context.l10n.b2bOpenLeadPage),
               ],
             ),
           ),

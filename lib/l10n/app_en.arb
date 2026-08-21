@@ -3978,5 +3978,550 @@
   "leadActionInstagram": "Instagram",
   "leadActionWebsite": "Website",
   "leadActionMap": "Map",
-  "leadsMergeConfirmAction": "Merge"
+  "leadsMergeConfirmAction": "Merge",
+  "b2bAccountTitle": "Account",
+  "b2bAccountLoadFailed": "Failed to load account.\n{error}",
+  "@b2bAccountLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bFailed": "Failed: {error}",
+  "@b2bFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bLogCall": "Log call",
+  "b2bLogCallHint": "What was discussed?",
+  "b2bActivityLogged": "Activity logged",
+  "b2bLogActivityFailed": "Failed to log activity: {error}",
+  "@b2bLogActivityFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bMarkLostTitle": "Mark lost / on-hold",
+  "b2bReasonHint": "Reason",
+  "b2bMarkedLost": "Marked Lost/On-hold",
+  "b2bCreateCustomerTitle": "Create customer for lead",
+  "b2bCustomerName": "Customer name",
+  "b2bAddress": "Address",
+  "b2bContinue": "Continue",
+  "b2bLoadingTerritories": "Loading territories…",
+  "b2bTerritoriesFailed": "Failed to load territories",
+  "b2bOpenLeadPage": "Open lead page",
+  "b2bSectionContact": "Contact",
+  "b2bSectionInsights": "Insights",
+  "b2bSectionRecentInvoices": "Recent invoices",
+  "b2bSectionOpenTodos": "Open to-dos",
+  "b2bNone": "None",
+  "b2bPredictedNextOrder": "Predicted next order",
+  "b2bAvgOrderCycle": "Avg order cycle",
+  "b2bDaysValue": "{days} days",
+  "@b2bDaysValue": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bSendSample": "Send sample",
+  "b2bPlaceOrder": "Place order",
+  "b2bMarkLost": "Mark lost",
+  "b2bViewPricing": "View pricing",
+  "b2bLabelsSection": "Labels",
+  "b2bLabelsNeedPrinting": "{count, plural, =1{1 needs printing} other{{count} need printing}}",
+  "@b2bLabelsNeedPrinting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "b2bNoLabelsTracked": "No labels tracked for this customer yet.",
+  "b2bSetUpLabels": "Set up labels",
+  "b2bLoadingLeadProfile": "Loading lead profile…",
+  "b2bLeadProfile": "Lead profile",
+  "b2bMoreBranches": "+ {count} more",
+  "@b2bMoreBranches": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "b2bPipelineTitle": "B2B Pipeline",
+  "b2bMyFollowUps": "My follow-ups",
+  "b2bRefresh": "Refresh",
+  "b2bSwitchMode": "Switch mode",
+  "b2bGoToPos": "Go to POS (B2C)",
+  "b2bGoToKanban": "Go to Dispatch Kanban",
+  "b2bNewLead": "New lead",
+  "b2bMovedToStage": "Moved \"{title}\" to {stage}",
+  "@b2bMovedToStage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bAdvanceStageFailed": "Failed to advance stage: {error}",
+  "@b2bAdvanceStageFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bFollowUpReminder": "Follow-up reminder",
+  "b2bFollowUpPrompt": "When should you follow up after moving to \"{stage}\"?",
+  "@b2bFollowUpPrompt": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bSkip": "Skip",
+  "b2bSetReminder": "Set reminder",
+  "b2bLostReasonHint": "Why is this lost / on hold?",
+  "b2bPipelineLoadFailed": "Could not load the pipeline.\n{error}",
+  "@b2bPipelineLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bTodayTitle": "Today",
+  "b2bTodayLoadFailed": "Failed to load follow-ups.\n{error}",
+  "@b2bTodayLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bNoFollowUpsToday": "No follow-ups today",
+  "b2bNoReordersDue": "No reorders due",
+  "b2bFollowUpDone": "Follow-up marked done",
+  "b2bFollowUpFailed": "Could not complete follow-up: {error}",
+  "@b2bFollowUpFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bDone": "Done",
+  "b2bOverdueSuffix": "{date} · overdue",
+  "@b2bOverdueSuffix": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bAvgBasket": "Avg: {amount}",
+  "@b2bAvgBasket": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bScoreLabel": "Score {score}",
+  "@b2bScoreLabel": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "b2bNoAccounts": "No accounts",
+  "b2bLabelCount": "{count, plural, =1{1 label} other{{count} labels}}",
+  "@b2bLabelCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "b2bLastOrder": "Last: {date}",
+  "@b2bLastOrder": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bNextOrder": "Next: {date}",
+  "@b2bNextOrder": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bCardLead": "Lead",
+  "b2bCardOpportunity": "Opportunity",
+  "b2bLabelsNeedPrintingTooltip": "{count, plural, =1{1 label needs printing} other{{count} labels need printing}}",
+  "@b2bLabelsNeedPrintingTooltip": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pricingTitle": "Price Lists",
+  "pricingCustomerLookup": "Customer pricing lookup",
+  "pricingRefresh": "Refresh",
+  "pricingNewPriceList": "New price list",
+  "pricingNoPriceLists": "No price lists yet.",
+  "pricingNameField": "Name",
+  "pricingCurrencyField": "Currency",
+  "pricingCreate": "Create",
+  "pricingCreated": "Created \"{name}\"",
+  "@pricingCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingCreateFailed": "Could not create price list: {error}",
+  "@pricingCreateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingDefaultBadge": "Default",
+  "pricingLoadFailed": "Could not load price lists.\n{error}",
+  "@pricingLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingDetailLoadFailed": "Could not load \"{name}\".\n{error}",
+  "@pricingDetailLoadFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingSetRateTitle": "Set {category} rate",
+  "@pricingSetRateTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingRateUpdated": "{category} rate updated",
+  "@pricingRateUpdated": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingRateSet": "{category} rate set",
+  "@pricingRateSet": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingAllCategoriesHaveRows": "All categories already have a row.",
+  "pricingItemCount": "{count, plural, =1{1 item} other{{count} items}}",
+  "@pricingItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pricingOverrideTitle": "Override {item}",
+  "@pricingOverrideTitle": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingOverrideUpdated": "Override updated",
+  "pricingRemoveOverrideTitle": "Remove override?",
+  "pricingRemoveOverrideBody": "{item} will fall back to its category rate.",
+  "@pricingRemoveOverrideBody": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingRemove": "Remove",
+  "pricingOverrideRemoved": "Override removed",
+  "pricingAddOverride": "Add override",
+  "pricingItemCode": "Item code",
+  "pricingRateField": "Rate",
+  "pricingOverrideAdded": "Override added",
+  "pricingUnassignTitle": "Unassign customer?",
+  "pricingUnassignBody": "{customer} will revert to their customer group default.",
+  "@pricingUnassignBody": {
+    "placeholders": {
+      "customer": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingUnassign": "Unassign",
+  "pricingCustomerUnassigned": "Customer unassigned",
+  "pricingFailed": "Failed: {error}",
+  "@pricingFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingCategoryPrices": "Category prices",
+  "pricingAddCategory": "Add category",
+  "pricingNoCategoryRates": "No category rates set.",
+  "pricingEditRateTooltip": "Edit {category} rate",
+  "@pricingEditRateTooltip": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingPerFlavorOverrides": "Per-flavor overrides",
+  "pricingOverrideCount": "{count, plural, =1{1 override} other{{count} overrides}}",
+  "@pricingOverrideCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pricingNoOverrides": "No per-item overrides.",
+  "pricingEditOverride": "Edit override",
+  "pricingRemoveOverride": "Remove override",
+  "pricingAssignedCustomers": "Assigned customers",
+  "pricingCustomerCount": "{count, plural, =1{1 customer} other{{count} customers}}",
+  "@pricingCustomerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pricingNoCustomers": "No customers use this list.",
+  "pricingViaGroup": "via group {group}",
+  "@pricingViaGroup": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingDirectAssignment": "direct assignment",
+  "customerPricingTitle": "Customer pricing",
+  "customerPricingSearchHint": "Search company customers…",
+  "customerPricingSearchFailed": "Search failed.\n{error}",
+  "@customerPricingSearchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "customerPricingNoCustomers": "No customers found.",
+  "customerPricingLoadFailed": "Could not load pricing for \"{customer}\".\n{error}",
+  "@customerPricingLoadFailed": {
+    "placeholders": {
+      "customer": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "customerPricingEffective": "Effective prices",
+  "customerPricingNoResolved": "No resolved prices.",
+  "customerPricingSource": "{group} · source: {source}",
+  "@customerPricingSource": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      },
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingNoCategoryRatesShort": "No category rates set",
+  "pricingCardSummary": "{customers} · {currency}",
+  "@pricingCardSummary": {
+    "placeholders": {
+      "customers": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingDisabledSuffix": " · disabled",
+  "customerPricingGroupLine": "Group: {group}\nPrice list: {priceList} ({assignment})",
+  "@customerPricingGroupLine": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      },
+      "priceList": {
+        "type": "String"
+      },
+      "assignment": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingNoneValue": "(none)",
+  "pricingDash": "—",
+  "journeyToday": "Today",
+  "journeyYesterday": "Yesterday",
+  "journeyTomorrow": "Tomorrow",
+  "journeyDaysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
+  "@journeyDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyWeeksAgo": "{count, plural, =1{1 week ago} other{{count} weeks ago}}",
+  "@journeyWeeksAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyMonthsAgo": "{count, plural, =1{1 month ago} other{{count} months ago}}",
+  "@journeyMonthsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyOverdueByDays": "{count, plural, =1{Overdue by 1 day} other{Overdue by {count} days}}",
+  "@journeyOverdueByDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyOverdue": "Overdue",
+  "journeyInDays": "{count, plural, =1{In 1 day} other{In {count} days}}",
+  "@journeyInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyInMonths": "{count, plural, =1{In 1 month} other{In {count} months}}",
+  "@journeyInMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyTypeVisit": "Visit",
+  "journeyTypeCall": "Call",
+  "journeyTypeWhatsapp": "WhatsApp",
+  "journeyTypeSampleDrop": "Sample Drop",
+  "journeyTypeMeeting": "Meeting",
+  "journeyTypeEmail": "Email",
+  "journeyTypeOther": "Other",
+  "journeyOutcomeInterested": "Interested",
+  "journeyOutcomeNeedsFollowUp": "Needs Follow-up",
+  "journeyOutcomeSampleRequested": "Sample Requested",
+  "journeyOutcomeOrderPlaced": "Order Placed",
+  "journeyOutcomeNotNow": "Not Now",
+  "journeyOutcomeRejected": "Rejected",
+  "journeyEditorEditTitle": "Edit journey note",
+  "journeyEditorNewTitle": "Log a visit or call",
+  "journeyEditorSubtitle": "What happened, who you spoke to, and what happens next.",
+  "journeyEditorDate": "Date",
+  "journeyEditorType": "Type",
+  "journeyEditorNote": "Note",
+  "journeyEditorNoteHint": "They liked the matcha, asked about wholesale pricing…",
+  "journeyEditorWhoSpoke": "Who you spoke to",
+  "journeyEditorPerson": "Person",
+  "journeyEditorPersonHint": "Mostafa",
+  "journeyEditorRole": "Role",
+  "journeyEditorRoleHint": "Branch manager",
+  "journeyEditorTheirPhone": "Their phone",
+  "journeyEditorOutcome": "Outcome",
+  "journeyEditorNextAction": "Next action",
+  "journeyEditorNextActionHelp": "A date here also sets the follow-up reminder on this account.",
+  "journeyEditorWhatToDo": "What to do",
+  "journeyEditorWhatToDoHint": "Call the manager to confirm the trial order",
+  "journeyEditorWhen": "When",
+  "journeyEditorNoReminder": "No reminder",
+  "journeyEditorLogIt": "Log it",
+  "journeyEditorPickDate": "Pick a date",
+  "journeyEditorClear": "Clear",
+  "journeySectionTitle": "Journey",
+  "journeyLogVisit": "Log visit",
+  "journeyNoteAdded": "Journey note added",
+  "journeyNoteUpdated": "Journey note updated",
+  "journeyNoteDeleted": "Journey note deleted",
+  "journeyDeleteTitle": "Delete this note?",
+  "journeyDeleteBody": "The visit record is removed for everyone. This cannot be undone.",
+  "journeyFailed": "Failed: {error}",
+  "@journeyFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "journeyEdit": "Edit",
+  "journeyLoggedBy": "Logged by {user}",
+  "@journeyLoggedBy": {
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "journeyEmptyTitle": "No visits logged yet.",
+  "journeyEmptyBody": "Log what was said, who said it, and when to follow up — a dated next action also sets this account''s reminder.",
+  "journeyLoadFailed": "Could not load the journey."
 }

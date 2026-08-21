@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/widgets/app_drawer.dart';
@@ -56,10 +58,10 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
-        title: const Text('B2B Pipeline'),
+        title: Text(context.l10n.b2bPipelineTitle),
         actions: [
           IconButton(
-            tooltip: 'My follow-ups',
+            tooltip: context.l10n.b2bMyFollowUps,
             icon: const Icon(Icons.today),
             onPressed: () => context.push(AppRoutes.b2bToday),
           ),
@@ -68,7 +70,7 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
           // that needs printing is a days-long lead time, not a same-day fix.
           const _LabelAlertAction(),
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: context.l10n.b2bRefresh,
             icon: const Icon(Icons.refresh),
             onPressed: () => notifier.refresh(),
           ),
@@ -76,16 +78,17 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
           if (isManager)
             PopupMenuButton<String>(
               icon: const Icon(Icons.swap_horiz),
-              tooltip: 'Switch mode',
+              tooltip: context.l10n.b2bSwitchMode,
               onSelected: (value) {
                 if (value == 'pos') context.go(AppRoutes.pos);
                 if (value == 'kanban') context.go(AppRoutes.kanban);
               },
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 'pos', child: Text('Go to POS (B2C)')),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                    value: 'pos', child: Text(context.l10n.b2bGoToPos)),
                 PopupMenuItem(
                   value: 'kanban',
-                  child: Text('Go to Dispatch Kanban'),
+                  child: Text(context.l10n.b2bGoToKanban),
                 ),
               ],
             ),
@@ -94,7 +97,7 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.leadForm),
         icon: const Icon(Icons.add),
-        label: const Text('New lead'),
+        label: Text(context.l10n.b2bNewLead),
       ),
       body: pipelineAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -151,11 +154,14 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
     String stage,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final stageText = localizedLeadStage(context, stage);
     String? reason;
     String? followUpDate;
     if (stage == 'Lost/On-hold') {
       reason = await _promptReason(context);
       if (reason == null) return; // cancelled
+      if (!context.mounted) return;
     } else if (_forwardStageDefaults.containsKey(stage)) {
       if (!context.mounted) return;
       final result = await _promptFollowUpDate(context, stage);
@@ -170,11 +176,11 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
             followUpDate: followUpDate,
           );
       messenger.showSnackBar(
-        SnackBar(content: Text('Moved "${card.title}" to $stage')),
+        SnackBar(content: Text(l10n.b2bMovedToStage(card.title, stageText))),
       );
     } catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Failed to advance stage: $e')),
+        SnackBar(content: Text(l10n.b2bAdvanceStageFailed('$e'))),
       );
     }
   }
@@ -203,12 +209,13 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          title: const Text('Follow-up reminder'),
+          title: Text(context.l10n.b2bFollowUpReminder),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('When should you follow up after moving to "$stage"?'),
+              Text(context.l10n.b2bFollowUpPrompt(
+                  localizedLeadStage(context, stage))),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 icon: const Icon(Icons.event),
@@ -229,19 +236,19 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
             TextButton(
               onPressed: () =>
                   Navigator.pop(ctx, (cancelled: true, date: null)),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
             TextButton(
               onPressed: () =>
                   Navigator.pop(ctx, (cancelled: false, date: null)),
-              child: const Text('Skip'),
+              child: Text(context.l10n.b2bSkip),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(
                 ctx,
                 (cancelled: false, date: _isoDate(selected)),
               ),
-              child: const Text('Set reminder'),
+              child: Text(context.l10n.b2bSetReminder),
             ),
           ],
         ),
@@ -255,22 +262,22 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
     return showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Reason'),
+        title: Text(context.l10n.b2bReasonHint),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Why is this lost / on hold?',
+          decoration: InputDecoration(
+            hintText: context.l10n.b2bLostReasonHint,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('Confirm'),
+            child: Text(context.l10n.commonConfirm),
           ),
         ],
       ),
@@ -348,14 +355,14 @@ class _ErrorView extends StatelessWidget {
             const Icon(Icons.error_outline, size: 48, color: Colors.red),
             const SizedBox(height: 12),
             Text(
-              'Could not load the pipeline.\n$error',
+              context.l10n.b2bPipelineLoadFailed('$error'),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: Text(context.l10n.commonRetry),
             ),
           ],
         ),

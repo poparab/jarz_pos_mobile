@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../leads/presentation/leads_theme.dart';
 import '../../data/journey_repository.dart';
 import '../../data/models/journey_note.dart';
@@ -159,12 +161,14 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  _isEdit ? 'Edit journey note' : 'Log a visit or call',
+                  _isEdit
+                      ? context.l10n.journeyEditorEditTitle
+                      : context.l10n.journeyEditorNewTitle,
                   style: LeadsTheme.heading,
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'What happened, who you spoke to, and what happens next.',
+                Text(
+                  context.l10n.journeyEditorSubtitle,
                   style: LeadsTheme.bodyMuted,
                 ),
                 const SizedBox(height: 16),
@@ -174,7 +178,7 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                   children: [
                     Expanded(
                       child: _DateField(
-                        label: 'Date',
+                        label: context.l10n.journeyEditorDate,
                         value: _entryDate,
                         onPick: (picked) => setState(() => _entryDate = picked),
                         // A rep logs today's or a recent visit; a diary entry
@@ -187,7 +191,7 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                       child: DropdownButtonFormField<String>(
                         initialValue: _entryType,
                         isExpanded: true,
-                        decoration: _dec('Type'),
+                        decoration: _dec(context.l10n.journeyEditorType),
                         items: [
                           for (final type in entryTypes)
                             DropdownMenuItem(
@@ -202,7 +206,7 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      type,
+                                      localizedJourneyType(context, type),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -225,16 +229,18 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                   autofocus: !_isEdit,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: _dec(
-                    'Note',
-                    hint: 'They liked the matcha, asked about wholesale pricing…',
+                    context.l10n.journeyEditorNote,
+                    hint: context.l10n.journeyEditorNoteHint,
                   ),
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      (v == null || v.trim().isEmpty)
+                          ? context.l10n.leadFormRequired
+                          : null,
                 ),
                 const SizedBox(height: 20),
 
                 // ── Who ──────────────────────────────────────────────────
-                const _SectionLabel('Who you spoke to'),
+                _SectionLabel(context.l10n.journeyEditorWhoSpoke),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -242,7 +248,8 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                       child: TextFormField(
                         controller: _personCtrl,
                         textCapitalization: TextCapitalization.words,
-                        decoration: _dec('Person', hint: 'Mostafa'),
+                        decoration: _dec(context.l10n.journeyEditorPerson,
+                            hint: context.l10n.journeyEditorPersonHint),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -250,7 +257,8 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                       child: TextFormField(
                         controller: _roleCtrl,
                         textCapitalization: TextCapitalization.words,
-                        decoration: _dec('Role', hint: 'Branch manager'),
+                        decoration: _dec(context.l10n.journeyEditorRole,
+                            hint: context.l10n.journeyEditorRoleHint),
                       ),
                     ),
                   ],
@@ -259,30 +267,34 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                 TextFormField(
                   controller: _phoneCtrl,
                   keyboardType: TextInputType.phone,
-                  decoration: _dec('Their phone'),
+                  decoration: _dec(context.l10n.journeyEditorTheirPhone),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: _outcome.isEmpty ? null : _outcome,
                   isExpanded: true,
-                  decoration: _dec('Outcome'),
+                  decoration: _dec(context.l10n.journeyEditorOutcome),
                   items: [
-                    const DropdownMenuItem<String>(
+                    DropdownMenuItem<String>(
                       value: null,
-                      child: Text('—'),
+                      child: Text(context.l10n.pricingDash),
                     ),
                     for (final outcome in outcomes)
-                      DropdownMenuItem(value: outcome, child: Text(outcome)),
+                      DropdownMenuItem(
+                        value: outcome,
+                        child:
+                            Text(localizedJourneyOutcome(context, outcome)),
+                      ),
                   ],
                   onChanged: (value) => setState(() => _outcome = value ?? ''),
                 ),
                 const SizedBox(height: 20),
 
                 // ── What next ────────────────────────────────────────────
-                const _SectionLabel('Next action'),
+                _SectionLabel(context.l10n.journeyEditorNextAction),
                 const SizedBox(height: 4),
-                const Text(
-                  'A date here also sets the follow-up reminder on this account.',
+                Text(
+                  context.l10n.journeyEditorNextActionHelp,
                   style: LeadsTheme.bodyMuted,
                 ),
                 const SizedBox(height: 8),
@@ -292,15 +304,15 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                   maxLines: 3,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: _dec(
-                    'What to do',
-                    hint: 'Call the manager to confirm the trial order',
+                    context.l10n.journeyEditorWhatToDo,
+                    hint: context.l10n.journeyEditorWhatToDoHint,
                   ),
                 ),
                 const SizedBox(height: 12),
                 _DateField(
-                  label: 'When',
+                  label: context.l10n.journeyEditorWhen,
                   value: _nextActionDate,
-                  hint: 'No reminder',
+                  hint: context.l10n.journeyEditorNoReminder,
                   firstDate: DateTime(2020),
                   onPick: (picked) => setState(() => _nextActionDate = picked),
                   onClear: _nextActionDate == null
@@ -314,7 +326,7 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
+                        child: Text(context.l10n.commonCancel),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -324,7 +336,9 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                           backgroundColor: LeadsTheme.berryPink,
                         ),
                         onPressed: _submit,
-                        child: Text(_isEdit ? 'Save' : 'Log it'),
+                        child: Text(_isEdit
+                            ? context.l10n.commonSave
+                            : context.l10n.journeyEditorLogIt),
                       ),
                     ),
                   ],
@@ -417,8 +431,8 @@ class _DateField extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final display = value == null
-        ? (hint ?? 'Pick a date')
-        : JourneyFormat.pretty(JourneyFormat.iso(value!));
+        ? (hint ?? context.l10n.journeyEditorPickDate)
+        : JourneyFormat.pretty(context, JourneyFormat.iso(value!));
     return InkWell(
       onTap: () async {
         final picked = await showDatePicker(
@@ -438,7 +452,7 @@ class _DateField extends StatelessWidget {
               ? const Icon(Icons.event, size: 18)
               : IconButton(
                   icon: const Icon(Icons.clear, size: 18),
-                  tooltip: 'Clear',
+                  tooltip: context.l10n.journeyEditorClear,
                   onPressed: onClear,
                 ),
         ),

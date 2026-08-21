@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/pricing_models.dart';
 import '../../data/pricing_repository.dart';
 import '../../state/pricing_notifier.dart';
@@ -59,7 +61,7 @@ class _CustomerPricingSearchScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Customer pricing')),
+      appBar: AppBar(title: Text(context.l10n.customerPricingTitle)),
       body: Column(
         children: [
           Padding(
@@ -67,7 +69,7 @@ class _CustomerPricingSearchScreenState
             child: TextField(
               controller: _controller,
               decoration: InputDecoration(
-                hintText: 'Search company customers…',
+                hintText: context.l10n.customerPricingSearchHint,
                 prefixIcon: const Icon(Icons.search),
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
@@ -87,11 +89,12 @@ class _CustomerPricingSearchScreenState
   Widget _body() {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
-      return Center(child: Text('Search failed.\n$_error',
-          textAlign: TextAlign.center));
+      return Center(
+          child: Text(context.l10n.customerPricingSearchFailed('$_error'),
+              textAlign: TextAlign.center));
     }
     if (_results.isEmpty) {
-      return const Center(child: Text('No customers found.'));
+      return Center(child: Text(context.l10n.customerPricingNoCustomers));
     }
     return ListView.builder(
       itemCount: _results.length,
@@ -130,10 +133,10 @@ class CustomerPricingScreen extends ConsumerWidget {
     final pricingAsync = ref.watch(customerPricingProvider(customer));
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Customer pricing'),
+        title: Text(context.l10n.customerPricingTitle),
         actions: [
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: context.l10n.pricingRefresh,
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(customerPricingProvider(customer)),
           ),
@@ -147,13 +150,15 @@ class CustomerPricingScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Could not load pricing for "$customer".\n$error',
+                Text(
+                    context.l10n
+                        .customerPricingLoadFailed(customer, '$error'),
                     textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: () =>
                       ref.invalidate(customerPricingProvider(customer)),
-                  child: const Text('Retry'),
+                  child: Text(context.l10n.commonRetry),
                 ),
               ],
             ),
@@ -169,20 +174,25 @@ class CustomerPricingScreen extends ConsumerWidget {
                     ? pricing.customer
                     : pricing.customerName),
                 subtitle: Text(
-                  'Group: ${pricing.customerGroup.isEmpty ? '—' : pricing.customerGroup}\n'
-                  'Price list: ${pricing.effectivePriceList ?? '(none)'} '
-                  '(${pricing.assignment})',
+                  context.l10n.customerPricingGroupLine(
+                    pricing.customerGroup.isEmpty
+                        ? context.l10n.pricingDash
+                        : pricing.customerGroup,
+                    pricing.effectivePriceList ??
+                        context.l10n.pricingNoneValue,
+                    pricing.assignment,
+                  ),
                 ),
                 isThreeLine: true,
               ),
             ),
             const SizedBox(height: 8),
-            Text('Effective prices',
+            Text(context.l10n.customerPricingEffective,
                 style: Theme.of(context).textTheme.titleMedium),
             if (pricing.prices.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('No resolved prices.'),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(context.l10n.customerPricingNoResolved),
               )
             else
               for (final p in pricing.prices) _PriceRow(price: p),
@@ -210,9 +220,10 @@ class _PriceRow extends StatelessWidget {
         dense: true,
         leading: Icon(icon, color: color),
         title: Text(title.isEmpty ? price.itemGroup : title),
-        subtitle: Text('${price.itemGroup} · source: ${price.source}'),
+        subtitle: Text(context.l10n
+            .customerPricingSource(price.itemGroup, price.source)),
         trailing: Text(
-          price.rate.toStringAsFixed(2),
+          formatCurrency(context, price.rate),
           style: Theme.of(context).textTheme.titleMedium,
         ),
       ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../leads/presentation/leads_theme.dart';
 import '../../data/models/journey_note.dart';
 import '../../state/journey_notes_notifier.dart';
@@ -45,7 +47,9 @@ class JourneyNotesSection extends ConsumerWidget {
       children: [
         Row(
           children: [
-            const Expanded(child: Text('Journey', style: LeadsTheme.heading)),
+            Expanded(
+                child: Text(context.l10n.journeySectionTitle,
+                    style: LeadsTheme.heading)),
             async.maybeWhen(
               data: (notes) => notes.isEmpty
                   ? const SizedBox.shrink()
@@ -61,7 +65,7 @@ class JourneyNotesSection extends ConsumerWidget {
             TextButton.icon(
               onPressed: () => _add(context, ref),
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Log visit'),
+              label: Text(context.l10n.journeyLogVisit),
               style: TextButton.styleFrom(
                 foregroundColor: LeadsTheme.berryPink,
               ),
@@ -123,7 +127,7 @@ class JourneyNotesSection extends ConsumerWidget {
         nextActionDate: draft.nextActionDate,
         outcome: draft.outcome,
       );
-    }, success: 'Journey note added');
+    }, success: context.l10n.journeyNoteAdded);
   }
 
   Future<void> _edit(
@@ -146,7 +150,7 @@ class JourneyNotesSection extends ConsumerWidget {
         nextActionDate: draft.nextActionDate,
         outcome: draft.outcome,
       );
-    }, success: 'Journey note updated');
+    }, success: context.l10n.journeyNoteUpdated);
   }
 
   Future<void> _delete(
@@ -157,19 +161,17 @@ class JourneyNotesSection extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete this note?'),
-        content: const Text(
-          'The visit record is removed for everyone. This cannot be undone.',
-        ),
+        title: Text(context.l10n.journeyDeleteTitle),
+        content: Text(context.l10n.journeyDeleteBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: LeadsTheme.rejected),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
+            child: Text(context.l10n.commonDelete),
           ),
         ],
       ),
@@ -179,7 +181,7 @@ class JourneyNotesSection extends ConsumerWidget {
       context,
       ref,
       () => ref.read(journeyNotesProvider(_key).notifier).remove(note.name),
-      success: 'Journey note deleted',
+      success: context.l10n.journeyNoteDeleted,
     );
   }
 
@@ -191,12 +193,14 @@ class JourneyNotesSection extends ConsumerWidget {
     required String success,
   }) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     try {
       await action();
       messenger.showSnackBar(SnackBar(content: Text(success)));
       onChanged?.call();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Failed: $e')));
+      messenger.showSnackBar(
+          SnackBar(content: Text(l10n.journeyFailed('$e'))));
     }
   }
 }
@@ -217,7 +221,7 @@ class _JourneyTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final relative = JourneyFormat.relativePast(note.entryDate);
+    final relative = JourneyFormat.relativePast(context, note.entryDate);
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,7 +277,7 @@ class _JourneyTile extends StatelessWidget {
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
-                              JourneyFormat.pretty(note.entryDate),
+                              JourneyFormat.pretty(context, note.entryDate),
                               style: const TextStyle(
                                 fontFamily: LeadsTheme.bodyFont,
                                 color: LeadsTheme.deepPlum,
@@ -286,12 +290,13 @@ class _JourneyTile extends StatelessWidget {
                               Text(relative, style: LeadsTheme.bodyMuted),
                             if (note.entryType.trim().isNotEmpty)
                               _Chip(
-                                label: note.entryType,
+                                label:
+                                    localizedJourneyType(context, note.entryType),
                                 bg: const Color(0xFFEDECEA),
                                 fg: LeadsTheme.muted,
                               ),
                             if (note.outcome.trim().isNotEmpty)
-                              _outcomeChip(note.outcome),
+                              _outcomeChip(context, note.outcome),
                           ],
                         ),
                       ),
@@ -310,11 +315,13 @@ class _JourneyTile extends StatelessWidget {
                               if (value == 'edit') onEdit();
                               if (value == 'delete') onDelete();
                             },
-                            itemBuilder: (_) => const [
-                              PopupMenuItem(value: 'edit', child: Text('Edit')),
+                            itemBuilder: (_) => [
+                              PopupMenuItem(
+                                  value: 'edit',
+                                  child: Text(context.l10n.journeyEdit)),
                               PopupMenuItem(
                                 value: 'delete',
-                                child: Text('Delete'),
+                                child: Text(context.l10n.commonDelete),
                               ),
                             ],
                           ),
@@ -365,7 +372,7 @@ class _JourneyTile extends StatelessWidget {
                   if (note.loggedByName.trim().isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(
-                      'Logged by ${note.loggedByName}',
+                      context.l10n.journeyLoggedBy(note.loggedByName),
                       style: const TextStyle(
                         fontFamily: LeadsTheme.bodyFont,
                         color: LeadsTheme.muted,
@@ -382,9 +389,13 @@ class _JourneyTile extends StatelessWidget {
     );
   }
 
-  Widget _outcomeChip(String outcome) {
+  Widget _outcomeChip(BuildContext context, String outcome) {
     final colors = JourneyFormat.outcomeColors(outcome);
-    return _Chip(label: outcome, bg: colors.bg, fg: colors.fg);
+    return _Chip(
+      label: localizedJourneyOutcome(context, outcome),
+      bg: colors.bg,
+      fg: colors.fg,
+    );
   }
 }
 
@@ -422,8 +433,8 @@ class _NextActionRow extends StatelessWidget {
               children: [
                 if (hasDate)
                   Text(
-                    '${JourneyFormat.pretty(note.nextActionDate)}'
-                    ' · ${JourneyFormat.relativeFuture(note.nextActionDate)}',
+                    '${JourneyFormat.pretty(context, note.nextActionDate)}'
+                    ' · ${JourneyFormat.relativeFuture(context, note.nextActionDate)}',
                     style: TextStyle(
                       fontFamily: LeadsTheme.bodyFont,
                       color: fg,
@@ -492,14 +503,13 @@ class _EmptyCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: LeadsTheme.line),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('No visits logged yet.', style: LeadsTheme.body),
-          SizedBox(height: 4),
+          Text(context.l10n.journeyEmptyTitle, style: LeadsTheme.body),
+          const SizedBox(height: 4),
           Text(
-            'Log what was said, who said it, and when to follow up — '
-            'a dated next action also sets this account\'s reminder.',
+            context.l10n.journeyEmptyBody,
             style: LeadsTheme.bodyMuted,
           ),
         ],
@@ -527,11 +537,12 @@ class _ErrorCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Could not load the journey.', style: LeadsTheme.body),
+          Text(context.l10n.journeyLoadFailed, style: LeadsTheme.body),
           const SizedBox(height: 4),
           Text('$error', style: LeadsTheme.bodyMuted),
           const SizedBox(height: 8),
-          OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+          OutlinedButton(
+              onPressed: onRetry, child: Text(context.l10n.commonRetry)),
         ],
       ),
     );

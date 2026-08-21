@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../data/models/pricing_models.dart';
@@ -23,15 +25,15 @@ class PricingScreen extends ConsumerWidget {
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
-        title: const Text('Price Lists'),
+        title: Text(context.l10n.pricingTitle),
         actions: [
           IconButton(
-            tooltip: 'Customer pricing lookup',
+            tooltip: context.l10n.pricingCustomerLookup,
             icon: const Icon(Icons.person_search),
             onPressed: () => _openCustomerLookup(context),
           ),
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: context.l10n.pricingRefresh,
             icon: const Icon(Icons.refresh),
             onPressed: () => notifier.refresh(),
           ),
@@ -41,7 +43,7 @@ class PricingScreen extends ConsumerWidget {
           ? FloatingActionButton.extended(
               onPressed: () => _promptCreate(context, ref),
               icon: const Icon(Icons.add),
-              label: const Text('New price list'),
+              label: Text(context.l10n.pricingNewPriceList),
             )
           : null,
       body: listsAsync.when(
@@ -52,7 +54,7 @@ class PricingScreen extends ConsumerWidget {
         ),
         data: (lists) {
           if (lists.isEmpty) {
-            return const Center(child: Text('No price lists yet.'));
+            return Center(child: Text(context.l10n.pricingNoPriceLists));
           }
           return RefreshIndicator(
             onRefresh: notifier.refresh,
@@ -85,35 +87,38 @@ class PricingScreen extends ConsumerWidget {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('New price list'),
+        title: Text(context.l10n.pricingNewPriceList),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
               autofocus: true,
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration:
+                  InputDecoration(labelText: context.l10n.pricingNameField),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: currencyController,
-              decoration: const InputDecoration(labelText: 'Currency'),
+              decoration: InputDecoration(
+                  labelText: context.l10n.pricingCurrencyField),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Create'),
+            child: Text(context.l10n.pricingCreate),
           ),
         ],
       ),
     );
-    if (result != true) return;
+    if (result != true || !context.mounted) return;
+    final l10n = context.l10n;
     final name = nameController.text.trim();
     if (name.isEmpty) return;
     try {
@@ -124,11 +129,11 @@ class PricingScreen extends ConsumerWidget {
                 : currencyController.text.trim(),
           );
       messenger.showSnackBar(
-        SnackBar(content: Text('Created "$name"')),
+        SnackBar(content: Text(l10n.pricingCreated(name))),
       );
     } catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Could not create price list: $e')),
+        SnackBar(content: Text(l10n.pricingCreateFailed('$e'))),
       );
     }
   }
@@ -142,11 +147,11 @@ class _PriceListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final categoryLabel = summary.categories.isEmpty
-        ? 'No category rates set'
+        ? context.l10n.pricingNoCategoryRatesShort
         : summary.categories
             .map(
               (c) => '${c.itemGroup}: '
-                  '${c.rate == null ? '—' : c.rate!.toStringAsFixed(2)}',
+                  '${c.rate == null ? context.l10n.pricingDash : formatCurrency(context, c.rate!)}',
             )
             .join(' · ');
     return Card(
@@ -158,10 +163,10 @@ class _PriceListCard extends StatelessWidget {
           children: [
             Flexible(child: Text(summary.name)),
             if (summary.isDefault)
-              const Padding(
-                padding: EdgeInsets.only(left: 6),
+              Padding(
+                padding: const EdgeInsets.only(left: 6),
                 child: Chip(
-                  label: Text('Default'),
+                  label: Text(context.l10n.pricingDefaultBadge),
                   visualDensity: VisualDensity.compact,
                 ),
               ),
@@ -172,8 +177,13 @@ class _PriceListCard extends StatelessWidget {
           children: [
             Text(categoryLabel),
             Text(
-              '${summary.customerCount} customer(s) · ${summary.currency}'
-              '${summary.enabled ? '' : ' · disabled'}',
+              context.l10n.pricingCardSummary(
+                    context.l10n.pricingCustomerCount(summary.customerCount),
+                    summary.currency,
+                  ) +
+                  (summary.enabled
+                      ? ''
+                      : context.l10n.pricingDisabledSuffix),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -206,14 +216,14 @@ class _ErrorView extends StatelessWidget {
             const Icon(Icons.error_outline, size: 48, color: Colors.red),
             const SizedBox(height: 12),
             Text(
-              'Could not load price lists.\n$error',
+              context.l10n.pricingLoadFailed('$error'),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: Text(context.l10n.commonRetry),
             ),
           ],
         ),

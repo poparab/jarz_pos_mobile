@@ -6853,4 +6853,744 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get leadsMergeConfirmAction => 'ادمج';
+
+  @override
+  String get b2bAccountTitle => 'الحساب';
+
+  @override
+  String b2bAccountLoadFailed(String error) {
+    return 'مش قادر يفتح الحساب.\n$error';
+  }
+
+  @override
+  String b2bFailed(String error) {
+    return 'فشل: $error';
+  }
+
+  @override
+  String get b2bLogCall => 'سجّل مكالمة';
+
+  @override
+  String get b2bLogCallHint => 'اتكلمتوا في إيه؟';
+
+  @override
+  String get b2bActivityLogged => 'النشاط اتسجّل';
+
+  @override
+  String b2bLogActivityFailed(String error) {
+    return 'مش قادر يسجّل النشاط: $error';
+  }
+
+  @override
+  String get b2bMarkLostTitle => 'علّمه خسران / معلّق';
+
+  @override
+  String get b2bReasonHint => 'السبب';
+
+  @override
+  String get b2bMarkedLost => 'اتعلّم خسران/معلّق';
+
+  @override
+  String get b2bCreateCustomerTitle => 'اعمل عميل للعميل المحتمل';
+
+  @override
+  String get b2bCustomerName => 'اسم العميل';
+
+  @override
+  String get b2bAddress => 'العنوان';
+
+  @override
+  String get b2bContinue => 'كمّل';
+
+  @override
+  String get b2bLoadingTerritories => 'بيحمّل المناطق…';
+
+  @override
+  String get b2bTerritoriesFailed => 'مش قادر يجيب المناطق';
+
+  @override
+  String get b2bOpenLeadPage => 'افتح صفحة العميل المحتمل';
+
+  @override
+  String get b2bSectionContact => 'بيانات التواصل';
+
+  @override
+  String get b2bSectionInsights => 'تحليلات';
+
+  @override
+  String get b2bSectionRecentInvoices => 'آخر الفواتير';
+
+  @override
+  String get b2bSectionOpenTodos => 'المهام المفتوحة';
+
+  @override
+  String get b2bNone => 'مفيش';
+
+  @override
+  String get b2bPredictedNextOrder => 'الطلب الجاي المتوقع';
+
+  @override
+  String get b2bAvgOrderCycle => 'متوسط دورة الطلب';
+
+  @override
+  String b2bDaysValue(String days) {
+    return '$days يوم';
+  }
+
+  @override
+  String get b2bSendSample => 'ابعت عينة';
+
+  @override
+  String get b2bPlaceOrder => 'اعمل طلب';
+
+  @override
+  String get b2bMarkLost => 'علّمه خسران';
+
+  @override
+  String get b2bViewPricing => 'شوف الأسعار';
+
+  @override
+  String get b2bLabelsSection => 'الليبلات';
+
+  @override
+  String b2bLabelsNeedPrinting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count محتاجين طباعة',
+      one: 'واحد محتاج طباعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get b2bNoLabelsTracked => 'لسه مفيش ليبلات متتابعة للعميل ده.';
+
+  @override
+  String get b2bSetUpLabels => 'جهّز الليبلات';
+
+  @override
+  String get b2bLoadingLeadProfile => 'بيحمّل ملف العميل المحتمل…';
+
+  @override
+  String get b2bLeadProfile => 'ملف العميل المحتمل';
+
+  @override
+  String b2bMoreBranches(int count) {
+    return '+ $count كمان';
+  }
+
+  @override
+  String get b2bPipelineTitle => 'مسار الجملة';
+
+  @override
+  String get b2bMyFollowUps => 'متابعاتي';
+
+  @override
+  String get b2bRefresh => 'تحديث';
+
+  @override
+  String get b2bSwitchMode => 'غيّر الوضع';
+
+  @override
+  String get b2bGoToPos => 'روح لنقطة البيع (تجزئة)';
+
+  @override
+  String get b2bGoToKanban => 'روح لبورد التوصيل';
+
+  @override
+  String get b2bNewLead => 'عميل محتمل جديد';
+
+  @override
+  String b2bMovedToStage(String title, String stage) {
+    return '\"$title\" اتنقل لـ $stage';
+  }
+
+  @override
+  String b2bAdvanceStageFailed(String error) {
+    return 'مش قادر ينقل المرحلة: $error';
+  }
+
+  @override
+  String get b2bFollowUpReminder => 'تذكير متابعة';
+
+  @override
+  String b2bFollowUpPrompt(String stage) {
+    return 'هتتابع إمتى بعد النقل لـ \"$stage\"؟';
+  }
+
+  @override
+  String get b2bSkip => 'تخطّي';
+
+  @override
+  String get b2bSetReminder => 'اضبط التذكير';
+
+  @override
+  String get b2bLostReasonHint => 'ليه ده خسران / معلّق؟';
+
+  @override
+  String b2bPipelineLoadFailed(String error) {
+    return 'مش قادر يفتح المسار.\n$error';
+  }
+
+  @override
+  String get b2bTodayTitle => 'النهارده';
+
+  @override
+  String b2bTodayLoadFailed(String error) {
+    return 'مش قادر يجيب المتابعات.\n$error';
+  }
+
+  @override
+  String get b2bNoFollowUpsToday => 'مفيش متابعات النهارده';
+
+  @override
+  String get b2bNoReordersDue => 'مفيش طلبات إعادة مستحقة';
+
+  @override
+  String get b2bFollowUpDone => 'المتابعة اتعلّمت خلصت';
+
+  @override
+  String b2bFollowUpFailed(String error) {
+    return 'مش قادر يخلّص المتابعة: $error';
+  }
+
+  @override
+  String get b2bDone => 'تمام';
+
+  @override
+  String b2bOverdueSuffix(String date) {
+    return '$date · متأخرة';
+  }
+
+  @override
+  String b2bAvgBasket(String amount) {
+    return 'المتوسط: $amount';
+  }
+
+  @override
+  String b2bScoreLabel(int score) {
+    return 'الدرجة $score';
+  }
+
+  @override
+  String get b2bNoAccounts => 'مفيش حسابات';
+
+  @override
+  String b2bLabelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ليبل',
+      one: 'ليبل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String b2bLastOrder(String date) {
+    return 'آخر طلب: $date';
+  }
+
+  @override
+  String b2bNextOrder(String date) {
+    return 'الجاي: $date';
+  }
+
+  @override
+  String get b2bCardLead => 'عميل محتمل';
+
+  @override
+  String get b2bCardOpportunity => 'فرصة';
+
+  @override
+  String b2bLabelsNeedPrintingTooltip(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ليبل محتاجين طباعة',
+      one: 'ليبل واحد محتاج طباعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pricingTitle => 'قوايم الأسعار';
+
+  @override
+  String get pricingCustomerLookup => 'بحث أسعار العميل';
+
+  @override
+  String get pricingRefresh => 'تحديث';
+
+  @override
+  String get pricingNewPriceList => 'قايمة أسعار جديدة';
+
+  @override
+  String get pricingNoPriceLists => 'لسه مفيش قوايم أسعار.';
+
+  @override
+  String get pricingNameField => 'الاسم';
+
+  @override
+  String get pricingCurrencyField => 'العملة';
+
+  @override
+  String get pricingCreate => 'اعمل';
+
+  @override
+  String pricingCreated(String name) {
+    return 'اتعمل \"$name\"';
+  }
+
+  @override
+  String pricingCreateFailed(String error) {
+    return 'مش قادر يعمل قايمة أسعار: $error';
+  }
+
+  @override
+  String get pricingDefaultBadge => 'الافتراضية';
+
+  @override
+  String pricingLoadFailed(String error) {
+    return 'مش قادر يجيب قوايم الأسعار.\n$error';
+  }
+
+  @override
+  String pricingDetailLoadFailed(String name, String error) {
+    return 'مش قادر يفتح \"$name\".\n$error';
+  }
+
+  @override
+  String pricingSetRateTitle(String category) {
+    return 'حدد سعر $category';
+  }
+
+  @override
+  String pricingRateUpdated(String category) {
+    return 'سعر $category اتحدّث';
+  }
+
+  @override
+  String pricingRateSet(String category) {
+    return 'سعر $category اتحدد';
+  }
+
+  @override
+  String get pricingAllCategoriesHaveRows => 'كل التصنيفات ليها سطر بالفعل.';
+
+  @override
+  String pricingItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أصناف',
+      one: 'صنف واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pricingOverrideTitle(String item) {
+    return 'استثناء $item';
+  }
+
+  @override
+  String get pricingOverrideUpdated => 'الاستثناء اتحدّث';
+
+  @override
+  String get pricingRemoveOverrideTitle => 'تشيل الاستثناء؟';
+
+  @override
+  String pricingRemoveOverrideBody(String item) {
+    return '$item هيرجع لسعر تصنيفه.';
+  }
+
+  @override
+  String get pricingRemove => 'شيل';
+
+  @override
+  String get pricingOverrideRemoved => 'الاستثناء اتشال';
+
+  @override
+  String get pricingAddOverride => 'ضيف استثناء';
+
+  @override
+  String get pricingItemCode => 'كود الصنف';
+
+  @override
+  String get pricingRateField => 'السعر';
+
+  @override
+  String get pricingOverrideAdded => 'الاستثناء اتضاف';
+
+  @override
+  String get pricingUnassignTitle => 'تشيل ربط العميل؟';
+
+  @override
+  String pricingUnassignBody(String customer) {
+    return '$customer هيرجع لافتراضي مجموعته.';
+  }
+
+  @override
+  String get pricingUnassign => 'شيل الربط';
+
+  @override
+  String get pricingCustomerUnassigned => 'ربط العميل اتشال';
+
+  @override
+  String pricingFailed(String error) {
+    return 'فشل: $error';
+  }
+
+  @override
+  String get pricingCategoryPrices => 'أسعار التصنيفات';
+
+  @override
+  String get pricingAddCategory => 'ضيف تصنيف';
+
+  @override
+  String get pricingNoCategoryRates => 'مفيش أسعار تصنيفات متحددة.';
+
+  @override
+  String pricingEditRateTooltip(String category) {
+    return 'عدّل سعر $category';
+  }
+
+  @override
+  String get pricingPerFlavorOverrides => 'استثناءات لكل نكهة';
+
+  @override
+  String pricingOverrideCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count استثناءات',
+      one: 'استثناء واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pricingNoOverrides => 'مفيش استثناءات لأصناف.';
+
+  @override
+  String get pricingEditOverride => 'عدّل الاستثناء';
+
+  @override
+  String get pricingRemoveOverride => 'شيل الاستثناء';
+
+  @override
+  String get pricingAssignedCustomers => 'العملاء المربوطين';
+
+  @override
+  String pricingCustomerCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عملاء',
+      one: 'عميل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pricingNoCustomers => 'مفيش عملاء بيستخدموا القايمة دي.';
+
+  @override
+  String pricingViaGroup(String group) {
+    return 'عن طريق مجموعة $group';
+  }
+
+  @override
+  String get pricingDirectAssignment => 'ربط مباشر';
+
+  @override
+  String get customerPricingTitle => 'أسعار العميل';
+
+  @override
+  String get customerPricingSearchHint => 'دوّر على عملاء الشركات…';
+
+  @override
+  String customerPricingSearchFailed(String error) {
+    return 'البحث فشل.\n$error';
+  }
+
+  @override
+  String get customerPricingNoCustomers => 'مفيش عملاء.';
+
+  @override
+  String customerPricingLoadFailed(String customer, String error) {
+    return 'مش قادر يجيب أسعار \"$customer\".\n$error';
+  }
+
+  @override
+  String get customerPricingEffective => 'الأسعار السارية';
+
+  @override
+  String get customerPricingNoResolved => 'مفيش أسعار محسوبة.';
+
+  @override
+  String customerPricingSource(String group, String source) {
+    return '$group · المصدر: $source';
+  }
+
+  @override
+  String get pricingNoCategoryRatesShort => 'مفيش أسعار تصنيفات متحددة';
+
+  @override
+  String pricingCardSummary(String customers, String currency) {
+    return '$customers · $currency';
+  }
+
+  @override
+  String get pricingDisabledSuffix => ' · متوقفة';
+
+  @override
+  String customerPricingGroupLine(
+    String group,
+    String priceList,
+    String assignment,
+  ) {
+    return 'المجموعة: $group\nقايمة الأسعار: $priceList ($assignment)';
+  }
+
+  @override
+  String get pricingNoneValue => '(مفيش)';
+
+  @override
+  String get pricingDash => '—';
+
+  @override
+  String get journeyToday => 'النهارده';
+
+  @override
+  String get journeyYesterday => 'امبارح';
+
+  @override
+  String get journeyTomorrow => 'بكره';
+
+  @override
+  String journeyDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'من $count أيام',
+      one: 'من يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyWeeksAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'من $count أسابيع',
+      one: 'من أسبوع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyMonthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'من $count شهور',
+      one: 'من شهر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyOverdueByDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'متأخر بـ $count أيام',
+      one: 'متأخر بيوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journeyOverdue => 'متأخر';
+
+  @override
+  String journeyInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بعد $count أيام',
+      one: 'بعد يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyInMonths(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بعد $count شهور',
+      one: 'بعد شهر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journeyTypeVisit => 'زيارة';
+
+  @override
+  String get journeyTypeCall => 'مكالمة';
+
+  @override
+  String get journeyTypeWhatsapp => 'واتساب';
+
+  @override
+  String get journeyTypeSampleDrop => 'تسليم عينة';
+
+  @override
+  String get journeyTypeMeeting => 'اجتماع';
+
+  @override
+  String get journeyTypeEmail => 'إيميل';
+
+  @override
+  String get journeyTypeOther => 'غير كده';
+
+  @override
+  String get journeyOutcomeInterested => 'مهتم';
+
+  @override
+  String get journeyOutcomeNeedsFollowUp => 'محتاج متابعة';
+
+  @override
+  String get journeyOutcomeSampleRequested => 'طلب عينة';
+
+  @override
+  String get journeyOutcomeOrderPlaced => 'عمل طلب';
+
+  @override
+  String get journeyOutcomeNotNow => 'مش دلوقتي';
+
+  @override
+  String get journeyOutcomeRejected => 'مرفوض';
+
+  @override
+  String get journeyEditorEditTitle => 'تعديل ملاحظة الزيارة';
+
+  @override
+  String get journeyEditorNewTitle => 'سجّل زيارة أو مكالمة';
+
+  @override
+  String get journeyEditorSubtitle =>
+      'اللي حصل، ومين اللي اتكلمت معاه، وإيه الخطوة الجاية.';
+
+  @override
+  String get journeyEditorDate => 'التاريخ';
+
+  @override
+  String get journeyEditorType => 'النوع';
+
+  @override
+  String get journeyEditorNote => 'الملاحظة';
+
+  @override
+  String get journeyEditorNoteHint => 'عجبهم الماتشا وسألوا عن أسعار الجملة…';
+
+  @override
+  String get journeyEditorWhoSpoke => 'مين اللي اتكلمت معاه';
+
+  @override
+  String get journeyEditorPerson => 'الشخص';
+
+  @override
+  String get journeyEditorPersonHint => 'مصطفى';
+
+  @override
+  String get journeyEditorRole => 'الوظيفة';
+
+  @override
+  String get journeyEditorRoleHint => 'مدير الفرع';
+
+  @override
+  String get journeyEditorTheirPhone => 'تليفونه';
+
+  @override
+  String get journeyEditorOutcome => 'النتيجة';
+
+  @override
+  String get journeyEditorNextAction => 'الخطوة الجاية';
+
+  @override
+  String get journeyEditorNextActionHelp =>
+      'التاريخ هنا كمان بيظبط تذكير المتابعة على الحساب ده.';
+
+  @override
+  String get journeyEditorWhatToDo => 'المفروض تعمل إيه';
+
+  @override
+  String get journeyEditorWhatToDoHint =>
+      'كلّم المدير عشان يأكد الطلب التجريبي';
+
+  @override
+  String get journeyEditorWhen => 'إمتى';
+
+  @override
+  String get journeyEditorNoReminder => 'من غير تذكير';
+
+  @override
+  String get journeyEditorLogIt => 'سجّلها';
+
+  @override
+  String get journeyEditorPickDate => 'اختار تاريخ';
+
+  @override
+  String get journeyEditorClear => 'امسح';
+
+  @override
+  String get journeySectionTitle => 'سجل الزيارات';
+
+  @override
+  String get journeyLogVisit => 'سجّل زيارة';
+
+  @override
+  String get journeyNoteAdded => 'الملاحظة اتضافت';
+
+  @override
+  String get journeyNoteUpdated => 'الملاحظة اتحدّثت';
+
+  @override
+  String get journeyNoteDeleted => 'الملاحظة اتمسحت';
+
+  @override
+  String get journeyDeleteTitle => 'تمسح الملاحظة دي؟';
+
+  @override
+  String get journeyDeleteBody => 'سجل الزيارة هيتشال للكل. مفيش رجوع بعد كده.';
+
+  @override
+  String journeyFailed(String error) {
+    return 'فشل: $error';
+  }
+
+  @override
+  String get journeyEdit => 'تعديل';
+
+  @override
+  String journeyLoggedBy(String user) {
+    return 'سجّلها $user';
+  }
+
+  @override
+  String get journeyEmptyTitle => 'لسه مفيش زيارات متسجلة.';
+
+  @override
+  String get journeyEmptyBody =>
+      'سجّل اللي اتقال ومين قاله وإمتى تتابع — والخطوة الجاية بتاريخ بتظبط كمان تذكير الحساب ده.';
+
+  @override
+  String get journeyLoadFailed => 'مش قادر يجيب سجل الزيارات.';
 }
