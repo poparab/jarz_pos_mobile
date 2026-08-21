@@ -1259,6 +1259,7 @@
   "itemGridFreeDelivery": "توصيل مجاني",
   "itemGridBundlesCount": "{count} حزم",
   "itemGridItemsCount": "{count} أصناف",
+  "itemGridInCart": "في السلة: {count}",
   "itemGridAddedToCart": "تمت الإضافة إلى السلة",
   "itemGridSelectCustomerFirst": "اختر عميلاً أولاً",
   "itemGridOutOfStock": "نفدت الكمية",

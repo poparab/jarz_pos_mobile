@@ -30,6 +30,12 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     final selectedCustomer = ref.watch(
       posNotifierProvider.select((state) => state.selectedCustomer),
     );
+    // Watching the list itself (not a derived map) keeps the rebuild scoped to
+    // actual cart mutations — copyWith reuses the same list otherwise.
+    final cartItems = ref.watch(
+      posNotifierProvider.select((state) => state.cartItems),
+    );
+    final cartQuantities = _buildCartQuantityIndex(cartItems);
 
     // Group items by category and ensure Bundles is first
     final itemsByCategory = <String, List<Map<String, dynamic>>>{};
@@ -144,6 +150,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                   filteredData,
                   itemsByCategory,
                   selectedCustomer,
+                  cartQuantities,
                 ),
         ),
       ],
@@ -154,11 +161,16 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     List<Map<String, dynamic>> items,
     Map<String, List<Map<String, dynamic>>> itemsByCategory,
     Map<String, dynamic>? selectedCustomer,
+    Map<String, int> cartQuantities,
   ) {
     final isPhone = ResponsiveUtils.isPhone(context);
     // If "All" is selected and no search, show categorized view
     if (selectedCategory == null && itemsByCategory.isNotEmpty) {
-      return _buildCategorizedView(itemsByCategory, selectedCustomer);
+      return _buildCategorizedView(
+        itemsByCategory,
+        selectedCustomer,
+        cartQuantities,
+      );
     }
 
     // Otherwise show filtered grid
@@ -180,8 +192,8 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
           final item = items[index];
           final isBundle = item['type'] == 'bundle';
           return isBundle
-              ? _buildBundleCard(item, selectedCustomer)
-              : _buildItemCard(item, selectedCustomer);
+              ? _buildBundleCard(item, selectedCustomer, cartQuantities)
+              : _buildItemCard(item, selectedCustomer, cartQuantities);
         },
       ),
     );
@@ -190,6 +202,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
   Widget _buildCategorizedView(
     Map<String, List<Map<String, dynamic>>> itemsByCategory,
     Map<String, dynamic>? selectedCustomer,
+    Map<String, int> cartQuantities,
   ) {
     final isPhone = ResponsiveUtils.isPhone(context);
     return ListView.builder(
@@ -273,8 +286,8 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
               itemBuilder: (context, itemIndex) {
                 final item = categoryItems[itemIndex];
                 return isBundleCategory
-                    ? _buildBundleCard(item, selectedCustomer)
-                    : _buildItemCard(item, selectedCustomer);
+                    ? _buildBundleCard(item, selectedCustomer, cartQuantities)
+                    : _buildItemCard(item, selectedCustomer, cartQuantities);
               },
             ),
 
@@ -350,13 +363,16 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
   Widget _buildBundleCard(
     Map<String, dynamic> bundle,
     Map<String, dynamic>? selectedCustomer,
+    Map<String, int> cartQuantities,
   ) {
     final isPhone = ResponsiveUtils.isPhone(context);
     final canAddToCart = selectedCustomer != null;
     final hasFreeShipping = (bundle['free_shipping'] == true);
+    final cartQty = cartQuantities[bundle['id']?.toString().trim() ?? ''] ?? 0;
 
     return Card(
-      elevation: 1,
+      elevation: cartQty > 0 ? 3 : 1,
+      shape: _cardShape(cartQty),
       child: InkWell(
         onTap: canAddToCart
             ? () {
@@ -442,6 +458,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                   ),
                 ),
               ),
+            if (cartQty > 0) _buildCartQtyBadge(cartQty),
           ],
         ),
       ),
@@ -451,8 +468,10 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
   Widget _buildItemCard(
     Map<String, dynamic> item,
     Map<String, dynamic>? selectedCustomer,
+    Map<String, int> cartQuantities,
   ) {
     final isPhone = ResponsiveUtils.isPhone(context);
+    final cartQty = cartQuantities[item['name']?.toString().trim() ?? ''] ?? 0;
     // Extract stock information
     final stockQty = (item['actual_qty'] ?? 0).toDouble();
     final isOutOfStock = stockQty <= 0;
@@ -475,7 +494,8 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
     }
 
     return Card(
-      elevation: 1,
+      elevation: cartQty > 0 ? 3 : 1,
+      shape: _cardShape(cartQty),
       child: InkWell(
         onTap: canAddToCart
             ? () {
@@ -576,7 +596,96 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                 ),
               ),
             ),
+
+            // How many of this item are already in the cart
+            if (cartQty > 0) _buildCartQtyBadge(cartQty),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// item_code / bundle_id → total quantity currently in the cart, so each
+  /// catalog card can show its own counter without re-scanning the cart.
+  Map<String, int> _buildCartQuantityIndex(
+    List<Map<String, dynamic>> cartItems,
+  ) {
+    final counts = <String, int>{};
+    for (final cartItem in cartItems) {
+      if (cartItem['is_shipping'] == true) continue;
+      final qty =
+          num.tryParse(cartItem['quantity']?.toString() ?? '')?.toInt() ?? 0;
+      if (qty <= 0) continue;
+
+      // Bundles are keyed by bundle_id in the catalog but stored under
+      // item_code in the cart, so index both identities.
+      final keys = <String>{};
+      final itemCode = cartItem['item_code']?.toString().trim() ?? '';
+      if (itemCode.isNotEmpty) keys.add(itemCode);
+      final details = cartItem['bundle_details'];
+      if (details is Map) {
+        final bundleId = details['bundle_id']?.toString().trim() ?? '';
+        if (bundleId.isNotEmpty) keys.add(bundleId);
+      }
+
+      for (final key in keys) {
+        counts[key] = (counts[key] ?? 0) + qty;
+      }
+    }
+    return counts;
+  }
+
+  /// Outlines a card whose item is already in the cart.
+  ShapeBorder _cardShape(int cartQty) {
+    return RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+      side: cartQty > 0
+          ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)
+          : BorderSide.none,
+    );
+  }
+
+  /// Counter badge pinned to the physical left so it never collides with the
+  /// stock / free-delivery badges on the right.
+  Widget _buildCartQtyBadge(int cartQty) {
+    final theme = Theme.of(context);
+    return Positioned(
+      top: 4,
+      left: 4,
+      child: Tooltip(
+        message: context.l10n.itemGridInCart(cartQty),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2.5),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.shopping_cart,
+                size: 9,
+                color: theme.colorScheme.onPrimary,
+              ),
+              const SizedBox(width: 2),
+              Text(
+                '$cartQty',
+                style: TextStyle(
+                  color: theme.colorScheme.onPrimary,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

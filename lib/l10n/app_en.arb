@@ -1283,6 +1283,12 @@
       "count": {}
     }
   },
+  "itemGridInCart": "In cart: {count}",
+  "@itemGridInCart": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "itemGridAddedToCart": "Added to cart",
   "itemGridSelectCustomerFirst": "Select customer first",
   "itemGridOutOfStock": "Out of stock",

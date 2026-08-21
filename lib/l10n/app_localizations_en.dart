@@ -2877,6 +2877,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String itemGridInCart(Object count) {
+    return 'In cart: $count';
+  }
+
+  @override
   String get itemGridAddedToCart => 'Added to cart';
 
   @override

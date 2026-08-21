@@ -2871,6 +2871,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String itemGridInCart(Object count) {
+    return 'في السلة: $count';
+  }
+
+  @override
   String get itemGridAddedToCart => 'تمت الإضافة إلى السلة';
 
   @override

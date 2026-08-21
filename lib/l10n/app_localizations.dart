@@ -4966,6 +4966,12 @@ abstract class AppLocalizations {
   /// **'{count} items'**
   String itemGridItemsCount(Object count);
 
+  /// No description provided for @itemGridInCart.
+  ///
+  /// In en, this message translates to:
+  /// **'In cart: {count}'**
+  String itemGridInCart(Object count);
+
   /// No description provided for @itemGridAddedToCart.
   ///
   /// In en, this message translates to:
