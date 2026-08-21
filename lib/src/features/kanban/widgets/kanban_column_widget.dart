@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../models/kanban_models.dart';
 import 'invoice_card_widget.dart';
@@ -392,7 +393,7 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
             child: OutlinedButton.icon(
               onPressed: () => widget.onMobileMoveRequested?.call(invoice, widget.column.id),
               icon: const Icon(Icons.drive_file_move, size: 16),
-              label: const Text('Move'),
+              label: Text(context.l10n.kanbanMoveAction),
               style: OutlinedButton.styleFrom(
                 visualDensity: VisualDensity.compact,
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -418,7 +419,7 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
               Icon(Icons.inbox_outlined, size: 46, color: Colors.grey[400]),
               const SizedBox(height: 10),
               Text(
-                'No invoices',
+                context.l10n.kanbanNoInvoices,
                 style: TextStyle(color: Colors.grey[600], fontSize: 13),
               ),
               const SizedBox(height: 6),

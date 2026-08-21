@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../state/pos_notifier.dart';
@@ -492,7 +493,7 @@ class CartWidget extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Promo discount',
+                            context.l10n.posCartPromoDiscount,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontSize: isPhone ? 14 : null),
                           ),
@@ -520,7 +521,7 @@ class CartWidget extends ConsumerWidget {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            'Free delivery',
+                            context.l10n.posCartFreeDelivery,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
                                   fontSize: isPhone ? 14 : null,
@@ -1517,14 +1518,14 @@ class CartWidget extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Set Delivery Income'),
+        title: Text(context.l10n.kanbanSetDeliveryIncome),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Enter a custom delivery amount. Leave blank to restore the territory default.',
-              style: TextStyle(fontSize: 13),
+            Text(
+              context.l10n.posCartDeliveryAmountHelp,
+              style: const TextStyle(fontSize: 13),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -1532,9 +1533,9 @@ class CartWidget extends ConsumerWidget {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              decoration: const InputDecoration(
-                labelText: 'Delivery amount',
-                prefixText: '\$',
+              decoration: InputDecoration(
+                labelText: context.l10n.posCartDeliveryAmountField,
+                prefixText: currencySymbol(context),
                 hintText: '0.00',
                 border: OutlineInputBorder(),
               ),
@@ -1548,11 +1549,11 @@ class CartWidget extends ConsumerWidget {
               posNotifier.setCustomDeliveryIncome(null);
               Navigator.pop(ctx);
             },
-            child: const Text('Reset to Default'),
+            child: Text(context.l10n.posCartResetToDefault),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1563,8 +1564,8 @@ class CartWidget extends ConsumerWidget {
                 final parsed = double.tryParse(raw);
                 if (parsed == null || parsed < 0) {
                   messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Enter a valid non-negative amount'),
+                    SnackBar(
+                      content: Text(context.l10n.kanbanInvalidAmount),
                     ),
                   );
                   return;
@@ -1573,7 +1574,7 @@ class CartWidget extends ConsumerWidget {
               }
               Navigator.pop(ctx);
             },
-            child: const Text('Set'),
+            child: Text(context.l10n.posCartSetAction),
           ),
         ],
       ),
@@ -1868,7 +1869,7 @@ class CartWidget extends ConsumerWidget {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              'Bundle contents could not be loaded. Edit this bundle and reselect items before submitting.',
+              context.l10n.posCartBundleLoadFailed,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onErrorContainer,
                 fontWeight: FontWeight.w600,
@@ -2182,9 +2183,9 @@ class _PromoCodeSectionState extends ConsumerState<_PromoCodeSection> {
                 textCapitalization: TextCapitalization.characters,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _apply(),
-                decoration: const InputDecoration(
-                  labelText: 'Promo code',
-                  hintText: 'e.g. EGY2026',
+                decoration: InputDecoration(
+                  labelText: context.l10n.posCartPromoCode,
+                  hintText: context.l10n.posCartPromoCodeHint,
                   isDense: true,
                   border: OutlineInputBorder(),
                 ),
@@ -2201,7 +2202,7 @@ class _PromoCodeSectionState extends ConsumerState<_PromoCodeSection> {
                         width: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Apply'),
+                    : Text(context.l10n.kanbanFilterApply),
               ),
             ),
           ],
@@ -2217,8 +2218,8 @@ class _PromoCodeSectionState extends ConsumerState<_PromoCodeSection> {
               final reason = result?['reason']?.toString();
               return Tooltip(
                 message: accepted
-                    ? (reason ?? 'Applied')
-                    : (reason ?? 'Not eligible'),
+                    ? (reason ?? context.l10n.posCartPromoApplied)
+                    : (reason ?? context.l10n.posCartPromoNotEligible),
                 child: Chip(
                   label: Text(
                     code,
@@ -2256,7 +2257,8 @@ class _PromoCodeSectionState extends ConsumerState<_PromoCodeSection> {
               .where((r) => r['accepted'] != true)
               .map((r) {
             final code = r['code']?.toString() ?? '';
-            final reason = r['reason']?.toString() ?? 'Not eligible';
+            final reason =
+                r['reason']?.toString() ?? context.l10n.posCartPromoNotEligible;
             return Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(

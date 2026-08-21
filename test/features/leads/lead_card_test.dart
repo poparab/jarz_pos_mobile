@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/leads/data/models/lead.dart';
 import 'package:jarz_pos/src/features/leads/presentation/widgets/lead_card.dart';
 import 'package:jarz_pos/src/features/leads/presentation/widgets/sahel_badge.dart';
@@ -8,6 +10,14 @@ import 'package:jarz_pos/src/features/leads/presentation/widgets/tier_pill.dart'
 Future<void> _pumpCard(WidgetTester tester, Lead lead) async {
   await tester.pumpWidget(
     MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: LeadCard(lead: lead, onTap: () {}),
       ),

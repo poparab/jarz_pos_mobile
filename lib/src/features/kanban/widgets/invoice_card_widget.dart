@@ -812,7 +812,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                   children: [
                     const Icon(Icons.local_shipping_outlined, size: 18),
                     const SizedBox(width: 8),
-                    const Text('Set Delivery Income'),
+                    Text(context.l10n.kanbanSetDeliveryIncome),
                   ],
                 ),
               ),
@@ -2451,7 +2451,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                 else
                                   DropdownButtonFormField<String>(
                                     initialValue: selectedDeliveryPartner,
-                                    decoration: const InputDecoration(labelText: 'Delivery Partner'),
+                                    decoration: InputDecoration(
+                                        labelText: context
+                                            .l10n.kanbanDeliveryPartnerField),
                                     items: deliveryPartners.map((dp) => DropdownMenuItem(
                                       value: dp['name'],
                                       child: Text(dp['partner_name'] ?? dp['name'] ?? ''),
@@ -2751,7 +2753,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           Icon(Icons.hourglass_top, size: 10, color: textColor),
           const SizedBox(width: 4),
           Text(
-            'Awaiting InstaPay',
+            context.l10n.instapayAwaitingBadge,
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
@@ -3164,7 +3166,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           content: Text(message),
           duration: const Duration(seconds: 6),
           action: SnackBarAction(
-            label: 'Retry',
+            label: context.l10n.commonRetry,
             onPressed: () => _openAmendmentDraft(context),
           ),
         ),
@@ -3184,24 +3186,22 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Set Delivery Income'),
+        title: Text(context.l10n.kanbanSetDeliveryIncome),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Enter a custom delivery income for this order. '
-              'Leave blank to revert to the territory default. '
-              'This will create an amendment of the order.',
+            Text(
+              context.l10n.kanbanDeliveryIncomeHelp,
               style: TextStyle(fontSize: 13),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                labelText: 'Delivery income',
-                prefixText: '\$',
+              decoration: InputDecoration(
+                labelText: context.l10n.kanbanDeliveryIncomeField,
+                prefixText: currencySymbol(context),
                 hintText: '0.00',
                 border: OutlineInputBorder(),
               ),
@@ -3212,11 +3212,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Apply'),
+            child: Text(context.l10n.kanbanFilterApply),
           ),
         ],
       ),
@@ -3234,7 +3234,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       if (incomeOverride == null || incomeOverride < 0) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Enter a valid non-negative amount')),
+            SnackBar(content: Text(context.l10n.kanbanInvalidAmount)),
           );
         }
         return;
@@ -3264,9 +3264,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
       // Show loading
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Updating delivery income…'),
-          duration: Duration(seconds: 30),
+        SnackBar(
+          content: Text(context.l10n.kanbanUpdatingDeliveryIncome),
+          duration: const Duration(seconds: 30),
         ),
       );
 
@@ -3284,15 +3284,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           SnackBar(
             content: Text(
               incomeOverride != null
-                  ? 'Delivery income updated to \$${incomeOverride.toStringAsFixed(2)}'
-                  : 'Delivery income reset to territory default',
+                  ? context.l10n.kanbanDeliveryIncomeUpdated(
+                      formatCurrency(context, incomeOverride))
+                  : context.l10n.kanbanDeliveryIncomeReset,
             ),
           ),
         );
         // Refresh the Kanban board so the card re-targets the new invoice
         ref.read(kanbanProvider.notifier).loadInvoices();
       } else {
-        final error = result['error']?.toString() ?? 'Amendment failed';
+        final error = result['error']?.toString() ??
+            context.l10n.kanbanAmendmentFailed;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(error), backgroundColor: Colors.red),
         );
@@ -3302,7 +3304,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $e'),
+          content: Text(context.l10n.kanbanErrorWithMessage('$e')),
           backgroundColor: Colors.red,
         ),
       );
@@ -3465,8 +3467,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Address saved, but "$city" matches no territory — '
-                        'shipping cost was not updated. Fix the address territory.',
+                        context.l10n.kanbanAddressNoTerritory(city),
                       ),
                     ),
                   ],
@@ -3541,7 +3542,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             children: [
               const Icon(Icons.error, color: Colors.white),
               const SizedBox(width: 12),
-              Expanded(child: Text('Error: $errorMessage')),
+              Expanded(
+                  child: Text(
+                      context.l10n.kanbanErrorWithMessage(errorMessage))),
             ],
           ),
           backgroundColor: Colors.red[600],
@@ -4328,7 +4331,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             children: [
               const Icon(Icons.error, color: Colors.white),
               const SizedBox(width: 12),
-              Expanded(child: Text('Error: $errorMessage')),
+              Expanded(
+                  child: Text(
+                      context.l10n.kanbanErrorWithMessage(errorMessage))),
             ],
           ),
           backgroundColor: Colors.red[600],

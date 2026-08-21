@@ -1,6 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/journey/presentation/journey_format.dart';
+
+/// The date helpers read their wording from the ARB, so they need a
+/// BuildContext under a Localizations scope. This harness hands one to [body]
+/// and asserts the English copy — the Arabic side is covered by the ARB
+/// parity check, not by pinning translated sentences here.
+late BuildContext ctx;
+
+Future<void> withContext(
+  WidgetTester tester,
+  void Function() body,
+) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Builder(
+        builder: (context) {
+          ctx = context;
+          return const SizedBox.shrink();
+        },
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  body();
+}
 
 void main() {
   // Every relative assertion pins "now" explicitly. A test that asked the clock
@@ -32,53 +66,81 @@ void main() {
   });
 
   group('JourneyFormat.pretty', () {
-    test('formats a date for a human', () {
-      expect(JourneyFormat.pretty('2026-08-10'), '10 Aug 2026');
-      expect(JourneyFormat.pretty('2026-01-01'), '1 Jan 2026');
+    testWidgets('formats a date for a human', (tester) async {
+      await withContext(tester, () {
+        expect(JourneyFormat.pretty(ctx, '2026-08-10'), '10 Aug 2026');
+        expect(JourneyFormat.pretty(ctx, '2026-01-01'), '1 Jan 2026');
+      });
     });
 
-    test('falls back to the raw string rather than showing a blank', () {
-      expect(JourneyFormat.pretty('sometime'), 'sometime');
-      expect(JourneyFormat.pretty(null), '');
+    testWidgets('falls back to the raw string rather than showing a blank',
+        (tester) async {
+      await withContext(tester, () {
+        expect(JourneyFormat.pretty(ctx, 'sometime'), 'sometime');
+        expect(JourneyFormat.pretty(ctx, null), '');
+      });
     });
   });
 
   group('JourneyFormat.relativePast', () {
-    test('labels the recent past', () {
-      expect(JourneyFormat.relativePast('2026-08-12', now: now), 'Today');
-      expect(JourneyFormat.relativePast('2026-08-11', now: now), 'Yesterday');
-      expect(JourneyFormat.relativePast('2026-08-09', now: now), '3 days ago');
+    testWidgets('labels the recent past', (tester) async {
+      await withContext(tester, () {
+        expect(JourneyFormat.relativePast(ctx, '2026-08-12', now: now), 'Today');
+        expect(
+            JourneyFormat.relativePast(ctx, '2026-08-11', now: now), 'Yesterday');
+        expect(JourneyFormat.relativePast(ctx, '2026-08-09', now: now),
+            '3 days ago');
+      });
     });
 
-    test('collapses to weeks then months', () {
-      expect(JourneyFormat.relativePast('2026-08-05', now: now), '1 week ago');
-      expect(JourneyFormat.relativePast('2026-07-25', now: now), '2 weeks ago');
-      expect(JourneyFormat.relativePast('2026-06-01', now: now), '2 months ago');
+    testWidgets('collapses to weeks then months', (tester) async {
+      await withContext(tester, () {
+        expect(JourneyFormat.relativePast(ctx, '2026-08-05', now: now),
+            '1 week ago');
+        expect(JourneyFormat.relativePast(ctx, '2026-07-25', now: now),
+            '2 weeks ago');
+        expect(JourneyFormat.relativePast(ctx, '2026-06-01', now: now),
+            '2 months ago');
+      });
     });
 
-    test('a future date reads as a future date, not "-3 days ago"', () {
-      expect(JourneyFormat.relativePast('2026-08-16', now: now), 'In 4 days');
+    testWidgets('a future date reads as a future date, not "-3 days ago"',
+        (tester) async {
+      await withContext(tester, () {
+        expect(JourneyFormat.relativePast(ctx, '2026-08-16', now: now),
+            'In 4 days');
+      });
     });
 
-    test('an unusable date produces no label at all', () {
-      expect(JourneyFormat.relativePast(null, now: now), '');
-      expect(JourneyFormat.relativePast('nonsense', now: now), '');
+    testWidgets('an unusable date produces no label at all', (tester) async {
+      await withContext(tester, () {
+        expect(JourneyFormat.relativePast(ctx, null, now: now), '');
+        expect(JourneyFormat.relativePast(ctx, 'nonsense', now: now), '');
+      });
     });
   });
 
   group('JourneyFormat.relativeFuture', () {
-    test('labels what is coming up', () {
-      expect(JourneyFormat.relativeFuture('2026-08-12', now: now), 'Today');
-      expect(JourneyFormat.relativeFuture('2026-08-13', now: now), 'Tomorrow');
-      expect(JourneyFormat.relativeFuture('2026-08-16', now: now), 'In 4 days');
+    testWidgets('labels what is coming up', (tester) async {
+      await withContext(tester, () {
+        expect(
+            JourneyFormat.relativeFuture(ctx, '2026-08-12', now: now), 'Today');
+        expect(JourneyFormat.relativeFuture(ctx, '2026-08-13', now: now),
+            'Tomorrow');
+        expect(JourneyFormat.relativeFuture(ctx, '2026-08-16', now: now),
+            'In 4 days');
+      });
     });
 
-    test('labels what is late', () {
-      expect(
-        JourneyFormat.relativeFuture('2026-08-09', now: now),
-        'Overdue by 3 days',
-      );
-      expect(JourneyFormat.relativeFuture('2026-05-01', now: now), 'Overdue');
+    testWidgets('labels what is late', (tester) async {
+      await withContext(tester, () {
+        expect(
+          JourneyFormat.relativeFuture(ctx, '2026-08-09', now: now),
+          'Overdue by 3 days',
+        );
+        expect(JourneyFormat.relativeFuture(ctx, '2026-05-01', now: now),
+            'Overdue');
+      });
     });
   });
 

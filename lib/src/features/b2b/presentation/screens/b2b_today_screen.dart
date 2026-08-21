@@ -51,13 +51,13 @@ class B2bTodayScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _header(context, 'Follow-ups'),
+              _header(context, context.l10n.b2bFollowUpsHeader),
               if (followups.todos.isEmpty)
                 _EmptyRow(label: context.l10n.b2bNoFollowUpsToday)
               else
                 ...followups.todos.map((t) => _TodoTile(todo: t)),
               const SizedBox(height: 16),
-              _header(context, 'Reorder due'),
+              _header(context, context.l10n.b2bReorderDueHeader),
               if (followups.reorderDue.isEmpty)
                 _EmptyRow(label: context.l10n.b2bNoReordersDue)
               else

@@ -238,14 +238,15 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
       if (!mounted) return;
       ref.invalidate(unconfirmedOnlineOrdersProvider(widget.posProfile));
       messenger.showSnackBar(
-        const SnackBar(content: Text('Payment confirmed')),
+        SnackBar(content: Text(context.l10n.instapayPaymentConfirmed)),
       );
       navigator.pop(true);
     } catch (error) {
       if (!mounted) return;
       setState(() => _isConfirming = false);
+      final failedMessage = context.l10n.instapayConfirmFailed;
       final friendly =
-          extractFrappeErrorMessage(error, fallback: 'Failed to confirm payment');
+          extractFrappeErrorMessage(error, fallback: failedMessage);
       messenger.showSnackBar(SnackBar(content: Text(friendly)));
     }
   }
@@ -280,7 +281,7 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Confirm InstaPay received',
+                        l10n.instapayConfirmSheetTitle,
                         style: theme.textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
@@ -317,9 +318,9 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: _referenceController,
-                  decoration: const InputDecoration(
-                    labelText: 'Bank reference number',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.instapayBankReference,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -389,12 +390,12 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check, size: 18),
-                        SizedBox(width: 6),
-                        Text('Confirm received'),
+                        const Icon(Icons.check, size: 18),
+                        const SizedBox(width: 6),
+                        Text(context.l10n.instapayConfirmReceived),
                       ],
                     ),
                   ),

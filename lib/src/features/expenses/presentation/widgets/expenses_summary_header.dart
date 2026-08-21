@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../models/expense_models.dart';
 
 class ExpensesSummaryHeader extends StatelessWidget {
@@ -14,14 +15,14 @@ class ExpensesSummaryHeader extends StatelessWidget {
     final numberFormat = NumberFormat.currency(symbol: '', decimalDigits: 2);
     final cards = <_SummaryInfo>[
       _SummaryInfo(
-        title: 'Total',
+        title: context.l10n.expensesSummaryTotal,
         value: numberFormat.format(summary.totalAmount),
         icon: Icons.account_balance_wallet_outlined,
         color: Colors.blue.shade50,
         accent: Colors.blue,
       ),
       _SummaryInfo(
-        title: 'Approved',
+        title: context.l10n.expensesSummaryApproved,
         value: '${summary.approvedCount} receipts',
         icon: Icons.verified_outlined,
         color: Colors.green.shade50,
@@ -32,7 +33,7 @@ class ExpensesSummaryHeader extends StatelessWidget {
     if (isManager || summary.pendingCount > 0) {
       cards.add(
         _SummaryInfo(
-          title: 'Pending',
+          title: context.l10n.expensesSummaryPending,
           value: '${summary.pendingCount} | ${numberFormat.format(summary.pendingAmount)}',
           icon: Icons.hourglass_bottom,
           color: Colors.orange.shade50,

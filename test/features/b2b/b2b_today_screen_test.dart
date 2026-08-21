@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/b2b/data/b2b_repository.dart';
 import 'package:jarz_pos/src/features/b2b/data/models/b2b_models.dart';
 import 'package:jarz_pos/src/features/b2b/presentation/screens/b2b_today_screen.dart';
@@ -43,7 +45,17 @@ Widget _wrap({
       b2bRepositoryProvider.overrideWithValue(repo),
       b2bTodayProvider.overrideWith((ref) async => followups),
     ],
-    child: const MaterialApp(home: B2bTodayScreen()),
+    child: const MaterialApp(
+      locale: Locale('en'),
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: B2bTodayScreen(),
+    ),
   );
 }
 

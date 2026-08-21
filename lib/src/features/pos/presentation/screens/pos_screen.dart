@@ -510,7 +510,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
                             ignoring: _headerVisible,
                             child: FloatingActionButton.small(
                               heroTag: 'pos_header_reveal',
-                              tooltip: 'Show header',
+                              tooltip: context.l10n.posShowHeaderTooltip,
                               onPressed: () {
                                 _accumulatedDelta = 0;
                                 _showHeader();

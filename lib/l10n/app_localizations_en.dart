@@ -7626,4 +7626,355 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get journeyLoadFailed => 'Could not load the journey.';
+
+  @override
+  String get errorConsoleCopyError => 'Copy error';
+
+  @override
+  String get errorConsoleCopied => 'Error details copied';
+
+  @override
+  String get errorConsoleSummary => 'Summary';
+
+  @override
+  String get errorConsoleFatal => 'Fatal';
+
+  @override
+  String get errorConsoleYes => 'Yes';
+
+  @override
+  String get errorConsoleNo => 'No';
+
+  @override
+  String get errorConsoleOccurrences => 'Occurrences';
+
+  @override
+  String get errorConsoleDetails => 'Details';
+
+  @override
+  String get errorConsoleStackTrace => 'Stack trace';
+
+  @override
+  String get menuInstapayReconciliation => 'InstaPay Reconciliation';
+
+  @override
+  String get instapayTitle => 'InstaPay Reconciliation';
+
+  @override
+  String get instapayNoOrders => 'No orders awaiting InstaPay confirmation';
+
+  @override
+  String get instapayCourierRequired =>
+      'A courier is required for cash collection';
+
+  @override
+  String get instapayConvertedToCod => 'Converted to cash on delivery';
+
+  @override
+  String get instapayCollectedCashInstead => 'Collected cash instead';
+
+  @override
+  String get instapayConfirmReceived => 'Confirm received';
+
+  @override
+  String get instapayPaymentConfirmed => 'Payment confirmed';
+
+  @override
+  String get instapayBankReference => 'Bank reference number';
+
+  @override
+  String get kanbanMoveAction => 'Move';
+
+  @override
+  String get kanbanDeliveryPartnerField => 'Delivery Partner';
+
+  @override
+  String get kanbanSetDeliveryIncome => 'Set Delivery Income';
+
+  @override
+  String get kanbanDeliveryIncomeField => 'Delivery income';
+
+  @override
+  String get kanbanInvalidAmount => 'Enter a valid non-negative amount';
+
+  @override
+  String get kanbanUpdatingDeliveryIncome => 'Updating delivery income…';
+
+  @override
+  String kanbanErrorWithMessage(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get posShowHeaderTooltip => 'Show header';
+
+  @override
+  String get posCartDeliveryAmountField => 'Delivery amount';
+
+  @override
+  String get posCartResetToDefault => 'Reset to Default';
+
+  @override
+  String get posCartSetAction => 'Set';
+
+  @override
+  String get posCartPromoCode => 'Promo code';
+
+  @override
+  String get posCartPromoCodeHint => 'e.g. EGY2026';
+
+  @override
+  String get reportsColumnSegment => 'Segment';
+
+  @override
+  String get reportsColumnRecencyDays => 'Recency (d)';
+
+  @override
+  String get reportsColumnFrequency => 'Frequency';
+
+  @override
+  String get reportsColumnAov => 'AOV';
+
+  @override
+  String get tripsOneBranchOnly =>
+      'Select invoices from one branch only to create a trip.';
+
+  @override
+  String get webPushOnlyInWebApp =>
+      'Web push notifications are only available in the web app.';
+
+  @override
+  String get webPushEnabled =>
+      'Web push notifications are enabled for this device.';
+
+  @override
+  String get webPushDisabledForEnv =>
+      'Web push notifications are disabled for this environment.';
+
+  @override
+  String get webPushNotConfigured =>
+      'Web push notifications are not configured for this environment.';
+
+  @override
+  String get webPushUnsupportedPrompt =>
+      'This browser does not support notification permission prompts.';
+
+  @override
+  String get webPushPermissionRequired =>
+      'Tap Enable Notifications to allow web push on this device.';
+
+  @override
+  String get webPushPermissionDenied => 'Notification permission was denied.';
+
+  @override
+  String get webPushNoToken =>
+      'No web push token is available yet. Try again after reopening the app.';
+
+  @override
+  String get webPushTokenReady => 'Web push token is ready for registration.';
+
+  @override
+  String get webPushEnableFailed =>
+      'Failed to enable notifications. Reopen the Home Screen app and try again.';
+
+  @override
+  String get b2bCustomerLabelsTooltip => 'Customer labels';
+
+  @override
+  String get b2bFollowUpsHeader => 'Follow-ups';
+
+  @override
+  String get b2bReorderDueHeader => 'Reorder due';
+
+  @override
+  String get expensesEmptyManagerHint =>
+      'Create a new expense to capture operational spending.';
+
+  @override
+  String get expensesEmptyStaffHint =>
+      'Submit a new expense and your manager will review it.';
+
+  @override
+  String get expenseSourceCash => 'Cash';
+
+  @override
+  String get expenseSourceBank => 'Bank';
+
+  @override
+  String get expenseSourceMobileWallet => 'Mobile Wallet';
+
+  @override
+  String get expenseSourcePosProfile => 'POS Profile';
+
+  @override
+  String get expenseSourceAccount => 'Account';
+
+  @override
+  String get instapayConvertFailed => 'Failed to convert order to cash';
+
+  @override
+  String get instapayConfirmFailed => 'Failed to confirm payment';
+
+  @override
+  String get instapayConfirmSheetTitle => 'Confirm InstaPay received';
+
+  @override
+  String get instapayAwaitingBadge => 'Awaiting InstaPay';
+
+  @override
+  String get inventoryCountSubmitting => 'Submitting reconciliation';
+
+  @override
+  String get inventoryCountSubmitError => 'Submit reconciliation error';
+
+  @override
+  String get kanbanExitSelection => 'Exit Selection';
+
+  @override
+  String get kanbanSelectOrders => 'Select Orders';
+
+  @override
+  String get kanbanMoveOrderTitle => 'Move order';
+
+  @override
+  String get kanbanCreateFailedFallback => 'Create failed';
+
+  @override
+  String get kanbanDeliveryIncomeHelp =>
+      'Enter a custom delivery income for this order. Leave blank to revert to the territory default. This will create an amendment of the order.';
+
+  @override
+  String get kanbanCannotAmend => 'This order cannot be amended';
+
+  @override
+  String get kanbanDeliveryIncomeReset =>
+      'Delivery income reset to territory default';
+
+  @override
+  String get kanbanAmendmentFailed => 'Amendment failed';
+
+  @override
+  String get kanbanShippingNotUpdated =>
+      'shipping cost was not updated. Fix the address territory.';
+
+  @override
+  String get leadsNotSuitableBadge => 'Not suitable';
+
+  @override
+  String get bundleSelectionTitle => 'Bundle Selection';
+
+  @override
+  String get bundleUpdateAction => 'Update Bundle';
+
+  @override
+  String get bundleAddToCartAction => 'Add to Cart';
+
+  @override
+  String get bundleSelectFromGroups => 'Select items from each group below:';
+
+  @override
+  String get bundleCatalogDriftWarning =>
+      'Bundle options may have changed since this order was placed. Please review and confirm your selections.';
+
+  @override
+  String get bundleNoItemsInGroup => 'No items available in this group';
+
+  @override
+  String get bundleUnknownItem => 'Unknown Item';
+
+  @override
+  String get bundleUnknownBundle => 'Unknown Bundle';
+
+  @override
+  String get bundleNoItemGroups => 'No item groups found';
+
+  @override
+  String get bundleNoItemGroupsBody =>
+      'This bundle has no available item groups';
+
+  @override
+  String get posCartPromoDiscount => 'Promo discount';
+
+  @override
+  String get posCartFreeDelivery => 'Free delivery';
+
+  @override
+  String get posCartDeliveryAmountHelp =>
+      'Enter a custom delivery amount. Leave blank to restore the territory default.';
+
+  @override
+  String get posCartBundleLoadFailed =>
+      'Bundle contents could not be loaded. Edit this bundle and reselect items before submitting.';
+
+  @override
+  String get posCartPromoApplied => 'Applied';
+
+  @override
+  String get posCartPromoNotEligible => 'Not eligible';
+
+  @override
+  String get posSalesPartnerFallback => 'Sales Partner';
+
+  @override
+  String get reportsColumnBomCost => 'BOM Cost';
+
+  @override
+  String get reportsColumnTimesInBundle => 'Times in Bundle';
+
+  @override
+  String get settingsIosWebPushTitle => 'iPhone web push notifications';
+
+  @override
+  String get settingsIosWebPushBody =>
+      'Install this app to the iPhone Home Screen, then tap Enable Notifications to receive background alerts.';
+
+  @override
+  String get settingsEnablingNotifications => 'Enabling notifications...';
+
+  @override
+  String get settingsEnableNotifications => 'Enable Notifications';
+
+  @override
+  String get settingsNotificationAlerts => 'Notification Alerts';
+
+  @override
+  String get settingsAlarmsMutedAll =>
+      'All order notification alarms are currently muted';
+
+  @override
+  String get settingsAlarmsActive => 'Order notification alarms are active';
+
+  @override
+  String get settingsAlarmsEnabledDevice =>
+      'Notification alarms enabled on this device';
+
+  @override
+  String get settingsAlarmsMutedDevice =>
+      'Notification alarms muted on this device';
+
+  @override
+  String get settingsChooseAlarmSound => 'Choose the in-app staff alarm sound:';
+
+  @override
+  String get settingsAlarmSoundNote =>
+      'This sound is used for the in-app staff alarm. Closed-app order notifications use the app order tone.';
+
+  @override
+  String get settingsProfileLoadFailed => 'Failed to load user profile';
+
+  @override
+  String get shiftUnknownUser => 'Unknown user';
+
+  @override
+  String kanbanDeliveryIncomeUpdated(String amount) {
+    return 'Delivery income updated to $amount';
+  }
+
+  @override
+  String kanbanAddressNoTerritory(String city) {
+    return 'Address saved, but \"$city\" matches no territory — shipping cost was not updated. Fix the address territory.';
+  }
+
+  @override
+  String get reportsColumnComponent => 'Component';
 }

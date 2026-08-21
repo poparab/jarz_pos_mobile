@@ -186,14 +186,14 @@ class _NotSuitableBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: LeadsTheme.rejected.withValues(alpha: 0.35)),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.block, size: 12, color: LeadsTheme.rejected),
-          SizedBox(width: 3),
+          const Icon(Icons.block, size: 12, color: LeadsTheme.rejected),
+          const SizedBox(width: 3),
           Text(
-            'Not suitable',
-            style: TextStyle(
+            context.l10n.leadsNotSuitableBadge,
+            style: const TextStyle(
               fontFamily: LeadsTheme.bodyFont,
               fontSize: 11,
               fontWeight: FontWeight.w600,

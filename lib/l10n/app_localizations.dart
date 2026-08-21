@@ -12794,6 +12794,648 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load the journey.'**
   String get journeyLoadFailed;
+
+  /// No description provided for @errorConsoleCopyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy error'**
+  String get errorConsoleCopyError;
+
+  /// No description provided for @errorConsoleCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Error details copied'**
+  String get errorConsoleCopied;
+
+  /// No description provided for @errorConsoleSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get errorConsoleSummary;
+
+  /// No description provided for @errorConsoleFatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Fatal'**
+  String get errorConsoleFatal;
+
+  /// No description provided for @errorConsoleYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get errorConsoleYes;
+
+  /// No description provided for @errorConsoleNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get errorConsoleNo;
+
+  /// No description provided for @errorConsoleOccurrences.
+  ///
+  /// In en, this message translates to:
+  /// **'Occurrences'**
+  String get errorConsoleOccurrences;
+
+  /// No description provided for @errorConsoleDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get errorConsoleDetails;
+
+  /// No description provided for @errorConsoleStackTrace.
+  ///
+  /// In en, this message translates to:
+  /// **'Stack trace'**
+  String get errorConsoleStackTrace;
+
+  /// No description provided for @menuInstapayReconciliation.
+  ///
+  /// In en, this message translates to:
+  /// **'InstaPay Reconciliation'**
+  String get menuInstapayReconciliation;
+
+  /// No description provided for @instapayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'InstaPay Reconciliation'**
+  String get instapayTitle;
+
+  /// No description provided for @instapayNoOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders awaiting InstaPay confirmation'**
+  String get instapayNoOrders;
+
+  /// No description provided for @instapayCourierRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A courier is required for cash collection'**
+  String get instapayCourierRequired;
+
+  /// No description provided for @instapayConvertedToCod.
+  ///
+  /// In en, this message translates to:
+  /// **'Converted to cash on delivery'**
+  String get instapayConvertedToCod;
+
+  /// No description provided for @instapayCollectedCashInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Collected cash instead'**
+  String get instapayCollectedCashInstead;
+
+  /// No description provided for @instapayConfirmReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm received'**
+  String get instapayConfirmReceived;
+
+  /// No description provided for @instapayPaymentConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment confirmed'**
+  String get instapayPaymentConfirmed;
+
+  /// No description provided for @instapayBankReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank reference number'**
+  String get instapayBankReference;
+
+  /// No description provided for @kanbanMoveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get kanbanMoveAction;
+
+  /// No description provided for @kanbanDeliveryPartnerField.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Partner'**
+  String get kanbanDeliveryPartnerField;
+
+  /// No description provided for @kanbanSetDeliveryIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Delivery Income'**
+  String get kanbanSetDeliveryIncome;
+
+  /// No description provided for @kanbanDeliveryIncomeField.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery income'**
+  String get kanbanDeliveryIncomeField;
+
+  /// No description provided for @kanbanInvalidAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid non-negative amount'**
+  String get kanbanInvalidAmount;
+
+  /// No description provided for @kanbanUpdatingDeliveryIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating delivery income…'**
+  String get kanbanUpdatingDeliveryIncome;
+
+  /// No description provided for @kanbanErrorWithMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String kanbanErrorWithMessage(String error);
+
+  /// No description provided for @posShowHeaderTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Show header'**
+  String get posShowHeaderTooltip;
+
+  /// No description provided for @posCartDeliveryAmountField.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery amount'**
+  String get posCartDeliveryAmountField;
+
+  /// No description provided for @posCartResetToDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to Default'**
+  String get posCartResetToDefault;
+
+  /// No description provided for @posCartSetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get posCartSetAction;
+
+  /// No description provided for @posCartPromoCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo code'**
+  String get posCartPromoCode;
+
+  /// No description provided for @posCartPromoCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. EGY2026'**
+  String get posCartPromoCodeHint;
+
+  /// No description provided for @reportsColumnSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Segment'**
+  String get reportsColumnSegment;
+
+  /// No description provided for @reportsColumnRecencyDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Recency (d)'**
+  String get reportsColumnRecencyDays;
+
+  /// No description provided for @reportsColumnFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get reportsColumnFrequency;
+
+  /// No description provided for @reportsColumnAov.
+  ///
+  /// In en, this message translates to:
+  /// **'AOV'**
+  String get reportsColumnAov;
+
+  /// No description provided for @tripsOneBranchOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Select invoices from one branch only to create a trip.'**
+  String get tripsOneBranchOnly;
+
+  /// No description provided for @webPushOnlyInWebApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Web push notifications are only available in the web app.'**
+  String get webPushOnlyInWebApp;
+
+  /// No description provided for @webPushEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Web push notifications are enabled for this device.'**
+  String get webPushEnabled;
+
+  /// No description provided for @webPushDisabledForEnv.
+  ///
+  /// In en, this message translates to:
+  /// **'Web push notifications are disabled for this environment.'**
+  String get webPushDisabledForEnv;
+
+  /// No description provided for @webPushNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Web push notifications are not configured for this environment.'**
+  String get webPushNotConfigured;
+
+  /// No description provided for @webPushUnsupportedPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'This browser does not support notification permission prompts.'**
+  String get webPushUnsupportedPrompt;
+
+  /// No description provided for @webPushPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Enable Notifications to allow web push on this device.'**
+  String get webPushPermissionRequired;
+
+  /// No description provided for @webPushPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission was denied.'**
+  String get webPushPermissionDenied;
+
+  /// No description provided for @webPushNoToken.
+  ///
+  /// In en, this message translates to:
+  /// **'No web push token is available yet. Try again after reopening the app.'**
+  String get webPushNoToken;
+
+  /// No description provided for @webPushTokenReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Web push token is ready for registration.'**
+  String get webPushTokenReady;
+
+  /// No description provided for @webPushEnableFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to enable notifications. Reopen the Home Screen app and try again.'**
+  String get webPushEnableFailed;
+
+  /// No description provided for @b2bCustomerLabelsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer labels'**
+  String get b2bCustomerLabelsTooltip;
+
+  /// No description provided for @b2bFollowUpsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-ups'**
+  String get b2bFollowUpsHeader;
+
+  /// No description provided for @b2bReorderDueHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder due'**
+  String get b2bReorderDueHeader;
+
+  /// No description provided for @expensesEmptyManagerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new expense to capture operational spending.'**
+  String get expensesEmptyManagerHint;
+
+  /// No description provided for @expensesEmptyStaffHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit a new expense and your manager will review it.'**
+  String get expensesEmptyStaffHint;
+
+  /// No description provided for @expenseSourceCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get expenseSourceCash;
+
+  /// No description provided for @expenseSourceBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get expenseSourceBank;
+
+  /// No description provided for @expenseSourceMobileWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Wallet'**
+  String get expenseSourceMobileWallet;
+
+  /// No description provided for @expenseSourcePosProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'POS Profile'**
+  String get expenseSourcePosProfile;
+
+  /// No description provided for @expenseSourceAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get expenseSourceAccount;
+
+  /// No description provided for @instapayConvertFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to convert order to cash'**
+  String get instapayConvertFailed;
+
+  /// No description provided for @instapayConfirmFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to confirm payment'**
+  String get instapayConfirmFailed;
+
+  /// No description provided for @instapayConfirmSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm InstaPay received'**
+  String get instapayConfirmSheetTitle;
+
+  /// No description provided for @instapayAwaitingBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting InstaPay'**
+  String get instapayAwaitingBadge;
+
+  /// No description provided for @inventoryCountSubmitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitting reconciliation'**
+  String get inventoryCountSubmitting;
+
+  /// No description provided for @inventoryCountSubmitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit reconciliation error'**
+  String get inventoryCountSubmitError;
+
+  /// No description provided for @kanbanExitSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit Selection'**
+  String get kanbanExitSelection;
+
+  /// No description provided for @kanbanSelectOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Orders'**
+  String get kanbanSelectOrders;
+
+  /// No description provided for @kanbanMoveOrderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move order'**
+  String get kanbanMoveOrderTitle;
+
+  /// No description provided for @kanbanCreateFailedFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Create failed'**
+  String get kanbanCreateFailedFallback;
+
+  /// No description provided for @kanbanDeliveryIncomeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a custom delivery income for this order. Leave blank to revert to the territory default. This will create an amendment of the order.'**
+  String get kanbanDeliveryIncomeHelp;
+
+  /// No description provided for @kanbanCannotAmend.
+  ///
+  /// In en, this message translates to:
+  /// **'This order cannot be amended'**
+  String get kanbanCannotAmend;
+
+  /// No description provided for @kanbanDeliveryIncomeReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery income reset to territory default'**
+  String get kanbanDeliveryIncomeReset;
+
+  /// No description provided for @kanbanAmendmentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Amendment failed'**
+  String get kanbanAmendmentFailed;
+
+  /// No description provided for @kanbanShippingNotUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'shipping cost was not updated. Fix the address territory.'**
+  String get kanbanShippingNotUpdated;
+
+  /// No description provided for @leadsNotSuitableBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Not suitable'**
+  String get leadsNotSuitableBadge;
+
+  /// No description provided for @bundleSelectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundle Selection'**
+  String get bundleSelectionTitle;
+
+  /// No description provided for @bundleUpdateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Bundle'**
+  String get bundleUpdateAction;
+
+  /// No description provided for @bundleAddToCartAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Cart'**
+  String get bundleAddToCartAction;
+
+  /// No description provided for @bundleSelectFromGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Select items from each group below:'**
+  String get bundleSelectFromGroups;
+
+  /// No description provided for @bundleCatalogDriftWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundle options may have changed since this order was placed. Please review and confirm your selections.'**
+  String get bundleCatalogDriftWarning;
+
+  /// No description provided for @bundleNoItemsInGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'No items available in this group'**
+  String get bundleNoItemsInGroup;
+
+  /// No description provided for @bundleUnknownItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Item'**
+  String get bundleUnknownItem;
+
+  /// No description provided for @bundleUnknownBundle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Bundle'**
+  String get bundleUnknownBundle;
+
+  /// No description provided for @bundleNoItemGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'No item groups found'**
+  String get bundleNoItemGroups;
+
+  /// No description provided for @bundleNoItemGroupsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This bundle has no available item groups'**
+  String get bundleNoItemGroupsBody;
+
+  /// No description provided for @posCartPromoDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo discount'**
+  String get posCartPromoDiscount;
+
+  /// No description provided for @posCartFreeDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Free delivery'**
+  String get posCartFreeDelivery;
+
+  /// No description provided for @posCartDeliveryAmountHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a custom delivery amount. Leave blank to restore the territory default.'**
+  String get posCartDeliveryAmountHelp;
+
+  /// No description provided for @posCartBundleLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundle contents could not be loaded. Edit this bundle and reselect items before submitting.'**
+  String get posCartBundleLoadFailed;
+
+  /// No description provided for @posCartPromoApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied'**
+  String get posCartPromoApplied;
+
+  /// No description provided for @posCartPromoNotEligible.
+  ///
+  /// In en, this message translates to:
+  /// **'Not eligible'**
+  String get posCartPromoNotEligible;
+
+  /// No description provided for @posSalesPartnerFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales Partner'**
+  String get posSalesPartnerFallback;
+
+  /// No description provided for @reportsColumnBomCost.
+  ///
+  /// In en, this message translates to:
+  /// **'BOM Cost'**
+  String get reportsColumnBomCost;
+
+  /// No description provided for @reportsColumnTimesInBundle.
+  ///
+  /// In en, this message translates to:
+  /// **'Times in Bundle'**
+  String get reportsColumnTimesInBundle;
+
+  /// No description provided for @settingsIosWebPushTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'iPhone web push notifications'**
+  String get settingsIosWebPushTitle;
+
+  /// No description provided for @settingsIosWebPushBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Install this app to the iPhone Home Screen, then tap Enable Notifications to receive background alerts.'**
+  String get settingsIosWebPushBody;
+
+  /// No description provided for @settingsEnablingNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabling notifications...'**
+  String get settingsEnablingNotifications;
+
+  /// No description provided for @settingsEnableNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Notifications'**
+  String get settingsEnableNotifications;
+
+  /// No description provided for @settingsNotificationAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Alerts'**
+  String get settingsNotificationAlerts;
+
+  /// No description provided for @settingsAlarmsMutedAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All order notification alarms are currently muted'**
+  String get settingsAlarmsMutedAll;
+
+  /// No description provided for @settingsAlarmsActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Order notification alarms are active'**
+  String get settingsAlarmsActive;
+
+  /// No description provided for @settingsAlarmsEnabledDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification alarms enabled on this device'**
+  String get settingsAlarmsEnabledDevice;
+
+  /// No description provided for @settingsAlarmsMutedDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification alarms muted on this device'**
+  String get settingsAlarmsMutedDevice;
+
+  /// No description provided for @settingsChooseAlarmSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the in-app staff alarm sound:'**
+  String get settingsChooseAlarmSound;
+
+  /// No description provided for @settingsAlarmSoundNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This sound is used for the in-app staff alarm. Closed-app order notifications use the app order tone.'**
+  String get settingsAlarmSoundNote;
+
+  /// No description provided for @settingsProfileLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load user profile'**
+  String get settingsProfileLoadFailed;
+
+  /// No description provided for @shiftUnknownUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown user'**
+  String get shiftUnknownUser;
+
+  /// No description provided for @kanbanDeliveryIncomeUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery income updated to {amount}'**
+  String kanbanDeliveryIncomeUpdated(String amount);
+
+  /// No description provided for @kanbanAddressNoTerritory.
+  ///
+  /// In en, this message translates to:
+  /// **'Address saved, but \"{city}\" matches no territory — shipping cost was not updated. Fix the address territory.'**
+  String kanbanAddressNoTerritory(String city);
+
+  /// No description provided for @reportsColumnComponent.
+  ///
+  /// In en, this message translates to:
+  /// **'Component'**
+  String get reportsColumnComponent;
 }
 
 class _AppLocalizationsDelegate

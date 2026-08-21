@@ -231,8 +231,8 @@ class _EmptyState extends StatelessWidget {
           ),
           Text(
             isManager
-                ? 'Create a new expense to capture operational spending.'
-                : 'Submit a new expense and your manager will review it.',
+                ? l10n.expensesEmptyManagerHint
+                : l10n.expensesEmptyStaffHint,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
             textAlign: TextAlign.center,
           ),

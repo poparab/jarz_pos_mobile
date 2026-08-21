@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../features/pos/order_alert/web_push_registration_result.dart';
 import 'localization_extensions.dart';
 
 String localizedStatusLabel(BuildContext context, String? rawStatus) {
@@ -186,5 +187,39 @@ String localizedJourneyOutcome(BuildContext context, String? rawOutcome) {
       return context.l10n.journeyOutcomeRejected;
     default:
       return (rawOutcome ?? '').trim();
+  }
+}
+
+/// The user-facing sentence for a web-push registration attempt.
+///
+/// The service layer runs without a BuildContext (conditional web imports,
+/// static helpers), so its `message` stays English for the logs and the
+/// status enum is what the screen translates. Only `failed` falls back to the
+/// raw message, because that one carries a sanitized error detail worth
+/// showing verbatim.
+String localizedWebPushMessage(
+  BuildContext context,
+  WebPushRegistrationStatus status,
+  String fallback,
+) {
+  switch (status) {
+    case WebPushRegistrationStatus.disabled:
+      return context.l10n.webPushDisabledForEnv;
+    case WebPushRegistrationStatus.unsupported:
+      return context.l10n.webPushUnsupportedPrompt;
+    case WebPushRegistrationStatus.missingConfig:
+      return context.l10n.webPushNotConfigured;
+    case WebPushRegistrationStatus.permissionRequired:
+      return context.l10n.webPushPermissionRequired;
+    case WebPushRegistrationStatus.permissionDenied:
+      return context.l10n.webPushPermissionDenied;
+    case WebPushRegistrationStatus.noToken:
+      return context.l10n.webPushNoToken;
+    case WebPushRegistrationStatus.tokenReady:
+      return context.l10n.webPushTokenReady;
+    case WebPushRegistrationStatus.registered:
+      return context.l10n.webPushEnabled;
+    case WebPushRegistrationStatus.failed:
+      return fallback;
   }
 }

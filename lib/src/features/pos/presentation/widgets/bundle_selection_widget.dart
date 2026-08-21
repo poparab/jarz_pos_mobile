@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../state/pos_notifier.dart';
 
@@ -160,7 +161,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.bundle['name'] ?? 'Bundle Selection',
+          widget.bundle['name'] ?? context.l10n.bundleSelectionTitle,
           style: isPhone ? const TextStyle(fontSize: 16) : null,
         ),
         toolbarHeight: isPhone ? 48 : null,
@@ -174,7 +175,9 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
           TextButton(
             onPressed: _canAddToCart() ? _addBundleToCart : null,
             child: Text(
-              widget.isEditing ? 'Update Bundle' : 'Add to Cart',
+              widget.isEditing
+                  ? context.l10n.bundleUpdateAction
+                  : context.l10n.bundleAddToCartAction,
               style: TextStyle(
                 color: _canAddToCart()
                     ? Theme.of(context).colorScheme.onPrimary
@@ -274,7 +277,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Select items from each group below:',
+                        context.l10n.bundleSelectFromGroups,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(
                             context,
@@ -298,8 +301,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Bundle options may have changed since this order was placed. '
-                      'Please review and confirm your selections.',
+                      context.l10n.bundleCatalogDriftWarning,
                       style: TextStyle(
                         color: Colors.amber.shade900,
                         fontSize: 13,
@@ -441,7 +443,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
               Container(
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  'No items available in this group',
+                  context.l10n.bundleNoItemsInGroup,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -465,7 +467,7 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     final canAddMore = _canAddMoreItems(groupKey, requiredQuantity, item);
     final canRemove = selectedCount > 0;
     final isPhone = ResponsiveUtils.isPhone(context);
-    final itemName = _displayItemName(item);
+    final itemName = _displayItemName(context, item);
     final itemPrice = _asDouble(item['price']);
     final allowNegativeStock = _asBool(item['allow_negative_stock']);
 
@@ -710,12 +712,12 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
     );
   }
 
-  String _displayItemName(Map<String, dynamic> item) {
+  String _displayItemName(BuildContext context, Map<String, dynamic> item) {
     final value = item['name'];
     if (value is String && value.trim().isNotEmpty) {
       return value.trim();
     }
-    return 'Unknown Item';
+    return context.l10n.bundleUnknownItem;
   }
 
   double _asDouble(dynamic value) {
@@ -809,12 +811,12 @@ class _BundleSelectionWidgetState extends ConsumerState<BundleSelectionWidget> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No item groups found',
+            context.l10n.bundleNoItemGroups,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'This bundle has no available item groups',
+            context.l10n.bundleNoItemGroupsBody,
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),

@@ -398,7 +398,7 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  bundle['name'] ?? 'Unknown Bundle',
+                  bundle['name'] ?? context.l10n.bundleUnknownBundle,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: !canAddToCart
                         ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)
@@ -526,7 +526,9 @@ class _ItemGridWidgetState extends ConsumerState<ItemGridWidget> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    item['item_name'] ?? item['name'] ?? 'Unknown Item',
+                    item['item_name'] ??
+                        item['name'] ??
+                        context.l10n.bundleUnknownItem,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: !canAddToCart
                           ? Theme.of(

@@ -277,7 +277,7 @@ class AppDrawer extends ConsumerWidget {
       if (hasManagerAccess)
         navTile(
           icon: Icons.account_balance_outlined,
-          title: 'InstaPay Reconciliation',
+          title: context.l10n.menuInstapayReconciliation,
           onTap: () => navigate(AppRoutes.instapayReconciliation),
         ),
     ];
@@ -478,7 +478,7 @@ class _LabelsNavTile extends ConsumerWidget {
 
     return ListTile(
       leading: const Icon(Icons.label_important_outline),
-      title: const Text('Customer Labels'),
+      title: Text(context.l10n.labelsTitle),
       trailing: count == 0
           ? null
           : Container(

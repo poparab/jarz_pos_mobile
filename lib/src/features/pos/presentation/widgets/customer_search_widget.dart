@@ -1176,7 +1176,7 @@ class _QuickAddCustomerWidgetState
       String addressValue = _addressController.text.trim();
       if (hasPartner && addressValue.isEmpty) {
         final Map<String, dynamic> sp = selectedSalesPartner;
-        String partnerLabel = 'Sales Partner';
+        String partnerLabel = context.l10n.posSalesPartnerFallback;
         for (final key in const ['title', 'partner_name', 'name']) {
           final val = sp[key];
           if (val != null && val.toString().trim().isNotEmpty) {

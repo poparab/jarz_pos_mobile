@@ -208,7 +208,8 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
       remarks: _remarksController.text.trim().isEmpty ? null : _remarksController.text.trim(),
       posProfile: widget.isManager ? source.posProfile : source.posProfile ?? source.label,
       payingAccount: widget.isManager ? source.account : null,
-      paymentSourceType: widget.isManager ? _typeLabel(source) : null,
+      paymentSourceType:
+          widget.isManager ? _typeLabel(context, source) : null,
       paymentLabel: source.label,
     );
     if (!mounted) return;
@@ -225,18 +226,19 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
     return '';
   }
 
-  String _typeLabel(ExpensePaymentSource source) {
+  String _typeLabel(BuildContext context, ExpensePaymentSource source) {
+    final l10n = context.l10n;
     switch (source.category) {
       case 'cash':
-        return 'Cash';
+        return l10n.expenseSourceCash;
       case 'bank':
-        return 'Bank';
+        return l10n.expenseSourceBank;
       case 'mobile':
-        return 'Mobile Wallet';
+        return l10n.expenseSourceMobileWallet;
       case 'pos_profile':
-        return 'POS Profile';
+        return l10n.expenseSourcePosProfile;
       default:
-        return 'Account';
+        return l10n.expenseSourceAccount;
     }
   }
 }

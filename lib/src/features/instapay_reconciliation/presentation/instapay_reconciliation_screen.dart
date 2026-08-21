@@ -40,7 +40,7 @@ class InstapayReconciliationScreen extends ConsumerWidget {
             }
           },
         ),
-        title: const Text('InstaPay Reconciliation'),
+        title: Text(context.l10n.instapayTitle),
         actions: [
           Builder(
             builder: (context) => IconButton(
@@ -109,8 +109,8 @@ class _DataView extends ConsumerWidget {
               children: [
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.6,
-                  child: const Center(
-                    child: Text('No orders awaiting InstaPay confirmation'),
+                  child: Center(
+                    child: Text(context.l10n.instapayNoOrders),
                   ),
                 ),
               ],
@@ -154,7 +154,8 @@ class _OrderCard extends ConsumerWidget {
 
   Future<void> _collectedCash(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
-    final selectPosMessage = context.l10n.invoiceSelectPosFirst;
+    final l10n = context.l10n;
+    final selectPosMessage = l10n.invoiceSelectPosFirst;
 
     String? partyType = order.courierPartyType;
     String? party = order.courierParty;
@@ -169,7 +170,7 @@ class _OrderCard extends ConsumerWidget {
 
     if ((party ?? '').trim().isEmpty || (partyType ?? '').trim().isEmpty) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('A courier is required for cash collection')),
+        SnackBar(content: Text(l10n.instapayCourierRequired)),
       );
       return;
     }
@@ -188,12 +189,12 @@ class _OrderCard extends ConsumerWidget {
           );
       ref.invalidate(unconfirmedOnlineOrdersProvider(posProfile));
       messenger.showSnackBar(
-        const SnackBar(content: Text('Converted to cash on delivery')),
+        SnackBar(content: Text(l10n.instapayConvertedToCod)),
       );
     } catch (error) {
       final friendly = extractFrappeErrorMessage(
         error,
-        fallback: 'Failed to convert order to cash',
+        fallback: l10n.instapayConvertFailed,
       );
       messenger.showSnackBar(SnackBar(content: Text(friendly)));
     }
@@ -340,14 +341,14 @@ class _OrderCard extends ConsumerWidget {
                 OutlinedButton.icon(
                   onPressed: () => _collectedCash(context, ref),
                   icon: const Icon(Icons.payments_outlined, size: 18),
-                  label: const Text('Collected cash instead'),
+                  label: Text(context.l10n.instapayCollectedCashInstead),
                 ),
                 ElevatedButton.icon(
                   onPressed: order.canConfirm
                       ? () => _confirm(context, ref)
                       : null,
                   icon: const Icon(Icons.check, size: 18),
-                  label: const Text('Confirm received'),
+                  label: Text(context.l10n.instapayConfirmReceived),
                 ),
               ],
             ),

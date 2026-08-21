@@ -362,8 +362,7 @@ class _TopProductsCard extends StatelessWidget {
               l10n.reportKpiTotalRevenue,
               l10n.reportKpiGrossProfit,
               l10n.reportKpiGrossMargin,
-              // BOM cost — plain header (no dedicated key).
-              'BOM Cost',
+              l10n.reportsColumnBomCost,
             ],
             rows: [
               for (final e in top)
@@ -678,7 +677,11 @@ class _BundleCompositionCard extends StatelessWidget {
 
     return _TableCard(
       title: l10n.reportBundleComposition,
-      headers: const ['Component', 'Times in Bundle', 'Revenue'],
+      headers: [
+        l10n.reportsColumnComponent,
+        l10n.reportsColumnTimesInBundle,
+        l10n.reportKpiRevenue,
+      ],
       rows: data,
     );
   }

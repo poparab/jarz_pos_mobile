@@ -5,7 +5,10 @@
 // plugin. Nothing here touches the network, a plugin, or a paid routing API.
 library;
 
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/leads/data/models/lead.dart';
 import 'package:jarz_pos/src/features/leads/domain/lead_clustering.dart';
 import 'package:latlong2/latlong.dart';
@@ -159,22 +162,31 @@ void main() {
       expect(metresToLead(_tahrir, _lead('A', lat: 0, lng: 0)), isNull);
     });
 
-    test('formats sub-kilometre in metres', () {
-      expect(formatDistance(0), '0 m');
-      expect(formatDistance(820), '820 m');
-      expect(formatDistance(999), '999 m');
+    // The unit suffix comes from the ARB, so these need a Localizations scope.
+    // Pinned to English; the Arabic wording is covered by ARB parity, not here.
+    testWidgets('formats sub-kilometre in metres', (tester) async {
+      await _withContext(tester, (ctx) {
+        expect(formatDistance(ctx, 0), '0 m');
+        expect(formatDistance(ctx, 820), '820 m');
+        expect(formatDistance(ctx, 999), '999 m');
+      });
     });
 
-    test('formats a decimal km up to 10, then rounds', () {
-      expect(formatDistance(1000), '1.0 km');
-      expect(formatDistance(3450), '3.5 km'); // toStringAsFixed rounds half up
-      expect(formatDistance(12400), '12 km');
+    testWidgets('formats a decimal km up to 10, then rounds', (tester) async {
+      await _withContext(tester, (ctx) {
+        expect(formatDistance(ctx, 1000), '1.0 km');
+        // toStringAsFixed rounds half up
+        expect(formatDistance(ctx, 3450), '3.5 km');
+        expect(formatDistance(ctx, 12400), '12 km');
+      });
     });
 
-    test('never renders a garbage number', () {
-      expect(formatDistance(double.nan), '');
-      expect(formatDistance(double.infinity), '');
-      expect(formatDistance(-5), '');
+    testWidgets('never renders a garbage number', (tester) async {
+      await _withContext(tester, (ctx) {
+        expect(formatDistance(ctx, double.nan), '');
+        expect(formatDistance(ctx, double.infinity), '');
+        expect(formatDistance(ctx, -5), '');
+      });
     });
   });
 
@@ -209,4 +221,33 @@ void main() {
       expect(leads.map((l) => l.name), original.map((l) => l.name));
     });
   });
+}
+
+/// Hands [body] a BuildContext under a Localizations scope, for the helpers
+/// that read their unit suffixes from the ARB.
+Future<void> _withContext(
+  WidgetTester tester,
+  void Function(BuildContext context) body,
+) async {
+  late BuildContext captured;
+  await tester.pumpWidget(
+    MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Builder(
+        builder: (context) {
+          captured = context;
+          return const SizedBox.shrink();
+        },
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  body(captured);
 }

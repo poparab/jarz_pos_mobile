@@ -750,7 +750,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                       : null,
                                     headerAction: isReady
                                         ? IconButton(
-                                            tooltip: tripState.multiSelectActive ? 'Exit Selection' : 'Select Orders',
+                                            tooltip: tripState.multiSelectActive
+                                                ? context.l10n.kanbanExitSelection
+                                                : context.l10n.kanbanSelectOrders,
                                             icon: Icon(
                                               tripState.multiSelectActive ? Icons.close : Icons.checklist,
                                               size: 18,
@@ -1053,7 +1055,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             child: OutlinedButton.icon(
               onPressed: () => _showMobileMoveSheet(invoice, columnId),
               icon: const Icon(Icons.drive_file_move, size: 16),
-              label: const Text('Move'),
+              label: Text(context.l10n.kanbanMoveAction),
               style: OutlinedButton.styleFrom(
                 visualDensity: VisualDensity.compact,
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1608,7 +1610,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                     children: [
                       Expanded(
                         child: Text(
-                          'Move order',
+                          context.l10n.kanbanMoveOrderTitle,
                           style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -2043,7 +2045,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                 else
                                   DropdownButtonFormField<String>(
                                     initialValue: selectedDeliveryPartner,
-                                    decoration: const InputDecoration(labelText: 'Delivery Partner'),
+                                    decoration: InputDecoration(
+                                        labelText: context
+                                            .l10n.kanbanDeliveryPartnerField),
                                     items: deliveryPartners.map((dp) => DropdownMenuItem(
                                       value: dp['name'],
                                       child: Text(dp['partner_name'] ?? dp['name'] ?? ''),
@@ -2087,7 +2091,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                             if (mounted) {
                                               final errorMessage = extractFrappeErrorMessage(
                                                 e,
-                                                fallback: 'Create failed',
+                                                fallback: context.l10n.kanbanCreateFailedFallback,
                                               );
                                               ScaffoldMessenger.of(context).showSnackBar(
                                                 SnackBar(content: Text(context.l10n.kanbanCreateFailed(errorMessage))),

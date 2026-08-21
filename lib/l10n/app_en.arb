@@ -1963,20 +1963,10 @@
   },
   "managerCustomShippingApproved": "Custom shipping approved",
   "managerApproveFailed": "Approve failed: {error}",
-  "@managerApproveFailed": {
-    "placeholders": {
-      "error": {}
-    }
-  },
   "managerRejectCustomShippingTitle": "Reject Custom Shipping",
   "managerReject": "Reject",
   "managerCustomShippingRejected": "Custom shipping rejected",
   "managerRejectFailed": "Reject failed: {error}",
-  "@managerRejectFailed": {
-    "placeholders": {
-      "error": {}
-    }
-  },
   "managerRejectReasonHint": "Optional rejection reason",
   "managerPendingCustomShippingLoadFailed": "Failed to load pending custom shipping requests",
   "managerTransferBranchesLoadFailed": "Failed to load transfer branches",
@@ -4523,5 +4513,143 @@
   },
   "journeyEmptyTitle": "No visits logged yet.",
   "journeyEmptyBody": "Log what was said, who said it, and when to follow up — a dated next action also sets this account''s reminder.",
-  "journeyLoadFailed": "Could not load the journey."
+  "journeyLoadFailed": "Could not load the journey.",
+  "errorConsoleCopyError": "Copy error",
+  "errorConsoleCopied": "Error details copied",
+  "errorConsoleSummary": "Summary",
+  "errorConsoleFatal": "Fatal",
+  "errorConsoleYes": "Yes",
+  "errorConsoleNo": "No",
+  "errorConsoleOccurrences": "Occurrences",
+  "errorConsoleDetails": "Details",
+  "errorConsoleStackTrace": "Stack trace",
+  "menuInstapayReconciliation": "InstaPay Reconciliation",
+  "instapayTitle": "InstaPay Reconciliation",
+  "instapayNoOrders": "No orders awaiting InstaPay confirmation",
+  "instapayCourierRequired": "A courier is required for cash collection",
+  "instapayConvertedToCod": "Converted to cash on delivery",
+  "instapayCollectedCashInstead": "Collected cash instead",
+  "instapayConfirmReceived": "Confirm received",
+  "instapayPaymentConfirmed": "Payment confirmed",
+  "instapayBankReference": "Bank reference number",
+  "kanbanMoveAction": "Move",
+  "kanbanDeliveryPartnerField": "Delivery Partner",
+  "kanbanSetDeliveryIncome": "Set Delivery Income",
+  "kanbanDeliveryIncomeField": "Delivery income",
+  "kanbanInvalidAmount": "Enter a valid non-negative amount",
+  "kanbanUpdatingDeliveryIncome": "Updating delivery income…",
+  "kanbanErrorWithMessage": "Error: {error}",
+  "@kanbanErrorWithMessage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "posShowHeaderTooltip": "Show header",
+  "posCartDeliveryAmountField": "Delivery amount",
+  "posCartResetToDefault": "Reset to Default",
+  "posCartSetAction": "Set",
+  "posCartPromoCode": "Promo code",
+  "posCartPromoCodeHint": "e.g. EGY2026",
+  "reportsColumnSegment": "Segment",
+  "reportsColumnRecencyDays": "Recency (d)",
+  "reportsColumnFrequency": "Frequency",
+  "reportsColumnAov": "AOV",
+  "tripsOneBranchOnly": "Select invoices from one branch only to create a trip.",
+  "webPushOnlyInWebApp": "Web push notifications are only available in the web app.",
+  "webPushEnabled": "Web push notifications are enabled for this device.",
+  "webPushDisabledForEnv": "Web push notifications are disabled for this environment.",
+  "webPushNotConfigured": "Web push notifications are not configured for this environment.",
+  "webPushUnsupportedPrompt": "This browser does not support notification permission prompts.",
+  "webPushPermissionRequired": "Tap Enable Notifications to allow web push on this device.",
+  "webPushPermissionDenied": "Notification permission was denied.",
+  "webPushNoToken": "No web push token is available yet. Try again after reopening the app.",
+  "webPushTokenReady": "Web push token is ready for registration.",
+  "webPushEnableFailed": "Failed to enable notifications. Reopen the Home Screen app and try again.",
+  "b2bCustomerLabelsTooltip": "Customer labels",
+  "b2bFollowUpsHeader": "Follow-ups",
+  "b2bReorderDueHeader": "Reorder due",
+  "expensesEmptyManagerHint": "Create a new expense to capture operational spending.",
+  "expensesEmptyStaffHint": "Submit a new expense and your manager will review it.",
+  "expenseSourceCash": "Cash",
+  "expenseSourceBank": "Bank",
+  "expenseSourceMobileWallet": "Mobile Wallet",
+  "expenseSourcePosProfile": "POS Profile",
+  "expenseSourceAccount": "Account",
+  "instapayConvertFailed": "Failed to convert order to cash",
+  "instapayConfirmFailed": "Failed to confirm payment",
+  "instapayConfirmSheetTitle": "Confirm InstaPay received",
+  "instapayAwaitingBadge": "Awaiting InstaPay",
+  "inventoryCountSubmitting": "Submitting reconciliation",
+  "inventoryCountSubmitError": "Submit reconciliation error",
+  "kanbanExitSelection": "Exit Selection",
+  "kanbanSelectOrders": "Select Orders",
+  "kanbanMoveOrderTitle": "Move order",
+  "kanbanCreateFailedFallback": "Create failed",
+  "kanbanDeliveryIncomeHelp": "Enter a custom delivery income for this order. Leave blank to revert to the territory default. This will create an amendment of the order.",
+  "kanbanCannotAmend": "This order cannot be amended",
+  "kanbanDeliveryIncomeReset": "Delivery income reset to territory default",
+  "kanbanAmendmentFailed": "Amendment failed",
+  "kanbanShippingNotUpdated": "shipping cost was not updated. Fix the address territory.",
+  "leadsNotSuitableBadge": "Not suitable",
+  "bundleSelectionTitle": "Bundle Selection",
+  "bundleUpdateAction": "Update Bundle",
+  "bundleAddToCartAction": "Add to Cart",
+  "bundleSelectFromGroups": "Select items from each group below:",
+  "bundleCatalogDriftWarning": "Bundle options may have changed since this order was placed. Please review and confirm your selections.",
+  "bundleNoItemsInGroup": "No items available in this group",
+  "bundleUnknownItem": "Unknown Item",
+  "bundleUnknownBundle": "Unknown Bundle",
+  "bundleNoItemGroups": "No item groups found",
+  "bundleNoItemGroupsBody": "This bundle has no available item groups",
+  "posCartPromoDiscount": "Promo discount",
+  "posCartFreeDelivery": "Free delivery",
+  "posCartDeliveryAmountHelp": "Enter a custom delivery amount. Leave blank to restore the territory default.",
+  "posCartBundleLoadFailed": "Bundle contents could not be loaded. Edit this bundle and reselect items before submitting.",
+  "posCartPromoApplied": "Applied",
+  "posCartPromoNotEligible": "Not eligible",
+  "posSalesPartnerFallback": "Sales Partner",
+  "reportsColumnBomCost": "BOM Cost",
+  "reportsColumnTimesInBundle": "Times in Bundle",
+  "settingsIosWebPushTitle": "iPhone web push notifications",
+  "settingsIosWebPushBody": "Install this app to the iPhone Home Screen, then tap Enable Notifications to receive background alerts.",
+  "settingsEnablingNotifications": "Enabling notifications...",
+  "settingsEnableNotifications": "Enable Notifications",
+  "settingsNotificationAlerts": "Notification Alerts",
+  "settingsAlarmsMutedAll": "All order notification alarms are currently muted",
+  "settingsAlarmsActive": "Order notification alarms are active",
+  "settingsAlarmsEnabledDevice": "Notification alarms enabled on this device",
+  "settingsAlarmsMutedDevice": "Notification alarms muted on this device",
+  "settingsChooseAlarmSound": "Choose the in-app staff alarm sound:",
+  "settingsAlarmSoundNote": "This sound is used for the in-app staff alarm. Closed-app order notifications use the app order tone.",
+  "settingsProfileLoadFailed": "Failed to load user profile",
+  "shiftUnknownUser": "Unknown user",
+  "kanbanDeliveryIncomeUpdated": "Delivery income updated to {amount}",
+  "@kanbanDeliveryIncomeUpdated": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "kanbanAddressNoTerritory": "Address saved, but \"{city}\" matches no territory — shipping cost was not updated. Fix the address territory.",
+  "@kanbanAddressNoTerritory": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsColumnComponent": "Component",
+  "@managerApproveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@managerRejectFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  }
 }

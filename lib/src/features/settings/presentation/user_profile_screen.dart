@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/constants/business_constants.dart';
 import '../data/alarm_sound_service.dart';
@@ -183,7 +184,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'iPhone web push notifications',
+                                context.l10n.settingsIosWebPushTitle,
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                             ),
@@ -191,7 +192,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Install this app to the iPhone Home Screen, then tap Enable Notifications to receive background alerts.',
+                          context.l10n.settingsIosWebPushBody,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: Colors.grey[600],
                               ),
@@ -209,8 +210,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                 : const Icon(Icons.notifications_active_outlined),
                             label: Text(
                               _isEnablingWebPush
-                                  ? 'Enabling notifications...'
-                                  : 'Enable Notifications',
+                                  ? context.l10n.settingsEnablingNotifications
+                                  : context.l10n.settingsEnableNotifications,
                             ),
                             onPressed: _isEnablingWebPush
                                 ? null
@@ -252,7 +253,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                'Notification Alerts',
+                                context.l10n.settingsNotificationAlerts,
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                             ],
@@ -261,8 +262,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                             padding: const EdgeInsetsDirectional.only(top: 8.0, start: 36.0),
                             child: Text(
                               isMuted 
-                                ? 'All order notification alarms are currently muted'
-                                : 'Order notification alarms are active',
+                                ? context.l10n.settingsAlarmsMutedAll
+                                : context.l10n.settingsAlarmsActive,
                               style: TextStyle(
                                 color: isMuted ? Colors.orange[700] : Colors.grey[600],
                                 fontSize: 13,
@@ -280,8 +281,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                 SnackBar(
                                   content: Text(
                                     value 
-                                      ? 'Notification alarms enabled on this device' 
-                                      : 'Notification alarms muted on this device',
+                                      ? context.l10n.settingsAlarmsEnabledDevice
+                                      : context.l10n.settingsAlarmsMutedDevice,
                                   ),
                                   duration: const Duration(seconds: 2),
                                   backgroundColor: value ? Colors.green : Colors.orange,
@@ -320,7 +321,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Choose the in-app staff alarm sound:',
+                        context.l10n.settingsChooseAlarmSound,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.grey[600],
                             ),
@@ -592,7 +593,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'This sound is used for the in-app staff alarm. Closed-app order notifications use the app order tone.',
+                          context.l10n.settingsAlarmSoundNote,
                           style: TextStyle(
                             color: Colors.blue[900],
                             fontSize: 13,
@@ -614,7 +615,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
               const SizedBox(height: 16),
               Text(
-                'Failed to load user profile',
+                context.l10n.settingsProfileLoadFailed,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -661,8 +662,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
         SnackBar(
           content: Text(
             diagnosticMessage == null
-                ? result.message
-                : '${result.message}\n$diagnosticMessage',
+                ? localizedWebPushMessage(
+                    context, result.status, result.message)
+                : '${localizedWebPushMessage(context, result.status, result.message)}\n$diagnosticMessage',
           ),
           duration: Duration(seconds: result.isSuccess ? 3 : 6),
           backgroundColor: result.isSuccess ? Colors.green : Colors.orange,
@@ -686,7 +688,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Failed to enable notifications. Reopen the Home Screen app and try again.\n$diagnosticMessage',
+            '${context.l10n.webPushEnableFailed}\n$diagnosticMessage',
           ),
           duration: const Duration(seconds: 6),
           backgroundColor: Colors.red,

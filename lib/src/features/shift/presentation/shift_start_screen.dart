@@ -9,10 +9,10 @@ import '../../pos/state/pos_notifier.dart';
 import '../models/shift_models.dart';
 import '../state/shift_notifier.dart';
 
-String _shiftOwnerLabel(ShiftEntry shift) {
+String _shiftOwnerLabel(BuildContext context, ShiftEntry shift) {
   if (shift.openedByName.trim().isNotEmpty) return shift.openedByName.trim();
   if (shift.openedByUser.trim().isNotEmpty) return shift.openedByUser.trim();
-  return 'Unknown user';
+  return context.l10n.shiftUnknownUser;
 }
 
 String _normalizeShiftError(String error) {
@@ -140,7 +140,7 @@ class _ShiftStartScreenState extends ConsumerState<ShiftStartScreen> {
     }
 
     if (hasBlockingOpenShift) {
-      final opener = _shiftOwnerLabel(activeShift);
+      final opener = _shiftOwnerLabel(context, activeShift);
       return Scaffold(
         appBar: AppBar(title: Text(l10n.shiftStartTitle)),
         body: Padding(

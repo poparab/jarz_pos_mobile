@@ -3906,7 +3906,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statusDraft => 'مسودة';
 
   @override
-  String get kanbanNoInvoices => 'لا توجد فواتير';
+  String get kanbanNoInvoices => 'مفيش فواتير';
 
   @override
   String get kanbanTripCreatedSuccess => 'تم إنشاء رحلة التوصيل بنجاح';
@@ -7593,4 +7593,347 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get journeyLoadFailed => 'مش قادر يجيب سجل الزيارات.';
+
+  @override
+  String get errorConsoleCopyError => 'انسخ الخطأ';
+
+  @override
+  String get errorConsoleCopied => 'تفاصيل الخطأ اتنسخت';
+
+  @override
+  String get errorConsoleSummary => 'الملخص';
+
+  @override
+  String get errorConsoleFatal => 'قاتل';
+
+  @override
+  String get errorConsoleYes => 'أيوه';
+
+  @override
+  String get errorConsoleNo => 'لأ';
+
+  @override
+  String get errorConsoleOccurrences => 'عدد المرات';
+
+  @override
+  String get errorConsoleDetails => 'التفاصيل';
+
+  @override
+  String get errorConsoleStackTrace => 'تتبّع الخطأ';
+
+  @override
+  String get menuInstapayReconciliation => 'تسوية إنستاباي';
+
+  @override
+  String get instapayTitle => 'تسوية إنستاباي';
+
+  @override
+  String get instapayNoOrders => 'مفيش طلبات مستنية تأكيد إنستاباي';
+
+  @override
+  String get instapayCourierRequired => 'لازم مندوب عشان تحصيل الكاش';
+
+  @override
+  String get instapayConvertedToCod => 'اتحوّل لدفع عند الاستلام';
+
+  @override
+  String get instapayCollectedCashInstead => 'اتحصّل كاش بدالها';
+
+  @override
+  String get instapayConfirmReceived => 'أكّد الاستلام';
+
+  @override
+  String get instapayPaymentConfirmed => 'الدفع اتأكد';
+
+  @override
+  String get instapayBankReference => 'رقم مرجع البنك';
+
+  @override
+  String get kanbanMoveAction => 'انقل';
+
+  @override
+  String get kanbanDeliveryPartnerField => 'شريك التوصيل';
+
+  @override
+  String get kanbanSetDeliveryIncome => 'حدد دخل التوصيل';
+
+  @override
+  String get kanbanDeliveryIncomeField => 'دخل التوصيل';
+
+  @override
+  String get kanbanInvalidAmount => 'اكتب مبلغ صحيح مش بالسالب';
+
+  @override
+  String get kanbanUpdatingDeliveryIncome => 'بيحدّث دخل التوصيل…';
+
+  @override
+  String kanbanErrorWithMessage(String error) {
+    return 'خطأ: $error';
+  }
+
+  @override
+  String get posShowHeaderTooltip => 'وريني الهيدر';
+
+  @override
+  String get posCartDeliveryAmountField => 'مبلغ التوصيل';
+
+  @override
+  String get posCartResetToDefault => 'رجّع الافتراضي';
+
+  @override
+  String get posCartSetAction => 'حدد';
+
+  @override
+  String get posCartPromoCode => 'كود الخصم';
+
+  @override
+  String get posCartPromoCodeHint => 'مثلاً EGY2026';
+
+  @override
+  String get reportsColumnSegment => 'الشريحة';
+
+  @override
+  String get reportsColumnRecencyDays => 'آخر شراء (يوم)';
+
+  @override
+  String get reportsColumnFrequency => 'التكرار';
+
+  @override
+  String get reportsColumnAov => 'متوسط الطلب';
+
+  @override
+  String get tripsOneBranchOnly =>
+      'اختار فواتير من فرع واحد بس عشان تعمل رحلة.';
+
+  @override
+  String get webPushOnlyInWebApp => 'إشعارات الويب متاحة في نسخة الويب بس.';
+
+  @override
+  String get webPushEnabled => 'إشعارات الويب مفعّلة على الجهاز ده.';
+
+  @override
+  String get webPushDisabledForEnv => 'إشعارات الويب مقفولة في البيئة دي.';
+
+  @override
+  String get webPushNotConfigured => 'إشعارات الويب مش متظبطة في البيئة دي.';
+
+  @override
+  String get webPushUnsupportedPrompt =>
+      'المتصفح ده مش بيدعم طلب إذن الإشعارات.';
+
+  @override
+  String get webPushPermissionRequired =>
+      'دوس على تفعيل الإشعارات عشان تسمح بإشعارات الويب على الجهاز ده.';
+
+  @override
+  String get webPushPermissionDenied => 'إذن الإشعارات اترفض.';
+
+  @override
+  String get webPushNoToken =>
+      'لسه مفيش توكن لإشعارات الويب. جرّب تاني بعد ما تقفل التطبيق وتفتحه.';
+
+  @override
+  String get webPushTokenReady => 'توكن إشعارات الويب جاهز للتسجيل.';
+
+  @override
+  String get webPushEnableFailed =>
+      'مش قادر يفعّل الإشعارات. اقفل التطبيق من الشاشة الرئيسية وافتحه وجرّب تاني.';
+
+  @override
+  String get b2bCustomerLabelsTooltip => 'ليبلات العملاء';
+
+  @override
+  String get b2bFollowUpsHeader => 'المتابعات';
+
+  @override
+  String get b2bReorderDueHeader => 'طلبات إعادة مستحقة';
+
+  @override
+  String get expensesEmptyManagerHint =>
+      'اعمل مصروف جديد عشان تسجّل مصاريف التشغيل.';
+
+  @override
+  String get expensesEmptyStaffHint => 'قدّم مصروف جديد والمدير هيراجعه.';
+
+  @override
+  String get expenseSourceCash => 'كاش';
+
+  @override
+  String get expenseSourceBank => 'بنك';
+
+  @override
+  String get expenseSourceMobileWallet => 'محفظة موبايل';
+
+  @override
+  String get expenseSourcePosProfile => 'بروفايل نقطة البيع';
+
+  @override
+  String get expenseSourceAccount => 'حساب';
+
+  @override
+  String get instapayConvertFailed => 'مش قادر يحوّل الطلب لكاش';
+
+  @override
+  String get instapayConfirmFailed => 'مش قادر يأكد الدفع';
+
+  @override
+  String get instapayConfirmSheetTitle => 'أكّد استلام إنستاباي';
+
+  @override
+  String get instapayAwaitingBadge => 'في انتظار إنستاباي';
+
+  @override
+  String get inventoryCountSubmitting => 'بيقدّم التسوية';
+
+  @override
+  String get inventoryCountSubmitError => 'خطأ في تقديم التسوية';
+
+  @override
+  String get kanbanExitSelection => 'اخرج من التحديد';
+
+  @override
+  String get kanbanSelectOrders => 'اختار طلبات';
+
+  @override
+  String get kanbanMoveOrderTitle => 'نقل الطلب';
+
+  @override
+  String get kanbanCreateFailedFallback => 'الإنشاء فشل';
+
+  @override
+  String get kanbanDeliveryIncomeHelp =>
+      'اكتب دخل توصيل مخصص للطلب ده. سيبها فاضية عشان ترجع لافتراضي المنطقة. ده هيعمل تعديل للطلب.';
+
+  @override
+  String get kanbanCannotAmend => 'الطلب ده مينفعش يتعدّل';
+
+  @override
+  String get kanbanDeliveryIncomeReset => 'دخل التوصيل رجع لافتراضي المنطقة';
+
+  @override
+  String get kanbanAmendmentFailed => 'التعديل فشل';
+
+  @override
+  String get kanbanShippingNotUpdated =>
+      'تكلفة الشحن ماتحدّثتش. صلّح منطقة العنوان.';
+
+  @override
+  String get leadsNotSuitableBadge => 'غير مناسب';
+
+  @override
+  String get bundleSelectionTitle => 'اختيار الباقة';
+
+  @override
+  String get bundleUpdateAction => 'حدّث الباقة';
+
+  @override
+  String get bundleAddToCartAction => 'ضيف للسلة';
+
+  @override
+  String get bundleSelectFromGroups => 'اختار أصناف من كل مجموعة تحت:';
+
+  @override
+  String get bundleCatalogDriftWarning =>
+      'خيارات الباقة يمكن تكون اتغيّرت من ساعة ما الطلب اتعمل. راجع اختياراتك وأكّدها.';
+
+  @override
+  String get bundleNoItemsInGroup => 'مفيش أصناف متاحة في المجموعة دي';
+
+  @override
+  String get bundleUnknownItem => 'صنف غير معروف';
+
+  @override
+  String get bundleUnknownBundle => 'باقة غير معروفة';
+
+  @override
+  String get bundleNoItemGroups => 'مفيش مجموعات أصناف';
+
+  @override
+  String get bundleNoItemGroupsBody => 'الباقة دي مفيهاش مجموعات أصناف متاحة';
+
+  @override
+  String get posCartPromoDiscount => 'خصم الكود';
+
+  @override
+  String get posCartFreeDelivery => 'توصيل مجاني';
+
+  @override
+  String get posCartDeliveryAmountHelp =>
+      'اكتب مبلغ توصيل مخصص. سيبها فاضية عشان ترجع لافتراضي المنطقة.';
+
+  @override
+  String get posCartBundleLoadFailed =>
+      'محتويات الباقة مش قادرة تتحمّل. عدّل الباقة واختار الأصناف تاني قبل ما تبعت.';
+
+  @override
+  String get posCartPromoApplied => 'اتطبق';
+
+  @override
+  String get posCartPromoNotEligible => 'مش مؤهل';
+
+  @override
+  String get posSalesPartnerFallback => 'شريك المبيعات';
+
+  @override
+  String get reportsColumnBomCost => 'تكلفة قائمة المواد';
+
+  @override
+  String get reportsColumnTimesInBundle => 'مرات في الباقات';
+
+  @override
+  String get settingsIosWebPushTitle => 'إشعارات الويب على الآيفون';
+
+  @override
+  String get settingsIosWebPushBody =>
+      'نزّل التطبيق على الشاشة الرئيسية للآيفون، وبعدين دوس على تفعيل الإشعارات عشان توصلك التنبيهات.';
+
+  @override
+  String get settingsEnablingNotifications => 'بيفعّل الإشعارات...';
+
+  @override
+  String get settingsEnableNotifications => 'فعّل الإشعارات';
+
+  @override
+  String get settingsNotificationAlerts => 'تنبيهات الإشعارات';
+
+  @override
+  String get settingsAlarmsMutedAll => 'كل تنبيهات الطلبات مكتومة حاليًا';
+
+  @override
+  String get settingsAlarmsActive => 'تنبيهات الطلبات شغّالة';
+
+  @override
+  String get settingsAlarmsEnabledDevice =>
+      'تنبيهات الإشعارات اتفعّلت على الجهاز ده';
+
+  @override
+  String get settingsAlarmsMutedDevice =>
+      'تنبيهات الإشعارات اتكتمت على الجهاز ده';
+
+  @override
+  String get settingsChooseAlarmSound =>
+      'اختار صوت تنبيه الموظفين جوه التطبيق:';
+
+  @override
+  String get settingsAlarmSoundNote =>
+      'الصوت ده بيتستخدم لتنبيه الموظفين جوه التطبيق. إشعارات الطلبات والتطبيق مقفول بتستخدم نغمة الطلبات.';
+
+  @override
+  String get settingsProfileLoadFailed => 'مش قادر يجيب ملف المستخدم';
+
+  @override
+  String get shiftUnknownUser => 'مستخدم غير معروف';
+
+  @override
+  String kanbanDeliveryIncomeUpdated(String amount) {
+    return 'دخل التوصيل اتحدّث لـ $amount';
+  }
+
+  @override
+  String kanbanAddressNoTerritory(String city) {
+    return 'العنوان اتحفظ، بس \"$city\" مش مطابق لأي منطقة — تكلفة الشحن ماتحدّثتش. صلّح منطقة العنوان.';
+  }
+
+  @override
+  String get reportsColumnComponent => 'المكوّن';
 }

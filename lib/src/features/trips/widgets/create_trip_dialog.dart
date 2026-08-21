@@ -163,9 +163,10 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.orange.shade300),
                   ),
-                  child: const Text(
-                    'Select invoices from one branch only to create a trip.',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  child: Text(
+                    context.l10n.tripsOneBranchOnly,
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w600),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -251,7 +252,7 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
     if (_tripPosProfile == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Select invoices from one branch only to create a trip.')),
+          SnackBar(content: Text(context.l10n.tripsOneBranchOnly)),
         );
       }
       return;

@@ -386,8 +386,8 @@ class _LabelAlertAction extends ConsumerWidget {
 
     return IconButton(
       tooltip: count == 0
-          ? 'Customer labels'
-          : '$count label${count == 1 ? '' : 's'} need printing',
+          ? context.l10n.b2bCustomerLabelsTooltip
+          : context.l10n.b2bLabelsNeedPrintingTooltip(count),
       icon: Badge(
         isLabelVisible: count > 0,
         label: Text('$count'),

@@ -420,13 +420,16 @@ class _SegmentDetailCard extends StatelessWidget {
         dataRowMinHeight: 36,
         dataRowMaxHeight: 48,
         columnSpacing: 20,
-        columns: const [
-          DataColumn(label: Text('Segment')),
-          DataColumn(label: Text('Customers'), numeric: true),
-          DataColumn(label: Text('Recency (d)'), numeric: true),
-          DataColumn(label: Text('Frequency'), numeric: true),
-          DataColumn(label: Text('AOV'), numeric: true),
-          DataColumn(label: Text('Revenue'), numeric: true),
+        columns: [
+          DataColumn(label: Text(l10n.reportsColumnSegment)),
+          DataColumn(
+              label: Text(l10n.reportKpiCustomers), numeric: true),
+          DataColumn(
+              label: Text(l10n.reportsColumnRecencyDays), numeric: true),
+          DataColumn(
+              label: Text(l10n.reportsColumnFrequency), numeric: true),
+          DataColumn(label: Text(l10n.reportsColumnAov), numeric: true),
+          DataColumn(label: Text(l10n.reportKpiRevenue), numeric: true),
         ],
         rows: [
           for (final m in rows)
@@ -482,12 +485,13 @@ class _TopCustomersCard extends StatelessWidget {
         dataRowMinHeight: 36,
         dataRowMaxHeight: 48,
         columnSpacing: 20,
-        columns: const [
-          DataColumn(label: Text('Customer')),
-          DataColumn(label: Text('Segment')),
-          DataColumn(label: Text('Revenue'), numeric: true),
-          DataColumn(label: Text('Orders'), numeric: true),
-          DataColumn(label: Text('Recency (d)'), numeric: true),
+        columns: [
+          DataColumn(label: Text(l10n.commonCustomerLabel)),
+          DataColumn(label: Text(l10n.reportsColumnSegment)),
+          DataColumn(label: Text(l10n.reportKpiRevenue), numeric: true),
+          DataColumn(label: Text(l10n.reportKpiOrders), numeric: true),
+          DataColumn(
+              label: Text(l10n.reportsColumnRecencyDays), numeric: true),
         ],
         rows: [
           for (final m in rows)
@@ -542,11 +546,12 @@ class _AtRiskCard extends StatelessWidget {
         dataRowMinHeight: 36,
         dataRowMaxHeight: 48,
         columnSpacing: 20,
-        columns: const [
-          DataColumn(label: Text('Customer')),
-          DataColumn(label: Text('Segment')),
-          DataColumn(label: Text('Recency (d)'), numeric: true),
-          DataColumn(label: Text('AOV'), numeric: true),
+        columns: [
+          DataColumn(label: Text(l10n.commonCustomerLabel)),
+          DataColumn(label: Text(l10n.reportsColumnSegment)),
+          DataColumn(
+              label: Text(l10n.reportsColumnRecencyDays), numeric: true),
+          DataColumn(label: Text(l10n.reportsColumnAov), numeric: true),
         ],
         rows: [
           for (final m in rows)
