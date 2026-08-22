@@ -126,14 +126,6 @@ INDEX = {
                          "ask your manager to change your role - it is not a setting on the device.",
                    "ar": "المنيو بتتبني من أدوارك. لو محتاج حاجة مش عندك، كلّم مديرك يغيّر دورك — "
                          "دي مش إعدادات على الموبايل."}},
-            {"q": {"en": "I tapped something and got \"Not permitted\"",
-                   "ar": "دوست على حاجة وطلعلي \"غير مسموح\""},
-             "a": {"en": "A few entries appear for line managers that the server still refuses "
-                         "(Cash Transfer, Purchase Invoice, Stock Transfer, Inventory Count, and most "
-                         "of Reports). That is expected - they belong to the manager tier. Nothing broke.",
-                   "ar": "فيه شوية حاجات بتظهر لمدير الخط بس السيرفر بيرفضها (تحويل نقدية، فاتورة "
-                         "مشتريات، تحويل مخزني، جرد، ومعظم التقارير). ده طبيعي — دي بتاعة المدير "
-                         "الأعلى. مفيش حاجة باظت."}},
             {"q": {"en": "Which version am I on?", "ar": "أنا على أي إصدار؟"},
              "a": {"en": "Menu &rarr; <strong>About</strong> shows the build, the environment and the patch "
                          "status. Have that screen open when you report a problem.",

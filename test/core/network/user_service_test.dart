@@ -161,6 +161,127 @@ void main() {
     });
   });
 
+  // ── Drawer gates that mirror one backend role set each ────────────────
+  //
+  // The five entries below used to be gated on the manager-*dashboard* check,
+  // which the line-manager tier passes — so a line manager saw every one of them
+  // and got "Not permitted" from the API behind each. These assert the client
+  // gate against the exact set its endpoint accepts.
+
+  group('per-API drawer gates', () {
+    UserRoles withRole(String role) => UserRoles(user: 'u', roles: [role]);
+
+    test('the line manager is refused by all four operational screens', () {
+      for (final role in [
+        RoleNames.jarzLineManager,
+        RoleNames.jarzLineManagerAlt,
+      ]) {
+        final r = withRole(role);
+        expect(r.canAccessManagerDashboard, isTrue, reason: role);
+        expect(r.canAccessCashTransfer, isFalse, reason: role);
+        expect(r.canAccessStockTransfer, isFalse, reason: role);
+        expect(r.canAccessInventoryCount, isFalse, reason: role);
+        expect(r.canAccessPurchaseInvoice, isFalse, reason: role);
+      }
+    });
+
+    test('ROLES.MANAGER members reach cash and stock transfer', () {
+      for (final role in [
+        RoleNames.jarzManager,
+        RoleNames.systemManager,
+        RoleNames.administrator,
+        RoleNames.accountsManager,
+        RoleNames.stockManager,
+        RoleNames.manufacturingManager,
+        RoleNames.purchaseManager,
+      ]) {
+        final r = withRole(role);
+        expect(r.canAccessCashTransfer, isTrue, reason: role);
+        expect(r.canAccessStockTransfer, isTrue, reason: role);
+        expect(r.canAccessPurchaseInvoice, isTrue, reason: role);
+      }
+    });
+
+    test('Inventory Count excludes the Purchase Manager (ROLES.STOCK)', () {
+      expect(withRole(RoleNames.purchaseManager).canAccessInventoryCount,
+          isFalse);
+      for (final role in [
+        RoleNames.jarzManager,
+        RoleNames.systemManager,
+        RoleNames.administrator,
+        RoleNames.accountsManager,
+        RoleNames.stockManager,
+        RoleNames.manufacturingManager,
+      ]) {
+        expect(withRole(role).canAccessInventoryCount, isTrue, reason: role);
+      }
+    });
+
+    test('the POS Manager reaches none of the four', () {
+      final r = withRole(RoleNames.posManager);
+      expect(r.canAccessManagerDashboard, isTrue);
+      expect(r.canAccessCashTransfer, isFalse);
+      expect(r.canAccessStockTransfer, isFalse);
+      expect(r.canAccessInventoryCount, isFalse);
+      expect(r.canAccessPurchaseInvoice, isFalse);
+    });
+
+    test('a plain POS user reaches none of the four', () {
+      final r = withRole('POS User');
+      expect(r.canAccessCashTransfer, isFalse);
+      expect(r.canAccessStockTransfer, isFalse);
+      expect(r.canAccessInventoryCount, isFalse);
+      expect(r.canAccessPurchaseInvoice, isFalse);
+    });
+  });
+
+  group('reports gates', () {
+    UserRoles withRole(String role) => UserRoles(user: 'u', roles: [role]);
+
+    test('only JARZ Manager and Administrator see the dashboards', () {
+      for (final role in [RoleNames.jarzManager, RoleNames.administrator]) {
+        final r = withRole(role);
+        expect(r.canViewAllReports, isTrue, reason: role);
+        expect(r.canAccessReportsHub, isTrue, reason: role);
+      }
+      for (final role in [
+        RoleNames.systemManager,
+        RoleNames.posManager,
+        RoleNames.jarzLineManager,
+        'POS User',
+      ]) {
+        expect(withRole(role).canViewAllReports, isFalse, reason: role);
+      }
+    });
+
+    test('the line-manager tier keeps the hub for the Materials report', () {
+      for (final role in [
+        RoleNames.jarzLineManager,
+        RoleNames.jarzLineManagerAlt,
+        RoleNames.systemManager,
+      ]) {
+        final r = withRole(role);
+        expect(r.canViewMaterialsReport, isTrue, reason: role);
+        expect(r.canViewAllReports, isFalse, reason: role);
+        // Hub stays visible: it still has exactly one tile for them.
+        expect(r.canAccessReportsHub, isTrue, reason: role);
+      }
+    });
+
+    test('the POS Manager loses the Reports entry entirely', () {
+      // In neither backend set, so every tile on the hub would have 403'd.
+      final r = withRole(RoleNames.posManager);
+      expect(r.canViewMaterialsReport, isFalse);
+      expect(r.canViewAllReports, isFalse);
+      expect(r.canAccessReportsHub, isFalse);
+    });
+
+    test('a plain POS user has no reports at all', () {
+      final r = withRole('POS User');
+      expect(r.canAccessReportsHub, isFalse);
+    });
+  });
+
   // ── UserService ───────────────────────────────────────────────────────
 
   group('UserService.getCurrentUserRoles', () {

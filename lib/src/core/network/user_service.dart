@@ -30,7 +30,14 @@ class UserRoles {
 
   bool get isJarzManager => roles.contains(RoleNames.jarzManager);
   bool get isManager => isJarzManager;
-  bool get isLineManager => roles.contains(RoleNames.jarzLineManager);
+
+  /// Both spellings of the line-manager Role exist as real records on staging
+  /// and production, and the backend's `ROLES.LINE_MANAGER_TIER` carries both.
+  /// Matching only the capitalised one left a line manager holding the other
+  /// spelling looking like a plain POS user to every gate below.
+  bool get isLineManager =>
+      roles.contains(RoleNames.jarzLineManager) ||
+      roles.contains(RoleNames.jarzLineManagerAlt);
   bool get isAdminManager =>
       roles.contains(RoleNames.posManager) ||
       roles.contains(RoleNames.systemManager) ||
@@ -82,6 +89,85 @@ class UserRoles {
   /// A B2B rep who is NOT a manager lands in B2B mode and cannot reach the
   /// B2C POS/Kanban flows. Managers keep their normal landing but get a switch.
   bool get landsOnB2b => isB2bRep && !canAccessManagerDashboard;
+
+  // ── Gates that mirror one backend role set each ──────────────────────
+  //
+  // Each of these mirrors the set its OWN API accepts, never the general
+  // manager-dashboard gate. `canAccessManagerDashboard` is satisfied by any
+  // line manager (the dashboard's own backend check accepts the line-manager
+  // tier), but the APIs behind Cash Transfer, Stock Transfer, Inventory Count,
+  // the Purchase Invoice and the analytics reports do not — so gating a drawer
+  // entry on it shows a line manager a tile that answers "Not permitted" on
+  // every call. Same class of bug as the old Manufacturing screen; see
+  // [canAccessProductionBoard].
+  //
+  // `Administrator` is carried in every set because `frappe.get_roles` hands
+  // that user every role, so the server always lets it through.
+
+  /// Mirrors backend `ROLES.MANAGER` — Cash Transfer (`api/cash_transfer.py`)
+  /// and Stock Transfer (`api/transfer.py`).
+  bool get _isBackendManagerSet =>
+      isJarzManager ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.administrator) ||
+      roles.contains(RoleNames.accountsManager) ||
+      roles.contains(RoleNames.stockManager) ||
+      roles.contains(RoleNames.manufacturingManager) ||
+      roles.contains(RoleNames.purchaseManager);
+
+  /// Whether this user may move cash between accounts.
+  /// Mirrors `ROLES.MANAGER`, enforced by `cash_transfer._ensure_manager_access`.
+  bool get canAccessCashTransfer => _isBackendManagerSet;
+
+  /// Whether this user may move stock between warehouses.
+  /// Mirrors `ROLES.MANAGER`, enforced by `transfer._ensure_manager_access`.
+  /// Kept separate from [canAccessCashTransfer] even though the two sets are
+  /// identical today, so tightening one server-side is a one-line change here.
+  bool get canAccessStockTransfer => _isBackendManagerSet;
+
+  /// Whether this user may run an inventory count.
+  /// Mirrors `ROLES.STOCK`, enforced by
+  /// `inventory_count._ensure_manager_access` — the same set as
+  /// [canAccessCashTransfer] minus Purchase Manager.
+  bool get canAccessInventoryCount =>
+      isJarzManager ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.administrator) ||
+      roles.contains(RoleNames.accountsManager) ||
+      roles.contains(RoleNames.stockManager) ||
+      roles.contains(RoleNames.manufacturingManager);
+
+  /// Whether this user may raise a Purchase Invoice (buying against a request,
+  /// which commits money — distinct from *asking* for stock, which
+  /// `ROLES.PURCHASE_REQUEST` opens to everyone).
+  /// Mirrors `ROLES.PURCHASE`, enforced by `purchase._ensure_manager_access`.
+  bool get canAccessPurchaseInvoice => _isBackendManagerSet;
+
+  /// Whether this user may open the analytics dashboards behind the Reports hub
+  /// (shipping, inventory, product, customer, executive, B2B) and the Final
+  /// Products stock report. Mirrors `_ensure_jarz_manager`, which every one of
+  /// those endpoints calls: the JARZ Manager and the Administrator, nobody
+  /// else. Note that System Manager and POS Manager are NOT in it.
+  bool get canViewAllReports =>
+      isJarzManager || roles.contains(RoleNames.administrator);
+
+  /// Whether this user may open the Materials & Consumables report — the one
+  /// report a line manager can actually read. Mirrors
+  /// `reports._ensure_materials_report_access`, i.e. `ROLES.LINE_MANAGER_TIER`.
+  bool get canViewMaterialsReport =>
+      isLineManager ||
+      isJarzManager ||
+      roles.contains(RoleNames.administrator) ||
+      roles.contains(RoleNames.systemManager);
+
+  /// Whether the Reports hub has anything at all to show this user.
+  ///
+  /// The hub is kept rather than hidden for the line-manager tier because it
+  /// still holds one readable report for them; the screen itself drops every
+  /// tile whose API would refuse them, so the hub is never an empty page and
+  /// never a dead link. A POS Manager, who is in neither set, loses the entry
+  /// entirely — every tile on it would have 403'd.
+  bool get canAccessReportsHub => canViewAllReports || canViewMaterialsReport;
 
   /// Holds one of the stock/manufacturing roles the backend accepts.
   bool get isProductionRole =>
@@ -281,6 +367,63 @@ final canAccessProductionBoardProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canAccessProductionBoard,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user may open Cash Transfer.
+///
+/// Mirrors backend `ROLES.MANAGER`, not the manager-dashboard gate: a line
+/// manager passes the latter and is refused by `api/cash_transfer.py`.
+final canAccessCashTransferProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessCashTransfer,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user may open Stock Transfer. Mirrors `ROLES.MANAGER`
+/// as enforced by `api/transfer.py`.
+final canAccessStockTransferProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessStockTransfer,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user may open Inventory Count. Mirrors `ROLES.STOCK`
+/// as enforced by `api/inventory_count.py`.
+final canAccessInventoryCountProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessInventoryCount,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user may open the Purchase Invoice screen. Mirrors
+/// `ROLES.PURCHASE` as enforced by `api/purchase.py`. Note this is NOT the gate
+/// for raising an item request — `ROLES.PURCHASE_REQUEST` is deliberately open
+/// to everyone, so that drawer entry stays ungated.
+final canAccessPurchaseInvoiceProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessPurchaseInvoice,
+    orElse: () => false,
+  );
+});
+
+/// Whether the Reports hub has at least one report this user may read.
+///
+/// True for the line-manager tier because the hub still shows them Materials &
+/// Consumables; the hub itself hides the dashboards their role would be refused
+/// on. See [UserRoles.canAccessReportsHub].
+final canAccessReportsHubProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessReportsHub,
     orElse: () => false,
   );
 });

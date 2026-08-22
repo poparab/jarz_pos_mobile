@@ -694,24 +694,23 @@ LINE_MANAGER = {
          ]),
 
         ("h", {"en": "What is not yours", "ar": "اللي مش بتاعك"}, "limits"),
-        ("p", {"en": "A line manager is a narrower manager, not a smaller owner. These sit above you, and "
-                     "some of them still appear in your menu and will answer \"Not permitted\" - that is "
-                     "expected, not a fault:",
-               "ar": "مدير الخط مدير أضيق، مش مالك أصغر. الحاجات دي فوقك، وبعضها لسه بيظهر في المنيو "
-                     "بتاعك وهيرد عليك \"غير مسموح\" — وده طبيعي مش عطل:"}),
+        ("p", {"en": "A line manager is a narrower manager, not a smaller owner. These sit above you, so "
+                     "they simply do not appear in your menu:",
+               "ar": "مدير الخط مدير أضيق، مش مالك أصغر. الحاجات دي فوقك، وعشان كده مش بتظهر في "
+                     "المنيو بتاعك أصلاً:"}),
         ("bul", [
             {"en": "<strong>Approving expenses</strong> - JARZ Manager only. You submit like everyone else.",
              "ar": "<strong>اعتماد المصاريف</strong> — JARZ Manager بس. إنت بتقدّم زيك زي أي حد."},
             {"en": "<strong>Manager Pricing in POS</strong> and editing price lists - manager tier.",
              "ar": "<strong>تسعير المدير</strong> في نقطة البيع وتعديل قوائم الأسعار — للمدير الأعلى."},
-            {"en": "<strong>Cash Transfer, Purchase Invoice, Stock Transfer, Inventory Count</strong> - they may "
-                   "show in the menu; the server refuses them.",
-             "ar": "<strong>تحويل نقدية، فاتورة مشتريات، تحويل مخزني، جرد</strong> — ممكن يظهروا في المنيو؛ "
-                   "بس السيرفر بيرفضهم."},
-            {"en": "<strong>Reports</strong> - the analytics dashboards are manager tier. Materials &amp; "
-                   "Consumables is the one you can open.",
-             "ar": "<strong>التقارير</strong> — لوحات التحليلات للمدير الأعلى. تقرير الخامات والمستهلكات هو "
-                   "اللي تقدر تفتحه."},
+            {"en": "<strong>Cash Transfer, Purchase Invoice, Stock Transfer, Inventory Count</strong> - manager "
+                   "tier. They are not in your menu at all.",
+             "ar": "<strong>تحويل نقدية، فاتورة مشتريات، تحويل مخزني، جرد</strong> — للمدير الأعلى. "
+                   "مش موجودين في المنيو بتاعك أصلاً."},
+            {"en": "<strong>Reports</strong> - the analytics dashboards are manager tier, so Reports opens on "
+                   "the single report that is yours: Materials &amp; Consumables.",
+             "ar": "<strong>التقارير</strong> — لوحات التحليلات للمدير الأعلى، فالتقارير بتفتح على التقرير "
+                   "الوحيد اللي بتاعك: الخامات والمستهلكات."},
             {"en": "<strong>Reviewing and rejecting other people's item requests</strong> - you can raise them, "
                    "purchasing closes them.",
              "ar": "<strong>مراجعة ورفض طلبات الأصناف بتاعة غيرك</strong> — إنت تقدر تطلب، والمشتريات "

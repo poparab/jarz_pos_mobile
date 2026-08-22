@@ -21,6 +21,15 @@ class ReportsScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final roles = ref.watch(userRolesFutureProvider).valueOrNull;
 
+    // Every tile is gated on the role set its own endpoint accepts. The six
+    // analytics dashboards and Final Products all call `_ensure_jarz_manager`
+    // (JARZ Manager or Administrator — NOT System Manager, NOT POS Manager);
+    // Materials & Consumables calls `_ensure_materials_report_access`, which
+    // takes the whole line-manager tier. Gating the hub on anything wider is how
+    // a tile ends up answering "Not permitted" on every tap.
+    final canViewAllReports = roles?.canViewAllReports ?? false;
+    final canViewMaterials = roles?.canViewMaterialsReport ?? false;
+
     void openStock(int tab) => Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => StockReportsScreen(initialTab: tab),
@@ -34,6 +43,7 @@ class ReportsScreen extends ConsumerWidget {
         title: l10n.reportShippingTitle,
         subtitle: l10n.reportShippingSubtitle,
         onTap: () => context.push(AppRoutes.reportsShipping),
+        visible: canViewAllReports,
       ),
       _ReportDestination(
         icon: Icons.inventory_2_outlined,
@@ -41,6 +51,7 @@ class ReportsScreen extends ConsumerWidget {
         title: l10n.reportInventoryTitle,
         subtitle: l10n.reportInventorySubtitle,
         onTap: () => context.push(AppRoutes.reportsInventory),
+        visible: canViewAllReports,
       ),
       _ReportDestination(
         icon: Icons.category_outlined,
@@ -48,6 +59,7 @@ class ReportsScreen extends ConsumerWidget {
         title: l10n.reportProductTitle,
         subtitle: l10n.reportProductSubtitle,
         onTap: () => context.push(AppRoutes.reportsProduct),
+        visible: canViewAllReports,
       ),
       _ReportDestination(
         icon: Icons.groups_outlined,
@@ -55,6 +67,7 @@ class ReportsScreen extends ConsumerWidget {
         title: l10n.reportCustomerTitle,
         subtitle: l10n.reportCustomerSubtitle,
         onTap: () => context.push(AppRoutes.reportsCustomer),
+        visible: canViewAllReports,
       ),
       _ReportDestination(
         icon: Icons.insights_outlined,
@@ -62,6 +75,7 @@ class ReportsScreen extends ConsumerWidget {
         title: l10n.reportExecutiveTitle,
         subtitle: l10n.reportExecutiveSubtitle,
         onTap: () => context.push(AppRoutes.reportsExecutive),
+        visible: canViewAllReports,
       ),
       _ReportDestination(
         icon: Icons.handshake_outlined,
@@ -69,6 +83,7 @@ class ReportsScreen extends ConsumerWidget {
         title: l10n.reportB2bTitle,
         subtitle: l10n.reportB2bSubtitle,
         onTap: () => context.push(AppRoutes.reportsB2b),
+        visible: canViewAllReports,
       ),
       _ReportDestination(
         icon: Icons.widgets_outlined,
@@ -76,6 +91,7 @@ class ReportsScreen extends ConsumerWidget {
         title: l10n.reportsFinalProducts,
         subtitle: l10n.reportsFinalProductsDesc,
         onTap: () => openStock(0),
+        visible: canViewAllReports,
       ),
       _ReportDestination(
         icon: Icons.science_outlined,
@@ -83,17 +99,12 @@ class ReportsScreen extends ConsumerWidget {
         title: l10n.reportsMaterials,
         subtitle: l10n.reportsMaterialsDesc,
         onTap: () => openStock(1),
+        visible: canViewMaterials,
       ),
     ];
 
-    // Full managers/admins see every report. A line-manager-only user (line
-    // manager but neither JARZ Manager nor admin manager) sees only the
-    // Materials & Consumables tile (the last destination).
-    final canSeeAllReports =
-        (roles?.isJarzManager ?? false) || (roles?.isAdminManager ?? false);
-    final visibleDestinations = canSeeAllReports
-        ? destinations
-        : <_ReportDestination>[destinations.last];
+    final visibleDestinations =
+        destinations.where((d) => d.visible).toList(growable: false);
 
     return Scaffold(
       drawer: const AppDrawer(),
@@ -135,12 +146,16 @@ class _ReportDestination {
   final String subtitle;
   final VoidCallback onTap;
 
+  /// Whether the current user's roles satisfy this report's own backend gate.
+  final bool visible;
+
   const _ReportDestination({
     required this.icon,
     required this.color,
     required this.title,
     required this.subtitle,
     required this.onTap,
+    required this.visible,
   });
 }
 

@@ -73,6 +73,13 @@ abstract final class VoucherTypes {
 abstract final class RoleNames {
   static const jarzManager = 'JARZ Manager';
   static const jarzLineManager = 'JARZ line manager';
+
+  /// The lower-case spelling of the line-manager role. Both exist as real Role
+  /// records on staging and production, and the backend's
+  /// `ROLES.LINE_MANAGER_TIER` carries both — so anywhere this client names the
+  /// line manager it must name both too, or it silently treats half the people
+  /// holding the role as plain POS users.
+  static const jarzLineManagerAlt = 'jarz line manager';
   static const posManager = 'POS Manager';
   static const systemManager = 'System Manager';
   static const administrator = 'Administrator';
@@ -87,6 +94,11 @@ abstract final class RoleNames {
   static const manufacturingManager = 'Manufacturing Manager';
   static const stockManager = 'Stock Manager';
   static const purchaseManager = 'Purchase Manager';
+
+  /// Also a member of the backend's `MANAGER`, `STOCK` and `PURCHASE` sets,
+  /// which gate Cash Transfer, Stock Transfer, Inventory Count and the Purchase
+  /// Invoice screens.
+  static const accountsManager = 'Accounts Manager';
 
   /// Floor role: may run batches but not back-date a posting, edit an SOP, or
   /// start a batch above the configured value limit.

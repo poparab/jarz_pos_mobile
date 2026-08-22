@@ -50,6 +50,16 @@ class AppDrawer extends ConsumerWidget {
     final hasElevatedAccess = hasManagerAccess || isLineManager || isModerator;
     final canAccessProductionBoard =
         ref.watch(canAccessProductionBoardProvider);
+    // Each of these mirrors the role set its OWN API accepts. `hasManagerAccess`
+    // is the manager-*dashboard* gate, and the dashboard deliberately admits the
+    // line-manager tier — so gating these five on it showed a line manager tiles
+    // that answered "Not permitted" on every call.
+    final canAccessCashTransfer = ref.watch(canAccessCashTransferProvider);
+    final canAccessStockTransfer = ref.watch(canAccessStockTransferProvider);
+    final canAccessInventoryCount = ref.watch(canAccessInventoryCountProvider);
+    final canAccessPurchaseInvoice =
+        ref.watch(canAccessPurchaseInvoiceProvider);
+    final canAccessReportsHub = ref.watch(canAccessReportsHubProvider);
     final locale = ref.watch(localeNotifierProvider);
     final englishLocale = const Locale('en');
     final arabicLocale = const Locale('ar');
@@ -201,7 +211,7 @@ class AppDrawer extends ConsumerWidget {
         title: l10n.menuExpenses,
         onTap: () => navigate(AppRoutes.expenses),
       ),
-      if (hasManagerAccess)
+      if (canAccessCashTransfer)
         navTile(
           icon: Icons.account_balance_wallet,
           title: l10n.menuCashTransfer,
@@ -218,7 +228,7 @@ class AppDrawer extends ConsumerWidget {
         title: l10n.menuItemRequests,
         onTap: () => navigate(AppRoutes.itemRequests),
       ),
-      if (hasManagerAccess)
+      if (canAccessPurchaseInvoice)
         navTile(
           icon: Icons.receipt_long,
           title: l10n.menuPurchaseInvoice,
@@ -235,18 +245,21 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuProductionBoard,
           onTap: () => navigate(AppRoutes.manufacturing),
         ),
-      if (hasManagerAccess) ...[
+      // Split rather than sharing one gate: Stock Transfer answers to
+      // `ROLES.MANAGER` and Inventory Count to `ROLES.STOCK`, which excludes the
+      // Purchase Manager.
+      if (canAccessStockTransfer)
         navTile(
           icon: Icons.swap_horiz,
           title: l10n.menuStockTransfer,
           onTap: () => navigate(AppRoutes.stockTransfer),
         ),
+      if (canAccessInventoryCount)
         navTile(
           icon: Icons.inventory,
           title: l10n.menuInventoryCount,
           onTap: () => navigate(AppRoutes.inventoryCount),
         ),
-      ],
     ];
 
     final managementChildren = <Widget>[
@@ -268,7 +281,10 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuShiftMonitor,
           onTap: () => navigate(AppRoutes.shiftMonitor),
         ),
-      if (hasManagerAccess)
+      // Kept for the line-manager tier: the hub still holds one report they may
+      // read (Materials & Consumables), and the hub itself drops every tile
+      // their role would be refused on, so the entry is never a dead end.
+      if (canAccessReportsHub)
         navTile(
           icon: Icons.bar_chart,
           title: l10n.menuReports,
