@@ -229,9 +229,11 @@ KANBAN = {
                      "الأقل). هيستنى المدير، والطلب مش هيقدر يخرج في الوقت ده."},
               {"en": "Everyone", "ar": "الكل"}],
              [{"en": "Change collection method", "ar": "تغيير طريقة التحصيل"},
-              {"en": "The customer paid by a different method than the one on the order. An online method "
-                     "needs a reference number.",
-               "ar": "العميل دفع بطريقة غير اللي على الطلب. والطريقة الأونلاين محتاجة رقم مرجع."},
+              {"en": "The customer paid by a different method than the one on the order. Only appears "
+                     "while the courier balance for that order is still open - once it is settled, the "
+                     "moment has passed. An online method needs a reference number.",
+               "ar": "العميل دفع بطريقة غير اللي على الطلب. وبتظهر بس طول ما رصيد المندوب على الطلب ده "
+                     "لسه مفتوح — بعد ما يتسوّى الوقت يكون عدّى. والطريقة الأونلاين محتاجة رقم مرجع."},
               {"en": "Line manager", "ar": "مدير الخط"}],
              [{"en": "Set Delivery Income", "ar": "حدد دخل التوصيل"},
               {"en": "Overrides the delivery charge on this order; blank restores the area default. It "
@@ -679,9 +681,12 @@ LINE_MANAGER = {
                      "خط زميله."}],
              [{"en": "Change collection method", "ar": "تغيير طريقة التحصيل"},
               {"en": "On the order card. The customer paid differently than the order says - fix it here "
-                     "rather than letting the courier balance drift. Online methods need a reference number.",
+                     "rather than letting the courier balance drift. It only shows while that order's "
+                     "courier balance is still open, and never on pickups, returns or partner orders. "
+                     "Online methods need a reference number.",
                "ar": "على كارت الطلب. العميل دفع بطريقة غير المكتوبة — صلّحها هنا بدل ما حساب المندوب "
-                     "يختل. والطرق الأونلاين محتاجة رقم مرجع."}],
+                     "يختل. وبتظهر بس طول ما رصيد المندوب على الطلب لسه مفتوح، ومش بتظهر خالص على "
+                     "طلبات الاستلام ولا المرتجعات ولا طلبات الشركاء. والطرق الأونلاين محتاجة رقم مرجع."}],
              [{"en": "Mute an order alarm", "ar": "كتم تنبيه الطلب"},
               {"en": "You are one of the few roles that can. Use it sparingly - a muted branch is a branch "
                      "that misses orders.",

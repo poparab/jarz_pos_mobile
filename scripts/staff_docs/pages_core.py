@@ -108,7 +108,7 @@ INDEX = {
         ("bul", [
             {"en": "<strong>The app speaks Arabic.</strong> Menu &rarr; <strong>Language</strong> switches the "
                    "whole app between English and Arabic. This guide has the same page in both, "
-                   "and the button at the top right of every page switches it.",
+                   "and the button in the header of every page switches it.",
              "ar": "<strong>التطبيق بيتكلم عربي.</strong> المنيو &rarr; <strong>اللغة</strong> بيحوّل التطبيق كله "
                    "بين العربي والإنجليزي. والدليل ده نفس الصفحات باللغتين، والزرار اللي فوق بيبدّل."},
             {"en": "<strong>Everything is per branch.</strong> The branch you pick at the top of POS or "
@@ -192,8 +192,12 @@ LOGIN = {
         ("h", {"en": "Switching the app to Arabic", "ar": "تحويل التطبيق للعربي"}, "language"),
         ("steps", [
             {"title": {"en": "Open the menu", "ar": "افتح المنيو"},
-             "body": {"en": "Tap the <strong>&#9776;</strong> icon at the top left of POS or the board.",
-                      "ar": "دوس على علامة <strong>&#9776;</strong> فوق في نقطة البيع أو البورد."}},
+             "body": {"en": "Tap the <strong>&#9776;</strong> icon in the header of POS or the order board. "
+                            "The menu is grouped: POS / Sales, Delivery / Logistics, Finance / Expenses, "
+                            "Purchasing / Inventory, and so on.",
+                      "ar": "دوس على علامة <strong>&#9776;</strong> اللي فوق في نقطة البيع أو بورد الطلبات. "
+                            "المنيو مقسومة مجموعات: نقطة البيع/المبيعات، التوصيل/اللوجستيات، المالية/"
+                            "المصروفات، المشتريات/المخزون، وهكذا."}},
             {"title": {"en": "Scroll to the bottom", "ar": "انزل لتحت خالص"},
              "body": {"en": "Below every menu group there is a <strong>Language</strong> switch showing the "
                             "language you are on now.",
@@ -213,13 +217,17 @@ LOGIN = {
                "ar": "لما يجيلك طلب أونلاين جديد، التطبيق بيرن ويطلعلك الطلب فوق أي حاجة إنت فيها، "
                      "وعليه زرار <strong>قبول الطلب</strong>. أول ما تقبله الطلب بينزل على البورد والتنبيه بيقف."}),
         ("bul", [
-            {"en": "Menu &rarr; <strong>Profile</strong> lets you pick the alarm sound.",
-             "ar": "المنيو &rarr; <strong>الملف الشخصي</strong> بيخليك تختار صوت التنبيه."},
+            {"en": "The settings live on the <strong>Profile</strong> screen: open the order board and tap "
+                   "<strong>&#8942;</strong> (More Actions) in the header &rarr; <strong>Profile</strong>. It is not in "
+                   "the side menu. There you pick the alarm sound and see the roles you hold.",
+             "ar": "الإعدادات في شاشة <strong>الملف الشخصي</strong>: افتح بورد الطلبات ودوس على "
+                   "<strong>&#8942;</strong> (المزيد) اللي فوق &rarr; <strong>الملف الشخصي</strong>. مش موجودة في "
+                   "المنيو الجانبي. هناك بتختار صوت التنبيه وبتشوف الأدوار اللي معاك."},
             {"en": "<strong>On an iPhone using the web app:</strong> add the page to the Home Screen first, "
-                   "open it from there, then tap <strong>Enable Notifications</strong> on the Profile screen. "
+                   "open it from there, then tap <strong>Enable Notifications</strong> on that Profile screen. "
                    "Alerts will not arrive in a normal Safari tab.",
              "ar": "<strong>على الآيفون بنسخة الويب:</strong> ضيف الصفحة للشاشة الرئيسية الأول، افتحها "
-                   "من هناك، وبعدين دوس <strong>فعّل الإشعارات</strong> في شاشة الملف الشخصي. التنبيهات "
+                   "من هناك، وبعدين دوس <strong>فعّل الإشعارات</strong> في شاشة الملف الشخصي دي. التنبيهات "
                    "مش هتوصل من تاب سفاري عادي."},
             {"en": "<strong>Only a line manager or above can mute the alarm.</strong> Staff can lower the "
                    "handset volume but the mute switch is not theirs.",

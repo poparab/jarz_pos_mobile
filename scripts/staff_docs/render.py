@@ -12,9 +12,13 @@ build at ``/pos/docs/``. Nothing here runs at request time.
 from __future__ import annotations
 
 import html
+import re
 from typing import Iterable
 
 BRAND = "#E85D04"
+
+#: Matches an HTML character reference that ``html.escape`` has just mangled.
+ENTITY_RE = re.compile(r"&amp;(#[0-9]+|#x[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]{1,31});")
 
 # Order matters: this drives the nav bar and the index card grid.
 PAGES = [
@@ -42,6 +46,10 @@ def esc(text: str) -> str:
         out = out.replace("&lt;%s&gt;" % tag, "<%s>" % tag)
         out = out.replace("&lt;/%s&gt;" % tag, "</%s>" % tag)
     out = out.replace("&lt;br&gt;", "<br>")
+    # Character references written in the content (&rarr;, &#8942;, ...) survive
+    # the escape: html.escape turned the leading & into &amp;, which would print
+    # the reference literally on the page. A bare & is still escaped.
+    out = ENTITY_RE.sub(r"&\1;", out)
     return out
 
 
