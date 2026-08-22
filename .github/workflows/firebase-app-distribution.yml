@@ -508,3 +508,108 @@ jobs:
           testers: ${{ secrets.FIREBASE_TESTERS_PRODUCTION }}
           file: ${{ steps.artifact.outputs.artifact_path }}
           releaseNotesFile: ${{ steps.meta.outputs.release_notes_file }}
+
+      # ── /pos/download/ — the zero-account install channel ─────────────────
+      #
+      # Firebase and the self-hosted download page must never disagree about
+      # "the current build". Firebase needs every person invited; the page needs
+      # nothing, so a stale page silently strands everyone who installs that
+      # way — and the two channels naming different builds is worse than either
+      # alone. Publishing used to be a manual step after the build, and was duly
+      # forgotten: build 391 sat on both hosts while Firebase served 403.
+      #
+      # Only full_apk needs this. A Shorebird patch updates installed apps over
+      # the air and produces no APK to publish.
+      - name: Check download-page publishing credentials
+        if: steps.plan.outputs.release_type == 'full_apk'
+        id: publish_creds
+        shell: bash
+        env:
+          POS_WEB_SSH_KEY: ${{ secrets.POS_WEB_SSH_KEY }}
+        run: |
+          # Read through a step env var, never a job/workflow-level one: a
+          # workflow-level secret is visible to every step in the job, including
+          # the third-party actions above.
+          if [ -n "${POS_WEB_SSH_KEY:-}" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Download page::POS_WEB_SSH_KEY is not set, so /pos/download/ will not publish automatically. Publish it by hand or this run will fail at the verify step."
+          fi
+
+      - name: Publish APK to /pos/download/
+        if: steps.plan.outputs.release_type == 'full_apk' && steps.publish_creds.outputs.available == 'true'
+        shell: bash
+        env:
+          POS_WEB_SSH_KEY: ${{ secrets.POS_WEB_SSH_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          key="$(mktemp)"
+          chmod 600 "$key"
+          trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$POS_WEB_SSH_KEY" > "$key"
+          # -RunId is THIS run, so the page serves the very artifact that was
+          # just handed to Firebase rather than whatever happened to be newest.
+          pwsh -File scripts/publish_apk.ps1 \
+            -Environment '${{ steps.plan.outputs.target_environment }}' \
+            -RunId '${{ github.run_id }}' \
+            -SshKeyPath "$key"
+
+      # Runs whether or not the step above did. With no credentials configured
+      # this is the whole safety net: the release stays red until someone
+      # publishes, so a forgotten download page is visible instead of silent.
+      - name: Verify /pos/download/ serves this build
+        if: steps.plan.outputs.release_type == 'full_apk'
+        shell: bash
+        env:
+          TARGET_ENVIRONMENT: ${{ steps.plan.outputs.target_environment }}
+          AUTO_PUBLISHED: ${{ steps.publish_creds.outputs.available }}
+          EXPECTED_VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -uo pipefail
+          if [ "$TARGET_ENVIRONMENT" = "production" ]; then
+            base="https://erp.orderjarz.com"
+          else
+            base="https://erpstg.orderjarz.com"
+          fi
+          url="$base/pos/download/download-metadata.json"
+
+          # A publish we just ran should already be live, so wait barely at all.
+          # A manual one needs a human to notice the build finished and run the
+          # script, so give that a real window before calling it forgotten.
+          if [ "$AUTO_PUBLISHED" = "true" ]; then deadline=180; else deadline=1200; fi
+
+          echo "Expecting $url to report source_run_id=$GITHUB_RUN_ID (version $EXPECTED_VERSION)"
+          elapsed=0
+          served=""
+          while :; do
+            # Never let a transient network blip decide the outcome.
+            body="$(curl -fsS --max-time 20 "$url" 2>/dev/null || true)"
+            if [ -n "$body" ]; then
+              # sed, not jq, so this keeps working if the runner image drops jq.
+              served="$(printf '%s' "$body" | tr -d ' \r\n' | sed -n 's/.*"source_run_id":"\([0-9]*\)".*/\1/p')"
+              if [ "$served" = "$GITHUB_RUN_ID" ]; then
+                echo "OK: /pos/download/ is serving this run's APK."
+                exit 0
+              fi
+            fi
+            if [ "$elapsed" -ge "$deadline" ]; then break; fi
+            sleep 30
+            elapsed=$((elapsed + 30))
+          done
+
+          {
+            echo "### Download page is stale"
+            echo ""
+            echo "\`$url\` still reports run \`${served:-unknown}\`, not this run (\`$GITHUB_RUN_ID\`)."
+            echo "Firebase has $EXPECTED_VERSION but the zero-account install page does not,"
+            echo "so anyone installing from the link gets the previous build."
+            echo ""
+            echo "Publish it:"
+            echo ""
+            echo "    powershell -ExecutionPolicy Bypass -File scripts\\publish_apk.ps1 -Environment $TARGET_ENVIRONMENT"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "::error title=Download page is stale::$url reports run ${served:-unknown}, not $GITHUB_RUN_ID. Run scripts/publish_apk.ps1 -Environment $TARGET_ENVIRONMENT."
+          exit 1

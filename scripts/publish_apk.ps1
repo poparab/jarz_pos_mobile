@@ -52,7 +52,11 @@ $remoteRoot = '/home/ubuntu/pos-web'
 $remoteStoreDir = "$remoteRoot/downloads"
 $remoteWebDir = "$remoteRoot/web"
 $remoteServedDir = "$remoteWebDir/download"
-$localPageTemplate = Join-Path $repoRoot 'scripts\pos-web\download-page.html'
+# Built up a segment at a time rather than with a 'scripts\pos-web\...' literal: this
+# script also runs under pwsh on the Linux CI runner, where a backslash is an ordinary
+# filename character and the literal would not resolve. Nested Join-Path because the
+# multi-argument form is PowerShell 6+ and this must still run on Windows 5.1.
+$localPageTemplate = Join-Path (Join-Path (Join-Path $repoRoot 'scripts') 'pos-web') 'download-page.html'
 
 $config = switch ($Environment) {
     'staging' {
@@ -328,8 +332,10 @@ Write-Host ''
 
 # --- Verify ------------------------------------------------------------------
 
-# Windows PowerShell 5.1 can still default to an older protocol on some hosts.
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+# Windows PowerShell 5.1 can still default to an older protocol on some hosts. Guarded
+# because this script also runs under pwsh on the Linux CI runner, where ServicePointManager
+# is vestigial -- and $ErrorActionPreference='Stop' would turn a no-op into a failed release.
+try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch { }
 
 Write-Step 'Verifying the published download...'
 $servedSha = (Invoke-Remote "sha256sum $remoteServedDir/$apkFileName | cut -d ' ' -f1").Trim().ToLowerInvariant()
