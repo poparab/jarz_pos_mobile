@@ -236,6 +236,37 @@ def roles_bar(role_keys: Iterable[str], label, lang: str) -> str:
     )
 
 
+def _png_size(path: str):
+    """Width/height straight out of the PNG IHDR, so the img can carry real
+    dimensions and the page does not reflow as the shot loads."""
+    with open(path, "rb") as handle:
+        header = handle.read(24)
+    if len(header) < 24 or header[:8] != b"\x89PNG\r\n\x1a\n":
+        raise ValueError("not a PNG: %s" % path)
+    width = int.from_bytes(header[16:20], "big")
+    height = int.from_bytes(header[20:24], "big")
+    return width, height
+
+
+def figure(name: str, caption, lang: str, docs_root: str) -> str:
+    """A generated app screenshot. ``name`` is the file under
+    ``web/docs/assets/img/<lang>/``; the shot for the reader's own language is
+    used, so an Arabic reader sees the Arabic app."""
+    import os
+
+    src = "../assets/img/%s/%s" % (lang, name)
+    width, height = _png_size(os.path.join(docs_root, "assets", "img", lang, name))
+    alt = esc(pick(caption, lang))
+    return (
+        '<figure class="my-6">'
+        '<img src="%s" width="%d" height="%d" alt="%s" loading="lazy" '
+        'class="rounded-xl border border-stone-300 shadow-sm mx-auto block '
+        'max-w-full h-auto bg-white">'
+        '<figcaption class="text-center text-xs text-stone-500 mt-2">%s</figcaption>'
+        "</figure>" % (src, width, height, alt, alt)
+    )
+
+
 def toc(entries: Iterable[dict], label, lang: str) -> str:
     """Jump links for the headings on a long page."""
     links = "".join(

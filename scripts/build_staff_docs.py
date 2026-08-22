@@ -46,7 +46,13 @@ BLOCK_RENDERERS = {
     "cards": lambda a, lang: render.cards(a[0], lang),
     "flow": lambda a, lang: render.flow(a[0], lang),
     "toc": lambda a, lang: render.toc(a[0], a[1], lang),
+    "fig": lambda a, lang: render.figure(a[0], a[1], lang, DOCS_ROOT),
 }
+
+#: The figure block reads each screenshot's real pixel dimensions from here.
+#: Regenerate the shots with:
+#:   flutter test test/screenshots/docs_screenshots_test.dart --update-goldens
+DOCS_ROOT = os.path.join(ROOT, "web", "docs")
 
 
 def render_blocks(blocks, lang: str) -> str:

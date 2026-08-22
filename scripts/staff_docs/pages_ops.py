@@ -39,6 +39,9 @@ KANBAN = {
                      "بالكامل</strong>. الطلب بيوصلهم من قائمة الكارت، مش بالسحب."}),
 
         ("h", {"en": "Reading a card", "ar": "قراءة الكارت"}, "card"),
+        ("fig", "order-card.png",
+         {"en": "An order card carrying a note and no map pin",
+          "ar": "كارت طلب عليه ملاحظة ومن غير موقع على الخريطة"}),
         ("tbl",
          [{"en": "What you see", "ar": "اللي بتشوفه"}, {"en": "What it means", "ar": "معناه"}],
          [
@@ -302,6 +305,9 @@ COURIER = {
                      "مناديب وقدام كل واحد <strong>الصافي</strong> بتاعه."}),
 
         ("h", {"en": "Reading a balance", "ar": "قراءة الرصيد"}, "reading"),
+        ("fig", "courier-balances.png",
+         {"en": "One courier to collect from, one to pay",
+          "ar": "مندوب هتحصّل منه ومندوب هتدفعله"}),
         ("tbl",
          [{"en": "Label", "ar": "المكتوب"}, {"en": "Meaning", "ar": "المعنى"},
           {"en": "What you do", "ar": "تعمل إيه"}],
@@ -551,6 +557,10 @@ LINE_MANAGER = {
          {"en": "Read the staff pages first", "ar": "اقرا صفحات الموظفين الأول"},
          {"en": "Everything on the other pages applies to you unchanged - start from [Start here](index.html). This page is only the extra.",
           "ar": "كل اللي في الصفحات التانية بينطبق عليك زي ما هو — ابدأ من [ابدأ من هنا](index.html). الصفحة دي بس الزيادة."}),
+
+        ("fig", "menu-line-manager.png",
+         {"en": "A line manager's menu — Pricing and Management / Reports are the extra groups",
+          "ar": "منيو مدير الخط — التسعير والإدارة/التقارير هما المجموعتين الزيادة"}),
 
         ("h", {"en": "Cancelling an order", "ar": "إلغاء طلب"}, "cancel"),
         ("steps", [

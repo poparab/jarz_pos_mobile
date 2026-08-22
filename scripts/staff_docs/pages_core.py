@@ -173,6 +173,9 @@ LOGIN = {
                       "ar": "الموظف بينزل على <strong>كانبان المبيعات</strong>، ومدير الخط بينزل على "
                             "<strong>نقطة البيع</strong>. والاتنين يقدروا يتنقلوا بينهم من المنيو."}},
         ]),
+        ("fig", "login.png",
+         {"en": "The sign-in screen", "ar": "شاشة الدخول"}),
+
         ("call", "info",
          {"en": "You stay signed in", "ar": "بتفضل داخل"},
          {"en": "You do not sign in again every morning. The app remembers you until you sign out, or "
@@ -201,6 +204,9 @@ LOGIN = {
                       "ar": "التطبيق هيسألك \"تحويل اللغة إلى العربية؟\". أكّد وهيتقلب التطبيق كله، "
                             "وكمان الاتجاه من اليمين للشمال. مفيش حاجة بتتغير في طلباتك."}},
         ]),
+
+        ("fig", "menu-staff.png",
+         {"en": "The menu as a staff member sees it", "ar": "المنيو زي ما الموظف بيشوفها"}),
 
         ("h", {"en": "Turning on order alerts", "ar": "تشغيل تنبيهات الطلبات"}, "alerts"),
         ("p", {"en": "When a new online order arrives, the app rings an alarm and shows the order on top "
