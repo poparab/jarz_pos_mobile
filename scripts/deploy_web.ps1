@@ -380,7 +380,29 @@ if (-not $remoteHash) {
 if ($remoteHash -ne $localHash) {
     throw "Remote web hash mismatch. local=$localHash remote=$remoteHash"
 }
-$httpResponse = Invoke-WebRequest -UseBasicParsing -Uri $config.PosUrl -TimeoutSec 60
+# The container was recreated seconds ago, so the first probe can land while
+# nginx is still coming up and 404 on a deploy that is already correct — the
+# byte-for-byte hash check above has passed by this point. That false failure
+# has aborted a production deploy mid-chain, so poll instead of trusting one
+# request. A genuinely broken deploy still fails, just 60s later.
+$httpResponse = $null
+$probeDeadline = (Get-Date).AddSeconds(60)
+$probeError = $null
+do {
+    try {
+        $httpResponse = Invoke-WebRequest -UseBasicParsing -Uri $config.PosUrl -TimeoutSec 30
+    } catch {
+        $probeError = $_
+        if ((Get-Date) -lt $probeDeadline) {
+            Write-Warn "POS web not answering yet; retrying..."
+            Start-Sleep -Seconds 5
+        }
+    }
+} while (-not $httpResponse -and (Get-Date) -lt $probeDeadline)
+
+if (-not $httpResponse) {
+    throw "POS web did not answer at $($config.PosUrl) within 60s after restart: $probeError"
+}
 Write-Info "Local main.dart.js hash: $localHash"
 Write-Info "Remote main.dart.js hash: $remoteHash"
 Write-Info "POS web HTTP status: $($httpResponse.StatusCode)"
