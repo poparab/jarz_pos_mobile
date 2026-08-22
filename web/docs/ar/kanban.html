@@ -1,172 +1,43 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة كانبان — دليل الموظف</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بورد الطلبات — دليل جارز POS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
-<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">تسجيل الدخول</a>
-        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">الشيفت</a>
-        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">إدخال الطلبات</a>
-        <a href="kanban.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">كانبان</a>
-        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">الرحلات</a>
-        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">المصروفات</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">أرصدة المناديب</a>
-      </div>
-      <a href="../en/kanban.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div class="flex items-center gap-3 mb-1">
-      <span class="text-3xl">📋</span>
-      <h1 class="text-2xl font-bold text-brand">لوحة كانبان</h1>
-    </div>
-    <p class="text-stone-500 mb-8">الكانبان هو مركز إدارة الطلبات عندك. من هنا بتتابع الطلبات من أول ما تتسجّل لحد ما تتسلّم، وبتسجّل المدفوعات، وبتبعت رحلات التوصيل.</p>
-
-    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">تستخدمها إمتى؟</strong> طول اليوم عشان تتابع حالة الطلبات، وتقبل الطلبات الجديدة، وتسجّل إيصالات الدفع، وتبعت رحلات التوصيل.
-    </div>
-
-    <!-- Status columns -->
-    <h2 class="text-lg font-semibold mb-4">أعمدة حالة الطلبات</h2>
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
-      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm">
-        <div class="font-bold text-blue-800 mb-1">📥 تم الاستلام (Received)</div>
-        <p class="text-blue-700">طلب جديد لسه واصل من نقطة البيع. ده أول عمود في البورد.</p>
-      </div>
-      <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm">
-        <div class="font-bold text-yellow-800 mb-1">🧑‍🍳 قيد التجهيز (In Progress)</div>
-        <p class="text-yellow-700">الطلب اتقبل ودلوقتي بيتحضّر.</p>
-      </div>
-      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm">
-        <div class="font-bold text-emerald-800 mb-1">✅ جاهز (Ready)</div>
-        <p class="text-emerald-700">الطلب خلص تجهيز وبقى جاهز إنه يتستلم أو يتبعت توصيل.</p>
-      </div>
-      <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm">
-        <div class="font-bold text-orange-800 mb-1">🚚 خرج للتوصيل (Out for Delivery)</div>
-        <p class="text-orange-700">الطلب اتبعت مع المندوب والتوصيل شغّال دلوقتي.</p>
-      </div>
-      <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-sm">
-        <div class="font-bold text-green-800 mb-1">🎉 تم التسليم (Delivered)</div>
-        <p class="text-green-700">الطلب اتسلّم للعميل والفلوس اتحصّلت.</p>
-      </div>
-      <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-sm">
-        <div class="font-bold text-red-800 mb-1">⛔ ملغي (Cancelled)</div>
-        <p class="text-red-700">الفواتير الملغية بتظهر هنا عشان تتابعها وتفضل واضحة قدامك.</p>
-      </div>
-    </div>
-
-    <h2 class="text-lg font-semibold mb-4">سير العمل اليومي على الكانبان</h2>
-
-    <div class="space-y-4">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">١</span>
-        <div>
-          <p class="font-semibold">افتح لوحة الكانبان</p>
-          <p class="text-sm text-stone-600 mt-1">دوس على <strong>كانبان</strong> من القائمة الجانبية أو شريط التنقل اللي تحت. كل طلبات الفرع بتاعك هتظهر كل واحد في العمود بتاعه.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٢</span>
-        <div>
-          <p class="font-semibold">اقبل الطلب الجديد</p>
-          <p class="text-sm text-stone-600 mt-1">دوّر على الطلب في عمود <strong>تم الاستلام (Received)</strong>. دوس على كارت الطلب، وبعدين دوس <strong>قبول الطلب</strong> لو الزرار ظاهر. أول ما تبدأ تجهّز، انقل أو حدّث الطلب لـ<strong>قيد التجهيز (In Progress)</strong>.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٣</span>
-        <div>
-          <p class="font-semibold">انقل الطلب لـجاهز أول ما يخلص تجهيز</p>
-          <p class="text-sm text-stone-600 mt-1">أول ما التحضير يخلص، انقل أو حدّث الطلب لـ<strong>جاهز (Ready)</strong>. معنى كده إن الطلب بقى جاهز العميل ياخده أو تحطّه في رحلة توصيل.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٤</span>
-        <div>
-          <p class="font-semibold">سجّل إيصال دفع لو محتاج</p>
-          <p class="text-sm text-stone-600 mt-1">على كارت الطلب دوس <strong>خيارات (⋮)</strong> ← <strong>إيصالات الدفع</strong>. ضيف إيصال جديد واكتب المبلغ وطريقة الدفع. الإيصالات بتفضل مستنية موافقة المدير قبل ما الطلب يتحسب مدفوع بالكامل.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٥</span>
-        <div>
-          <p class="font-semibold">ابعت الطلب الجاهز للتوصيل</p>
-          <p class="text-sm text-stone-600 mt-1">أول ما طلب التوصيل يبقى جاهز، دوس على كارته ← دوس زرار <strong>توصيل</strong>. هتظهرلك نافذة عشان تأكّد حالة الدفع وتختار مندوب. لو الطلب مش مدفوع، اختار طريقة التحصيل الصح قبل ما تبعت.<br><br>لو عايز تجمّع كذا طلب في رحلة واحدة، استخدم شاشة <a href="trips.html" class="text-brand underline">رحلات التوصيل</a>.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٦</span>
-        <div>
-          <p class="font-semibold">طلبات تم التسليم والملغية</p>
-          <p class="text-sm text-stone-600 mt-1">بعد ما التسليم يتأكّد، الطلب بيظهر في <strong>تم التسليم (Delivered)</strong>. الطلبات اللي اتلغت من مستخدم عنده صلاحية بتظهر في <strong>ملغي (Cancelled)</strong>. ملغي مش خطوة توصيل عادية؛ ده عمود بيوريك الطلبات اللي اتوقّفت.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Filters -->
-    <h2 class="text-lg font-semibold mt-10 mb-4">الفلاتر والبحث</h2>
-    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm space-y-2">
-      <p><strong>إظهار الفلاتر:</strong> دوس على أيقونة الفلتر عشان تصفّي حسب العميل، أو الحالة، أو تاريخ معيّن، أو نطاق مبلغ.</p>
-      <p><strong>البحث:</strong> استخدم خانة البحث عشان تلاقي طلب باسم العميل أو رقم الفاتورة.</p>
-      <p><strong>التحديث:</strong> دوس على أيقونة التحديث عشان تجيب آخر الطلبات من السيرفر.</p>
-    </div>
-
-    <!-- Edit invoice -->
-    <h2 class="text-lg font-semibold mt-10 mb-4">تعديل فاتورة (Amendment)</h2>
-    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm">
-      <p class="text-stone-700">لو محتاج تصحّح طلب بعد ما اتسجّل (زي منتج غلط أو كمية غلط)، دوس على كارت الطلب ← <strong>خيارات (⋮)</strong> ← <strong>تعديل الفاتورة</strong>. ده هيفتحلك مسودة تعديل في نقطة البيع. صحّح اللي عايزه وبعدين دوس <strong>تأكيد التعديل</strong>. الفاتورة الأصلية بتتستبدل بالجديدة.</p>
-      <p class="text-stone-700 mt-2">خيار <strong>تعديل الفاتورة</strong> بيظهر بس على الفواتير اللي لسه ممكن تتعدّل (يعني لسه ماوصلتش لـ<strong>Out for Delivery</strong> أو <strong>Delivered</strong> أو <strong>Cancelled</strong>).</p>
-    </div>
-
-    <!-- Tips -->
-    <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-amber-800 mb-2">💡 نصائح</h3>
-      <ul class="list-disc list-inside space-y-1 text-amber-900">
-        <li>بُص على الكانبان أول كل شيفت عشان تشوف لو في طلبات من بالليل لسه في تم الاستلام (Received).</li>
-        <li>أي طلب عليه شارة «غير مدفوع» حمرا، لازم تحصّل فلوسه قبل ما تبعته للتوصيل.</li>
-        <li>استخدم <strong>تغيير وقت التوصيل</strong> من الخيارات لو العميل طلب وقت تاني بعد ما عمل الطلب.</li>
-      </ul>
-    </div>
-
-    <!-- Common issues -->
-    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-red-800 mb-2">⚠️ مشاكل شائعة</h3>
-      <ul class="list-disc list-inside space-y-1 text-red-900">
-        <li><strong>الطلب مش بينتقل للعمود اللي بعده:</strong> يمكن الإجراء فشل على السيرفر. اتأكد إن النت شغّال وحاول تاني.</li>
-        <li><strong>تحذير «الفاتورة غير مدفوعة»:</strong> حصّل الفلوس من العميل أو اختار إن المندوب هو اللي يحصّل قبل ما تبعت.</li>
-        <li><strong>مش لاقي الطلب؟</strong> استخدم البحث أو امسح كل الفلاتر. الطلبات اللي بره نطاق التاريخ ممكن تكون متخبّية.</li>
-      </ul>
-    </div>
-
-    <div class="mt-10 flex justify-between no-print">
-      <a href="pos.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
-        → إدخال الطلبات
-      </a>
-      <a href="trips.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
-        ← التالي: رحلات التوصيل
-      </a>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف · الكانبان</footer>
+<body class="bg-stone-50 font-cairo text-stone-800">
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">ابدأ من هنا</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الدخول</a><a href="shift.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الوردية</a><a href="pos.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">عمل طلب</a><a href="kanban.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">بورد الطلبات</a><a href="courier-balances.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">حساب المندوب</a><a href="trips.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الرحلات</a><a href="expenses.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">المصاريف والطلبات</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">مدير الخط</a></div><a href="../en/kanban.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">English</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#128203;</span><h1 class="text-2xl font-bold text-brand">بورد الطلبات</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">كل طلب بيعيش هنا من أول ما يتعمل لحد ما يتسلّم. إنت بتحركه عمود عمود، والفلوس بتتسجل وقت ما يخرج.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">لمين</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">موظف</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">مدير خط</span></div><nav class="bg-brand-light border border-brand/20 rounded-xl px-5 py-4 my-6 no-print"><p class="text-xs uppercase tracking-wide text-brand font-bold mb-2">في الصفحة دي</p><div class="flex flex-wrap gap-x-4 gap-y-1"><a href="#columns" class="text-sm text-brand hover:underline whitespace-nowrap">الأعمدة</a><a href="#card" class="text-sm text-brand hover:underline whitespace-nowrap">قراءة الكارت</a><a href="#finding" class="text-sm text-brand hover:underline whitespace-nowrap">تلاقي طلب</a><a href="#moving" class="text-sm text-brand hover:underline whitespace-nowrap">تحريك طلب</a><a href="#ofd" class="text-sm text-brand hover:underline whitespace-nowrap">إرساله للتوصيل</a><a href="#menu" class="text-sm text-brand hover:underline whitespace-nowrap">قائمة الكارت</a><a href="#trouble" class="text-sm text-brand hover:underline whitespace-nowrap">متوقف؟</a></div></nav>
+<h2 id="columns" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">الأعمدة</h2>
+<div class="overflow-x-auto my-6 -mx-4 px-4"><div class="flex gap-1 items-stretch w-max"><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">مستلم</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">قيد التنفيذ</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">جاهز</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">خارج للتوصيل</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">تم التسليم</span></div></div>
+<p class="text-stone-700 leading-relaxed mb-4">فيه عمودين كمان بس عمرك ما بتسحب عليهم: <strong>ملغي</strong> و<strong>مرتجع بالكامل</strong>. الطلب بيوصلهم من قائمة الكارت، مش بالسحب.</p>
+<h2 id="card" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">قراءة الكارت</h2>
+<div class="overflow-x-auto my-6 rounded-xl border border-stone-200 bg-white shadow-sm"><table class="w-full text-sm border-collapse"><thead class="bg-stone-50"><tr><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">اللي بتشوفه</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">معناه</th></tr></thead><tbody><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">رقم الطلب</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">لو الطلب أونلاين، ده رقم ووكومرس اللي العميل يعرفه. استخدم الرقم ده وإنت بتكلمه.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">المنطقة</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">منطقة التوصيل، مكتوبة على الكارت عشان تجمع الطلبات الرايحة نفس الناحية.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700"><strong>الموقع متحدد</strong> / <strong>مفيش موقع</strong></td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">هل العنوان عليه إحداثيات حقيقية ولا لأ. <em>"لسه مفيش موقع على الخريطة — ضيف رابط الموقع قبل الخروج للتوصيل"</em> معناها إن المندوب هيخمّن. ظبّطها قبل ما تبعت الطلب.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">شريط الملاحظة</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700"><strong>آخر ملاحظة</strong> بتوريك آخر ملاحظة تشغيلية على الطلب. دوس عليها تقرا الكل. لو زميلك ساب تحذير، هتلاقيه هنا.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700"><strong>محطة ٣</strong> / <strong>٢/٥ اتسلّم</strong></td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">خط سير المندوب: الطلب ده محطة رقم كام، والخط وصل لفين. و<strong>التسليم فات</strong> معناها إن المندوب جرّب ومحصلش تسليم.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700"><strong>مرتجع بالكامل</strong> / <strong>مرتجع جزئي</strong></td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">جزء من الطلب أو كله رجع واتحسب للعميل.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700"><strong>الشحن المخصص قيد الانتظار</strong></td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">حد طلب رسوم توصيل مختلفة والمدير لسه مردش. الطلب مش هيقدر يخرج قبل ما يرد.</td></tr></tbody></table></div>
+<h2 id="finding" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">تلاقي طلب</h2>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>البحث</strong> بياخد رقم الطلب أو اسم العميل أو رقم التليفون. التليفون أسرع حاجة لما عميل يتصل.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span>شرايط الفلتر فوق وبتفضل ظاهرة: التاريخ (<strong>النهاردة</strong>، <strong>آخر ٧ أيام</strong>...)، العميل، الحالة، المبلغ، الفرع. والشريط بيقولك كام فلتر شغال و<strong>مسح الكل</strong> بيشيلهم.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>تصفية حسب الفروع</strong> مهمة لو بتغطي أكتر من فرع — الطلب اللي مش لاقيه غالبًا متفلتر، مش ضايع.</span></li></ul>
+<div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>البورد بيحدّث نفسه</span></p><p class="text-sm text-sky-900 leading-relaxed">الطلبات الجديدة وتحركات زمايلك بتظهر لوحدها. و<strong>تحديث الطلبات</strong> موجود لو شاكك إن النت قطع.</p></div>
+<h2 id="moving" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">تحريك طلب</h2>
+<p class="text-stone-700 leading-relaxed mb-4">اسحب الكارت للعمود اللي بعده، أو استخدم <strong>انقل</strong> من الكارت. تلات قواعد التطبيق بيفرضها:</p>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>لقدام بس.</strong> <em>"لا يمكن التراجع للخلف"</em> — الطلب اللي وصل جاهز مبيرجعش لقيد التنفيذ. ولو اتحرك بالغلط، سيب ملاحظة وقول لمدير الخط.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>مرحلة واحدة كل مرة.</strong> <em>"يمكن التقدم مرحلة واحدة فقط"</em> — مينفعش تنط من مستلم لخارج للتوصيل.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>مفيش سحب على ملغي أو مرتجع.</strong> التطبيق بيقولها صريح: افتح قائمة الكارت واختار <strong>إلغاء الطلب</strong> أو <strong>مرتجع الطلب</strong> — الاتنين محتاجين سبب، والاتنين من صلاحيات مدير الخط.</span></li></ul>
+<h2 id="ofd" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">إرسال الطلب للتوصيل</h2>
+<p class="text-stone-700 leading-relaxed mb-4">نقل الكارت لـ<strong>خارج للتوصيل</strong> هي الخطوة اللي بتتحدد فيها الفلوس. التطبيق بيسألك حاجتين.</p>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">المندوب والطريقة</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">اختار المندوب اللي هياخده. مش لاقيه؟ <strong>مندوب جديد</strong> بيعمل واحد (الاسم الأول والأخير والتليفون، وهل هو موظف ولا مورّد).</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">ادفع الآن (نقدي) أو تسوية لاحقاً</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>ادفع الآن</strong> — الفلوس بتتسلّم دلوقتي على الكاشير. <strong>تسوية لاحقاً</strong> — المندوب هيسوّي مع الفرع لما يرجع، والمبلغ بيفضل على حسابه لحد ما يسوّي.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">راجع أرقام التسوية</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">التأكيد بيوريك <strong>تحصيل من المندوب</strong> أو <strong>سداد للمندوب</strong> والحساب مكتوب — قيمة الطلب والشحن والصافي. اقرا الصافي قبل ما تأكد؛ ده الرقم اللي لازم يطابق الفلوس اللي في إيدك.</p></div></li></ol>
+<div class="bg-amber-50 border-s-4 border-amber-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-amber-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9888;</span><span>"الفاتورة غير مدفوعة"</span></p><p class="text-sm text-amber-900 leading-relaxed">الطلب لسه مفيهوش دفع مسجل. اختار الاختيار اللي بيسجّل إن المندوب حصّل كاش دلوقتي، وإلا الطلب هيخرج من غير أي قيد والفلوس ملهاش مكان لما ترجع.</p></div>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>طلبات الاستلام مالهاش تسوية.</strong> <em>"طلبات الاستلام لا تحتاج تسوية"</em> دي طبيعية — مفيش مندوب ومفيش فلوس تتحرك.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>الطلبات الأونلاين المستنية إنستاباي</strong> بيظهر عليها <em>"خرج للتوصيل — في انتظار إنستاباي"</em>. العميل بيدفع أونلاين، المندوب مش شايل فلوس، واللي بيتسوّى معاه هو مصاريف الشحن بس.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>لو الطلب جزء من رحلة</strong>، التطبيق هيرفض وهيقولك تبعت الرحلة كلها من شاشة الرحلات.</span></li></ul>
+<div class="bg-red-50 border-s-4 border-red-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-red-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#10005;</span><span>تلات حاجات بيوقفوا الخروج</span></p><p class="text-sm text-red-900 leading-relaxed">(١) <em>"يرجى اختيار منطقة فرعية قبل الإرسال للتوصيل"</em> — حددها على الطلب. (٢) <em>"طلب الشحن المخصص قيد اعتماد المدير"</em> — لازم المدير يرد الأول. (٣) <strong>اعتماد عجز المخزون قبل الإرسال</strong> — البضاعة ناقصة في المخزن، ولازم تكتب سبب قبل ما الطلب يخرج.</p></div>
+<h2 id="menu" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">قائمة الكارت</h2>
+<p class="text-stone-700 leading-relaxed mb-4">علامة <strong>&amp;#8942;</strong> اللي على كل كارت. اللي بيظهر بيعتمد على الطلب واقف فين وإنت مسموحلك بإيه.</p>
+<div class="overflow-x-auto my-6 rounded-xl border border-stone-200 bg-white shadow-sm"><table class="w-full text-sm border-collapse"><thead class="bg-stone-50"><tr><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">الإجراء</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">تستخدمه لما</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">مين</th></tr></thead><tbody><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الملاحظات</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">أي حاجة اللي بعديك محتاج يعرفها — العميل اتصل، العنوان مش واضح، محاولة تانية. دي ذاكرة الطلب.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الكل</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">تعديل عنوان العميل</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">العنوان أو التليفون غلط. تغيير العنوان ممكن يغيّر رسوم التوصيل، والتطبيق هيقولك.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الكل</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">تغيير موعد التوصيل</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">العميل عايز ميعاد تاني.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الكل</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">تعديل الفاتورة</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الأصناف أو الكميات غلط. ده بيفتح الطلب تاني في السلة؛ راجعه وابعت التعديل.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الكل</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">طباعة</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الإيصال. لو قالك الطابعة مش متصلة، افتح الطابعات من فوق الأول.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الكل</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">تحويل الطلب</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الطلب راح لفرع غلط. الطلب هينتقل ويرجع لحالة مستلم.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الكل</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">طلب شحن مخصص</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الطلب ده فعلًا محتاج رسوم توصيل مختلفة. اكتب المبلغ وسبب حقيقي (١٠ حروف على الأقل). هيستنى المدير، والطلب مش هيقدر يخرج في الوقت ده.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الكل</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">تغيير طريقة التحصيل</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">العميل دفع بطريقة غير اللي على الطلب. والطريقة الأونلاين محتاجة رقم مرجع.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">مدير الخط</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">حدد دخل التوصيل</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">بيغيّر رسوم التوصيل على الطلب ده؛ وسيبها فاضية بترجّع افتراضي المنطقة. وبيعمل تعديل للطلب.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">تسعير المدير</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">مرتجع الطلب</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">بضاعة راجعة بعد ما خرجت.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">مدير الخط</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">إلغاء الطلب</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الطلب ده مالوش لزمة أصلًا. وبيبقى مقفول لو اتاخدت دفعة جزئية.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">مدير الخط</td></tr></tbody></table></div>
+<h2 id="trouble" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">متوقف؟ اقرا الرسالة</h2>
+<div class="space-y-3 my-6"><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"الطلب ده اترجع بالكامل ومش هينفع يتحرك تاني"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">الطلب اللي رجع بالكامل خلاص خلص. بيفضل في عمود المرتجع ومفيش حاجة بتحركه. ولو البضاعة هتخرج تاني، ده طلب جديد.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"فشلت التسوية: طرف المندوب مفقود"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">الطلب مفيهوش مندوب. عيّن واحد وحاول تاني.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"انتهت صلاحية المعاينة. أعد المحاولة"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">أرقام التسوية اتحسبت من فترة وبقت مش موثوقة. ابدأ الحركة من الأول — ده بيحميك إنك تسوّي على رقم قديم.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"العنوان اتحفظ، بس ... مش مطابق لأي منطقة"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">العنوان اتحفظ بس رسوم التوصيل ماتحدّثتش، لأن اسم المنطقة اللي عليه مش منطقة حقيقية. افتح العنوان تاني واختار منطقة صح، وإلا الطلب هيمشي بشحن غلط.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>الطابعة مش بتطبع</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">افتح <strong>الطابعات</strong> من فوق في البورد وأعد التوصيل. وفوق كمان بيبان الحالة — <strong>غير متصل</strong>، <strong>جارٍ الاتصال</strong>، BLE أو كلاسيك.</div></details></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">جارز POS &middot; دليل الموظفين ومديري الخطوط<br><span class="text-stone-300">تقدر تطبعها &mdash; استخدم أمر الطباعة في المتصفح.</span></footer>
 </body>
 </html>

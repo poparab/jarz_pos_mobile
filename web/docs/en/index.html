@@ -1,102 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Staff Guide — English</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff &amp; Line Manager Guide — Jarz POS Guide</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body class="bg-stone-50 font-sans text-stone-800">
-
-  <!-- Top Nav -->
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="../index.html" class="font-bold text-lg tracking-wide">JARZ POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">Login</a>
-        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">Shift</a>
-        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">POS Order</a>
-        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">Kanban</a>
-        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">Trips</a>
-        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">Expenses</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">Courier Balances</a>
-      </div>
-      <a href="../ar/index.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">عربي</a>
-    </div>
-  </nav>
-
-  <main class="max-w-5xl mx-auto px-4 py-10">
-    <!-- Hero -->
-    <div class="bg-brand text-white rounded-2xl p-8 mb-10 text-center shadow">
-      <h1 class="text-3xl font-bold">Staff User Guide</h1>
-      <p class="mt-2 text-orange-100">Everything you need to use the Jarz POS system</p>
-    </div>
-
-    <!-- Section cards -->
-    <h2 class="text-lg font-semibold text-stone-500 uppercase tracking-wide mb-4">Functions</h2>
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-
-      <a href="login.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
-        <div class="text-2xl mb-2">🔑</div>
-        <div class="font-bold text-stone-800 group-hover:text-brand">1. Login &amp; Profile</div>
-        <div class="text-sm text-stone-500 mt-1">Sign in, choose Employee mode, change password, log out.</div>
-      </a>
-
-      <a href="shift.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
-        <div class="text-2xl mb-2">🕐</div>
-        <div class="font-bold text-stone-800 group-hover:text-brand">2. Shift Start &amp; End</div>
-        <div class="text-sm text-stone-500 mt-1">Open your shift with cash drawer opening balance; close it with actual cash at end of day.</div>
-      </a>
-
-      <a href="pos.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
-        <div class="text-2xl mb-2">🛒</div>
-        <div class="font-bold text-stone-800 group-hover:text-brand">3. POS Order Entry</div>
-        <div class="text-sm text-stone-500 mt-1">Select customer first, add items, pick delivery slot or pickup, choose payment, submit.</div>
-      </a>
-
-      <a href="kanban.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
-        <div class="text-2xl mb-2">📋</div>
-        <div class="font-bold text-stone-800 group-hover:text-brand">4. Kanban Board</div>
-        <div class="text-sm text-stone-500 mt-1">Track orders through Received → In Progress → Ready → Out for Delivery → Delivered → Cancelled.</div>
-      </a>
-
-      <a href="trips.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
-        <div class="text-2xl mb-2">🚚</div>
-        <div class="font-bold text-stone-800 group-hover:text-brand">5. Delivery Trips</div>
-        <div class="text-sm text-stone-500 mt-1">Create delivery trips, assign courier, send out, and mark delivered.</div>
-      </a>
-
-      <a href="expenses.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
-        <div class="text-2xl mb-2">💳</div>
-        <div class="font-bold text-stone-800 group-hover:text-brand">6. Daily Expenses</div>
-        <div class="text-sm text-stone-500 mt-1">Record a daily expense and submit it for manager approval.</div>
-      </a>
-
-      <a href="courier-balances.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group">
-        <div class="text-2xl mb-2">⚖️</div>
-        <div class="font-bold text-stone-800 group-hover:text-brand">7. Courier Balances</div>
-        <div class="text-sm text-stone-500 mt-1">View outstanding cash balances owed to or by each courier.</div>
-      </a>
-
-    </div>
-
-    <!-- Typical day flow -->
-    <div class="mt-10 bg-orange-50 border border-orange-200 rounded-xl p-6">
-      <h2 class="font-bold text-brand text-base mb-3">A Typical Staff Day</h2>
-      <ol class="space-y-2 text-sm text-stone-700 list-none">
-        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">1</span><span><strong>Login</strong> → choose <em>Employee</em> mode</span></li>
-        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">2</span><span><strong>Start Shift</strong> → enter opening cash balance</span></li>
-        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">3</span><span><strong>POS Order Entry</strong> → take and submit customer orders throughout the day</span></li>
-        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">4</span><span><strong>Kanban Board</strong> → confirm orders, manage delivery status, record payments</span></li>
-        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">5</span><span><strong>Delivery Trips</strong> → create trips for out-for-delivery orders</span></li>
-        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">6</span><span><strong>Expenses</strong> → log any cash expenses incurred during the day</span></li>
-        <li class="flex gap-3"><span class="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">7</span><span><strong>End Shift</strong> → count cash, enter closing balance, submit</span></li>
-      </ol>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · Staff Guide</footer>
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">Start here</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Sign in</a><a href="shift.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Shift</a><a href="pos.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Take an order</a><a href="kanban.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Order board</a><a href="courier-balances.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Courier money</a><a href="trips.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Trips</a><a href="expenses.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Expenses &amp; requests</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Line manager</a></div><a href="../ar/index.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">العربية</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#128075;</span><h1 class="text-2xl font-bold text-brand">Start here</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">Everything a branch staff member or a line manager needs to run a day on Jarz POS - sign in, open a shift, take orders, move them on the board, settle the courier, close out.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">For</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">Staff</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">Line manager</span></div><div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>This guide covers two roles only</span></p><p class="text-sm text-sky-900 leading-relaxed">Staff (Jarz POS Staff) and line manager (JARZ line manager). Owner, accounting, B2B sales, production and purchasing screens are deliberately left out - if a menu entry is not described here, it is not part of your job.</p></div>
+<h2 id="day" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">The day, end to end</h2>
+<div class="overflow-x-auto my-6 -mx-4 px-4"><div class="flex gap-1 items-stretch w-max"><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">Sign in</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">Pick your branch</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">Start Shift</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">Take orders</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">Move them on the board</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">Settle couriers</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">End Shift</span></div></div>
+<p class="text-stone-700 leading-relaxed mb-4">The app will not let you skip a step: no order screen without an open shift, and no shift close while a courier still owes money.</p>
+<h2 id="topics" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Pick a topic</h2>
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 my-6"><a href="login.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#128273;</div><div class="font-bold text-stone-800 group-hover:text-brand">1. Sign in</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">Open the app, sign in, switch the app to Arabic, turn on order alerts, sign out.</div></a><a href="shift.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#128340;</div><div class="font-bold text-stone-800 group-hover:text-brand">2. Shift</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">Open your shift with the counted cash, and close it at the end of the day.</div></a><a href="pos.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#128722;</div><div class="font-bold text-stone-800 group-hover:text-brand">3. Take an order</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">Customer first, then items, then pickup or a delivery slot, then Checkout.</div></a><a href="kanban.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#128203;</div><div class="font-bold text-stone-800 group-hover:text-brand">4. Order board</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">Move an order stage by stage, send it out with a courier, collect the money.</div></a><a href="courier-balances.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#9878;</div><div class="font-bold text-stone-800 group-hover:text-brand">5. Courier money</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">See what each courier owes you or you owe them, and settle it.</div></a><a href="trips.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#128666;</div><div class="font-bold text-stone-800 group-hover:text-brand">6. Trips</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">Send several orders out with one courier as a single trip.</div></a><a href="expenses.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#128179;</div><div class="font-bold text-stone-800 group-hover:text-brand">7. Expenses &amp; requests</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">Log money spent from the drawer, and ask for stock you are running out of.</div></a><a href="line-manager.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#127894;</div><div class="font-bold text-stone-800 group-hover:text-brand">8. Line manager extras</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">Cancel, return, approve custom shipping, watch shifts, close a shift someone left open.</div></a></div>
+<h2 id="roles" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Which one am I?</h2>
+<p class="text-stone-700 leading-relaxed mb-4">Open the menu and look at what is in it. Your role decides which entries exist, and the guide marks every action with the role that can do it.</p>
+<div class="overflow-x-auto my-6 rounded-xl border border-stone-200 bg-white shadow-sm"><table class="w-full text-sm border-collapse"><thead class="bg-stone-50"><tr><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">You are...</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">The app opens on</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">Extra menu entries</th></tr></thead><tbody><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Staff</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Sales Kanban (the order board)</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">None - POS, board, trips, courier balances, expenses, item requests</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Line manager</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Point of Sale</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Master Orders, Manager Dashboard, Shift Monitor, Live courier map, plus Cancel and Return on the order card</td></tr></tbody></table></div>
+<h2 id="basics" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Two things worth knowing before you start</h2>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>The app speaks Arabic.</strong> Menu &amp;rarr; <strong>Language</strong> switches the whole app between English and Arabic. This guide has the same page in both, and the button at the top right of every page switches it.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Everything is per branch.</strong> The branch you pick at the top of POS or the board (the POS profile) decides which orders you see, which stock you sell from, and which cash drawer your shift belongs to.</span></li></ul>
+<div class="space-y-3 my-6"><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>A menu entry is missing compared to my colleague</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">The menu is built from your roles. If you need an entry you do not have, ask your manager to change your role - it is not a setting on the device.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>I tapped something and got "Not permitted"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">A few entries appear for line managers that the server still refuses (Cash Transfer, Purchase Invoice, Stock Transfer, Inventory Count, and most of Reports). That is expected - they belong to the manager tier. Nothing broke.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>Which version am I on?</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">Menu &amp;rarr; <strong>About</strong> shows the build, the environment and the patch status. Have that screen open when you report a problem.</div></details></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">Jarz POS &middot; Staff &amp; Line Manager Guide<br><span class="text-stone-300">Printable &mdash; use your browser's Print for a paper copy.</span></footer>
 </body>
 </html>

@@ -1,172 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kanban Board — Staff Guide</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The order board — Jarz POS Guide</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body class="bg-stone-50 font-sans text-stone-800">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">JARZ POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">Login</a>
-        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">Shift</a>
-        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">POS Order</a>
-        <a href="kanban.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">Kanban</a>
-        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">Trips</a>
-        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">Expenses</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">Courier Balances</a>
-      </div>
-      <a href="../ar/kanban.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">عربي</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div class="flex items-center gap-3 mb-1">
-      <span class="text-3xl">📋</span>
-      <h1 class="text-2xl font-bold text-brand">Kanban Board</h1>
-    </div>
-    <p class="text-stone-500 mb-8">The Kanban is your central order management view. Move orders through their lifecycle, record payments, and dispatch for delivery.</p>
-
-    <div class="bg-brand-light border-l-4 border-brand rounded-r-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">When to use:</strong> Throughout the day to track order status, confirm incoming orders, record payment receipts, and dispatch delivery trips.
-    </div>
-
-    <!-- Order status columns -->
-    <h2 class="text-lg font-semibold mb-4">Order Status Columns</h2>
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
-      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm">
-        <div class="font-bold text-blue-800 mb-1">📥 Received</div>
-        <p class="text-blue-700">New order just submitted from POS. This is the first column on the board.</p>
-      </div>
-      <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm">
-        <div class="font-bold text-yellow-800 mb-1">🧑‍🍳 In Progress</div>
-        <p class="text-yellow-700">Order accepted and currently being prepared.</p>
-      </div>
-      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm">
-        <div class="font-bold text-emerald-800 mb-1">✅ Ready</div>
-        <p class="text-emerald-700">Order is prepared and ready for pickup or delivery dispatch.</p>
-      </div>
-      <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm">
-        <div class="font-bold text-orange-800 mb-1">🚚 Out for Delivery</div>
-        <p class="text-orange-700">Order dispatched with a courier. Delivery in progress.</p>
-      </div>
-      <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-sm">
-        <div class="font-bold text-green-800 mb-1">🎉 Delivered</div>
-        <p class="text-green-700">Order delivered and payment settled.</p>
-      </div>
-      <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-sm">
-        <div class="font-bold text-red-800 mb-1">⛔ Cancelled</div>
-        <p class="text-red-700">Cancelled invoices appear here for visibility and follow-up.</p>
-      </div>
-    </div>
-
-    <h2 class="text-lg font-semibold mb-4">Step-by-step: Daily Kanban Workflow</h2>
-
-    <div class="space-y-4 step-block">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
-        <div>
-          <p class="font-semibold">Open the Kanban Board</p>
-          <p class="text-sm text-stone-600 mt-1">Tap <strong>Kanban</strong> from the side menu or the bottom navigation. All orders for your branch appear in their respective columns.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
-        <div>
-          <p class="font-semibold">Accept a new order</p>
-          <p class="text-sm text-stone-600 mt-1">Find the order in the <strong>Received</strong> column. Tap the order card, then tap <strong>Accept Order</strong> if the button is shown. Move or update the order to <strong>In Progress</strong> when preparation starts.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
-        <div>
-          <p class="font-semibold">Move the order to Ready when prepared</p>
-          <p class="text-sm text-stone-600 mt-1">When production is finished, move or update the order to <strong>Ready</strong>. Ready means the order can now be picked up by the customer or assigned to a delivery trip.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">4</span>
-        <div>
-          <p class="font-semibold">Record a payment receipt if needed</p>
-          <p class="text-sm text-stone-600 mt-1">On an order card, tap <strong>More Options (⋮)</strong> → <strong>Payment Receipts</strong>. Add a new receipt by entering the amount and payment method. Receipts await manager confirmation before the order is considered fully paid.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">5</span>
-        <div>
-          <p class="font-semibold">Move Ready orders to Out for Delivery</p>
-          <p class="text-sm text-stone-600 mt-1">When a delivery order is ready to dispatch, tap the order card → tap the <strong>Delivery</strong> action button. A dialog asks you to confirm payment status and assign a courier. If the order is unpaid, choose the correct courier collection option before proceeding.<br><br>If the order is going into a <a href="trips.html" class="text-brand underline">Delivery Trip</a>, use the Trips screen instead.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">6</span>
-        <div>
-          <p class="font-semibold">Delivered and Cancelled orders</p>
-          <p class="text-sm text-stone-600 mt-1">After delivery is confirmed, the order appears in <strong>Delivered</strong>. Orders cancelled by an authorized user appear in <strong>Cancelled</strong>. Cancelled is not a normal delivery step; it is a visibility column for orders that were stopped.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Filters & search -->
-    <h2 class="text-lg font-semibold mt-10 mb-4">Filters &amp; Search</h2>
-    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm space-y-2">
-      <p><strong>Show Filters:</strong> Tap the filter icon to filter by customer name, status, date range, or amount range.</p>
-      <p><strong>Search orders:</strong> Use the search bar to find an order by customer name or invoice number.</p>
-      <p><strong>Filter by Branch:</strong> If you have access to multiple branches (unusual for staff), use the branch filter dropdown.</p>
-      <p><strong>Refresh Orders:</strong> Tap the refresh icon to pull the latest orders from the server.</p>
-    </div>
-
-    <!-- Edit invoice -->
-    <h2 class="text-lg font-semibold mt-10 mb-4">Editing an Invoice (Amendment)</h2>
-    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm">
-      <p class="text-stone-700">If you need to correct a submitted order (e.g. wrong item, wrong quantity), tap the order card → <strong>More Options (⋮)</strong> → <strong>Edit Invoice</strong>. This opens an amendment draft in the POS. Make corrections, then tap <strong>Submit Amendment</strong>. The original invoice is replaced.</p>
-      <p class="text-stone-700 mt-2">The <strong>Edit Invoice</strong> option only appears on invoices that can still be amended (i.e. not yet Out for Delivery, Delivered, or Cancelled).</p>
-    </div>
-
-    <!-- Tips -->
-    <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-amber-800 mb-2">💡 Tips</h3>
-      <ul class="list-disc list-inside space-y-1 text-amber-900">
-        <li>Check the Kanban at the start of every shift to see if any overnight orders are still in Received.</li>
-        <li>An order with a red "UNPAID" badge must have payment collected before marking Out for Delivery.</li>
-        <li>Use <strong>Change Delivery Slot</strong> (via More Options) if the customer requests a different time after ordering.</li>
-      </ul>
-    </div>
-
-    <!-- Common issues -->
-    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-red-800 mb-2">⚠️ Common Issues</h3>
-      <ul class="list-disc list-inside space-y-1 text-red-900">
-        <li><strong>Order does not move to next column:</strong> The server action may have failed. Check your internet connection and try again.</li>
-        <li><strong>"Invoice is UNPAID" warning:</strong> Collect payment from the customer or choose the courier-collects option before dispatching.</li>
-        <li><strong>Cannot find an order:</strong> Use the search bar or clear all filters. Orders older than the current date range may be filtered out.</li>
-      </ul>
-    </div>
-
-    <div class="mt-10 flex justify-between no-print">
-      <a href="pos.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
-        ← POS Order Entry
-      </a>
-      <a href="trips.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
-        Next: Delivery Trips →
-      </a>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · Staff Guide · Kanban Board</footer>
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Start here</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Sign in</a><a href="shift.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Shift</a><a href="pos.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Take an order</a><a href="kanban.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">Order board</a><a href="courier-balances.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Courier money</a><a href="trips.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Trips</a><a href="expenses.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Expenses &amp; requests</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Line manager</a></div><a href="../ar/kanban.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">العربية</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#128203;</span><h1 class="text-2xl font-bold text-brand">The order board</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">Every order lives here from the moment it is placed until it is delivered. You move it one column at a time, and the money is recorded when it goes out.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">For</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">Staff</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">Line manager</span></div><nav class="bg-brand-light border border-brand/20 rounded-xl px-5 py-4 my-6 no-print"><p class="text-xs uppercase tracking-wide text-brand font-bold mb-2">On this page</p><div class="flex flex-wrap gap-x-4 gap-y-1"><a href="#columns" class="text-sm text-brand hover:underline whitespace-nowrap">The columns</a><a href="#card" class="text-sm text-brand hover:underline whitespace-nowrap">Reading a card</a><a href="#finding" class="text-sm text-brand hover:underline whitespace-nowrap">Finding an order</a><a href="#moving" class="text-sm text-brand hover:underline whitespace-nowrap">Moving an order</a><a href="#ofd" class="text-sm text-brand hover:underline whitespace-nowrap">Sending it out</a><a href="#menu" class="text-sm text-brand hover:underline whitespace-nowrap">The card menu</a><a href="#trouble" class="text-sm text-brand hover:underline whitespace-nowrap">Blocked?</a></div></nav>
+<h2 id="columns" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">The columns</h2>
+<div class="overflow-x-auto my-6 -mx-4 px-4"><div class="flex gap-1 items-stretch w-max"><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">Received</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">In Progress</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">Ready</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">Out for Delivery</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">Delivered</span></div></div>
+<p class="text-stone-700 leading-relaxed mb-4">Two more columns exist but you never drag into them: <strong>Cancelled</strong> and <strong>Returned</strong>. An order gets there through the card menu, not by dragging.</p>
+<h2 id="card" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Reading a card</h2>
+<div class="overflow-x-auto my-6 rounded-xl border border-stone-200 bg-white shadow-sm"><table class="w-full text-sm border-collapse"><thead class="bg-stone-50"><tr><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">What you see</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">What it means</th></tr></thead><tbody><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The order number</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">For an online order this is the WooCommerce number the customer knows. Use that number when you talk to them.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The area</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The delivery area, printed on the card so you can group orders going the same way.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700"><strong>Pinned</strong> / <strong>No map pin</strong></td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Whether the address has real map coordinates. <em>"No map pin yet - add the location link before dispatch"</em> means the courier will be guessing. Fix it before you send the order out.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The note strip</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700"><strong>LATEST NOTE</strong> shows the last operational note on the order. Tap it to read all of them. If a colleague left a warning, it is here.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700"><strong>Stop 3</strong> / <strong>2/5 delivered</strong></td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The courier's run: which stop this order is, and how far along the run is. <strong>Delivery missed</strong> means the courier tried and did not deliver.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700"><strong>Returned</strong> / <strong>Partially returned</strong></td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Part or all of the order came back and was credited to the customer.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700"><strong>Custom shipping pending</strong></td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Somebody asked for a different delivery charge and a manager has not answered yet. The order cannot go out until they do.</td></tr></tbody></table></div>
+<h2 id="finding" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Finding an order</h2>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Search</strong> takes an order number, a customer name or a phone number. Phone is the fastest when a customer calls.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span>The filter chips sit across the top and stay visible: date (<strong>Today</strong>, <strong>Last 7 days</strong>, ...), customer, status, amount, branch. The bar shows how many filters are on and <strong>Clear All</strong> removes them.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Filter by Branches</strong> matters if you cover more than one branch - an order you cannot find is usually filtered out, not missing.</span></li></ul>
+<div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>The board updates itself</span></p><p class="text-sm text-sky-900 leading-relaxed">New orders and moves made by colleagues appear on their own. <strong>Refresh Orders</strong> is there for when you suspect the connection dropped.</p></div>
+<h2 id="moving" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Moving an order</h2>
+<p class="text-stone-700 leading-relaxed mb-4">Drag the card to the next column, or use <strong>Move</strong> from the card. Three rules the app enforces:</p>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Forward only.</strong> <em>"Cannot move backward"</em> - an order that reached Ready does not go back to In Progress. If it was moved by mistake, leave a note and tell your line manager.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>One stage at a time.</strong> <em>"Can only move one stage at a time"</em> - you cannot jump Received straight to Out for Delivery.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>No dragging into Cancelled or Returned.</strong> The app says so plainly: use the card menu and pick <strong>Cancel Order</strong> or <strong>Return Order</strong> - both need a reason, and both are line-manager actions.</span></li></ul>
+<h2 id="ofd" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Sending it out for delivery</h2>
+<p class="text-stone-700 leading-relaxed mb-4">Moving a card into <strong>Out for Delivery</strong> is the step where the money is decided. The app asks two things.</p>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">Courier &amp; Mode</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">Pick the courier taking it. Not in the list? <strong>New Courier</strong> creates one (first name, last name, phone, and whether they are an employee or a supplier).</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">Pay Now (Cash) or Settle Later</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>Pay Now</strong> - the cash changes hands right now at the counter. <strong>Settle Later</strong> - the courier settles with the branch when they come back, and the amount stays on their balance until they do.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">Check the settlement figures</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">The confirmation shows <strong>Collect From Courier</strong> or <strong>Pay Courier</strong> with the arithmetic spelled out - order amount, shipping, and the net. Read the net before you confirm; it is the number that has to match the cash in your hand.</p></div></li></ol>
+<div class="bg-amber-50 border-s-4 border-amber-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-amber-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9888;</span><span>"Invoice is UNPAID"</span></p><p class="text-sm text-amber-900 leading-relaxed">The order has no payment recorded yet. Choose the option that records the courier collecting cash now, otherwise the order goes out with nothing booked against it and the money has no home when it comes back.</p></div>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Pickup orders never settle.</strong> <em>"Pickup orders don't require settlement"</em> is normal - no courier, no money to move.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Online orders awaiting InstaPay</strong> show <em>"Out for delivery - awaiting InstaPay"</em>. The customer pays online, the courier carries nothing, and only the shipping fee is settled with them.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>If the order is part of a trip</strong>, the app refuses and tells you to send the whole trip from the Trips screen instead.</span></li></ul>
+<div class="bg-red-50 border-s-4 border-red-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-red-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#10005;</span><span>Three things that block dispatch</span></p><p class="text-sm text-red-900 leading-relaxed">(1) <em>"Please select a sub-territory before sending out for delivery"</em> - set it on the order. (2) <em>"Custom shipping request is pending manager approval"</em> - a manager has to answer first. (3) <strong>Approve stock shortage for dispatch</strong> - the goods are short at the warehouse, and a reason has to be typed before the order can leave.</p></div>
+<h2 id="menu" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">The card menu</h2>
+<p class="text-stone-700 leading-relaxed mb-4">The <strong>&amp;#8942;</strong> on each card. What appears depends on where the order is and what you are allowed to do.</p>
+<div class="overflow-x-auto my-6 rounded-xl border border-stone-200 bg-white shadow-sm"><table class="w-full text-sm border-collapse"><thead class="bg-stone-50"><tr><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">Action</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">Use it when</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">Who</th></tr></thead><tbody><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Notes</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Anything the next person needs to know - customer called, address unclear, second attempt. This is the memory of the order.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Everyone</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Edit Customer Address</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The address or phone is wrong. Changing the address can change the delivery charge, and the app tells you when it does.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Everyone</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Change Delivery Slot</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The customer wants a different time.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Everyone</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Edit Invoice</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Items or quantities are wrong. This opens the order back in the cart; review it and submit the amendment.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Everyone</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Print</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The receipt. If it says the printer is not connected, open Printers from the header first.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Everyone</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Transfer Order</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The wrong branch got it. The order moves and goes back to Received.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Everyone</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Request Custom Shipping</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">This order genuinely needs a different delivery charge. Give an amount and a real reason (at least 10 characters). It waits for a manager, and the order cannot go out meanwhile.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Everyone</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Change collection method</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The customer paid by a different method than the one on the order. An online method needs a reference number.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Line manager</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Set Delivery Income</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Overrides the delivery charge on this order; blank restores the area default. It creates an amendment.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Manager pricing</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Return Order</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Goods are coming back after dispatch.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Line manager</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Cancel Order</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The order should not exist. Greyed out if a partial payment was taken.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Line manager</td></tr></tbody></table></div>
+<h2 id="trouble" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Blocked? Read the message</h2>
+<div class="space-y-3 my-6"><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"This order was fully returned and can no longer be moved"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">A fully returned order is finished. It stays in the Returned column and nothing moves it. If goods are going out again, that is a new order.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"Settlement failed: courier party missing"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">The order has no courier attached. Assign one and try again.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"Preview expired. Please retry."</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">The settlement figures were calculated a while ago and are no longer trusted. Start the move again - this protects you from settling against a stale number.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"Address saved, but ... matches no territory"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">The address saved but the delivery charge did not update, because the area name on it is not a real territory. Reopen the address and pick a proper territory, or the order will carry the wrong shipping.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>The printer will not print</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">Open <strong>Printers</strong> from the board header and reconnect. The header also shows the current state - <strong>Not Connected</strong>, <strong>Connecting...</strong>, BLE or Classic.</div></details></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">Jarz POS &middot; Staff &amp; Line Manager Guide<br><span class="text-stone-300">Printable &mdash; use your browser's Print for a paper copy.</span></footer>
 </body>
 </html>

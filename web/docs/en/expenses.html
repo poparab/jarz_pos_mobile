@@ -1,135 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daily Expenses — Staff Guide</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expenses &amp; item requests — Jarz POS Guide</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body class="bg-stone-50 font-sans text-stone-800">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">JARZ POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">Login</a>
-        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">Shift</a>
-        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">POS Order</a>
-        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">Kanban</a>
-        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">Trips</a>
-        <a href="expenses.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">Expenses</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">Courier Balances</a>
-      </div>
-      <a href="../ar/expenses.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">عربي</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div class="flex items-center gap-3 mb-1">
-      <span class="text-3xl">💳</span>
-      <h1 class="text-2xl font-bold text-brand">Daily Expenses</h1>
-    </div>
-    <p class="text-stone-500 mb-8">Record any cash or non-cash expense incurred during your shift and submit it for manager approval.</p>
-
-    <div class="bg-brand-light border-l-4 border-brand rounded-r-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">When to use:</strong> Any time you spend money for work purposes — e.g. buying supplies, printing costs, petty cash items. Record it the same day it happens.
-    </div>
-
-    <h2 class="text-lg font-semibold mb-4">Step-by-step: Adding a New Expense</h2>
-
-    <div class="space-y-4 step-block">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
-        <div>
-          <p class="font-semibold">Open the Expenses screen</p>
-          <p class="text-sm text-stone-600 mt-1">Tap <strong>Expenses</strong> from the side menu. The screen shows all expenses you have submitted this month, with a summary at the top: Total, Approved, Pending.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
-        <div>
-          <p class="font-semibold">Tap <strong>+ New Expense</strong></p>
-          <p class="text-sm text-stone-600 mt-1">The expense form appears.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
-        <div>
-          <p class="font-semibold">Fill in the expense details</p>
-          <p class="text-sm text-stone-600 mt-1">
-            <strong>Reason (Expense account):</strong> Select the category from the dropdown (e.g. Stationery, Cleaning Supplies).<br>
-            <strong>Pay from:</strong> Select the payment source (e.g. Cash, InstaPay).<br>
-            <strong>Amount:</strong> Enter the amount paid.<br>
-            <strong>Expense date:</strong> Defaults to today. Change if needed.<br>
-            <strong>Remarks:</strong> Optional — add a short note explaining what was purchased.
-          </p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">4</span>
-        <div>
-          <p class="font-semibold">Tap <strong>"Submit for Approval"</strong></p>
-          <p class="text-sm text-stone-600 mt-1">The expense is saved and sent to your manager for review. You will see a confirmation: <em>"Expense submitted for approval"</em>. The expense appears in your list with a <strong>Pending Approval</strong> badge.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">5</span>
-        <div>
-          <p class="font-semibold">Manager approves</p>
-          <p class="text-sm text-stone-600 mt-1">Once your manager approves the expense, the badge changes to <strong>Approved</strong> and the amount appears under the Approved total in the summary.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Viewing expenses -->
-    <h2 class="text-lg font-semibold mt-10 mb-4">Viewing and Filtering Expenses</h2>
-    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm space-y-2">
-      <p><strong>Month filter:</strong> By default the screen shows the current month. Tap the month selector to switch to a previous month.</p>
-      <p><strong>Filter by payment method:</strong> Tap the filter icon to show only expenses paid from a specific payment source.</p>
-      <p><strong>Pull to refresh:</strong> Swipe down on the expense list to refresh it from the server.</p>
-      <p><strong>Expense statuses:</strong> <span class="bg-yellow-100 text-yellow-800 px-1 rounded text-xs font-medium">Pending Approval</span> → awaiting manager review; <span class="bg-green-100 text-green-800 px-1 rounded text-xs font-medium">Approved</span> → confirmed; <span class="bg-stone-100 text-stone-600 px-1 rounded text-xs font-medium">Draft</span> → saved but not yet submitted.</p>
-    </div>
-
-    <!-- Tips -->
-    <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-amber-800 mb-2">💡 Tips</h3>
-      <ul class="list-disc list-inside space-y-1 text-amber-900">
-        <li>Submit expenses on the same day — do not accumulate them for later.</li>
-        <li>Always select the correct payment source so your manager can review the expense correctly.</li>
-        <li>If you do not see the correct expense reason in the list, contact your manager to add it to the system.</li>
-        <li>Drafts are saved locally — if you close the app mid-form, the draft is preserved when you reopen it.</li>
-      </ul>
-    </div>
-
-    <!-- Common issues -->
-    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-red-800 mb-2">⚠️ Common Issues</h3>
-      <ul class="list-disc list-inside space-y-1 text-red-900">
-        <li><strong>"No payment sources available":</strong> Your branch has no payment methods configured for expenses. Contact your manager.</li>
-        <li><strong>"Enter a valid amount":</strong> The amount field is empty or contains invalid characters. Enter a number (e.g. 50 or 50.5).</li>
-        <li><strong>Expense stuck in Pending:</strong> Your manager has not yet approved it. Follow up with them directly.</li>
-      </ul>
-    </div>
-
-    <div class="mt-10 flex justify-between no-print">
-      <a href="trips.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
-        ← Delivery Trips
-      </a>
-      <a href="courier-balances.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
-        Next: Courier Balances →
-      </a>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · Staff Guide · Daily Expenses</footer>
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Start here</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Sign in</a><a href="shift.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Shift</a><a href="pos.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Take an order</a><a href="kanban.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Order board</a><a href="courier-balances.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Courier money</a><a href="trips.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Trips</a><a href="expenses.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">Expenses &amp; requests</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Line manager</a></div><a href="../ar/expenses.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">العربية</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#128179;</span><h1 class="text-2xl font-bold text-brand">Expenses and item requests</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">Two different things on purpose: money that already left the drawer, and stock you are running out of.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">For</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">Staff</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">Line manager</span></div><h2 id="expense" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Recording an expense</h2>
+<p class="text-stone-700 leading-relaxed mb-4">Menu &amp;rarr; <strong>Expenses</strong> &amp;rarr; <strong>New Expense</strong>. Record it the same day - an expense remembered next week is an expense nobody can verify.</p>
+<div class="overflow-x-auto my-6 rounded-xl border border-stone-200 bg-white shadow-sm"><table class="w-full text-sm border-collapse"><thead class="bg-stone-50"><tr><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">Field</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">What to put in it</th></tr></thead><tbody><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Reason</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The expense account - the category the money went to. Pick the closest one; do not force it into whatever is at the top.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Pay from</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Where the money actually came from - the branch drawer, or another payment source. Getting this wrong makes your shift not balance.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Amount</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">What was actually spent.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Expense date</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The day the money left, not the day you are typing.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Remarks</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Optional, but this is where you say who, what and why. Write it.</td></tr></tbody></table></div>
+<div class="bg-violet-50 border-s-4 border-violet-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-violet-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9733;</span><span>Approval is manager-tier</span></p><p class="text-sm text-violet-900 leading-relaxed">Staff and line managers both see <strong>Submit for approval</strong>, and both get <em>"Expense submitted for approval"</em>. Only a JARZ Manager can approve - a line manager cannot approve their own or anyone else's.</p></div>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span>The month view totals <strong>Approved</strong> and <strong>Pending</strong> separately, so you can see what is still waiting.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Timeline</strong> on an expense shows who did what to it and when.</span></li></ul>
+<h2 id="requests" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Asking for stock</h2>
+<p class="text-stone-700 leading-relaxed mb-4">Menu &amp;rarr; <strong>Item Requests</strong>. Anyone can raise one - deliberately, because the person who notices the shortage is usually not the person who buys.</p>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">Tap +</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>Request items</strong> - add the items you need with quantities.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">Say when you need it</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>Needed by</strong> is what turns a request into a priority. A request with a real date gets bought; one without drifts.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">Add a note</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">Brand, size, urgency - whatever the person buying would otherwise have to call and ask you.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">4</span><div class="min-w-0"><p class="font-semibold text-stone-800">Send it</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">Track it under <strong>Mine</strong>. It moves through <strong>Waiting</strong> &amp;rarr; <strong>Ordered</strong> &amp;rarr; <strong>Partly bought</strong> &amp;rarr; <strong>Bought</strong>, and can come back <strong>Rejected</strong> with a reason.</p></div></li></ol>
+<div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>Not the same thing</span></p><p class="text-sm text-sky-900 leading-relaxed">An <strong>expense</strong> is money that already left. An <strong>item request</strong> is a thing you still need. Buying against a request is a manager job; asking is everyone's.</p></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">Jarz POS &middot; Staff &amp; Line Manager Guide<br><span class="text-stone-300">Printable &mdash; use your browser's Print for a paper copy.</span></footer>
 </body>
 </html>

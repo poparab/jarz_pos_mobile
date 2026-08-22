@@ -1,140 +1,29 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>المصروفات اليومية — دليل الموظف</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المصاريف وطلبات الأصناف — دليل جارز POS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
-<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">تسجيل الدخول</a>
-        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">الشيفت</a>
-        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">إدخال الطلبات</a>
-        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">كانبان</a>
-        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">الرحلات</a>
-        <a href="expenses.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">المصروفات</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">أرصدة المناديب</a>
-      </div>
-      <a href="../en/expenses.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div class="flex items-center gap-3 mb-1">
-      <span class="text-3xl">💳</span>
-      <h1 class="text-2xl font-bold text-brand">المصروفات اليومية</h1>
-    </div>
-    <p class="text-stone-500 mb-8">سجّل أي مصروف كاش أو مش كاش بيحصل خلال شيفتك وابعته للاعتماد.</p>
-
-    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">تستخدمها إمتى؟</strong> في أي وقت تصرف فيه فلوس لأغراض الشغل — زي شراء مستلزمات، تكاليف طباعة، أو أي مصاريف جانبية. سجّلها في نفس يوم الصرف.
-    </div>
-
-    <h2 class="text-lg font-semibold mb-4">خطوات إضافة مصروف جديد</h2>
-
-    <div class="space-y-4">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">١</span>
-        <div>
-          <p class="font-semibold">افتح شاشة المصروفات</p>
-          <p class="text-sm text-stone-600 mt-1">دوس على <strong>المصروفات</strong> من القائمة الجانبية. الشاشة هتوريك كل مصروفاتك في الشهر ده مع ملخّص فوق: الإجمالي، المعتمد، قيد الاعتماد.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٢</span>
-        <div>
-          <p class="font-semibold">دوس على <strong>+ مصروف جديد</strong></p>
-          <p class="text-sm text-stone-600 mt-1">هيظهرلك نموذج إدخال المصروف.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٣</span>
-        <div>
-          <p class="font-semibold">املا بيانات المصروف</p>
-          <p class="text-sm text-stone-600 mt-1">
-            <strong>سبب الصرف (حساب مصروفات):</strong> اختار التصنيف من القايمة (زي: قرطاسية، منظفات).<br>
-            <strong>الدفع من:</strong> اختار مصدر الدفع (كاش، إنستاباي...).<br>
-            <strong>القيمة:</strong> اكتب المبلغ اللي دفعته.<br>
-            <strong>تاريخ المصروف:</strong> بيكون النهاردة افتراضي — عدّله لو محتاج.<br>
-            <strong>ملاحظات (اختياري):</strong> اكتب وصف مختصر للّي اشتريته.
-          </p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٤</span>
-        <div>
-          <p class="font-semibold">دوس على <strong>إرسال للاعتماد</strong></p>
-          <p class="text-sm text-stone-600 mt-1">المصروف بيتحفظ ويتبعت لمديرك عشان يراجعه. هتظهرلك رسالة تأكيد، والمعاملة بتتضاف للقايمة وعليها شارة <strong>قيد الاعتماد</strong>.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٥</span>
-        <div>
-          <p class="font-semibold">المدير بيعتمد المصروف</p>
-          <p class="text-sm text-stone-600 mt-1">بعد الاعتماد الشارة بتتغيّر لـ <strong>معتمد</strong> والمبلغ بيتضاف لإجمالي المعتمد في الملخّص.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Viewing and filtering -->
-    <h2 class="text-lg font-semibold mt-10 mb-4">عرض المصروفات وفلترتها</h2>
-    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm space-y-2">
-      <p><strong>فلتر الشهر:</strong> افتراضياً بيعرض الشهر الحالي. دوس على محدّد الشهر عشان تنقّل لشهر فات.</p>
-      <p><strong>فلترة حسب طريقة الدفع:</strong> دوس على أيقونة الفلتر عشان تعرض مصروفات طريقة دفع معيّنة بس.</p>
-      <p><strong>تحديث القايمة:</strong> اسحب لتحت عشان تحدّث القايمة من السيرفر.</p>
-      <p><strong>حالات المصروف:</strong>
-        <span class="bg-yellow-100 text-yellow-800 px-1 rounded text-xs font-medium">قيد الاعتماد</span> ← مستني مراجعة المدير؛
-        <span class="bg-green-100 text-green-800 px-1 rounded text-xs font-medium">معتمد</span> ← المدير اعتمده؛
-        <span class="bg-stone-100 text-stone-600 px-1 rounded text-xs font-medium">مسودة</span> ← محفوظ ولسه ماتبعتش.
-      </p>
-    </div>
-
-    <!-- Tips -->
-    <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-amber-800 mb-2">💡 نصائح</h3>
-      <ul class="list-disc list-inside space-y-1 text-amber-900">
-        <li>سجّل المصروف في نفس يوم الصرف — متأجّلش.</li>
-        <li>اختار مصدر الدفع الصح دايماً عشان توفيق الكاش يطلع مظبوط في آخر الشيفت.</li>
-        <li>لو ملقيتش سبب الصرف المناسب في القايمة، كلّم مديرك عشان يضيفه.</li>
-        <li>المسودات محفوظة على الجهاز — لو قفلت النموذج هتلاقيه لما ترجع.</li>
-      </ul>
-    </div>
-
-    <!-- Common issues -->
-    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-red-800 mb-2">⚠️ مشاكل شائعة</h3>
-      <ul class="list-disc list-inside space-y-1 text-red-900">
-        <li><strong>"لا توجد مصادر دفع":</strong> الفرع مفيهوش طرق دفع متظبّطة للمصروفات. كلّم مديرك.</li>
-        <li><strong>"أدخل قيمة صحيحة":</strong> حقل القيمة فاضي أو فيه رموز غلط. اكتب رقم (زي 50 أو 50.5).</li>
-        <li><strong>المصروف لسه قيد الاعتماد من مدة:</strong> مديرك لسه ماراجعوش. فكّره على طول.</li>
-      </ul>
-    </div>
-
-    <div class="mt-10 flex justify-between no-print">
-      <a href="trips.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
-        → رحلات التوصيل
-      </a>
-      <a href="courier-balances.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
-        ← التالي: أرصدة المناديب
-      </a>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف · المصروفات</footer>
+<body class="bg-stone-50 font-cairo text-stone-800">
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">ابدأ من هنا</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الدخول</a><a href="shift.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الوردية</a><a href="pos.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">عمل طلب</a><a href="kanban.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">بورد الطلبات</a><a href="courier-balances.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">حساب المندوب</a><a href="trips.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الرحلات</a><a href="expenses.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">المصاريف والطلبات</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">مدير الخط</a></div><a href="../en/expenses.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">English</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#128179;</span><h1 class="text-2xl font-bold text-brand">المصاريف وطلبات الأصناف</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">حاجتين مختلفين بقصد: فلوس خرجت من الدرج خلاص، وبضاعة قربت تخلص.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">لمين</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">موظف</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">مدير خط</span></div><h2 id="expense" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">تسجيل مصروف</h2>
+<p class="text-stone-700 leading-relaxed mb-4">المنيو &amp;rarr; <strong>المصروفات</strong> &amp;rarr; <strong>مصروف جديد</strong>. سجّله في نفس اليوم — المصروف اللي بتفتكره الأسبوع الجاي محدش هيقدر يتأكد منه.</p>
+<div class="overflow-x-auto my-6 rounded-xl border border-stone-200 bg-white shadow-sm"><table class="w-full text-sm border-collapse"><thead class="bg-stone-50"><tr><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">الخانة</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">تحط فيها إيه</th></tr></thead><tbody><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">سبب الصرف</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">حساب المصروف — التصنيف اللي الفلوس راحت له. اختار أقرب واحد؛ متحطهاش في أول واحد في القايمة وخلاص.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الدفع من</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الفلوس خرجت منين فعلًا — درج الفرع، ولا مصدر دفع تاني. لو ظبطتها غلط، ورديتك مش هتظبط.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">القيمة</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">اللي اتصرف بالظبط.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">تاريخ المصروف</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">اليوم اللي الفلوس خرجت فيه، مش اليوم اللي بتكتب فيه.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">ملاحظات</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">اختياري، بس دي المكان اللي بتقول فيه مين وإيه وليه. اكتبها.</td></tr></tbody></table></div>
+<div class="bg-violet-50 border-s-4 border-violet-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-violet-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9733;</span><span>الاعتماد للمدير الأعلى</span></p><p class="text-sm text-violet-900 leading-relaxed">الموظف ومدير الخط الاتنين بيشوفوا <strong>إرسال للاعتماد</strong>، والاتنين بيجيلهم <em>"تم إرسال المصروف لاعتماد المدير"</em>. والاعتماد من JARZ Manager بس — مدير الخط مش بيعتمد لا بتاعه ولا بتاع حد.</p></div>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span>شاشة الشهر بتجمع <strong>المعتمدة</strong> و<strong>قيد الاعتماد</strong> كل واحدة لوحدها، فتقدر تشوف اللي لسه مستني.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>الخط الزمني</strong> على المصروف بيوريك مين عمل إيه وإمتى.</span></li></ul>
+<h2 id="requests" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">طلب بضاعة</h2>
+<p class="text-stone-700 leading-relaxed mb-4">المنيو &amp;rarr; <strong>طلبات الأصناف</strong>. أي حد يقدر يطلب — وده بقصد، لأن اللي بيلاحظ النقص مش غالبًا هو اللي بيشتري.</p>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">دوس +</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>اطلب أصناف</strong> — ضيف الأصناف اللي محتاجها بالكميات.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">قول محتاجها إمتى</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>محتاجها قبل</strong> هي اللي بتخلي الطلب أولوية. الطلب اللي عليه تاريخ حقيقي بيتشرى؛ واللي من غير بيتنسى.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">ضيف ملاحظة</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">الماركة، المقاس، الاستعجال — أي حاجة اللي هيشتري كان هيتصل بيك يسألك عليها.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">4</span><div class="min-w-0"><p class="font-semibold text-stone-800">ابعته</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">تابعه من <strong>طلباتي</strong>. بيمشي من <strong>مستني</strong> &amp;rarr; <strong>اتطلب</strong> &amp;rarr; <strong>اتشرى جزء</strong> &amp;rarr; <strong>اتشرى</strong>، وممكن يرجع <strong>مرفوض</strong> ومعاه السبب.</p></div></li></ol>
+<div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>مش نفس الحاجة</span></p><p class="text-sm text-sky-900 leading-relaxed"><strong>المصروف</strong> فلوس خرجت خلاص. و<strong>طلب الصنف</strong> حاجة لسه محتاجها. الشرا على الطلب شغل مدير؛ والطلب شغل الكل.</p></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">جارز POS &middot; دليل الموظفين ومديري الخطوط<br><span class="text-stone-300">تقدر تطبعها &mdash; استخدم أمر الطباعة في المتصفح.</span></footer>
 </body>
 </html>

@@ -1,159 +1,26 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>رحلات التوصيل — دليل الموظف</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رحلات التوصيل — دليل جارز POS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
-<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">تسجيل الدخول</a>
-        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">الشيفت</a>
-        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">إدخال الطلبات</a>
-        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">كانبان</a>
-        <a href="trips.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">الرحلات</a>
-        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">المصروفات</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">أرصدة المناديب</a>
-      </div>
-      <a href="../en/trips.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div class="flex items-center gap-3 mb-1">
-      <span class="text-3xl">🚚</span>
-      <h1 class="text-2xl font-bold text-brand">رحلات التوصيل</h1>
-    </div>
-    <p class="text-stone-500 mb-8">بتلمّ كذا طلب في رحلة توصيل واحدة، تحدّد مندوب، تبعت الرحلة، وتسجّل إنها اتسلّمت أول ما المندوب يرجع.</p>
-
-    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">تستخدمها إمتى؟</strong> لما يكون عندك كذا طلب توصيل جاهز يخرجوا مع بعض مع مندوب واحد.
-    </div>
-
-    <h2 class="text-lg font-semibold mb-4">الجزء الأول — إنشاء رحلة التوصيل</h2>
-    <p class="text-sm text-stone-500 mb-4">الرحلات بتتعمل من <strong>لوحة الكانبان</strong>، وبعد كده بتتابعها من شاشة الرحلات.</p>
-
-    <div class="space-y-4">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">١</span>
-        <div>
-          <p class="font-semibold">افتح الكانبان ودوّر على الطلبات الجاهزة</p>
-          <p class="text-sm text-stone-600 mt-1">الطلبات اللي في عمود <strong>جاهز (Ready)</strong> والمجهّزة للتوصيل تقدر تضيفها لرحلة.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٢</span>
-        <div>
-          <p class="font-semibold">اختار فواتير الرحلة</p>
-          <p class="text-sm text-stone-600 mt-1">دوس مطوّل على كارت الطلب (أو استخدم مربّع التحديد لو ظهر) عشان تحدّده. اختار كل الطلبات اللي هتتحط في الرحلة دي.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٣</span>
-        <div>
-          <p class="font-semibold">دوس <strong>إنشاء رحلة</strong></p>
-          <p class="text-sm text-stone-600 mt-1">بتظهرلك نافذة <strong>إنشاء رحلة توصيل</strong> فيها الطلبات اللي اخترتها والإجمالي ومصاريف الشحن.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٤</span>
-        <div>
-          <p class="font-semibold">اختار المندوب</p>
-          <p class="text-sm text-stone-600 mt-1">دوس <strong>اختر المندوب</strong> واختار من القايمة. رصيد المندوب الحالي بيظهر جنب اسمه — راجع <a href="courier-balances.html" class="text-brand underline">أرصدة المناديب</a> لو محتاج.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٥</span>
-        <div>
-          <p class="font-semibold">زوّد ملاحظات (اختياري) وأكّد</p>
-          <p class="text-sm text-stone-600 mt-1">اكتب أي ملاحظات في خانة <strong>ملاحظات</strong>. دوس <strong>إنشاء رحلة</strong> عشان تتحفظ. الطلبات هتتنقل لعمود <strong>خرج للتوصيل</strong> في الكانبان.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <h2 class="text-lg font-semibold mt-10 mb-4">الجزء الثاني — متابعة الرحلات من شاشة الرحلات</h2>
-
-    <div class="space-y-4">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٦</span>
-        <div>
-          <p class="font-semibold">افتح شاشة رحلات التوصيل</p>
-          <p class="text-sm text-stone-600 mt-1">دوس <strong>رحلات التوصيل</strong> من القائمة الجانبية. هتلاقي تبويبين: <strong>نشطة</strong> (الرحلات اللي شغّالة) و<strong>مكتملة</strong> (الرحلات اللي خلصت).</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٧</span>
-        <div>
-          <p class="font-semibold">دوس على كارت الرحلة عشان تشوف التفاصيل</p>
-          <p class="text-sm text-stone-600 mt-1">شاشة التفاصيل بتوريك كل الطلبات اللي في الرحلة، والمندوب المعيّن، والأوقات، والإجمالي.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٨</span>
-        <div>
-          <p class="font-semibold">إرسال للتوصيل (لو لسه ماتبعتش)</p>
-          <p class="text-sm text-stone-600 mt-1">لو الرحلة لسه جديدة وماتبعتتش، دوس <strong>إرسال للتوصيل</strong>. هتظهر رسالة <em>"تم إرسال الرحلة للتوصيل"</em> وكل طلبات الرحلة هتتنقل لخرج للتوصيل.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٩</span>
-        <div>
-          <p class="font-semibold">سجّل إن الرحلة اتسلّمت</p>
-          <p class="text-sm text-stone-600 mt-1">لما المندوب يرجع ويتأكد إن كل الطلبات اتسلّمت، دوس <strong>تم التسليم</strong>. كل الطلبات هتتنقل لـ<strong>تم التسليم (Delivered)</strong> في الكانبان، والرحلة هتروح لتبويب <strong>مكتملة</strong> في شاشة الرحلات.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Tips -->
-    <div class="mt-10 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-amber-800 mb-2">💡 نصائح</h3>
-      <ul class="list-disc list-inside space-y-1 text-amber-900">
-        <li>لمّ الطلبات اللي في نفس منطقة التوصيل في رحلة واحدة عشان تقلّل عدد الرحلات.</li>
-        <li>اتأكد من رصيد المندوب قبل ما تعيّنه — المندوب اللي عليه رصيد كبير ممكن يحتاج تسوية الأول.</li>
-        <li>لو اتضاف طلب بالغلط في الرحلة، كلّم مديرك يشيله قبل ما تبعت.</li>
-      </ul>
-    </div>
-
-    <!-- Common issues -->
-    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-red-800 mb-2">⚠️ مشاكل شائعة</h3>
-      <ul class="list-disc list-inside space-y-1 text-red-900">
-        <li><strong>الرحلة مش ظاهرة في تبويب نشطة:</strong> حدّث الشاشة — يمكن الرحلة لسه بتتزامن.</li>
-        <li><strong>مش قادر تحدّد فواتير في الكانبان:</strong> جرّب تدوس مطوّل على أول كارت تاني.</li>
-        <li><strong>«لا يوجد مناديب»:</strong> قائمة المناديب فاضية — كلّم مديرك يضيف مناديب.</li>
-      </ul>
-    </div>
-
-    <div class="mt-10 flex justify-between no-print">
-      <a href="kanban.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
-        → الكانبان
-      </a>
-      <a href="expenses.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
-        ← التالي: المصروفات
-      </a>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف · رحلات التوصيل</footer>
+<body class="bg-stone-50 font-cairo text-stone-800">
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">ابدأ من هنا</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الدخول</a><a href="shift.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الوردية</a><a href="pos.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">عمل طلب</a><a href="kanban.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">بورد الطلبات</a><a href="courier-balances.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">حساب المندوب</a><a href="trips.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">الرحلات</a><a href="expenses.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">المصاريف والطلبات</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">مدير الخط</a></div><a href="../en/trips.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">English</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#128666;</span><h1 class="text-2xl font-bold text-brand">رحلات التوصيل</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">لما مندوب واحد ياخد كذا طلب في خرجة واحدة، اجمعهم في رحلة وحركهم مع بعض بدل ما تحرك كارت كارت.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">لمين</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">موظف</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">مدير خط</span></div><h2 id="create" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">عمل رحلة</h2>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">اختار الطلبات من البورد</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">استخدم <strong>اختار طلبات</strong> ودوس على الكروت اللي هتخرج مع بعض. والعداد فوق بيعدهملك.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">فرع واحد بس</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><em>"اختار فواتير من فرع واحد بس عشان تعمل رحلة"</em> — الرحلة بتبقى لفرع واحد. لو خلطت، قسّم الاختيار.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">ظبّط المنطقة الفرعية الناقصة</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">لو طلب مفيهوش منطقة فرعية، التطبيق هيسمّيه ومش هيكمّل قبل ما تحددها. دي اللي بتقول للمندوب رايح أنهي جزء من المنطقة.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">4</span><div class="min-w-0"><p class="font-semibold text-stone-800">راجع واعمل الرحلة</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>إنشاء رحلة توصيل</strong> بتوريك عدد الطلبات وإجمالي المبلغ وإجمالي الشحن واختيار المندوب. اختار المندوب وأكّد.</p></div></li></ol>
+<div class="bg-amber-50 border-s-4 border-amber-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-amber-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9888;</span><span>شحن مضاعف</span></p><p class="text-sm text-amber-900 leading-relaxed">لو شاشة الرحلة نبّهت <strong>شحن مضاعف</strong>، يبقى فيه طلبين في الاختيار كل واحد شايل رسوم توصيل كاملة لنفس الخرجة. راجعها قبل ما تعمل الرحلة — تصليحها دلوقتي أسهل من بعد ما الفلوس تتحرك.</p></div>
+<h2 id="running" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">تشغيل الرحلة</h2>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>نشطة</strong> فيها الرحلات اللي بره أو هتخرج؛ و<strong>مكتملة</strong> دي الأرشيف.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>إرسال للتوصيل</strong> بيطلّع كل طلبات الرحلة مرة واحدة. اعمل كده من هنا مش من الكروت واحد واحد.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>تعليم كمسلمة</strong> بيقفل الرحلة كلها لما المندوب يرجع وكل حاجة اتسلمت. ولو فيه طلبات ماتسلمتش، متعلّمش الرحلة — اتصرف في الطلبات دي على البورد الأول.</span></li></ul>
+<div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>الفلوس لسه بتمشي بالطلب</span></p><p class="text-sm text-sky-900 leading-relaxed">الرحلة بتجمّع الحركة، مش الفلوس. كل طلب لسه بيتسوّى على حساب المندوب زي ما هو — شوف صفحة حساب المندوب.</p></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">جارز POS &middot; دليل الموظفين ومديري الخطوط<br><span class="text-stone-300">تقدر تطبعها &mdash; استخدم أمر الطباعة في المتصفح.</span></footer>
 </body>
 </html>

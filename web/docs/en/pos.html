@@ -1,148 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>POS Order Entry — Staff Guide</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taking an order — Jarz POS Guide</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body class="bg-stone-50 font-sans text-stone-800">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">JARZ POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">Login</a>
-        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">Shift</a>
-        <a href="pos.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">POS Order</a>
-        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">Kanban</a>
-        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">Trips</a>
-        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">Expenses</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">Courier Balances</a>
-      </div>
-      <a href="../ar/pos.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">عربي</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div class="flex items-center gap-3 mb-1">
-      <span class="text-3xl">🛒</span>
-      <h1 class="text-2xl font-bold text-brand">POS Order Entry</h1>
-    </div>
-    <p class="text-stone-500 mb-8">How to build a cart, add a customer, set delivery or pickup, choose payment, and submit an order.</p>
-
-    <div class="bg-brand-light border-l-4 border-brand rounded-r-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">When to use:</strong> Every time a customer places a new order — in-person, over the phone, or online. A shift must be open before you can submit orders.
-    </div>
-
-    <h2 class="text-lg font-semibold mb-4">Step-by-step</h2>
-
-    <div class="space-y-4 step-block">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
-        <div>
-          <p class="font-semibold">Go to the POS screen</p>
-          <p class="text-sm text-stone-600 mt-1">After starting your shift, the app opens on the POS screen. You can also tap <strong>Point of Sale</strong> from the side menu at any time.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
-        <div>
-          <p class="font-semibold">Select the customer first</p>
-          <p class="text-sm text-stone-600 mt-1">Before adding any product, tap <strong>Add Customer</strong>. Search by name or phone number, then select the customer from the results. If the customer has a delivery address on file, it loads automatically. A customer must be selected before products are added or the order is submitted.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
-        <div>
-          <p class="font-semibold">Search for items and add to cart</p>
-          <p class="text-sm text-stone-600 mt-1">After the customer is selected, type an item name in the search bar or scroll the product grid. Tap an item to add it to the cart. Tap the item again (or use the +/− buttons in the cart) to adjust quantity. You can also select <strong>Bundles</strong> if configured for your profile.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">4</span>
-        <div>
-          <p class="font-semibold">Choose Delivery or Pickup</p>
-          <p class="text-sm text-stone-600 mt-1">
-            <strong>Delivery:</strong> Tap <strong>Select Delivery Time</strong> to choose an available time slot from the list. Delivery charges are added automatically based on the customer's address.<br>
-            <strong>Pickup:</strong> Toggle the <strong>Pickup from Branch (no delivery fee)</strong> option. The delivery slot selector disappears and no shipping fee is applied.
-          </p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">5</span>
-        <div>
-          <p class="font-semibold">Review the cart total</p>
-          <p class="text-sm text-stone-600 mt-1">The cart shows: items subtotal + delivery fee (if applicable) = Grand Total. Remove items with the trash icon, or clear the entire cart with <strong>Clear Cart</strong>.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">6</span>
-        <div>
-          <p class="font-semibold">Choose a payment method and tap <strong>Submit</strong></p>
-          <p class="text-sm text-stone-600 mt-1">A dialog asks you to select: <em>Cash</em>, <em>InstaPay</em>, <em>Wallet</em>, or another method configured for your branch. After selecting, the order is submitted to the server and the invoice is created.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">7</span>
-        <div>
-          <p class="font-semibold">Order confirmed — start a new one</p>
-          <p class="text-sm text-stone-600 mt-1">A success message appears with the invoice name (e.g. <code class="bg-stone-100 px-1 rounded">ACC-SINV-2026-XXXXX</code>). The cart clears automatically and you are ready for the next order. The new invoice appears on the <a href="kanban.html" class="text-brand underline">Kanban Board</a>.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Drafts section -->
-    <h2 class="text-lg font-semibold mt-10 mb-4">Drafts (Auto-save)</h2>
-    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm">
-      <p class="text-stone-700">The POS automatically saves your cart every few seconds as a <strong>draft</strong>. If you accidentally close the app or switch screens, your cart is restored when you return. To view and restore saved drafts, tap the <strong>Drafts</strong> icon (clock/history icon) in the POS header.</p>
-      <p class="text-stone-700 mt-2">Drafts are stored on your device. If you log out, drafts for your session may be cleared — always submit orders before logging out.</p>
-    </div>
-
-    <!-- Tips -->
-    <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-amber-800 mb-2">💡 Tips</h3>
-      <ul class="list-disc list-inside space-y-1 text-amber-900">
-        <li>Always select the customer before adding products — this ensures the correct address, delivery charge, and customer history.</li>
-        <li>If no delivery slots appear, contact your manager — the branch timetable may need configuration.</li>
-        <li>For pickup orders, always toggle the Pickup option; otherwise the order will be treated as delivery.</li>
-        <li>If you make a mistake after submission, go to the <a href="kanban.html" class="underline text-amber-800">Kanban Board</a> and use the <strong>Edit Invoice</strong> (amendment) option.</li>
-      </ul>
-    </div>
-
-    <!-- Common issues -->
-    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-red-800 mb-2">⚠️ Common Issues</h3>
-      <ul class="list-disc list-inside space-y-1 text-red-900">
-        <li><strong>"Please select a delivery time":</strong> You tapped Submit without selecting a delivery slot. Choose a slot first or toggle Pickup.</li>
-        <li><strong>Cannot add products / customer required:</strong> Select the customer first, then add items to the cart.</li>
-        <li><strong>Items not loading:</strong> Check internet connection and refresh the page. If the profile has no items configured, contact your manager.</li>
-        <li><strong>Submit button greyed out:</strong> The cart is empty. Add at least one item.</li>
-        <li><strong>Order submitted but not visible on Kanban:</strong> Refresh the Kanban board by tapping the refresh icon.</li>
-      </ul>
-    </div>
-
-    <div class="mt-10 flex justify-between no-print">
-      <a href="shift.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
-        ← Shift Start &amp; End
-      </a>
-      <a href="kanban.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
-        Next: Kanban Board →
-      </a>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · Staff Guide · POS Order Entry</footer>
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Start here</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Sign in</a><a href="shift.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Shift</a><a href="pos.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">Take an order</a><a href="kanban.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Order board</a><a href="courier-balances.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Courier money</a><a href="trips.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Trips</a><a href="expenses.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Expenses &amp; requests</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Line manager</a></div><a href="../ar/pos.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">العربية</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#128722;</span><h1 class="text-2xl font-bold text-brand">Taking an order</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">Customer first, then items, then how it reaches them, then Checkout. The order appears on the board the moment you submit it.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">For</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">Staff</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">Line manager</span></div><div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>The order is fixed</span></p><p class="text-sm text-sky-900 leading-relaxed">The item grid stays locked until a customer is chosen - it will say <em>"Please select a customer first"</em>. This is on purpose: the customer decides the price list, the delivery fee and the branch.</p></div>
+<h2 id="customer" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">1. Choose the customer</h2>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">Search by phone first</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">Phone is the reliable way to find a repeat customer - names get typed differently every time. Switch to name search only if the phone finds nothing.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">If they are new, create them</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>Create Customer</strong> takes the name, the type (Individual or Company) and the customer group. Take a second to get the phone right - it is how you will find them next time.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">Pick the delivery address</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>Choose Shipping Address</strong> lists the addresses already saved for that customer, or lets you add one. The <strong>Territory</strong> on the address is what sets the delivery fee, so pick it properly.</p></div></li></ol>
+<div class="bg-amber-50 border-s-4 border-amber-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-amber-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9888;</span><span>"Profile Mismatch"</span></p><p class="text-sm text-amber-900 leading-relaxed">If the customer's territory belongs to another branch, the app asks whether to keep your branch or switch to the territory's branch. Switch unless you have a reason not to - the branch that owns the territory is the one that can actually deliver there.</p></div>
+<h2 id="items" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">2. Add the items</h2>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span>Tap a card to add one. The card shows <strong>In cart</strong> with the quantity already added, so you can see at a glance what is in the order.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Bundles</strong> have their own tab. Opening a bundle lets you pick what goes inside it; <strong>Edit Bundle</strong> in the cart reopens that choice.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Out of stock</strong> and <em>"Stock limit reached. Only N available"</em> mean the system has none left. You can still finish the order, but somebody has to actually find the goods.</span></li></ul>
+<h2 id="delivery" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">3. Pickup or delivery</h2>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Pickup (no delivery fee)</strong> - the customer collects from the branch. No slot, no courier, no delivery charge, and the order never needs a settlement.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Delivery</strong> - you must pick a <strong>Delivery Time</strong> slot. The first available slot is marked <strong>Next</strong>.</span></li></ul>
+<div class="bg-amber-50 border-s-4 border-amber-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-amber-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9888;</span><span>A slot that has passed is refused</span></p><p class="text-sm text-amber-900 leading-relaxed">The app will not let you submit onto a slot whose time is already gone. If the list looks short late in the day, that is why - pick the next real slot and tell the customer.</p></div>
+<h2 id="cart" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">4. Check the cart</h2>
+<div class="overflow-x-auto my-6 rounded-xl border border-stone-200 bg-white shadow-sm"><table class="w-full text-sm border-collapse"><thead class="bg-stone-50"><tr><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">Line</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">What it is</th></tr></thead><tbody><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Subtotal</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The goods, before delivery.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Delivery</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The delivery charged to the customer. Comes from the address territory.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Promo code</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Type a code and it shows <strong>Applied</strong> or <strong>Not eligible</strong>. "Not eligible" is the code's own rules - it is not a fault.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Total</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">What the customer pays.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Operational Info</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700"><strong>Delivery Expense</strong> - what the delivery costs the branch. This is your cost, not the customer's price.</td></tr></tbody></table></div>
+<div class="bg-violet-50 border-s-4 border-violet-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-violet-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9733;</span><span>Manager pricing</span></p><p class="text-sm text-violet-900 leading-relaxed">The <strong>Manager Pricing</strong> panel - price list, order purpose, zero shipping, a custom delivery amount, per-line discounts - is manager-tier only. Line managers do not get it either; a line manager who needs a different delivery charge on a live order requests it from the board instead.</p></div>
+<h2 id="checkout" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">5. Checkout</h2>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">Tap Checkout</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">If anything in the cart is over the system's stock, a warning lists each line - <em>requested N, available M</em>. <strong>Proceed with order</strong> creates it anyway.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">Confirm</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><em>"Order placed successfully!"</em> means it is on the board, in the <strong>Received</strong> column, ready for the kitchen.</p></div></li></ol>
+<div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>Payment is not taken here</span></p><p class="text-sm text-sky-900 leading-relaxed">A delivery order is created unpaid on purpose. The money is recorded on the board when the order goes out or comes back settled - see the Order board page.</p></div>
+<h2 id="drafts" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Parking an order</h2>
+<p class="text-stone-700 leading-relaxed mb-4">A half-built cart can be saved as a draft and picked up later - useful when a customer is still deciding and there is a queue behind them. There is a limit; if you hit <em>"Draft limit reached"</em>, delete an old draft you no longer need.</p>
+<h2 id="trouble" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">When something goes wrong</h2>
+<div class="space-y-3 my-6"><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>The item grid is empty</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">Either no customer is selected, or the category filter is on something with nothing in it. Tap <strong>All</strong> first.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"Bundle contents could not be loaded"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">Do not submit. Open <strong>Edit Bundle</strong>, reselect the items, and try again - submitting a bundle the app could not read produces an order nobody can fulfil.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"No delivery slots available"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">Either the branch timetable is not set up, or every slot for today has passed. Check the branch is right; if it is, this is a setup issue for your manager.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>I submitted the wrong order</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">Do not create a second one. Find it on the board: <strong>Edit Invoice</strong> changes what is in it, and a line manager can cancel it outright.</div></details></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">Jarz POS &middot; Staff &amp; Line Manager Guide<br><span class="text-stone-300">Printable &mdash; use your browser's Print for a paper copy.</span></footer>
 </body>
 </html>

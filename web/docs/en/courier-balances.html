@@ -1,138 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Courier Balances — Staff Guide</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Courier money — Jarz POS Guide</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body class="bg-stone-50 font-sans text-stone-800">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">JARZ POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">Login</a>
-        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">Shift</a>
-        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">POS Order</a>
-        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">Kanban</a>
-        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">Trips</a>
-        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">Expenses</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">Courier Balances</a>
-      </div>
-      <a href="../ar/courier-balances.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">عربي</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div class="flex items-center gap-3 mb-1">
-      <span class="text-3xl">⚖️</span>
-      <h1 class="text-2xl font-bold text-brand">Courier Balances</h1>
-    </div>
-    <p class="text-stone-500 mb-8">See the outstanding cash balance for each courier — how much each courier still owes the branch (or the branch owes them) — and settle it.</p>
-
-    <div class="bg-brand-light border-l-4 border-brand rounded-r-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">When to use:</strong> Any time you want to see what each courier is holding — and, most importantly, when you <strong>end your shift</strong>: you must settle every courier's balance before the shift can be closed.
-    </div>
-
-    <h2 class="text-lg font-semibold mb-4">Understanding the Balances Screen</h2>
-
-    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm space-y-4 mb-8">
-      <p>The <strong>Courier Balances</strong> screen lists every active courier along with three balance figures:</p>
-
-      <div class="grid sm:grid-cols-3 gap-3 mt-2">
-        <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-          <div class="font-bold text-green-800 text-xs uppercase mb-1">Collect From Courier</div>
-          <p class="text-green-700 text-xs">Cash the courier collected from customers and has not yet handed back to the branch.</p>
-        </div>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-          <div class="font-bold text-blue-800 text-xs uppercase mb-1">Pay Courier</div>
-          <p class="text-blue-700 text-xs">Money we owe the courier (e.g. for delivery fees or advances).</p>
-        </div>
-        <div class="bg-stone-50 border border-stone-300 rounded-lg p-3 text-center">
-          <div class="font-bold text-stone-700 text-xs uppercase mb-1">Net Balance</div>
-          <p class="text-stone-600 text-xs">The net position — positive means courier owes us money; negative means we owe the courier.</p>
-        </div>
-      </div>
-
-      <p class="text-stone-600">The <strong>Invoices</strong> count shows how many unsettled deliveries are linked to each courier.</p>
-    </div>
-
-    <h2 class="text-lg font-semibold mb-4">Viewing &amp; Settling Courier Balances</h2>
-
-    <div class="space-y-4 step-block">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
-        <div>
-          <p class="font-semibold">Open the balances screen</p>
-          <p class="text-sm text-stone-600 mt-1">Two ways: on the Kanban Board tap <strong>☰ Menu</strong> → <strong>Courier Balances</strong> to review at any time, or from the <strong>End Shift</strong> screen tap <strong>"Review &amp; Settle Couriers"</strong> when you are closing the shift. Both open the same <strong>Courier Balances</strong> overlay.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
-        <div>
-          <p class="font-semibold">Review each courier's balance</p>
-          <p class="text-sm text-stone-600 mt-1">Each courier is listed with a label such as <strong>"Collect From Courier"</strong> and the amount they are holding. A large amount means the courier is still holding a lot of customer cash that has not been handed back.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
-        <div>
-          <p class="font-semibold">Settle the courier</p>
-          <p class="text-sm text-stone-600 mt-1">Once you have taken the cash from the courier, tap <strong>Settle</strong> next to their name and confirm <em>"Pay Courier … — Settle all N invoices?"</em>. The row clears and a <em>"Settled"</em> message appears. When the list shows <em>"No couriers found"</em>, every balance is settled and you can go ahead and end the shift.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">4</span>
-        <div>
-          <p class="font-semibold">Close the overlay</p>
-          <p class="text-sm text-stone-600 mt-1">Tap the <strong>X</strong> (or outside the overlay) to go back. If you opened it from End Shift, the courier notice is now gone and the <strong>End Shift</strong> button is enabled.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Note for staff -->
-    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-blue-800 mb-2">ℹ️ Staff Role Note</h3>
-      <p class="text-blue-900">Settling couriers is part of your end-of-day: you <strong>must</strong> settle every courier's balance before you can close your shift. Only settle a courier <strong>after</strong> you have physically received their cash. If a balance looks wrong or unusually large, settle what is correct and tell your manager about the rest.</p>
-    </div>
-
-    <!-- Tips -->
-    <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-amber-800 mb-2">💡 Tips</h3>
-      <ul class="list-disc list-inside space-y-1 text-amber-900">
-        <li>Check courier balances before creating a new delivery trip to make sure the courier you want to assign is in good standing.</li>
-        <li>If "No couriers found" is displayed, the courier list has not been configured. Contact your manager.</li>
-      </ul>
-    </div>
-
-    <!-- Common issues -->
-    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-red-800 mb-2">⚠️ Common Issues</h3>
-      <ul class="list-disc list-inside space-y-1 text-red-900">
-        <li><strong>Balances not loading:</strong> The screen may be fetching. Wait a few seconds; if it keeps failing, check internet connection.</li>
-        <li><strong>Courier balance looks wrong:</strong> It may reflect recently delivered but not yet settled trips. Inform your manager.</li>
-      </ul>
-    </div>
-
-    <div class="mt-10 flex justify-between no-print">
-      <a href="expenses.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
-        ← Daily Expenses
-      </a>
-      <a href="shift.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
-        End of Day: End Shift →
-      </a>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · Staff Guide · Courier Balances</footer>
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Start here</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Sign in</a><a href="shift.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Shift</a><a href="pos.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Take an order</a><a href="kanban.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Order board</a><a href="courier-balances.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">Courier money</a><a href="trips.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Trips</a><a href="expenses.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Expenses &amp; requests</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Line manager</a></div><a href="../ar/courier-balances.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">العربية</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#9878;</span><h1 class="text-2xl font-bold text-brand">Courier balances and settling</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">Who owes whom, and how to clear it. You settle couriers yourself - it is not a manager job, and your shift will not close until it is done.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">For</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">Staff</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">Line manager</span></div><h2 id="open" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Opening it</h2>
+<p class="text-stone-700 leading-relaxed mb-4">Menu &amp;rarr; <strong>Courier Balances</strong>, or from the board header menu. It opens as a list of couriers with a <strong>Net</strong> figure each.</p>
+<h2 id="reading" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Reading a balance</h2>
+<div class="overflow-x-auto my-6 rounded-xl border border-stone-200 bg-white shadow-sm"><table class="w-full text-sm border-collapse"><thead class="bg-stone-50"><tr><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">Label</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">Meaning</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">What you do</th></tr></thead><tbody><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Collect From Courier</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The courier is holding the branch's money - they collected more from customers than their delivery fees come to.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Take the cash and settle.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Pay Courier</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">The branch owes the courier - their delivery fees come to more than they collected.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Pay them from the drawer and settle.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Settled</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Nothing outstanding.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">Nothing.</td></tr></tbody></table></div>
+<div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>The net is order minus shipping</span></p><p class="text-sm text-sky-900 leading-relaxed">The settlement screen writes it out: <em>Collect (Order - Shipping)</em>. The courier keeps their delivery fee and hands over the rest; when the fee is bigger than what they collected, the direction flips and the branch pays them.</p></div>
+<h2 id="settling" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Settling</h2>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">Open the courier</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">Tapping a courier shows <strong>Details</strong> - every order behind that balance, with its city and amount. Check the list against what the courier is telling you.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">Preview before you settle</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">The preview button shows exactly what the settlement will post. Use it when the number surprises you.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">Count the money first</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">Hand over or take the cash, and only then confirm. Settling in the app is the record of a thing that already happened.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">4</span><div class="min-w-0"><p class="font-semibold text-stone-800">Settle, or Settle All</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>Settle</strong> clears one order. <strong>Settle All</strong> clears every open order for that courier at once and asks you to confirm the total first - use it at end of shift when the courier is standing there.</p></div></li></ol>
+<div class="bg-amber-50 border-s-4 border-amber-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-amber-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9888;</span><span>Do not settle twice</span></p><p class="text-sm text-amber-900 leading-relaxed">If the confirmation seems slow, wait - do not tap again. Two taps have double-paid orders before. If you are unsure whether it went through, reopen the balances and look.</p></div>
+<h2 id="trouble" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Questions</h2>
+<div class="space-y-3 my-6"><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"No couriers found"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">Nobody has an open balance on this branch - which is what you want at the end of a shift. If you expected somebody, check you are on the right branch.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"Nothing to pay or collect"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">The order's amount and the delivery fee cancel out. Settle it anyway to clear it off the shift.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>The courier disagrees with the total</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">Open <strong>Details</strong> and go order by order. Nine times out of ten it is one order that was marked Pay Now when the courier actually collected, or the other way round - your line manager can correct the collection method.</div></details></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">Jarz POS &middot; Staff &amp; Line Manager Guide<br><span class="text-stone-300">Printable &mdash; use your browser's Print for a paper copy.</span></footer>
 </body>
 </html>

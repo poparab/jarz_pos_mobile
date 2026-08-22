@@ -1,158 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Delivery Trips — Staff Guide</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delivery trips — Jarz POS Guide</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body class="bg-stone-50 font-sans text-stone-800">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">JARZ POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">Login</a>
-        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">Shift</a>
-        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">POS Order</a>
-        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">Kanban</a>
-        <a href="trips.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">Trips</a>
-        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">Expenses</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">Courier Balances</a>
-      </div>
-      <a href="../ar/trips.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">عربي</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div class="flex items-center gap-3 mb-1">
-      <span class="text-3xl">🚚</span>
-      <h1 class="text-2xl font-bold text-brand">Delivery Trips</h1>
-    </div>
-    <p class="text-stone-500 mb-8">Group multiple ready orders into a delivery trip, assign a courier, send the trip out, and mark it delivered when the courier returns.</p>
-
-    <div class="bg-brand-light border-l-4 border-brand rounded-r-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">When to use:</strong> When you have multiple delivery orders ready to go out together with one courier. Also used to track individual deliveries if only one order is assigned per trip.
-    </div>
-
-    <h2 class="text-lg font-semibold mb-4">Part A — Creating a Delivery Trip</h2>
-    <p class="text-sm text-stone-500 mb-4">Trips are created from the <strong>Kanban Board</strong>. The Trips screen then tracks them.</p>
-
-    <div class="space-y-4 step-block">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
-        <div>
-          <p class="font-semibold">Go to the Kanban Board and find Ready orders</p>
-          <p class="text-sm text-stone-600 mt-1">Orders in the <strong>Ready</strong> column that are prepared for delivery can be added to a trip.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
-        <div>
-          <p class="font-semibold">Select invoices for the trip</p>
-          <p class="text-sm text-stone-600 mt-1">Long-press an order card (or tap the multi-select checkbox if available) to select it. Select all orders that will go in this trip.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
-        <div>
-          <p class="font-semibold">Tap <strong>Create Trip</strong></p>
-          <p class="text-sm text-stone-600 mt-1">The <strong>Create Delivery Trip</strong> dialog opens. It shows the selected orders, total amount, and total shipping.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">4</span>
-        <div>
-          <p class="font-semibold">Select a courier</p>
-          <p class="text-sm text-stone-600 mt-1">Tap <strong>Select Courier</strong> and choose from the list. The courier's current outstanding balance is shown next to their name — check it against <a href="courier-balances.html" class="text-brand underline">Courier Balances</a> if needed.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">5</span>
-        <div>
-          <p class="font-semibold">Add notes (optional) and confirm</p>
-          <p class="text-sm text-stone-600 mt-1">Add any special notes in the <strong>Notes</strong> field. Tap <strong>Create Trip</strong> to save. The trip is created and the orders move to <strong>Out for Delivery</strong> on the Kanban.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <h2 class="text-lg font-semibold mt-10 mb-4">Part B — Managing Trips from the Trips Screen</h2>
-
-    <div class="space-y-4 step-block">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">6</span>
-        <div>
-          <p class="font-semibold">Open the Delivery Trips screen</p>
-          <p class="text-sm text-stone-600 mt-1">Tap <strong>Delivery Trips</strong> from the side menu. You see two tabs: <strong>Active</strong> (trips in progress) and <strong>Completed</strong> (delivered trips).</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">7</span>
-        <div>
-          <p class="font-semibold">Tap a trip card to view details</p>
-          <p class="text-sm text-stone-600 mt-1">The trip detail view shows all orders in the trip, the assigned courier, timestamps, total amount, and total shipping.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">8</span>
-        <div>
-          <p class="font-semibold">Send for Delivery (if not already done)</p>
-          <p class="text-sm text-stone-600 mt-1">If the trip has just been created and has not yet been dispatched, tap <strong>Send for Delivery</strong>. The confirmation <em>"Trip sent for delivery"</em> appears and all orders in the trip move to Out for Delivery.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">9</span>
-        <div>
-          <p class="font-semibold">Mark the trip as Delivered</p>
-          <p class="text-sm text-stone-600 mt-1">When the courier returns and all orders have been delivered, tap <strong>Mark as Delivered</strong> on the trip. All orders move to <strong>Delivered</strong> on the Kanban. The trip moves to the <strong>Completed</strong> tab in the Trips screen.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Tips -->
-    <div class="mt-10 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-amber-800 mb-2">💡 Tips</h3>
-      <ul class="list-disc list-inside space-y-1 text-amber-900">
-        <li>Group orders with the same delivery area into one trip to reduce courier trips.</li>
-        <li>Check the courier's balance before assigning — a courier with a large outstanding balance may need to settle first.</li>
-        <li>If an order is wrongly included in a trip, contact your manager to remove it before dispatching.</li>
-      </ul>
-    </div>
-
-    <!-- Common issues -->
-    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-red-800 mb-2">⚠️ Common Issues</h3>
-      <ul class="list-disc list-inside space-y-1 text-red-900">
-        <li><strong>Trip not appearing in Active tab:</strong> Refresh the Trips screen. The trip may still be syncing.</li>
-        <li><strong>Cannot select invoices in Kanban:</strong> The multi-select mode may require a long-press on the first card. Try again.</li>
-        <li><strong>"No couriers available":</strong> The courier list is empty — ask your manager to add couriers in the system.</li>
-      </ul>
-    </div>
-
-    <div class="mt-10 flex justify-between no-print">
-      <a href="kanban.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
-        ← Kanban Board
-      </a>
-      <a href="expenses.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
-        Next: Daily Expenses →
-      </a>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · Staff Guide · Delivery Trips</footer>
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Start here</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Sign in</a><a href="shift.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Shift</a><a href="pos.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Take an order</a><a href="kanban.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Order board</a><a href="courier-balances.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Courier money</a><a href="trips.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">Trips</a><a href="expenses.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Expenses &amp; requests</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Line manager</a></div><a href="../ar/trips.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">العربية</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#128666;</span><h1 class="text-2xl font-bold text-brand">Delivery trips</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">When one courier takes several orders in one run, group them into a trip and move them together instead of one card at a time.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">For</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">Staff</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">Line manager</span></div><h2 id="create" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Creating a trip</h2>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">Select the orders on the board</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">Use <strong>Select Orders</strong> and tap the cards going out together. The header counts them for you.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">One branch only</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><em>"Select invoices from one branch only to create a trip"</em> - a trip belongs to one branch. Split the selection if you mixed them.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">Fix any missing sub-territory</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">If an order has no sub-territory, the app names it and refuses until you set it. It is what tells the courier which part of the area they are going to.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">4</span><div class="min-w-0"><p class="font-semibold text-stone-800">Review and create</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>Create Delivery Trip</strong> shows the order count, the total amount, the total shipping and the courier picker. Pick the courier and confirm.</p></div></li></ol>
+<div class="bg-amber-50 border-s-4 border-amber-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-amber-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9888;</span><span>Double Shipping</span></p><p class="text-sm text-amber-900 leading-relaxed">If the trip screen flags <strong>Double Shipping</strong>, two orders in the selection are each carrying a full delivery charge for the same run. Check it before you create the trip - it is easier to fix now than after the money moves.</p></div>
+<h2 id="running" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Running the trip</h2>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Active</strong> holds trips that are out or about to go; <strong>Completed</strong> is history.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Send for Delivery</strong> moves every order in the trip out at once. Do this from here, not from the individual cards.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>Mark as Delivered</strong> closes the whole trip when the courier is back and everything landed. If some orders did not land, do not mark the trip - handle those orders on the board first.</span></li></ul>
+<div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>The money still runs per order</span></p><p class="text-sm text-sky-900 leading-relaxed">A trip groups the movement, not the cash. Each order still settles against the courier's balance in the normal way - see the Courier money page.</p></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">Jarz POS &middot; Staff &amp; Line Manager Guide<br><span class="text-stone-300">Printable &mdash; use your browser's Print for a paper copy.</span></footer>
 </body>
 </html>

@@ -1,153 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shift Start &amp; End — Staff Guide</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shift — Jarz POS Guide</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body class="bg-stone-50 font-sans text-stone-800">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">JARZ POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">Login</a>
-        <a href="shift.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">Shift</a>
-        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">POS Order</a>
-        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">Kanban</a>
-        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">Trips</a>
-        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">Expenses</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">Courier Balances</a>
-      </div>
-      <a href="../ar/shift.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">عربي</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div class="flex items-center gap-3 mb-1">
-      <span class="text-3xl">🕐</span>
-      <h1 class="text-2xl font-bold text-brand">Shift Start &amp; End</h1>
-    </div>
-    <p class="text-stone-500 mb-8">Open your shift at the start of the day and close it at the end. Both actions record cash balances for accounting.</p>
-
-    <div class="bg-brand-light border-l-4 border-brand rounded-r-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">When to use:</strong> Every working day — <strong>Start Shift</strong> before your first order, <strong>End Shift</strong> after your last order.
-    </div>
-
-    <!-- START SHIFT -->
-    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-sm">Start of Day</span> Starting Your Shift</h2>
-
-    <div class="space-y-4 step-block">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
-        <div>
-          <p class="font-semibold">The app opens on the Start Shift screen</p>
-          <p class="text-sm text-stone-600 mt-1">Right after login (Employee mode), you are taken to <strong>Start Shift</strong> automatically. You cannot use the POS until the shift is open.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
-        <div>
-          <p class="font-semibold">Enter the cash drawer opening balance only</p>
-          <p class="text-sm text-stone-600 mt-1">Count only the physical cash in your drawer for this POS profile and type that amount. Staff do not enter InstaPay, mobile wallet, bank, or other digital-account balances during shift start. If you see a non-cash field and are unsure what to do, leave it unchanged/zero and contact your manager.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
-        <div>
-          <p class="font-semibold">Tap <strong>"Start Shift"</strong></p>
-          <p class="text-sm text-stone-600 mt-1">The app sends the opening balance to the server and shows <em>"Shift Active"</em>. You are then redirected to the POS order screen.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- END SHIFT -->
-    <h2 class="text-lg font-semibold mt-10 mb-4 flex items-center gap-2"><span class="bg-red-100 text-red-800 px-2 py-0.5 rounded text-sm">End of Day</span> Ending Your Shift</h2>
-
-    <div class="space-y-4 step-block">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">1</span>
-        <div>
-          <p class="font-semibold">Finish all pending orders first</p>
-          <p class="text-sm text-stone-600 mt-1">Before closing, confirm every order for the day is in its correct state on the Kanban board and any customer payments are recorded.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">2</span>
-        <div>
-          <p class="font-semibold">Open the End Shift screen</p>
-          <p class="text-sm text-stone-600 mt-1">From the POS or Kanban screen, tap the <strong>☰ Menu</strong> → <strong>End Shift</strong> (or the <strong>End Shift</strong> button in the top bar). The screen shows your shift number and how many invoices it contains.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">3</span>
-        <div>
-          <p class="font-semibold">Settle courier balances if you are prompted</p>
-          <p class="text-sm text-stone-600 mt-1">If any courier still owes cash (or is owed cash) for the shift, a <strong>"Settle courier balances before ending the shift"</strong> notice appears with the courier name and net balance, and the End Shift button stays disabled. Tap <strong>"Review &amp; Settle Couriers"</strong>, then <strong>Settle</strong> next to each courier and confirm <em>"Pay Courier …"</em>. Once the list shows <em>"No couriers found"</em>, the notice clears and you can continue. See <a href="courier-balances.html" class="text-brand underline">Courier Balances</a> for details.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">4</span>
-        <div>
-          <p class="font-semibold">Count the drawer and enter the closing cash (blind count)</p>
-          <p class="text-sm text-stone-600 mt-1">Count the physical cash in your drawer and type it under <strong>Counted Closing Cash</strong>. You will <strong>not</strong> see the expected amount while you type — this is a blind count, so enter exactly what you counted. Enter cash only; do not add InstaPay, mobile wallet, or bank balances.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">5</span>
-        <div>
-          <p class="font-semibold">Tap <strong>"End Shift"</strong> and review the summary</p>
-          <p class="text-sm text-stone-600 mt-1">The app shows <em>"Shift ended successfully"</em> and a summary that now reveals the <strong>Expected</strong>, <strong>Counted</strong>, and <strong>Difference</strong> for cash, plus the closing entry number. If the counted cash differs from expected, the system records the over/short automatically. The shift is now closed.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Tips -->
-    <div class="mt-10 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-amber-800 mb-2">💡 Tips</h3>
-      <ul class="list-disc list-inside space-y-1 text-amber-900">
-        <li>Count the cash drawer physically before typing the opening or closing amount — do not guess.</li>
-        <li>Do not reconcile InstaPay, mobile wallet, or bank balances as a staff user; those balances are handled by managers/accounting.</li>
-        <li>If you see a <em>"Shift Already Open"</em> warning, another user has already opened a shift on the same profile. Contact your manager.</li>
-        <li>The shift must be open for orders to be submitted from the POS screen.</li>
-      </ul>
-    </div>
-
-    <!-- Common issues -->
-    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-red-800 mb-2">⚠️ Common Issues</h3>
-      <ul class="list-disc list-inside space-y-1 text-red-900">
-        <li><strong>End Shift button is disabled / "Settle courier balances…":</strong> You still have unsettled courier balances. Open <strong>Review &amp; Settle Couriers</strong>, settle each courier, then end the shift.</li>
-        <li><strong>"No active shift found":</strong> You are on the End Shift screen but the shift was never started. Go back and start a shift first.</li>
-        <li><strong>Shift start fails:</strong> Check internet connectivity. If the error persists, contact your manager to check if a shift is already open for your profile.</li>
-        <li><strong>Large variance / difference:</strong> Recount the cash. If the discrepancy is real, inform your manager before submitting.</li>
-      </ul>
-    </div>
-
-    <div class="mt-10 flex justify-between no-print">
-      <a href="login.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
-        ← Login &amp; Profile
-      </a>
-      <a href="pos.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
-        Next: POS Order Entry →
-      </a>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · Staff Guide · Shift Start &amp; End</footer>
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Start here</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Sign in</a><a href="shift.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">Shift</a><a href="pos.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Take an order</a><a href="kanban.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Order board</a><a href="courier-balances.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Courier money</a><a href="trips.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Trips</a><a href="expenses.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Expenses &amp; requests</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">Line manager</a></div><a href="../ar/shift.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">العربية</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#128340;</span><h1 class="text-2xl font-bold text-brand">Opening and closing your shift</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">A shift ties every order and every pound you handle to you and to one branch drawer. You open it before your first order and close it after your last.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">For</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">Staff</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">Line manager</span></div><div class="bg-red-50 border-s-4 border-red-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-red-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#10005;</span><span>No shift, no POS</span></p><p class="text-sm text-red-900 leading-relaxed">The app sends you to <strong>Start Shift</strong> and keeps you there until there is an open shift on the branch you selected <em>that you opened yourself</em>. A colleague's open shift does not count, and neither does your own shift on a different branch.</p></div>
+<h2 id="open" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Opening your shift</h2>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">Pick the branch first</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">The <strong>Select POS Profile</strong> screen (or the branch name in the header) decides which drawer the shift belongs to. Picking the wrong branch here is the single most common cause of a shift that will not close.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">Count the cash in the drawer</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">The screen says <em>"Count opening cash and enter it"</em> and shows the branch, the cash account and the <strong>System Balance</strong> - what the system thinks is in there. Count the real money anyway.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">Enter what you counted</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">Type the counted amount into <strong>Counted Opening Cash</strong>. The app shows the <strong>Difference</strong> against the system balance as you type. Enter the real number even when it does not match - that is the whole point of counting.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">4</span><div class="min-w-0"><p class="font-semibold text-stone-800">Tap Start Shift</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">You land on the order screen and the header shows <strong>Shift Active</strong> with the time you started.</p></div></li></ol>
+<div class="bg-amber-50 border-s-4 border-amber-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-amber-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9888;</span><span>Cash only</span></p><p class="text-sm text-amber-900 leading-relaxed">Count the physical cash for this branch and nothing else. InstaPay, wallet and card money is tracked by the system on its own - you never type those in at shift start.</p></div>
+<h2 id="close" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">Closing your shift</h2>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">Clear the board first</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">Every order for the day should be in its right column, and every payment recorded. An order left in the middle of the board is a question somebody has to answer tomorrow.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">Settle your couriers</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">If a courier still owes the branch (or the branch owes them), the app blocks the close - see below.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">Open End Shift</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">Menu &amp;rarr; <strong>End Shift</strong>. The entry only appears when the open shift on the selected branch is yours.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">4</span><div class="min-w-0"><p class="font-semibold text-stone-800">Count the drawer and enter it</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">The screen says <em>"Count the cash in the drawer and enter the amount"</em> and shows nothing else - no expected total, no difference. That is deliberate: you count what is actually there, then the system compares.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">5</span><div class="min-w-0"><p class="font-semibold text-stone-800">Tap End Shift</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">Now the summary appears: expected, counted, and the difference per payment method, plus the invoice count and the day's totals. If there is a difference, the system posts a cash over/short entry by itself - you do not adjust anything.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">6</span><div class="min-w-0"><p class="font-semibold text-stone-800">You are signed out</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">Closing the shift signs you out on purpose, so the next person on the device starts on their own account.</p></div></li></ol>
+<h2 id="courier-block" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">"Settle courier balances before ending the shift"</h2>
+<p class="text-stone-700 leading-relaxed mb-4">This is the most common thing that stops a close. The message names how many courier transactions are still open, across how many couriers and how many orders, and it lists each courier with their net balance.</p>
+<p class="text-stone-700 leading-relaxed mb-4">Tap <strong>Review &amp;amp; Settle Couriers</strong>, settle what is pending, then come back and close. Settling couriers is part of the staff job - you do not need a manager for it.</p>
+<div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>Full details</span></p><p class="text-sm text-sky-900 leading-relaxed">How to read the balances and settle them is on the Courier money page.</p></div>
+<h2 id="trouble" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">When it will not open or close</h2>
+<div class="space-y-3 my-6"><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"Shift Already Open" - started by someone else</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">The branch already has an open shift started by another user, and it must be closed before a new one starts. If that person has gone home, a line manager can close it from Shift Monitor.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"You have an open shift on profile X"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">You left a shift open on another branch. Use <strong>Switch to active shift profile</strong> then <strong>Go to End Shift</strong>, close it, and come back. You can only hold one open shift at a time.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"Cash entry is unavailable"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">The shift has no closing payment method configured, so there is nothing to count against. Reopen the shift or contact support - this is a setup problem, not something you can fix at the branch.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>I counted wrong and already closed</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">Tell your line manager the same day. The difference is already posted as a cash over/short entry; correcting it is an accounting job, not a re-count.</div></details></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">Jarz POS &middot; Staff &amp; Line Manager Guide<br><span class="text-stone-300">Printable &mdash; use your browser's Print for a paper copy.</span></footer>
 </body>
 </html>

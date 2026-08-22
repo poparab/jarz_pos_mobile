@@ -1,23 +1,32 @@
-/* Jarz POS Staff Guide — Shared Styles */
+/* Jarz POS Staff & Line Manager Guide - shared styles */
 
-/* ── Brand font: Cairo (Arabic) via Google Fonts, loaded per-page ── */
+/* Arabic pages set font-cairo via Tailwind; this is the fallback. */
+[dir="rtl"] body { font-family: 'Cairo', system-ui, sans-serif; }
 
-/* ── Print ── */
+/* Print */
 @media print {
   nav, .no-print { display: none !important; }
-  body { font-size: 12pt; color: #000; }
+  body { font-size: 11pt; color: #000; background: #fff; }
   a { color: #000; text-decoration: underline; }
-  h1,h2,h3 { page-break-after: avoid; }
-  .step-block { page-break-inside: avoid; }
+  h1, h2, h3 { page-break-after: avoid; }
+  .step-block, details { page-break-inside: avoid; }
+  details { border: 1px solid #ccc; }
+  details > div { display: block !important; }
+  summary { list-style: none; font-weight: 700; }
   .print-page-break { page-break-before: always; }
 }
 
-/* ── RTL helpers (applied on <html dir="rtl">) ── */
+/* RTL helpers (applied on <html dir="rtl">) */
 [dir="rtl"] .ltr-only { display: none !important; }
 [dir="ltr"] .rtl-only { display: none !important; }
 
-/* ── Smooth scroll ── */
 html { scroll-behavior: smooth; }
-
-/* ── Focus visible ── */
 :focus-visible { outline: 2px solid #E85D04; outline-offset: 2px; }
+
+/* The nav links scroll sideways on a phone instead of wrapping into a
+   three-line sticky header that eats a fifth of the screen. */
+.scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* Open the details marker rotation without JS */
+details[open] > summary > span:first-child { transform: rotate(90deg); display: inline-block; }

@@ -1,154 +1,32 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>بدء الشيفت وإنهاؤه — دليل الموظف</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الوردية — دليل جارز POS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
-<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">تسجيل الدخول</a>
-        <a href="shift.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">الشيفت</a>
-        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">إدخال الطلبات</a>
-        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">كانبان</a>
-        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">الرحلات</a>
-        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">المصروفات</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">أرصدة المناديب</a>
-      </div>
-      <a href="../en/shift.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div class="flex items-center gap-3 mb-1">
-      <span class="text-3xl">⏱️</span>
-      <h1 class="text-2xl font-bold text-brand">بدء الشيفت وإنهاؤه</h1>
-    </div>
-    <p class="text-stone-500 mb-8">إزاي تدخّل رصيد الكاش اللي في الدرج بتاعك أول الشيفت، وبعدين تدخّل الكاش الفعلي آخر الشيفت.</p>
-
-    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">تستخدمها إمتى؟</strong> مرتين في اليوم: مرة أول ما تبدأ الشغل (بدء الشيفت)، ومرة آخر اليوم (إنهاء الشيفت).
-    </div>
-
-    <!-- Start shift -->
-    <h2 class="text-lg font-semibold mb-4">أولاً: بدء الشيفت</h2>
-
-    <div class="space-y-4">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">١</span>
-        <div>
-          <p class="font-semibold">بتتنقل تلقائي بعد تسجيل الدخول</p>
-          <p class="text-sm text-stone-600 mt-1">أول ما تسجّل دخول ويتحمّل بروفايل نقطة البيع، هتلاقي شاشة <strong>بدء الشيفت</strong> ظهرت على طول. مش هتقدر تستخدم نقطة البيع قبل ما تفتح الشيفت.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٢</span>
-        <div>
-          <p class="font-semibold">دخّل رصيد الكاش اللي في الدرج بس</p>
-          <p class="text-sm text-stone-600 mt-1">عدّ الفلوس اللي فعلاً في الدرج بتاع بروفايل نقطة البيع ده واكتب المبلغ. الموظف مبيدخّلش أرصدة إنستاباي ولا المحافظ الإلكترونية ولا البنك ولا أي حسابات رقمية وقت بدء الشيفت. لو ظهرلك حقل مش كاش ومش متأكد منه، سيبه زي ما هو/صفر وكلّم مديرك.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٣</span>
-        <div>
-          <p class="font-semibold">دوس على <strong>بدء الشيفت</strong></p>
-          <p class="text-sm text-stone-600 mt-1">الشيفت بيتفتح وتتنقل لشاشة نقطة البيع، وهتلاقي مؤشر <strong>شيفت مفتوح</strong> في الشريط اللي فوق.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- End shift -->
-    <h2 class="text-lg font-semibold mt-10 mb-4">ثانياً: إنهاء الشيفت</h2>
-
-    <div class="space-y-4">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">١</span>
-        <div>
-          <p class="font-semibold">خلّص كل الطلبات الأول</p>
-          <p class="text-sm text-stone-600 mt-1">قبل ما تقفل، اتأكد إن كل طلبات اليوم في حالتها الصح على بورد الكانبان، وإن أي مدفوعات من العملاء اتسجّلت.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٢</span>
-        <div>
-          <p class="font-semibold">افتح شاشة إنهاء الشيفت</p>
-          <p class="text-sm text-stone-600 mt-1">من نقطة البيع أو الكانبان، دوس على القائمة الجانبية ☰ ← <strong>إنهاء الشيفت</strong> (أو زرار <strong>إنهاء الشيفت</strong> اللي فوق). الشاشة هتوريك رقم الشيفت وعدد الفواتير اللي فيه.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٣</span>
-        <div>
-          <p class="font-semibold">سوِّ أرصدة المناديب لو اتطلب منك</p>
-          <p class="text-sm text-stone-600 mt-1">لو لسه في مندوب عليه فلوس (أو ليه فلوس) في الشيفت، هيظهرلك تنبيه <strong>«سوِّ أرصدة المناديب قبل إنهاء الشيفت»</strong> باسم المندوب وصافي الرصيد، وزرار إنهاء الشيفت هيفضل مقفول. دوس على <strong>«مراجعة وتسوية المناديب»</strong>، وبعدين دوس <strong>تسوية</strong> جنب كل مندوب وأكّد <em>«ادفع للمندوب …»</em>. أول ما القايمة تبقى <em>«لا يوجد مناديب»</em>، التنبيه هيختفي وتقدر تكمّل. بُص صفحة <a href="courier-balances.html" class="text-brand underline">أرصدة المناديب</a> للتفاصيل.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٤</span>
-        <div>
-          <p class="font-semibold">عدّ الدرج ودخّل كاش الإغلاق (عدّ أعمى)</p>
-          <p class="text-sm text-stone-600 mt-1">عدّ الفلوس اللي فعلاً في الدرج واكتبها في <strong>الكاش المعدود عند الإغلاق</strong>. مش هتشوف المبلغ المتوقع وانت بتكتب — دي عملية <strong>عدّ أعمى</strong>، يعني اكتب بالظبط اللي عدّيته. كاش بس؛ متدخّلش إنستاباي ولا محافظ إلكترونية ولا بنك.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٥</span>
-        <div>
-          <p class="font-semibold">دوس <strong>إنهاء الشيفت</strong> وراجع الملخّص</p>
-          <p class="text-sm text-stone-600 mt-1">التطبيق هيقولك <em>"تم إنهاء الشيفت بنجاح"</em> ويوريك ملخّص فيه دلوقتي <strong>المتوقع</strong> و<strong>المعدود</strong> و<strong>الفرق</strong> للكاش، وكمان رقم قيد الإغلاق. لو الكاش المعدود مختلف عن المتوقع، النظام بيسجّل الزيادة أو العجز أوتوماتيك. الشيفت بقى مقفول.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Tips -->
-    <div class="mt-10 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-amber-800 mb-2">💡 نصائح</h3>
-      <ul class="list-disc list-inside space-y-1 text-amber-900">
-        <li>عدّ فلوس الدرج بإيدك قبل ما تكتب رصيد البداية أو الإغلاق — متخمّنش المبلغ.</li>
-        <li>متسوّيش أرصدة إنستاباي ولا المحافظ الإلكترونية ولا البنك كموظف؛ دي مسؤولية المدير أو الحسابات.</li>
-        <li>لو ظهر فرق، متقلقش — بلّغ مديرك وهو اللي هيراجعه.</li>
-        <li>مش هتقدر تفتح شيفت جديد قبل ما تقفل الشيفت الحالي.</li>
-      </ul>
-    </div>
-
-    <!-- Common issues -->
-    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-red-800 mb-2">⚠️ مشاكل شائعة</h3>
-      <ul class="list-disc list-inside space-y-1 text-red-900">
-        <li><strong>زرار إنهاء الشيفت مقفول / «سوِّ أرصدة المناديب…»:</strong> لسه عندك أرصدة مناديب مش متسوّية. افتح <strong>«مراجعة وتسوية المناديب»</strong>، سوِّ كل مندوب، وبعدين اقفل الشيفت.</li>
-        <li><strong>«يوجد شيفت مفتوح بالفعل»:</strong> في شيفت مفتوح وماتقفلش. كلّم مديرك يقفله.</li>
-        <li><strong>شاشة بدء الشيفت مش ظاهرة:</strong> يمكن الشيفت مفتوح من قبل كده. روح على نقطة البيع على طول.</li>
-        <li><strong>فرق كبير في كاش الإغلاق:</strong> عدّ الكاش تاني وراجع أي مصروفات أو طلبات ماتسجلتش. بلّغ مديرك.</li>
-      </ul>
-    </div>
-
-    <div class="mt-10 flex justify-between no-print">
-      <a href="login.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
-        → تسجيل الدخول
-      </a>
-      <a href="pos.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
-        ← التالي: إدخال الطلبات
-      </a>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف · الشيفت</footer>
+<body class="bg-stone-50 font-cairo text-stone-800">
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">ابدأ من هنا</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الدخول</a><a href="shift.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">الوردية</a><a href="pos.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">عمل طلب</a><a href="kanban.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">بورد الطلبات</a><a href="courier-balances.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">حساب المندوب</a><a href="trips.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الرحلات</a><a href="expenses.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">المصاريف والطلبات</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">مدير الخط</a></div><a href="../en/shift.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">English</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#128340;</span><h1 class="text-2xl font-bold text-brand">فتح وقفل الوردية</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">الوردية بتربط كل طلب وكل جنيه بيعدي من إيدك بيك وبدرج فرع واحد. بتفتحها قبل أول طلب وبتقفلها بعد آخر طلب.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">لمين</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">موظف</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">مدير خط</span></div><div class="bg-red-50 border-s-4 border-red-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-red-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#10005;</span><span>مفيش وردية، مفيش بيع</span></p><p class="text-sm text-red-900 leading-relaxed">التطبيق هيوديك على <strong>بدء الشيفت</strong> ومش هيسيبك تخرج منها غير لما يبقى فيه وردية مفتوحة على الفرع اللي اخترته <em>وإنت اللي فاتحها</em>. وردية زميلك مش بتحسب، وكمان ورديتك إنت على فرع تاني مش بتحسب.</p></div>
+<h2 id="open" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">فتح الوردية</h2>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">اختار الفرع الأول</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">شاشة <strong>اختر ملف نقطة البيع</strong> (أو اسم الفرع اللي فوق) هي اللي بتحدد الدرج اللي الوردية عليه. اختيار فرع غلط هنا هو أكتر سبب لوردية مش راضية تتقفل.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">عدّ الكاش اللي في الدرج</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">الشاشة بتقول <em>"قم بعدّ نقدية البداية ثم أدخلها"</em> وبتوريك الفرع والحساب النقدي و<strong>الرصيد بالنظام</strong> — اللي النظام فاكر إنه موجود. برضه عدّ الفلوس الحقيقية.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">اكتب اللي عدّيته</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">اكتب المبلغ اللي عدّيته في <strong>النقدية المعدودة عند البداية</strong>. التطبيق هيوريك <strong>الفرق</strong> مع رصيد النظام وإنت بتكتب. اكتب الرقم الحقيقي حتى لو مش مظبوط — ده أصلًا سبب إنك بتعد.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">4</span><div class="min-w-0"><p class="font-semibold text-stone-800">دوس بدء الشيفت</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">هتنزل على شاشة الطلبات وفوق هيبان <strong>شيفت مفتوح</strong> ومعاه وقت البداية.</p></div></li></ol>
+<div class="bg-amber-50 border-s-4 border-amber-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-amber-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9888;</span><span>كاش بس</span></p><p class="text-sm text-amber-900 leading-relaxed">عدّ الكاش الحقيقي بتاع الفرع ده وبس. إنستاباي والمحفظة والفيزا النظام بيتابعهم لوحده — إنت عمرك ما بتكتبهم في بداية الوردية.</p></div>
+<h2 id="close" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">قفل الوردية</h2>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">صفّي البورد الأول</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">كل طلبات اليوم لازم تكون في عمودها الصح، وكل دفعة اتسجلت. أي طلب سايب في نص البورد ده سؤال حد هيرد عليه بكرة.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">سوّي مع المناديب</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">لو لسه مندوب عليه فلوس للفرع (أو الفرع عليه فلوس ليه)، التطبيق هيوقف القفل — شوف تحت.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">افتح إنهاء الشيفت</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">المنيو &amp;rarr; <strong>إنهاء الشيفت</strong>. الاختيار ده بيظهر بس لما الوردية المفتوحة على الفرع المختار تكون بتاعتك.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">4</span><div class="min-w-0"><p class="font-semibold text-stone-800">عدّ الدرج واكتبه</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">الشاشة بتقول <em>"قم بعدّ النقدية في الدرج ثم أدخل المبلغ"</em> ومش بتوريك أي حاجة تانية — لا المتوقع ولا الفرق. ده بقصد: إنت بتعد اللي موجود فعلًا، والنظام هو اللي بيقارن بعدين.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">5</span><div class="min-w-0"><p class="font-semibold text-stone-800">دوس إنهاء الشيفت</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">دلوقتي بيظهر الملخص: المتوقع والمعدود والفرق لكل وسيلة دفع، وكمان عدد الفواتير وإجماليات اليوم. ولو فيه فرق، النظام بيسجل قيد زيادة/عجز لوحده — إنت مش بتظبط حاجة.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">6</span><div class="min-w-0"><p class="font-semibold text-stone-800">هيطلّعك برّه</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">قفل الوردية بيطلّعك من الحساب بقصد، عشان اللي هياخد الجهاز بعديك يبدأ بحسابه هو.</p></div></li></ol>
+<h2 id="courier-block" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">"سوِّ أرصدة المندوبين قبل إنهاء الشيفت"</h2>
+<p class="text-stone-700 leading-relaxed mb-4">دي أكتر حاجة بتوقف القفل. الرسالة بتقولك فيه كام حركة مندوب لسه مفتوحة، وعلى كام مندوب وكام طلب، وبتعدد كل مندوب وصافي رصيده.</p>
+<p class="text-stone-700 leading-relaxed mb-4">دوس <strong>مراجعة وتسوية المندوبين</strong>، سوّي اللي معلّق، وبعدين ارجع اقفل. تسوية المناديب دي شغل الموظف — مش محتاج مدير عشانها.</p>
+<div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>التفاصيل كاملة</span></p><p class="text-sm text-sky-900 leading-relaxed">طريقة قراءة الأرصدة وتسويتها موجودة في صفحة حساب المندوب.</p></div>
+<h2 id="trouble" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">لما ميرضاش يفتح أو يقفل</h2>
+<div class="space-y-3 my-6"><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"الشيفت مفتوح بالفعل" — حد تاني فاتحه</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">الفرع فيه وردية مفتوحة بدأها حد تاني، ولازم تتقفل قبل ما تبدأ وردية جديدة. ولو الشخص ده مشي، مدير الخط يقدر يقفلها من متابعة الورديات.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"لديك شيفت مفتوح على ملف كذا"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">إنت سايب وردية مفتوحة على فرع تاني. استخدم <strong>التبديل لملف الشيفت المفتوح</strong> وبعدين <strong>اذهب إلى إنهاء الشيفت</strong>، اقفلها، وارجع. مينفعش يبقى معاك أكتر من وردية مفتوحة.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"تعذر إظهار حقل إدخال النقدية"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">الوردية مفيهاش وسيلة دفع للإقفال، فمفيش حاجة تتعدّ أصلًا. اعد فتح الوردية أو كلّم الدعم — دي مشكلة إعدادات مش حاجة تتظبط من الفرع.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>عدّيت غلط وقفلت خلاص</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">قول لمدير الخط في نفس اليوم. الفرق اتسجل خلاص كقيد زيادة/عجز؛ تصحيحه شغل حسابات مش إعادة عد.</div></details></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">جارز POS &middot; دليل الموظفين ومديري الخطوط<br><span class="text-stone-300">تقدر تطبعها &mdash; استخدم أمر الطباعة في المتصفح.</span></footer>
 </body>
 </html>

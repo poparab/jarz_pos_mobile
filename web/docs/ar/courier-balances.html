@@ -1,139 +1,30 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>أرصدة المناديب — دليل الموظف</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حساب المندوب — دليل جارز POS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
-<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">تسجيل الدخول</a>
-        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">الشيفت</a>
-        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">إدخال الطلبات</a>
-        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">كانبان</a>
-        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">الرحلات</a>
-        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">المصروفات</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">أرصدة المناديب</a>
-      </div>
-      <a href="../en/courier-balances.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div class="flex items-center gap-3 mb-1">
-      <span class="text-3xl">⚖️</span>
-      <h1 class="text-2xl font-bold text-brand">أرصدة المناديب</h1>
-    </div>
-    <p class="text-stone-500 mb-8">شاشة بتوريك الرصيد المستحق لكل مندوب — هو عليه كام للفرع (أو الفرع عليه له كام) — وتقدر تسوّيه.</p>
-
-    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">تستخدمها إمتى؟</strong> في أي وقت عايز تشوف كل مندوب ماسك كام — وأهم حاجة وانت <strong>بتقفل الشيفت</strong>: لازم تسوّي رصيد كل مندوب قبل ما الشيفت يتقفل.
-    </div>
-
-    <h2 class="text-lg font-semibold mb-4">إزاي تفهم شاشة الأرصدة</h2>
-
-    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm space-y-4 mb-8">
-      <p>شاشة <strong>أرصدة المناديب</strong> بتوريك كل المناديب اللي شغّالين، وقدام كل واحد ٣ أرقام:</p>
-
-      <div class="grid sm:grid-cols-3 gap-3 mt-2">
-        <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-          <div class="font-bold text-green-800 text-xs uppercase mb-1">تحصيل من المندوب</div>
-          <p class="text-green-700 text-xs">فلوس المندوب حصّلها من العملاء ولسه ماسلّمهاش للفرع.</p>
-        </div>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-          <div class="font-bold text-blue-800 text-xs uppercase mb-1">ندفع للمندوب</div>
-          <p class="text-blue-700 text-xs">مبالغ مستحقة للمندوب (رسوم توصيل أو سلف).</p>
-        </div>
-        <div class="bg-stone-50 border border-stone-300 rounded-lg p-3 text-center">
-          <div class="font-bold text-stone-700 text-xs uppercase mb-1">الصافي</div>
-          <p class="text-stone-600 text-xs">صافي الموقف — موجب يعني المندوب عليه فلوس لينا؛ سالب يعني إحنا علينا له.</p>
-        </div>
-      </div>
-
-      <p class="text-stone-600">عدد <strong>الفواتير</strong> بيوضّح كام تسليم لسه مش متسوّي مربوط بكل مندوب.</p>
-    </div>
-
-    <h2 class="text-lg font-semibold mb-4">عرض وتسوية أرصدة المناديب</h2>
-
-    <div class="space-y-4">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">١</span>
-        <div>
-          <p class="font-semibold">افتح شاشة الأرصدة</p>
-          <p class="text-sm text-stone-600 mt-1">في طريقتين: على بورد الكانبان دوس أيقونة <strong>القائمة ☰</strong> ← <strong>أرصدة المناديب</strong> عشان تراجع في أي وقت، أو من شاشة <strong>إنهاء الشيفت</strong> دوس <strong>«مراجعة وتسوية المناديب»</strong> وانت بتقفل الشيفت. الاتنين بيفتحوا نفس نافذة <strong>أرصدة المناديب</strong>.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٢</span>
-        <div>
-          <p class="font-semibold">راجع رصيد كل مندوب</p>
-          <p class="text-sm text-stone-600 mt-1">كل مندوب هيبان قدامه لابل زي <strong>«تحصيل من المندوب»</strong> والمبلغ اللي ماسكه. المبلغ الكبير معناه إن المندوب لسه ماسك كاش كتير من العملاء وماسلّمهوش.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٣</span>
-        <div>
-          <p class="font-semibold">سوِّ المندوب</p>
-          <p class="text-sm text-stone-600 mt-1">بعد ما تكون خدت الكاش من المندوب، دوس <strong>«تسوية»</strong> جنب اسمه وأكّد <em>«ادفع للمندوب … — تسوية كل الفواتير؟»</em>. الصف هيتشال وهتظهر رسالة <em>«تمت التسوية»</em>. أول ما القايمة تبقى <em>«لا يوجد مناديب»</em>، يبقى كل الأرصدة اتسوّت وتقدر تقفل الشيفت.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٤</span>
-        <div>
-          <p class="font-semibold">اقفل النافذة</p>
-          <p class="text-sm text-stone-600 mt-1">دوس <strong>X</strong> (أو بره النافذة) عشان ترجع. لو فتحتها من إنهاء الشيفت، تنبيه المناديب هيبقى اختفى وزرار <strong>إنهاء الشيفت</strong> هيبقى شغّال.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Staff note -->
-    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-blue-800 mb-2">ℹ️ ملاحظة للموظفين</h3>
-      <p class="text-blue-900">تسوية المناديب جزء من آخر يومك: <strong>لازم</strong> تسوّي رصيد كل مندوب قبل ما تقدر تقفل الشيفت. متسوّيش مندوب غير بعد ما تكون استلمت الكاش بتاعه فعلاً. لو في رصيد باين غلط أو كبير بشكل مش طبيعي، سوِّ الصح وكلّم مديرك في الباقي.</p>
-    </div>
-
-    <!-- Tips -->
-    <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-amber-800 mb-2">💡 نصائح</h3>
-      <ul class="list-disc list-inside space-y-1 text-amber-900">
-        <li>بُص أرصدة المناديب قبل ما تعمل رحلة توصيل جديدة عشان تتأكد إن المندوب في وضع كويس.</li>
-        <li>لو ظهرت رسالة «لا يوجد مناديب»، يبقى مفيش أي رصيد مطلوب دلوقتي — كله متسوّي.</li>
-      </ul>
-    </div>
-
-    <!-- Common issues -->
-    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-red-800 mb-2">⚠️ مشاكل شائعة</h3>
-      <ul class="list-disc list-inside space-y-1 text-red-900">
-        <li><strong>الأرصدة مش بتتحمّل:</strong> استنى كام ثانية؛ لو المشكلة فضلت، اتأكد من النت.</li>
-        <li><strong>رصيد المندوب باين غلط:</strong> يمكن بيعكس رحلات اتسلّمت لسه وماتسوّتش. بلّغ مديرك.</li>
-      </ul>
-    </div>
-
-    <div class="mt-10 flex justify-between no-print">
-      <a href="expenses.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
-        → المصروفات
-      </a>
-      <a href="shift.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
-        ← نهاية اليوم: إنهاء الشيفت
-      </a>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف · أرصدة المناديب</footer>
+<body class="bg-stone-50 font-cairo text-stone-800">
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">ابدأ من هنا</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الدخول</a><a href="shift.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الوردية</a><a href="pos.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">عمل طلب</a><a href="kanban.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">بورد الطلبات</a><a href="courier-balances.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">حساب المندوب</a><a href="trips.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الرحلات</a><a href="expenses.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">المصاريف والطلبات</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">مدير الخط</a></div><a href="../en/courier-balances.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">English</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#9878;</span><h1 class="text-2xl font-bold text-brand">أرصدة المناديب والتسوية</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">مين عليه لمين، وإزاي تصفّيها. إنت اللي بتسوّي مع المناديب — دي مش شغل مدير، وورديتك مش هتقفل قبل ما تخلصها.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">لمين</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">موظف</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">مدير خط</span></div><h2 id="open" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">فتحها</h2>
+<p class="text-stone-700 leading-relaxed mb-4">المنيو &amp;rarr; <strong>أرصدة المناديب</strong>، أو من قائمة البورد اللي فوق. بتفتح كليستة مناديب وقدام كل واحد <strong>الصافي</strong> بتاعه.</p>
+<h2 id="reading" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">قراءة الرصيد</h2>
+<div class="overflow-x-auto my-6 rounded-xl border border-stone-200 bg-white shadow-sm"><table class="w-full text-sm border-collapse"><thead class="bg-stone-50"><tr><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">المكتوب</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">المعنى</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">تعمل إيه</th></tr></thead><tbody><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">تحصيل من المندوب</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">المندوب ماسك فلوس الفرع — حصّل من العملا أكتر من أجرة التوصيل بتاعته.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">خد الكاش وسوّي.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">سداد للمندوب</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الفرع عليه فلوس للمندوب — أجرته أكتر من اللي حصّله.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">ادفعله من الدرج وسوّي.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">مُسوى</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">مفيش حاجة معلقة.</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">ولا حاجة.</td></tr></tbody></table></div>
+<div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>الصافي = الطلب ناقص الشحن</span></p><p class="text-sm text-sky-900 leading-relaxed">شاشة التسوية بتكتبها صريح: <em>تحصيل (الطلب - الشحن)</em>. المندوب بياخد أجرته وبيسلّم الباقي؛ ولما الأجرة تبقى أكبر من اللي حصّله، الاتجاه بينقلب والفرع هو اللي بيدفعله.</p></div>
+<h2 id="settling" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">التسوية</h2>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">افتح المندوب</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">لما تدوس على مندوب بتظهر <strong>التفاصيل</strong> — كل طلب ورا الرصيد ده، ومعاه المدينة والمبلغ. طابق القايمة مع اللي المندوب بيقوله.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">عاين قبل ما تسوّي</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">زرار المعاينة بيوريك بالظبط التسوية هتسجّل إيه. استخدمه لما الرقم يستغربك.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">عدّ الفلوس الأول</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">سلّم أو استلم الكاش، وبعدين أكّد. التسوية في التطبيق دي تسجيل لحاجة حصلت خلاص.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">4</span><div class="min-w-0"><p class="font-semibold text-stone-800">سوّي، أو سوّي الكل</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>تسوية</strong> بتصفّي طلب واحد. و<strong>تسوية الكل</strong> بتصفّي كل الطلبات المفتوحة للمندوب ده مرة واحدة وبتأكدلك الإجمالي الأول — استخدمها آخر الوردية والمندوب واقف قدامك.</p></div></li></ol>
+<div class="bg-amber-50 border-s-4 border-amber-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-amber-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9888;</span><span>متسوّيش مرتين</span></p><p class="text-sm text-amber-900 leading-relaxed">لو التأكيد قعد، استنى — متدوسش تاني. حصل قبل كده إن دوستين دفعوا الطلب مرتين. ولو مش متأكد إنها عدت، اقفل وافتح الأرصدة تاني وشوف.</p></div>
+<h2 id="trouble" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">أسئلة</h2>
+<div class="space-y-3 my-6"><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"لا يوجد مندوبون"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">مفيش حد عليه رصيد مفتوح على الفرع ده — وده اللي إنت عايزه آخر الوردية. ولو كنت متوقع حد، اتأكد إنك على الفرع الصح.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"لا يوجد مبلغ للتحصيل أو السداد"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">قيمة الطلب وأجرة التوصيل بيلغوا بعض. سوّيه برضه عشان يخرج من الوردية.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>المندوب مش موافق على الإجمالي</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">افتح <strong>التفاصيل</strong> وامشي طلب طلب. غالبًا هتلاقي طلب اتحدد ادفع الآن والمندوب هو اللي حصّل، أو العكس — مدير الخط يقدر يصحّح طريقة التحصيل.</div></details></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">جارز POS &middot; دليل الموظفين ومديري الخطوط<br><span class="text-stone-300">تقدر تطبعها &mdash; استخدم أمر الطباعة في المتصفح.</span></footer>
 </body>
 </html>

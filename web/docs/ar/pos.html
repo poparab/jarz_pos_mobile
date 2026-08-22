@@ -1,149 +1,39 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>إدخال الطلبات — دليل الموظف</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عمل طلب — دليل جارز POS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
-<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">تسجيل الدخول</a>
-        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">الشيفت</a>
-        <a href="pos.html" class="px-2 py-1 rounded bg-orange-700 font-semibold">إدخال الطلبات</a>
-        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">كانبان</a>
-        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">الرحلات</a>
-        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">المصروفات</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">أرصدة المناديب</a>
-      </div>
-      <a href="../en/pos.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div class="flex items-center gap-3 mb-1">
-      <span class="text-3xl">🛒</span>
-      <h1 class="text-2xl font-bold text-brand">إدخال الطلبات (POS)</h1>
-    </div>
-    <p class="text-stone-500 mb-8">إزاي تضيف المنتجات، تختار العميل، تختار طريقة التوصيل، وتدفع وتأكّد الطلب.</p>
-
-    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-8 text-sm">
-      <strong class="text-brand">تستخدمها إمتى؟</strong> كل ما عميل يطلب طلب جديد — سواء حضوري أو على التليفون. لازم الشيفت يكون مفتوح قبل ما تدخّل الطلبات.
-    </div>
-
-    <h2 class="text-lg font-semibold mb-4">الخطوات</h2>
-
-    <div class="space-y-4">
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">١</span>
-        <div>
-          <p class="font-semibold">روح على شاشة نقطة البيع</p>
-          <p class="text-sm text-stone-600 mt-1">بعد ما تبدأ الشيفت، الشاشة بتفتح على طول على نقطة البيع. وتقدر كمان تدوس على <strong>نقطة البيع</strong> من القائمة الجانبية في أي وقت.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٢</span>
-        <div>
-          <p class="font-semibold">اختار العميل الأول</p>
-          <p class="text-sm text-stone-600 mt-1">قبل ما تضيف أي منتج، دوس <strong>إضافة عميل</strong>. دوّر بالاسم أو رقم التليفون وبعدين اختار العميل من النتايج. لو العميل ليه عنوان توصيل متسجّل، هيتحمّل لوحده أوتوماتيك. لازم تختار العميل قبل ما تضيف المنتجات أو تأكّد الطلب.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٣</span>
-        <div>
-          <p class="font-semibold">دوّر على المنتجات وضيفها للسلة</p>
-          <p class="text-sm text-stone-600 mt-1">بعد ما تختار العميل، اكتب اسم المنتج في خانة البحث أو اتفرّج على شبكة المنتجات. دوس على المنتج عشان يتضاف لـ<strong>سلة المشتريات</strong>. استخدم أزرار +/− عشان تظبط الكمية. وتقدر كمان تضيف <strong>باقات</strong> لو كانت متاحة في بروفايل نقطة البيع بتاعك.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٤</span>
-        <div>
-          <p class="font-semibold">اختار التوصيل ولا الاستلام من الفرع</p>
-          <p class="text-sm text-stone-600 mt-1">
-            <strong>توصيل:</strong> دوس <strong>اختر وقت التوصيل</strong> واختار الفترة اللي تناسبك. رسوم التوصيل بتتضاف لوحدها أوتوماتيك.<br>
-            <strong>استلام من الفرع:</strong> فعّل خيار <strong>استلام من الفرع (بدون رسوم توصيل)</strong>. خانة وقت التوصيل بتختفي ومفيش أي رسوم بتتضاف.
-          </p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٥</span>
-        <div>
-          <p class="font-semibold">راجع إجمالي السلة</p>
-          <p class="text-sm text-stone-600 mt-1">السلة بتوريك: مجموع المنتجات + رسوم التوصيل (لو فيه) = الإجمالي. امسح منتج بأيقونة سلة الزبالة، أو امسح السلة كلها بـ<strong>مسح السلة</strong>.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٦</span>
-        <div>
-          <p class="font-semibold">اختار <strong>طريقة الدفع</strong> ودوس <strong>تأكيد</strong></p>
-          <p class="text-sm text-stone-600 mt-1">هتظهرلك نافذة تطلب منك تختار طريقة الدفع: <em>نقدي</em>، <em>إنستاباي</em>، <em>محفظة</em>، أو غيرها. بعد ما تختار، الطلب بيتبعت للسيرفر والفاتورة بتتعمل.</p>
-        </div>
-      </div>
-
-      <div class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
-        <span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">٧</span>
-        <div>
-          <p class="font-semibold">الطلب اتأكّد — ابدأ طلب جديد</p>
-          <p class="text-sm text-stone-600 mt-1">هتظهر رسالة نجاح مع رقم الفاتورة. السلة بتتفضّى لوحدها وتبقى جاهز لطلب جديد. الفاتورة الجديدة بتظهر على <a href="kanban.html" class="text-brand underline">لوحة الكانبان</a>.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Drafts -->
-    <h2 class="text-lg font-semibold mt-10 mb-4">المسوّدات (حفظ أوتوماتيك)</h2>
-    <div class="bg-white border border-stone-200 rounded-xl p-5 text-sm shadow-sm">
-      <p class="text-stone-700">النظام بيحفظ سلّتك أوتوماتيك كل كام ثانية. لو قفلت التطبيق أو رحت لشاشة تانية، هتلاقي سلّتك متحفوظة أول ما ترجع. عشان تشوف المسوّدات المتحفوظة، دوس أيقونة <strong>المسوّدات</strong> (أيقونة الساعة) في أعلى شاشة نقطة البيع.</p>
-      <p class="text-stone-700 mt-2">المسوّدات متحفوظة على جهازك. لو عملت تسجيل خروج، يمكن مسوّدات الجلسة الحالية تتمسح — خلّص طلباتك قبل ما تسجّل خروج.</p>
-    </div>
-
-    <!-- Tips -->
-    <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-amber-800 mb-2">💡 نصائح</h3>
-      <ul class="list-disc list-inside space-y-1 text-amber-900">
-        <li>اختار العميل دايماً قبل ما تضيف المنتجات — ده بيضمن العنوان الصح ورسوم التوصيل وسجل العميل.</li>
-        <li>لو أوقات التوصيل مظهرتش، كلّم مديرك — يمكن جدول الفرع محتاج إعداد.</li>
-        <li>لطلبات الاستلام، اتأكد إنك فعّلت خيار الاستلام، عشان الوضع الافتراضي هو التوصيل.</li>
-        <li>لو غلطت بعد ما أكّدت الطلب، روح على <a href="kanban.html" class="underline text-amber-800">الكانبان</a> واستخدم خيار <strong>تعديل الفاتورة</strong>.</li>
-      </ul>
-    </div>
-
-    <!-- Common issues -->
-    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-5 text-sm">
-      <h3 class="font-bold text-red-800 mb-2">⚠️ مشاكل شائعة</h3>
-      <ul class="list-disc list-inside space-y-1 text-red-900">
-        <li><strong>"يرجى اختيار وقت توصيل":</strong> دوست تأكيد من غير ما تختار وقت. اختار وقت أو فعّل خيار الاستلام.</li>
-        <li><strong>مش عارف تضيف المنتجات / العميل مطلوب:</strong> اختار العميل الأول وبعدين ضيف المنتجات للسلة.</li>
-        <li><strong>المنتجات مش ظاهرة:</strong> اتأكد من الاتصال بالإنترنت وحدّث الصفحة.</li>
-        <li><strong>زر التأكيد مش شغّال:</strong> السلة فاضية. ضيف منتج واحد على الأقل.</li>
-        <li><strong>الطلب اتأكّد بس مش ظاهر في الكانبان:</strong> دوس أيقونة التحديث في الكانبان.</li>
-      </ul>
-    </div>
-
-    <div class="mt-10 flex justify-between no-print">
-      <a href="shift.html" class="flex items-center gap-2 text-brand border border-brand px-5 py-3 rounded-xl font-semibold hover:bg-brand-light transition-colors">
-        → الشيفت
-      </a>
-      <a href="kanban.html" class="flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-semibold hover:bg-brand-dark transition-colors">
-        ← التالي: الكانبان
-      </a>
-    </div>
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف · إدخال الطلبات</footer>
+<body class="bg-stone-50 font-cairo text-stone-800">
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">ابدأ من هنا</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الدخول</a><a href="shift.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الوردية</a><a href="pos.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">عمل طلب</a><a href="kanban.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">بورد الطلبات</a><a href="courier-balances.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">حساب المندوب</a><a href="trips.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الرحلات</a><a href="expenses.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">المصاريف والطلبات</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">مدير الخط</a></div><a href="../en/pos.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">English</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#128722;</span><h1 class="text-2xl font-bold text-brand">عمل طلب</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">العميل الأول، بعدين الأصناف، بعدين هيوصله إزاي، وبعدين إتمام الطلب. الطلب بيظهر على البورد أول ما تبعته.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">لمين</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">موظف</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">مدير خط</span></div><div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>الترتيب ثابت</span></p><p class="text-sm text-sky-900 leading-relaxed">شبكة الأصناف بتفضل مقفولة لحد ما تختار عميل — هيقولك <em>"يرجى اختيار عميل أولاً"</em>. ده بقصد: العميل هو اللي بيحدد قائمة الأسعار ورسوم التوصيل والفرع.</p></div>
+<h2 id="customer" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">١. اختار العميل</h2>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">دوّر بالتليفون الأول</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">التليفون هو الطريقة المضمونة إنك تلاقي عميل قديم — الأسامي بتتكتب بألف شكل. حوّل للبحث بالاسم بس لو التليفون مجابش حاجة.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">لو جديد، اعمله</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>إنشاء عميل</strong> بياخد الاسم والنوع (فرد أو شركة) ومجموعة العميل. خد ثانية وظبّط التليفون صح — ده اللي هتلاقيه بيه المرة الجاية.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">3</span><div class="min-w-0"><p class="font-semibold text-stone-800">اختار عنوان التوصيل</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><strong>اختر عنوان الشحن</strong> بيوريك العناوين المحفوظة للعميل، أو تضيف واحد جديد. <strong>المنطقة</strong> اللي على العنوان هي اللي بتحدد رسوم التوصيل، فاختارها صح.</p></div></li></ol>
+<div class="bg-amber-50 border-s-4 border-amber-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-amber-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9888;</span><span>"عدم تطابق الفرع"</span></p><p class="text-sm text-amber-900 leading-relaxed">لو منطقة العميل تبع فرع تاني، التطبيق هيسألك تفضل على فرعك ولا تحوّل لفرع المنطقة. حوّل إلا لو عندك سبب — الفرع بتاع المنطقة هو اللي يقدر يوصّل هناك فعلًا.</p></div>
+<h2 id="items" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">٢. ضيف الأصناف</h2>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span>دوس على الكارت عشان تضيف واحد. الكارت بيوريك <strong>في السلة</strong> والكمية اللي اتضافت، فتقدر تشوف بنظرة الطلب فيه إيه.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>الباقات</strong> ليها تاب لوحدها. لما تفتح باقة بتختار اللي جواها؛ و<strong>تعديل الباقة</strong> من السلة بيفتحلك الاختيار تاني.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>نفدت الكمية</strong> و<em>"تم الوصول لحد المخزون. المتوفر كذا فقط"</em> معناهم إن النظام مش شايف رصيد. لسه تقدر تكمّل الطلب، بس حد لازم يجيب البضاعة فعلًا.</span></li></ul>
+<h2 id="delivery" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">٣. استلام ولا توصيل</h2>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>استلام من الفرع (بدون رسوم توصيل)</strong> — العميل هيجي ياخد الطلب. مفيش ميعاد ولا مندوب ولا رسوم توصيل، والطلب ده عمره ما هيحتاج تسوية.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>التوصيل</strong> — لازم تختار <strong>وقت التوصيل</strong>. أول ميعاد متاح عليه علامة <strong>التالي</strong>.</span></li></ul>
+<div class="bg-amber-50 border-s-4 border-amber-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-amber-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9888;</span><span>الميعاد اللي عدّى بيترفض</span></p><p class="text-sm text-amber-900 leading-relaxed">التطبيق مش هيسيبك تبعت على ميعاد وقته عدّى. لو القايمة باينة قليلة آخر اليوم، ده السبب — اختار أول ميعاد حقيقي وقول للعميل.</p></div>
+<h2 id="cart" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">٤. راجع السلة</h2>
+<div class="overflow-x-auto my-6 rounded-xl border border-stone-200 bg-white shadow-sm"><table class="w-full text-sm border-collapse"><thead class="bg-stone-50"><tr><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">السطر</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">معناه</th></tr></thead><tbody><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الإجمالي الفرعي</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">قيمة البضاعة قبل التوصيل.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">التوصيل</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">التوصيل اللي بيتحسب على العميل. بييجي من منطقة العنوان.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">كود الخصم</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">اكتب الكود وهيبان عليه <strong>اتطبق</strong> أو <strong>مش مؤهل</strong>. "مش مؤهل" دي شروط الكود نفسه — مش عطل.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">الإجمالي</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">اللي العميل هيدفعه.</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">معلومات تشغيلية</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700"><strong>تكلفة التوصيل</strong> — التوصيل مكلف الفرع كام. دي تكلفتك إنت، مش سعر العميل.</td></tr></tbody></table></div>
+<div class="bg-violet-50 border-s-4 border-violet-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-violet-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#9733;</span><span>تسعير المدير</span></p><p class="text-sm text-violet-900 leading-relaxed">لوحة <strong>تسعير المدير</strong> — قائمة الأسعار وغرض الطلب وإلغاء الشحن ومبلغ توصيل مخصص وخصومات السطر — دي للمدير الأعلى بس. حتى مدير الخط مش بياخدها؛ ولو مدير الخط محتاج توصيل مختلف على طلب شغال، بيطلبه من البورد.</p></div>
+<h2 id="checkout" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">٥. إتمام الطلب</h2>
+<ol class="space-y-3 my-6 step-block list-none p-0"><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">1</span><div class="min-w-0"><p class="font-semibold text-stone-800">دوس إتمام الطلب</p><p class="text-sm text-stone-600 mt-1 leading-relaxed">لو أي حاجة في السلة أكتر من رصيد النظام، هيطلعلك تحذير بكل سطر — <em>المطلوب كذا، المتاح كذا</em>. و<strong>متابعة الطلب</strong> بيعمله برضه.</p></div></li><li class="flex gap-4 bg-white rounded-xl border border-stone-200 p-4 shadow-sm"><span class="bg-brand text-white rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold text-sm">2</span><div class="min-w-0"><p class="font-semibold text-stone-800">أكّد</p><p class="text-sm text-stone-600 mt-1 leading-relaxed"><em>"تم إرسال الطلب بنجاح!"</em> معناها إنه على البورد، في عمود <strong>مستلم</strong>، جاهز للمطبخ.</p></div></li></ol>
+<div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>الدفع مش بيتاخد هنا</span></p><p class="text-sm text-sky-900 leading-relaxed">طلب التوصيل بيتعمل غير مدفوع بقصد. الفلوس بتتسجل على البورد وقت ما الطلب يخرج أو يرجع متسوّي — شوف صفحة بورد الطلبات.</p></div>
+<h2 id="drafts" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">تعليق طلب</h2>
+<p class="text-stone-700 leading-relaxed mb-4">تقدر تحفظ سلة نص جاهزة كمسودة وترجعلها بعدين — مفيدة لما عميل لسه بيفكر وفيه طابور وراه. فيه حد أقصى؛ ولو طلعلك <em>"تم الوصول إلى الحد الأقصى للمسودات"</em>، امسح مسودة قديمة مش محتاجها.</p>
+<h2 id="trouble" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">لما حاجة تبوظ</h2>
+<div class="space-y-3 my-6"><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>شبكة الأصناف فاضية</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">يا إما مفيش عميل مختار، يا إما الفلتر واقف على تصنيف مفيهوش حاجة. دوس <strong>الكل</strong> الأول.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"محتويات الباقة مش قادرة تتحمّل"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">متبعتش. افتح <strong>تعديل الباقة</strong>، اختار الأصناف تاني، وحاول تاني — لو بعتّ باقة التطبيق مقدرش يقراها هيطلع طلب محدش هيعرف يجهزه.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>"لا توجد مواعيد توصيل متاحة"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">يا إما جدول مواعيد الفرع مش متظبط، يا إما كل مواعيد النهاردة عدّت. اتأكد إن الفرع صح؛ ولو صح، دي مشكلة إعدادات لمديرك.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>بعتّ الطلب غلط</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">متعملش طلب تاني. لاقيه على البورد: <strong>تعديل الفاتورة</strong> بيغيّر اللي جواه، ومدير الخط يقدر يلغيه خالص.</div></details></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">جارز POS &middot; دليل الموظفين ومديري الخطوط<br><span class="text-stone-300">تقدر تطبعها &mdash; استخدم أمر الطباعة في المتصفح.</span></footer>
 </body>
 </html>

@@ -1,140 +1,32 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>دليل موظف نقطة البيع — Jarz POS</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}}}}}</script>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دليل الموظفين ومديري الخطوط — دليل جارز POS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{brand:{DEFAULT:'#E85D04',light:'#FFF7ED',dark:'#9A3412'}},fontFamily:{cairo:['Cairo','sans-serif']}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
-<body class="bg-stone-50 text-stone-800" style="font-family:'Cairo',sans-serif">
-
-  <nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2 justify-between">
-      <a href="index.html" class="font-bold text-lg tracking-wide">Jarz POS</a>
-      <div class="flex flex-wrap gap-1 text-xs">
-        <a href="login.html" class="px-2 py-1 rounded hover:bg-orange-700">تسجيل الدخول</a>
-        <a href="shift.html" class="px-2 py-1 rounded hover:bg-orange-700">الشيفت</a>
-        <a href="pos.html" class="px-2 py-1 rounded hover:bg-orange-700">إدخال الطلبات</a>
-        <a href="kanban.html" class="px-2 py-1 rounded hover:bg-orange-700">كانبان</a>
-        <a href="trips.html" class="px-2 py-1 rounded hover:bg-orange-700">الرحلات</a>
-        <a href="expenses.html" class="px-2 py-1 rounded hover:bg-orange-700">المصروفات</a>
-        <a href="courier-balances.html" class="px-2 py-1 rounded hover:bg-orange-700">أرصدة المناديب</a>
-      </div>
-      <a href="../en/index.html" class="text-xs bg-white text-brand px-2 py-1 rounded font-semibold hover:bg-orange-50">English</a>
-    </div>
-  </nav>
-
-  <main class="max-w-3xl mx-auto px-4 py-12">
-
-    <div class="text-center mb-10">
-      <div class="text-5xl mb-3">🛍️</div>
-      <h1 class="text-3xl font-bold text-brand mb-2">دليل موظف نقطة البيع</h1>
-      <p class="text-stone-500 text-base">كل اللي محتاج تعرفه عشان تشتغل على نظام Jarz POS كل يوم</p>
-    </div>
-
-    <div class="bg-brand-light border-r-4 border-brand rounded-l-xl px-5 py-4 mb-10 text-sm">
-      <strong class="text-brand">للموظفين بس:</strong> الدليل ده مخصوص لموظفين نقطة البيع. بيوضّح إزاي تسجّل دخول، تدير الشيفت، تدخّل الطلبات، وتتابع التوصيل.
-    </div>
-
-    <!-- 7 function cards -->
-    <h2 class="text-xl font-bold mb-5">الوظايف الأساسية</h2>
-    <div class="grid sm:grid-cols-2 gap-4 mb-12">
-
-      <a href="login.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group">
-        <div class="text-3xl mb-2">🔐</div>
-        <div class="font-bold text-brand group-hover:underline text-base mb-1">تسجيل الدخول والملف الشخصي</div>
-        <p class="text-xs text-stone-500">إزاي تسجّل دخول ببيانات الموظف وتحمّل بروفايل نقطة البيع.</p>
-      </a>
-
-      <a href="shift.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group">
-        <div class="text-3xl mb-2">⏱️</div>
-        <div class="font-bold text-brand group-hover:underline text-base mb-1">بدء الشيفت وإنهاؤه</div>
-        <p class="text-xs text-stone-500">إزاي تدخّل كاش الدرج في الأول والآخر.</p>
-      </a>
-
-      <a href="pos.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group">
-        <div class="text-3xl mb-2">🛒</div>
-        <div class="font-bold text-brand group-hover:underline text-base mb-1">إدخال الطلبات (POS)</div>
-        <p class="text-xs text-stone-500">اختار العميل الأول، زوّد المنتجات، ادفع، وأكّد الطلب.</p>
-      </a>
-
-      <a href="kanban.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group">
-        <div class="text-3xl mb-2">📋</div>
-        <div class="font-bold text-brand group-hover:underline text-base mb-1">لوحة كانبان</div>
-        <p class="text-xs text-stone-500">تابع الطلبات من «تم الاستلام» لحد ما تتسلّم أو تتلغي.</p>
-      </a>
-
-      <a href="trips.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group">
-        <div class="text-3xl mb-2">🚚</div>
-        <div class="font-bold text-brand group-hover:underline text-base mb-1">رحلات التوصيل</div>
-        <p class="text-xs text-stone-500">لمّ الطلبات في رحلة وعيّن مندوب التوصيل.</p>
-      </a>
-
-      <a href="expenses.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group">
-        <div class="text-3xl mb-2">💳</div>
-        <div class="font-bold text-brand group-hover:underline text-base mb-1">المصروفات اليومية</div>
-        <p class="text-xs text-stone-500">سجّل أي مصروف وابعته للاعتماد.</p>
-      </a>
-
-      <a href="courier-balances.html" class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand transition-all group sm:col-span-2 sm:max-w-xs sm:mx-auto sm:w-full">
-        <div class="text-3xl mb-2">⚖️</div>
-        <div class="font-bold text-brand group-hover:underline text-base mb-1">أرصدة المناديب</div>
-        <p class="text-xs text-stone-500">اطّلع على رصيد كل مندوب قبل ما تعيّنه لرحلة جديدة.</p>
-      </a>
-
-    </div>
-
-    <!-- Typical day flow -->
-    <h2 class="text-xl font-bold mb-5">يوم شغل عادي</h2>
-    <ol class="relative border-r-2 border-brand-light space-y-0 pr-6">
-      <li class="mb-6 relative">
-        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">١</span>
-        <p class="font-bold text-brand">تسجيل الدخول</p>
-        <p class="text-sm text-stone-500">دخّل الإيميل والباسورد بتاعك، واختار وضع <strong>موظف</strong>.</p>
-      </li>
-      <li class="mb-6 relative">
-        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">٢</span>
-        <p class="font-bold text-brand">بدء الشيفت</p>
-        <p class="text-sm text-stone-500">دخّل كاش الدرج بس وبعدين دوس <strong>بدء الشيفت</strong>.</p>
-      </li>
-      <li class="mb-6 relative">
-        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">٣</span>
-        <p class="font-bold text-brand">إدخال الطلبات</p>
-        <p class="text-sm text-stone-500">اختار العميل الأول، وبعدين زوّد المنتجات، طريقة التوصيل، والدفع.</p>
-      </li>
-      <li class="mb-6 relative">
-        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">٤</span>
-        <p class="font-bold text-brand">متابعة الكانبان</p>
-        <p class="text-sm text-stone-500">اقبل الطلبات وابعتها للتسليم.</p>
-      </li>
-      <li class="mb-6 relative">
-        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">٥</span>
-        <p class="font-bold text-brand">إنشاء رحلات التوصيل</p>
-        <p class="text-sm text-stone-500">لمّ الطلبات مع مندوب وابعتها.</p>
-      </li>
-      <li class="mb-6 relative">
-        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">٦</span>
-        <p class="font-bold text-brand">تسجيل المصروفات</p>
-        <p class="text-sm text-stone-500">سجّل أي مصاريف على طول وابعتها للاعتماد.</p>
-      </li>
-      <li class="relative">
-        <span class="absolute -right-3.5 top-0 w-7 h-7 bg-brand text-white rounded-full flex items-center justify-center text-xs font-bold">٧</span>
-        <p class="font-bold text-brand">إنهاء الشيفت</p>
-        <p class="text-sm text-stone-500">دخّل كاش الإغلاق الفعلي ودوس <strong>إنهاء الشيفت</strong>.</p>
-      </li>
-    </ol>
-
-    <div class="mt-10 text-center">
-      <a href="login.html" class="inline-block bg-brand text-white px-8 py-4 rounded-2xl font-bold text-base hover:bg-brand-dark transition-colors">
-        يلّا ابدأ بتسجيل الدخول ←
-      </a>
-    </div>
-
-  </main>
-
-  <footer class="text-center text-xs text-stone-400 py-6 no-print">Jarz POS · دليل الموظف</footer>
+<body class="bg-stone-50 font-cairo text-stone-800">
+<nav class="bg-brand text-white shadow-md sticky top-0 z-50 no-print"><div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 justify-between"><a href="index.html" class="font-bold text-lg tracking-wide shrink-0">JARZ POS</a><div class="flex sm:flex-wrap gap-1 text-xs order-3 sm:order-2 w-full sm:w-auto overflow-x-auto whitespace-nowrap scrollbar-none -mx-1 px-1"><a href="index.html" class="px-2.5 py-1 rounded bg-orange-800 font-semibold shrink-0">ابدأ من هنا</a><a href="login.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الدخول</a><a href="shift.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الوردية</a><a href="pos.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">عمل طلب</a><a href="kanban.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">بورد الطلبات</a><a href="courier-balances.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">حساب المندوب</a><a href="trips.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">الرحلات</a><a href="expenses.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">المصاريف والطلبات</a><a href="line-manager.html" class="px-2.5 py-1 rounded hover:bg-orange-700 shrink-0">مدير الخط</a></div><a href="../en/index.html" class="text-xs bg-white text-brand px-2.5 py-1 rounded font-bold hover:bg-orange-50 order-2 sm:order-3 shrink-0">English</a></div></nav>
+<main class="max-w-3xl mx-auto px-4 py-8">
+<div class="flex items-center gap-3 mb-2"><span class="text-3xl">&#128075;</span><h1 class="text-2xl font-bold text-brand">ابدأ من هنا</h1></div>
+<p class="text-stone-500 mb-6 leading-relaxed">كل اللي محتاجه موظف الفرع أو مدير الخط عشان يشتغل يومه على جارز POS — الدخول، فتح الوردية، عمل الطلبات، تحريكها على البورد، تسوية المندوب، وقفل اليوم.</p>
+<div class="flex flex-wrap items-center gap-2 mb-6"><span class="text-xs uppercase tracking-wide text-stone-400 font-semibold">لمين</span><span class="bg-emerald-100 text-emerald-800 border-emerald-300 border rounded-full px-3 py-0.5 text-xs font-bold">موظف</span><span class="bg-violet-100 text-violet-800 border-violet-300 border rounded-full px-3 py-0.5 text-xs font-bold">مدير خط</span></div><div class="bg-sky-50 border-s-4 border-sky-400 rounded-e-xl px-5 py-4 my-6"><p class="font-bold text-sky-900 mb-1 flex gap-2 items-baseline"><span class="shrink-0" aria-hidden="true">&#8505;</span><span>الدليل ده بيغطي دورين بس</span></p><p class="text-sm text-sky-900 leading-relaxed">الموظف (Jarz POS Staff) ومدير الخط (JARZ line manager). شاشات المالك والحسابات والمبيعات B2B والإنتاج والمشتريات مش هنا بقصد — لو فيه حاجة في المنيو مش مشروحة هنا يبقى مش شغلك.</p></div>
+<h2 id="day" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">اليوم من أوله لآخره</h2>
+<div class="overflow-x-auto my-6 -mx-4 px-4"><div class="flex gap-1 items-stretch w-max"><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">الدخول</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">اختار الفرع</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">بدء الشيفت</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">خد الطلبات</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">حركهم على البورد</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">سوّي المناديب</span><span class="text-brand font-bold self-center px-1">&rarr;</span><span class="bg-white border-2 border-brand/30 text-stone-800 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap">إنهاء الشيفت</span></div></div>
+<p class="text-stone-700 leading-relaxed mb-4">التطبيق مش هيسيبك تعدي خطوة: مفيش شاشة طلبات من غير وردية مفتوحة، ومفيش قفل وردية والمندوب لسه عليه فلوس.</p>
+<h2 id="topics" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">اختار الموضوع</h2>
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 my-6"><a href="login.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#128273;</div><div class="font-bold text-stone-800 group-hover:text-brand">١. الدخول</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">تفتح التطبيق، تدخل، تحوّل اللغة للعربي، تشغّل تنبيهات الطلبات، وتخرج.</div></a><a href="shift.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#128340;</div><div class="font-bold text-stone-800 group-hover:text-brand">٢. الوردية</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">تفتح ورديتك بالنقدية المعدودة، وتقفلها آخر اليوم.</div></a><a href="pos.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#128722;</div><div class="font-bold text-stone-800 group-hover:text-brand">٣. عمل طلب</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">العميل الأول، بعدين الأصناف، بعدين استلام أو ميعاد توصيل، وبعدين إتمام الطلب.</div></a><a href="kanban.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#128203;</div><div class="font-bold text-stone-800 group-hover:text-brand">٤. بورد الطلبات</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">تحرك الطلب مرحلة مرحلة، تبعته مع مندوب، وتحصّل الفلوس.</div></a><a href="courier-balances.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#9878;</div><div class="font-bold text-stone-800 group-hover:text-brand">٥. حساب المندوب</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">تشوف كل مندوب له كام وعليه كام، وتسوّي معاه.</div></a><a href="trips.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#128666;</div><div class="font-bold text-stone-800 group-hover:text-brand">٦. الرحلات</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">تبعت كذا طلب مع مندوب واحد في رحلة واحدة.</div></a><a href="expenses.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#128179;</div><div class="font-bold text-stone-800 group-hover:text-brand">٧. المصاريف والطلبات</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">تسجّل فلوس اتصرفت من الدرج، وتطلب بضاعة قربت تخلص.</div></a><a href="line-manager.html" class="bg-white rounded-xl border border-stone-200 p-5 hover:border-brand hover:shadow-md transition-all group"><div class="text-2xl mb-2">&#127894;</div><div class="font-bold text-stone-800 group-hover:text-brand">٨. زيادات مدير الخط</div><div class="text-sm text-stone-500 mt-1 leading-relaxed">الإلغاء والمرتجع واعتماد الشحن المخصص ومتابعة الورديات وقفل وردية حد نسيها مفتوحة.</div></a></div>
+<h2 id="roles" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">أنا مين فيهم؟</h2>
+<p class="text-stone-700 leading-relaxed mb-4">افتح المنيو وبص على اللي فيه. دورك هو اللي بيحدد إيه اللي يظهر، والدليل بيعلّم كل إجراء بالدور اللي يقدر يعمله.</p>
+<div class="overflow-x-auto my-6 rounded-xl border border-stone-200 bg-white shadow-sm"><table class="w-full text-sm border-collapse"><thead class="bg-stone-50"><tr><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">إنت...</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">التطبيق بيفتح على</th><th class="px-3 py-2 text-start font-semibold text-stone-700 border-b-2 border-stone-300">زيادات في المنيو</th></tr></thead><tbody><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">موظف</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">كانبان المبيعات (بورد الطلبات)</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">ولا حاجة — نقطة البيع، البورد، الرحلات، أرصدة المناديب، المصاريف، طلبات الأصناف</td></tr><tr><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">مدير خط</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">نقطة البيع</td><td class="px-3 py-2 align-top border-b border-stone-200 text-stone-700">جميع الطلبات، لوحة تحكم المدير، متابعة الورديات، خريطة المناديب، وكمان إلغاء ومرتجع على كارت الطلب</td></tr></tbody></table></div>
+<h2 id="basics" class="text-xl font-bold text-stone-800 mt-12 mb-4 pb-2 border-b-2 border-brand/20 scroll-mt-24">حاجتين اعرفهم قبل ما تبدأ</h2>
+<ul class="space-y-2 my-5 ps-1 list-none"><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>التطبيق بيتكلم عربي.</strong> المنيو &amp;rarr; <strong>اللغة</strong> بيحوّل التطبيق كله بين العربي والإنجليزي. والدليل ده نفس الصفحات باللغتين، والزرار اللي فوق بيبدّل.</span></li><li class="flex gap-3 text-stone-700 leading-relaxed"><span class="text-brand font-bold shrink-0">&bull;</span><span><strong>كل حاجة بالفرع.</strong> الفرع اللي بتختاره فوق في نقطة البيع أو البورد (ملف نقطة البيع) هو اللي بيحدد الطلبات اللي تشوفها، والمخزن اللي بتبيع منه، ودرج الكاش اللي ورديتك عليه.</span></li></ul>
+<div class="space-y-3 my-6"><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>فيه حاجة في المنيو عند زميلي ومش عندي</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">المنيو بتتبني من أدوارك. لو محتاج حاجة مش عندك، كلّم مديرك يغيّر دورك — دي مش إعدادات على الموبايل.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>دوست على حاجة وطلعلي "غير مسموح"</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">فيه شوية حاجات بتظهر لمدير الخط بس السيرفر بيرفضها (تحويل نقدية، فاتورة مشتريات، تحويل مخزني، جرد، ومعظم التقارير). ده طبيعي — دي بتاعة المدير الأعلى. مفيش حاجة باظت.</div></details><details class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden"><summary class="cursor-pointer select-none px-4 py-3 font-semibold text-stone-800 hover:bg-stone-50 flex gap-2 items-start"><span class="text-brand shrink-0">&#9656;</span><span>أنا على أي إصدار؟</span></summary><div class="px-4 pb-4 pt-3 text-sm text-stone-600 leading-relaxed border-t border-stone-100">المنيو &amp;rarr; <strong>حول التطبيق</strong> بيوريك الإصدار والبيئة وحالة التحديث. افتح الشاشة دي وإنت بتبلّغ عن مشكلة.</div></details></div>
+</main>
+<footer class="text-center text-xs text-stone-400 py-8 no-print">جارز POS &middot; دليل الموظفين ومديري الخطوط<br><span class="text-stone-300">تقدر تطبعها &mdash; استخدم أمر الطباعة في المتصفح.</span></footer>
 </body>
 </html>
