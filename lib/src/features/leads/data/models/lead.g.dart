@@ -54,6 +54,11 @@ _$LeadImpl _$$LeadImplFromJson(Map<String, dynamic> json) => _$LeadImpl(
   mergedInto: json['merged_into'] as String? ?? '',
   mergedOn: json['merged_on'] as String?,
   mergedBy: json['merged_by'] as String? ?? '',
+  contacts:
+      (json['contacts'] as List<dynamic>?)
+          ?.map((e) => LeadContact.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <LeadContact>[],
   branches:
       (json['branches'] as List<dynamic>?)
           ?.map((e) => LeadBranch.fromJson(e as Map<String, dynamic>))
@@ -121,6 +126,7 @@ Map<String, dynamic> _$$LeadImplToJson(_$LeadImpl instance) =>
       'merged_into': instance.mergedInto,
       'merged_on': instance.mergedOn,
       'merged_by': instance.mergedBy,
+      'contacts': instance.contacts,
       'branches': instance.branches,
       'primary_address': instance.primaryAddress,
       'shipping_address': instance.shippingAddress,
@@ -133,6 +139,26 @@ Map<String, dynamic> _$$LeadImplToJson(_$LeadImpl instance) =>
       'next_action_date': instance.nextActionDate,
       'next_action': instance.nextAction,
       'journey_notes': instance.journeyNotes,
+    };
+
+_$LeadContactImpl _$$LeadContactImplFromJson(Map<String, dynamic> json) =>
+    _$LeadContactImpl(
+      contactName: json['contact_name'] as String? ?? '',
+      role: json['role'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      isPrimary: json['is_primary'] as bool? ?? false,
+      notes: json['notes'] as String? ?? '',
+    );
+
+Map<String, dynamic> _$$LeadContactImplToJson(_$LeadContactImpl instance) =>
+    <String, dynamic>{
+      'contact_name': instance.contactName,
+      'role': instance.role,
+      'phone': instance.phone,
+      'email': instance.email,
+      'is_primary': instance.isPrimary,
+      'notes': instance.notes,
     };
 
 _$LeadBranchImpl _$$LeadBranchImplFromJson(Map<String, dynamic> json) =>

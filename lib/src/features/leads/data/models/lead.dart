@@ -70,6 +70,10 @@ class Lead with _$Lead {
     @JsonKey(name: 'merged_into') @Default('') String mergedInto,
     @JsonKey(name: 'merged_on') String? mergedOn,
     @JsonKey(name: 'merged_by') @Default('') String mergedBy,
+    // ── People at the venue ───────────────────────────────────────────────
+    // Rides on BOTH the catalog row and the detail: a rep looking at a card
+    // needs to know who to ask for before walking in, not after opening it.
+    @Default(<LeadContact>[]) List<LeadContact> contacts,
     // ── Detail-only fields (present on get_lead, null on get_leads) ────────
     @JsonKey(name: 'branches') @Default(<LeadBranch>[]) List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
@@ -93,6 +97,26 @@ class Lead with _$Lead {
 
   factory Lead.fromJson(Map<String, dynamic> json) => _$LeadFromJson(json);
 
+  /// The person to ring first: the flagged primary, else the first contact
+  /// with a number, else null. Never throws on an empty list.
+  LeadContact? get primaryContact {
+    for (final c in contacts) {
+      if (c.isPrimary && c.phone.trim().isNotEmpty) return c;
+    }
+    for (final c in contacts) {
+      if (c.phone.trim().isNotEmpty) return c;
+    }
+    return contacts.isEmpty ? null : contacts.first;
+  }
+
+  /// The best number to call: the lead's own line, else the primary contact's.
+  /// Empty when nobody on this record has a number.
+  String get callablePhone {
+    final own = phone.trim();
+    if (own.isNotEmpty) return own;
+    return primaryContact?.phone.trim() ?? '';
+  }
+
   /// The lead's journey read-out, in the shape the shared badge widget takes.
   JourneySummary get journey => JourneySummary(
     journeyCount: journeyCount,
@@ -103,6 +127,35 @@ class Lead with _$Lead {
     nextActionDate: nextActionDate,
     nextAction: nextAction,
   );
+}
+
+/// A person at a lead: the owner, the manager, the shift manager, the barista.
+///
+/// A lead is a business, not a human, and a rep who walks in meets whoever is
+/// on shift — so the record holds as many people as the rep has met. [role] is
+/// free text because every venue names its own jobs, and [isPrimary] marks the
+/// one person to ring first (the backend guarantees at most one).
+@freezed
+class LeadContact with _$LeadContact {
+  const LeadContact._();
+
+  const factory LeadContact({
+    @JsonKey(name: 'contact_name') @Default('') String contactName,
+    @Default('') String role,
+    @Default('') String phone,
+    @Default('') String email,
+    @JsonKey(name: 'is_primary') @Default(false) bool isPrimary,
+    @Default('') String notes,
+  }) = _LeadContact;
+
+  factory LeadContact.fromJson(Map<String, dynamic> json) =>
+      _$LeadContactFromJson(json);
+
+  /// What to show as the person's name when they were saved by number only.
+  String get displayName =>
+      contactName.trim().isNotEmpty ? contactName.trim() : phone.trim();
+
+  bool get canCall => phone.trim().isNotEmpty;
 }
 
 /// A single branch/location of a lead brand.

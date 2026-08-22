@@ -73,6 +73,30 @@ class LeadsRepository {
     return (result['name'] ?? '').toString();
   }
 
+  /// Replaces the people recorded against a lead (owner / manager / shift
+  /// manager / barista / ...). Returns the stored rows, normalised server-side:
+  /// blank rows dropped and exactly one contact left flagged primary.
+  Future<List<LeadContact>> saveLeadContacts({
+    required String name,
+    required List<LeadContact> contacts,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.saveLeadContacts,
+      // Sent as a JSON string for the same reason as mergeLeads: Dio would
+      // otherwise form-encode the list and flatten it.
+      data: {
+        'name': name,
+        'contacts': jsonEncode(contacts.map((c) => c.toJson()).toList()),
+      },
+    );
+    final result = _asMap(_unwrap(response));
+    final raw = (result['contacts'] as List?) ?? const [];
+    return raw
+        .whereType<Map>()
+        .map((e) => LeadContact.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
   /// Sets a lead's primary or shipping address. Returns the address `name`.
   Future<String> setLeadAddress({
     required String name,

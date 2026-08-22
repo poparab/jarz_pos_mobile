@@ -415,6 +415,8 @@ abstract final class ApiEndpoints {
   static const getLeads = '/api/method/jarz_pos.api.leads.get_leads';
   static const getLead = '/api/method/jarz_pos.api.leads.get_lead';
   static const saveLead = '/api/method/jarz_pos.api.leads.save_lead';
+  static const saveLeadContacts =
+      '/api/method/jarz_pos.api.leads.save_lead_contacts';
   static const setLeadAddress =
       '/api/method/jarz_pos.api.leads.set_lead_address';
   static const getLeadCategories =

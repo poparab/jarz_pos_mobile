@@ -68,6 +68,12 @@ dependencies:
   fl_chart: ^0.69.0
   geolocator: ^14.0.2
 
+  # Lead contacts: the OS contact picker (ACTION_PICK / CNContactPickerViewController).
+  # Deliberately NOT a contacts-reading package — the picker runs out of process,
+  # so the app never needs the READ_CONTACTS permission and only ever receives
+  # the one person the rep tapped. Android/iOS only; guarded on web.
+  flutter_native_contact_picker: ^0.0.11
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

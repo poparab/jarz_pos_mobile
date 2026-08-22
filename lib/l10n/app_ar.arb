@@ -3055,5 +3055,45 @@
   "shiftUnknownUser": "مستخدم غير معروف",
   "kanbanDeliveryIncomeUpdated": "دخل التوصيل اتحدّث لـ {amount}",
   "kanbanAddressNoTerritory": "العنوان اتحفظ، بس \"{city}\" مش مطابق لأي منطقة — تكلفة الشحن ماتحدّثتش. صلّح منطقة العنوان.",
-  "reportsColumnComponent": "المكوّن"
+  "reportsColumnComponent": "المكوّن",
+  "leadContactsTitle": "جهات الاتصال",
+  "leadContactsTitleCount": "جهات الاتصال ({count})",
+  "@leadContactsTitleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadContactsEmpty": "لا يوجد أشخاص مسجلون بعد. أضف المالك أو المدير أو أي شخص تقابله في الزيارة.",
+  "leadContactsAdd": "إضافة جهة اتصال",
+  "leadContactsEdit": "تعديل جهة الاتصال",
+  "leadContactsRemove": "حذف",
+  "leadContactsRemoveTitle": "حذف جهة الاتصال؟",
+  "leadContactsRemoveBody": "حذف {name} من هذا العميل المحتمل؟",
+  "@leadContactsRemoveBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leadContactsMakePrimary": "تعيين كجهة أساسية",
+  "leadContactsPrimary": "جهة الاتصال الأساسية",
+  "leadContactsPrimaryHint": "الشخص الذي يتم الاتصال به أولاً.",
+  "leadContactsSaved": "تم تحديث جهات الاتصال",
+  "leadContactsName": "الاسم",
+  "leadContactsRole": "الوظيفة / المسمى",
+  "leadContactsRoleHint": "مالك، مدير، باريستا…",
+  "leadContactsPhone": "الهاتف",
+  "leadContactsEmail": "البريد الإلكتروني",
+  "leadContactsNotes": "ملاحظات",
+  "leadContactsPickFromPhone": "اختيار من جهات اتصال الهاتف",
+  "leadContactsNeedNameOrPhone": "أضف اسمًا أو رقم هاتف.",
+  "leadContactRoleOwner": "مالك",
+  "leadContactRoleManager": "مدير",
+  "leadContactRoleShiftManager": "مدير وردية",
+  "leadContactRoleBarista": "باريستا",
+  "leadContactRolePurchasing": "مشتريات",
+  "leadContactRoleAccountant": "محاسب"
 }

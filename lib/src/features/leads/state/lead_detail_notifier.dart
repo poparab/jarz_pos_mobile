@@ -50,6 +50,14 @@ class LeadDetailNotifier extends FamilyAsyncNotifier<Lead, String> {
     unawaitedRefreshCatalog();
   }
 
+  /// Replaces the people recorded against this lead, then refreshes the detail
+  /// and the cached catalog (cards show who to ask for, so they go stale too).
+  Future<void> saveContacts(List<LeadContact> contacts) async {
+    await _repo.saveLeadContacts(name: arg, contacts: contacts);
+    await refresh();
+    unawaitedRefreshCatalog();
+  }
+
   /// Saves a primary or shipping address, then refreshes the detail.
   Future<void> saveAddress({
     required String kind,

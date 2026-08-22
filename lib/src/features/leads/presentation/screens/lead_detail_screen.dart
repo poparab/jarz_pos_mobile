@@ -16,6 +16,7 @@ import '../../state/leads_notifier.dart' show leadsProvider;
 import '../../state/not_suitable_reasons_notifier.dart';
 import '../leads_theme.dart';
 import '../widgets/lead_actions.dart';
+import '../widgets/lead_contacts_section.dart';
 import '../widgets/merge_leads_sheet.dart';
 import '../widgets/sahel_badge.dart';
 import '../widgets/score_bar.dart';
@@ -93,6 +94,15 @@ class _DetailBody extends ConsumerWidget {
         ],
         const SizedBox(height: 16),
         _ContactRow(lead: lead),
+        const SizedBox(height: 20),
+        // Who to ask for, above the diary: a rep reads this on the pavement
+        // and one tap on any row dials that person.
+        LeadContactsSection(
+          contacts: lead.contacts,
+          onSave: (contacts) => ref
+              .read(leadDetailProvider(leadName).notifier)
+              .saveContacts(contacts),
+        ),
         const SizedBox(height: 20),
         // The field diary sits high on the page, right under the contacts: it
         // is what a rep standing outside the venue actually needs to read
@@ -210,8 +220,10 @@ class _ContactRow extends StatelessWidget {
         _ContactAction(
           icon: Icons.call,
           label: context.l10n.leadActionCall,
-          enabled: lead.phone.trim().isNotEmpty,
-          onTap: () => LeadActions.call(lead.phone),
+          // Falls back to the primary contact: a lead whose only number
+          // belongs to a person is still a lead you can ring.
+          enabled: lead.callablePhone.isNotEmpty,
+          onTap: () => LeadActions.call(lead.callablePhone),
         ),
         _ContactAction(
           icon: Icons.camera_alt_outlined,

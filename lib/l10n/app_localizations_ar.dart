@@ -7936,4 +7936,87 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportsColumnComponent => 'المكوّن';
+
+  @override
+  String get leadContactsTitle => 'جهات الاتصال';
+
+  @override
+  String leadContactsTitleCount(int count) {
+    return 'جهات الاتصال ($count)';
+  }
+
+  @override
+  String get leadContactsEmpty =>
+      'لا يوجد أشخاص مسجلون بعد. أضف المالك أو المدير أو أي شخص تقابله في الزيارة.';
+
+  @override
+  String get leadContactsAdd => 'إضافة جهة اتصال';
+
+  @override
+  String get leadContactsEdit => 'تعديل جهة الاتصال';
+
+  @override
+  String get leadContactsRemove => 'حذف';
+
+  @override
+  String get leadContactsRemoveTitle => 'حذف جهة الاتصال؟';
+
+  @override
+  String leadContactsRemoveBody(String name) {
+    return 'حذف $name من هذا العميل المحتمل؟';
+  }
+
+  @override
+  String get leadContactsMakePrimary => 'تعيين كجهة أساسية';
+
+  @override
+  String get leadContactsPrimary => 'جهة الاتصال الأساسية';
+
+  @override
+  String get leadContactsPrimaryHint => 'الشخص الذي يتم الاتصال به أولاً.';
+
+  @override
+  String get leadContactsSaved => 'تم تحديث جهات الاتصال';
+
+  @override
+  String get leadContactsName => 'الاسم';
+
+  @override
+  String get leadContactsRole => 'الوظيفة / المسمى';
+
+  @override
+  String get leadContactsRoleHint => 'مالك، مدير، باريستا…';
+
+  @override
+  String get leadContactsPhone => 'الهاتف';
+
+  @override
+  String get leadContactsEmail => 'البريد الإلكتروني';
+
+  @override
+  String get leadContactsNotes => 'ملاحظات';
+
+  @override
+  String get leadContactsPickFromPhone => 'اختيار من جهات اتصال الهاتف';
+
+  @override
+  String get leadContactsNeedNameOrPhone => 'أضف اسمًا أو رقم هاتف.';
+
+  @override
+  String get leadContactRoleOwner => 'مالك';
+
+  @override
+  String get leadContactRoleManager => 'مدير';
+
+  @override
+  String get leadContactRoleShiftManager => 'مدير وردية';
+
+  @override
+  String get leadContactRoleBarista => 'باريستا';
+
+  @override
+  String get leadContactRolePurchasing => 'مشتريات';
+
+  @override
+  String get leadContactRoleAccountant => 'محاسب';
 }

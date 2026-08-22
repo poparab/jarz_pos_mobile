@@ -947,6 +947,18 @@ class _LeadProfileCard extends StatelessWidget {
               ],
               const SizedBox(height: 12),
               _contactActions(context),
+              // The people at the venue, each one tap from a call. Read-only
+              // here: the lead screen owns editing them.
+              if (lead.contacts.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  context.l10n.leadContactsTitleCount(lead.contacts.length),
+                  style: theme.textTheme.titleSmall,
+                ),
+                const SizedBox(height: 6),
+                for (final contact in lead.contacts)
+                  _contactRow(context, contact),
+              ],
               if (primaryAddress != null || shippingAddress != null) ...[
                 const SizedBox(height: 12),
                 if (primaryAddress != null)
@@ -982,8 +994,48 @@ class _LeadProfileCard extends StatelessWidget {
     );
   }
 
+  /// One person at the venue: name, title, and a call button.
+  Widget _contactRow(BuildContext context, LeadContact contact) {
+    final theme = Theme.of(context);
+    final subtitle = [
+      if (contact.role.trim().isNotEmpty) contact.role.trim(),
+      if (contact.phone.trim().isNotEmpty) contact.phone.trim(),
+    ].join(' · ');
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          if (contact.isPrimary)
+            const Padding(
+              padding: EdgeInsetsDirectional.only(end: 4),
+              child: Icon(Icons.star_rounded, size: 14, color: LeadsTheme.gold),
+            ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(contact.displayName, style: theme.textTheme.bodyMedium),
+                if (subtitle.isNotEmpty)
+                  Text(subtitle, style: theme.textTheme.bodySmall),
+              ],
+            ),
+          ),
+          LeadActionButton(
+            icon: Icons.call,
+            tooltip: context.l10n.leadActionCall,
+            enabled: contact.canCall,
+            onTap: () => LeadActions.call(contact.phone),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _contactActions(BuildContext context) {
-    final hasPhone = lead.phone.trim().isNotEmpty;
+    // Falls back to the primary contact so a lead whose only number belongs to
+    // a person is still one tap from a call.
+    final callable = lead.callablePhone;
+    final hasPhone = callable.isNotEmpty;
     final hasWebsite = lead.website.trim().isNotEmpty;
     final hasInstagram = lead.instagram.trim().isNotEmpty;
     final hasMaps = lead.mapsUrl.trim().isNotEmpty ||
@@ -996,7 +1048,7 @@ class _LeadProfileCard extends StatelessWidget {
           icon: Icons.call,
           tooltip: context.l10n.leadActionCall,
           enabled: hasPhone,
-          onTap: () => LeadActions.call(lead.phone),
+          onTap: () => LeadActions.call(callable),
         ),
         LeadActionButton(
           icon: Icons.language,

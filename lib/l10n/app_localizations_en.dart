@@ -7977,4 +7977,87 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportsColumnComponent => 'Component';
+
+  @override
+  String get leadContactsTitle => 'Contacts';
+
+  @override
+  String leadContactsTitleCount(int count) {
+    return 'Contacts ($count)';
+  }
+
+  @override
+  String get leadContactsEmpty =>
+      'No people recorded yet. Add the owner, the manager, or whoever you meet on a visit.';
+
+  @override
+  String get leadContactsAdd => 'Add contact';
+
+  @override
+  String get leadContactsEdit => 'Edit contact';
+
+  @override
+  String get leadContactsRemove => 'Remove';
+
+  @override
+  String get leadContactsRemoveTitle => 'Remove contact?';
+
+  @override
+  String leadContactsRemoveBody(String name) {
+    return 'Remove $name from this lead?';
+  }
+
+  @override
+  String get leadContactsMakePrimary => 'Make primary';
+
+  @override
+  String get leadContactsPrimary => 'Primary contact';
+
+  @override
+  String get leadContactsPrimaryHint => 'The person to ring first.';
+
+  @override
+  String get leadContactsSaved => 'Contacts updated';
+
+  @override
+  String get leadContactsName => 'Name';
+
+  @override
+  String get leadContactsRole => 'Role / title';
+
+  @override
+  String get leadContactsRoleHint => 'Owner, Manager, Barista…';
+
+  @override
+  String get leadContactsPhone => 'Phone';
+
+  @override
+  String get leadContactsEmail => 'Email';
+
+  @override
+  String get leadContactsNotes => 'Notes';
+
+  @override
+  String get leadContactsPickFromPhone => 'Pick from phone contacts';
+
+  @override
+  String get leadContactsNeedNameOrPhone => 'Add a name or a phone number.';
+
+  @override
+  String get leadContactRoleOwner => 'Owner';
+
+  @override
+  String get leadContactRoleManager => 'Manager';
+
+  @override
+  String get leadContactRoleShiftManager => 'Shift Manager';
+
+  @override
+  String get leadContactRoleBarista => 'Barista';
+
+  @override
+  String get leadContactRolePurchasing => 'Purchasing';
+
+  @override
+  String get leadContactRoleAccountant => 'Accountant';
 }

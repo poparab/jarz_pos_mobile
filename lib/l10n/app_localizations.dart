@@ -13436,6 +13436,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Component'**
   String get reportsColumnComponent;
+
+  /// No description provided for @leadContactsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts'**
+  String get leadContactsTitle;
+
+  /// No description provided for @leadContactsTitleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts ({count})'**
+  String leadContactsTitleCount(int count);
+
+  /// No description provided for @leadContactsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No people recorded yet. Add the owner, the manager, or whoever you meet on a visit.'**
+  String get leadContactsEmpty;
+
+  /// No description provided for @leadContactsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add contact'**
+  String get leadContactsAdd;
+
+  /// No description provided for @leadContactsEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit contact'**
+  String get leadContactsEdit;
+
+  /// No description provided for @leadContactsRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get leadContactsRemove;
+
+  /// No description provided for @leadContactsRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove contact?'**
+  String get leadContactsRemoveTitle;
+
+  /// No description provided for @leadContactsRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from this lead?'**
+  String leadContactsRemoveBody(String name);
+
+  /// No description provided for @leadContactsMakePrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Make primary'**
+  String get leadContactsMakePrimary;
+
+  /// No description provided for @leadContactsPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary contact'**
+  String get leadContactsPrimary;
+
+  /// No description provided for @leadContactsPrimaryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The person to ring first.'**
+  String get leadContactsPrimaryHint;
+
+  /// No description provided for @leadContactsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts updated'**
+  String get leadContactsSaved;
+
+  /// No description provided for @leadContactsName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get leadContactsName;
+
+  /// No description provided for @leadContactsRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role / title'**
+  String get leadContactsRole;
+
+  /// No description provided for @leadContactsRoleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner, Manager, Barista…'**
+  String get leadContactsRoleHint;
+
+  /// No description provided for @leadContactsPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get leadContactsPhone;
+
+  /// No description provided for @leadContactsEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get leadContactsEmail;
+
+  /// No description provided for @leadContactsNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get leadContactsNotes;
+
+  /// No description provided for @leadContactsPickFromPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick from phone contacts'**
+  String get leadContactsPickFromPhone;
+
+  /// No description provided for @leadContactsNeedNameOrPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a name or a phone number.'**
+  String get leadContactsNeedNameOrPhone;
+
+  /// No description provided for @leadContactRoleOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get leadContactRoleOwner;
+
+  /// No description provided for @leadContactRoleManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager'**
+  String get leadContactRoleManager;
+
+  /// No description provided for @leadContactRoleShiftManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Manager'**
+  String get leadContactRoleShiftManager;
+
+  /// No description provided for @leadContactRoleBarista.
+  ///
+  /// In en, this message translates to:
+  /// **'Barista'**
+  String get leadContactRoleBarista;
+
+  /// No description provided for @leadContactRolePurchasing.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchasing'**
+  String get leadContactRolePurchasing;
+
+  /// No description provided for @leadContactRoleAccountant.
+  ///
+  /// In en, this message translates to:
+  /// **'Accountant'**
+  String get leadContactRoleAccountant;
 }
 
 class _AppLocalizationsDelegate

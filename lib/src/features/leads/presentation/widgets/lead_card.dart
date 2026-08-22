@@ -122,9 +122,9 @@ class LeadCard extends StatelessWidget {
                       children: [
                         LeadActionButton(
                           icon: Icons.call_outlined,
-                          enabled: lead.phone.trim().isNotEmpty,
+                          enabled: lead.callablePhone.isNotEmpty,
                           tooltip: context.l10n.leadActionCall,
-                          onTap: () => LeadActions.call(lead.phone),
+                          onTap: () => LeadActions.call(lead.callablePhone),
                         ),
                         LeadActionButton(
                           icon: Icons.camera_alt_outlined,

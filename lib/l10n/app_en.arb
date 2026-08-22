@@ -4651,5 +4651,45 @@
     "placeholders": {
       "error": {}
     }
-  }
+  },
+  "leadContactsTitle": "Contacts",
+  "leadContactsTitleCount": "Contacts ({count})",
+  "@leadContactsTitleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leadContactsEmpty": "No people recorded yet. Add the owner, the manager, or whoever you meet on a visit.",
+  "leadContactsAdd": "Add contact",
+  "leadContactsEdit": "Edit contact",
+  "leadContactsRemove": "Remove",
+  "leadContactsRemoveTitle": "Remove contact?",
+  "leadContactsRemoveBody": "Remove {name} from this lead?",
+  "@leadContactsRemoveBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leadContactsMakePrimary": "Make primary",
+  "leadContactsPrimary": "Primary contact",
+  "leadContactsPrimaryHint": "The person to ring first.",
+  "leadContactsSaved": "Contacts updated",
+  "leadContactsName": "Name",
+  "leadContactsRole": "Role / title",
+  "leadContactsRoleHint": "Owner, Manager, Barista…",
+  "leadContactsPhone": "Phone",
+  "leadContactsEmail": "Email",
+  "leadContactsNotes": "Notes",
+  "leadContactsPickFromPhone": "Pick from phone contacts",
+  "leadContactsNeedNameOrPhone": "Add a name or a phone number.",
+  "leadContactRoleOwner": "Owner",
+  "leadContactRoleManager": "Manager",
+  "leadContactRoleShiftManager": "Shift Manager",
+  "leadContactRoleBarista": "Barista",
+  "leadContactRolePurchasing": "Purchasing",
+  "leadContactRoleAccountant": "Accountant"
 }
