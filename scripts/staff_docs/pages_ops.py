@@ -119,10 +119,10 @@ KANBAN = {
                    "من مستلم لخارج للتوصيل."},
             {"en": "<strong>No dragging into Cancelled or Returned.</strong> The app says so plainly: use the card "
                    "menu and pick <strong>Cancel Order</strong> or <strong>Return Order</strong> - both need a reason, "
-                   "and both are line-manager actions.",
+                   "and both are [line-manager actions](line-manager.html).",
              "ar": "<strong>مفيش سحب على ملغي أو مرتجع.</strong> التطبيق بيقولها صريح: افتح قائمة الكارت واختار "
                    "<strong>إلغاء الطلب</strong> أو <strong>مرتجع الطلب</strong> — الاتنين محتاجين سبب، والاتنين "
-                   "من صلاحيات مدير الخط."},
+                   "من صلاحيات [مدير الخط](line-manager.html)."},
         ]),
 
         ("h", {"en": "Sending it out for delivery", "ar": "إرسال الطلب للتوصيل"}, "ofd"),
@@ -439,9 +439,9 @@ TRIPS = {
         ("call", "info",
          {"en": "The money still runs per order", "ar": "الفلوس لسه بتمشي بالطلب"},
          {"en": "A trip groups the movement, not the cash. Each order still settles against the courier's "
-                "balance in the normal way - see the Courier money page.",
+                "balance in the normal way - see the [Courier money](courier-balances.html) page.",
           "ar": "الرحلة بتجمّع الحركة، مش الفلوس. كل طلب لسه بيتسوّى على حساب المندوب زي ما هو — "
-                "شوف صفحة حساب المندوب."}),
+                "شوف صفحة [حساب المندوب](courier-balances.html)."}),
     ],
 }
 
@@ -549,8 +549,8 @@ LINE_MANAGER = {
     "blocks": [
         ("call", "manager",
          {"en": "Read the staff pages first", "ar": "اقرا صفحات الموظفين الأول"},
-         {"en": "Everything on the other pages applies to you unchanged. This page is only the extra.",
-          "ar": "كل اللي في الصفحات التانية بينطبق عليك زي ما هو. الصفحة دي بس الزيادة."}),
+         {"en": "Everything on the other pages applies to you unchanged - start from [Start here](index.html). This page is only the extra.",
+          "ar": "كل اللي في الصفحات التانية بينطبق عليك زي ما هو — ابدأ من [ابدأ من هنا](index.html). الصفحة دي بس الزيادة."}),
 
         ("h", {"en": "Cancelling an order", "ar": "إلغاء طلب"}, "cancel"),
         ("steps", [

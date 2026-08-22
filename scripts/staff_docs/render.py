@@ -20,6 +20,12 @@ BRAND = "#E85D04"
 #: Matches an HTML character reference that ``html.escape`` has just mangled.
 ENTITY_RE = re.compile(r"&amp;(#[0-9]+|#x[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]{1,31});")
 
+#: ``[text](kanban.html#ofd)`` in the content becomes a link. The target is
+#: restricted to a sibling guide page and an optional anchor on purpose: there
+#: is no reason for this guide to link anywhere else, and a narrow pattern
+#: means the href never needs escaping.
+LINK_RE = re.compile(r"\[([^\]\[]+)\]\(([a-z-]+\.html(?:#[a-z0-9-]+)?)\)")
+
 # Order matters: this drives the nav bar and the index card grid.
 PAGES = [
     ("index", "index.html"),
@@ -50,6 +56,11 @@ def esc(text: str) -> str:
     # the escape: html.escape turned the leading & into &amp;, which would print
     # the reference literally on the page. A bare & is still escaped.
     out = ENTITY_RE.sub(r"&\1;", out)
+    out = LINK_RE.sub(
+        r'<a href="\2" class="text-brand font-semibold underline '
+        r'underline-offset-2 hover:text-brand-dark">\1</a>',
+        out,
+    )
     return out
 
 

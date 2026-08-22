@@ -367,8 +367,8 @@ SHIFT = {
                      "المناديب دي شغل الموظف — مش محتاج مدير عشانها."}),
         ("call", "info",
          {"en": "Full details", "ar": "التفاصيل كاملة"},
-         {"en": "How to read the balances and settle them is on the Courier money page.",
-          "ar": "طريقة قراءة الأرصدة وتسويتها موجودة في صفحة حساب المندوب."}),
+         {"en": "How to read the balances and settle them is on the [Courier money](courier-balances.html) page.",
+          "ar": "طريقة قراءة الأرصدة وتسويتها موجودة في صفحة [حساب المندوب](courier-balances.html)."}),
 
         ("h", {"en": "When it will not open or close", "ar": "لما ميرضاش يفتح أو يقفل"}, "trouble"),
         ("faq", [
@@ -532,9 +532,9 @@ POS = {
         ("call", "info",
          {"en": "Payment is not taken here", "ar": "الدفع مش بيتاخد هنا"},
          {"en": "A delivery order is created unpaid on purpose. The money is recorded on the board when the "
-                "order goes out or comes back settled - see the Order board page.",
+                "order goes out or comes back settled - see the [Order board](kanban.html#ofd) page.",
           "ar": "طلب التوصيل بيتعمل غير مدفوع بقصد. الفلوس بتتسجل على البورد وقت ما الطلب يخرج أو يرجع "
-                "متسوّي — شوف صفحة بورد الطلبات."}),
+                "متسوّي — شوف صفحة [بورد الطلبات](kanban.html#ofd)."}),
 
         ("h", {"en": "Parking an order", "ar": "تعليق طلب"}, "drafts"),
         ("p", {"en": "A half-built cart can be saved as a draft and picked up later - useful when a customer "
