@@ -352,6 +352,10 @@ SHIFT = {
                       "ar": "قفل الوردية بيطلّعك من الحساب بقصد، عشان اللي هياخد الجهاز بعديك يبدأ بحسابه هو."}},
         ]),
 
+        ("fig", "shift-end.png",
+         {"en": "End Shift, blocked by a courier balance - and note the cash box shows no expected total",
+          "ar": "إنهاء الشيفت وهو متوقف على رصيد مندوب — ولاحظ إن خانة الكاش مفيهاش أي مبلغ متوقع"}),
+
         ("h", {"en": "\"Settle courier balances before ending the shift\"",
                "ar": "\"سوِّ أرصدة المندوبين قبل إنهاء الشيفت\""}, "courier-block"),
         ("p", {"en": "This is the most common thing that stops a close. The message names how many courier "

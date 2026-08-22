@@ -46,6 +46,8 @@ import 'package:jarz_pos/src/features/pos/data/models/courier_balance.dart';
 import 'package:jarz_pos/src/features/pos/data/repositories/courier_repository.dart';
 import 'package:jarz_pos/src/features/pos/presentation/widgets/courier_balances_dialog.dart';
 import 'package:jarz_pos/src/features/pos/state/pos_notifier.dart';
+import 'package:jarz_pos/src/features/shift/models/shift_models.dart';
+import 'package:jarz_pos/src/features/shift/presentation/shift_end_screen.dart';
 import 'package:jarz_pos/src/features/shift/state/shift_notifier.dart';
 
 import '../helpers/mock_services.dart';
@@ -204,6 +206,21 @@ class _FakePos extends StateNotifier<PosState> implements PosNotifier {
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
+/// Serves one fixed pre-close summary. The screen calls
+/// `getCurrentShiftSummary` directly on the notifier, so noSuchMethod (which
+/// would hand back null and render the error state) is not enough.
+class _FakeShift extends StateNotifier<ShiftState> implements ShiftNotifier {
+  _FakeShift(this._summary) : super(const ShiftState());
+  final ShiftSummary _summary;
+
+  @override
+  Future<ShiftSummary?> getCurrentShiftSummary({String? openingEntry}) async =>
+      _summary;
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
+}
+
 class _FakeCourierRepo extends CourierRepository {
   _FakeCourierRepo(this._balances) : super(CourierService(createMockDio()));
   final List<CourierBalance> _balances;
@@ -299,6 +316,50 @@ List<CourierBalance> _balancesFixture() => [
       ),
     ];
 
+/// The pre-close state the guide warns about: amounts hidden, no expected
+/// total, and a courier balance still blocking the close.
+ShiftSummary _shiftSummaryFixture() => const ShiftSummary(
+      openingEntry: 'POS-OPEN-2026-00031',
+      status: 'Open',
+      invoiceCount: 24,
+      amountsHidden: true,
+      varianceVisible: false,
+      paymentReconciliation: [ShiftBalanceDetail(modeOfPayment: 'Cash')],
+      courierCloseBlock: ShiftCourierCloseBlock(
+        blocked: true,
+        posProfile: 'Maadi',
+        transactionCount: 3,
+        invoiceCount: 3,
+        partyCount: 2,
+        netBalance: 245,
+        parties: [
+          ShiftCourierCloseParty(
+            partyType: 'Supplier',
+            party: 'SUP-001',
+            displayName: 'Ahmed Hassan',
+            transactionCount: 2,
+            invoiceCount: 2,
+            netBalance: 165,
+          ),
+          ShiftCourierCloseParty(
+            partyType: 'Supplier',
+            party: 'SUP-002',
+            displayName: 'Mona Ali',
+            transactionCount: 1,
+            invoiceCount: 1,
+            netBalance: 80,
+          ),
+        ],
+      ),
+    );
+
+ShiftEntry _shiftEntryFixture() => const ShiftEntry(
+      name: 'POS-OPEN-2026-00031',
+      posProfile: 'Maadi',
+      status: 'Open',
+      openedByName: 'Nour Adel',
+    );
+
 /// The drawer as a plain staff member sees it: no manager groups, no B2B, no
 /// production board. This is the menu the guide's "open the menu" steps mean.
 List<Override> _staffDrawerOverrides({required bool lineManager}) => [
@@ -393,6 +454,23 @@ void main() {
             managerAccessProvider.overrideWith((ref) => false),
           ],
           clip: find.byType(InvoiceCardWidget),
+        );
+      });
+
+      testWidgets('end shift — blind count', (tester) async {
+        await _shoot(
+          tester,
+          lang,
+          'shift-end',
+          const ShiftEndScreen(),
+          size: const Size(390, 780),
+          overrides: [
+            shiftNotifierProvider
+                .overrideWith((ref) => _FakeShift(_shiftSummaryFixture())),
+            activeShiftProvider.overrideWith((ref) async => _shiftEntryFixture()),
+            posNotifierProvider.overrideWith((ref) => _FakePos()),
+            webSocketServiceProvider.overrideWithValue(MockWebSocketService()),
+          ],
         );
       });
 
