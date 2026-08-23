@@ -39,6 +39,7 @@ import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/customer_shipping_address_dialog.dart';
 import '../../../core/repositories/customer_address_repository.dart';
+import '../../../core/utils/territory_label.dart';
 // Invoice card widget displaying a Sales Invoice within the Kanban board.
 
 class InvoiceCardWidget extends ConsumerStatefulWidget {
@@ -477,22 +478,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
   String _displayId(InvoiceCard invoice) => invoice.displayId;
 
-  /// The delivery area shown on the card, using the same Arabic-first
-  /// precedence every other territory surface in this file already uses
-  /// (`territory_name_ar` -> `territory_display` -> raw `territory`), so a card
-  /// and the sheet it opens never disagree about where an order is going.
-  /// Empty when the invoice carries no territory at all.
-  String get _areaLabel {
-    for (final candidate in [
-      widget.invoice.territoryNameAr,
-      widget.invoice.territoryDisplay,
-      widget.invoice.territory,
-    ]) {
-      final value = (candidate ?? '').trim();
-      if (value.isNotEmpty) return value;
-    }
-    return '';
-  }
+  /// The delivery area shown on the card, resolved with the app-wide
+  /// Arabic-first precedence so a card and the sheet it opens never disagree
+  /// about where an order is going. Empty when the invoice carries no
+  /// territory at all.
+  String get _areaLabel => territoryLabel(
+        nameAr: widget.invoice.territoryNameAr,
+        display: widget.invoice.territoryDisplay,
+        raw: widget.invoice.territory,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -2131,7 +2125,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           context,
           preview,
           invoice: widget.invoice.name,
-          territory: widget.invoice.territoryNameAr ?? widget.invoice.territoryDisplay ?? widget.invoice.territory,
+          territory: territoryLabel(
+            nameAr: widget.invoice.territoryNameAr,
+            display: widget.invoice.territoryDisplay,
+            raw: widget.invoice.territory,
+          ),
           orderFallback: widget.invoice.grandTotal,
           shippingFallback: widget.invoice.shippingExpenseDisplay.toDouble(),
         );
@@ -2629,7 +2627,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         context,
         preview,
         invoice: widget.invoice.name,
-        territory: widget.invoice.territoryNameAr ?? widget.invoice.territoryDisplay ?? widget.invoice.territory,
+        territory: territoryLabel(
+          nameAr: widget.invoice.territoryNameAr,
+          display: widget.invoice.territoryDisplay,
+          raw: widget.invoice.territory,
+        ),
         orderFallback: widget.invoice.grandTotal, // use invoice total when preview omits
         shippingFallback: (widget.invoice.shippingExpenseDisplay).toDouble(),
       );

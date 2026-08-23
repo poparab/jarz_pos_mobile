@@ -28,6 +28,7 @@ import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/branch_filter_dialog.dart';
 import '../../../core/widgets/ofd_shortage_dialog.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/utils/territory_label.dart';
 
 class KanbanBoardScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
@@ -1459,7 +1460,11 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             screenContext,
             preview,
             invoice: invoiceId,
-            territory: inv?.territoryNameAr ?? inv?.territoryDisplay ?? inv?.territory,
+            territory: territoryLabel(
+              nameAr: inv?.territoryNameAr,
+              display: inv?.territoryDisplay,
+              raw: inv?.territory,
+            ),
             orderFallback: inv?.grandTotal,
             shippingFallback: inv?.shippingExpenseDisplay,
           );

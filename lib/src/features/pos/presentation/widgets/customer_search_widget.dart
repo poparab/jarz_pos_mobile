@@ -12,6 +12,7 @@ import '../../../../core/repositories/customer_address_repository.dart';
 import '../../../geo/presentation/widgets/location_link_field.dart';
 import '../../data/repositories/pos_repository.dart';
 import '../../state/pos_notifier.dart';
+import '../../../../core/utils/territory_label.dart';
 // providers file not present; we use repository providers directly
 
 // Dynamic customer search provider that switches between name and phone search
@@ -119,6 +120,12 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
       'name',
       'id',
     ]);
+    // A Territory is *named* by its Woo code, so `territory_name` is a code on
+    // most records. Carry the Arabic label across the merge too, or the cart's
+    // delivery line reads "EGNASRCITY" back at the operator.
+    final territoryNameAr = _firstNonEmptyString(territory ?? const {}, const [
+      'territory_name_ar',
+    ]);
 
     return {
       ...customer,
@@ -132,6 +139,7 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
         'selected_shipping_address_territory': selectedTerritory,
       },
       if (territoryDisplay.isNotEmpty) 'territory_name': territoryDisplay,
+      if (territoryNameAr.isNotEmpty) 'territory_name_ar': territoryNameAr,
       'delivery_income': deliveryIncome,
       'selected_shipping_address_delivery_income': deliveryIncome,
       'selected_shipping_phone': selectedPhone,
@@ -412,9 +420,11 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  customer['territory_name_ar']?.toString() ??
-                      customer['territory_name']?.toString() ??
-                      customer['territory'],
+                  territoryLabel(
+                    nameAr: customer['territory_name_ar'],
+                    display: customer['territory_name'],
+                    raw: customer['territory'],
+                  ),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w500,
@@ -666,7 +676,11 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
                                             const SizedBox(width: 4),
                                             Expanded(
                                               child: Text(
-                                                customer['territory'],
+                                                territoryLabel(
+                                                  nameAr: customer['territory_name_ar'],
+                                                  display: customer['territory_name'],
+                                                  raw: customer['territory'],
+                                                ),
                                                 style: Theme.of(context)
                                                     .textTheme
                                                     .bodySmall
@@ -1108,12 +1122,13 @@ class _QuickAddCustomerWidgetState
                   territory['delivery_income'] > 0
               ? ' (Income: \$${territory['delivery_income']})'
               : '';
+          final label = territoryLabelOf(territory);
           return DropdownMenuItem<String>(
             value: territory['name'],
             child: SizedBox(
               width: ResponsiveUtils.isPhone(context) ? 260 : 360,
               child: Text(
-                '${territory['territory_name_ar'] ?? territory['territory_name'] ?? context.l10n.unknownTerritory}$deliveryInfo',
+                '${label.isEmpty ? context.l10n.unknownTerritory : label}$deliveryInfo',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

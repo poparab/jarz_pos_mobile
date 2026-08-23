@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/utils/responsive_utils.dart';
+import '../../../core/utils/territory_label.dart';
 
 /// Bottom sheet for selecting a sub-territory for an invoice.
 class SubTerritorySelectionSheet extends StatefulWidget {
@@ -94,7 +95,7 @@ class _SubTerritorySelectionSheetState extends State<SubTerritorySelectionSheet>
                         itemBuilder: (context, index) {
                           final item = _filtered[index];
                           final code = (item['name'] ?? '').toString();
-                          final displayName = (item['territory_name_ar'] ?? item['territory_name'] ?? code).toString();
+                          final displayName = territoryLabelOf(item);
                           final expense = (item['delivery_expense'] ?? 0).toDouble();
                           final isSelected = code == widget.currentSelection;
 

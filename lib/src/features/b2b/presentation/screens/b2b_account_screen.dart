@@ -23,6 +23,7 @@ import '../../data/models/b2b_account_labels.dart';
 import '../../data/models/b2b_models.dart';
 import '../b2b_order_launch.dart';
 import '../widgets/b2b_stage_chip.dart';
+import '../../../../core/utils/territory_label.dart';
 
 /// B2B account detail: contact, stage, lead score, predicted next order, recent
 /// invoices and open todos, plus quick actions (send sample, place order, log
@@ -413,10 +414,7 @@ class _LeadCustomerDialogState extends ConsumerState<_LeadCustomerDialog> {
             InputDecoration(labelText: l10n.leadFieldTerritory),
         items: territories.map<DropdownMenuItem<String>>((territory) {
           final name = territory['name']?.toString() ?? '';
-          final label = (territory['territory_name_ar'] ??
-                  territory['territory_name'] ??
-                  name)
-              .toString();
+          final label = territoryLabelOf(territory);
           return DropdownMenuItem<String>(
             value: name,
             child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),

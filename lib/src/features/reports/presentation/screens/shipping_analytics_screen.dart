@@ -1067,7 +1067,11 @@ class _DoubleTripRow extends StatelessWidget {
             trip['party'] ??
             '—')
         .toString();
-    final territory = (trip['territory'] ?? '').toString();
+    // The double-shipping payload spells this `double_shipping_territory`;
+    // reading only `territory` meant the label never rendered.
+    final territory =
+        (trip['double_shipping_territory'] ?? trip['territory'] ?? '')
+            .toString();
     final rawCost = trip['extra_cost'] ?? trip['total_extra_cost'];
     final cost = rawCost is num ? rawCost : num.tryParse('$rawCost');
 

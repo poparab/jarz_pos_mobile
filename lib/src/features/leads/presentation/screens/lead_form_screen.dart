@@ -12,6 +12,7 @@ import '../../data/models/lead.dart';
 import '../../state/lead_categories_notifier.dart';
 import '../../state/leads_notifier.dart';
 import '../leads_theme.dart';
+import '../../../../core/utils/territory_label.dart';
 
 /// Add (or edit) a lead manually. Saves via `save_lead`, then persists any
 /// primary/shipping addresses via `set_lead_address`.
@@ -487,10 +488,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
           style: LeadsTheme.body,
           items: territories.map<DropdownMenuItem<String>>((territory) {
             final name = territory['name']?.toString() ?? '';
-            final text = (territory['territory_name_ar'] ??
-                    territory['territory_name'] ??
-                    name)
-                .toString();
+            final text = territoryLabelOf(territory);
             return DropdownMenuItem<String>(
               value: name,
               child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),

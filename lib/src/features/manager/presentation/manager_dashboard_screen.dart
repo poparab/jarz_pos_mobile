@@ -6,6 +6,7 @@ import '../../../core/network/frappe_error_message.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
+import '../../../core/utils/territory_label.dart';
 
 String _normalizedManagerError(Object error) {
   final extracted = extractFrappeErrorMessage(error, fallback: '').trim();
@@ -309,7 +310,9 @@ class _PendingCustomShippingSection extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(context.l10n.settlementTerritoryLabel(item.territoryNameAr ?? item.territory)),
+                  Text(context.l10n.settlementTerritoryLabel(
+                    territoryLabel(nameAr: item.territoryNameAr, raw: item.territory),
+                  )),
                   const SizedBox(height: 4),
                   Text(context.l10n.managerReasonLabel(item.reason)),
                   const SizedBox(height: 8),

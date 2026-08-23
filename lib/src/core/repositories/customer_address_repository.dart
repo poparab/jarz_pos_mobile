@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/api_endpoints.dart';
 import '../network/dio_provider.dart';
 import '../network/frappe_error_message.dart';
+import '../utils/territory_label.dart';
 
 /// Shared repository for all customer address operations.
 ///
@@ -168,7 +169,9 @@ class CustomerAddressRepository {
       );
       if (resp.statusCode == 200 && resp.data['message'] != null) {
         final list = resp.data['message'];
-        if (list is List) return list.cast<Map<String, dynamic>>();
+        if (list is List) {
+          return selectableTerritories(list.cast<Map<String, dynamic>>());
+        }
       }
       return [];
     } catch (e) {

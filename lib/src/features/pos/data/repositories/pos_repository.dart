@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/dio_provider.dart';
 import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/utils/territory_label.dart';
 import '../../domain/models/delivery_slot.dart';
 import '../models/pos_models.dart';
 
@@ -357,7 +358,9 @@ class PosRepository {
 
       if (response.statusCode == 200 && response.data['message'] != null) {
         final List<dynamic> territoriesData = response.data['message'];
-        return territoriesData.cast<Map<String, dynamic>>();
+        return selectableTerritories(
+          territoriesData.cast<Map<String, dynamic>>(),
+        );
       }
       return [];
     } catch (e) {

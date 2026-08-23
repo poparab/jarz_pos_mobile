@@ -4,6 +4,7 @@ import '../../../core/localization/localization_extensions.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../kanban/models/kanban_models.dart';
 import '../../kanban/widgets/invoice_card_widget.dart';
+import '../../../core/utils/territory_label.dart';
 
 /// Collapsible card that groups trip invoices in a kanban column.
 class TripGroupCard extends StatefulWidget {
@@ -178,7 +179,11 @@ class _TripGroupCardState extends State<TripGroupCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    inv.territoryNameAr ?? inv.subTerritoryDisplay ?? inv.territoryDisplay ?? inv.subTerritory ?? inv.territory,
+                    territoryLabel(
+                      nameAr: inv.territoryNameAr,
+                      display: inv.subTerritoryDisplay ?? inv.territoryDisplay,
+                      raw: inv.subTerritory ?? inv.territory,
+                    ),
                     style: TextStyle(fontSize: 10, color: Colors.grey[600]),
                   ),
                 ],

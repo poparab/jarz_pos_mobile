@@ -11,6 +11,7 @@ import '../dialogs/territory_profile_mismatch_dialog.dart';
 import 'bundle_selection_widget.dart';
 import 'delivery_slot_selection.dart';
 import '../../../../core/constants/business_constants.dart';
+import '../../../../core/utils/territory_label.dart';
 
 class CartWidget extends ConsumerWidget {
   final ScrollController? scrollController;
@@ -30,10 +31,13 @@ class CartWidget extends ConsumerWidget {
     final hasAmendmentSource =
         !state.isAmendmentDraft ||
         ((state.amendmentSourceInvoiceId ?? '').trim().isNotEmpty);
+    final customerTerritoryLabel = territoryLabel(
+      nameAr: state.selectedCustomer?['territory_name_ar'],
+      display: state.selectedCustomer?['territory_name'],
+      raw: state.selectedCustomer?['territory'],
+    );
     final customerTerritory =
-        state.selectedCustomer?['territory_name_ar']?.toString() ??
-        state.selectedCustomer?['territory_name']?.toString() ??
-        state.selectedCustomer?['territory']?.toString();
+        customerTerritoryLabel.isEmpty ? null : customerTerritoryLabel;
     final isPhone = ResponsiveUtils.isPhone(context);
 
     // Responsive padding

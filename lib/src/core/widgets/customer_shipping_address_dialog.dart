@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../features/geo/presentation/widgets/location_link_field.dart';
 import '../localization/localization_extensions.dart';
 import '../repositories/customer_address_repository.dart';
+import '../utils/territory_label.dart';
 
 /// Dialog for selecting, adding, editing, and deleting customer shipping
 /// addresses.
@@ -734,9 +735,7 @@ class _TerritoryDropdown extends StatelessWidget {
           .map(
             (t) => DropdownMenuItem<String>(
               value: t['name']?.toString() ?? '',
-              child: Text(
-                t['territory_name']?.toString() ?? t['name']?.toString() ?? '',
-              ),
+              child: Text(territoryLabelOf(t)),
             ),
           )
           .toList(),

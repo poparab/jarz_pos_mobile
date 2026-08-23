@@ -7,6 +7,7 @@ import '../../../core/utils/responsive_utils.dart';
 import '../../kanban/models/kanban_models.dart';
 import '../../kanban/providers/kanban_provider.dart';
 import '../providers/trip_provider.dart';
+import '../../../core/utils/territory_label.dart';
 
 /// Dialog shown when user creates a delivery trip from multi-selected invoices.
 class CreateTripDialog extends ConsumerStatefulWidget {
@@ -40,7 +41,11 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
   Set<String> get _territories {
     return widget.selectedInvoices.map((i) {
       final sub = i.subTerritoryDisplay ?? i.subTerritory;
-      final terr = i.territoryNameAr ?? i.territoryDisplay ?? i.territory;
+      final terr = territoryLabel(
+        nameAr: i.territoryNameAr,
+        display: i.territoryDisplay,
+        raw: i.territory,
+      );
       return (sub != null && sub.isNotEmpty) ? sub : terr;
     }).toSet();
   }

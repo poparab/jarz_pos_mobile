@@ -8,6 +8,7 @@ import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/ofd_shortage_dialog.dart';
 import '../models/trip_models.dart';
 import '../providers/trip_provider.dart';
+import '../../../core/utils/territory_label.dart';
 
 /// Detailed view of a single delivery trip with invoice list and actions.
 class TripDetailScreen extends ConsumerStatefulWidget {
@@ -382,7 +383,7 @@ class _TripInvoiceCardState extends State<_TripInvoiceCard> {
               ),
               const SizedBox(height: 3),
               Text(inv.customerName, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-              Text(inv.territoryNameAr ?? inv.subTerritoryDisplay ?? inv.territoryDisplay ?? inv.subTerritory ?? inv.territory, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+              Text(territoryLabel(nameAr: inv.territoryNameAr, display: inv.subTerritoryDisplay ?? inv.territoryDisplay, raw: inv.subTerritory ?? inv.territory), style: TextStyle(fontSize: 11, color: Colors.grey[500])),
             ],
           ),
         ),
