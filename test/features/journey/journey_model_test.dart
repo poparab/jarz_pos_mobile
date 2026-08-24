@@ -161,6 +161,68 @@ void main() {
     });
   });
 
+  group('JourneyContacts', () {
+    test('decodes the roster the editor picks from', () {
+      final payload = JourneyContacts.fromJson({
+        'lead': 'LEAD-0001',
+        'can_add': true,
+        'contacts': [
+          {
+            'contact_name': 'Mostafa',
+            'role': 'Owner',
+            'phone': '01000000001',
+            // Booleans on the wire: the backend maps every child row through
+            // `_map_contact_row`, which casts 0/1 to a real bool.
+            'is_primary': true,
+          },
+          {'contact_name': 'Sara', 'role': 'Barista', 'phone': '01000000002'},
+        ],
+      });
+      expect(payload.lead, 'LEAD-0001');
+      expect(payload.canAdd, isTrue);
+      expect(payload.contacts.map((c) => c.contactName), ['Mostafa', 'Sara']);
+      expect(payload.contacts.first.isPrimary, isTrue);
+      expect(payload.added, isNull);
+    });
+
+    test('an account with no lead behind it decodes as not addable', () {
+      final payload = JourneyContacts.fromJson(const {
+        'contacts': [],
+        'lead': '',
+        'can_add': false,
+      });
+      expect(payload.isEmpty, isTrue);
+      expect(payload.canAdd, isFalse);
+    });
+
+    test('the add call names the row the editor should select', () {
+      final payload = JourneyContacts.fromJson({
+        'lead': 'LEAD-0001',
+        'can_add': true,
+        'contacts': [
+          {'contact_name': 'Sara', 'role': 'Barista', 'phone': '01000000002'},
+        ],
+        'added': {
+          'contact_name': 'Sara',
+          'role': 'Barista',
+          'phone': '01000000002',
+        },
+      });
+      expect(payload.added, isNotNull);
+      expect(payload.added!.contactName, 'Sara');
+      // The added row is one OF the roster, not a parallel record of it.
+      expect(payload.contacts, contains(payload.added));
+    });
+
+    test('a missing payload decodes to an empty, non-addable roster', () {
+      final payload = JourneyContacts.fromJson(const {});
+      expect(payload.contacts, isEmpty);
+      expect(payload.lead, '');
+      expect(payload.canAdd, isFalse);
+      expect(payload.added, isNull);
+    });
+  });
+
   group('JourneyOptions', () {
     test('decodes the editor Select lists', () {
       final options = JourneyOptions.fromJson({

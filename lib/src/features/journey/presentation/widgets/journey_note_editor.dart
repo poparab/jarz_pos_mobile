@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
+import '../../../leads/data/models/lead.dart';
 import '../../../leads/presentation/leads_theme.dart';
+import '../../../leads/presentation/widgets/lead_contacts_section.dart';
 import '../../data/journey_repository.dart';
 import '../../data/models/journey_note.dart';
+import '../../state/journey_notes_notifier.dart';
 import '../journey_format.dart';
 
 /// What the editor hands back: the fields of one journey note.
@@ -41,11 +44,14 @@ class JourneyNoteDraft {
 /// Opens the journey-note editor as a modal sheet. Returns the draft, or null
 /// when the rep backs out.
 ///
-/// Pass [existing] to edit; omit it to log a new touch.
+/// Pass [existing] to edit; omit it to log a new touch. Pass [reference] to
+/// give the WHO box the account's people to pick from — without it the editor
+/// still works, it just falls back to typing the name in by hand.
 Future<JourneyNoteDraft?> showJourneyNoteEditor(
   BuildContext context, {
   JourneyNote? existing,
   String? defaultContactPhone,
+  JourneyRef? reference,
 }) {
   return showModalBottomSheet<JourneyNoteDraft>(
     context: context,
@@ -57,15 +63,23 @@ Future<JourneyNoteDraft?> showJourneyNoteEditor(
     builder: (_) => _JourneyNoteEditor(
       existing: existing,
       defaultContactPhone: defaultContactPhone,
+      reference: reference,
     ),
   );
 }
 
 class _JourneyNoteEditor extends ConsumerStatefulWidget {
-  const _JourneyNoteEditor({this.existing, this.defaultContactPhone});
+  const _JourneyNoteEditor({
+    this.existing,
+    this.defaultContactPhone,
+    this.reference,
+  });
 
   final JourneyNote? existing;
   final String? defaultContactPhone;
+
+  /// The record this note hangs off, used to load (and add to) its people.
+  final JourneyRef? reference;
 
   @override
   ConsumerState<_JourneyNoteEditor> createState() => _JourneyNoteEditorState();
@@ -83,6 +97,13 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
   DateTime? _nextActionDate;
   late String _entryType;
   String _outcome = '';
+
+  /// The person picked from the account's roster, when one was picked. Null
+  /// means the boxes were typed by hand — which stays a valid way to log a
+  /// note, so the chips never gate the form.
+  LeadContact? _selectedContact;
+  bool _savingContact = false;
+  String? _contactError;
 
   bool get _isEdit => widget.existing != null;
 
@@ -242,6 +263,7 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                 // ── Who ──────────────────────────────────────────────────
                 _SectionLabel(context.l10n.journeyEditorWhoSpoke),
                 const SizedBox(height: 8),
+                _buildContactPicker(context),
                 Row(
                   children: [
                     Expanded(
@@ -250,6 +272,13 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
                         textCapitalization: TextCapitalization.words,
                         decoration: _dec(context.l10n.journeyEditorPerson,
                             hint: context.l10n.journeyEditorPersonHint),
+                        // Typing over a picked person drops the selection: the
+                        // chip must never claim a name the rep has edited away.
+                        onChanged: (_) {
+                          if (_selectedContact != null) {
+                            setState(() => _selectedContact = null);
+                          }
+                        },
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -349,6 +378,145 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
         ),
       ),
     );
+  }
+
+  /// The account's people as tappable chips, plus a "new person" chip that
+  /// records someone on the spot.
+  ///
+  /// Renders nothing at all when there is no roster to offer AND nothing can
+  /// be added (an Opportunity or Customer with no lead behind it, or a site
+  /// that has not migrated the contacts table): the free-text boxes below are
+  /// then the whole WHO section, exactly as before this picker existed.
+  Widget _buildContactPicker(BuildContext context) {
+    final reference = widget.reference;
+    if (reference == null) return const SizedBox.shrink();
+
+    final async = ref.watch(journeyContactsProvider(reference));
+    if (async.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.only(bottom: 12),
+        child: SizedBox(
+          height: 16,
+          width: 16,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+    final payload = async.maybeWhen(
+      data: (value) => value,
+      orElse: () => const JourneyContacts(),
+    );
+    if (payload.contacts.isEmpty && !payload.canAdd) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(context.l10n.journeyEditorWhoHint, style: LeadsTheme.bodyMuted),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final contact in payload.contacts)
+              ChoiceChip(
+                label: Text(_contactLabel(contact)),
+                selected: _isSelected(contact),
+                selectedColor: LeadsTheme.berryPink.withValues(alpha: 0.16),
+                onSelected: (_) => _selectContact(contact),
+              ),
+            if (payload.canAdd)
+              ActionChip(
+                avatar: _savingContact
+                    ? const SizedBox(
+                        height: 14,
+                        width: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.person_add_alt, size: 16),
+                label: Text(context.l10n.journeyEditorNewPerson),
+                onPressed: _savingContact ? null : _addContact,
+              ),
+          ],
+        ),
+        if (_contactError != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            _contactError!,
+            style: const TextStyle(
+              fontFamily: LeadsTheme.bodyFont,
+              color: LeadsTheme.rejected,
+              fontSize: 12,
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  String _contactLabel(LeadContact contact) {
+    final role = contact.role.trim();
+    final name = contact.displayName;
+    return role.isEmpty ? name : '$name · $role';
+  }
+
+  /// Selected when the rep just tapped it, or — on an existing note — when the
+  /// name already written on the note is this person's.
+  bool _isSelected(LeadContact contact) {
+    final picked = _selectedContact;
+    if (picked != null) return picked == contact;
+    final typed = _personCtrl.text.trim().toLowerCase();
+    return typed.isNotEmpty && contact.displayName.toLowerCase() == typed;
+  }
+
+  /// Copies a picked person into the three boxes. The phone is overwritten
+  /// even when that person has none: the note records who was actually spoken
+  /// to, so leaving the venue's main line attributed to them would be a lie.
+  void _selectContact(LeadContact contact) {
+    setState(() {
+      _selectedContact = contact;
+      _contactError = null;
+      _personCtrl.text = contact.displayName;
+      _roleCtrl.text = contact.role.trim();
+      _phoneCtrl.text = contact.phone.trim();
+    });
+  }
+
+  /// Records a new person on the account through the SAME sheet the lead page
+  /// uses (so the OS contact picker comes along), then selects them.
+  Future<void> _addContact() async {
+    final reference = widget.reference;
+    if (reference == null) return;
+
+    final draft = await showModalBottomSheet<LeadContact>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const LeadContactEditorSheet(),
+    );
+    if (draft == null || !mounted) return;
+
+    setState(() {
+      _savingContact = true;
+      _contactError = null;
+    });
+    // Failures land inline, not in a SnackBar: this sheet covers the bottom of
+    // the screen, which is exactly where a SnackBar would appear.
+    final failed = context.l10n.journeyEditorContactFailed;
+    try {
+      final saved = await ref
+          .read(journeyContactsProvider(reference).notifier)
+          .addContact(draft);
+      if (!mounted) return;
+      _selectContact(saved ?? draft);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _contactError = failed('$e'));
+    } finally {
+      if (mounted) setState(() => _savingContact = false);
+    }
   }
 
   /// Ensures a value already on the record survives an option list that no

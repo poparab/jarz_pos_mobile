@@ -165,6 +165,51 @@ class JourneyRepository {
     return JourneyNote.fromJson(_asMap(_unwrap(response)));
   }
 
+  /// The people already recorded on the account, newest roster from the
+  /// server. Primary contact first.
+  Future<JourneyContacts> getContacts({
+    required String referenceDoctype,
+    required String referenceName,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.getJourneyContacts,
+      data: {
+        'reference_doctype': referenceDoctype,
+        'reference_name': referenceName,
+      },
+    );
+    return JourneyContacts.fromJson(_asMap(_unwrap(response)));
+  }
+
+  /// Records one new person on the account and returns the whole roster back,
+  /// with `added` naming the row that was just written.
+  ///
+  /// An append, not a replace: the rep who adds the barista they just met must
+  /// not overwrite whatever a colleague is editing on the lead page.
+  Future<JourneyContacts> addContact({
+    required String referenceDoctype,
+    required String referenceName,
+    required String contactName,
+    String? role,
+    String? phone,
+    String? email,
+    String? notes,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.addJourneyContact,
+      data: {
+        'reference_doctype': referenceDoctype,
+        'reference_name': referenceName,
+        'contact_name': contactName,
+        if ((role ?? '').trim().isNotEmpty) 'role': role!.trim(),
+        if ((phone ?? '').trim().isNotEmpty) 'phone': phone!.trim(),
+        if ((email ?? '').trim().isNotEmpty) 'email': email!.trim(),
+        if ((notes ?? '').trim().isNotEmpty) 'notes': notes!.trim(),
+      },
+    );
+    return JourneyContacts.fromJson(_asMap(_unwrap(response)));
+  }
+
   Future<void> deleteNote(String name) async {
     await _dio.post(ApiEndpoints.deleteJourneyNote, data: {'name': name});
   }

@@ -12627,6 +12627,24 @@ abstract class AppLocalizations {
   /// **'Who you spoke to'**
   String get journeyEditorWhoSpoke;
 
+  /// No description provided for @journeyEditorWhoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap who you met, or add someone new.'**
+  String get journeyEditorWhoHint;
+
+  /// No description provided for @journeyEditorNewPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'New person'**
+  String get journeyEditorNewPerson;
+
+  /// No description provided for @journeyEditorContactFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the contact: {error}'**
+  String journeyEditorContactFailed(String error);
+
   /// No description provided for @journeyEditorPerson.
   ///
   /// In en, this message translates to:

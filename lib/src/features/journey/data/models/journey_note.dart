@@ -1,6 +1,8 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../leads/data/models/lead.dart';
+
 part 'journey_note.freezed.dart';
 part 'journey_note.g.dart';
 
@@ -92,4 +94,32 @@ class JourneyOptions with _$JourneyOptions {
 
   factory JourneyOptions.fromJson(Map<String, dynamic> json) =>
       _$JourneyOptionsFromJson(json);
+}
+
+/// The people on the account a note hangs off, for the editor's WHO picker.
+///
+/// The rows are [LeadContact]s deliberately: a venue's people live in exactly
+/// one place (`Lead.custom_contacts`), and the diary picks from that roster
+/// rather than keeping a second list of its own. [lead] is the Lead the roster
+/// belongs to — an Opportunity or Customer resolves back to it — and [canAdd]
+/// is false when there is no such lead, which is the app's cue to keep the
+/// free-text boxes and hide the "new person" affordance.
+///
+/// [added] is only populated by the add call, and names the row the editor
+/// should select.
+@freezed
+class JourneyContacts with _$JourneyContacts {
+  const JourneyContacts._();
+
+  const factory JourneyContacts({
+    @Default(<LeadContact>[]) List<LeadContact> contacts,
+    @Default('') String lead,
+    @JsonKey(name: 'can_add') @Default(false) bool canAdd,
+    LeadContact? added,
+  }) = _JourneyContacts;
+
+  factory JourneyContacts.fromJson(Map<String, dynamic> json) =>
+      _$JourneyContactsFromJson(json);
+
+  bool get isEmpty => contacts.isEmpty;
 }

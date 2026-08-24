@@ -1105,3 +1105,267 @@ abstract class _JourneyOptions implements JourneyOptions {
   _$$JourneyOptionsImplCopyWith<_$JourneyOptionsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+JourneyContacts _$JourneyContactsFromJson(Map<String, dynamic> json) {
+  return _JourneyContacts.fromJson(json);
+}
+
+/// @nodoc
+mixin _$JourneyContacts {
+  List<LeadContact> get contacts => throw _privateConstructorUsedError;
+  String get lead => throw _privateConstructorUsedError;
+  @JsonKey(name: 'can_add')
+  bool get canAdd => throw _privateConstructorUsedError;
+  LeadContact? get added => throw _privateConstructorUsedError;
+
+  /// Serializes this JourneyContacts to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of JourneyContacts
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $JourneyContactsCopyWith<JourneyContacts> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $JourneyContactsCopyWith<$Res> {
+  factory $JourneyContactsCopyWith(
+    JourneyContacts value,
+    $Res Function(JourneyContacts) then,
+  ) = _$JourneyContactsCopyWithImpl<$Res, JourneyContacts>;
+  @useResult
+  $Res call({
+    List<LeadContact> contacts,
+    String lead,
+    @JsonKey(name: 'can_add') bool canAdd,
+    LeadContact? added,
+  });
+
+  $LeadContactCopyWith<$Res>? get added;
+}
+
+/// @nodoc
+class _$JourneyContactsCopyWithImpl<$Res, $Val extends JourneyContacts>
+    implements $JourneyContactsCopyWith<$Res> {
+  _$JourneyContactsCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of JourneyContacts
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? contacts = null,
+    Object? lead = null,
+    Object? canAdd = null,
+    Object? added = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            contacts: null == contacts
+                ? _value.contacts
+                : contacts // ignore: cast_nullable_to_non_nullable
+                      as List<LeadContact>,
+            lead: null == lead
+                ? _value.lead
+                : lead // ignore: cast_nullable_to_non_nullable
+                      as String,
+            canAdd: null == canAdd
+                ? _value.canAdd
+                : canAdd // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            added: freezed == added
+                ? _value.added
+                : added // ignore: cast_nullable_to_non_nullable
+                      as LeadContact?,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of JourneyContacts
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $LeadContactCopyWith<$Res>? get added {
+    if (_value.added == null) {
+      return null;
+    }
+
+    return $LeadContactCopyWith<$Res>(_value.added!, (value) {
+      return _then(_value.copyWith(added: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$JourneyContactsImplCopyWith<$Res>
+    implements $JourneyContactsCopyWith<$Res> {
+  factory _$$JourneyContactsImplCopyWith(
+    _$JourneyContactsImpl value,
+    $Res Function(_$JourneyContactsImpl) then,
+  ) = __$$JourneyContactsImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    List<LeadContact> contacts,
+    String lead,
+    @JsonKey(name: 'can_add') bool canAdd,
+    LeadContact? added,
+  });
+
+  @override
+  $LeadContactCopyWith<$Res>? get added;
+}
+
+/// @nodoc
+class __$$JourneyContactsImplCopyWithImpl<$Res>
+    extends _$JourneyContactsCopyWithImpl<$Res, _$JourneyContactsImpl>
+    implements _$$JourneyContactsImplCopyWith<$Res> {
+  __$$JourneyContactsImplCopyWithImpl(
+    _$JourneyContactsImpl _value,
+    $Res Function(_$JourneyContactsImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of JourneyContacts
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? contacts = null,
+    Object? lead = null,
+    Object? canAdd = null,
+    Object? added = freezed,
+  }) {
+    return _then(
+      _$JourneyContactsImpl(
+        contacts: null == contacts
+            ? _value._contacts
+            : contacts // ignore: cast_nullable_to_non_nullable
+                  as List<LeadContact>,
+        lead: null == lead
+            ? _value.lead
+            : lead // ignore: cast_nullable_to_non_nullable
+                  as String,
+        canAdd: null == canAdd
+            ? _value.canAdd
+            : canAdd // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        added: freezed == added
+            ? _value.added
+            : added // ignore: cast_nullable_to_non_nullable
+                  as LeadContact?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$JourneyContactsImpl extends _JourneyContacts {
+  const _$JourneyContactsImpl({
+    final List<LeadContact> contacts = const <LeadContact>[],
+    this.lead = '',
+    @JsonKey(name: 'can_add') this.canAdd = false,
+    this.added,
+  }) : _contacts = contacts,
+       super._();
+
+  factory _$JourneyContactsImpl.fromJson(Map<String, dynamic> json) =>
+      _$$JourneyContactsImplFromJson(json);
+
+  final List<LeadContact> _contacts;
+  @override
+  @JsonKey()
+  List<LeadContact> get contacts {
+    if (_contacts is EqualUnmodifiableListView) return _contacts;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_contacts);
+  }
+
+  @override
+  @JsonKey()
+  final String lead;
+  @override
+  @JsonKey(name: 'can_add')
+  final bool canAdd;
+  @override
+  final LeadContact? added;
+
+  @override
+  String toString() {
+    return 'JourneyContacts(contacts: $contacts, lead: $lead, canAdd: $canAdd, added: $added)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$JourneyContactsImpl &&
+            const DeepCollectionEquality().equals(other._contacts, _contacts) &&
+            (identical(other.lead, lead) || other.lead == lead) &&
+            (identical(other.canAdd, canAdd) || other.canAdd == canAdd) &&
+            (identical(other.added, added) || other.added == added));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    const DeepCollectionEquality().hash(_contacts),
+    lead,
+    canAdd,
+    added,
+  );
+
+  /// Create a copy of JourneyContacts
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$JourneyContactsImplCopyWith<_$JourneyContactsImpl> get copyWith =>
+      __$$JourneyContactsImplCopyWithImpl<_$JourneyContactsImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$JourneyContactsImplToJson(this);
+  }
+}
+
+abstract class _JourneyContacts extends JourneyContacts {
+  const factory _JourneyContacts({
+    final List<LeadContact> contacts,
+    final String lead,
+    @JsonKey(name: 'can_add') final bool canAdd,
+    final LeadContact? added,
+  }) = _$JourneyContactsImpl;
+  const _JourneyContacts._() : super._();
+
+  factory _JourneyContacts.fromJson(Map<String, dynamic> json) =
+      _$JourneyContactsImpl.fromJson;
+
+  @override
+  List<LeadContact> get contacts;
+  @override
+  String get lead;
+  @override
+  @JsonKey(name: 'can_add')
+  bool get canAdd;
+  @override
+  LeadContact? get added;
+
+  /// Create a copy of JourneyContacts
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$JourneyContactsImplCopyWith<_$JourneyContactsImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}

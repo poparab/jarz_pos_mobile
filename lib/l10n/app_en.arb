@@ -4472,6 +4472,16 @@
   "journeyEditorNote": "Note",
   "journeyEditorNoteHint": "They liked the matcha, asked about wholesale pricing…",
   "journeyEditorWhoSpoke": "Who you spoke to",
+  "journeyEditorWhoHint": "Tap who you met, or add someone new.",
+  "journeyEditorNewPerson": "New person",
+  "journeyEditorContactFailed": "Could not save the contact: {error}",
+  "@journeyEditorContactFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "journeyEditorPerson": "Person",
   "journeyEditorPersonHint": "Mostafa",
   "journeyEditorRole": "Role",

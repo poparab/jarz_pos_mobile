@@ -2921,6 +2921,16 @@
   "journeyEditorNote": "الملاحظة",
   "journeyEditorNoteHint": "عجبهم الماتشا وسألوا عن أسعار الجملة…",
   "journeyEditorWhoSpoke": "مين اللي اتكلمت معاه",
+  "journeyEditorWhoHint": "دوس على اللي قابلته، أو ضيف حد جديد.",
+  "journeyEditorNewPerson": "شخص جديد",
+  "journeyEditorContactFailed": "مش قادر يحفظ جهة الاتصال: {error}",
+  "@journeyEditorContactFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "journeyEditorPerson": "الشخص",
   "journeyEditorPersonHint": "مصطفى",
   "journeyEditorRole": "الوظيفة",

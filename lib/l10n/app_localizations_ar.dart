@@ -7504,6 +7504,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get journeyEditorWhoSpoke => 'مين اللي اتكلمت معاه';
 
   @override
+  String get journeyEditorWhoHint => 'دوس على اللي قابلته، أو ضيف حد جديد.';
+
+  @override
+  String get journeyEditorNewPerson => 'شخص جديد';
+
+  @override
+  String journeyEditorContactFailed(String error) {
+    return 'مش قادر يحفظ جهة الاتصال: $error';
+  }
+
+  @override
   String get journeyEditorPerson => 'الشخص';
 
   @override

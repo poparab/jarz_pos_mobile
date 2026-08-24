@@ -7536,6 +7536,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journeyEditorWhoSpoke => 'Who you spoke to';
 
   @override
+  String get journeyEditorWhoHint => 'Tap who you met, or add someone new.';
+
+  @override
+  String get journeyEditorNewPerson => 'New person';
+
+  @override
+  String journeyEditorContactFailed(String error) {
+    return 'Could not save the contact: $error';
+  }
+
+  @override
   String get journeyEditorPerson => 'Person';
 
   @override

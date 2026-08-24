@@ -444,6 +444,13 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.journey.delete_journey_note';
   static const getJourneyOptions =
       '/api/method/jarz_pos.api.journey.get_journey_options';
+  // The people already recorded on the account, so the editor's "who I spoke
+  // to" box is a pick, not a retype. Both read and write land on the SAME
+  // roster the lead page's contacts section edits.
+  static const getJourneyContacts =
+      '/api/method/jarz_pos.api.journey.get_journey_contacts';
+  static const addJourneyContact =
+      '/api/method/jarz_pos.api.journey.add_journey_contact';
 
   // ── Courier tracking (jarz_courier app) ───────────────────────────────
   // Supervisor-only and Redis-backed, so it is safe to poll. Couriers are

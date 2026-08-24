@@ -91,3 +91,27 @@ Map<String, dynamic> _$$JourneyOptionsImplToJson(
   'entry_types': instance.entryTypes,
   'outcomes': instance.outcomes,
 };
+
+_$JourneyContactsImpl _$$JourneyContactsImplFromJson(
+  Map<String, dynamic> json,
+) => _$JourneyContactsImpl(
+  contacts:
+      (json['contacts'] as List<dynamic>?)
+          ?.map((e) => LeadContact.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <LeadContact>[],
+  lead: json['lead'] as String? ?? '',
+  canAdd: json['can_add'] as bool? ?? false,
+  added: json['added'] == null
+      ? null
+      : LeadContact.fromJson(json['added'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$$JourneyContactsImplToJson(
+  _$JourneyContactsImpl instance,
+) => <String, dynamic>{
+  'contacts': instance.contacts,
+  'lead': instance.lead,
+  'can_add': instance.canAdd,
+  'added': instance.added,
+};

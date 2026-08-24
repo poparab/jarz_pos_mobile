@@ -113,6 +113,7 @@ class JourneyNotesSection extends ConsumerWidget {
     final draft = await showJourneyNoteEditor(
       context,
       defaultContactPhone: defaultContactPhone,
+      reference: _key,
     );
     if (draft == null || !context.mounted) return;
     await _run(context, ref, () async {
@@ -135,7 +136,8 @@ class JourneyNotesSection extends ConsumerWidget {
     WidgetRef ref,
     JourneyNote note,
   ) async {
-    final draft = await showJourneyNoteEditor(context, existing: note);
+    final draft =
+        await showJourneyNoteEditor(context, existing: note, reference: _key);
     if (draft == null || !context.mounted) return;
     await _run(context, ref, () async {
       await ref.read(journeyNotesProvider(_key).notifier).edit(
