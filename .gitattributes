@@ -1,0 +1,7 @@
+# The POS web deploy hashes this file to decide whether the nginx config
+# changed. With core.autocrlf=true a fresh checkout would hand it back as
+# CRLF, so the hash flips between checkouts and deploy_web.ps1 reports a
+# phantom "nginx-config-changed" — forcing a needless rebuild and leaving
+# staging and production stamping different hashes for identical content.
+# Pin it to LF so every checkout produces the same bytes the server gets.
+scripts/pos-web/nginx.conf text eol=lf
