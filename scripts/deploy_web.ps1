@@ -5,6 +5,7 @@ param(
 
     [switch]$PlanOnly,
     [switch]$ForceDeploy,
+    [switch]$AllowDirty,
     [string]$SshKeyPath
 )
 
@@ -120,6 +121,14 @@ function Get-RepoHead {
     return (Invoke-Git -Arguments @('rev-parse', 'HEAD')).Trim()
 }
 
+function Get-DirtyPaths {
+    $output = Invoke-Git -Arguments @('status', '--porcelain')
+    if ([string]::IsNullOrWhiteSpace($output)) {
+        return @()
+    }
+    return @($output -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+}
+
 function Get-RemoteReleaseMetadata {
     $raw = Invoke-Remote "test -f $remoteMetaPath && cat $remoteMetaPath" -IgnoreExitCode
     if ([string]::IsNullOrWhiteSpace($raw)) {
@@ -221,12 +230,37 @@ Write-Info "  Deploying Web to $($Environment.ToUpperInvariant())"
 Write-Info "============================================"
 Write-Host ''
 
+$localHead = Get-RepoHead
+
+# The build below compiles the WORKING TREE, but release-metadata.json is stamped
+# with $localHead. Several Claude chats share this checkout, so a dirty tree means
+# shipping another chat's half-finished code under a commit SHA that does not
+# contain it - an artifact no one can trace back to a commit. Refuse by default.
+$dirtyPaths = Get-DirtyPaths
+if ($dirtyPaths.Count -gt 0) {
+    $listing = ($dirtyPaths | Select-Object -First 20) -join "`n  "
+    $summary = "Working tree is dirty ($($dirtyPaths.Count) path(s)):`n  $listing"
+    if ($PlanOnly) {
+        Write-Warn $summary
+        Write-Warn 'Plan only - no artifact is produced, continuing.'
+    }
+    elseif ($AllowDirty) {
+        Write-Warn $summary
+        Write-Warn "-AllowDirty set: shipping the working tree even though release-metadata.json will report $localHead."
+    }
+    else {
+        throw ("$summary`n`nRefusing to deploy: the web build compiles the working tree but stamps " +
+            "commit $localHead, so uncommitted work would ship under a commit that does not " +
+            "contain it. Commit your paths (git commit -m '...' -- <paths>) and re-run, or pass " +
+            "-AllowDirty to override.")
+    }
+}
+
 Write-Step "Checking web host $($config.ServerIp)..."
 $null = Invoke-Remote 'echo ok'
 Write-Info 'SSH connected'
 Write-Host ''
 
-$localHead = Get-RepoHead
 $localNginxConfigHash = (Get-FileHash $localNginxConfigPath -Algorithm SHA256).Hash.ToLowerInvariant()
 $remoteMetadata = Get-RemoteReleaseMetadata
 $webDecision = Test-WebDeployRequired -LocalHead $localHead -LocalNginxConfigHash $localNginxConfigHash -RemoteMetadata $remoteMetadata
