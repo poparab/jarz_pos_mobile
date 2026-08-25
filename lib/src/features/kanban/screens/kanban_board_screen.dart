@@ -2323,6 +2323,26 @@ bool isReturnedKanbanColumn(KanbanColumn column) {
   return matches(column.id) || matches(column.name);
 }
 
+/// True when [column] is the "In Progress" preparation column.
+///
+/// Accepts the legacy "Processing" label too, so boards that were never
+/// renamed keep resolving to the same stage.
+bool isInProgressKanbanColumn(KanbanColumn column) {
+  bool matches(String value) {
+    final normalized = value.trim().toLowerCase().replaceAll(' ', '_');
+    return normalized == 'in_progress' || normalized == 'processing';
+  }
+
+  return matches(column.id) || matches(column.name);
+}
+
+/// True when [column] is the "Ready" column.
+bool isReadyKanbanColumn(KanbanColumn column) {
+  bool matches(String value) => value.trim().toLowerCase() == 'ready';
+
+  return matches(column.id) || matches(column.name);
+}
+
 /// Pure move-validation for the kanban board. Returns null when the move is
 /// allowed, otherwise the reason it is blocked.
 ///
@@ -2340,7 +2360,7 @@ bool isReturnedKanbanColumn(KanbanColumn column) {
 ///  5. -> Returned          -> ALWAYS blocked, any direction. Reaching Returned
 ///     means a credit note was posted; only the card's "Return Order" action
 ///     can do that. Same ordering reasoning as Cancelled.
-///  6. backward             -> not allowed
+///  6. backward             -> not allowed, except Ready -> In Progress
 ///  7. forward > 1 stage    -> one stage at a time
 ///
 /// [isPickupLookup] is called lazily, only when the target is the settlement
@@ -2404,9 +2424,17 @@ CardMoveBlockReason? evaluateCardMoveBlock({
     return CardMoveBlockReason.returnViaMenuOnly;
   }
 
-  final isBackward = toIndex < fromIndex;
-  if (isBackward) {
-    return CardMoveBlockReason.cannotMoveBackward;
+  if (toIndex < fromIndex) {
+    // Kitchen correction: an order marked Ready too early goes back to In
+    // Progress. It is the ONLY backward move the board allows — neither state
+    // has a side effect (stock only moves on dispatch, money only on
+    // settlement), so walking back between them costs nothing to undo.
+    final isReadyToInProgress = isReadyKanbanColumn(columns[fromIndex]) &&
+        isInProgressKanbanColumn(targetColumn);
+    if (!isReadyToInProgress) {
+      return CardMoveBlockReason.cannotMoveBackward;
+    }
+    return null;
   }
 
   if (toIndex - fromIndex > 1) {

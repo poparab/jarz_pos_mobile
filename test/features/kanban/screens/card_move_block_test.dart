@@ -335,5 +335,68 @@ void main() {
         contains('processing'),
       );
     });
+
+    test('should offer In Progress as a target from Ready', () {
+      expect(targetsFor('ready').map((c) => c.id), contains('processing'));
+    });
+  });
+
+  group('evaluateCardMoveBlock — Ready can step back to In Progress', () {
+    // Board where In Progress sits directly before Ready, as it does live.
+    final liveColumns = [
+      KanbanColumn(id: 'recieved', name: 'Recieved', color: '#FFF'),
+      KanbanColumn(id: 'in_progress', name: 'In Progress', color: '#EEE'),
+      KanbanColumn(id: 'ready', name: 'Ready', color: '#DDD'),
+      KanbanColumn(id: 'out_for_delivery', name: 'Out for Delivery', color: '#CCC'),
+      KanbanColumn(id: 'delivered', name: 'Delivered', color: '#BBB'),
+      KanbanColumn(id: 'cancelled', name: 'Cancelled', color: '#AAA'),
+    ];
+
+    test('should allow Ready -> In Progress on the live board', () {
+      expect(
+        evaluate('ready', 'in_progress', withColumns: liveColumns),
+        isNull,
+      );
+    });
+
+    test('should allow Ready -> In Progress by name too', () {
+      expect(
+        evaluate('Ready', 'In Progress', withColumns: liveColumns),
+        isNull,
+      );
+    });
+
+    test('should allow Ready -> Processing on a legacy-labelled board', () {
+      // Non-adjacent on this board (Cancelled sits between them) — the carve-out
+      // is about the two stages involved, not their distance.
+      expect(evaluate('ready', 'processing'), isNull);
+    });
+
+    test('should still block every other backward move', () {
+      expect(
+        evaluate('ready', 'recieved', withColumns: liveColumns),
+        CardMoveBlockReason.cannotMoveBackward,
+      );
+      expect(
+        evaluate('out_for_delivery', 'ready', withColumns: liveColumns),
+        CardMoveBlockReason.cannotMoveBackward,
+      );
+      expect(
+        evaluate('delivered', 'in_progress', withColumns: liveColumns),
+        CardMoveBlockReason.cannotMoveBackward,
+      );
+      expect(
+        evaluate('in_progress', 'recieved', withColumns: liveColumns),
+        CardMoveBlockReason.cannotMoveBackward,
+      );
+    });
+
+    test('should keep the fully-returned freeze ahead of the carve-out', () {
+      expect(
+        evaluate('ready', 'in_progress',
+            withColumns: liveColumns, isFullyReturned: true),
+        CardMoveBlockReason.fullyReturnedLocked,
+      );
+    });
   });
 }
