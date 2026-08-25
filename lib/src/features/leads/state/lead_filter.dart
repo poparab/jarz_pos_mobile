@@ -14,6 +14,22 @@ import 'my_location_notifier.dart';
 /// arbitrary one when a fix is unavailable.
 enum LeadSortBy { score, rating, reviews, branches, name, distance }
 
+/// Talabat-presence narrowing.
+///
+/// Three-way, unlike [LeadFilter.takeawayOnly]: the Talabat flag is sourced by
+/// reading Talabat's own area listings rather than from Google, so "not on
+/// Talabat" is a real, filterable answer and not just missing data.
+enum TalabatFilter {
+  /// No narrowing.
+  any,
+
+  /// Only brands seen listed on Talabat.
+  on,
+
+  /// Only brands NOT seen on Talabat in any area swept so far.
+  off,
+}
+
 /// The full set of filters applied to the lead catalog. Immutable; mutate via
 /// [copyWith]. Search is case-insensitive and Arabic-friendly.
 class LeadFilter {
@@ -41,6 +57,9 @@ class LeadFilter {
   /// One-way filter by design: `takeout == false` means UNKNOWN, not "no
   /// takeaway", so there is deliberately no "hide takeaway venues" option.
   final bool takeawayOnly;
+  /// Narrow by Talabat presence. See [TalabatFilter] for why this one is
+  /// three-way where [takeawayOnly] is a one-way switch.
+  final TalabatFilter talabatFilter;
   final bool hasPhone;
   final bool hasInstagram;
   final bool hasWebsite;
@@ -64,6 +83,7 @@ class LeadFilter {
     this.hasSahel = false,
     this.specialtyOnly = false,
     this.takeawayOnly = false,
+    this.talabatFilter = TalabatFilter.any,
     this.hasPhone = false,
     this.hasInstagram = false,
     this.hasWebsite = false,
@@ -86,6 +106,7 @@ class LeadFilter {
     bool? hasSahel,
     bool? specialtyOnly,
     bool? takeawayOnly,
+    TalabatFilter? talabatFilter,
     bool? hasPhone,
     bool? hasInstagram,
     bool? hasWebsite,
@@ -109,6 +130,7 @@ class LeadFilter {
       hasSahel: hasSahel ?? this.hasSahel,
       specialtyOnly: specialtyOnly ?? this.specialtyOnly,
       takeawayOnly: takeawayOnly ?? this.takeawayOnly,
+      talabatFilter: talabatFilter ?? this.talabatFilter,
       hasPhone: hasPhone ?? this.hasPhone,
       hasInstagram: hasInstagram ?? this.hasInstagram,
       hasWebsite: hasWebsite ?? this.hasWebsite,
@@ -133,6 +155,7 @@ class LeadFilter {
     if (hasSahel) count++;
     if (specialtyOnly) count++;
     if (takeawayOnly) count++;
+    if (talabatFilter != TalabatFilter.any) count++;
     if (hasPhone) count++;
     if (hasInstagram) count++;
     if (hasWebsite) count++;
@@ -295,6 +318,14 @@ bool _matchesLead(Lead lead, LeadFilter f, String query) {
   if (f.specialtyOnly && !lead.isSpecialty) return false;
   // One-way: false is "unknown", so this only ever narrows to confirmed.
   if (f.takeawayOnly && !lead.takeout) return false;
+  switch (f.talabatFilter) {
+    case TalabatFilter.on:
+      if (!lead.onTalabat) return false;
+    case TalabatFilter.off:
+      if (lead.onTalabat) return false;
+    case TalabatFilter.any:
+      break;
+  }
 
   if (f.hasPhone && lead.phone.trim().isEmpty) return false;
   if (f.hasInstagram && lead.instagram.trim().isEmpty) return false;

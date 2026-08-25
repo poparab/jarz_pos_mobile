@@ -7,6 +7,7 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../leads_theme.dart';
 import 'lead_actions.dart';
 import 'sahel_badge.dart';
+import 'talabat_badge.dart';
 import 'score_bar.dart';
 import 'tier_pill.dart';
 
@@ -86,6 +87,8 @@ class LeadCard extends StatelessWidget {
                           ),
                         if (lead.sahelBranches > 0)
                           SahelBadge(lead.sahelBranches),
+                        if (lead.onTalabat)
+                          TalabatBadge(areas: lead.talabatAreas),
                         _Metric(
                           icon: Icons.storefront_outlined,
                           label: '${lead.branchCount}',

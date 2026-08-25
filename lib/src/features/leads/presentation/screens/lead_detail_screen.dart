@@ -19,6 +19,7 @@ import '../widgets/lead_actions.dart';
 import '../widgets/lead_contacts_section.dart';
 import '../widgets/merge_leads_sheet.dart';
 import '../widgets/sahel_badge.dart';
+import '../widgets/talabat_badge.dart';
 import '../widgets/score_bar.dart';
 import '../widgets/tier_pill.dart';
 
@@ -182,6 +183,8 @@ class _Header extends StatelessWidget {
                   children: [
                     TierPill(lead.tier),
                     if (lead.sahelBranches > 0) SahelBadge(lead.sahelBranches),
+                    if (lead.onTalabat)
+                      TalabatBadge(areas: lead.talabatAreas),
                     if (lead.avgRating != null)
                       _Pill(
                         icon: Icons.star_rounded,

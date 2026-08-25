@@ -6491,6 +6491,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get leadsFilterTakeawayOnly => 'تيك أواي مؤكد';
 
   @override
+  String get leadsFilterTalabat => 'طلبات';
+
+  @override
+  String get leadsFilterTalabatOn => 'على طلبات';
+
+  @override
+  String get leadsFilterTalabatOff => 'مش على طلبات';
+
+  @override
+  String get leadsTalabatBadge => 'طلبات';
+
+  @override
   String get leadsFilterHasPhone => 'عنده تليفون';
 
   @override

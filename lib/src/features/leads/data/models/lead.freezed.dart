@@ -52,7 +52,15 @@ mixin _$Lead {
   @JsonKey(name: 'dine_in')
   bool get dineIn => throw _privateConstructorUsedError;
   @JsonKey(name: 'serves_dessert')
-  bool get servesDessert => throw _privateConstructorUsedError;
+  bool get servesDessert => throw _privateConstructorUsedError; // ── Talabat presence ───────────────────────────────────────────────────
+  // Sourced by reading Talabat's own per-area listings, NOT from Google, so
+  // this one really is two-state: `false` means "not listed in any area we
+  // swept", not "unknown". `talabatAreas` names the delivery zones the
+  // listing was actually seen in.
+  @JsonKey(name: 'on_talabat', fromJson: _flag)
+  bool get onTalabat => throw _privateConstructorUsedError;
+  @JsonKey(name: 'talabat_areas')
+  List<String> get talabatAreas => throw _privateConstructorUsedError;
   @JsonKey(name: 'primary_area')
   String get primaryArea => throw _privateConstructorUsedError;
   List<String> get regions => throw _privateConstructorUsedError;
@@ -158,6 +166,8 @@ abstract class $LeadCopyWith<$Res> {
     @JsonKey(name: 'takeout') bool takeout,
     @JsonKey(name: 'dine_in') bool dineIn,
     @JsonKey(name: 'serves_dessert') bool servesDessert,
+    @JsonKey(name: 'on_talabat', fromJson: _flag) bool onTalabat,
+    @JsonKey(name: 'talabat_areas') List<String> talabatAreas,
     @JsonKey(name: 'primary_area') String primaryArea,
     List<String> regions,
     List<String> governorates,
@@ -231,6 +241,8 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
     Object? takeout = null,
     Object? dineIn = null,
     Object? servesDessert = null,
+    Object? onTalabat = null,
+    Object? talabatAreas = null,
     Object? primaryArea = null,
     Object? regions = null,
     Object? governorates = null,
@@ -334,6 +346,14 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
                 ? _value.servesDessert
                 : servesDessert // ignore: cast_nullable_to_non_nullable
                       as bool,
+            onTalabat: null == onTalabat
+                ? _value.onTalabat
+                : onTalabat // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            talabatAreas: null == talabatAreas
+                ? _value.talabatAreas
+                : talabatAreas // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
             primaryArea: null == primaryArea
                 ? _value.primaryArea
                 : primaryArea // ignore: cast_nullable_to_non_nullable
@@ -537,6 +557,8 @@ abstract class _$$LeadImplCopyWith<$Res> implements $LeadCopyWith<$Res> {
     @JsonKey(name: 'takeout') bool takeout,
     @JsonKey(name: 'dine_in') bool dineIn,
     @JsonKey(name: 'serves_dessert') bool servesDessert,
+    @JsonKey(name: 'on_talabat', fromJson: _flag) bool onTalabat,
+    @JsonKey(name: 'talabat_areas') List<String> talabatAreas,
     @JsonKey(name: 'primary_area') String primaryArea,
     List<String> regions,
     List<String> governorates,
@@ -609,6 +631,8 @@ class __$$LeadImplCopyWithImpl<$Res>
     Object? takeout = null,
     Object? dineIn = null,
     Object? servesDessert = null,
+    Object? onTalabat = null,
+    Object? talabatAreas = null,
     Object? primaryArea = null,
     Object? regions = null,
     Object? governorates = null,
@@ -712,6 +736,14 @@ class __$$LeadImplCopyWithImpl<$Res>
             ? _value.servesDessert
             : servesDessert // ignore: cast_nullable_to_non_nullable
                   as bool,
+        onTalabat: null == onTalabat
+            ? _value.onTalabat
+            : onTalabat // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        talabatAreas: null == talabatAreas
+            ? _value._talabatAreas
+            : talabatAreas // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
         primaryArea: null == primaryArea
             ? _value.primaryArea
             : primaryArea // ignore: cast_nullable_to_non_nullable
@@ -881,6 +913,9 @@ class _$LeadImpl extends _Lead {
     @JsonKey(name: 'takeout') this.takeout = false,
     @JsonKey(name: 'dine_in') this.dineIn = false,
     @JsonKey(name: 'serves_dessert') this.servesDessert = false,
+    @JsonKey(name: 'on_talabat', fromJson: _flag) this.onTalabat = false,
+    @JsonKey(name: 'talabat_areas')
+    final List<String> talabatAreas = const <String>[],
     @JsonKey(name: 'primary_area') this.primaryArea = '',
     final List<String> regions = const <String>[],
     final List<String> governorates = const <String>[],
@@ -919,7 +954,8 @@ class _$LeadImpl extends _Lead {
     @JsonKey(name: 'next_action') this.nextAction,
     @JsonKey(name: 'journey_notes')
     final List<JourneyNote> journeyNotes = const <JourneyNote>[],
-  }) : _regions = regions,
+  }) : _talabatAreas = talabatAreas,
+       _regions = regions,
        _governorates = governorates,
        _areas = areas,
        _contacts = contacts,
@@ -981,6 +1017,23 @@ class _$LeadImpl extends _Lead {
   @override
   @JsonKey(name: 'serves_dessert')
   final bool servesDessert;
+  // ── Talabat presence ───────────────────────────────────────────────────
+  // Sourced by reading Talabat's own per-area listings, NOT from Google, so
+  // this one really is two-state: `false` means "not listed in any area we
+  // swept", not "unknown". `talabatAreas` names the delivery zones the
+  // listing was actually seen in.
+  @override
+  @JsonKey(name: 'on_talabat', fromJson: _flag)
+  final bool onTalabat;
+  final List<String> _talabatAreas;
+  @override
+  @JsonKey(name: 'talabat_areas')
+  List<String> get talabatAreas {
+    if (_talabatAreas is EqualUnmodifiableListView) return _talabatAreas;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_talabatAreas);
+  }
+
   @override
   @JsonKey(name: 'primary_area')
   final String primaryArea;
@@ -1145,7 +1198,7 @@ class _$LeadImpl extends _Lead {
 
   @override
   String toString() {
-    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, takeout: $takeout, dineIn: $dineIn, servesDessert: $servesDessert, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, contacts: $contacts, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes, journeyCount: $journeyCount, lastJourneyDate: $lastJourneyDate, lastJourneyType: $lastJourneyType, lastJourneyNote: $lastJourneyNote, lastJourneyContact: $lastJourneyContact, nextActionDate: $nextActionDate, nextAction: $nextAction, journeyNotes: $journeyNotes)';
+    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, takeout: $takeout, dineIn: $dineIn, servesDessert: $servesDessert, onTalabat: $onTalabat, talabatAreas: $talabatAreas, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, contacts: $contacts, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes, journeyCount: $journeyCount, lastJourneyDate: $lastJourneyDate, lastJourneyType: $lastJourneyType, lastJourneyNote: $lastJourneyNote, lastJourneyContact: $lastJourneyContact, nextActionDate: $nextActionDate, nextAction: $nextAction, journeyNotes: $journeyNotes)';
   }
 
   @override
@@ -1180,6 +1233,12 @@ class _$LeadImpl extends _Lead {
             (identical(other.dineIn, dineIn) || other.dineIn == dineIn) &&
             (identical(other.servesDessert, servesDessert) ||
                 other.servesDessert == servesDessert) &&
+            (identical(other.onTalabat, onTalabat) ||
+                other.onTalabat == onTalabat) &&
+            const DeepCollectionEquality().equals(
+              other._talabatAreas,
+              _talabatAreas,
+            ) &&
             (identical(other.primaryArea, primaryArea) ||
                 other.primaryArea == primaryArea) &&
             const DeepCollectionEquality().equals(other._regions, _regions) &&
@@ -1269,6 +1328,8 @@ class _$LeadImpl extends _Lead {
     takeout,
     dineIn,
     servesDessert,
+    onTalabat,
+    const DeepCollectionEquality().hash(_talabatAreas),
     primaryArea,
     const DeepCollectionEquality().hash(_regions),
     const DeepCollectionEquality().hash(_governorates),
@@ -1339,6 +1400,8 @@ abstract class _Lead extends Lead {
     @JsonKey(name: 'takeout') final bool takeout,
     @JsonKey(name: 'dine_in') final bool dineIn,
     @JsonKey(name: 'serves_dessert') final bool servesDessert,
+    @JsonKey(name: 'on_talabat', fromJson: _flag) final bool onTalabat,
+    @JsonKey(name: 'talabat_areas') final List<String> talabatAreas,
     @JsonKey(name: 'primary_area') final String primaryArea,
     final List<String> regions,
     final List<String> governorates,
@@ -1427,7 +1490,17 @@ abstract class _Lead extends Lead {
   bool get dineIn;
   @override
   @JsonKey(name: 'serves_dessert')
-  bool get servesDessert;
+  bool get servesDessert; // ── Talabat presence ───────────────────────────────────────────────────
+  // Sourced by reading Talabat's own per-area listings, NOT from Google, so
+  // this one really is two-state: `false` means "not listed in any area we
+  // swept", not "unknown". `talabatAreas` names the delivery zones the
+  // listing was actually seen in.
+  @override
+  @JsonKey(name: 'on_talabat', fromJson: _flag)
+  bool get onTalabat;
+  @override
+  @JsonKey(name: 'talabat_areas')
+  List<String> get talabatAreas;
   @override
   @JsonKey(name: 'primary_area')
   String get primaryArea;
@@ -1850,6 +1923,8 @@ mixin _$LeadBranch {
   String get address => throw _privateConstructorUsedError;
   double? get latitude => throw _privateConstructorUsedError;
   double? get longitude => throw _privateConstructorUsedError;
+  @JsonKey(name: 'on_talabat', fromJson: _flag)
+  bool get onTalabat => throw _privateConstructorUsedError;
 
   /// Serializes this LeadBranch to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1884,6 +1959,7 @@ abstract class $LeadBranchCopyWith<$Res> {
     String address,
     double? latitude,
     double? longitude,
+    @JsonKey(name: 'on_talabat', fromJson: _flag) bool onTalabat,
   });
 }
 
@@ -1917,6 +1993,7 @@ class _$LeadBranchCopyWithImpl<$Res, $Val extends LeadBranch>
     Object? address = null,
     Object? latitude = freezed,
     Object? longitude = freezed,
+    Object? onTalabat = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1980,6 +2057,10 @@ class _$LeadBranchCopyWithImpl<$Res, $Val extends LeadBranch>
                 ? _value.longitude
                 : longitude // ignore: cast_nullable_to_non_nullable
                       as double?,
+            onTalabat: null == onTalabat
+                ? _value.onTalabat
+                : onTalabat // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -2011,6 +2092,7 @@ abstract class _$$LeadBranchImplCopyWith<$Res>
     String address,
     double? latitude,
     double? longitude,
+    @JsonKey(name: 'on_talabat', fromJson: _flag) bool onTalabat,
   });
 }
 
@@ -2043,6 +2125,7 @@ class __$$LeadBranchImplCopyWithImpl<$Res>
     Object? address = null,
     Object? latitude = freezed,
     Object? longitude = freezed,
+    Object? onTalabat = null,
   }) {
     return _then(
       _$LeadBranchImpl(
@@ -2106,6 +2189,10 @@ class __$$LeadBranchImplCopyWithImpl<$Res>
             ? _value.longitude
             : longitude // ignore: cast_nullable_to_non_nullable
                   as double?,
+        onTalabat: null == onTalabat
+            ? _value.onTalabat
+            : onTalabat // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -2130,6 +2217,7 @@ class _$LeadBranchImpl implements _LeadBranch {
     this.address = '',
     this.latitude,
     this.longitude,
+    @JsonKey(name: 'on_talabat', fromJson: _flag) this.onTalabat = false,
   });
 
   factory _$LeadBranchImpl.fromJson(Map<String, dynamic> json) =>
@@ -2177,10 +2265,13 @@ class _$LeadBranchImpl implements _LeadBranch {
   final double? latitude;
   @override
   final double? longitude;
+  @override
+  @JsonKey(name: 'on_talabat', fromJson: _flag)
+  final bool onTalabat;
 
   @override
   String toString() {
-    return 'LeadBranch(branchName: $branchName, area: $area, region: $region, governorate: $governorate, rating: $rating, reviews: $reviews, price: $price, status: $status, hours: $hours, phone: $phone, website: $website, mapsUrl: $mapsUrl, address: $address, latitude: $latitude, longitude: $longitude)';
+    return 'LeadBranch(branchName: $branchName, area: $area, region: $region, governorate: $governorate, rating: $rating, reviews: $reviews, price: $price, status: $status, hours: $hours, phone: $phone, website: $website, mapsUrl: $mapsUrl, address: $address, latitude: $latitude, longitude: $longitude, onTalabat: $onTalabat)';
   }
 
   @override
@@ -2206,7 +2297,9 @@ class _$LeadBranchImpl implements _LeadBranch {
             (identical(other.latitude, latitude) ||
                 other.latitude == latitude) &&
             (identical(other.longitude, longitude) ||
-                other.longitude == longitude));
+                other.longitude == longitude) &&
+            (identical(other.onTalabat, onTalabat) ||
+                other.onTalabat == onTalabat));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2228,6 +2321,7 @@ class _$LeadBranchImpl implements _LeadBranch {
     address,
     latitude,
     longitude,
+    onTalabat,
   );
 
   /// Create a copy of LeadBranch
@@ -2261,6 +2355,7 @@ abstract class _LeadBranch implements LeadBranch {
     final String address,
     final double? latitude,
     final double? longitude,
+    @JsonKey(name: 'on_talabat', fromJson: _flag) final bool onTalabat,
   }) = _$LeadBranchImpl;
 
   factory _LeadBranch.fromJson(Map<String, dynamic> json) =
@@ -2298,6 +2393,9 @@ abstract class _LeadBranch implements LeadBranch {
   double? get latitude;
   @override
   double? get longitude;
+  @override
+  @JsonKey(name: 'on_talabat', fromJson: _flag)
+  bool get onTalabat;
 
   /// Create a copy of LeadBranch
   /// with the given fields replaced by the non-null parameter values.

@@ -6521,6 +6521,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leadsFilterTakeawayOnly => 'Takeaway confirmed';
 
   @override
+  String get leadsFilterTalabat => 'Talabat';
+
+  @override
+  String get leadsFilterTalabatOn => 'On Talabat';
+
+  @override
+  String get leadsFilterTalabatOff => 'Not on Talabat';
+
+  @override
+  String get leadsTalabatBadge => 'Talabat';
+
+  @override
   String get leadsFilterHasPhone => 'Has phone';
 
   @override

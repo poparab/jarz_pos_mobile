@@ -11015,6 +11015,30 @@ abstract class AppLocalizations {
   /// **'Takeaway confirmed'**
   String get leadsFilterTakeawayOnly;
 
+  /// No description provided for @leadsFilterTalabat.
+  ///
+  /// In en, this message translates to:
+  /// **'Talabat'**
+  String get leadsFilterTalabat;
+
+  /// No description provided for @leadsFilterTalabatOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On Talabat'**
+  String get leadsFilterTalabatOn;
+
+  /// No description provided for @leadsFilterTalabatOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on Talabat'**
+  String get leadsFilterTalabatOff;
+
+  /// No description provided for @leadsTalabatBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Talabat'**
+  String get leadsTalabatBadge;
+
   /// No description provided for @leadsFilterHasPhone.
   ///
   /// In en, this message translates to:

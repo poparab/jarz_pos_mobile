@@ -39,6 +39,13 @@ class Lead with _$Lead {
     @JsonKey(name: 'takeout') @Default(false) bool takeout,
     @JsonKey(name: 'dine_in') @Default(false) bool dineIn,
     @JsonKey(name: 'serves_dessert') @Default(false) bool servesDessert,
+    // ── Talabat presence ───────────────────────────────────────────────────
+    // Sourced by reading Talabat's own per-area listings, NOT from Google, so
+    // this one really is two-state: `false` means "not listed in any area we
+    // swept", not "unknown". `talabatAreas` names the delivery zones the
+    // listing was actually seen in.
+    @JsonKey(name: 'on_talabat', fromJson: _flag) @Default(false) bool onTalabat,
+    @JsonKey(name: 'talabat_areas') @Default(<String>[]) List<String> talabatAreas,
     @JsonKey(name: 'primary_area') @Default('') String primaryArea,
     @Default(<String>[]) List<String> regions,
     @Default(<String>[]) List<String> governorates,
@@ -177,6 +184,7 @@ class LeadBranch with _$LeadBranch {
     @Default('') String address,
     double? latitude,
     double? longitude,
+    @JsonKey(name: 'on_talabat', fromJson: _flag) @Default(false) bool onTalabat,
   }) = _LeadBranch;
 
   factory LeadBranch.fromJson(Map<String, dynamic> json) =>
@@ -236,4 +244,17 @@ class LeadCategory with _$LeadCategory {
 
   factory LeadCategory.fromJson(Map<String, dynamic> json) =>
       _$LeadCategoryFromJson(json);
+}
+
+/// Decodes a Frappe Check field into a bool.
+///
+/// The API coerces these before sending, but a Check column reads back as 0/1
+/// straight out of the database, and a plain `as bool` cast on an int takes the
+/// whole catalog parse down with it. Being lenient here costs nothing and keeps
+/// one stray raw payload from emptying the leads screen.
+bool _flag(Object? value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  if (value is String) return value == '1' || value.toLowerCase() == 'true';
+  return false;
 }

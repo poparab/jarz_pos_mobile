@@ -23,6 +23,12 @@ _$LeadImpl _$$LeadImplFromJson(Map<String, dynamic> json) => _$LeadImpl(
   takeout: json['takeout'] as bool? ?? false,
   dineIn: json['dine_in'] as bool? ?? false,
   servesDessert: json['serves_dessert'] as bool? ?? false,
+  onTalabat: json['on_talabat'] == null ? false : _flag(json['on_talabat']),
+  talabatAreas:
+      (json['talabat_areas'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const <String>[],
   primaryArea: json['primary_area'] as String? ?? '',
   regions:
       (json['regions'] as List<dynamic>?)?.map((e) => e as String).toList() ??
@@ -103,6 +109,8 @@ Map<String, dynamic> _$$LeadImplToJson(_$LeadImpl instance) =>
       'takeout': instance.takeout,
       'dine_in': instance.dineIn,
       'serves_dessert': instance.servesDessert,
+      'on_talabat': instance.onTalabat,
+      'talabat_areas': instance.talabatAreas,
       'primary_area': instance.primaryArea,
       'regions': instance.regions,
       'governorates': instance.governorates,
@@ -178,6 +186,7 @@ _$LeadBranchImpl _$$LeadBranchImplFromJson(Map<String, dynamic> json) =>
       address: json['address'] as String? ?? '',
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
+      onTalabat: json['on_talabat'] == null ? false : _flag(json['on_talabat']),
     );
 
 Map<String, dynamic> _$$LeadBranchImplToJson(_$LeadBranchImpl instance) =>
@@ -197,6 +206,7 @@ Map<String, dynamic> _$$LeadBranchImplToJson(_$LeadBranchImpl instance) =>
       'address': instance.address,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
+      'on_talabat': instance.onTalabat,
     };
 
 _$LeadAddressImpl _$$LeadAddressImplFromJson(Map<String, dynamic> json) =>

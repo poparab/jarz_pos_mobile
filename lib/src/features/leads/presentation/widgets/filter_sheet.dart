@@ -220,6 +220,30 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             _toggle(l10n.leadsFilterShowNotSuitable, filter.showNotSuitable,
                 (v) => notifier.setShowNotSuitable(v)),
 
+            // Three chips, not a switch: unlike the Google signals above, the
+            // Talabat flag is genuinely two-state, so "not on Talabat" is a
+            // real segment a rep may want (nobody is delivering for them yet).
+            const SizedBox(height: 12),
+            _label(l10n.leadsFilterTalabat),
+            Wrap(
+              spacing: 6,
+              children: [
+                for (final option in <(TalabatFilter, String)>[
+                  (TalabatFilter.any, l10n.leadsFilterAny),
+                  (TalabatFilter.on, l10n.leadsFilterTalabatOn),
+                  (TalabatFilter.off, l10n.leadsFilterTalabatOff),
+                ])
+                  ChoiceChip(
+                    label: Text(option.$2),
+                    selected: filter.talabatFilter == option.$1,
+                    selectedColor: LeadsTheme.blush,
+                    showCheckmark: false,
+                    onSelected: (_) => notifier
+                        .update((f) => f.copyWith(talabatFilter: option.$1)),
+                  ),
+              ],
+            ),
+
             if (priceBands.isNotEmpty) ...[
               const SizedBox(height: 12),
               _label(l10n.leadsFilterPriceBand),
