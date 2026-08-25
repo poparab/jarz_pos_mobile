@@ -54,6 +54,24 @@ mixin _$JourneyNote {
   @JsonKey(name: 'can_edit')
   bool get canEdit => throw _privateConstructorUsedError;
 
+  /// Whether the promise in [nextAction] has been kept. A done action stops
+  /// tinting the card and its reminder stops nagging — closing the loop is
+  /// the whole point of writing the promise down.
+  @JsonKey(name: 'next_action_done')
+  bool get nextActionDone => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_action_done_on')
+  String? get nextActionDoneOn => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_action_done_by')
+  String get nextActionDoneBy => throw _privateConstructorUsedError;
+  @JsonKey(name: 'next_action_done_by_name')
+  String get nextActionDoneByName => throw _privateConstructorUsedError;
+
+  /// Whether the CURRENT user may tick the next action off. Separate from
+  /// [canEdit] because a colleague may close a promise they did not write;
+  /// the server decides, the app only honours the answer.
+  @JsonKey(name: 'can_complete')
+  bool get canComplete => throw _privateConstructorUsedError;
+
   /// Serializes this JourneyNote to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -89,6 +107,11 @@ abstract class $JourneyNoteCopyWith<$Res> {
     String? creation,
     String? modified,
     @JsonKey(name: 'can_edit') bool canEdit,
+    @JsonKey(name: 'next_action_done') bool nextActionDone,
+    @JsonKey(name: 'next_action_done_on') String? nextActionDoneOn,
+    @JsonKey(name: 'next_action_done_by') String nextActionDoneBy,
+    @JsonKey(name: 'next_action_done_by_name') String nextActionDoneByName,
+    @JsonKey(name: 'can_complete') bool canComplete,
   });
 }
 
@@ -124,6 +147,11 @@ class _$JourneyNoteCopyWithImpl<$Res, $Val extends JourneyNote>
     Object? creation = freezed,
     Object? modified = freezed,
     Object? canEdit = null,
+    Object? nextActionDone = null,
+    Object? nextActionDoneOn = freezed,
+    Object? nextActionDoneBy = null,
+    Object? nextActionDoneByName = null,
+    Object? canComplete = null,
   }) {
     return _then(
       _value.copyWith(
@@ -195,6 +223,26 @@ class _$JourneyNoteCopyWithImpl<$Res, $Val extends JourneyNote>
                 ? _value.canEdit
                 : canEdit // ignore: cast_nullable_to_non_nullable
                       as bool,
+            nextActionDone: null == nextActionDone
+                ? _value.nextActionDone
+                : nextActionDone // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            nextActionDoneOn: freezed == nextActionDoneOn
+                ? _value.nextActionDoneOn
+                : nextActionDoneOn // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            nextActionDoneBy: null == nextActionDoneBy
+                ? _value.nextActionDoneBy
+                : nextActionDoneBy // ignore: cast_nullable_to_non_nullable
+                      as String,
+            nextActionDoneByName: null == nextActionDoneByName
+                ? _value.nextActionDoneByName
+                : nextActionDoneByName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            canComplete: null == canComplete
+                ? _value.canComplete
+                : canComplete // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -228,6 +276,11 @@ abstract class _$$JourneyNoteImplCopyWith<$Res>
     String? creation,
     String? modified,
     @JsonKey(name: 'can_edit') bool canEdit,
+    @JsonKey(name: 'next_action_done') bool nextActionDone,
+    @JsonKey(name: 'next_action_done_on') String? nextActionDoneOn,
+    @JsonKey(name: 'next_action_done_by') String nextActionDoneBy,
+    @JsonKey(name: 'next_action_done_by_name') String nextActionDoneByName,
+    @JsonKey(name: 'can_complete') bool canComplete,
   });
 }
 
@@ -262,6 +315,11 @@ class __$$JourneyNoteImplCopyWithImpl<$Res>
     Object? creation = freezed,
     Object? modified = freezed,
     Object? canEdit = null,
+    Object? nextActionDone = null,
+    Object? nextActionDoneOn = freezed,
+    Object? nextActionDoneBy = null,
+    Object? nextActionDoneByName = null,
+    Object? canComplete = null,
   }) {
     return _then(
       _$JourneyNoteImpl(
@@ -333,6 +391,26 @@ class __$$JourneyNoteImplCopyWithImpl<$Res>
             ? _value.canEdit
             : canEdit // ignore: cast_nullable_to_non_nullable
                   as bool,
+        nextActionDone: null == nextActionDone
+            ? _value.nextActionDone
+            : nextActionDone // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        nextActionDoneOn: freezed == nextActionDoneOn
+            ? _value.nextActionDoneOn
+            : nextActionDoneOn // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        nextActionDoneBy: null == nextActionDoneBy
+            ? _value.nextActionDoneBy
+            : nextActionDoneBy // ignore: cast_nullable_to_non_nullable
+                  as String,
+        nextActionDoneByName: null == nextActionDoneByName
+            ? _value.nextActionDoneByName
+            : nextActionDoneByName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        canComplete: null == canComplete
+            ? _value.canComplete
+            : canComplete // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -359,6 +437,11 @@ class _$JourneyNoteImpl extends _JourneyNote {
     this.creation,
     this.modified,
     @JsonKey(name: 'can_edit') this.canEdit = false,
+    @JsonKey(name: 'next_action_done') this.nextActionDone = false,
+    @JsonKey(name: 'next_action_done_on') this.nextActionDoneOn,
+    @JsonKey(name: 'next_action_done_by') this.nextActionDoneBy = '',
+    @JsonKey(name: 'next_action_done_by_name') this.nextActionDoneByName = '',
+    @JsonKey(name: 'can_complete') this.canComplete = false,
   }) : super._();
 
   factory _$JourneyNoteImpl.fromJson(Map<String, dynamic> json) =>
@@ -416,9 +499,32 @@ class _$JourneyNoteImpl extends _JourneyNote {
   @JsonKey(name: 'can_edit')
   final bool canEdit;
 
+  /// Whether the promise in [nextAction] has been kept. A done action stops
+  /// tinting the card and its reminder stops nagging — closing the loop is
+  /// the whole point of writing the promise down.
+  @override
+  @JsonKey(name: 'next_action_done')
+  final bool nextActionDone;
+  @override
+  @JsonKey(name: 'next_action_done_on')
+  final String? nextActionDoneOn;
+  @override
+  @JsonKey(name: 'next_action_done_by')
+  final String nextActionDoneBy;
+  @override
+  @JsonKey(name: 'next_action_done_by_name')
+  final String nextActionDoneByName;
+
+  /// Whether the CURRENT user may tick the next action off. Separate from
+  /// [canEdit] because a colleague may close a promise they did not write;
+  /// the server decides, the app only honours the answer.
+  @override
+  @JsonKey(name: 'can_complete')
+  final bool canComplete;
+
   @override
   String toString() {
-    return 'JourneyNote(name: $name, referenceDoctype: $referenceDoctype, referenceName: $referenceName, entryDate: $entryDate, entryType: $entryType, note: $note, contactPerson: $contactPerson, contactRole: $contactRole, contactPhone: $contactPhone, nextAction: $nextAction, nextActionDate: $nextActionDate, outcome: $outcome, loggedBy: $loggedBy, loggedByName: $loggedByName, creation: $creation, modified: $modified, canEdit: $canEdit)';
+    return 'JourneyNote(name: $name, referenceDoctype: $referenceDoctype, referenceName: $referenceName, entryDate: $entryDate, entryType: $entryType, note: $note, contactPerson: $contactPerson, contactRole: $contactRole, contactPhone: $contactPhone, nextAction: $nextAction, nextActionDate: $nextActionDate, outcome: $outcome, loggedBy: $loggedBy, loggedByName: $loggedByName, creation: $creation, modified: $modified, canEdit: $canEdit, nextActionDone: $nextActionDone, nextActionDoneOn: $nextActionDoneOn, nextActionDoneBy: $nextActionDoneBy, nextActionDoneByName: $nextActionDoneByName, canComplete: $canComplete)';
   }
 
   @override
@@ -455,12 +561,22 @@ class _$JourneyNoteImpl extends _JourneyNote {
                 other.creation == creation) &&
             (identical(other.modified, modified) ||
                 other.modified == modified) &&
-            (identical(other.canEdit, canEdit) || other.canEdit == canEdit));
+            (identical(other.canEdit, canEdit) || other.canEdit == canEdit) &&
+            (identical(other.nextActionDone, nextActionDone) ||
+                other.nextActionDone == nextActionDone) &&
+            (identical(other.nextActionDoneOn, nextActionDoneOn) ||
+                other.nextActionDoneOn == nextActionDoneOn) &&
+            (identical(other.nextActionDoneBy, nextActionDoneBy) ||
+                other.nextActionDoneBy == nextActionDoneBy) &&
+            (identical(other.nextActionDoneByName, nextActionDoneByName) ||
+                other.nextActionDoneByName == nextActionDoneByName) &&
+            (identical(other.canComplete, canComplete) ||
+                other.canComplete == canComplete));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     name,
     referenceDoctype,
@@ -479,7 +595,12 @@ class _$JourneyNoteImpl extends _JourneyNote {
     creation,
     modified,
     canEdit,
-  );
+    nextActionDone,
+    nextActionDoneOn,
+    nextActionDoneBy,
+    nextActionDoneByName,
+    canComplete,
+  ]);
 
   /// Create a copy of JourneyNote
   /// with the given fields replaced by the non-null parameter values.
@@ -514,6 +635,12 @@ abstract class _JourneyNote extends JourneyNote {
     final String? creation,
     final String? modified,
     @JsonKey(name: 'can_edit') final bool canEdit,
+    @JsonKey(name: 'next_action_done') final bool nextActionDone,
+    @JsonKey(name: 'next_action_done_on') final String? nextActionDoneOn,
+    @JsonKey(name: 'next_action_done_by') final String nextActionDoneBy,
+    @JsonKey(name: 'next_action_done_by_name')
+    final String nextActionDoneByName,
+    @JsonKey(name: 'can_complete') final bool canComplete,
   }) = _$JourneyNoteImpl;
   const _JourneyNote._() : super._();
 
@@ -569,6 +696,29 @@ abstract class _JourneyNote extends JourneyNote {
   @override
   @JsonKey(name: 'can_edit')
   bool get canEdit;
+
+  /// Whether the promise in [nextAction] has been kept. A done action stops
+  /// tinting the card and its reminder stops nagging — closing the loop is
+  /// the whole point of writing the promise down.
+  @override
+  @JsonKey(name: 'next_action_done')
+  bool get nextActionDone;
+  @override
+  @JsonKey(name: 'next_action_done_on')
+  String? get nextActionDoneOn;
+  @override
+  @JsonKey(name: 'next_action_done_by')
+  String get nextActionDoneBy;
+  @override
+  @JsonKey(name: 'next_action_done_by_name')
+  String get nextActionDoneByName;
+
+  /// Whether the CURRENT user may tick the next action off. Separate from
+  /// [canEdit] because a colleague may close a promise they did not write;
+  /// the server decides, the app only honours the answer.
+  @override
+  @JsonKey(name: 'can_complete')
+  bool get canComplete;
 
   /// Create a copy of JourneyNote
   /// with the given fields replaced by the non-null parameter values.

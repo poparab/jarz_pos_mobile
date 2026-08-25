@@ -49,6 +49,9 @@ abstract final class AppRoutes {
   static const b2b = '/b2b';
   static const b2bToday = '/b2b/today';
   static const b2bAccount = '/b2b/account';
+  // Everything due, on a month grid — the cross-account view of the same next
+  // actions the per-account journey timeline writes.
+  static const b2bCalendar = '/b2b/calendar';
 
   // ── Pricing (Price Lists) ─────────────────────────────────────────────
   static const pricing = '/pricing';

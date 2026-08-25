@@ -12813,6 +12813,138 @@ abstract class AppLocalizations {
   /// **'Could not load the journey.'**
   String get journeyLoadFailed;
 
+  /// No description provided for @journeyMarkDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark done'**
+  String get journeyMarkDone;
+
+  /// No description provided for @journeyMarkNotDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as not done'**
+  String get journeyMarkNotDone;
+
+  /// No description provided for @journeyDoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get journeyDoneLabel;
+
+  /// No description provided for @journeyDoneOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Done {date}'**
+  String journeyDoneOn(String date);
+
+  /// No description provided for @journeyDoneByOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Done {date} · {user}'**
+  String journeyDoneByOn(String date, String user);
+
+  /// No description provided for @journeyActionMarkedDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Next action marked done'**
+  String get journeyActionMarkedDone;
+
+  /// No description provided for @journeyActionReopened.
+  ///
+  /// In en, this message translates to:
+  /// **'Next action reopened'**
+  String get journeyActionReopened;
+
+  /// No description provided for @journeyCalendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Action calendar'**
+  String get journeyCalendarTitle;
+
+  /// No description provided for @journeyCalendarPreviousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get journeyCalendarPreviousMonth;
+
+  /// No description provided for @journeyCalendarNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get journeyCalendarNextMonth;
+
+  /// No description provided for @journeyCalendarScopeMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get journeyCalendarScopeMine;
+
+  /// No description provided for @journeyCalendarScopeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get journeyCalendarScopeAll;
+
+  /// No description provided for @journeyCalendarShowDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Show done'**
+  String get journeyCalendarShowDone;
+
+  /// No description provided for @journeyCalendarPendingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending {count}'**
+  String journeyCalendarPendingCount(int count);
+
+  /// No description provided for @journeyCalendarOverdueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue {count}'**
+  String journeyCalendarOverdueCount(int count);
+
+  /// No description provided for @journeyCalendarDoneCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Done {count}'**
+  String journeyCalendarDoneCount(int count);
+
+  /// No description provided for @journeyCalendarDueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 due} other{{count} due}}'**
+  String journeyCalendarDueCount(int count);
+
+  /// No description provided for @journeyCalendarNothingOnDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due on this day.'**
+  String get journeyCalendarNothingOnDay;
+
+  /// No description provided for @journeyCalendarEmptyMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due this month.'**
+  String get journeyCalendarEmptyMonth;
+
+  /// No description provided for @journeyCalendarLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the calendar.'**
+  String get journeyCalendarLoadFailed;
+
+  /// No description provided for @journeyCalendarSourceFollowup.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get journeyCalendarSourceFollowup;
+
+  /// No description provided for @journeyCalendarNoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'No action written'**
+  String get journeyCalendarNoAction;
+
   /// No description provided for @errorConsoleCopyError.
   ///
   /// In en, this message translates to:

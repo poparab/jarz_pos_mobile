@@ -47,6 +47,7 @@ import '../features/labels/presentation/screens/label_detail_screen.dart';
 import '../features/labels/presentation/screens/label_setup_wizard.dart';
 import '../features/b2b/presentation/screens/b2b_account_screen.dart';
 import '../features/b2b/presentation/screens/b2b_today_screen.dart';
+import '../features/journey/presentation/screens/action_calendar_screen.dart';
 import '../features/pricing/presentation/screens/pricing_screen.dart';
 import '../features/leads/presentation/screens/leads_list_screen.dart';
 import '../features/leads/presentation/screens/leads_map_screen.dart';
@@ -473,6 +474,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.b2bToday,
         name: 'b2b-today',
         builder: (context, state) => const B2bTodayScreen(),
+      ),
+      // Every `/b2b/*` path here is a static segment, so declaration order
+      // does not decide the match the way it does in the leads block below —
+      // keep it that way if a `/b2b/:id` ever lands.
+      GoRoute(
+        path: AppRoutes.b2bCalendar,
+        name: 'b2b-calendar',
+        builder: (context, state) => const ActionCalendarScreen(),
       ),
       GoRoute(
         path: AppRoutes.b2bAccount,

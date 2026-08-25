@@ -98,6 +98,8 @@ class JourneyNotesSection extends ConsumerWidget {
                         isLast: i == notes.length - 1,
                         onEdit: () => _edit(context, ref, notes[i]),
                         onDelete: () => _delete(context, ref, notes[i]),
+                        onToggleDone: (done) =>
+                            _toggleDone(context, ref, notes[i], done),
                       ),
                   ],
                 ),
@@ -153,6 +155,28 @@ class JourneyNotesSection extends ConsumerWidget {
         outcome: draft.outcome,
       );
     }, success: context.l10n.journeyNoteUpdated);
+  }
+
+  /// Closes (or reopens) the promise on one note.
+  ///
+  /// Goes through the same [_run] path as every other write so a rejected
+  /// toggle — the server is the only judge of who may complete an action —
+  /// reads as a SnackBar rather than a silently unchanged checkbox.
+  Future<void> _toggleDone(
+    BuildContext context,
+    WidgetRef ref,
+    JourneyNote note,
+    bool done,
+  ) async {
+    final l10n = context.l10n;
+    await _run(
+      context,
+      ref,
+      () => ref
+          .read(journeyNotesProvider(_key).notifier)
+          .setActionDone(name: note.name, done: done),
+      success: done ? l10n.journeyActionMarkedDone : l10n.journeyActionReopened,
+    );
   }
 
   Future<void> _delete(
@@ -214,12 +238,14 @@ class _JourneyTile extends StatelessWidget {
     required this.isLast,
     required this.onEdit,
     required this.onDelete,
+    required this.onToggleDone,
   });
 
   final JourneyNote note;
   final bool isLast;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final Future<void> Function(bool done) onToggleDone;
 
   @override
   Widget build(BuildContext context) {
@@ -369,7 +395,7 @@ class _JourneyTile extends StatelessWidget {
                   ),
                   if (note.hasNextAction) ...[
                     const SizedBox(height: 10),
-                    _NextActionRow(note: note),
+                    _NextActionRow(note: note, onToggleDone: onToggleDone),
                   ],
                   if (note.loggedByName.trim().isNotEmpty) ...[
                     const SizedBox(height: 8),
@@ -401,19 +427,51 @@ class _JourneyTile extends StatelessWidget {
   }
 }
 
-/// The promise: what to do, when. Tinted when it is due or overdue, because
-/// that is the whole reason a rep writes it down.
-class _NextActionRow extends StatelessWidget {
-  const _NextActionRow({required this.note});
+/// The promise: what to do, when, and whether it was kept.
+///
+/// Tinted while it is due or overdue, because that is the whole reason a rep
+/// writes it down — and deliberately UNtinted once it is done, so a closed
+/// promise stops shouting. Only the server decides who may close one
+/// ([JourneyNote.canComplete]); without that right the row still shows the
+/// state, just with no control to change it.
+class _NextActionRow extends StatefulWidget {
+  const _NextActionRow({required this.note, required this.onToggleDone});
 
   final JourneyNote note;
+  final Future<void> Function(bool done) onToggleDone;
+
+  @override
+  State<_NextActionRow> createState() => _NextActionRowState();
+}
+
+class _NextActionRowState extends State<_NextActionRow> {
+  /// Guards the round-trip: the list reloads on success, so a second tap
+  /// before it lands would toggle against a value the server already changed.
+  bool _busy = false;
+
+  Future<void> _toggle() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await widget.onToggleDone(!widget.note.nextActionDone);
+    } finally {
+      // The tile is rebuilt from the reloaded list, but a failed write leaves
+      // this same State mounted — so the spinner has to be cleared either way.
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final due = JourneyFormat.isDue(note.nextActionDate);
+    final note = widget.note;
+    final l10n = context.l10n;
+    final done = note.nextActionDone;
+    final due = !done && JourneyFormat.isDue(note.nextActionDate);
     final hasDate = (note.nextActionDate ?? '').isNotEmpty;
+
     final bg = due ? const Color(0xFFFDF2E3) : const Color(0xFFF6F5F3);
     final fg = due ? const Color(0xFF9A6B12) : LeadsTheme.muted;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
@@ -424,9 +482,13 @@ class _NextActionRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
-            due ? Icons.notifications_active_outlined : Icons.event_outlined,
+            done
+                ? Icons.check_circle
+                : due
+                    ? Icons.notifications_active_outlined
+                    : Icons.event_outlined,
             size: 15,
-            color: fg,
+            color: done ? JourneyFormat.doneGreen : fg,
           ),
           const SizedBox(width: 6),
           Expanded(
@@ -435,14 +497,19 @@ class _NextActionRow extends StatelessWidget {
               children: [
                 if (hasDate)
                   Text(
-                    '${JourneyFormat.pretty(context, note.nextActionDate)}'
-                    ' · ${JourneyFormat.relativeFuture(context, note.nextActionDate)}',
+                    // A settled promise shows its due date plainly; an open one
+                    // also shows how late it is, which is the actionable half.
+                    done
+                        ? JourneyFormat.pretty(context, note.nextActionDate)
+                        : '${JourneyFormat.pretty(context, note.nextActionDate)}'
+                            ' · ${JourneyFormat.relativeFuture(context, note.nextActionDate)}',
                     style: TextStyle(
                       fontFamily: LeadsTheme.bodyFont,
-                      color: fg,
+                      color: done ? LeadsTheme.muted : fg,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       fontFeatures: LeadsTheme.tabular,
+                      decoration: done ? TextDecoration.lineThrough : null,
                     ),
                   ),
                 if (note.nextAction.trim().isNotEmpty)
@@ -450,17 +517,64 @@ class _NextActionRow extends StatelessWidget {
                     note.nextAction.trim(),
                     style: TextStyle(
                       fontFamily: LeadsTheme.fontFamilyFor(note.nextAction),
-                      color: LeadsTheme.deepPlum,
+                      color: done ? LeadsTheme.muted : LeadsTheme.deepPlum,
                       fontSize: 13,
                       height: 1.3,
+                      decoration: done ? TextDecoration.lineThrough : null,
                     ),
                   ),
+                if (done) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _doneLabel(context, note),
+                    style: const TextStyle(
+                      fontFamily: LeadsTheme.bodyFont,
+                      color: JourneyFormat.doneGreen,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
+          if (_busy)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: SizedBox(
+                height: 16,
+                width: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else if (note.canComplete)
+            IconButton(
+              onPressed: _toggle,
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              tooltip: done ? l10n.journeyMarkNotDone : l10n.journeyMarkDone,
+              icon: Icon(
+                done ? Icons.check_circle : Icons.radio_button_unchecked,
+                size: 20,
+                color: done ? JourneyFormat.doneGreen : fg,
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  /// "Done 14 Aug 2026 · Sales Rep", degrading to whatever the payload has.
+  String _doneLabel(BuildContext context, JourneyNote note) {
+    final l10n = context.l10n;
+    final on = (note.nextActionDoneOn ?? '').trim();
+    final by = note.nextActionDoneByName.trim();
+    if (on.isEmpty) return l10n.journeyDoneLabel;
+    final date = JourneyFormat.pretty(context, on);
+    return by.isEmpty
+        ? l10n.journeyDoneOn(date)
+        : l10n.journeyDoneByOn(date, by);
   }
 }
 

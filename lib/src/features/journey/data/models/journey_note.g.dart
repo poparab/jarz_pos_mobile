@@ -25,6 +25,11 @@ _$JourneyNoteImpl _$$JourneyNoteImplFromJson(Map<String, dynamic> json) =>
       creation: json['creation'] as String?,
       modified: json['modified'] as String?,
       canEdit: json['can_edit'] as bool? ?? false,
+      nextActionDone: json['next_action_done'] as bool? ?? false,
+      nextActionDoneOn: json['next_action_done_on'] as String?,
+      nextActionDoneBy: json['next_action_done_by'] as String? ?? '',
+      nextActionDoneByName: json['next_action_done_by_name'] as String? ?? '',
+      canComplete: json['can_complete'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$JourneyNoteImplToJson(_$JourneyNoteImpl instance) =>
@@ -46,6 +51,11 @@ Map<String, dynamic> _$$JourneyNoteImplToJson(_$JourneyNoteImpl instance) =>
       'creation': instance.creation,
       'modified': instance.modified,
       'can_edit': instance.canEdit,
+      'next_action_done': instance.nextActionDone,
+      'next_action_done_on': instance.nextActionDoneOn,
+      'next_action_done_by': instance.nextActionDoneBy,
+      'next_action_done_by_name': instance.nextActionDoneByName,
+      'can_complete': instance.canComplete,
     };
 
 _$JourneySummaryImpl _$$JourneySummaryImplFromJson(Map<String, dynamic> json) =>

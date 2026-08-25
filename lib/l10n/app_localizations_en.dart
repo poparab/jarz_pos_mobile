@@ -7639,6 +7639,90 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journeyLoadFailed => 'Could not load the journey.';
 
   @override
+  String get journeyMarkDone => 'Mark done';
+
+  @override
+  String get journeyMarkNotDone => 'Mark as not done';
+
+  @override
+  String get journeyDoneLabel => 'Done';
+
+  @override
+  String journeyDoneOn(String date) {
+    return 'Done $date';
+  }
+
+  @override
+  String journeyDoneByOn(String date, String user) {
+    return 'Done $date · $user';
+  }
+
+  @override
+  String get journeyActionMarkedDone => 'Next action marked done';
+
+  @override
+  String get journeyActionReopened => 'Next action reopened';
+
+  @override
+  String get journeyCalendarTitle => 'Action calendar';
+
+  @override
+  String get journeyCalendarPreviousMonth => 'Previous month';
+
+  @override
+  String get journeyCalendarNextMonth => 'Next month';
+
+  @override
+  String get journeyCalendarScopeMine => 'Mine';
+
+  @override
+  String get journeyCalendarScopeAll => 'All';
+
+  @override
+  String get journeyCalendarShowDone => 'Show done';
+
+  @override
+  String journeyCalendarPendingCount(int count) {
+    return 'Pending $count';
+  }
+
+  @override
+  String journeyCalendarOverdueCount(int count) {
+    return 'Overdue $count';
+  }
+
+  @override
+  String journeyCalendarDoneCount(int count) {
+    return 'Done $count';
+  }
+
+  @override
+  String journeyCalendarDueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count due',
+      one: '1 due',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journeyCalendarNothingOnDay => 'Nothing due on this day.';
+
+  @override
+  String get journeyCalendarEmptyMonth => 'Nothing due this month.';
+
+  @override
+  String get journeyCalendarLoadFailed => 'Could not load the calendar.';
+
+  @override
+  String get journeyCalendarSourceFollowup => 'Reminder';
+
+  @override
+  String get journeyCalendarNoAction => 'No action written';
+
+  @override
   String get errorConsoleCopyError => 'Copy error';
 
   @override

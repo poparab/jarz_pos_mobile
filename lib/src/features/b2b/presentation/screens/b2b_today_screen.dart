@@ -20,6 +20,13 @@ class B2bTodayScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(context.l10n.b2bTodayTitle),
         actions: [
+          // Today answers "what is due now"; the calendar answers "and when is
+          // the rest due" — same actions, one window wider.
+          IconButton(
+            tooltip: context.l10n.journeyCalendarTitle,
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () => context.push(AppRoutes.b2bCalendar),
+          ),
           IconButton(
             tooltip: context.l10n.b2bRefresh,
             icon: const Icon(Icons.refresh),

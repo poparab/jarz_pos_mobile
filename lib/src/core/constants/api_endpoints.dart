@@ -451,6 +451,13 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.journey.get_journey_contacts';
   static const addJourneyContact =
       '/api/method/jarz_pos.api.journey.add_journey_contact';
+  // Closing the loop on a promise, and the calendar of everything still open.
+  // A next action with no done state keeps tinting cards and keeps its
+  // reminder nagging long after the rep actually made the call.
+  static const setJourneyActionDone =
+      '/api/method/jarz_pos.api.journey.set_journey_action_done';
+  static const getJourneyActionCalendar =
+      '/api/method/jarz_pos.api.journey.get_action_calendar';
 
   // ── Courier tracking (jarz_courier app) ───────────────────────────────
   // Supervisor-only and Redis-backed, so it is safe to poll. Couriers are

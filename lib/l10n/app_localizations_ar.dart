@@ -7606,6 +7606,90 @@ class AppLocalizationsAr extends AppLocalizations {
   String get journeyLoadFailed => 'مش قادر يجيب سجل الزيارات.';
 
   @override
+  String get journeyMarkDone => 'خلصتها';
+
+  @override
+  String get journeyMarkNotDone => 'رجّعها لسه';
+
+  @override
+  String get journeyDoneLabel => 'خلصت';
+
+  @override
+  String journeyDoneOn(String date) {
+    return 'خلصت $date';
+  }
+
+  @override
+  String journeyDoneByOn(String date, String user) {
+    return 'خلصت $date · $user';
+  }
+
+  @override
+  String get journeyActionMarkedDone => 'الخطوة اتقفلت';
+
+  @override
+  String get journeyActionReopened => 'الخطوة رجعت مفتوحة';
+
+  @override
+  String get journeyCalendarTitle => 'تقويم المتابعات';
+
+  @override
+  String get journeyCalendarPreviousMonth => 'الشهر اللي فات';
+
+  @override
+  String get journeyCalendarNextMonth => 'الشهر الجاي';
+
+  @override
+  String get journeyCalendarScopeMine => 'بتاعتي';
+
+  @override
+  String get journeyCalendarScopeAll => 'الكل';
+
+  @override
+  String get journeyCalendarShowDone => 'ورّي اللي خلص';
+
+  @override
+  String journeyCalendarPendingCount(int count) {
+    return 'مفتوحة $count';
+  }
+
+  @override
+  String journeyCalendarOverdueCount(int count) {
+    return 'متأخرة $count';
+  }
+
+  @override
+  String journeyCalendarDoneCount(int count) {
+    return 'خلصت $count';
+  }
+
+  @override
+  String journeyCalendarDueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مطلوبة',
+      one: 'مطلوبة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journeyCalendarNothingOnDay => 'مفيش حاجة مطلوبة اليوم ده.';
+
+  @override
+  String get journeyCalendarEmptyMonth => 'مفيش حاجة مطلوبة الشهر ده.';
+
+  @override
+  String get journeyCalendarLoadFailed => 'مش قادر يجيب التقويم.';
+
+  @override
+  String get journeyCalendarSourceFollowup => 'تذكير';
+
+  @override
+  String get journeyCalendarNoAction => 'مفيش خطوة متكتوبة';
+
+  @override
   String get errorConsoleCopyError => 'انسخ الخطأ';
 
   @override

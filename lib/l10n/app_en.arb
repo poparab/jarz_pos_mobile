@@ -4524,6 +4524,73 @@
   "journeyEmptyTitle": "No visits logged yet.",
   "journeyEmptyBody": "Log what was said, who said it, and when to follow up — a dated next action also sets this account''s reminder.",
   "journeyLoadFailed": "Could not load the journey.",
+  "journeyMarkDone": "Mark done",
+  "journeyMarkNotDone": "Mark as not done",
+  "journeyDoneLabel": "Done",
+  "journeyDoneOn": "Done {date}",
+  "@journeyDoneOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "journeyDoneByOn": "Done {date} · {user}",
+  "@journeyDoneByOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "journeyActionMarkedDone": "Next action marked done",
+  "journeyActionReopened": "Next action reopened",
+  "journeyCalendarTitle": "Action calendar",
+  "journeyCalendarPreviousMonth": "Previous month",
+  "journeyCalendarNextMonth": "Next month",
+  "journeyCalendarScopeMine": "Mine",
+  "journeyCalendarScopeAll": "All",
+  "journeyCalendarShowDone": "Show done",
+  "journeyCalendarPendingCount": "Pending {count}",
+  "@journeyCalendarPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyCalendarOverdueCount": "Overdue {count}",
+  "@journeyCalendarOverdueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyCalendarDoneCount": "Done {count}",
+  "@journeyCalendarDoneCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyCalendarDueCount": "{count, plural, =1{1 due} other{{count} due}}",
+  "@journeyCalendarDueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyCalendarNothingOnDay": "Nothing due on this day.",
+  "journeyCalendarEmptyMonth": "Nothing due this month.",
+  "journeyCalendarLoadFailed": "Could not load the calendar.",
+  "journeyCalendarSourceFollowup": "Reminder",
+  "journeyCalendarNoAction": "No action written",
   "errorConsoleCopyError": "Copy error",
   "errorConsoleCopied": "Error details copied",
   "errorConsoleSummary": "Summary",

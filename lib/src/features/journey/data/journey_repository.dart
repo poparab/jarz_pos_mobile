@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/dio_provider.dart';
+import 'models/journey_action.dart';
 import 'models/journey_note.dart';
 
 final journeyRepositoryProvider = Provider<JourneyRepository>((ref) {
@@ -208,6 +209,44 @@ class JourneyRepository {
       },
     );
     return JourneyContacts.fromJson(_asMap(_unwrap(response)));
+  }
+
+  /// Ticks a note's next action off (or back on) and returns the note in the
+  /// same shape [getNotes] serves, so the caller can drop it straight into the
+  /// timeline. Permission is the server's call — [JourneyNote.canComplete] is
+  /// what the UI gates on, never a client-side guess about authorship.
+  Future<JourneyNote> setActionDone({
+    required String name,
+    required bool done,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.setJourneyActionDone,
+      data: {'name': name, 'done': done ? 1 : 0},
+    );
+    return JourneyNote.fromJson(_asMap(_unwrap(response)));
+  }
+
+  /// Everything due between two ISO dates, for the month grid.
+  ///
+  /// [scope] is 'mine' | 'all' and [includeDone] decides whether closed
+  /// promises come back at all — both are server-side filters so a rep on a
+  /// big territory never pulls a month they will not render.
+  Future<JourneyActionCalendar> getActionCalendar({
+    required String fromDate,
+    required String toDate,
+    String scope = 'mine',
+    bool includeDone = false,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.getJourneyActionCalendar,
+      data: {
+        'from_date': fromDate,
+        'to_date': toDate,
+        'scope': scope,
+        'include_done': includeDone ? 1 : 0,
+      },
+    );
+    return JourneyActionCalendar.fromJson(_asMap(_unwrap(response)));
   }
 
   Future<void> deleteNote(String name) async {

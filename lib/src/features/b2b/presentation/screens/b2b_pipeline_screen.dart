@@ -65,6 +65,11 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
             icon: const Icon(Icons.today),
             onPressed: () => context.push(AppRoutes.b2bToday),
           ),
+          IconButton(
+            tooltip: context.l10n.journeyCalendarTitle,
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () => context.push(AppRoutes.b2bCalendar),
+          ),
           // Printed-label stock. Surfaced here as well as in the drawer because
           // the rep who owns these accounts lives on this board, and a label
           // that needs printing is a days-long lead time, not a same-day fix.

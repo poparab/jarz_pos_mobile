@@ -109,6 +109,19 @@ class JourneyNotesNotifier
     await refresh();
   }
 
+  /// Ticks a note's next action off (or back on).
+  ///
+  /// Reloads rather than patching the row in place: the server also restamps
+  /// the account's follow-up reminder when the last open promise closes, and
+  /// the timeline's neighbours can move with it.
+  Future<void> setActionDone({
+    required String name,
+    required bool done,
+  }) async {
+    await _repo.setActionDone(name: name, done: done);
+    await refresh();
+  }
+
   Future<void> remove(String name) async {
     await _repo.deleteNote(name);
     await refresh();

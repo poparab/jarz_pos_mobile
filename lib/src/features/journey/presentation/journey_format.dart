@@ -85,6 +85,11 @@ abstract final class JourneyFormat {
     return a.difference(b).inDays;
   }
 
+  /// The settled-state green, shared by the timeline and the calendar.
+  /// Muted deliberately: a kept promise should read as closed, not as a fresh
+  /// success banner.
+  static const doneGreen = Color(0xFF2E7D45);
+
   /// Icon for a journey entry type — a visit and a phone call should not be
   /// distinguishable only by reading the chip text.
   static IconData typeIcon(String type) {

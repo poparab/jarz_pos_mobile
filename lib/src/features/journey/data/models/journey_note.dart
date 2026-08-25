@@ -38,6 +38,21 @@ class JourneyNote with _$JourneyNote {
     /// Whether the CURRENT user may edit/delete this note — the server decides
     /// (author or manager), the app only honours the answer.
     @JsonKey(name: 'can_edit') @Default(false) bool canEdit,
+
+    /// Whether the promise in [nextAction] has been kept. A done action stops
+    /// tinting the card and its reminder stops nagging — closing the loop is
+    /// the whole point of writing the promise down.
+    @JsonKey(name: 'next_action_done') @Default(false) bool nextActionDone,
+    @JsonKey(name: 'next_action_done_on') String? nextActionDoneOn,
+    @JsonKey(name: 'next_action_done_by') @Default('') String nextActionDoneBy,
+    @JsonKey(name: 'next_action_done_by_name')
+    @Default('')
+    String nextActionDoneByName,
+
+    /// Whether the CURRENT user may tick the next action off. Separate from
+    /// [canEdit] because a colleague may close a promise they did not write;
+    /// the server decides, the app only honours the answer.
+    @JsonKey(name: 'can_complete') @Default(false) bool canComplete,
   }) = _JourneyNote;
 
   factory JourneyNote.fromJson(Map<String, dynamic> json) =>
