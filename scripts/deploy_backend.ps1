@@ -186,6 +186,7 @@ function Resolve-GitTarget([string]$AppName) {
         PendingUpdate = $false
         Changed = $false
         RequiresPipInstall = $false
+        SchemaChanged = $false
     }
 }
 
@@ -311,6 +312,30 @@ function Test-AppRequiresEditableReinstall($GitTarget) {
     return -not [string]::IsNullOrWhiteSpace($metadataDiff)
 }
 
+# Paths whose contents define the SITE SCHEMA rather than its behaviour. A commit
+# touching any of them needs `bench migrate` before the code that reads the new
+# field runs, and needs the post-migrate verification below to prove the field
+# actually landed. Reported so the operator can see WHY a migrate was mandatory.
+#
+# git pathspecs, not shell globs: `*` here matches across `/` as well, so
+# '*/doctype/*.json' covers jarz_pos/doctype/<folder>/<folder>.json at any depth.
+$schemaPathspecs = @(
+    "'*/doctype/*.json'"      # DocType definitions - new doctypes, new fields
+    "'*/fixtures/*.json'"     # Custom Field / Property Setter fixtures
+    "'*patches.txt'"          # the patch registry migrate walks
+    "'*/patches/*'"           # patch bodies (data migrations)
+    "'*/custom/*.json'"       # bench-exported customisations
+) -join ' '
+
+function Test-AppHasSchemaChanges($GitTarget) {
+    if (-not $GitTarget.Changed) {
+        return $false
+    }
+
+    $schemaDiff = Invoke-Remote "sudo git -c safe.directory=$($GitTarget.AppPath) -C $($GitTarget.AppPath) diff --name-only $($GitTarget.HeadBefore) $($GitTarget.HeadAfter) -- $schemaPathspecs" -IgnoreExitCode
+    return -not [string]::IsNullOrWhiteSpace($schemaDiff)
+}
+
 function Install-EditableApps {
     param(
         [Parameter(Mandatory = $true)]
@@ -324,37 +349,60 @@ function Install-EditableApps {
         return
     }
 
-    $editableArgs = ($AppNames | ForEach-Object { "-e apps/$_" }) -join ' '
-    $containerNames = foreach ($serviceName in $serviceNames) {
-        $ContainersByService[$serviceName]
+    # Install ONCE, in the backend container. The four service containers share
+    # a single virtualenv — measured, not assumed: on staging
+    # /home/frappe/frappe-bench/env/lib/python3.14/site-packages reports inode
+    # 2180366 from erp-backend-1 and from erp-queue-long-1 alike, and a package
+    # installed through one container is importable from all four.
+    #
+    # So looping over containers does not install four times, it installs the
+    # same thing four times into one directory — and races itself doing it.
+    # That is exactly how this failed on 2026-08-26: the third container's
+    # uninstall step died with
+    #     OSError: [Errno 2] No such file or directory: '.../jarz_pos-0.0.1.dist-info/'
+    # because an earlier pass had already replaced the dist-info it was reading.
+    #
+    # Before that it did not run at all: the body was one `bash -lc` script
+    # using `set -euo pipefail` with backgrounded jobs, and this server's shell
+    # answers `set: pipefail`. The path only fires when pyproject.toml or
+    # requirements.txt actually change, so it sat unexercised until the first
+    # deploy that added a dependency.
+    #
+    # `2>&1` is appended so the REMOTE shell merges the streams before ssh
+    # writes them. Without it pip's routine warnings arrive on ssh's stderr,
+    # Windows PowerShell 5.1 wraps each line as a NativeCommandError, and
+    # $ErrorActionPreference='Stop' kills a deploy whose pip run succeeded.
+    # Exit codes still propagate, so a real failure still throws.
+    #
+    # pip output is intentionally NOT sent to /dev/null: a failed dependency
+    # install must surface in the deploy log and fail the deploy, never
+    # silently skip and break the feature at runtime.
+    $installContainer = $ContainersByService['backend']
+    if ([string]::IsNullOrWhiteSpace($installContainer)) {
+        throw "Install-EditableApps: no backend container resolved; cannot install $($AppNames -join ', ')."
     }
-    $quotedContainers = ($containerNames | ForEach-Object { "'$_'" }) -join ' '
 
-    # NOTE: pip output is intentionally NOT redirected to /dev/null. A failed dependency
-    # install (e.g. a new runtime dep missing from requirements.txt) must surface in the
-    # deploy log and fail the deploy — never silently skip and break the feature at runtime.
-    $installScript = @"
-set -euo pipefail
-containers=($quotedContainers)
-pids=()
-for container in "`${containers[@]}"; do
-  (
-    echo "[pip] installing editable apps in `$container ..."
-    docker exec -u root "`$container" bash -lc "cd /home/frappe/frappe-bench && /home/frappe/frappe-bench/env/bin/pip install $editableArgs" || { echo "[pip] FAILED in `$container" >&2; exit 1; }
-  ) &
-  pids+=("`$!")
-done
-fail=0
-for pid in "`${pids[@]}"; do
-  wait "`$pid" || fail=1
-done
-if [ "`$fail" -ne 0 ]; then
-  echo "[pip] one or more editable installs failed" >&2
-  exit 1
-fi
-"@
+    foreach ($appName in $AppNames) {
+        Write-Info "[pip] installing $appName (editable) via $installContainer (shared env) ..."
+        Invoke-Remote ("docker exec -u root $installContainer " +
+            "/home/frappe/frappe-bench/env/bin/pip install -e " +
+            "/home/frappe/frappe-bench/apps/$appName 2>&1") | Out-Null
+    }
 
-    Invoke-Remote ("bash -lc " + (ConvertTo-BashLiteral $installScript))
+    # Prove it landed for the WORKERS too, not just for the container that ran
+    # pip. If the shared-env assumption above ever stops holding, this is where
+    # it surfaces — loudly, at deploy time, instead of as a worker that cannot
+    # import the app hours later.
+    foreach ($serviceName in $serviceNames) {
+        $container = $ContainersByService[$serviceName]
+        if ([string]::IsNullOrWhiteSpace($container)) { continue }
+        foreach ($appName in $AppNames) {
+            Invoke-Remote ("docker exec $container " +
+                "/home/frappe/frappe-bench/env/bin/python -c " +
+                "'import $appName' 2>&1") | Out-Null
+        }
+    }
+    Write-Info "Editable reinstall complete and importable in all services: $($AppNames -join ', ')"
 }
 
 # ── First-install bootstrap ──────────────────────────────────────────────────
@@ -646,6 +694,32 @@ if ($PlanOnly) {
     exit 0
 }
 
+# -SkipMigrate cannot be honoured on a deploy that actually ships something.
+#
+# The failure it invites is silent and delayed: the new code lands on disk and
+# starts serving, the field it reads was never created, and every read of that
+# field returns None until somebody notices in production days later. Nothing
+# fails at deploy time, so the deploy that caused it is long out of view by the
+# time the symptom appears.
+#
+# Refused HERE, before the backup and before the pull, so a refused run changes
+# nothing on the server. Throwing after the pull would be worse than not
+# checking: new code on disk with un-migrated schema is exactly the state this
+# guard exists to prevent.
+#
+# The switch is kept rather than deleted because it stays meaningful for a
+# no-op deploy (nothing to ship, nothing to migrate), and because deploy_remote
+# forwards it. There is deliberately no override: "migrate anyway" is always
+# available and always correct, so an escape hatch here could only ever be used
+# to cause the bug above.
+if ($SkipMigrate -and $deployRequired) {
+    $pendingList = (@($appsNeedingUpdate | ForEach-Object { $_.AppName }) -join ', ')
+    throw ("-SkipMigrate refused: this deploy updates $pendingList, and a deploy that " +
+        "ships code must run 'bench migrate'. A skipped migration leaves new code " +
+        "reading fields that were never created, and fails silently at read time " +
+        "rather than at deploy time. Re-run without -SkipMigrate.")
+}
+
 if ($config.RequiresBackup -and -not $SkipBackup -and $deployRequired) {
     Write-Step 'Taking production backup before deployment...'
     $backupOutput = Invoke-Remote "docker exec $backendContainer bench --site frontend backup --with-files"
@@ -708,7 +782,11 @@ foreach ($gitTarget in $gitTargets) {
     $gitTarget.HeadAfter = (Invoke-Remote "sudo git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) rev-parse HEAD").Trim()
     $gitTarget.Changed = $gitTarget.HeadBefore -ne $gitTarget.HeadAfter
     $gitTarget.RequiresPipInstall = Test-AppRequiresEditableReinstall $gitTarget
+    $gitTarget.SchemaChanged = Test-AppHasSchemaChanges $gitTarget
     Write-Info "$($gitTarget.AppName) updated to $($gitTarget.HeadAfter)"
+    if ($gitTarget.SchemaChanged) {
+        Write-Info "$($gitTarget.AppName) carries SCHEMA changes (doctype/fixture/patch) - migrate is mandatory"
+    }
 
     # Normalise ownership to uid 1000 after every pull. The pull runs under sudo
     # (unavoidable — /var/lib/docker/volumes is only traversable by root), so every
@@ -738,7 +816,17 @@ else {
         Write-Host ''
     }
     Write-Step 'Installing custom apps in backend and workers...'
-    $appsNeedingInstall = @($gitTargets | Where-Object { $_.RequiresPipInstall } | ForEach-Object { $_.AppName })
+    # `-ForceReinstallApps` is OR-ed in here, not left to RequiresPipInstall
+    # alone. That flag is set inside the pull block (line ~767), which is
+    # skipped entirely when an app is "already at target commit" — so the one
+    # situation the switch exists for could never reach it: a previous deploy
+    # that pulled the code and then died before installing its new dependency.
+    # That is exactly what happened on 2026-08-26, and the escape hatch was
+    # inert. Honouring the switch unconditionally is the whole point of a
+    # switch. pip -e is idempotent, so a redundant run costs time, not safety.
+    $appsNeedingInstall = @($gitTargets |
+        Where-Object { $_.RequiresPipInstall -or $ForceReinstallApps } |
+        ForEach-Object { $_.AppName })
     if ($appsNeedingInstall.Count -gt 0) {
         Install-EditableApps -AppNames $appsNeedingInstall -ContainersByService $serviceContainers
         foreach ($serviceName in $serviceNames) {
@@ -775,9 +863,55 @@ else {
             Write-Host '----- end bench migrate output -----' -ForegroundColor DarkGray
         }
         Write-Info 'Migration complete'
+
+        # A green migrate is NOT evidence that a new field exists.
+        #
+        # Two Frappe mechanisms drop schema without failing: the fixture importer
+        # skips a doc whose `modified` timestamp matches the stored one (so a
+        # flag-only edit to custom_field.json does nothing unless `modified` is
+        # bumped), and a `dt` absent from the Custom Field filter in
+        # hooks.fixtures is never imported on any site at all. Both leave the
+        # deploy green and the field missing, and the first symptom is an
+        # endpoint reading None in production days later.
+        #
+        # verify_schema_landed asserts every field jarz_pos DECLARES against the
+        # LIVE meta and columns, and exits non-zero when they disagree — turning
+        # a silent, delayed data bug into a loud deploy failure. Read-only, so it
+        # is safe on production and safe to run on every migrate rather than only
+        # when the diff looked schema-shaped.
+        $verifierModule = 'jarz_pos.scripts.verify_schema_landed'
+        $verifierPath = "/home/frappe/frappe-bench/apps/jarz_pos/jarz_pos/scripts/verify_schema_landed.py"
+        # Not piped straight into .Trim(): an empty or null reply (a dropped ssh
+        # read) would throw there and fail a deploy over the *probe* rather than
+        # over anything it found.
+        $verifierProbe = Invoke-Remote "docker exec $backendContainer bash -lc 'test -f $verifierPath && echo yes || echo no'" -IgnoreExitCode
+        $verifierPresent = if ($verifierProbe) { ([string]$verifierProbe).Trim() } else { '' }
+
+        if ($verifierPresent -eq 'yes') {
+            Write-Step 'Verifying the declared schema is live...'
+            # Invoke-Remote throws on a non-zero exit, so a missing field fails
+            # the deploy here rather than being discovered in production.
+            $verifyOutput = Invoke-Remote "docker exec $backendContainer bench --site frontend execute $verifierModule.run"
+            if ($verifyOutput) {
+                $verifyOutput -split "`r?`n" |
+                    Where-Object { $_ -match 'Schema verification|missing|unfixtured' } |
+                    Select-Object -First 20 |
+                    ForEach-Object { Write-Host $_ }
+            }
+            Write-Info 'Declared schema confirmed live'
+        }
+        else {
+            # Only reachable on a server whose jarz_pos predates this verifier —
+            # e.g. -ForceMigrate against an un-updated checkout. Warn rather than
+            # fail: there is nothing to verify against, and refusing would block
+            # the very deploy that installs it.
+            Write-Warn "Schema verifier not present at $verifierPath; skipping post-migrate verification"
+        }
     }
     else {
-        Write-Step 'Skipping migration (--SkipMigrate)'
+        # Unreachable on a deploy that ships anything: -SkipMigrate is refused at
+        # pre-flight when $deployRequired. This branch covers the no-op case only.
+        Write-Step 'Skipping migration (--SkipMigrate; nothing was deployed)'
     }
     Write-Host ''
 
