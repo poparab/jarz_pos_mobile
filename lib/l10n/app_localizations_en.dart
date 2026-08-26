@@ -6533,6 +6533,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leadsTalabatBadge => 'Talabat';
 
   @override
+  String get leadsTalabatRatingFromGoogle =>
+      'Rating shown is from Google — no Talabat rating yet';
+
+  @override
+  String get leadsTalabatUnrated => 'Listed on Talabat, not yet rated';
+
+  @override
   String get leadsFilterHasPhone => 'Has phone';
 
   @override

@@ -40,8 +40,10 @@ class LeadDetailScreen extends ConsumerWidget {
         backgroundColor: Colors.white,
         foregroundColor: LeadsTheme.deepPlum,
         elevation: 0,
-        title: Text(context.l10n.leadDetailTitle,
-            style: LeadsTheme.heading.copyWith(fontSize: 22)),
+        title: Text(
+          context.l10n.leadDetailTitle,
+          style: LeadsTheme.heading.copyWith(fontSize: 22),
+        ),
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -53,14 +55,18 @@ class LeadDetailScreen extends ConsumerWidget {
               children: [
                 const Icon(Icons.cloud_off, size: 48, color: LeadsTheme.muted),
                 const SizedBox(height: 12),
-                Text('$err',
-                    textAlign: TextAlign.center, style: LeadsTheme.bodyMuted),
+                Text(
+                  '$err',
+                  textAlign: TextAlign.center,
+                  style: LeadsTheme.bodyMuted,
+                ),
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: () =>
                       ref.read(leadDetailProvider(leadName).notifier).refresh(),
                   style: FilledButton.styleFrom(
-                      backgroundColor: LeadsTheme.berryPink),
+                    backgroundColor: LeadsTheme.berryPink,
+                  ),
                   child: Text(context.l10n.commonRetry),
                 ),
               ],
@@ -133,8 +139,10 @@ class _DetailBody extends ConsumerWidget {
         _AddressesSection(lead: lead, leadName: leadName),
         const SizedBox(height: 20),
         if (lead.branches.isNotEmpty) ...[
-          Text(context.l10n.leadDetailBranchesCount(lead.branches.length),
-              style: LeadsTheme.heading),
+          Text(
+            context.l10n.leadDetailBranchesCount(lead.branches.length),
+            style: LeadsTheme.heading,
+          ),
           const SizedBox(height: 8),
           for (final branch in lead.branches) _BranchTile(branch: branch),
         ],
@@ -168,8 +176,9 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Directionality(
-                  textDirection:
-                      nameRtl ? TextDirection.rtl : TextDirection.ltr,
+                  textDirection: nameRtl
+                      ? TextDirection.rtl
+                      : TextDirection.ltr,
                   child: Text(
                     lead.leadName.isEmpty ? lead.name : lead.leadName,
                     style: LeadsTheme.nameStyle(lead.leadName, fontSize: 20),
@@ -184,7 +193,12 @@ class _Header extends StatelessWidget {
                     TierPill(lead.tier),
                     if (lead.sahelBranches > 0) SahelBadge(lead.sahelBranches),
                     if (lead.onTalabat)
-                      TalabatBadge(areas: lead.talabatAreas),
+                      TalabatBadge(
+                        areas: lead.talabatAreas,
+                        rating: lead.talabatRating,
+                        reviews: lead.talabatReviews,
+                        ratingSource: lead.talabatRatingSource,
+                      ),
                     if (lead.avgRating != null)
                       _Pill(
                         icon: Icons.star_rounded,
@@ -195,10 +209,12 @@ class _Header extends StatelessWidget {
                     if (lead.priceBand.isNotEmpty)
                       _Pill(icon: Icons.sell_outlined, text: lead.priceBand),
                     if (lead.primaryArea.isNotEmpty)
-                      _Pill(
-                          icon: Icons.place_outlined, text: lead.primaryArea),
+                      _Pill(icon: Icons.place_outlined, text: lead.primaryArea),
                     if (lead.category != null && lead.category!.isNotEmpty)
-                      _Pill(icon: Icons.category_outlined, text: lead.category!),
+                      _Pill(
+                        icon: Icons.category_outlined,
+                        text: lead.category!,
+                      ),
                   ],
                 ),
               ],
@@ -244,7 +260,8 @@ class _ContactRow extends StatelessWidget {
         _ContactAction(
           icon: Icons.map_outlined,
           label: context.l10n.leadActionMap,
-          enabled: lead.mapsUrl.trim().isNotEmpty ||
+          enabled:
+              lead.mapsUrl.trim().isNotEmpty ||
               (lead.latitude != null && lead.longitude != null),
           onTap: () {
             if (lead.mapsUrl.trim().isNotEmpty) {
@@ -339,15 +356,15 @@ class _EditableSectionState extends ConsumerState<_EditableSection> {
         if (_category != null) 'category': _category,
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.leadDetailUpdated)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.leadDetailUpdated)));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(
-                content: Text(context.l10n.leadDetailFailed('$e'))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.leadDetailFailed('$e'))),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -383,9 +400,9 @@ class _EditableSectionState extends ConsumerState<_EditableSection> {
               for (final cat in categories)
                 DropdownMenuItem<String?>(
                   value: cat.name,
-                  child: Text(cat.categoryName.isEmpty
-                      ? cat.name
-                      : cat.categoryName),
+                  child: Text(
+                    cat.categoryName.isEmpty ? cat.name : cat.categoryName,
+                  ),
                 ),
             ],
             onChanged: (value) => setState(() => _category = value),
@@ -412,8 +429,9 @@ class _EditableSectionState extends ConsumerState<_EditableSection> {
                   )
                 : const Icon(Icons.save_outlined, size: 18),
             label: Text(context.l10n.commonSave),
-            style:
-                FilledButton.styleFrom(backgroundColor: LeadsTheme.berryPink),
+            style: FilledButton.styleFrom(
+              backgroundColor: LeadsTheme.berryPink,
+            ),
           ),
         ),
       ],
@@ -421,10 +439,10 @@ class _EditableSectionState extends ConsumerState<_EditableSection> {
   }
 
   InputDecoration _dec(String label) => InputDecoration(
-        labelText: label,
-        isDense: true,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-      );
+    labelText: label,
+    isDense: true,
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+  );
 }
 
 /// Editable fit score (0–100). Saved back through the detail notifier's
@@ -457,9 +475,9 @@ class _FitScoreSectionState extends ConsumerState<_FitScoreSection> {
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      await ref
-          .read(leadDetailProvider(widget.leadName).notifier)
-          .save({'score': _score});
+      await ref.read(leadDetailProvider(widget.leadName).notifier).save({
+        'score': _score,
+      });
 
       // The notifier's save() already refreshes this detail and the Leads
       // catalog. Guardedly keep the B2B pipeline board in sync too so a fit
@@ -477,9 +495,9 @@ class _FitScoreSectionState extends ConsumerState<_FitScoreSection> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(
-                content: Text(context.l10n.leadDetailFailed('$e'))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.leadDetailFailed('$e'))),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -511,9 +529,7 @@ class _FitScoreSectionState extends ConsumerState<_FitScoreSection> {
           divisions: 100,
           label: '$_score',
           activeColor: LeadsTheme.berryPink,
-          onChanged: _saving
-              ? null
-              : (v) => setState(() => _score = v.round()),
+          onChanged: _saving ? null : (v) => setState(() => _score = v.round()),
         ),
         Align(
           alignment: Alignment.centerRight,
@@ -527,8 +543,9 @@ class _FitScoreSectionState extends ConsumerState<_FitScoreSection> {
                   )
                 : const Icon(Icons.save_outlined, size: 18),
             label: Text(context.l10n.commonSave),
-            style:
-                FilledButton.styleFrom(backgroundColor: LeadsTheme.berryPink),
+            style: FilledButton.styleFrom(
+              backgroundColor: LeadsTheme.berryPink,
+            ),
           ),
         ),
       ],
@@ -571,7 +588,9 @@ class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
 
     setState(() => _saving = true);
     try {
-      await ref.read(b2bRepositoryProvider).advanceStage(
+      await ref
+          .read(b2bRepositoryProvider)
+          .advanceStage(
             doctype: 'Lead',
             name: widget.lead.name,
             stage: stage,
@@ -598,15 +617,19 @@ class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(context.l10n.leadDetailStageUpdated(
-                  localizedLeadStage(context, stage)))),
+            content: Text(
+              context.l10n.leadDetailStageUpdated(
+                localizedLeadStage(context, stage),
+              ),
+            ),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(
-                content: Text(context.l10n.leadDetailFailed('$e'))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.leadDetailFailed('$e'))),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -674,8 +697,9 @@ class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
           items: [
             for (final stage in kB2bStages)
               DropdownMenuItem<String>(
-                  value: stage,
-                  child: Text(localizedLeadStage(context, stage))),
+                value: stage,
+                child: Text(localizedLeadStage(context, stage)),
+              ),
           ],
           onChanged: _saving
               ? null
@@ -702,8 +726,7 @@ class _NotSuitableBanner extends StatelessWidget {
       if (lead.notSuitableBy.isNotEmpty)
         context.l10n.leadDetailByWhom(lead.notSuitableBy),
       if (lead.notSuitableOn != null && lead.notSuitableOn!.isNotEmpty)
-        context.l10n
-            .leadDetailOnDate(lead.notSuitableOn!.split(' ').first),
+        context.l10n.leadDetailOnDate(lead.notSuitableOn!.split(' ').first),
     ].join(' · ');
 
     return Container(
@@ -815,7 +838,9 @@ class _SuitabilitySectionState extends ConsumerState<_SuitabilitySection> {
   }) async {
     setState(() => _saving = true);
     try {
-      await ref.read(leadDetailProvider(widget.leadName).notifier).setSuitability(
+      await ref
+          .read(leadDetailProvider(widget.leadName).notifier)
+          .setSuitability(
             notSuitable: notSuitable,
             reason: reason,
             notes: notes,
@@ -830,14 +855,15 @@ class _SuitabilitySectionState extends ConsumerState<_SuitabilitySection> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(
-                content: Text(context.l10n.leadDetailFailed('$e'))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.leadDetailFailed('$e'))),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -942,7 +968,9 @@ class _NotSuitableDialogState extends State<_NotSuitableDialog> {
             decoration: InputDecoration(
               labelText: l10n.leadDetailReasonTitle,
               isDense: true,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             items: [
               for (final reason in widget.reasons)
@@ -958,7 +986,9 @@ class _NotSuitableDialogState extends State<_NotSuitableDialog> {
               labelText: l10n.leadDetailNotesOptional,
               hintText: l10n.leadDetailInspectionHint,
               isDense: true,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
         ],
@@ -972,12 +1002,12 @@ class _NotSuitableDialogState extends State<_NotSuitableDialog> {
           onPressed: _reason == null
               ? null
               : () => Navigator.pop(
-                    context,
-                    _NotSuitableVerdict(
-                      reason: _reason!,
-                      notes: _notesController.text.trim(),
-                    ),
+                  context,
+                  _NotSuitableVerdict(
+                    reason: _reason!,
+                    notes: _notesController.text.trim(),
                   ),
+                ),
           style: FilledButton.styleFrom(backgroundColor: LeadsTheme.rejected),
           child: Text(l10n.leadDetailMarkNotSuitable),
         ),
@@ -1196,22 +1226,21 @@ class _AddressEditorState extends ConsumerState<_AddressEditor> {
         pincode: _controllers['pincode']!.text.trim(),
         phone: _controllers['phone']!.text.trim(),
       );
-      await ref.read(leadDetailProvider(widget.leadName).notifier).saveAddress(
-            kind: widget.kind,
-            address: address,
-          );
+      await ref
+          .read(leadDetailProvider(widget.leadName).notifier)
+          .saveAddress(kind: widget.kind, address: address);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content:
-                  Text(context.l10n.leadDetailAddressSaved(widget.title))),
+            content: Text(context.l10n.leadDetailAddressSaved(widget.title)),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(
-                content: Text(context.l10n.leadDetailFailed('$e'))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.leadDetailFailed('$e'))),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -1223,8 +1252,10 @@ class _AddressEditorState extends ConsumerState<_AddressEditor> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.title,
-            style: LeadsTheme.body.copyWith(fontWeight: FontWeight.w700)),
+        Text(
+          widget.title,
+          style: LeadsTheme.body.copyWith(fontWeight: FontWeight.w700),
+        ),
         const SizedBox(height: 8),
         _field('line1', context.l10n.leadFieldAddressLine1),
         _field('line2', context.l10n.leadFieldAddressLine2),
@@ -1267,17 +1298,17 @@ class _AddressEditorState extends ConsumerState<_AddressEditor> {
   }
 
   Widget _field(String key, String label) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: TextField(
-          controller: _controllers[key],
-          style: LeadsTheme.body,
-          decoration: InputDecoration(
-            labelText: label,
-            isDense: true,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 8),
+    child: TextField(
+      controller: _controllers[key],
+      style: LeadsTheme.body,
+      decoration: InputDecoration(
+        labelText: label,
+        isDense: true,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    ),
+  );
 }
 
 class _BranchTile extends StatelessWidget {
@@ -1314,8 +1345,9 @@ class _BranchTile extends StatelessWidget {
                     branch.branchName.isEmpty
                         ? locationParts.join(', ')
                         : branch.branchName,
-                    style:
-                        LeadsTheme.body.copyWith(fontWeight: FontWeight.w700),
+                    style: LeadsTheme.body.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -1349,7 +1381,8 @@ class _BranchTile extends StatelessWidget {
                   icon: const Icon(Icons.call, size: 16),
                   label: Text(context.l10n.leadActionCall),
                   style: TextButton.styleFrom(
-                      foregroundColor: LeadsTheme.deepPlum),
+                    foregroundColor: LeadsTheme.deepPlum,
+                  ),
                 ),
               if (branch.mapsUrl.trim().isNotEmpty ||
                   (branch.latitude != null && branch.longitude != null))
@@ -1364,7 +1397,8 @@ class _BranchTile extends StatelessWidget {
                   icon: const Icon(Icons.map_outlined, size: 16),
                   label: Text(context.l10n.leadActionMap),
                   style: TextButton.styleFrom(
-                      foregroundColor: LeadsTheme.deepPlum),
+                    foregroundColor: LeadsTheme.deepPlum,
+                  ),
                 ),
             ],
           ),

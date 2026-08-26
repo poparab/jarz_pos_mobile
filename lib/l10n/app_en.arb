@@ -3743,6 +3743,8 @@
   "leadsFilterTalabatOn": "On Talabat",
   "leadsFilterTalabatOff": "Not on Talabat",
   "leadsTalabatBadge": "Talabat",
+  "leadsTalabatRatingFromGoogle": "Rating shown is from Google — no Talabat rating yet",
+  "leadsTalabatUnrated": "Listed on Talabat, not yet rated",
   "leadsFilterHasPhone": "Has phone",
   "leadsFilterHasInstagram": "Has Instagram",
   "leadsFilterHasWebsite": "Has website",

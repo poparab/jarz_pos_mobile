@@ -6503,6 +6503,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get leadsTalabatBadge => 'طلبات';
 
   @override
+  String get leadsTalabatRatingFromGoogle =>
+      'التقييم من جوجل — مفيش تقييم على طلبات لسه';
+
+  @override
+  String get leadsTalabatUnrated => 'موجود على طلبات، لسه من غير تقييم';
+
+  @override
   String get leadsFilterHasPhone => 'عنده تليفون';
 
   @override

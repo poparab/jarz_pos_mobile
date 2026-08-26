@@ -29,6 +29,9 @@ _$LeadImpl _$$LeadImplFromJson(Map<String, dynamic> json) => _$LeadImpl(
           ?.map((e) => e as String)
           .toList() ??
       const <String>[],
+  talabatRating: (json['talabat_rating'] as num?)?.toDouble(),
+  talabatReviews: (json['talabat_reviews'] as num?)?.toInt() ?? 0,
+  talabatRatingSource: json['talabat_rating_source'] as String? ?? '',
   primaryArea: json['primary_area'] as String? ?? '',
   regions:
       (json['regions'] as List<dynamic>?)?.map((e) => e as String).toList() ??
@@ -111,6 +114,9 @@ Map<String, dynamic> _$$LeadImplToJson(_$LeadImpl instance) =>
       'serves_dessert': instance.servesDessert,
       'on_talabat': instance.onTalabat,
       'talabat_areas': instance.talabatAreas,
+      'talabat_rating': instance.talabatRating,
+      'talabat_reviews': instance.talabatReviews,
+      'talabat_rating_source': instance.talabatRatingSource,
       'primary_area': instance.primaryArea,
       'regions': instance.regions,
       'governorates': instance.governorates,
@@ -187,6 +193,9 @@ _$LeadBranchImpl _$$LeadBranchImplFromJson(Map<String, dynamic> json) =>
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       onTalabat: json['on_talabat'] == null ? false : _flag(json['on_talabat']),
+      talabatRating: (json['talabat_rating'] as num?)?.toDouble(),
+      talabatReviews: (json['talabat_reviews'] as num?)?.toInt() ?? 0,
+      talabatRatingSource: json['talabat_rating_source'] as String? ?? '',
     );
 
 Map<String, dynamic> _$$LeadBranchImplToJson(_$LeadBranchImpl instance) =>
@@ -207,6 +216,9 @@ Map<String, dynamic> _$$LeadBranchImplToJson(_$LeadBranchImpl instance) =>
       'latitude': instance.latitude,
       'longitude': instance.longitude,
       'on_talabat': instance.onTalabat,
+      'talabat_rating': instance.talabatRating,
+      'talabat_reviews': instance.talabatReviews,
+      'talabat_rating_source': instance.talabatRatingSource,
     };
 
 _$LeadAddressImpl _$$LeadAddressImplFromJson(Map<String, dynamic> json) =>

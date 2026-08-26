@@ -98,6 +98,27 @@ void main() {
       expect(lead.talabatAreas, isEmpty);
     });
 
+    test('round-trips the rating keys', () {
+      final lead = Lead.fromJson(const {
+        'name': 'X', 'lead_name': 'Y', 'on_talabat': 1,
+        'talabat_rating': 4.6, 'talabat_reviews': 1000,
+        'talabat_rating_source': 'talabat',
+      });
+      expect(lead.talabatRating, 4.6);
+      expect(lead.talabatReviews, 1000);
+      expect(lead.talabatRatingSource, 'talabat');
+    });
+
+    test('an unrated Talabat listing keeps a null rating, not a zero', () {
+      final lead = Lead.fromJson(const {
+        'name': 'X', 'lead_name': 'Y', 'on_talabat': 1,
+      });
+      expect(lead.onTalabat, isTrue);
+      expect(lead.talabatRating, isNull,
+          reason: '0.0 would sort as the worst-rated venue rather than unrated');
+      expect(lead.talabatReviews, 0);
+    });
+
     test('branch rows carry their own flag', () {
       final branch = LeadBranch.fromJson(const {
         'branch_name': 'Luma Zayed',
@@ -119,6 +140,40 @@ void main() {
           home: Scaffold(body: child),
         );
 
+    testWidgets('shows the rating when it is Talabat own score', (tester) async {
+      await tester.pumpWidget(wrap(const TalabatBadge(
+        rating: 4.6, reviews: 1000, ratingSource: 'talabat')));
+      expect(find.text('4.6'), findsOneWidget);
+    });
+
+    // A borrowed Google score must not be dressed up as a Talabat rating --
+    // that would credit the venue with a reputation it has not earned there.
+    testWidgets('hides a borrowed Google score', (tester) async {
+      await tester.pumpWidget(wrap(const TalabatBadge(
+        rating: 5.0, reviews: 18, ratingSource: 'google_maps')));
+      expect(find.text('5.0'), findsNothing);
+      final tip = tester.widget<Tooltip>(find.byType(Tooltip));
+      expect(tip.message, contains('from Google'));
+    });
+
+    testWidgets('says so when listed but unrated', (tester) async {
+      await tester.pumpWidget(wrap(const TalabatBadge()));
+      final tip = tester.widget<Tooltip>(find.byType(Tooltip));
+      expect(tip.message, contains('not yet rated'));
+    });
+
+    // The corpus stores bucket FLOORS because Talabat itself buckets; the label
+    // has to read back the way the app writes it, not as a fake exact number.
+    testWidgets('re-labels bucketed counts the way Talabat writes them',
+        (tester) async {
+      for (final c in const [(1000, '1k+'), (500, '500+'), (100, '100+'), (43, '43')]) {
+        await tester.pumpWidget(wrap(TalabatBadge(
+          rating: 4.2, reviews: c.$1, ratingSource: 'talabat')));
+        final tip = tester.widget<Tooltip>(find.byType(Tooltip));
+        expect(tip.message, contains('(${c.$2})'), reason: 'for ${c.$1}');
+      }
+    });
+
     testWidgets('renders the label', (tester) async {
       await tester.pumpWidget(wrap(const TalabatBadge()));
       expect(find.text('Talabat'), findsOneWidget);
@@ -129,12 +184,16 @@ void main() {
         const TalabatBadge(areas: ['6th of October', 'Sheikh Zayed']),
       ));
       final tip = tester.widget<Tooltip>(find.byType(Tooltip));
-      expect(tip.message, '6th of October · Sheikh Zayed');
+      expect(tip.message, contains('6th of October · Sheikh Zayed'));
     });
 
-    testWidgets('drops the tooltip when no zone is known', (tester) async {
-      await tester.pumpWidget(wrap(const TalabatBadge()));
-      expect(find.byType(Tooltip), findsNothing);
+    // The tooltip carries whatever is known, so a badge with no zones but a
+    // rating still earns one — only a badge with nothing to add goes bare.
+    testWidgets('omits the zone line when no zone is known', (tester) async {
+      await tester.pumpWidget(wrap(const TalabatBadge(
+        rating: 4.2, reviews: 43, ratingSource: 'talabat')));
+      final tip = tester.widget<Tooltip>(find.byType(Tooltip));
+      expect(tip.message, '4.2 ★ (43)');
     });
   });
 }

@@ -61,6 +61,20 @@ mixin _$Lead {
   bool get onTalabat => throw _privateConstructorUsedError;
   @JsonKey(name: 'talabat_areas')
   List<String> get talabatAreas => throw _privateConstructorUsedError;
+
+  /// Rating on the Talabat listing. `null` means listed but UNRATED (the app
+  /// showed "New") — which is not the same as absent from Talabat, so read
+  /// [onTalabat] for that. [talabatReviews] is a LOWER BOUND: Talabat buckets
+  /// large counts as "1k+"/"500+" and the corpus stores the bucket floor.
+  @JsonKey(name: 'talabat_rating')
+  double? get talabatRating => throw _privateConstructorUsedError;
+  @JsonKey(name: 'talabat_reviews')
+  int get talabatReviews => throw _privateConstructorUsedError;
+
+  /// 'talabat' | 'google_maps' | ''. `google_maps` means Talabat is showing
+  /// Google's score because the venue has earned none of its own yet.
+  @JsonKey(name: 'talabat_rating_source')
+  String get talabatRatingSource => throw _privateConstructorUsedError;
   @JsonKey(name: 'primary_area')
   String get primaryArea => throw _privateConstructorUsedError;
   List<String> get regions => throw _privateConstructorUsedError;
@@ -168,6 +182,9 @@ abstract class $LeadCopyWith<$Res> {
     @JsonKey(name: 'serves_dessert') bool servesDessert,
     @JsonKey(name: 'on_talabat', fromJson: _flag) bool onTalabat,
     @JsonKey(name: 'talabat_areas') List<String> talabatAreas,
+    @JsonKey(name: 'talabat_rating') double? talabatRating,
+    @JsonKey(name: 'talabat_reviews') int talabatReviews,
+    @JsonKey(name: 'talabat_rating_source') String talabatRatingSource,
     @JsonKey(name: 'primary_area') String primaryArea,
     List<String> regions,
     List<String> governorates,
@@ -243,6 +260,9 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
     Object? servesDessert = null,
     Object? onTalabat = null,
     Object? talabatAreas = null,
+    Object? talabatRating = freezed,
+    Object? talabatReviews = null,
+    Object? talabatRatingSource = null,
     Object? primaryArea = null,
     Object? regions = null,
     Object? governorates = null,
@@ -354,6 +374,18 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
                 ? _value.talabatAreas
                 : talabatAreas // ignore: cast_nullable_to_non_nullable
                       as List<String>,
+            talabatRating: freezed == talabatRating
+                ? _value.talabatRating
+                : talabatRating // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            talabatReviews: null == talabatReviews
+                ? _value.talabatReviews
+                : talabatReviews // ignore: cast_nullable_to_non_nullable
+                      as int,
+            talabatRatingSource: null == talabatRatingSource
+                ? _value.talabatRatingSource
+                : talabatRatingSource // ignore: cast_nullable_to_non_nullable
+                      as String,
             primaryArea: null == primaryArea
                 ? _value.primaryArea
                 : primaryArea // ignore: cast_nullable_to_non_nullable
@@ -559,6 +591,9 @@ abstract class _$$LeadImplCopyWith<$Res> implements $LeadCopyWith<$Res> {
     @JsonKey(name: 'serves_dessert') bool servesDessert,
     @JsonKey(name: 'on_talabat', fromJson: _flag) bool onTalabat,
     @JsonKey(name: 'talabat_areas') List<String> talabatAreas,
+    @JsonKey(name: 'talabat_rating') double? talabatRating,
+    @JsonKey(name: 'talabat_reviews') int talabatReviews,
+    @JsonKey(name: 'talabat_rating_source') String talabatRatingSource,
     @JsonKey(name: 'primary_area') String primaryArea,
     List<String> regions,
     List<String> governorates,
@@ -633,6 +668,9 @@ class __$$LeadImplCopyWithImpl<$Res>
     Object? servesDessert = null,
     Object? onTalabat = null,
     Object? talabatAreas = null,
+    Object? talabatRating = freezed,
+    Object? talabatReviews = null,
+    Object? talabatRatingSource = null,
     Object? primaryArea = null,
     Object? regions = null,
     Object? governorates = null,
@@ -744,6 +782,18 @@ class __$$LeadImplCopyWithImpl<$Res>
             ? _value._talabatAreas
             : talabatAreas // ignore: cast_nullable_to_non_nullable
                   as List<String>,
+        talabatRating: freezed == talabatRating
+            ? _value.talabatRating
+            : talabatRating // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        talabatReviews: null == talabatReviews
+            ? _value.talabatReviews
+            : talabatReviews // ignore: cast_nullable_to_non_nullable
+                  as int,
+        talabatRatingSource: null == talabatRatingSource
+            ? _value.talabatRatingSource
+            : talabatRatingSource // ignore: cast_nullable_to_non_nullable
+                  as String,
         primaryArea: null == primaryArea
             ? _value.primaryArea
             : primaryArea // ignore: cast_nullable_to_non_nullable
@@ -916,6 +966,9 @@ class _$LeadImpl extends _Lead {
     @JsonKey(name: 'on_talabat', fromJson: _flag) this.onTalabat = false,
     @JsonKey(name: 'talabat_areas')
     final List<String> talabatAreas = const <String>[],
+    @JsonKey(name: 'talabat_rating') this.talabatRating,
+    @JsonKey(name: 'talabat_reviews') this.talabatReviews = 0,
+    @JsonKey(name: 'talabat_rating_source') this.talabatRatingSource = '',
     @JsonKey(name: 'primary_area') this.primaryArea = '',
     final List<String> regions = const <String>[],
     final List<String> governorates = const <String>[],
@@ -1034,6 +1087,22 @@ class _$LeadImpl extends _Lead {
     return EqualUnmodifiableListView(_talabatAreas);
   }
 
+  /// Rating on the Talabat listing. `null` means listed but UNRATED (the app
+  /// showed "New") — which is not the same as absent from Talabat, so read
+  /// [onTalabat] for that. [talabatReviews] is a LOWER BOUND: Talabat buckets
+  /// large counts as "1k+"/"500+" and the corpus stores the bucket floor.
+  @override
+  @JsonKey(name: 'talabat_rating')
+  final double? talabatRating;
+  @override
+  @JsonKey(name: 'talabat_reviews')
+  final int talabatReviews;
+
+  /// 'talabat' | 'google_maps' | ''. `google_maps` means Talabat is showing
+  /// Google's score because the venue has earned none of its own yet.
+  @override
+  @JsonKey(name: 'talabat_rating_source')
+  final String talabatRatingSource;
   @override
   @JsonKey(name: 'primary_area')
   final String primaryArea;
@@ -1198,7 +1267,7 @@ class _$LeadImpl extends _Lead {
 
   @override
   String toString() {
-    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, takeout: $takeout, dineIn: $dineIn, servesDessert: $servesDessert, onTalabat: $onTalabat, talabatAreas: $talabatAreas, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, contacts: $contacts, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes, journeyCount: $journeyCount, lastJourneyDate: $lastJourneyDate, lastJourneyType: $lastJourneyType, lastJourneyNote: $lastJourneyNote, lastJourneyContact: $lastJourneyContact, nextActionDate: $nextActionDate, nextAction: $nextAction, journeyNotes: $journeyNotes)';
+    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, takeout: $takeout, dineIn: $dineIn, servesDessert: $servesDessert, onTalabat: $onTalabat, talabatAreas: $talabatAreas, talabatRating: $talabatRating, talabatReviews: $talabatReviews, talabatRatingSource: $talabatRatingSource, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, contacts: $contacts, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes, journeyCount: $journeyCount, lastJourneyDate: $lastJourneyDate, lastJourneyType: $lastJourneyType, lastJourneyNote: $lastJourneyNote, lastJourneyContact: $lastJourneyContact, nextActionDate: $nextActionDate, nextAction: $nextAction, journeyNotes: $journeyNotes)';
   }
 
   @override
@@ -1239,6 +1308,12 @@ class _$LeadImpl extends _Lead {
               other._talabatAreas,
               _talabatAreas,
             ) &&
+            (identical(other.talabatRating, talabatRating) ||
+                other.talabatRating == talabatRating) &&
+            (identical(other.talabatReviews, talabatReviews) ||
+                other.talabatReviews == talabatReviews) &&
+            (identical(other.talabatRatingSource, talabatRatingSource) ||
+                other.talabatRatingSource == talabatRatingSource) &&
             (identical(other.primaryArea, primaryArea) ||
                 other.primaryArea == primaryArea) &&
             const DeepCollectionEquality().equals(other._regions, _regions) &&
@@ -1330,6 +1405,9 @@ class _$LeadImpl extends _Lead {
     servesDessert,
     onTalabat,
     const DeepCollectionEquality().hash(_talabatAreas),
+    talabatRating,
+    talabatReviews,
+    talabatRatingSource,
     primaryArea,
     const DeepCollectionEquality().hash(_regions),
     const DeepCollectionEquality().hash(_governorates),
@@ -1402,6 +1480,9 @@ abstract class _Lead extends Lead {
     @JsonKey(name: 'serves_dessert') final bool servesDessert,
     @JsonKey(name: 'on_talabat', fromJson: _flag) final bool onTalabat,
     @JsonKey(name: 'talabat_areas') final List<String> talabatAreas,
+    @JsonKey(name: 'talabat_rating') final double? talabatRating,
+    @JsonKey(name: 'talabat_reviews') final int talabatReviews,
+    @JsonKey(name: 'talabat_rating_source') final String talabatRatingSource,
     @JsonKey(name: 'primary_area') final String primaryArea,
     final List<String> regions,
     final List<String> governorates,
@@ -1501,6 +1582,23 @@ abstract class _Lead extends Lead {
   @override
   @JsonKey(name: 'talabat_areas')
   List<String> get talabatAreas;
+
+  /// Rating on the Talabat listing. `null` means listed but UNRATED (the app
+  /// showed "New") — which is not the same as absent from Talabat, so read
+  /// [onTalabat] for that. [talabatReviews] is a LOWER BOUND: Talabat buckets
+  /// large counts as "1k+"/"500+" and the corpus stores the bucket floor.
+  @override
+  @JsonKey(name: 'talabat_rating')
+  double? get talabatRating;
+  @override
+  @JsonKey(name: 'talabat_reviews')
+  int get talabatReviews;
+
+  /// 'talabat' | 'google_maps' | ''. `google_maps` means Talabat is showing
+  /// Google's score because the venue has earned none of its own yet.
+  @override
+  @JsonKey(name: 'talabat_rating_source')
+  String get talabatRatingSource;
   @override
   @JsonKey(name: 'primary_area')
   String get primaryArea;
@@ -1925,6 +2023,12 @@ mixin _$LeadBranch {
   double? get longitude => throw _privateConstructorUsedError;
   @JsonKey(name: 'on_talabat', fromJson: _flag)
   bool get onTalabat => throw _privateConstructorUsedError;
+  @JsonKey(name: 'talabat_rating')
+  double? get talabatRating => throw _privateConstructorUsedError;
+  @JsonKey(name: 'talabat_reviews')
+  int get talabatReviews => throw _privateConstructorUsedError;
+  @JsonKey(name: 'talabat_rating_source')
+  String get talabatRatingSource => throw _privateConstructorUsedError;
 
   /// Serializes this LeadBranch to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1960,6 +2064,9 @@ abstract class $LeadBranchCopyWith<$Res> {
     double? latitude,
     double? longitude,
     @JsonKey(name: 'on_talabat', fromJson: _flag) bool onTalabat,
+    @JsonKey(name: 'talabat_rating') double? talabatRating,
+    @JsonKey(name: 'talabat_reviews') int talabatReviews,
+    @JsonKey(name: 'talabat_rating_source') String talabatRatingSource,
   });
 }
 
@@ -1994,6 +2101,9 @@ class _$LeadBranchCopyWithImpl<$Res, $Val extends LeadBranch>
     Object? latitude = freezed,
     Object? longitude = freezed,
     Object? onTalabat = null,
+    Object? talabatRating = freezed,
+    Object? talabatReviews = null,
+    Object? talabatRatingSource = null,
   }) {
     return _then(
       _value.copyWith(
@@ -2061,6 +2171,18 @@ class _$LeadBranchCopyWithImpl<$Res, $Val extends LeadBranch>
                 ? _value.onTalabat
                 : onTalabat // ignore: cast_nullable_to_non_nullable
                       as bool,
+            talabatRating: freezed == talabatRating
+                ? _value.talabatRating
+                : talabatRating // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            talabatReviews: null == talabatReviews
+                ? _value.talabatReviews
+                : talabatReviews // ignore: cast_nullable_to_non_nullable
+                      as int,
+            talabatRatingSource: null == talabatRatingSource
+                ? _value.talabatRatingSource
+                : talabatRatingSource // ignore: cast_nullable_to_non_nullable
+                      as String,
           )
           as $Val,
     );
@@ -2093,6 +2215,9 @@ abstract class _$$LeadBranchImplCopyWith<$Res>
     double? latitude,
     double? longitude,
     @JsonKey(name: 'on_talabat', fromJson: _flag) bool onTalabat,
+    @JsonKey(name: 'talabat_rating') double? talabatRating,
+    @JsonKey(name: 'talabat_reviews') int talabatReviews,
+    @JsonKey(name: 'talabat_rating_source') String talabatRatingSource,
   });
 }
 
@@ -2126,6 +2251,9 @@ class __$$LeadBranchImplCopyWithImpl<$Res>
     Object? latitude = freezed,
     Object? longitude = freezed,
     Object? onTalabat = null,
+    Object? talabatRating = freezed,
+    Object? talabatReviews = null,
+    Object? talabatRatingSource = null,
   }) {
     return _then(
       _$LeadBranchImpl(
@@ -2193,6 +2321,18 @@ class __$$LeadBranchImplCopyWithImpl<$Res>
             ? _value.onTalabat
             : onTalabat // ignore: cast_nullable_to_non_nullable
                   as bool,
+        talabatRating: freezed == talabatRating
+            ? _value.talabatRating
+            : talabatRating // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        talabatReviews: null == talabatReviews
+            ? _value.talabatReviews
+            : talabatReviews // ignore: cast_nullable_to_non_nullable
+                  as int,
+        talabatRatingSource: null == talabatRatingSource
+            ? _value.talabatRatingSource
+            : talabatRatingSource // ignore: cast_nullable_to_non_nullable
+                  as String,
       ),
     );
   }
@@ -2218,6 +2358,9 @@ class _$LeadBranchImpl implements _LeadBranch {
     this.latitude,
     this.longitude,
     @JsonKey(name: 'on_talabat', fromJson: _flag) this.onTalabat = false,
+    @JsonKey(name: 'talabat_rating') this.talabatRating,
+    @JsonKey(name: 'talabat_reviews') this.talabatReviews = 0,
+    @JsonKey(name: 'talabat_rating_source') this.talabatRatingSource = '',
   });
 
   factory _$LeadBranchImpl.fromJson(Map<String, dynamic> json) =>
@@ -2268,10 +2411,19 @@ class _$LeadBranchImpl implements _LeadBranch {
   @override
   @JsonKey(name: 'on_talabat', fromJson: _flag)
   final bool onTalabat;
+  @override
+  @JsonKey(name: 'talabat_rating')
+  final double? talabatRating;
+  @override
+  @JsonKey(name: 'talabat_reviews')
+  final int talabatReviews;
+  @override
+  @JsonKey(name: 'talabat_rating_source')
+  final String talabatRatingSource;
 
   @override
   String toString() {
-    return 'LeadBranch(branchName: $branchName, area: $area, region: $region, governorate: $governorate, rating: $rating, reviews: $reviews, price: $price, status: $status, hours: $hours, phone: $phone, website: $website, mapsUrl: $mapsUrl, address: $address, latitude: $latitude, longitude: $longitude, onTalabat: $onTalabat)';
+    return 'LeadBranch(branchName: $branchName, area: $area, region: $region, governorate: $governorate, rating: $rating, reviews: $reviews, price: $price, status: $status, hours: $hours, phone: $phone, website: $website, mapsUrl: $mapsUrl, address: $address, latitude: $latitude, longitude: $longitude, onTalabat: $onTalabat, talabatRating: $talabatRating, talabatReviews: $talabatReviews, talabatRatingSource: $talabatRatingSource)';
   }
 
   @override
@@ -2299,12 +2451,18 @@ class _$LeadBranchImpl implements _LeadBranch {
             (identical(other.longitude, longitude) ||
                 other.longitude == longitude) &&
             (identical(other.onTalabat, onTalabat) ||
-                other.onTalabat == onTalabat));
+                other.onTalabat == onTalabat) &&
+            (identical(other.talabatRating, talabatRating) ||
+                other.talabatRating == talabatRating) &&
+            (identical(other.talabatReviews, talabatReviews) ||
+                other.talabatReviews == talabatReviews) &&
+            (identical(other.talabatRatingSource, talabatRatingSource) ||
+                other.talabatRatingSource == talabatRatingSource));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     branchName,
     area,
@@ -2322,7 +2480,10 @@ class _$LeadBranchImpl implements _LeadBranch {
     latitude,
     longitude,
     onTalabat,
-  );
+    talabatRating,
+    talabatReviews,
+    talabatRatingSource,
+  ]);
 
   /// Create a copy of LeadBranch
   /// with the given fields replaced by the non-null parameter values.
@@ -2356,6 +2517,9 @@ abstract class _LeadBranch implements LeadBranch {
     final double? latitude,
     final double? longitude,
     @JsonKey(name: 'on_talabat', fromJson: _flag) final bool onTalabat,
+    @JsonKey(name: 'talabat_rating') final double? talabatRating,
+    @JsonKey(name: 'talabat_reviews') final int talabatReviews,
+    @JsonKey(name: 'talabat_rating_source') final String talabatRatingSource,
   }) = _$LeadBranchImpl;
 
   factory _LeadBranch.fromJson(Map<String, dynamic> json) =
@@ -2396,6 +2560,15 @@ abstract class _LeadBranch implements LeadBranch {
   @override
   @JsonKey(name: 'on_talabat', fromJson: _flag)
   bool get onTalabat;
+  @override
+  @JsonKey(name: 'talabat_rating')
+  double? get talabatRating;
+  @override
+  @JsonKey(name: 'talabat_reviews')
+  int get talabatReviews;
+  @override
+  @JsonKey(name: 'talabat_rating_source')
+  String get talabatRatingSource;
 
   /// Create a copy of LeadBranch
   /// with the given fields replaced by the non-null parameter values.

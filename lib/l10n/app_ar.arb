@@ -2657,6 +2657,8 @@
   "leadsFilterTalabatOn": "على طلبات",
   "leadsFilterTalabatOff": "مش على طلبات",
   "leadsTalabatBadge": "طلبات",
+  "leadsTalabatRatingFromGoogle": "التقييم من جوجل — مفيش تقييم على طلبات لسه",
+  "leadsTalabatUnrated": "موجود على طلبات، لسه من غير تقييم",
   "leadsFilterHasPhone": "عنده تليفون",
   "leadsFilterHasInstagram": "عنده إنستجرام",
   "leadsFilterHasWebsite": "عنده موقع",

@@ -46,6 +46,15 @@ class Lead with _$Lead {
     // listing was actually seen in.
     @JsonKey(name: 'on_talabat', fromJson: _flag) @Default(false) bool onTalabat,
     @JsonKey(name: 'talabat_areas') @Default(<String>[]) List<String> talabatAreas,
+    /// Rating on the Talabat listing. `null` means listed but UNRATED (the app
+    /// showed "New") — which is not the same as absent from Talabat, so read
+    /// [onTalabat] for that. [talabatReviews] is a LOWER BOUND: Talabat buckets
+    /// large counts as "1k+"/"500+" and the corpus stores the bucket floor.
+    @JsonKey(name: 'talabat_rating') double? talabatRating,
+    @JsonKey(name: 'talabat_reviews') @Default(0) int talabatReviews,
+    /// 'talabat' | 'google_maps' | ''. `google_maps` means Talabat is showing
+    /// Google's score because the venue has earned none of its own yet.
+    @JsonKey(name: 'talabat_rating_source') @Default('') String talabatRatingSource,
     @JsonKey(name: 'primary_area') @Default('') String primaryArea,
     @Default(<String>[]) List<String> regions,
     @Default(<String>[]) List<String> governorates,
@@ -185,6 +194,9 @@ class LeadBranch with _$LeadBranch {
     double? latitude,
     double? longitude,
     @JsonKey(name: 'on_talabat', fromJson: _flag) @Default(false) bool onTalabat,
+    @JsonKey(name: 'talabat_rating') double? talabatRating,
+    @JsonKey(name: 'talabat_reviews') @Default(0) int talabatReviews,
+    @JsonKey(name: 'talabat_rating_source') @Default('') String talabatRatingSource,
   }) = _LeadBranch;
 
   factory LeadBranch.fromJson(Map<String, dynamic> json) =>

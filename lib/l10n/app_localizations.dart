@@ -11039,6 +11039,18 @@ abstract class AppLocalizations {
   /// **'Talabat'**
   String get leadsTalabatBadge;
 
+  /// No description provided for @leadsTalabatRatingFromGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating shown is from Google — no Talabat rating yet'**
+  String get leadsTalabatRatingFromGoogle;
+
+  /// No description provided for @leadsTalabatUnrated.
+  ///
+  /// In en, this message translates to:
+  /// **'Listed on Talabat, not yet rated'**
+  String get leadsTalabatUnrated;
+
   /// No description provided for @leadsFilterHasPhone.
   ///
   /// In en, this message translates to:

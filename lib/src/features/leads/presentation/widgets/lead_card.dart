@@ -58,8 +58,9 @@ class LeadCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Directionality(
-                            textDirection:
-                                nameRtl ? TextDirection.rtl : TextDirection.ltr,
+                            textDirection: nameRtl
+                                ? TextDirection.rtl
+                                : TextDirection.ltr,
                             child: Text(
                               lead.leadName.isEmpty ? lead.name : lead.leadName,
                               maxLines: 1,
@@ -88,7 +89,12 @@ class LeadCard extends StatelessWidget {
                         if (lead.sahelBranches > 0)
                           SahelBadge(lead.sahelBranches),
                         if (lead.onTalabat)
-                          TalabatBadge(areas: lead.talabatAreas),
+                          TalabatBadge(
+                            areas: lead.talabatAreas,
+                            rating: lead.talabatRating,
+                            reviews: lead.talabatReviews,
+                            ratingSource: lead.talabatRatingSource,
+                          ),
                         _Metric(
                           icon: Icons.storefront_outlined,
                           label: '${lead.branchCount}',
@@ -144,7 +150,8 @@ class LeadCard extends StatelessWidget {
                         ),
                         LeadActionButton(
                           icon: Icons.map_outlined,
-                          enabled: lead.mapsUrl.trim().isNotEmpty ||
+                          enabled:
+                              lead.mapsUrl.trim().isNotEmpty ||
                               (lead.latitude != null && lead.longitude != null),
                           tooltip: context.l10n.leadActionMap,
                           onTap: () {
@@ -152,7 +159,10 @@ class LeadCard extends StatelessWidget {
                               LeadActions.maps(lead.mapsUrl);
                             } else if (lead.latitude != null &&
                                 lead.longitude != null) {
-                              LeadActions.mapsAt(lead.latitude!, lead.longitude!);
+                              LeadActions.mapsAt(
+                                lead.latitude!,
+                                lead.longitude!,
+                              );
                             }
                           },
                         ),
