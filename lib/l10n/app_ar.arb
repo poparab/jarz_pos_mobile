@@ -3191,5 +3191,58 @@
   "visitCreateRoute": "إنشاء المسار",
   "visitEngineRoadExplained": "المسافات والأزمنة مأخوذة من شبكة الطرق.",
   "visitEngineEstimateExplained": "المسافات تقديرية بخط مستقيم معدّلة للقيادة داخل المدينة. ترتيب الزيارات محسوب بدقة، أما الدقائق فتقريبية.",
-  "visitEngineRecheck": "إعادة الفحص"
+  "visitEngineRecheck": "إعادة الفحص",
+  "materialsSectionTitle": "قائمة الأسعار والمواد",
+  "materialsSendCta": "إرسال قائمة الأسعار",
+  "materialsSendTitle": "إرسال المواد",
+  "materialsRecipientLabel": "إرسال إلى",
+  "materialsNoRecipient": "لا توجد جهات اتصال على هذا العميل. أضف واحدة أولاً، أو أرسل واختر المحادثة داخل واتساب.",
+  "materialsPickLabel": "المواد المرسلة",
+  "materialsPreparing": "قيد التجهيز",
+  "materialsMessageLabel": "الرسالة",
+  "materialsSending": "جارٍ إنشاء الرابط…",
+  "materialsLinkReady": "تم إنشاء الرابط وتسجيله على العميل.",
+  "materialsCopyLink": "نسخ الرابط",
+  "materialsLinkCopied": "تم نسخ الرابط",
+  "materialsLibraryEmpty": "لا توجد مواد في المكتبة بعد. اطلب من المدير رفع قائمة الأسعار.",
+  "materialsRetry": "إعادة المحاولة",
+  "materialsNothingSent": "لم يتم إرسال أي شيء بعد.",
+  "materialsHistoryUnavailable": "تعذّر تحميل سجل الإرسال السابق.",
+  "materialsNotOpenedYet": "لم يُفتح بعد",
+  "materialsPageCount": "{count} صفحات",
+  "@materialsPageCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "materialsStillPreparing": "{count} من هذه الملفات ما زالت قيد التجهيز. الرابط يعمل الآن، لكن أول فتح قد يستغرق ثوانٍ.",
+  "@materialsStillPreparing": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "materialsOpenedCount": "فُتح {count} مرة",
+  "@materialsOpenedCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "materialsSendFailed": "تعذّر إنشاء الرابط: {error}",
+  "@materialsSendFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "materialsLoadFailed": "تعذّر تحميل مكتبة المواد: {error}",
+  "@materialsLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "materialsLinkPlaceholderHint": "اترك {token} في مكان الرابط؛ سيتم استبداله تلقائيًا عند الإرسال.",
+  "@materialsLinkPlaceholderHint": {
+    "placeholders": {
+      "token": {}
+    }
+  }
 }

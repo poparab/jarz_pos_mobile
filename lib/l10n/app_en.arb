@@ -4919,5 +4919,58 @@
   "visitCreateRoute": "Create route",
   "visitEngineRoadExplained": "Distances and times come from the road network.",
   "visitEngineEstimateExplained": "Distances are straight-line estimates adjusted for city driving. The visiting order is still solved properly; the minutes are approximate.",
-  "visitEngineRecheck": "Check again"
+  "visitEngineRecheck": "Check again",
+  "materialsSectionTitle": "Price list & materials",
+  "materialsSendCta": "Send price list",
+  "materialsSendTitle": "Send materials",
+  "materialsRecipientLabel": "Send to",
+  "materialsNoRecipient": "No contacts on this lead yet. Add one first, or send anyway and pick the chat in WhatsApp.",
+  "materialsPickLabel": "What to send",
+  "materialsPreparing": "still preparing",
+  "materialsMessageLabel": "Message",
+  "materialsSending": "Creating link…",
+  "materialsLinkReady": "Link created and logged on the lead.",
+  "materialsCopyLink": "Copy link",
+  "materialsLinkCopied": "Link copied",
+  "materialsLibraryEmpty": "No materials in the library yet. Ask a manager to upload the price list.",
+  "materialsRetry": "Retry",
+  "materialsNothingSent": "Nothing sent yet.",
+  "materialsHistoryUnavailable": "Could not load what was sent before.",
+  "materialsNotOpenedYet": "Not opened yet",
+  "materialsPageCount": "{count} pages",
+  "@materialsPageCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "materialsStillPreparing": "{count} of these files are still being prepared. The link works now; the first open may take a few seconds.",
+  "@materialsStillPreparing": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "materialsOpenedCount": "Opened {count}×",
+  "@materialsOpenedCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "materialsSendFailed": "Could not create the link: {error}",
+  "@materialsSendFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "materialsLoadFailed": "Could not load the material library: {error}",
+  "@materialsLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "materialsLinkPlaceholderHint": "Leave {token} where you want the link; it is replaced automatically when you send.",
+  "@materialsLinkPlaceholderHint": {
+    "placeholders": {
+      "token": {}
+    }
+  }
 }

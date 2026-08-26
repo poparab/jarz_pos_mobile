@@ -9,6 +9,9 @@ import '../../../b2b/presentation/widgets/b2b_stage_chip.dart'
     show B2bStageChip, kB2bStages, kDefaultB2bStage;
 import '../../../b2b/state/b2b_pipeline_notifier.dart' show b2bPipelineProvider;
 import '../../../journey/presentation/widgets/journey_notes_section.dart';
+import '../../../materials/presentation/widgets/send_materials_section.dart';
+import '../../../materials/presentation/widgets/send_materials_sheet.dart'
+    show MaterialRecipient;
 import '../../data/models/lead.dart';
 import '../../state/lead_categories_notifier.dart';
 import '../../state/lead_detail_notifier.dart';
@@ -111,6 +114,14 @@ class _DetailBody extends ConsumerWidget {
               .saveContacts(contacts),
         ),
         const SizedBox(height: 20),
+        // Directly under the contacts, because that is the order the visit
+        // happens in: meet whoever is on shift, write them down, send them the
+        // prices before leaving the pavement.
+        SendMaterialsSection(
+          referenceName: leadName,
+          recipients: _recipientsFor(lead),
+        ),
+        const SizedBox(height: 20),
         // The field diary sits high on the page, right under the contacts: it
         // is what a rep standing outside the venue actually needs to read
         // before walking in, and what they add the moment they walk out.
@@ -149,6 +160,46 @@ class _DetailBody extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// Who the price list can go to: every recorded person with a number, plus the
+/// venue's own line as a fallback.
+///
+/// The primary contact is listed first because that is who the record says to
+/// ring, and the sheet pre-selects whatever comes first. People with no number
+/// are deliberately still offered: the send is a WhatsApp deep link, and one
+/// without an MSISDN still opens the composer with the message ready and lets
+/// the rep pick the chat by hand.
+List<MaterialRecipient> _recipientsFor(Lead lead) {
+  final recipients = <MaterialRecipient>[];
+  final seen = <String>{};
+
+  final contacts = [...lead.contacts]
+    ..sort((a, b) {
+      if (a.isPrimary == b.isPrimary) return 0;
+      return a.isPrimary ? -1 : 1;
+    });
+
+  for (final contact in contacts) {
+    final name = contact.displayName.trim();
+    if (name.isEmpty) continue;
+    final key = '$name|${contact.phone.trim()}';
+    if (!seen.add(key)) continue;
+    recipients.add(MaterialRecipient(
+      name: name,
+      role: contact.role.trim(),
+      phone: contact.phone.trim(),
+    ));
+  }
+
+  final venue = lead.phone.trim();
+  if (venue.isNotEmpty && !recipients.any((r) => r.phone == venue)) {
+    recipients.add(MaterialRecipient(
+      name: lead.leadName.trim().isNotEmpty ? lead.leadName.trim() : venue,
+      phone: venue,
+    ));
+  }
+  return recipients;
 }
 
 class _Header extends StatelessWidget {

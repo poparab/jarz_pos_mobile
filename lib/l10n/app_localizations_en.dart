@@ -8423,4 +8423,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get visitEngineRecheck => 'Check again';
+
+  @override
+  String get materialsSectionTitle => 'Price list & materials';
+
+  @override
+  String get materialsSendCta => 'Send price list';
+
+  @override
+  String get materialsSendTitle => 'Send materials';
+
+  @override
+  String get materialsRecipientLabel => 'Send to';
+
+  @override
+  String get materialsNoRecipient =>
+      'No contacts on this lead yet. Add one first, or send anyway and pick the chat in WhatsApp.';
+
+  @override
+  String get materialsPickLabel => 'What to send';
+
+  @override
+  String get materialsPreparing => 'still preparing';
+
+  @override
+  String get materialsMessageLabel => 'Message';
+
+  @override
+  String get materialsSending => 'Creating link…';
+
+  @override
+  String get materialsLinkReady => 'Link created and logged on the lead.';
+
+  @override
+  String get materialsCopyLink => 'Copy link';
+
+  @override
+  String get materialsLinkCopied => 'Link copied';
+
+  @override
+  String get materialsLibraryEmpty =>
+      'No materials in the library yet. Ask a manager to upload the price list.';
+
+  @override
+  String get materialsRetry => 'Retry';
+
+  @override
+  String get materialsNothingSent => 'Nothing sent yet.';
+
+  @override
+  String get materialsHistoryUnavailable =>
+      'Could not load what was sent before.';
+
+  @override
+  String get materialsNotOpenedYet => 'Not opened yet';
+
+  @override
+  String materialsPageCount(Object count) {
+    return '$count pages';
+  }
+
+  @override
+  String materialsStillPreparing(Object count) {
+    return '$count of these files are still being prepared. The link works now; the first open may take a few seconds.';
+  }
+
+  @override
+  String materialsOpenedCount(Object count) {
+    return 'Opened $count×';
+  }
+
+  @override
+  String materialsSendFailed(Object error) {
+    return 'Could not create the link: $error';
+  }
+
+  @override
+  String materialsLoadFailed(Object error) {
+    return 'Could not load the material library: $error';
+  }
+
+  @override
+  String materialsLinkPlaceholderHint(Object token) {
+    return 'Leave $token where you want the link; it is replaced automatically when you send.';
+  }
 }

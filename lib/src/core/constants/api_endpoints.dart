@@ -459,6 +459,17 @@ abstract final class ApiEndpoints {
   static const getJourneyActionCalendar =
       '/api/method/jarz_pos.api.journey.get_action_calendar';
 
+  // ── Sales material sharing ────────────────────────────────────────────
+  // The price list a rep sends on WhatsApp after a visit. The app never sees
+  // the files: it picks a pack, the backend mints one public link, and the
+  // customer opens a page built for reading a price list on a phone.
+  static const getSalesMaterials =
+      '/api/method/jarz_pos.api.materials.get_sales_materials';
+  static const createMaterialShare =
+      '/api/method/jarz_pos.api.materials.create_material_share';
+  static const getMaterialShares =
+      '/api/method/jarz_pos.api.materials.get_material_shares';
+
   // ── B2B visit planning ────────────────────────────────────────────────
   // A day's field route: which doors, in what order. The catalog answers "who
   // is worth visiting"; these answer "and when am I actually going".

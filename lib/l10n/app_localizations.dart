@@ -14126,6 +14126,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check again'**
   String get visitEngineRecheck;
+
+  /// No description provided for @materialsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Price list & materials'**
+  String get materialsSectionTitle;
+
+  /// No description provided for @materialsSendCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Send price list'**
+  String get materialsSendCta;
+
+  /// No description provided for @materialsSendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send materials'**
+  String get materialsSendTitle;
+
+  /// No description provided for @materialsRecipientLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to'**
+  String get materialsRecipientLabel;
+
+  /// No description provided for @materialsNoRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'No contacts on this lead yet. Add one first, or send anyway and pick the chat in WhatsApp.'**
+  String get materialsNoRecipient;
+
+  /// No description provided for @materialsPickLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What to send'**
+  String get materialsPickLabel;
+
+  /// No description provided for @materialsPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'still preparing'**
+  String get materialsPreparing;
+
+  /// No description provided for @materialsMessageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get materialsMessageLabel;
+
+  /// No description provided for @materialsSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating link…'**
+  String get materialsSending;
+
+  /// No description provided for @materialsLinkReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Link created and logged on the lead.'**
+  String get materialsLinkReady;
+
+  /// No description provided for @materialsCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get materialsCopyLink;
+
+  /// No description provided for @materialsLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get materialsLinkCopied;
+
+  /// No description provided for @materialsLibraryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No materials in the library yet. Ask a manager to upload the price list.'**
+  String get materialsLibraryEmpty;
+
+  /// No description provided for @materialsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get materialsRetry;
+
+  /// No description provided for @materialsNothingSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing sent yet.'**
+  String get materialsNothingSent;
+
+  /// No description provided for @materialsHistoryUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load what was sent before.'**
+  String get materialsHistoryUnavailable;
+
+  /// No description provided for @materialsNotOpenedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not opened yet'**
+  String get materialsNotOpenedYet;
+
+  /// No description provided for @materialsPageCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} pages'**
+  String materialsPageCount(Object count);
+
+  /// No description provided for @materialsStillPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of these files are still being prepared. The link works now; the first open may take a few seconds.'**
+  String materialsStillPreparing(Object count);
+
+  /// No description provided for @materialsOpenedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Opened {count}×'**
+  String materialsOpenedCount(Object count);
+
+  /// No description provided for @materialsSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create the link: {error}'**
+  String materialsSendFailed(Object error);
+
+  /// No description provided for @materialsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the material library: {error}'**
+  String materialsLoadFailed(Object error);
+
+  /// No description provided for @materialsLinkPlaceholderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave {token} where you want the link; it is replaced automatically when you send.'**
+  String materialsLinkPlaceholderHint(Object token);
 }
 
 class _AppLocalizationsDelegate

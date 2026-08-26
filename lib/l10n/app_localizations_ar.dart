@@ -8390,4 +8390,87 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get visitEngineRecheck => 'إعادة الفحص';
+
+  @override
+  String get materialsSectionTitle => 'قائمة الأسعار والمواد';
+
+  @override
+  String get materialsSendCta => 'إرسال قائمة الأسعار';
+
+  @override
+  String get materialsSendTitle => 'إرسال المواد';
+
+  @override
+  String get materialsRecipientLabel => 'إرسال إلى';
+
+  @override
+  String get materialsNoRecipient =>
+      'لا توجد جهات اتصال على هذا العميل. أضف واحدة أولاً، أو أرسل واختر المحادثة داخل واتساب.';
+
+  @override
+  String get materialsPickLabel => 'المواد المرسلة';
+
+  @override
+  String get materialsPreparing => 'قيد التجهيز';
+
+  @override
+  String get materialsMessageLabel => 'الرسالة';
+
+  @override
+  String get materialsSending => 'جارٍ إنشاء الرابط…';
+
+  @override
+  String get materialsLinkReady => 'تم إنشاء الرابط وتسجيله على العميل.';
+
+  @override
+  String get materialsCopyLink => 'نسخ الرابط';
+
+  @override
+  String get materialsLinkCopied => 'تم نسخ الرابط';
+
+  @override
+  String get materialsLibraryEmpty =>
+      'لا توجد مواد في المكتبة بعد. اطلب من المدير رفع قائمة الأسعار.';
+
+  @override
+  String get materialsRetry => 'إعادة المحاولة';
+
+  @override
+  String get materialsNothingSent => 'لم يتم إرسال أي شيء بعد.';
+
+  @override
+  String get materialsHistoryUnavailable => 'تعذّر تحميل سجل الإرسال السابق.';
+
+  @override
+  String get materialsNotOpenedYet => 'لم يُفتح بعد';
+
+  @override
+  String materialsPageCount(Object count) {
+    return '$count صفحات';
+  }
+
+  @override
+  String materialsStillPreparing(Object count) {
+    return '$count من هذه الملفات ما زالت قيد التجهيز. الرابط يعمل الآن، لكن أول فتح قد يستغرق ثوانٍ.';
+  }
+
+  @override
+  String materialsOpenedCount(Object count) {
+    return 'فُتح $count مرة';
+  }
+
+  @override
+  String materialsSendFailed(Object error) {
+    return 'تعذّر إنشاء الرابط: $error';
+  }
+
+  @override
+  String materialsLoadFailed(Object error) {
+    return 'تعذّر تحميل مكتبة المواد: $error';
+  }
+
+  @override
+  String materialsLinkPlaceholderHint(Object token) {
+    return 'اترك $token في مكان الرابط؛ سيتم استبداله تلقائيًا عند الإرسال.';
+  }
 }
