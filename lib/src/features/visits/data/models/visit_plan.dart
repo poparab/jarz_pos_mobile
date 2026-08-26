@@ -197,8 +197,17 @@ class VisitTarget with _$VisitTarget {
   factory VisitTarget.fromJson(Map<String, dynamic> json) =>
       _$VisitTargetFromJson(json);
 
-  /// Stable identity for one door, matching the server's `VisitTarget.key`.
-  String get key => '$referenceDoctype:$referenceName:$branchName';
+  /// Stable identity for one door. MUST match `VisitTarget.key` on the server.
+  ///
+  /// Keyed on POSITION, not on the branch label: chains name every branch after
+  /// the chain (production carries 7 distinct T-LAB locations all called
+  /// "T-LAB"), so a label-keyed selection silently merged real addresses and
+  /// the rep who ticked nine boxes got a route with eight stops.
+  ///
+  /// The five-decimal formatting is part of the contract, not cosmetics — it is
+  /// what makes this string equal the one Python builds with `:.5f`.
+  String get key => '$referenceDoctype:$referenceName:'
+      '${latitude.toStringAsFixed(5)},${longitude.toStringAsFixed(5)}';
 
   bool get neverVisited => lastVisitDate == null;
 

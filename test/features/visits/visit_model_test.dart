@@ -175,13 +175,51 @@ void main() {
   });
 
   group('VisitTarget', () {
-    test('key is stable and distinguishes branches of one brand', () {
+    test('key distinguishes two doors of one brand', () {
       const maadi = VisitTarget(
-          referenceName: 'LEAD-1', title: 'Bean There', branchName: 'Maadi');
+          referenceName: 'LEAD-1',
+          title: 'Bean There',
+          branchName: 'Maadi',
+          latitude: 29.9601,
+          longitude: 31.2569);
       const zamalek = VisitTarget(
-          referenceName: 'LEAD-1', title: 'Bean There', branchName: 'Zamalek');
+          referenceName: 'LEAD-1',
+          title: 'Bean There',
+          branchName: 'Zamalek',
+          latitude: 30.0614,
+          longitude: 31.2197);
       expect(maadi.key, isNot(zamalek.key));
-      expect(maadi.key, 'Lead:LEAD-1:Maadi');
+      expect(maadi.key, 'Lead:LEAD-1:29.96010,31.25690');
+    });
+
+    test('two branches sharing a NAME are still two doors', () {
+      // Chains name every branch after the chain. A label-keyed selection
+      // merged them and the rep lost a real address off the route.
+      const first = VisitTarget(
+          referenceName: 'LEAD-9',
+          branchName: 'T-LAB',
+          latitude: 29.9601,
+          longitude: 31.2569);
+      const second = VisitTarget(
+          referenceName: 'LEAD-9',
+          branchName: 'T-LAB',
+          latitude: 30.0614,
+          longitude: 31.2197);
+      expect(first.key, isNot(second.key));
+    });
+
+    test('the same pin under two names is one door', () {
+      const a = VisitTarget(
+          referenceName: 'LEAD-9',
+          branchName: 'Maadi',
+          latitude: 29.9601,
+          longitude: 31.2569);
+      const b = VisitTarget(
+          referenceName: 'LEAD-9',
+          branchName: 'Maadi Branch',
+          latitude: 29.9601,
+          longitude: 31.2569);
+      expect(a.key, b.key);
     });
 
     test('carries its reasoning, not just a score', () {
