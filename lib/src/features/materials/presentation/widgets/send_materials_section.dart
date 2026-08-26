@@ -49,7 +49,7 @@ class SendMaterialsSection extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.picture_as_pdf_outlined,
+              Icon(Icons.receipt_long,
                   size: 18, color: theme.colorScheme.primary),
               const SizedBox(width: 8),
               Expanded(
@@ -71,7 +71,7 @@ class SendMaterialsSection extends ConsumerWidget {
                 referenceName: referenceName,
                 recipients: recipients,
               ),
-              icon: const Icon(Icons.send_rounded, size: 18),
+              icon: const Icon(Icons.send, size: 18),
               label: Text(l10n.materialsSendCta),
             ),
           ),
@@ -128,7 +128,7 @@ class _ShareRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
-            share.opened ? Icons.mark_email_read_outlined : Icons.schedule,
+            share.opened ? Icons.visibility : Icons.schedule,
             size: 16,
             color: share.opened
                 ? theme.colorScheme.primary

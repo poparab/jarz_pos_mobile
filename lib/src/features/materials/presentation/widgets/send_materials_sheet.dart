@@ -340,7 +340,7 @@ class _SendMaterialsSheetState extends ConsumerState<_SendMaterialsSheet> {
                         width: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.send_rounded),
+                    : const Icon(Icons.send),
                 label: Text(
                   _sending ? l10n.materialsSending : l10n.materialsSendCta,
                 ),
