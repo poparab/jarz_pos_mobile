@@ -35,10 +35,56 @@ class ActionCalendarScreen extends ConsumerStatefulWidget {
       _ActionCalendarScreenState();
 }
 
-class _ActionCalendarScreenState extends ConsumerState<ActionCalendarScreen> {
+class _ActionCalendarScreenState extends ConsumerState<ActionCalendarScreen>
+    with WidgetsBindingObserver {
   /// The day whose list is shown below the grid. Null until the rep taps, and
   /// deliberately dropped when the month changes — see [_effectiveSelection].
   DateTime? _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    // Resume is a revalidation trigger, not just a repaint. The grid's dots
+    // and its overdue colour are computed against the server's "today", so a
+    // phone that slept overnight comes back showing yesterday's answer until
+    // something refetches. Entering the screen already fetches — the provider
+    // is autoDispose — so this covers the case entry cannot: a screen that
+    // stayed mounted while the app was away.
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _revalidate();
+  }
+
+  /// Refetch the visible month.
+  ///
+  /// Invalidating an autoDispose FutureProvider that still has a listener
+  /// keeps the previous payload attached to the AsyncLoading, and `when` skips
+  /// loading on a refresh by default — so the grid stays on screen and only
+  /// quietly updates. A revalidation is therefore invisible when nothing
+  /// changed, which is what makes it safe to run on every resume and return.
+  Future<void> _revalidate() async {
+    if (!mounted) return;
+    final query = ref.read(actionCalendarQueryProvider);
+    ref.invalidate(actionCalendarProvider(query));
+    try {
+      // Awaited so the pull-to-refresh spinner tracks the real fetch instead
+      // of vanishing on the next frame. A failure needs no handling here: the
+      // provider's own state renders the error when there is nothing to keep,
+      // and a failed background revalidation keeps the last good month.
+      await ref.read(actionCalendarProvider(query).future);
+    } catch (_) {
+      // Swallowed on purpose — see above.
+    }
+  }
 
   /// Resolves what the list below the grid is showing.
   ///
@@ -97,11 +143,16 @@ class _ActionCalendarScreenState extends ConsumerState<ActionCalendarScreen> {
                 error: error,
                 onRetry: () => ref.invalidate(actionCalendarProvider(query)),
               ),
-              data: (calendar) => _CalendarBody(
-                query: query,
-                calendar: calendar,
-                selected: selected,
-                onSelectDay: (day) => setState(() => _selected = day),
+              // Pull-to-refresh as well as the app-bar button: the body is a
+              // list, so the gesture is the one a rep reaches for first.
+              data: (calendar) => RefreshIndicator(
+                onRefresh: _revalidate,
+                child: _CalendarBody(
+                  query: query,
+                  calendar: calendar,
+                  selected: selected,
+                  onSelectDay: (day) => setState(() => _selected = day),
+                ),
               ),
             ),
           ),
@@ -226,6 +277,9 @@ class _CalendarBody extends StatelessWidget {
     final dayActions = byDay[JourneyFormat.iso(selected)] ?? const [];
 
     return ListView(
+      // Always scrollable so the pull-to-refresh gesture works on a month
+      // whose list is too short to overflow.
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
       children: [
         _CountsStrip(counts: calendar.counts),
@@ -572,10 +626,16 @@ class _ActionTileState extends ConsumerState<_ActionTile> {
   /// Lead, Opportunity and Customer alike, and the calendar is reached from
   /// the B2B surfaces, so a rep stays in one place rather than being thrown
   /// into the leads catalog for half the list.
-  void _open() {
+  ///
+  /// The push is awaited and the month refetched on the way back: logging a
+  /// visit or ticking a promise off in there changes exactly what this grid
+  /// counts, and the calendar is not disposed while the account sits on top of
+  /// it — so without this the rep returns to the numbers they just changed and
+  /// has to press Refresh by hand.
+  Future<void> _open() async {
     final action = widget.action;
     if (action.referenceName.trim().isEmpty) return;
-    context.push(
+    await context.push(
       AppRoutes.b2bAccount,
       extra: <String, dynamic>{
         'doctype': action.referenceDoctype.isEmpty
@@ -584,6 +644,11 @@ class _ActionTileState extends ConsumerState<_ActionTile> {
         'name': action.referenceName,
       },
     );
+    if (!mounted) return;
+    ref.invalidate(actionCalendarProvider(widget.query));
+    // The account screen can close a follow-up too, and the feed behind this
+    // screen lists the same rows.
+    ref.invalidate(b2bTodayProvider);
   }
 
   @override
