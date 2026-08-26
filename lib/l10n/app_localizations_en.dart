@@ -8174,4 +8174,253 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leadContactRoleAccountant => 'Accountant';
+
+  @override
+  String get visitPlannerTitle => 'Visit planner';
+
+  @override
+  String get visitPlanDay => 'Plan a day';
+
+  @override
+  String get visitBuildDay => 'Build a day';
+
+  @override
+  String get visitRouteTitle => 'Route';
+
+  @override
+  String visitRouteFallbackTitle(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString stops',
+      one: '1 stop',
+      zero: 'Empty route',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get visitScopeMine => 'My routes';
+
+  @override
+  String get visitScopeAll => 'Everyone\'s routes';
+
+  @override
+  String get visitNoRoutesOnDay => 'No route planned for this day.';
+
+  @override
+  String get visitPlansLoadFailed =>
+      'Could not load routes. Pull down to try again.';
+
+  @override
+  String visitStopsCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString stops',
+      one: '1 stop',
+      zero: 'No stops',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String visitDistanceKm(String km) {
+    return '$km km';
+  }
+
+  @override
+  String visitDurationMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String visitDayTotal(String duration) {
+    return 'Day $duration';
+  }
+
+  @override
+  String visitLeg(String km, int minutes) {
+    return '$km km · $minutes min';
+  }
+
+  @override
+  String get visitNextStop => 'Next stop';
+
+  @override
+  String get visitGo => 'Go';
+
+  @override
+  String get visitNavigate => 'Navigate';
+
+  @override
+  String get visitCall => 'Call';
+
+  @override
+  String get visitCheckIn => 'Check in';
+
+  @override
+  String get visitSkip => 'Skip';
+
+  @override
+  String get visitReopen => 'Reopen';
+
+  @override
+  String get visitPin => 'Pin to this position';
+
+  @override
+  String get visitUnpin => 'Unpin';
+
+  @override
+  String get visitRemoveStop => 'Remove from route';
+
+  @override
+  String get visitOptimise => 'Optimise route';
+
+  @override
+  String get visitOptimiseFromHere => 'Optimise from where I am';
+
+  @override
+  String get visitNavigateWholeRoute => 'Open whole route in Maps';
+
+  @override
+  String get visitDeleteRoute => 'Delete route';
+
+  @override
+  String get visitDeleteRouteConfirm =>
+      'The route is removed. Visits already recorded stay in the diary.';
+
+  @override
+  String get visitNoStops => 'This route has no stops yet.';
+
+  @override
+  String get visitLocationUnavailable => 'Could not get your location.';
+
+  @override
+  String visitRouteTruncated(int handed, int total) {
+    return 'Maps takes $handed of $total stops at once. Navigate stop by stop for the rest.';
+  }
+
+  @override
+  String get visitOutcome => 'Outcome';
+
+  @override
+  String get visitLogJourneyNote => 'Log a journey note';
+
+  @override
+  String get visitLogJourneyNoteHint =>
+      'Records the visit on the lead\'s diary and drives its follow-up reminder.';
+
+  @override
+  String get visitNoteWhatHappened => 'What happened';
+
+  @override
+  String get visitNextAction => 'Next action';
+
+  @override
+  String get visitNextActionDate => 'Pick a date';
+
+  @override
+  String get visitMarkVisited => 'Visited';
+
+  @override
+  String get visitSuggestDay => 'Plan my day';
+
+  @override
+  String get visitMaxStops => 'Max stops';
+
+  @override
+  String get visitDayHours => 'Day (hours)';
+
+  @override
+  String get visitStartFromMyLocation => 'Start from my location';
+
+  @override
+  String get visitStartFromMyLocationHint =>
+      'Off plans around the best cluster anywhere.';
+
+  @override
+  String get visitIncludeCustomers => 'Include existing clients';
+
+  @override
+  String get visitIncludeCustomersHint =>
+      'Check-ups on active accounts along the way.';
+
+  @override
+  String get visitCandidateDoors => 'Doors worth visiting';
+
+  @override
+  String get visitClearSelection => 'Clear';
+
+  @override
+  String get visitNoCandidates => 'Nothing matches those filters.';
+
+  @override
+  String get visitTargetsLoadFailed => 'Could not load candidates.';
+
+  @override
+  String visitProposedDay(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString stops proposed',
+      one: '1 stop proposed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String visitConsidered(int count) {
+    return 'Weighed $count doors';
+  }
+
+  @override
+  String visitDroppedForTime(int count) {
+    return '$count dropped to fit the day';
+  }
+
+  @override
+  String visitSelectedCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString stops selected',
+      one: '1 stop selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get visitCreateRoute => 'Create route';
+
+  @override
+  String get visitEngineRoadExplained =>
+      'Distances and times come from the road network.';
+
+  @override
+  String get visitEngineEstimateExplained =>
+      'Distances are straight-line estimates adjusted for city driving. The visiting order is still solved properly; the minutes are approximate.';
+
+  @override
+  String get visitEngineRecheck => 'Check again';
 }

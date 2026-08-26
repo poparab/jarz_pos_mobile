@@ -48,6 +48,9 @@ import '../features/labels/presentation/screens/label_setup_wizard.dart';
 import '../features/b2b/presentation/screens/b2b_account_screen.dart';
 import '../features/b2b/presentation/screens/b2b_today_screen.dart';
 import '../features/journey/presentation/screens/action_calendar_screen.dart';
+import '../features/visits/presentation/screens/visit_builder_screen.dart';
+import '../features/visits/presentation/screens/visit_plan_screen.dart';
+import '../features/visits/presentation/screens/visit_plans_screen.dart';
 import '../features/pricing/presentation/screens/pricing_screen.dart';
 import '../features/leads/presentation/screens/leads_list_screen.dart';
 import '../features/leads/presentation/screens/leads_map_screen.dart';
@@ -482,6 +485,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.b2bCalendar,
         name: 'b2b-calendar',
         builder: (context, state) => const ActionCalendarScreen(),
+      ),
+      // Visit planner. `/b2b/visits/build` is declared BEFORE
+      // `/b2b/visits/:name` so the literal segment wins the match — a route
+      // named "build" would otherwise open a plan that does not exist.
+      GoRoute(
+        path: AppRoutes.b2bVisits,
+        name: 'b2b-visits',
+        builder: (context, state) => const VisitPlansScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.b2bVisitBuilder,
+        name: 'b2b-visit-builder',
+        builder: (context, state) => const VisitBuilderScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.b2bVisitPlan}/:name',
+        name: 'b2b-visit-plan',
+        builder: (context, state) => VisitPlanScreen(
+          planName: Uri.decodeComponent(state.pathParameters['name'] ?? ''),
+        ),
       ),
       GoRoute(
         path: AppRoutes.b2bAccount,

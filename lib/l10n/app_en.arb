@@ -4774,5 +4774,150 @@
   "leadContactRoleShiftManager": "Shift Manager",
   "leadContactRoleBarista": "Barista",
   "leadContactRolePurchasing": "Purchasing",
-  "leadContactRoleAccountant": "Accountant"
+  "leadContactRoleAccountant": "Accountant",
+  "visitPlannerTitle": "Visit planner",
+  "visitPlanDay": "Plan a day",
+  "visitBuildDay": "Build a day",
+  "visitRouteTitle": "Route",
+  "visitRouteFallbackTitle": "{count, plural, =0{Empty route} =1{1 stop} other{{count} stops}}",
+  "@visitRouteFallbackTitle": {
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "visitScopeMine": "My routes",
+  "visitScopeAll": "Everyone''s routes",
+  "visitNoRoutesOnDay": "No route planned for this day.",
+  "visitPlansLoadFailed": "Could not load routes. Pull down to try again.",
+  "visitStopsCount": "{count, plural, =0{No stops} =1{1 stop} other{{count} stops}}",
+  "@visitStopsCount": {
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "visitDistanceKm": "{km} km",
+  "@visitDistanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "visitDurationMinutes": "{minutes} min",
+  "@visitDurationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "visitDayTotal": "Day {duration}",
+  "@visitDayTotal": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "visitLeg": "{km} km · {minutes} min",
+  "@visitLeg": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "visitNextStop": "Next stop",
+  "visitGo": "Go",
+  "visitNavigate": "Navigate",
+  "visitCall": "Call",
+  "visitCheckIn": "Check in",
+  "visitSkip": "Skip",
+  "visitReopen": "Reopen",
+  "visitPin": "Pin to this position",
+  "visitUnpin": "Unpin",
+  "visitRemoveStop": "Remove from route",
+  "visitOptimise": "Optimise route",
+  "visitOptimiseFromHere": "Optimise from where I am",
+  "visitNavigateWholeRoute": "Open whole route in Maps",
+  "visitDeleteRoute": "Delete route",
+  "visitDeleteRouteConfirm": "The route is removed. Visits already recorded stay in the diary.",
+  "visitNoStops": "This route has no stops yet.",
+  "visitLocationUnavailable": "Could not get your location.",
+  "visitRouteTruncated": "Maps takes {handed} of {total} stops at once. Navigate stop by stop for the rest.",
+  "@visitRouteTruncated": {
+    "placeholders": {
+      "handed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "visitOutcome": "Outcome",
+  "visitLogJourneyNote": "Log a journey note",
+  "visitLogJourneyNoteHint": "Records the visit on the lead''s diary and drives its follow-up reminder.",
+  "visitNoteWhatHappened": "What happened",
+  "visitNextAction": "Next action",
+  "visitNextActionDate": "Pick a date",
+  "visitMarkVisited": "Visited",
+  "visitSuggestDay": "Plan my day",
+  "visitMaxStops": "Max stops",
+  "visitDayHours": "Day (hours)",
+  "visitStartFromMyLocation": "Start from my location",
+  "visitStartFromMyLocationHint": "Off plans around the best cluster anywhere.",
+  "visitIncludeCustomers": "Include existing clients",
+  "visitIncludeCustomersHint": "Check-ups on active accounts along the way.",
+  "visitCandidateDoors": "Doors worth visiting",
+  "visitClearSelection": "Clear",
+  "visitNoCandidates": "Nothing matches those filters.",
+  "visitTargetsLoadFailed": "Could not load candidates.",
+  "visitProposedDay": "{count, plural, =1{1 stop proposed} other{{count} stops proposed}}",
+  "@visitProposedDay": {
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "visitConsidered": "Weighed {count} doors",
+  "@visitConsidered": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "visitDroppedForTime": "{count} dropped to fit the day",
+  "@visitDroppedForTime": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "visitSelectedCount": "{count, plural, =1{1 stop selected} other{{count} stops selected}}",
+  "@visitSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "visitCreateRoute": "Create route",
+  "visitEngineRoadExplained": "Distances and times come from the road network.",
+  "visitEngineEstimateExplained": "Distances are straight-line estimates adjusted for city driving. The visiting order is still solved properly; the minutes are approximate.",
+  "visitEngineRecheck": "Check again"
 }

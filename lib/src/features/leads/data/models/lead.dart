@@ -90,6 +90,14 @@ class Lead with _$Lead {
     // Rides on BOTH the catalog row and the detail: a rep looking at a card
     // needs to know who to ask for before walking in, not after opening it.
     @Default(<LeadContact>[]) List<LeadContact> contacts,
+    // ── Doors ─────────────────────────────────────────────────────────────
+    // Every LOCATED branch of the brand, on the catalog row as well as the
+    // detail. A brand is not a place you can visit: a chain with six branches
+    // is six doors in six areas, and the visit planner routes to doors. Rides
+    // on `get_leads` because the map and the route builder both work off the
+    // cached catalog. Branches with no pin are dropped server-side, so every
+    // entry here is plottable.
+    @Default(<LeadLocation>[]) List<LeadLocation> locations,
     // ── Detail-only fields (present on get_lead, null on get_leads) ────────
     @JsonKey(name: 'branches') @Default(<LeadBranch>[]) List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
@@ -201,6 +209,35 @@ class LeadBranch with _$LeadBranch {
 
   factory LeadBranch.fromJson(Map<String, dynamic> json) =>
       _$LeadBranchFromJson(json);
+}
+
+/// A branch reduced to what a route needs: where it is and how to reach it.
+///
+/// Deliberately a separate, smaller type from [LeadBranch] rather than reusing
+/// it. This one rides on EVERY row of a ~2,400-lead catalog, so it carries the
+/// routing view of a door (position, address, phone) and not the research view
+/// (ratings, review counts, opening hours, Talabat presence). [latitude] and
+/// [longitude] are non-null because the server drops unlocated rows.
+@freezed
+class LeadLocation with _$LeadLocation {
+  const LeadLocation._();
+
+  const factory LeadLocation({
+    @JsonKey(name: 'branch_name') @Default('') String branchName,
+    @Default('') String area,
+    @Default(0.0) double latitude,
+    @Default(0.0) double longitude,
+    @Default('') String address,
+    @Default('') String phone,
+    @JsonKey(name: 'maps_url') @Default('') String mapsUrl,
+  }) = _LeadLocation;
+
+  factory LeadLocation.fromJson(Map<String, dynamic> json) =>
+      _$LeadLocationFromJson(json);
+
+  /// Whether the pin is usable. (0, 0) is in the Atlantic and is what an unset
+  /// coordinate decodes to, so it is never a place.
+  bool get hasPin => latitude != 0.0 && longitude != 0.0;
 }
 
 /// A postal address attached to a lead (primary or shipping).

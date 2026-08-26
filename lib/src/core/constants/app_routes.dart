@@ -53,6 +53,13 @@ abstract final class AppRoutes {
   // actions the per-account journey timeline writes.
   static const b2bCalendar = '/b2b/calendar';
 
+  // ── Visit planner ─────────────────────────────────────────────────────
+  // The rep's field days: a month of routes, one route, and the builder that
+  // turns a filtered slice of the catalog into a driveable day.
+  static const b2bVisits = '/b2b/visits';
+  static const b2bVisitPlan = '/b2b/visits/plan';
+  static const b2bVisitBuilder = '/b2b/visits/build';
+
   // ── Pricing (Price Lists) ─────────────────────────────────────────────
   static const pricing = '/pricing';
 

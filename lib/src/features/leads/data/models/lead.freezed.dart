@@ -120,6 +120,14 @@ mixin _$Lead {
   // Rides on BOTH the catalog row and the detail: a rep looking at a card
   // needs to know who to ask for before walking in, not after opening it.
   List<LeadContact> get contacts =>
+      throw _privateConstructorUsedError; // ── Doors ─────────────────────────────────────────────────────────────
+  // Every LOCATED branch of the brand, on the catalog row as well as the
+  // detail. A brand is not a place you can visit: a chain with six branches
+  // is six doors in six areas, and the visit planner routes to doors. Rides
+  // on `get_leads` because the map and the route builder both work off the
+  // cached catalog. Branches with no pin are dropped server-side, so every
+  // entry here is plottable.
+  List<LeadLocation> get locations =>
       throw _privateConstructorUsedError; // ── Detail-only fields (present on get_lead, null on get_leads) ────────
   @JsonKey(name: 'branches')
   List<LeadBranch> get branches => throw _privateConstructorUsedError;
@@ -209,6 +217,7 @@ abstract class $LeadCopyWith<$Res> {
     @JsonKey(name: 'merged_on') String? mergedOn,
     @JsonKey(name: 'merged_by') String mergedBy,
     List<LeadContact> contacts,
+    List<LeadLocation> locations,
     @JsonKey(name: 'branches') List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') LeadAddress? shippingAddress,
@@ -287,6 +296,7 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
     Object? mergedOn = freezed,
     Object? mergedBy = null,
     Object? contacts = null,
+    Object? locations = null,
     Object? branches = null,
     Object? primaryAddress = freezed,
     Object? shippingAddress = freezed,
@@ -482,6 +492,10 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
                 ? _value.contacts
                 : contacts // ignore: cast_nullable_to_non_nullable
                       as List<LeadContact>,
+            locations: null == locations
+                ? _value.locations
+                : locations // ignore: cast_nullable_to_non_nullable
+                      as List<LeadLocation>,
             branches: null == branches
                 ? _value.branches
                 : branches // ignore: cast_nullable_to_non_nullable
@@ -618,6 +632,7 @@ abstract class _$$LeadImplCopyWith<$Res> implements $LeadCopyWith<$Res> {
     @JsonKey(name: 'merged_on') String? mergedOn,
     @JsonKey(name: 'merged_by') String mergedBy,
     List<LeadContact> contacts,
+    List<LeadLocation> locations,
     @JsonKey(name: 'branches') List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') LeadAddress? shippingAddress,
@@ -695,6 +710,7 @@ class __$$LeadImplCopyWithImpl<$Res>
     Object? mergedOn = freezed,
     Object? mergedBy = null,
     Object? contacts = null,
+    Object? locations = null,
     Object? branches = null,
     Object? primaryAddress = freezed,
     Object? shippingAddress = freezed,
@@ -890,6 +906,10 @@ class __$$LeadImplCopyWithImpl<$Res>
             ? _value._contacts
             : contacts // ignore: cast_nullable_to_non_nullable
                   as List<LeadContact>,
+        locations: null == locations
+            ? _value._locations
+            : locations // ignore: cast_nullable_to_non_nullable
+                  as List<LeadLocation>,
         branches: null == branches
             ? _value._branches
             : branches // ignore: cast_nullable_to_non_nullable
@@ -993,6 +1013,7 @@ class _$LeadImpl extends _Lead {
     @JsonKey(name: 'merged_on') this.mergedOn,
     @JsonKey(name: 'merged_by') this.mergedBy = '',
     final List<LeadContact> contacts = const <LeadContact>[],
+    final List<LeadLocation> locations = const <LeadLocation>[],
     @JsonKey(name: 'branches')
     final List<LeadBranch> branches = const <LeadBranch>[],
     @JsonKey(name: 'primary_address') this.primaryAddress,
@@ -1012,6 +1033,7 @@ class _$LeadImpl extends _Lead {
        _governorates = governorates,
        _areas = areas,
        _contacts = contacts,
+       _locations = locations,
        _branches = branches,
        _journeyNotes = journeyNotes,
        super._();
@@ -1211,6 +1233,29 @@ class _$LeadImpl extends _Lead {
     return EqualUnmodifiableListView(_contacts);
   }
 
+  // ── Doors ─────────────────────────────────────────────────────────────
+  // Every LOCATED branch of the brand, on the catalog row as well as the
+  // detail. A brand is not a place you can visit: a chain with six branches
+  // is six doors in six areas, and the visit planner routes to doors. Rides
+  // on `get_leads` because the map and the route builder both work off the
+  // cached catalog. Branches with no pin are dropped server-side, so every
+  // entry here is plottable.
+  final List<LeadLocation> _locations;
+  // ── Doors ─────────────────────────────────────────────────────────────
+  // Every LOCATED branch of the brand, on the catalog row as well as the
+  // detail. A brand is not a place you can visit: a chain with six branches
+  // is six doors in six areas, and the visit planner routes to doors. Rides
+  // on `get_leads` because the map and the route builder both work off the
+  // cached catalog. Branches with no pin are dropped server-side, so every
+  // entry here is plottable.
+  @override
+  @JsonKey()
+  List<LeadLocation> get locations {
+    if (_locations is EqualUnmodifiableListView) return _locations;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_locations);
+  }
+
   // ── Detail-only fields (present on get_lead, null on get_leads) ────────
   final List<LeadBranch> _branches;
   // ── Detail-only fields (present on get_lead, null on get_leads) ────────
@@ -1267,7 +1312,7 @@ class _$LeadImpl extends _Lead {
 
   @override
   String toString() {
-    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, takeout: $takeout, dineIn: $dineIn, servesDessert: $servesDessert, onTalabat: $onTalabat, talabatAreas: $talabatAreas, talabatRating: $talabatRating, talabatReviews: $talabatReviews, talabatRatingSource: $talabatRatingSource, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, contacts: $contacts, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes, journeyCount: $journeyCount, lastJourneyDate: $lastJourneyDate, lastJourneyType: $lastJourneyType, lastJourneyNote: $lastJourneyNote, lastJourneyContact: $lastJourneyContact, nextActionDate: $nextActionDate, nextAction: $nextAction, journeyNotes: $journeyNotes)';
+    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, takeout: $takeout, dineIn: $dineIn, servesDessert: $servesDessert, onTalabat: $onTalabat, talabatAreas: $talabatAreas, talabatRating: $talabatRating, talabatReviews: $talabatReviews, talabatRatingSource: $talabatRatingSource, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, contacts: $contacts, locations: $locations, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes, journeyCount: $journeyCount, lastJourneyDate: $lastJourneyDate, lastJourneyType: $lastJourneyType, lastJourneyNote: $lastJourneyNote, lastJourneyContact: $lastJourneyContact, nextActionDate: $nextActionDate, nextAction: $nextAction, journeyNotes: $journeyNotes)';
   }
 
   @override
@@ -1357,6 +1402,10 @@ class _$LeadImpl extends _Lead {
             (identical(other.mergedBy, mergedBy) ||
                 other.mergedBy == mergedBy) &&
             const DeepCollectionEquality().equals(other._contacts, _contacts) &&
+            const DeepCollectionEquality().equals(
+              other._locations,
+              _locations,
+            ) &&
             const DeepCollectionEquality().equals(other._branches, _branches) &&
             (identical(other.primaryAddress, primaryAddress) ||
                 other.primaryAddress == primaryAddress) &&
@@ -1432,6 +1481,7 @@ class _$LeadImpl extends _Lead {
     mergedOn,
     mergedBy,
     const DeepCollectionEquality().hash(_contacts),
+    const DeepCollectionEquality().hash(_locations),
     const DeepCollectionEquality().hash(_branches),
     primaryAddress,
     shippingAddress,
@@ -1507,6 +1557,7 @@ abstract class _Lead extends Lead {
     @JsonKey(name: 'merged_on') final String? mergedOn,
     @JsonKey(name: 'merged_by') final String mergedBy,
     final List<LeadContact> contacts,
+    final List<LeadLocation> locations,
     @JsonKey(name: 'branches') final List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') final LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') final LeadAddress? shippingAddress,
@@ -1666,7 +1717,15 @@ abstract class _Lead extends Lead {
   // Rides on BOTH the catalog row and the detail: a rep looking at a card
   // needs to know who to ask for before walking in, not after opening it.
   @override
-  List<LeadContact> get contacts; // ── Detail-only fields (present on get_lead, null on get_leads) ────────
+  List<LeadContact> get contacts; // ── Doors ─────────────────────────────────────────────────────────────
+  // Every LOCATED branch of the brand, on the catalog row as well as the
+  // detail. A brand is not a place you can visit: a chain with six branches
+  // is six doors in six areas, and the visit planner routes to doors. Rides
+  // on `get_leads` because the map and the route builder both work off the
+  // cached catalog. Branches with no pin are dropped server-side, so every
+  // entry here is plottable.
+  @override
+  List<LeadLocation> get locations; // ── Detail-only fields (present on get_lead, null on get_leads) ────────
   @override
   @JsonKey(name: 'branches')
   List<LeadBranch> get branches;
@@ -2575,6 +2634,313 @@ abstract class _LeadBranch implements LeadBranch {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$LeadBranchImplCopyWith<_$LeadBranchImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+LeadLocation _$LeadLocationFromJson(Map<String, dynamic> json) {
+  return _LeadLocation.fromJson(json);
+}
+
+/// @nodoc
+mixin _$LeadLocation {
+  @JsonKey(name: 'branch_name')
+  String get branchName => throw _privateConstructorUsedError;
+  String get area => throw _privateConstructorUsedError;
+  double get latitude => throw _privateConstructorUsedError;
+  double get longitude => throw _privateConstructorUsedError;
+  String get address => throw _privateConstructorUsedError;
+  String get phone => throw _privateConstructorUsedError;
+  @JsonKey(name: 'maps_url')
+  String get mapsUrl => throw _privateConstructorUsedError;
+
+  /// Serializes this LeadLocation to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of LeadLocation
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $LeadLocationCopyWith<LeadLocation> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $LeadLocationCopyWith<$Res> {
+  factory $LeadLocationCopyWith(
+    LeadLocation value,
+    $Res Function(LeadLocation) then,
+  ) = _$LeadLocationCopyWithImpl<$Res, LeadLocation>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'branch_name') String branchName,
+    String area,
+    double latitude,
+    double longitude,
+    String address,
+    String phone,
+    @JsonKey(name: 'maps_url') String mapsUrl,
+  });
+}
+
+/// @nodoc
+class _$LeadLocationCopyWithImpl<$Res, $Val extends LeadLocation>
+    implements $LeadLocationCopyWith<$Res> {
+  _$LeadLocationCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of LeadLocation
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? branchName = null,
+    Object? area = null,
+    Object? latitude = null,
+    Object? longitude = null,
+    Object? address = null,
+    Object? phone = null,
+    Object? mapsUrl = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            branchName: null == branchName
+                ? _value.branchName
+                : branchName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            area: null == area
+                ? _value.area
+                : area // ignore: cast_nullable_to_non_nullable
+                      as String,
+            latitude: null == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double,
+            longitude: null == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double,
+            address: null == address
+                ? _value.address
+                : address // ignore: cast_nullable_to_non_nullable
+                      as String,
+            phone: null == phone
+                ? _value.phone
+                : phone // ignore: cast_nullable_to_non_nullable
+                      as String,
+            mapsUrl: null == mapsUrl
+                ? _value.mapsUrl
+                : mapsUrl // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$LeadLocationImplCopyWith<$Res>
+    implements $LeadLocationCopyWith<$Res> {
+  factory _$$LeadLocationImplCopyWith(
+    _$LeadLocationImpl value,
+    $Res Function(_$LeadLocationImpl) then,
+  ) = __$$LeadLocationImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'branch_name') String branchName,
+    String area,
+    double latitude,
+    double longitude,
+    String address,
+    String phone,
+    @JsonKey(name: 'maps_url') String mapsUrl,
+  });
+}
+
+/// @nodoc
+class __$$LeadLocationImplCopyWithImpl<$Res>
+    extends _$LeadLocationCopyWithImpl<$Res, _$LeadLocationImpl>
+    implements _$$LeadLocationImplCopyWith<$Res> {
+  __$$LeadLocationImplCopyWithImpl(
+    _$LeadLocationImpl _value,
+    $Res Function(_$LeadLocationImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of LeadLocation
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? branchName = null,
+    Object? area = null,
+    Object? latitude = null,
+    Object? longitude = null,
+    Object? address = null,
+    Object? phone = null,
+    Object? mapsUrl = null,
+  }) {
+    return _then(
+      _$LeadLocationImpl(
+        branchName: null == branchName
+            ? _value.branchName
+            : branchName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        area: null == area
+            ? _value.area
+            : area // ignore: cast_nullable_to_non_nullable
+                  as String,
+        latitude: null == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double,
+        longitude: null == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double,
+        address: null == address
+            ? _value.address
+            : address // ignore: cast_nullable_to_non_nullable
+                  as String,
+        phone: null == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String,
+        mapsUrl: null == mapsUrl
+            ? _value.mapsUrl
+            : mapsUrl // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$LeadLocationImpl extends _LeadLocation {
+  const _$LeadLocationImpl({
+    @JsonKey(name: 'branch_name') this.branchName = '',
+    this.area = '',
+    this.latitude = 0.0,
+    this.longitude = 0.0,
+    this.address = '',
+    this.phone = '',
+    @JsonKey(name: 'maps_url') this.mapsUrl = '',
+  }) : super._();
+
+  factory _$LeadLocationImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LeadLocationImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'branch_name')
+  final String branchName;
+  @override
+  @JsonKey()
+  final String area;
+  @override
+  @JsonKey()
+  final double latitude;
+  @override
+  @JsonKey()
+  final double longitude;
+  @override
+  @JsonKey()
+  final String address;
+  @override
+  @JsonKey()
+  final String phone;
+  @override
+  @JsonKey(name: 'maps_url')
+  final String mapsUrl;
+
+  @override
+  String toString() {
+    return 'LeadLocation(branchName: $branchName, area: $area, latitude: $latitude, longitude: $longitude, address: $address, phone: $phone, mapsUrl: $mapsUrl)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$LeadLocationImpl &&
+            (identical(other.branchName, branchName) ||
+                other.branchName == branchName) &&
+            (identical(other.area, area) || other.area == area) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.mapsUrl, mapsUrl) || other.mapsUrl == mapsUrl));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    branchName,
+    area,
+    latitude,
+    longitude,
+    address,
+    phone,
+    mapsUrl,
+  );
+
+  /// Create a copy of LeadLocation
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$LeadLocationImplCopyWith<_$LeadLocationImpl> get copyWith =>
+      __$$LeadLocationImplCopyWithImpl<_$LeadLocationImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$LeadLocationImplToJson(this);
+  }
+}
+
+abstract class _LeadLocation extends LeadLocation {
+  const factory _LeadLocation({
+    @JsonKey(name: 'branch_name') final String branchName,
+    final String area,
+    final double latitude,
+    final double longitude,
+    final String address,
+    final String phone,
+    @JsonKey(name: 'maps_url') final String mapsUrl,
+  }) = _$LeadLocationImpl;
+  const _LeadLocation._() : super._();
+
+  factory _LeadLocation.fromJson(Map<String, dynamic> json) =
+      _$LeadLocationImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'branch_name')
+  String get branchName;
+  @override
+  String get area;
+  @override
+  double get latitude;
+  @override
+  double get longitude;
+  @override
+  String get address;
+  @override
+  String get phone;
+  @override
+  @JsonKey(name: 'maps_url')
+  String get mapsUrl;
+
+  /// Create a copy of LeadLocation
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$LeadLocationImplCopyWith<_$LeadLocationImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 

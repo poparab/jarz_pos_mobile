@@ -68,6 +68,11 @@ _$LeadImpl _$$LeadImplFromJson(Map<String, dynamic> json) => _$LeadImpl(
           ?.map((e) => LeadContact.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const <LeadContact>[],
+  locations:
+      (json['locations'] as List<dynamic>?)
+          ?.map((e) => LeadLocation.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <LeadLocation>[],
   branches:
       (json['branches'] as List<dynamic>?)
           ?.map((e) => LeadBranch.fromJson(e as Map<String, dynamic>))
@@ -141,6 +146,7 @@ Map<String, dynamic> _$$LeadImplToJson(_$LeadImpl instance) =>
       'merged_on': instance.mergedOn,
       'merged_by': instance.mergedBy,
       'contacts': instance.contacts,
+      'locations': instance.locations,
       'branches': instance.branches,
       'primary_address': instance.primaryAddress,
       'shipping_address': instance.shippingAddress,
@@ -219,6 +225,28 @@ Map<String, dynamic> _$$LeadBranchImplToJson(_$LeadBranchImpl instance) =>
       'talabat_rating': instance.talabatRating,
       'talabat_reviews': instance.talabatReviews,
       'talabat_rating_source': instance.talabatRatingSource,
+    };
+
+_$LeadLocationImpl _$$LeadLocationImplFromJson(Map<String, dynamic> json) =>
+    _$LeadLocationImpl(
+      branchName: json['branch_name'] as String? ?? '',
+      area: json['area'] as String? ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+      address: json['address'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+      mapsUrl: json['maps_url'] as String? ?? '',
+    );
+
+Map<String, dynamic> _$$LeadLocationImplToJson(_$LeadLocationImpl instance) =>
+    <String, dynamic>{
+      'branch_name': instance.branchName,
+      'area': instance.area,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'address': instance.address,
+      'phone': instance.phone,
+      'maps_url': instance.mapsUrl,
     };
 
 _$LeadAddressImpl _$$LeadAddressImplFromJson(Map<String, dynamic> json) =>

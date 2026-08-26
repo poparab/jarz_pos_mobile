@@ -13778,6 +13778,354 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Accountant'**
   String get leadContactRoleAccountant;
+
+  /// No description provided for @visitPlannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit planner'**
+  String get visitPlannerTitle;
+
+  /// No description provided for @visitPlanDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan a day'**
+  String get visitPlanDay;
+
+  /// No description provided for @visitBuildDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Build a day'**
+  String get visitBuildDay;
+
+  /// No description provided for @visitRouteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Route'**
+  String get visitRouteTitle;
+
+  /// No description provided for @visitRouteFallbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Empty route} =1{1 stop} other{{count} stops}}'**
+  String visitRouteFallbackTitle(num count);
+
+  /// No description provided for @visitScopeMine.
+  ///
+  /// In en, this message translates to:
+  /// **'My routes'**
+  String get visitScopeMine;
+
+  /// No description provided for @visitScopeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone\'\'s routes'**
+  String get visitScopeAll;
+
+  /// No description provided for @visitNoRoutesOnDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No route planned for this day.'**
+  String get visitNoRoutesOnDay;
+
+  /// No description provided for @visitPlansLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load routes. Pull down to try again.'**
+  String get visitPlansLoadFailed;
+
+  /// No description provided for @visitStopsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No stops} =1{1 stop} other{{count} stops}}'**
+  String visitStopsCount(num count);
+
+  /// No description provided for @visitDistanceKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km'**
+  String visitDistanceKm(String km);
+
+  /// No description provided for @visitDurationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String visitDurationMinutes(int minutes);
+
+  /// No description provided for @visitDayTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {duration}'**
+  String visitDayTotal(String duration);
+
+  /// No description provided for @visitLeg.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km · {minutes} min'**
+  String visitLeg(String km, int minutes);
+
+  /// No description provided for @visitNextStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Next stop'**
+  String get visitNextStop;
+
+  /// No description provided for @visitGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Go'**
+  String get visitGo;
+
+  /// No description provided for @visitNavigate.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate'**
+  String get visitNavigate;
+
+  /// No description provided for @visitCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get visitCall;
+
+  /// No description provided for @visitCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in'**
+  String get visitCheckIn;
+
+  /// No description provided for @visitSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get visitSkip;
+
+  /// No description provided for @visitReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get visitReopen;
+
+  /// No description provided for @visitPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to this position'**
+  String get visitPin;
+
+  /// No description provided for @visitUnpin.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get visitUnpin;
+
+  /// No description provided for @visitRemoveStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from route'**
+  String get visitRemoveStop;
+
+  /// No description provided for @visitOptimise.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimise route'**
+  String get visitOptimise;
+
+  /// No description provided for @visitOptimiseFromHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimise from where I am'**
+  String get visitOptimiseFromHere;
+
+  /// No description provided for @visitNavigateWholeRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Open whole route in Maps'**
+  String get visitNavigateWholeRoute;
+
+  /// No description provided for @visitDeleteRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete route'**
+  String get visitDeleteRoute;
+
+  /// No description provided for @visitDeleteRouteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'The route is removed. Visits already recorded stay in the diary.'**
+  String get visitDeleteRouteConfirm;
+
+  /// No description provided for @visitNoStops.
+  ///
+  /// In en, this message translates to:
+  /// **'This route has no stops yet.'**
+  String get visitNoStops;
+
+  /// No description provided for @visitLocationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not get your location.'**
+  String get visitLocationUnavailable;
+
+  /// No description provided for @visitRouteTruncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Maps takes {handed} of {total} stops at once. Navigate stop by stop for the rest.'**
+  String visitRouteTruncated(int handed, int total);
+
+  /// No description provided for @visitOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Outcome'**
+  String get visitOutcome;
+
+  /// No description provided for @visitLogJourneyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a journey note'**
+  String get visitLogJourneyNote;
+
+  /// No description provided for @visitLogJourneyNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Records the visit on the lead\'\'s diary and drives its follow-up reminder.'**
+  String get visitLogJourneyNoteHint;
+
+  /// No description provided for @visitNoteWhatHappened.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened'**
+  String get visitNoteWhatHappened;
+
+  /// No description provided for @visitNextAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Next action'**
+  String get visitNextAction;
+
+  /// No description provided for @visitNextActionDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get visitNextActionDate;
+
+  /// No description provided for @visitMarkVisited.
+  ///
+  /// In en, this message translates to:
+  /// **'Visited'**
+  String get visitMarkVisited;
+
+  /// No description provided for @visitSuggestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan my day'**
+  String get visitSuggestDay;
+
+  /// No description provided for @visitMaxStops.
+  ///
+  /// In en, this message translates to:
+  /// **'Max stops'**
+  String get visitMaxStops;
+
+  /// No description provided for @visitDayHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Day (hours)'**
+  String get visitDayHours;
+
+  /// No description provided for @visitStartFromMyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from my location'**
+  String get visitStartFromMyLocation;
+
+  /// No description provided for @visitStartFromMyLocationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Off plans around the best cluster anywhere.'**
+  String get visitStartFromMyLocationHint;
+
+  /// No description provided for @visitIncludeCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Include existing clients'**
+  String get visitIncludeCustomers;
+
+  /// No description provided for @visitIncludeCustomersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ups on active accounts along the way.'**
+  String get visitIncludeCustomersHint;
+
+  /// No description provided for @visitCandidateDoors.
+  ///
+  /// In en, this message translates to:
+  /// **'Doors worth visiting'**
+  String get visitCandidateDoors;
+
+  /// No description provided for @visitClearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get visitClearSelection;
+
+  /// No description provided for @visitNoCandidates.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches those filters.'**
+  String get visitNoCandidates;
+
+  /// No description provided for @visitTargetsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load candidates.'**
+  String get visitTargetsLoadFailed;
+
+  /// No description provided for @visitProposedDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 stop proposed} other{{count} stops proposed}}'**
+  String visitProposedDay(num count);
+
+  /// No description provided for @visitConsidered.
+  ///
+  /// In en, this message translates to:
+  /// **'Weighed {count} doors'**
+  String visitConsidered(int count);
+
+  /// No description provided for @visitDroppedForTime.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dropped to fit the day'**
+  String visitDroppedForTime(int count);
+
+  /// No description provided for @visitSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 stop selected} other{{count} stops selected}}'**
+  String visitSelectedCount(num count);
+
+  /// No description provided for @visitCreateRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Create route'**
+  String get visitCreateRoute;
+
+  /// No description provided for @visitEngineRoadExplained.
+  ///
+  /// In en, this message translates to:
+  /// **'Distances and times come from the road network.'**
+  String get visitEngineRoadExplained;
+
+  /// No description provided for @visitEngineEstimateExplained.
+  ///
+  /// In en, this message translates to:
+  /// **'Distances are straight-line estimates adjusted for city driving. The visiting order is still solved properly; the minutes are approximate.'**
+  String get visitEngineEstimateExplained;
+
+  /// No description provided for @visitEngineRecheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get visitEngineRecheck;
 }
 
 class _AppLocalizationsDelegate

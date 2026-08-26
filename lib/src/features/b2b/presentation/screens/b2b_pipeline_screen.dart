@@ -70,6 +70,14 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
             icon: const Icon(Icons.calendar_month),
             onPressed: () => context.push(AppRoutes.b2bCalendar),
           ),
+          // The calendar answers "what do I owe and when"; this answers
+          // "where am I going, and in what order". Surfaced on the board
+          // because that is where a rep decides who is worth a Saturday.
+          IconButton(
+            tooltip: context.l10n.visitPlannerTitle,
+            icon: const Icon(Icons.route),
+            onPressed: () => context.push(AppRoutes.b2bVisits),
+          ),
           // Printed-label stock. Surfaced here as well as in the drawer because
           // the rep who owns these accounts lives on this board, and a label
           // that needs printing is a days-long lead time, not a same-day fix.

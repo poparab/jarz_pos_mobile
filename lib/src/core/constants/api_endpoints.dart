@@ -459,6 +459,36 @@ abstract final class ApiEndpoints {
   static const getJourneyActionCalendar =
       '/api/method/jarz_pos.api.journey.get_action_calendar';
 
+  // ── B2B visit planning ────────────────────────────────────────────────
+  // A day's field route: which doors, in what order. The catalog answers "who
+  // is worth visiting"; these answer "and when am I actually going".
+  static const getVisitPlans =
+      '/api/method/jarz_pos.api.visits.get_visit_plans';
+  static const getVisitPlan = '/api/method/jarz_pos.api.visits.get_visit_plan';
+  static const createVisitPlan =
+      '/api/method/jarz_pos.api.visits.create_visit_plan';
+  static const updateVisitPlan =
+      '/api/method/jarz_pos.api.visits.update_visit_plan';
+  static const deleteVisitPlan =
+      '/api/method/jarz_pos.api.visits.delete_visit_plan';
+  static const setVisitStops =
+      '/api/method/jarz_pos.api.visits.set_visit_stops';
+  static const addVisitStops =
+      '/api/method/jarz_pos.api.visits.add_stops_to_plan';
+  static const optimizeVisitPlan =
+      '/api/method/jarz_pos.api.visits.optimize_visit_plan';
+  static const setVisitStopStatus =
+      '/api/method/jarz_pos.api.visits.set_visit_stop_status';
+  static const getVisitTargets =
+      '/api/method/jarz_pos.api.visits.get_visit_targets';
+  static const suggestVisitPlan =
+      '/api/method/jarz_pos.api.visits.suggest_visit_plan';
+  // Tells the UI whether distances are real road distances or straight-line
+  // estimates — and, when they are estimates, whether that is configuration or
+  // a failure. Identical symptoms, different fixes.
+  static const getRouteEngineStatus =
+      '/api/method/jarz_pos.api.visits.get_route_engine_status';
+
   // ── Courier tracking (jarz_courier app) ───────────────────────────────
   // Supervisor-only and Redis-backed, so it is safe to poll. Couriers are
   // deliberately excluded server-side: a courier may see their own run, never

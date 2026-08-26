@@ -8133,4 +8133,261 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get leadContactRoleAccountant => 'محاسب';
+
+  @override
+  String get visitPlannerTitle => 'مخطط الزيارات';
+
+  @override
+  String get visitPlanDay => 'خطّط يوماً';
+
+  @override
+  String get visitBuildDay => 'تكوين يوم';
+
+  @override
+  String get visitRouteTitle => 'المسار';
+
+  @override
+  String visitRouteFallbackTitle(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString محطة',
+      few: '$countString محطات',
+      two: 'محطتان',
+      one: 'محطة واحدة',
+      zero: 'مسار فارغ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get visitScopeMine => 'مساراتي';
+
+  @override
+  String get visitScopeAll => 'مسارات الجميع';
+
+  @override
+  String get visitNoRoutesOnDay => 'لا يوجد مسار مخطط لهذا اليوم.';
+
+  @override
+  String get visitPlansLoadFailed =>
+      'تعذّر تحميل المسارات. اسحب للأسفل للمحاولة مرة أخرى.';
+
+  @override
+  String visitStopsCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString محطة',
+      few: '$countString محطات',
+      two: 'محطتان',
+      one: 'محطة واحدة',
+      zero: 'بدون محطات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String visitDistanceKm(String km) {
+    return '$km كم';
+  }
+
+  @override
+  String visitDurationMinutes(int minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String visitDayTotal(String duration) {
+    return 'اليوم $duration';
+  }
+
+  @override
+  String visitLeg(String km, int minutes) {
+    return '$km كم · $minutes دقيقة';
+  }
+
+  @override
+  String get visitNextStop => 'المحطة التالية';
+
+  @override
+  String get visitGo => 'انطلق';
+
+  @override
+  String get visitNavigate => 'التوجيه';
+
+  @override
+  String get visitCall => 'اتصال';
+
+  @override
+  String get visitCheckIn => 'تسجيل الزيارة';
+
+  @override
+  String get visitSkip => 'تخطّي';
+
+  @override
+  String get visitReopen => 'إعادة فتح';
+
+  @override
+  String get visitPin => 'تثبيت في هذا الترتيب';
+
+  @override
+  String get visitUnpin => 'إلغاء التثبيت';
+
+  @override
+  String get visitRemoveStop => 'إزالة من المسار';
+
+  @override
+  String get visitOptimise => 'تحسين المسار';
+
+  @override
+  String get visitOptimiseFromHere => 'التحسين من موقعي الحالي';
+
+  @override
+  String get visitNavigateWholeRoute => 'فتح المسار كاملاً في الخرائط';
+
+  @override
+  String get visitDeleteRoute => 'حذف المسار';
+
+  @override
+  String get visitDeleteRouteConfirm =>
+      'سيُحذف المسار. الزيارات المسجّلة تبقى في سجل الرحلة.';
+
+  @override
+  String get visitNoStops => 'لا توجد محطات في هذا المسار بعد.';
+
+  @override
+  String get visitLocationUnavailable => 'تعذّر تحديد موقعك.';
+
+  @override
+  String visitRouteTruncated(int handed, int total) {
+    return 'الخرائط تقبل $handed من $total محطة دفعة واحدة. استخدم التوجيه محطة بمحطة لبقية المسار.';
+  }
+
+  @override
+  String get visitOutcome => 'النتيجة';
+
+  @override
+  String get visitLogJourneyNote => 'تسجيل ملاحظة رحلة';
+
+  @override
+  String get visitLogJourneyNoteHint =>
+      'تُسجّل الزيارة في سجل العميل المحتمل وتحدّد تذكير المتابعة.';
+
+  @override
+  String get visitNoteWhatHappened => 'ماذا حدث';
+
+  @override
+  String get visitNextAction => 'الإجراء التالي';
+
+  @override
+  String get visitNextActionDate => 'اختر تاريخاً';
+
+  @override
+  String get visitMarkVisited => 'تمت الزيارة';
+
+  @override
+  String get visitSuggestDay => 'خطّط يومي';
+
+  @override
+  String get visitMaxStops => 'أقصى عدد محطات';
+
+  @override
+  String get visitDayHours => 'اليوم (ساعات)';
+
+  @override
+  String get visitStartFromMyLocation => 'البدء من موقعي';
+
+  @override
+  String get visitStartFromMyLocationHint =>
+      'عند الإيقاف يخطّط حول أفضل تجمّع في أي مكان.';
+
+  @override
+  String get visitIncludeCustomers => 'تضمين العملاء الحاليين';
+
+  @override
+  String get visitIncludeCustomersHint =>
+      'زيارات متابعة للحسابات النشطة في الطريق.';
+
+  @override
+  String get visitCandidateDoors => 'أماكن تستحق الزيارة';
+
+  @override
+  String get visitClearSelection => 'مسح';
+
+  @override
+  String get visitNoCandidates => 'لا توجد نتائج مطابقة لهذه الفلاتر.';
+
+  @override
+  String get visitTargetsLoadFailed => 'تعذّر تحميل المرشحين.';
+
+  @override
+  String visitProposedDay(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString محطة مقترحة',
+      few: '$countString محطات مقترحة',
+      two: 'محطتان مقترحتان',
+      one: 'محطة واحدة مقترحة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String visitConsidered(int count) {
+    return 'تمت دراسة $count مكان';
+  }
+
+  @override
+  String visitDroppedForTime(int count) {
+    return 'تم استبعاد $count لتناسب اليوم';
+  }
+
+  @override
+  String visitSelectedCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString محطة محدّدة',
+      few: '$countString محطات محدّدة',
+      two: 'محطتان محدّدتان',
+      one: 'محطة واحدة محدّدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get visitCreateRoute => 'إنشاء المسار';
+
+  @override
+  String get visitEngineRoadExplained =>
+      'المسافات والأزمنة مأخوذة من شبكة الطرق.';
+
+  @override
+  String get visitEngineEstimateExplained =>
+      'المسافات تقديرية بخط مستقيم معدّلة للقيادة داخل المدينة. ترتيب الزيارات محسوب بدقة، أما الدقائق فتقريبية.';
+
+  @override
+  String get visitEngineRecheck => 'إعادة الفحص';
 }

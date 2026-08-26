@@ -28,6 +28,11 @@ class B2bTodayScreen extends ConsumerWidget {
             onPressed: () => context.push(AppRoutes.b2bCalendar),
           ),
           IconButton(
+            tooltip: context.l10n.visitPlannerTitle,
+            icon: const Icon(Icons.route),
+            onPressed: () => context.push(AppRoutes.b2bVisits),
+          ),
+          IconButton(
             tooltip: context.l10n.b2bRefresh,
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(b2bTodayProvider),
