@@ -407,9 +407,29 @@ Write-Info 'pos-web restarted'
 Write-Host ''
 
 Write-Step 'Verifying deployed web artifact...'
-$remoteHash = Get-RemoteMainHash
+# Poll for the artifact, do not trust one read.
+#
+# The HTTP probe below already learned this lesson; the HASH read had not, and
+# on 2026-08-26 it threw 'Could not read remote main.dart.js hash' on a
+# production deploy that was entirely correct — the file appeared moments later
+# and matched the local build byte for byte (7,233,494 bytes, same sha256).
+# Between the scp and this read sit a `docker rm -f` and a `compose up --build`
+# that recreate the container over the same directory, so a read landing in
+# that gap sees nothing.
+#
+# The failure mode this prevents is worse than a slow deploy: a green deploy
+# reported as a failure invites someone to "recover" a production POS that was
+# never broken.
+$remoteHash = $null
+$hashDeadline = (Get-Date).AddSeconds(60)
+do {
+    $remoteHash = Get-RemoteMainHash
+    if ($remoteHash) { break }
+    Start-Sleep -Seconds 3
+} while ((Get-Date) -lt $hashDeadline)
+
 if (-not $remoteHash) {
-    throw 'Could not read remote main.dart.js hash after web deploy'
+    throw 'Could not read remote main.dart.js hash after web deploy (polled 60s)'
 }
 if ($remoteHash -ne $localHash) {
     throw "Remote web hash mismatch. local=$localHash remote=$remoteHash"
