@@ -119,6 +119,15 @@ void main() {
       expect(lead.talabatReviews, 0);
     });
 
+    test('an unrated listing decodes as null, never 0.0', () {
+      final lead = Lead.fromJson(const {
+        'name': 'X', 'lead_name': 'Y', 'on_talabat': 1,
+        'talabat_rating': null, 'talabat_rating_source': '',
+      });
+      expect(lead.talabatRating, isNull);
+      expect(lead.talabatRatingSource, '');
+    });
+
     test('branch rows carry their own flag', () {
       final branch = LeadBranch.fromJson(const {
         'branch_name': 'Luma Zayed',
