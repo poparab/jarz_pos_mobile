@@ -171,15 +171,18 @@ void main() {
   group('per-API drawer gates', () {
     UserRoles withRole(String role) => UserRoles(user: 'u', roles: [role]);
 
-    test('the line manager is refused by all four operational screens', () {
+    test('the line manager reaches Stock Transfer and nothing else', () {
       for (final role in [
         RoleNames.jarzLineManager,
         RoleNames.jarzLineManagerAlt,
       ]) {
         final r = withRole(role);
         expect(r.canAccessManagerDashboard, isTrue, reason: role);
+        // ROLES.STOCK_TRANSFER carries the line-manager tier: moving stock
+        // between a branch and Finished Goods is floor-supervisor work.
+        expect(r.canAccessStockTransfer, isTrue, reason: role);
+        // The other three commit money or count stock and stay closed.
         expect(r.canAccessCashTransfer, isFalse, reason: role);
-        expect(r.canAccessStockTransfer, isFalse, reason: role);
         expect(r.canAccessInventoryCount, isFalse, reason: role);
         expect(r.canAccessPurchaseInvoice, isFalse, reason: role);
       }
@@ -217,6 +220,9 @@ void main() {
       }
     });
 
+    // The POS Manager is inside `canActAsLineManager` (via isAdminManager) but
+    // OUTSIDE `ROLES.STOCK_TRANSFER`. Gating Stock Transfer on that helper would
+    // hand this role a tile the server refuses — the bug this group exists for.
     test('the POS Manager reaches none of the four', () {
       final r = withRole(RoleNames.posManager);
       expect(r.canAccessManagerDashboard, isTrue);

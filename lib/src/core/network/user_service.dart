@@ -120,10 +120,19 @@ class UserRoles {
   bool get canAccessCashTransfer => _isBackendManagerSet;
 
   /// Whether this user may move stock between warehouses.
-  /// Mirrors `ROLES.MANAGER`, enforced by `transfer._ensure_manager_access`.
-  /// Kept separate from [canAccessCashTransfer] even though the two sets are
-  /// identical today, so tightening one server-side is a one-line change here.
-  bool get canAccessStockTransfer => _isBackendManagerSet;
+  /// Mirrors `ROLES.STOCK_TRANSFER` (= `ROLES.MANAGER` | `LINE_MANAGER_TIER`),
+  /// enforced by `transfer._ensure_transfer_access`.
+  ///
+  /// Deliberately WIDER than [canAccessCashTransfer]: moving jars between a
+  /// branch and Finished Goods is floor-supervisor work, so the line-manager
+  /// tier is in. Cash Transfer and the Purchase Invoice commit money and stay
+  /// on the narrower manager set — do not collapse the three back into one gate.
+  ///
+  /// NOT gated on [canActAsLineManager]: that helper folds in the POS Manager
+  /// (via [isAdminManager]), which `ROLES.STOCK_TRANSFER` does not contain — so
+  /// it would put the tile back in front of the one role the server refuses.
+  /// The two line-manager spellings are the only additions to the manager set.
+  bool get canAccessStockTransfer => _isBackendManagerSet || isLineManager;
 
   /// Whether this user may run an inventory count.
   /// Mirrors `ROLES.STOCK`, enforced by
@@ -383,8 +392,9 @@ final canAccessCashTransferProvider = Provider<bool>((ref) {
   );
 });
 
-/// Whether the current user may open Stock Transfer. Mirrors `ROLES.MANAGER`
-/// as enforced by `api/transfer.py`.
+/// Whether the current user may open Stock Transfer. Mirrors
+/// `ROLES.STOCK_TRANSFER` — the manager set plus the line-manager tier — as
+/// enforced by `api/transfer.py`.
 final canAccessStockTransferProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(

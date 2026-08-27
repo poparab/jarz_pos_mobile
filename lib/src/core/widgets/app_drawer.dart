@@ -246,8 +246,10 @@ class AppDrawer extends ConsumerWidget {
           onTap: () => navigate(AppRoutes.manufacturing),
         ),
       // Split rather than sharing one gate: Stock Transfer answers to
-      // `ROLES.MANAGER` and Inventory Count to `ROLES.STOCK`, which excludes the
-      // Purchase Manager.
+      // `ROLES.STOCK_TRANSFER` (the manager set PLUS the line-manager tier —
+      // moving stock between a branch and Finished Goods is floor work) and
+      // Inventory Count to `ROLES.STOCK`, which excludes the Purchase Manager
+      // and the line manager both.
       if (canAccessStockTransfer)
         navTile(
           icon: Icons.swap_horiz,
