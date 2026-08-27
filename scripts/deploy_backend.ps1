@@ -349,24 +349,28 @@ function Install-EditableApps {
         return
     }
 
-    # Install ONCE, in the backend container. The four service containers share
-    # a single virtualenv — measured, not assumed: on staging
-    # /home/frappe/frappe-bench/env/lib/python3.14/site-packages reports inode
-    # 2180366 from erp-backend-1 and from erp-queue-long-1 alike, and a package
-    # installed through one container is importable from all four.
+    # Install into every DISTINCT virtualenv, discovered rather than assumed.
     #
-    # So looping over containers does not install four times, it installs the
-    # same thing four times into one directory — and races itself doing it.
-    # That is exactly how this failed on 2026-08-26: the third container's
-    # uninstall step died with
+    # Whether the four service containers share one venv is NOT a property of
+    # this stack - it differs per server:
+    #   staging     /home/frappe/frappe-bench/env is one directory seen by all
+    #               four containers (same device+inode from each).
+    #   production  `env` is baked into each container's own image layer. Only
+    #               apps/, sites/ and logs/ are named volumes; env is not.
+    #
+    # So "install once in backend" is right on staging and silently wrong on
+    # production, which is exactly how it failed on 2026-08-27: pypdfium2 landed
+    # in erp-backend-1 alone, and the first PDF a manager uploaded came back
+    # "Render Status: Failed - no PDF renderer installed", because the render job
+    # runs on queue-long.
+    #
+    # Equally, looping blindly over all four re-installs into the SAME directory
+    # on staging, which is how the earlier version tripped over its own
+    # dist-info:
     #     OSError: [Errno 2] No such file or directory: '.../jarz_pos-0.0.1.dist-info/'
-    # because an earlier pass had already replaced the dist-info it was reading.
     #
-    # Before that it did not run at all: the body was one `bash -lc` script
-    # using `set -euo pipefail` with backgrounded jobs, and this server's shell
-    # answers `set: pipefail`. The path only fires when pyproject.toml or
-    # requirements.txt actually change, so it sat unexercised until the first
-    # deploy that added a dependency.
+    # Both failure modes disappear once we ask the server which venvs are
+    # actually distinct, so neither environment is a special case.
     #
     # `2>&1` is appended so the REMOTE shell merges the streams before ssh
     # writes them. Without it pip's routine warnings arrive on ssh's stderr,
@@ -377,32 +381,96 @@ function Install-EditableApps {
     # pip output is intentionally NOT sent to /dev/null: a failed dependency
     # install must surface in the deploy log and fail the deploy, never
     # silently skip and break the feature at runtime.
-    $installContainer = $ContainersByService['backend']
-    if ([string]::IsNullOrWhiteSpace($installContainer)) {
-        throw "Install-EditableApps: no backend container resolved; cannot install $($AppNames -join ', ')."
-    }
+    # Deliberately free of quote characters: this string is wrapped in single
+    # quotes for the remote shell and lives inside a double-quoted PowerShell
+    # string, so any quote inside it has to survive two levels of escaping.
+    # Printing two integers separated by a space avoids the problem entirely.
+    $sitePackagesProbe = "/home/frappe/frappe-bench/env/bin/python -c " +
+        "'import site,os;st=os.stat(site.getsitepackages()[0]);print(st.st_dev,st.st_ino)'"
 
-    foreach ($appName in $AppNames) {
-        Write-Info "[pip] installing $appName (editable) via $installContainer (shared env) ..."
-        Invoke-Remote ("docker exec -u root $installContainer " +
-            "/home/frappe/frappe-bench/env/bin/pip install -e " +
-            "/home/frappe/frappe-bench/apps/$appName 2>&1") | Out-Null
-    }
-
-    # Prove it landed for the WORKERS too, not just for the container that ran
-    # pip. If the shared-env assumption above ever stops holding, this is where
-    # it surfaces — loudly, at deploy time, instead of as a worker that cannot
-    # import the app hours later.
+    $targets = [ordered]@{}
     foreach ($serviceName in $serviceNames) {
         $container = $ContainersByService[$serviceName]
         if ([string]::IsNullOrWhiteSpace($container)) { continue }
-        foreach ($appName in $AppNames) {
-            Invoke-Remote ("docker exec $container " +
-                "/home/frappe/frappe-bench/env/bin/python -c " +
-                "'import $appName' 2>&1") | Out-Null
+        $venvId = (Invoke-Remote "docker exec $container $sitePackagesProbe 2>&1" -IgnoreExitCode).Trim()
+        if ([string]::IsNullOrWhiteSpace($venvId) -or $venvId -notmatch '^\d+\s+\d+$') {
+            # Could not identify it - install here rather than skip. A wasted
+            # pip run costs seconds; a skipped one costs a broken feature.
+            $venvId = "unknown-$container"
+        }
+        if (-not $targets.Contains($venvId)) {
+            $targets[$venvId] = $container
         }
     }
-    Write-Info "Editable reinstall complete and importable in all services: $($AppNames -join ', ')"
+
+    if ($targets.Count -eq 0) {
+        throw "Install-EditableApps: no service containers resolved; cannot install $($AppNames -join ', ')."
+    }
+    Write-Info "[pip] $($targets.Count) distinct virtualenv(s) across $($serviceNames.Count) services"
+
+    foreach ($venvId in $targets.Keys) {
+        $container = $targets[$venvId]
+        foreach ($appName in $AppNames) {
+            Write-Info "[pip] installing $appName (editable) in $container ..."
+            Invoke-Remote ("docker exec -u root $container " +
+                "/home/frappe/frappe-bench/env/bin/pip install -e " +
+                "/home/frappe/frappe-bench/apps/$appName 2>&1") | Out-Null
+        }
+    }
+
+    # Prove the DEPENDENCIES landed, not just the app.
+    #
+    # The previous version verified `import <app>` in every container and passed
+    # on production while pypdfium2 was missing from three of them - because an
+    # editable jarz_pos resolves through the shared apps/ volume regardless of
+    # which venv ran pip. Importing the app therefore proves nothing about the
+    # thing the reinstall exists to deliver. Read the app's declared runtime
+    # dependencies and import those instead.
+    foreach ($appName in $AppNames) {
+        $modules = Get-AppDependencyModules -AppName $appName
+        if (-not $modules -or $modules.Count -eq 0) { continue }
+        foreach ($serviceName in $serviceNames) {
+            $container = $ContainersByService[$serviceName]
+            if ([string]::IsNullOrWhiteSpace($container)) { continue }
+            $importList = ($modules -join ',')
+            $probe = "docker exec $container /home/frappe/frappe-bench/env/bin/python -c 'import $importList' 2>&1"
+            $result = Invoke-Remote $probe -IgnoreExitCode
+            if ($LASTEXITCODE -ne 0) {
+                throw ("Dependency check FAILED in $container for ${appName}: could not import $importList`n$result`n" +
+                       'The editable install did not reach this container''s virtualenv.')
+            }
+        }
+        Write-Info "[pip] $appName dependencies importable in all services: $($modules -join ', ')"
+    }
+    Write-Info "Editable reinstall complete: $($AppNames -join ', ')"
+}
+
+function Get-AppDependencyModules {
+    param([Parameter(Mandatory = $true)][string]$AppName)
+
+    # Third-party runtime deps declared in the app's requirements.txt, mapped to
+    # the module name you actually import. Only names that differ need an entry;
+    # anything else is assumed to import under its own (normalised) name.
+    $moduleAliases = @{
+        'firebase-admin' = 'firebase_admin'
+        'sentry-sdk'     = 'sentry_sdk'
+        'pywebpush'      = 'pywebpush'
+    }
+
+    $reqPath = "/home/frappe/frappe-bench/apps/$AppName/requirements.txt"
+    $raw = Invoke-Remote "test -f $reqPath && cat $reqPath || true" -IgnoreExitCode
+    if ([string]::IsNullOrWhiteSpace($raw)) { return @() }
+
+    $modules = @()
+    foreach ($line in ($raw -split "`r?`n")) {
+        $text = $line.Trim()
+        if (-not $text -or $text.StartsWith('#')) { continue }
+        $pkg = ($text -split '[<>=!~\[;]')[0].Trim()
+        if (-not $pkg) { continue }
+        if ($moduleAliases.ContainsKey($pkg)) { $modules += $moduleAliases[$pkg] }
+        else { $modules += ($pkg -replace '-', '_') }
+    }
+    return @($modules | Select-Object -Unique)
 }
 
 # ── First-install bootstrap ──────────────────────────────────────────────────
