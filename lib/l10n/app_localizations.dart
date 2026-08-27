@@ -14360,6 +14360,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A new version is available — tap to download.'**
   String get appUpdateAvailableBanner;
+
+  /// No description provided for @materialsZoomedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'zoomed in'**
+  String get materialsZoomedIn;
+
+  /// No description provided for @materialsDownloadedFile.
+  ///
+  /// In en, this message translates to:
+  /// **'downloaded'**
+  String get materialsDownloadedFile;
+
+  /// No description provided for @materialsReadFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Read for {time}'**
+  String materialsReadFor(Object time);
+
+  /// No description provided for @materialsPagesRead.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} pages'**
+  String materialsPagesRead(Object count);
 }
 
 class _AppLocalizationsDelegate

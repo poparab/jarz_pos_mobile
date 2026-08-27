@@ -5021,5 +5021,19 @@
   "appUpdateAvailableBanner": "A new version is available — tap to download.",
   "@appUpdateAvailableBanner": {
     "description": "Dismissible banner for an optional update"
+  },
+  "materialsZoomedIn": "zoomed in",
+  "materialsDownloadedFile": "downloaded",
+  "materialsReadFor": "Read for {time}",
+  "@materialsReadFor": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "materialsPagesRead": "{count} pages",
+  "@materialsPagesRead": {
+    "placeholders": {
+      "count": {}
+    }
   }
 }

@@ -153,6 +153,20 @@ class _ShareRow extends StatelessWidget {
                         share.opened ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
+                // What the reading itself looked like. Sits above the file
+                // list because "read it for two minutes and zoomed in" is what
+                // decides the next call; which files went is a reminder.
+                if (share.opened && (share.deviceLine.isNotEmpty || share.hasEngagement))
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      _engagementLine(context, share),
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 if (share.titles.isNotEmpty)
                   Text(
                     share.titles.join(' · '),
@@ -181,4 +195,22 @@ class _ShareRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// One line describing how the prospect actually read it: the device, how long
+/// they stayed, how far they got, and whether they zoomed or took the file.
+///
+/// Deliberately omits anything it does not know rather than printing zeros — a
+/// share sent before view tracking existed should read as "opened", not as
+/// "opened, 0s, 0 pages".
+String _engagementLine(BuildContext context, MaterialShareSummary share) {
+  final l10n = context.l10n;
+  final bits = <String>[
+    if (share.deviceLine.isNotEmpty) share.deviceLine,
+    if (share.readingTime.isNotEmpty) l10n.materialsReadFor(share.readingTime),
+    if (share.pagesViewed > 1) l10n.materialsPagesRead(share.pagesViewed),
+    if (share.zoomedIn) l10n.materialsZoomedIn,
+    if (share.downloaded) l10n.materialsDownloadedFile,
+  ];
+  return bits.join(' · ');
 }

@@ -8564,4 +8564,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get appUpdateAvailableBanner =>
       'A new version is available — tap to download.';
+
+  @override
+  String get materialsZoomedIn => 'zoomed in';
+
+  @override
+  String get materialsDownloadedFile => 'downloaded';
+
+  @override
+  String materialsReadFor(Object time) {
+    return 'Read for $time';
+  }
+
+  @override
+  String materialsPagesRead(Object count) {
+    return '$count pages';
+  }
 }

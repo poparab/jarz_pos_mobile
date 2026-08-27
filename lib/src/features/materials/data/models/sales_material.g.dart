@@ -99,6 +99,13 @@ _$MaterialShareSummaryImpl _$$MaterialShareSummaryImplFromJson(
   titles:
       (json['titles'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const <String>[],
+  deviceType: json['device_type'] as String? ?? '',
+  os: json['os'] as String? ?? '',
+  browser: json['browser'] as String? ?? '',
+  seconds: (json['seconds'] as num?)?.toInt() ?? 0,
+  pagesViewed: (json['pages_viewed'] as num?)?.toInt() ?? 0,
+  maxZoom: (json['max_zoom'] as num?)?.toDouble() ?? 0.0,
+  downloaded: json['downloaded'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$$MaterialShareSummaryImplToJson(
@@ -116,4 +123,11 @@ Map<String, dynamic> _$$MaterialShareSummaryImplToJson(
   'last_viewed_on': instance.lastViewedOn,
   'message': instance.message,
   'titles': instance.titles,
+  'device_type': instance.deviceType,
+  'os': instance.os,
+  'browser': instance.browser,
+  'seconds': instance.seconds,
+  'pages_viewed': instance.pagesViewed,
+  'max_zoom': instance.maxZoom,
+  'downloaded': instance.downloaded,
 };

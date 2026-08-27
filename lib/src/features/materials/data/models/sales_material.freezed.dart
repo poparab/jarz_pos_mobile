@@ -1016,7 +1016,21 @@ mixin _$MaterialShareSummary {
   @JsonKey(name: 'last_viewed_on')
   String? get lastViewedOn => throw _privateConstructorUsedError;
   String get message => throw _privateConstructorUsedError;
-  List<String> get titles => throw _privateConstructorUsedError;
+  List<String> get titles =>
+      throw _privateConstructorUsedError; // What the reader's latest visit looked like. All of it is observable
+  // without asking them for a permission: device/OS/browser come from the
+  // User-Agent server-side, the rest from the page's own end-of-session
+  // beacon. Absent on shares sent before this shipped, hence the defaults.
+  @JsonKey(name: 'device_type')
+  String get deviceType => throw _privateConstructorUsedError;
+  String get os => throw _privateConstructorUsedError;
+  String get browser => throw _privateConstructorUsedError;
+  int get seconds => throw _privateConstructorUsedError;
+  @JsonKey(name: 'pages_viewed')
+  int get pagesViewed => throw _privateConstructorUsedError;
+  @JsonKey(name: 'max_zoom')
+  double get maxZoom => throw _privateConstructorUsedError;
+  bool get downloaded => throw _privateConstructorUsedError;
 
   /// Serializes this MaterialShareSummary to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1048,6 +1062,13 @@ abstract class $MaterialShareSummaryCopyWith<$Res> {
     @JsonKey(name: 'last_viewed_on') String? lastViewedOn,
     String message,
     List<String> titles,
+    @JsonKey(name: 'device_type') String deviceType,
+    String os,
+    String browser,
+    int seconds,
+    @JsonKey(name: 'pages_viewed') int pagesViewed,
+    @JsonKey(name: 'max_zoom') double maxZoom,
+    bool downloaded,
   });
 }
 
@@ -1081,6 +1102,13 @@ class _$MaterialShareSummaryCopyWithImpl<
     Object? lastViewedOn = freezed,
     Object? message = null,
     Object? titles = null,
+    Object? deviceType = null,
+    Object? os = null,
+    Object? browser = null,
+    Object? seconds = null,
+    Object? pagesViewed = null,
+    Object? maxZoom = null,
+    Object? downloaded = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1132,6 +1160,34 @@ class _$MaterialShareSummaryCopyWithImpl<
                 ? _value.titles
                 : titles // ignore: cast_nullable_to_non_nullable
                       as List<String>,
+            deviceType: null == deviceType
+                ? _value.deviceType
+                : deviceType // ignore: cast_nullable_to_non_nullable
+                      as String,
+            os: null == os
+                ? _value.os
+                : os // ignore: cast_nullable_to_non_nullable
+                      as String,
+            browser: null == browser
+                ? _value.browser
+                : browser // ignore: cast_nullable_to_non_nullable
+                      as String,
+            seconds: null == seconds
+                ? _value.seconds
+                : seconds // ignore: cast_nullable_to_non_nullable
+                      as int,
+            pagesViewed: null == pagesViewed
+                ? _value.pagesViewed
+                : pagesViewed // ignore: cast_nullable_to_non_nullable
+                      as int,
+            maxZoom: null == maxZoom
+                ? _value.maxZoom
+                : maxZoom // ignore: cast_nullable_to_non_nullable
+                      as double,
+            downloaded: null == downloaded
+                ? _value.downloaded
+                : downloaded // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -1160,6 +1216,13 @@ abstract class _$$MaterialShareSummaryImplCopyWith<$Res>
     @JsonKey(name: 'last_viewed_on') String? lastViewedOn,
     String message,
     List<String> titles,
+    @JsonKey(name: 'device_type') String deviceType,
+    String os,
+    String browser,
+    int seconds,
+    @JsonKey(name: 'pages_viewed') int pagesViewed,
+    @JsonKey(name: 'max_zoom') double maxZoom,
+    bool downloaded,
   });
 }
 
@@ -1189,6 +1252,13 @@ class __$$MaterialShareSummaryImplCopyWithImpl<$Res>
     Object? lastViewedOn = freezed,
     Object? message = null,
     Object? titles = null,
+    Object? deviceType = null,
+    Object? os = null,
+    Object? browser = null,
+    Object? seconds = null,
+    Object? pagesViewed = null,
+    Object? maxZoom = null,
+    Object? downloaded = null,
   }) {
     return _then(
       _$MaterialShareSummaryImpl(
@@ -1240,6 +1310,34 @@ class __$$MaterialShareSummaryImplCopyWithImpl<$Res>
             ? _value._titles
             : titles // ignore: cast_nullable_to_non_nullable
                   as List<String>,
+        deviceType: null == deviceType
+            ? _value.deviceType
+            : deviceType // ignore: cast_nullable_to_non_nullable
+                  as String,
+        os: null == os
+            ? _value.os
+            : os // ignore: cast_nullable_to_non_nullable
+                  as String,
+        browser: null == browser
+            ? _value.browser
+            : browser // ignore: cast_nullable_to_non_nullable
+                  as String,
+        seconds: null == seconds
+            ? _value.seconds
+            : seconds // ignore: cast_nullable_to_non_nullable
+                  as int,
+        pagesViewed: null == pagesViewed
+            ? _value.pagesViewed
+            : pagesViewed // ignore: cast_nullable_to_non_nullable
+                  as int,
+        maxZoom: null == maxZoom
+            ? _value.maxZoom
+            : maxZoom // ignore: cast_nullable_to_non_nullable
+                  as double,
+        downloaded: null == downloaded
+            ? _value.downloaded
+            : downloaded // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -1261,6 +1359,13 @@ class _$MaterialShareSummaryImpl extends _MaterialShareSummary {
     @JsonKey(name: 'last_viewed_on') this.lastViewedOn,
     this.message = '',
     final List<String> titles = const <String>[],
+    @JsonKey(name: 'device_type') this.deviceType = '',
+    this.os = '',
+    this.browser = '',
+    this.seconds = 0,
+    @JsonKey(name: 'pages_viewed') this.pagesViewed = 0,
+    @JsonKey(name: 'max_zoom') this.maxZoom = 0.0,
+    this.downloaded = false,
   }) : _titles = titles,
        super._();
 
@@ -1309,9 +1414,35 @@ class _$MaterialShareSummaryImpl extends _MaterialShareSummary {
     return EqualUnmodifiableListView(_titles);
   }
 
+  // What the reader's latest visit looked like. All of it is observable
+  // without asking them for a permission: device/OS/browser come from the
+  // User-Agent server-side, the rest from the page's own end-of-session
+  // beacon. Absent on shares sent before this shipped, hence the defaults.
+  @override
+  @JsonKey(name: 'device_type')
+  final String deviceType;
+  @override
+  @JsonKey()
+  final String os;
+  @override
+  @JsonKey()
+  final String browser;
+  @override
+  @JsonKey()
+  final int seconds;
+  @override
+  @JsonKey(name: 'pages_viewed')
+  final int pagesViewed;
+  @override
+  @JsonKey(name: 'max_zoom')
+  final double maxZoom;
+  @override
+  @JsonKey()
+  final bool downloaded;
+
   @override
   String toString() {
-    return 'MaterialShareSummary(name: $name, url: $url, contactName: $contactName, contactPhone: $contactPhone, channel: $channel, sentBy: $sentBy, sentOn: $sentOn, viewCount: $viewCount, firstViewedOn: $firstViewedOn, lastViewedOn: $lastViewedOn, message: $message, titles: $titles)';
+    return 'MaterialShareSummary(name: $name, url: $url, contactName: $contactName, contactPhone: $contactPhone, channel: $channel, sentBy: $sentBy, sentOn: $sentOn, viewCount: $viewCount, firstViewedOn: $firstViewedOn, lastViewedOn: $lastViewedOn, message: $message, titles: $titles, deviceType: $deviceType, os: $os, browser: $browser, seconds: $seconds, pagesViewed: $pagesViewed, maxZoom: $maxZoom, downloaded: $downloaded)';
   }
 
   @override
@@ -1335,12 +1466,22 @@ class _$MaterialShareSummaryImpl extends _MaterialShareSummary {
             (identical(other.lastViewedOn, lastViewedOn) ||
                 other.lastViewedOn == lastViewedOn) &&
             (identical(other.message, message) || other.message == message) &&
-            const DeepCollectionEquality().equals(other._titles, _titles));
+            const DeepCollectionEquality().equals(other._titles, _titles) &&
+            (identical(other.deviceType, deviceType) ||
+                other.deviceType == deviceType) &&
+            (identical(other.os, os) || other.os == os) &&
+            (identical(other.browser, browser) || other.browser == browser) &&
+            (identical(other.seconds, seconds) || other.seconds == seconds) &&
+            (identical(other.pagesViewed, pagesViewed) ||
+                other.pagesViewed == pagesViewed) &&
+            (identical(other.maxZoom, maxZoom) || other.maxZoom == maxZoom) &&
+            (identical(other.downloaded, downloaded) ||
+                other.downloaded == downloaded));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     name,
     url,
@@ -1354,7 +1495,14 @@ class _$MaterialShareSummaryImpl extends _MaterialShareSummary {
     lastViewedOn,
     message,
     const DeepCollectionEquality().hash(_titles),
-  );
+    deviceType,
+    os,
+    browser,
+    seconds,
+    pagesViewed,
+    maxZoom,
+    downloaded,
+  ]);
 
   /// Create a copy of MaterialShareSummary
   /// with the given fields replaced by the non-null parameter values.
@@ -1388,6 +1536,13 @@ abstract class _MaterialShareSummary extends MaterialShareSummary {
     @JsonKey(name: 'last_viewed_on') final String? lastViewedOn,
     final String message,
     final List<String> titles,
+    @JsonKey(name: 'device_type') final String deviceType,
+    final String os,
+    final String browser,
+    final int seconds,
+    @JsonKey(name: 'pages_viewed') final int pagesViewed,
+    @JsonKey(name: 'max_zoom') final double maxZoom,
+    final bool downloaded,
   }) = _$MaterialShareSummaryImpl;
   const _MaterialShareSummary._() : super._();
 
@@ -1424,7 +1579,27 @@ abstract class _MaterialShareSummary extends MaterialShareSummary {
   @override
   String get message;
   @override
-  List<String> get titles;
+  List<String> get titles; // What the reader's latest visit looked like. All of it is observable
+  // without asking them for a permission: device/OS/browser come from the
+  // User-Agent server-side, the rest from the page's own end-of-session
+  // beacon. Absent on shares sent before this shipped, hence the defaults.
+  @override
+  @JsonKey(name: 'device_type')
+  String get deviceType;
+  @override
+  String get os;
+  @override
+  String get browser;
+  @override
+  int get seconds;
+  @override
+  @JsonKey(name: 'pages_viewed')
+  int get pagesViewed;
+  @override
+  @JsonKey(name: 'max_zoom')
+  double get maxZoom;
+  @override
+  bool get downloaded;
 
   /// Create a copy of MaterialShareSummary
   /// with the given fields replaced by the non-null parameter values.

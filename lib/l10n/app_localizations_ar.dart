@@ -8529,4 +8529,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get appUpdateAvailableBanner => 'يتوفر إصدار جديد — اضغط للتنزيل.';
+
+  @override
+  String get materialsZoomedIn => 'قرّب على التفاصيل';
+
+  @override
+  String get materialsDownloadedFile => 'حمّل الملف';
+
+  @override
+  String materialsReadFor(Object time) {
+    return 'قرأها لمدة $time';
+  }
+
+  @override
+  String materialsPagesRead(Object count) {
+    return '$count صفحات';
+  }
 }

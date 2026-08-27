@@ -121,6 +121,56 @@ void main() {
     });
   });
 
+  group('MaterialShareSummary engagement', () {
+    test('an iOS phone reads as "iPhone", not "Phone · iOS"', () {
+      const share = MaterialShareSummary(
+        deviceType: 'Phone',
+        os: 'iOS',
+        browser: 'Safari',
+      );
+      expect(share.deviceLine, 'iPhone · Safari');
+    });
+
+    test('an iOS tablet reads as iPad', () {
+      const share = MaterialShareSummary(deviceType: 'Tablet', os: 'iOS');
+      expect(share.deviceLine, 'iPad');
+    });
+
+    test('anything else keeps the plain pairing', () {
+      const share = MaterialShareSummary(
+        deviceType: 'Phone',
+        os: 'Android',
+        browser: 'Chrome',
+      );
+      expect(share.deviceLine, 'Phone · Android · Chrome');
+    });
+
+    test('nothing known is an empty line, never a stray separator', () {
+      expect(const MaterialShareSummary().deviceLine, '');
+    });
+
+    test('reading time is the shortest honest form', () {
+      expect(const MaterialShareSummary(seconds: 0).readingTime, '');
+      expect(const MaterialShareSummary(seconds: 45).readingTime, '45s');
+      expect(const MaterialShareSummary(seconds: 120).readingTime, '2m');
+      expect(const MaterialShareSummary(seconds: 134).readingTime, '2m 14s');
+    });
+
+    test('a fitted glance is not "zoomed in"', () {
+      expect(const MaterialShareSummary(maxZoom: 1.0).zoomedIn, isFalse);
+      expect(const MaterialShareSummary(maxZoom: 1.02).zoomedIn, isFalse);
+      expect(const MaterialShareSummary(maxZoom: 2.6).zoomedIn, isTrue);
+    });
+
+    test('a share from before tracking existed reports no engagement', () {
+      // It must render as "opened", not as "opened, 0s, 0 pages".
+      expect(const MaterialShareSummary(viewCount: 3).hasEngagement, isFalse);
+      expect(const MaterialShareSummary(viewCount: 3, seconds: 12).hasEngagement,
+          isTrue);
+      expect(const MaterialShareSummary(downloaded: true).hasEngagement, isTrue);
+    });
+  });
+
   group('MaterialsRepository.createShare', () {
     test('sends the material list as JSON, not as repeated form keys', () async {
       final adapter = _RecordingAdapter('{"token": "abc", "url": "u"}');

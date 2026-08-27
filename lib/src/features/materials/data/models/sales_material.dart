@@ -118,12 +118,63 @@ class MaterialShareSummary with _$MaterialShareSummary {
     @JsonKey(name: 'last_viewed_on') String? lastViewedOn,
     @Default('') String message,
     @Default(<String>[]) List<String> titles,
+
+    // What the reader's latest visit looked like. All of it is observable
+    // without asking them for a permission: device/OS/browser come from the
+    // User-Agent server-side, the rest from the page's own end-of-session
+    // beacon. Absent on shares sent before this shipped, hence the defaults.
+    @JsonKey(name: 'device_type') @Default('') String deviceType,
+    @Default('') String os,
+    @Default('') String browser,
+    @Default(0) int seconds,
+    @JsonKey(name: 'pages_viewed') @Default(0) int pagesViewed,
+    @JsonKey(name: 'max_zoom') @Default(0.0) double maxZoom,
+    @Default(false) bool downloaded,
   }) = _MaterialShareSummary;
 
   factory MaterialShareSummary.fromJson(Map<String, dynamic> json) =>
       _$MaterialShareSummaryFromJson(json);
 
   bool get opened => viewCount > 0;
+
+  /// The device line, e.g. `iPhone · Safari`. Empty when nothing is known,
+  /// which is normal for a share sent before view tracking existed.
+  String get deviceLine {
+    final bits = <String>[
+      if (deviceType.trim().isNotEmpty && os.trim().isNotEmpty)
+        _friendlyDevice
+      else if (deviceType.trim().isNotEmpty)
+        deviceType.trim(),
+      if (browser.trim().isNotEmpty) browser.trim(),
+    ];
+    return bits.join(' · ');
+  }
+
+  /// "iPhone" reads better than "Phone · iOS" on a card that has one line to
+  /// spare. Everything else keeps the plain pairing.
+  String get _friendlyDevice {
+    final device = deviceType.trim();
+    final platform = os.trim();
+    if (platform == 'iOS') return device == 'Tablet' ? 'iPad' : 'iPhone';
+    return '$device · $platform';
+  }
+
+  /// How long they actually looked, in the shortest honest form.
+  String get readingTime {
+    if (seconds <= 0) return '';
+    if (seconds < 60) return '${seconds}s';
+    final minutes = seconds ~/ 60;
+    final rest = seconds % 60;
+    return rest == 0 ? '${minutes}m' : '${minutes}m ${rest}s';
+  }
+
+  /// True when they pinched in rather than glanced at the fitted page — the
+  /// difference between "saw it arrive" and "read the prices".
+  bool get zoomedIn => maxZoom > 1.05;
+
+  /// Whether anything at all is known about the reading itself.
+  bool get hasEngagement =>
+      seconds > 0 || pagesViewed > 0 || zoomedIn || downloaded;
 
   DateTime? get sentAt => _parse(sentOn);
   DateTime? get lastViewedAt => _parse(lastViewedOn);

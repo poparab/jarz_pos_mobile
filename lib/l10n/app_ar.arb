@@ -3265,5 +3265,19 @@
   "appUpdateRecheckButton": "قمت بالتثبيت — أعد المحاولة",
   "appUpdateOpenFailed": "تعذّر فتح صفحة التنزيل. اطلب رابط التثبيت من المدير.",
   "appUpdateInstallHint": "سيطلب المتصفّح إذناً لتثبيت التطبيقات من هذا المصدر. اسمح بذلك، ثم افتح الملف المُنزّل للتثبيت.",
-  "appUpdateAvailableBanner": "يتوفر إصدار جديد — اضغط للتنزيل."
+  "appUpdateAvailableBanner": "يتوفر إصدار جديد — اضغط للتنزيل.",
+  "materialsZoomedIn": "قرّب على التفاصيل",
+  "materialsDownloadedFile": "حمّل الملف",
+  "materialsReadFor": "قرأها لمدة {time}",
+  "@materialsReadFor": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "materialsPagesRead": "{count} صفحات",
+  "@materialsPagesRead": {
+    "placeholders": {
+      "count": {}
+    }
+  }
 }
