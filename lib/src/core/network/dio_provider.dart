@@ -5,10 +5,21 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/timing_config.dart';
+import '../env/app_build_identity.dart';
 import '../monitoring/sentry_service.dart';
 import '../session/session_manager.dart';
+import 'app_upgrade_signal.dart';
 import 'cookie_manager.dart';
 import '../offline/offline_queue.dart';
+
+/// Headers the server's release gate reads. Every request carries them so a
+/// build below the floor is refused even if it never ran the version check.
+const kBuildHeader = 'X-Jarz-Build';
+const kPlatformHeader = 'X-Jarz-Platform';
+
+/// HTTP 426. Distinct from 401 (which would log the user out) and 403 (which
+/// reads as a permission bug).
+const kUpgradeRequiredStatus = 426;
 
 class SessionInterceptor extends Interceptor {
   SessionInterceptor(
@@ -22,6 +33,14 @@ class SessionInterceptor extends Interceptor {
   final OfflineQueue _offlineQueue;
   final String _frappeSite;
   final bool _isWeb;
+
+  /// Resolved once and reused. PackageInfo hits a platform channel, and this
+  /// runs on every single request.
+  Future<AppBuildIdentity>? _buildIdentity;
+
+  Future<AppBuildIdentity> _resolveBuildIdentity() {
+    return _buildIdentity ??= loadAppBuildIdentity();
+  }
 
   @override
   void onRequest(
@@ -48,6 +67,18 @@ class SessionInterceptor extends Interceptor {
       // Setting Host to site name breaks HTTPS/domain-based routing
     }
     
+    // Identify the build to the server's release gate. Wrapped because a
+    // platform-channel failure must cost us the header, not the request.
+    try {
+      final identity = await _resolveBuildIdentity();
+      if (identity.buildNumber != null) {
+        options.headers[kBuildHeader] = '${identity.buildNumber}';
+        options.headers[kPlatformHeader] = identity.platform;
+      }
+    } catch (_) {
+      // No header: the server treats an unidentified client as ungated.
+    }
+
     if (kDebugMode) {
       print('📤 API Request: ${options.method} ${options.path}');
     }
@@ -87,6 +118,14 @@ class SessionInterceptor extends Interceptor {
       print('❌ API Error: ${err.response?.statusCode} ${err.requestOptions.path} - ${err.message}');
     }
     
+    // 426 Upgrade Required: the server refuses this build outright. Raise the
+    // gate rather than letting the call sites surface it as a random failure.
+    if (err.response?.statusCode == kUpgradeRequiredStatus) {
+      AppUpgradeSignal.instance.report(
+        readUpgradeRefusal(err.response?.data),
+      );
+    }
+
     // Clear session on 401 Unauthorized
     if (err.response?.statusCode == 401) {
       await clearStoredSessionAfterUnauthorized(
@@ -119,6 +158,24 @@ class SessionInterceptor extends Interceptor {
     
     handler.next(err);
   }
+}
+
+/// Pulls the refusal details out of a 426 body.
+///
+/// Frappe puts the fields at the top level of the error response, but an
+/// upstream proxy can replace the body with HTML, so every field falls back to
+/// a harmless default rather than assuming the shape.
+@visibleForTesting
+AppUpgradeRefusal readUpgradeRefusal(Object? body) {
+  final map = body is Map ? body : const <String, dynamic>{};
+  final minimum = map['minimum_build'];
+  return AppUpgradeRefusal(
+    minimumBuild: minimum is int
+        ? minimum
+        : int.tryParse('${minimum ?? ''}'.trim()) ?? 0,
+    downloadUrl: '${map['download_url'] ?? ''}'.trim(),
+    message: '${map['message'] ?? ''}'.trim(),
+  );
 }
 
 @visibleForTesting

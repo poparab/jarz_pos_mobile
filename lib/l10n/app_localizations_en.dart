@@ -8534,4 +8534,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String materialsLinkPlaceholderHint(Object token) {
     return 'Leave $token where you want the link; it is replaced automatically when you send.';
   }
+
+  @override
+  String get appUpdateRequiredTitle => 'Update Required';
+
+  @override
+  String get appUpdateRequiredBody =>
+      'This version of Jarz POS is out of date and can no longer be used. Install the latest version to continue.';
+
+  @override
+  String appUpdateBuildLine(Object current, Object minimum) {
+    return 'Installed build $current · Required build $minimum';
+  }
+
+  @override
+  String get appUpdateDownloadButton => 'Download Update';
+
+  @override
+  String get appUpdateRecheckButton => 'I have installed it — retry';
+
+  @override
+  String get appUpdateOpenFailed =>
+      'Could not open the download page. Ask your manager for the install link.';
+
+  @override
+  String get appUpdateInstallHint =>
+      'Your browser will ask permission to install apps from this source. Allow it, then open the downloaded file to install.';
+
+  @override
+  String get appUpdateAvailableBanner =>
+      'A new version is available — tap to download.';
 }

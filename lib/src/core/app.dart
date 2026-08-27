@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'debug/app_error_console.dart';
@@ -18,6 +19,8 @@ import '../features/pos/order_alert/order_alert_bridge.dart';
 import '../features/pos/order_alert/presentation/order_alert_overlay.dart';
 import '../features/about/data/about_release_info_repository.dart';
 import '../features/about/state/shorebird_update_provider.dart';
+import '../features/app_update/presentation/app_update_gate.dart';
+import '../features/app_update/state/app_update_provider.dart';
 
 class JarzPosApp extends ConsumerWidget {
   const JarzPosApp({super.key});
@@ -78,22 +81,28 @@ class JarzPosApp extends ConsumerWidget {
               )
             : child ?? const SizedBox.shrink();
         return GlobalOrientationEnforcer(
-          child: AppErrorConsole(
-            child: OrderAlertOverlay(
-              child: GestureDetector(
-                onTap: () {
-                  final currentScope = FocusScope.of(context);
-                  if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                  }
-                },
-                behavior: HitTestBehavior.opaque,
-                child: LoadingOverlay(
-                  child: Column(
-                    children: [
-                      if (isAuthenticated) const _ShorebirdUpdateBanner(),
-                      Expanded(child: routed),
-                    ],
+          // Outermost thing below orientation: a build the server has refused
+          // must not reach routing, auth, or a till - only the update screen.
+          child: AppUpdateGate(
+            child: AppErrorConsole(
+              child: OrderAlertOverlay(
+                child: GestureDetector(
+                  onTap: () {
+                    final currentScope = FocusScope.of(context);
+                    if (!currentScope.hasPrimaryFocus &&
+                        currentScope.hasFocus) {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    }
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: LoadingOverlay(
+                    child: Column(
+                      children: [
+                        if (isAuthenticated) const _ShorebirdUpdateBanner(),
+                        if (isAuthenticated) const _AppUpdateAvailableBanner(),
+                        Expanded(child: routed),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -148,6 +157,62 @@ class _AuthenticatedServiceBootstrapState
     ref.watch(shorebirdUpdateProvider);
 
     return widget.child;
+  }
+}
+
+/// Soft nudge for a newer APK that is not yet mandatory.
+///
+/// Distinct from [_ShorebirdUpdateBanner], which is about an OTA patch already
+/// downloaded and only needing a restart. This one means a whole new APK
+/// exists and the user has to go install it.
+class _AppUpdateAvailableBanner extends ConsumerWidget {
+  const _AppUpdateAvailableBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final requirement = ref.watch(appUpdateProvider).valueOrNull;
+    // updateRequired suppresses it: that case gets the full-screen gate, and
+    // two update prompts at once reads as a bug.
+    if (requirement == null ||
+        !requirement.updateAvailable ||
+        requirement.updateRequired ||
+        requirement.downloadUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Material(
+      color: Colors.blue.shade700,
+      child: InkWell(
+        onTap: () {
+          final uri = Uri.tryParse(requirement.downloadUrl);
+          if (uri != null) {
+            launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+        },
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                const Icon(Icons.download, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    context.l10n.appUpdateAvailableBanner,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

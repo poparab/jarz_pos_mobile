@@ -3257,5 +3257,13 @@
     "placeholders": {
       "token": {}
     }
-  }
+  },
+  "appUpdateRequiredTitle": "التحديث مطلوب",
+  "appUpdateRequiredBody": "هذا الإصدار من Jarz POS قديم ولم يعد قابلاً للاستخدام. ثبّت أحدث إصدار للمتابعة.",
+  "appUpdateBuildLine": "الإصدار المثبّت {current} · الإصدار المطلوب {minimum}",
+  "appUpdateDownloadButton": "تنزيل التحديث",
+  "appUpdateRecheckButton": "قمت بالتثبيت — أعد المحاولة",
+  "appUpdateOpenFailed": "تعذّر فتح صفحة التنزيل. اطلب رابط التثبيت من المدير.",
+  "appUpdateInstallHint": "سيطلب المتصفّح إذناً لتثبيت التطبيقات من هذا المصدر. اسمح بذلك، ثم افتح الملف المُنزّل للتثبيت.",
+  "appUpdateAvailableBanner": "يتوفر إصدار جديد — اضغط للتنزيل."
 }

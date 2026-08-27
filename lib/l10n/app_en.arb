@@ -4985,5 +4985,41 @@
     "placeholders": {
       "token": {}
     }
+  },
+  "appUpdateRequiredTitle": "Update Required",
+  "@appUpdateRequiredTitle": {
+    "description": "Title of the non-dismissible force-update screen"
+  },
+  "appUpdateRequiredBody": "This version of Jarz POS is out of date and can no longer be used. Install the latest version to continue.",
+  "@appUpdateRequiredBody": {
+    "description": "Body of the non-dismissible force-update screen"
+  },
+  "appUpdateBuildLine": "Installed build {current} · Required build {minimum}",
+  "@appUpdateBuildLine": {
+    "description": "Installed vs required build numbers on the force-update screen",
+    "placeholders": {
+      "current": {},
+      "minimum": {}
+    }
+  },
+  "appUpdateDownloadButton": "Download Update",
+  "@appUpdateDownloadButton": {
+    "description": "Opens the APK download page"
+  },
+  "appUpdateRecheckButton": "I have installed it — retry",
+  "@appUpdateRecheckButton": {
+    "description": "Re-runs the version check after installing"
+  },
+  "appUpdateOpenFailed": "Could not open the download page. Ask your manager for the install link.",
+  "@appUpdateOpenFailed": {
+    "description": "Shown when the download URL cannot be opened"
+  },
+  "appUpdateInstallHint": "Your browser will ask permission to install apps from this source. Allow it, then open the downloaded file to install.",
+  "@appUpdateInstallHint": {
+    "description": "Explains the Android unknown-sources install prompt"
+  },
+  "appUpdateAvailableBanner": "A new version is available — tap to download.",
+  "@appUpdateAvailableBanner": {
+    "description": "Dismissible banner for an optional update"
   }
 }

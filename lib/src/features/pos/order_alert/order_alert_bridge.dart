@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
+import '../../../core/env/app_build_identity.dart';
 import '../../../core/router.dart';
 import '../../../core/firebase/firebase_runtime_config.dart';
 import '../../../core/utils/logger.dart';
@@ -631,12 +632,23 @@ class OrderAlertBridge {
         _ => 'Jarz POS',
       };
 
+      // Reporting the build makes Jarz Mobile Device the fleet inventory: it
+      // is what tells you which devices are still below the floor before you
+      // raise it, instead of finding out when they lock.
+      String? appVersion;
+      try {
+        appVersion = (await loadAppBuildIdentity()).version;
+      } catch (_) {
+        // Never let version reporting cost us the push registration.
+      }
+
       await _ref
           .read(orderAlertServiceProvider)
           .registerDevice(
             token: token,
             platform: platform,
             deviceName: deviceName,
+            appVersion: appVersion,
             posProfiles: normalizedProfiles,
           );
       await controller.markTokenRegistered(token, user, normalizedProfiles);

@@ -160,6 +160,13 @@ abstract final class ApiEndpoints {
   static const salesPartnerPaidOutForDelivery =
       '/api/method/jarz_pos.jarz_pos.services.delivery_handling.sales_partner_paid_out_for_delivery';
 
+  // ── App releases ──────────────────────────────────────────────────────
+  /// Guest-callable on purpose: the update check runs before login, so a build
+  /// below the floor is stopped at the splash screen rather than after it has
+  /// authenticated and started writing.
+  static const getAppRequirement =
+      '/api/method/jarz_pos.api.app_release.get_app_requirement';
+
   // ── Notifications ─────────────────────────────────────────────────────
   static const registerMobileDevice =
       '/api/method/jarz_pos.api.notifications.register_mobile_device';

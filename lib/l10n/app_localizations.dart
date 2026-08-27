@@ -14312,6 +14312,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Leave {token} where you want the link; it is replaced automatically when you send.'**
   String materialsLinkPlaceholderHint(Object token);
+
+  /// Title of the non-dismissible force-update screen
+  ///
+  /// In en, this message translates to:
+  /// **'Update Required'**
+  String get appUpdateRequiredTitle;
+
+  /// Body of the non-dismissible force-update screen
+  ///
+  /// In en, this message translates to:
+  /// **'This version of Jarz POS is out of date and can no longer be used. Install the latest version to continue.'**
+  String get appUpdateRequiredBody;
+
+  /// Installed vs required build numbers on the force-update screen
+  ///
+  /// In en, this message translates to:
+  /// **'Installed build {current} · Required build {minimum}'**
+  String appUpdateBuildLine(Object current, Object minimum);
+
+  /// Opens the APK download page
+  ///
+  /// In en, this message translates to:
+  /// **'Download Update'**
+  String get appUpdateDownloadButton;
+
+  /// Re-runs the version check after installing
+  ///
+  /// In en, this message translates to:
+  /// **'I have installed it — retry'**
+  String get appUpdateRecheckButton;
+
+  /// Shown when the download URL cannot be opened
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the download page. Ask your manager for the install link.'**
+  String get appUpdateOpenFailed;
+
+  /// Explains the Android unknown-sources install prompt
+  ///
+  /// In en, this message translates to:
+  /// **'Your browser will ask permission to install apps from this source. Allow it, then open the downloaded file to install.'**
+  String get appUpdateInstallHint;
+
+  /// Dismissible banner for an optional update
+  ///
+  /// In en, this message translates to:
+  /// **'A new version is available — tap to download.'**
+  String get appUpdateAvailableBanner;
 }
 
 class _AppLocalizationsDelegate
