@@ -457,9 +457,17 @@ function Get-AppDependencyModules {
         'pywebpush'      = 'pywebpush'
     }
 
-    $reqPath = "/home/frappe/frappe-bench/apps/$AppName/requirements.txt"
-    $raw = Invoke-Remote "test -f $reqPath && cat $reqPath || true" -IgnoreExitCode
-    if ([string]::IsNullOrWhiteSpace($raw)) { return @() }
+    # HOST path, not the container path. Invoke-Remote runs on the server's own
+    # shell, where the apps volume lives at $remoteAppsDir — the in-container
+    # /home/frappe/frappe-bench/apps/... simply does not exist there, so reading
+    # it returns empty and the whole dependency check skips in silence. Which is
+    # precisely the shape of the bug this check was added to catch.
+    $reqPath = "$remoteAppsDir/$AppName/requirements.txt"
+    $raw = Invoke-Remote "sudo test -f $reqPath && sudo cat $reqPath || true" -IgnoreExitCode
+    if ([string]::IsNullOrWhiteSpace($raw)) {
+        Write-Warn "[pip] $AppName declares no requirements.txt at $reqPath - dependency check skipped."
+        return @()
+    }
 
     $modules = @()
     foreach ($line in ($raw -split "`r?`n")) {
@@ -874,13 +882,25 @@ Write-Host ''
 $changedApps = @($gitTargets | Where-Object { $_.Changed })
 $changedAppNames = @($changedApps | ForEach-Object { $_.AppName })
 
-if ($changedAppNames.Count -eq 0 -and -not $ForceMigrate) {
+# -ForceReinstallApps has to open this gate as well as the inner one.
+#
+# It was only ever OR-ed in at the $appsNeedingInstall filter below, which sits
+# INSIDE this else-branch — so with nothing pending, the branch never ran and
+# the switch did nothing at all while reporting "Skipping reinstall ... Use
+# -ForceReinstallApps to override". That is the one situation it exists for: a
+# previous deploy pulled the commit but failed to install its dependency, so
+# git is already at target and only the venv is wrong.
+if ($changedAppNames.Count -eq 0 -and -not $ForceMigrate -and -not $ForceReinstallApps) {
     Write-Info 'No custom app commits changed on the target server. Skipping reinstall, asset relink, migrate, cache clear, and service restart.'
     Write-Host ''
 }
 else {
     if ($changedAppNames.Count -eq 0) {
-        Write-Info 'No custom app commits changed, but -ForceMigrate was set: running migrate, cache clear, and service restart (e.g. fixture/schema changes already on the server but not yet migrated).'
+        $why = @()
+        if ($ForceMigrate) { $why += '-ForceMigrate' }
+        if ($ForceReinstallApps) { $why += '-ForceReinstallApps' }
+        Write-Info ("No custom app commits changed, but $($why -join ' + ') was set: proceeding " +
+                    '(e.g. a dependency or schema change already on the server but never installed/migrated).')
         Write-Host ''
     }
     Write-Step 'Installing custom apps in backend and workers...'
