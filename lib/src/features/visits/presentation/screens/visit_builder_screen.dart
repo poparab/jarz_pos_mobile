@@ -6,10 +6,11 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../journey/presentation/journey_format.dart';
 import '../../../leads/presentation/leads_theme.dart';
-import '../../../leads/state/lead_categories_notifier.dart';
 import '../../data/models/visit_plan.dart';
 import '../../state/visit_builder_notifier.dart';
 import '../widgets/route_engine_badge.dart';
+import '../widgets/route_preview_panel.dart';
+import '../widgets/visit_filter_sheet.dart';
 
 /// Build a day out of the catalog.
 ///
@@ -39,7 +40,41 @@ class VisitBuilderScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.visitBuildDay),
-        actions: const [RouteEngineBadge()],
+        actions: [
+          const RouteEngineBadge(),
+          // Badged rather than a bare funnel: a filter left on from a previous
+          // session is the usual reason a rep thinks the catalog is empty.
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                tooltip: l10n.visitFilters,
+                icon: const Icon(Icons.tune),
+                onPressed: () => showVisitFilterSheet(context),
+              ),
+              if (state.activeFilterCount > 0)
+                PositionedDirectional(
+                  top: 8,
+                  end: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 5, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${state.activeFilterCount}',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
       bottomNavigationBar: _CommitBar(state: state),
       body: ListView(
@@ -69,6 +104,11 @@ class VisitBuilderScreen extends ConsumerWidget {
               ),
             ),
           if (state.suggestion != null) _SuggestionSummary(state: state),
+          // The day as it currently stands. Sits above the candidate list
+          // because it IS the thing being made; the list below is the source
+          // of parts.
+          const Divider(height: 20),
+          const RoutePreviewPanel(),
           const Divider(height: 24),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -88,7 +128,6 @@ class VisitBuilderScreen extends ConsumerWidget {
               ],
             ),
           ),
-          _CategoryFilter(state: state),
           targets.when(
             loading: () => const Padding(
               padding: EdgeInsets.all(32),
@@ -255,40 +294,6 @@ class _StepperField extends StatelessWidget {
   }
 }
 
-class _CategoryFilter extends ConsumerWidget {
-  const _CategoryFilter({required this.state});
-
-  final VisitBuilderState state;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final categories = ref.watch(leadCategoriesProvider).valueOrNull;
-    if (categories == null || categories.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    final notifier = ref.read(visitBuilderProvider.notifier);
-    return SizedBox(
-      height: 48,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        children: [
-          for (final category in categories)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              child: FilterChip(
-                label: Text(category.name),
-                selected: state.category == category.name,
-                onSelected: (selected) =>
-                    notifier.setCategory(selected ? category.name : null),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
 class _SuggestionSummary extends StatelessWidget {
   const _SuggestionSummary({required this.state});
 
@@ -440,6 +445,23 @@ class _CommitBar extends ConsumerWidget {
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ),
+            // A half-built day is worth keeping. Without this the only way
+            // out of the builder is to finish or to lose the work, and a rep
+            // interrupted mid-plan loses it every time.
+            TextButton(
+              onPressed: state.busy
+                  ? null
+                  : () async {
+                      final name =
+                          await notifier.createPlan(status: 'Draft');
+                      if (name == null || !context.mounted) return;
+                      context.pushReplacement(
+                        '${AppRoutes.b2bVisitPlan}/${Uri.encodeComponent(name)}',
+                      );
+                    },
+              child: Text(l10n.visitSaveDraft),
+            ),
+            const SizedBox(width: 8),
             FilledButton.icon(
               onPressed: state.busy
                   ? null

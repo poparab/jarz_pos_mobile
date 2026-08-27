@@ -299,6 +299,100 @@ class RouteEngineStatus with _$RouteEngineStatus {
   }
 }
 
+/// A route the server has ordered and costed but NOT saved.
+///
+/// The builder needs to show a real day — the map line, the sequence, how long
+/// it runs — while the rep is still ticking doors. Computing that on the client
+/// would mean a second implementation of the solver drifting against the
+/// server's, and it could never use the road-distance engine. So the same code
+/// that will build the plan answers the preview, and what the rep approves is
+/// what they get.
+@freezed
+class RoutePreview with _$RoutePreview {
+  const RoutePreview._();
+
+  const factory RoutePreview({
+    @Default(<PreviewStop>[]) List<PreviewStop> stops,
+    @Default(<int>[]) List<int> order,
+    @Default('haversine') String engine,
+    @JsonKey(name: 'engine_note') String? engineNote,
+    @JsonKey(name: 'total_distance_km') @Default(0.0) double totalDistanceKm,
+    @JsonKey(name: 'total_drive_minutes') @Default(0) int totalDriveMinutes,
+    @JsonKey(name: 'total_duration_minutes') @Default(0) int totalDurationMinutes,
+
+    /// Doors that were ticked but have no usable pin. Skipped rather than
+    /// refused — a rep should see the rest of their day, not an error — but
+    /// surfaced, because a stop silently missing from a route is the bug this
+    /// whole feature exists to avoid.
+    @Default(0) int skipped,
+  }) = _RoutePreview;
+
+  factory RoutePreview.fromJson(Map<String, dynamic> json) =>
+      _$RoutePreviewFromJson(json);
+
+  bool get isEmpty => stops.isEmpty;
+  bool get hasRoadDistances => engine == 'osrm';
+
+  /// `4h 20m` — a day's length is read in hours, not in three-digit minutes.
+  String get durationLabel {
+    final h = totalDurationMinutes ~/ 60;
+    final m = totalDurationMinutes % 60;
+    if (h == 0) return '${m}m';
+    return m == 0 ? '${h}h' : '${h}h ${m}m';
+  }
+}
+
+/// One stop inside a [RoutePreview], carrying its solved position and leg.
+@freezed
+class PreviewStop with _$PreviewStop {
+  const PreviewStop._();
+
+  const factory PreviewStop({
+    @Default('') String key,
+    @Default('') String title,
+    @JsonKey(name: 'branch_name') @Default('') String branchName,
+    @Default('') String area,
+    @JsonKey(name: 'reference_doctype') @Default('Lead') String referenceDoctype,
+    @JsonKey(name: 'reference_name') @Default('') String referenceName,
+    @Default(0.0) double latitude,
+    @Default(0.0) double longitude,
+    @Default('') String address,
+    @Default('') String phone,
+    @JsonKey(name: 'maps_url') @Default('') String mapsUrl,
+    @Default(0) int position,
+    @JsonKey(name: 'leg_km') @Default(0.0) double legKm,
+    @JsonKey(name: 'leg_minutes') @Default(0) int legMinutes,
+    @JsonKey(fromJson: _flag) @Default(false) bool locked,
+  }) = _PreviewStop;
+
+  factory PreviewStop.fromJson(Map<String, dynamic> json) =>
+      _$PreviewStopFromJson(json);
+
+  String get displayTitle {
+    final brand = title.trim().isEmpty ? referenceName : title.trim();
+    final branch = branchName.trim();
+    if (branch.isEmpty || branch.toLowerCase() == brand.toLowerCase()) {
+      return brand;
+    }
+    return '$brand — $branch';
+  }
+
+  /// The payload shape `create_visit_plan` / `add_stops_to_plan` expect.
+  Map<String, dynamic> toStopPayload() => {
+        'reference_doctype': referenceDoctype,
+        'reference_name': referenceName,
+        'title': title,
+        'branch_name': branchName,
+        'area': area,
+        'latitude': latitude,
+        'longitude': longitude,
+        'address': address,
+        'phone': phone,
+        'maps_url': mapsUrl,
+        'locked': locked ? 1 : 0,
+      };
+}
+
 /// Decodes a Frappe Check field into a bool.
 ///
 /// A Check is an INT column. Most of these endpoints map it to a real JSON

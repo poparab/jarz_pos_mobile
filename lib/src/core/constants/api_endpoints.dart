@@ -508,6 +508,17 @@ abstract final class ApiEndpoints {
   // a failure. Identical symptoms, different fixes.
   static const getRouteEngineStatus =
       '/api/method/jarz_pos.api.visits.get_route_engine_status';
+  // Adding a door to a day from wherever the rep already is — the kanban card,
+  // the leads list, the map callout, the lead page. Resolves one record to its
+  // routable doors so no screen needs to know how doors are stored.
+  static const getRecordVisitTargets =
+      '/api/method/jarz_pos.api.visits.get_record_visit_targets';
+  static const getAddableVisitPlans =
+      '/api/method/jarz_pos.api.visits.get_addable_visit_plans';
+  // Orders and costs a stop list without saving, so the builder can show the
+  // real route while the rep is still choosing.
+  static const previewVisitRoute =
+      '/api/method/jarz_pos.api.visits.preview_visit_route';
 
   // ── Courier tracking (jarz_courier app) ───────────────────────────────
   // Supervisor-only and Redis-backed, so it is safe to poll. Couriers are

@@ -18,6 +18,7 @@ import '../../state/lead_detail_notifier.dart';
 import '../../state/leads_notifier.dart' show leadsProvider;
 import '../../state/not_suitable_reasons_notifier.dart';
 import '../leads_theme.dart';
+import '../../../visits/presentation/widgets/add_to_visit_sheet.dart';
 import '../widgets/lead_actions.dart';
 import '../widgets/lead_contacts_section.dart';
 import '../widgets/merge_leads_sheet.dart';
@@ -47,6 +48,20 @@ class LeadDetailScreen extends ConsumerWidget {
           context.l10n.leadDetailTitle,
           style: LeadsTheme.heading.copyWith(fontSize: 22),
         ),
+        actions: [
+          // Deciding a prospect is worth a visit happens while looking at it,
+          // not later on a separate planning screen.
+          IconButton(
+            tooltip: context.l10n.visitAddToRoute,
+            icon: const Icon(Icons.route),
+            onPressed: () => addToVisitAndConfirm(
+              context,
+              referenceDoctype: 'Lead',
+              referenceName: leadName,
+              title: async.valueOrNull?.leadName,
+            ),
+          ),
+        ],
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),

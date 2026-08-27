@@ -3279,5 +3279,31 @@
     "placeholders": {
       "count": {}
     }
-  }
+  },
+  "commonDone": "تم",
+  "visitAddToRoute": "إضافة إلى مسار",
+  "visitAddStop": "إضافة",
+  "visitAddedToRoute": "تمت الإضافة إلى المسار",
+  "visitOpenRoute": "فتح",
+  "visitWhichDoor": "أي فرع؟ ({count} بموقع محدد)",
+  "visitWhichDay": "أي يوم",
+  "visitNewRoute": "مسار جديد…",
+  "visitNewRouteOn": "مسار جديد يوم {date}",
+  "visitNoUpcomingRoutes": "لا توجد مسارات قادمة بعد.",
+  "visitNoDoorsToRoute": "لا يوجد هنا ما يمكن التوجه إليه.",
+  "visitNoDoorsToRouteHint": "لا يحتوي هذا السجل على فرع بموقع محدد. أضف الموقع أولاً ليصبح محطة.",
+  "visitFilters": "عوامل التصفية",
+  "visitClearFilters": "مسح الكل",
+  "visitFilterTier": "فئة الملاءمة",
+  "visitFilterCategory": "التصنيف",
+  "visitFilterArea": "المنطقة",
+  "visitFilterMinFit": "أقل درجة ملاءمة: {score}",
+  "visitFilterSpecialty": "التخصصية فقط",
+  "visitFilterNeverVisited": "التي لم تُزر من قبل فقط",
+  "visitFilterNeverVisitedHint": "أماكن لم يدخلها أحد بعد.",
+  "visitEmptyDayHint": "اختر الأماكن بالأسفل، أو اضغط «خطّط يومي». يتكوّن المسار أثناء اختيارك.",
+  "visitCostingDay": "جارٍ حساب المسار…",
+  "visitManualOrderNote": "ترتيبك أنت — اضغط «تحسين المسار» لإعادته تلقائياً.",
+  "visitSkippedNoPin": "{count, plural, =1{مكان واحد بلا موقع ولن يظهر على المسار} =2{مكانان بلا موقع ولن يظهرا على المسار} few{{count} أماكن بلا موقع ولن تظهر على المسار} other{{count} مكاناً بلا موقع ولن تظهر على المسار}}",
+  "visitSaveDraft": "حفظ كمسودة"
 }

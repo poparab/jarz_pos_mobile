@@ -251,6 +251,104 @@ void main() {
     });
   });
 
+  group('RoutePreview', () {
+    final json = <String, dynamic>{
+      'engine': 'haversine',
+      'total_distance_km': 12.5,
+      'total_drive_minutes': 34,
+      'total_duration_minutes': 154,
+      'skipped': 1,
+      'order': [1, 0],
+      'stops': [
+        {
+          'key': 'Lead:L1:29.96010,31.25690',
+          'title': 'Bean There',
+          'branch_name': 'Maadi',
+          'area': 'Maadi',
+          'reference_name': 'L1',
+          'latitude': 29.9601,
+          'longitude': 31.2569,
+          'position': 1,
+          'leg_km': 0.0,
+          'leg_minutes': 0,
+          'locked': 1,
+        },
+        {
+          'key': 'Lead:L2:30.06140,31.21970',
+          'title': 'Zamalek Roasters',
+          'reference_name': 'L2',
+          'latitude': 30.0614,
+          'longitude': 31.2197,
+          'position': 2,
+          'leg_km': 12.5,
+          'leg_minutes': 34,
+        },
+      ],
+    };
+
+    test('maps the ordered stops and the totals', () {
+      final preview = RoutePreview.fromJson(json);
+      expect(preview.stops, hasLength(2));
+      expect(preview.totalDistanceKm, 12.5);
+      expect(preview.totalDurationMinutes, 154);
+      expect(preview.stops.first.position, 1);
+      expect(preview.stops.last.legKm, 12.5);
+    });
+
+    test('surfaces doors that were skipped for having no pin', () {
+      // Skipped rather than refused, but never silent: a stop missing from a
+      // route is the exact failure this feature exists to avoid.
+      expect(RoutePreview.fromJson(json).skipped, 1);
+    });
+
+    test('a Frappe Check arrives as 1 and still decodes', () {
+      expect(RoutePreview.fromJson(json).stops.first.locked, isTrue);
+    });
+
+    test('an empty payload decodes to an empty day', () {
+      final preview = RoutePreview.fromJson(const <String, dynamic>{});
+      expect(preview.isEmpty, isTrue);
+      expect(preview.totalDistanceKm, 0);
+      expect(preview.engine, 'haversine');
+    });
+
+    test('reads the day length in hours, not three-digit minutes', () {
+      expect(RoutePreview.fromJson(json).durationLabel, '2h 34m');
+      expect(
+        RoutePreview.fromJson({'total_duration_minutes': 120}).durationLabel,
+        '2h',
+      );
+      expect(
+        RoutePreview.fromJson({'total_duration_minutes': 45}).durationLabel,
+        '45m',
+      );
+    });
+
+    test('reports whether the numbers are road distances', () {
+      expect(RoutePreview.fromJson(json).hasRoadDistances, isFalse);
+      expect(
+        RoutePreview.fromJson({'engine': 'osrm'}).hasRoadDistances,
+        isTrue,
+      );
+    });
+
+    test('a preview stop can be sent straight back as a plan stop', () {
+      // The builder saves what the preview showed, so this payload has to be
+      // the shape create_visit_plan accepts.
+      final payload = RoutePreview.fromJson(json).stops.first.toStopPayload();
+      expect(payload['reference_name'], 'L1');
+      expect(payload['latitude'], 29.9601);
+      expect(payload['branch_name'], 'Maadi');
+      expect(payload['locked'], 1);
+    });
+
+    test('displayTitle disambiguates a branch from its brand', () {
+      final preview = RoutePreview.fromJson(json);
+      expect(preview.stops.first.displayTitle, 'Bean There — Maadi');
+      expect(preview.stops.last.displayTitle, 'Zamalek Roasters');
+    });
+  });
+
   group('LeadLocation', () {
     test('decodes a branch pin from the catalog row', () {
       final lead = Lead.fromJson({

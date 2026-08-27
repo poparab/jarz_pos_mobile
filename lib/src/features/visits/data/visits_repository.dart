@@ -148,6 +148,67 @@ class VisitsRepository {
     return VisitSuggestion.fromJson(_asMap(_unwrap(response)));
   }
 
+  /// The routable doors belonging to ONE record.
+  ///
+  /// Lets any screen offer "add to a visit" without knowing how doors are
+  /// stored. An empty list means the record has no usable pin — a normal
+  /// answer that the caller states plainly rather than offering a stop that
+  /// leads nowhere.
+  Future<List<VisitTarget>> getRecordTargets({
+    required String referenceDoctype,
+    required String referenceName,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.getRecordVisitTargets,
+      data: {
+        'reference_doctype': referenceDoctype,
+        'reference_name': referenceName,
+      },
+    );
+    final payload = _asMap(_unwrap(response));
+    return _asList(payload['targets']).map(VisitTarget.fromJson).toList();
+  }
+
+  /// Upcoming plans a stop can be added to, soonest first.
+  ///
+  /// Narrower than [getPlans] on purpose: this answers "where can I put this
+  /// door", so finished and cancelled days are already excluded and the rep
+  /// gets a short list they can hit with a thumb.
+  Future<List<VisitPlan>> getAddablePlans({int daysAhead = 60}) async {
+    final response = await _dio.post(
+      ApiEndpoints.getAddableVisitPlans,
+      data: {'days_ahead': daysAhead},
+    );
+    final payload = _asMap(_unwrap(response));
+    return _asList(payload['plans']).map(VisitPlan.fromJson).toList();
+  }
+
+  /// Order and cost a stop list without saving it.
+  ///
+  /// Safe to call on every tick of a checkbox — it writes nothing.
+  Future<RoutePreview> previewRoute({
+    required List<Map<String, dynamic>> stops,
+    double? startLatitude,
+    double? startLongitude,
+    bool returnToStart = false,
+    int? defaultVisitMinutes,
+    bool optimize = true,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.previewVisitRoute,
+      data: {
+        'stops': jsonEncode(stops),
+        if (startLatitude != null) 'start_latitude': startLatitude,
+        if (startLongitude != null) 'start_longitude': startLongitude,
+        'return_to_start': returnToStart ? 1 : 0,
+        if (defaultVisitMinutes != null)
+          'default_visit_minutes': defaultVisitMinutes,
+        'optimize': optimize ? 1 : 0,
+      },
+    );
+    return RoutePreview.fromJson(_asMap(_unwrap(response)));
+  }
+
   // ── Writes ───────────────────────────────────────────────────────────
 
   Future<VisitPlan> createPlan({

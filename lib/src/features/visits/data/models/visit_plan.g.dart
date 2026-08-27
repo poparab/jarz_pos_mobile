@@ -248,3 +248,74 @@ Map<String, dynamic> _$$RouteEngineStatusImplToJson(
   'day_minutes': instance.dayMinutes,
   'visit_days': instance.visitDays,
 };
+
+_$RoutePreviewImpl _$$RoutePreviewImplFromJson(Map<String, dynamic> json) =>
+    _$RoutePreviewImpl(
+      stops:
+          (json['stops'] as List<dynamic>?)
+              ?.map((e) => PreviewStop.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <PreviewStop>[],
+      order:
+          (json['order'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
+              .toList() ??
+          const <int>[],
+      engine: json['engine'] as String? ?? 'haversine',
+      engineNote: json['engine_note'] as String?,
+      totalDistanceKm: (json['total_distance_km'] as num?)?.toDouble() ?? 0.0,
+      totalDriveMinutes: (json['total_drive_minutes'] as num?)?.toInt() ?? 0,
+      totalDurationMinutes:
+          (json['total_duration_minutes'] as num?)?.toInt() ?? 0,
+      skipped: (json['skipped'] as num?)?.toInt() ?? 0,
+    );
+
+Map<String, dynamic> _$$RoutePreviewImplToJson(_$RoutePreviewImpl instance) =>
+    <String, dynamic>{
+      'stops': instance.stops,
+      'order': instance.order,
+      'engine': instance.engine,
+      'engine_note': instance.engineNote,
+      'total_distance_km': instance.totalDistanceKm,
+      'total_drive_minutes': instance.totalDriveMinutes,
+      'total_duration_minutes': instance.totalDurationMinutes,
+      'skipped': instance.skipped,
+    };
+
+_$PreviewStopImpl _$$PreviewStopImplFromJson(Map<String, dynamic> json) =>
+    _$PreviewStopImpl(
+      key: json['key'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      branchName: json['branch_name'] as String? ?? '',
+      area: json['area'] as String? ?? '',
+      referenceDoctype: json['reference_doctype'] as String? ?? 'Lead',
+      referenceName: json['reference_name'] as String? ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+      address: json['address'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+      mapsUrl: json['maps_url'] as String? ?? '',
+      position: (json['position'] as num?)?.toInt() ?? 0,
+      legKm: (json['leg_km'] as num?)?.toDouble() ?? 0.0,
+      legMinutes: (json['leg_minutes'] as num?)?.toInt() ?? 0,
+      locked: json['locked'] == null ? false : _flag(json['locked']),
+    );
+
+Map<String, dynamic> _$$PreviewStopImplToJson(_$PreviewStopImpl instance) =>
+    <String, dynamic>{
+      'key': instance.key,
+      'title': instance.title,
+      'branch_name': instance.branchName,
+      'area': instance.area,
+      'reference_doctype': instance.referenceDoctype,
+      'reference_name': instance.referenceName,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'address': instance.address,
+      'phone': instance.phone,
+      'maps_url': instance.mapsUrl,
+      'position': instance.position,
+      'leg_km': instance.legKm,
+      'leg_minutes': instance.legMinutes,
+      'locked': instance.locked,
+    };

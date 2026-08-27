@@ -14,6 +14,7 @@ import '../../state/my_location_notifier.dart';
 import '../leads_theme.dart';
 import '../widgets/filter_sheet.dart';
 import '../widgets/lead_map.dart';
+import '../../../visits/presentation/widgets/add_to_visit_sheet.dart';
 import '../widgets/sahel_badge.dart';
 import '../widgets/stage_filter_bar.dart';
 import '../widgets/tier_pill.dart';
@@ -367,6 +368,16 @@ class _MarkerCard extends StatelessWidget {
                       ),
                     ],
                   ],
+                ),
+              ),
+              IconButton(
+                tooltip: context.l10n.visitAddToRoute,
+                icon: const Icon(Icons.route, size: 20),
+                onPressed: () => addToVisitAndConfirm(
+                  context,
+                  referenceDoctype: 'Lead',
+                  referenceName: lead.name,
+                  title: lead.leadName,
                 ),
               ),
               IconButton(

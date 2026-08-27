@@ -8545,4 +8545,106 @@ class AppLocalizationsAr extends AppLocalizations {
   String materialsPagesRead(Object count) {
     return '$count صفحات';
   }
+
+  @override
+  String get commonDone => 'تم';
+
+  @override
+  String get visitAddToRoute => 'إضافة إلى مسار';
+
+  @override
+  String get visitAddStop => 'إضافة';
+
+  @override
+  String get visitAddedToRoute => 'تمت الإضافة إلى المسار';
+
+  @override
+  String get visitOpenRoute => 'فتح';
+
+  @override
+  String visitWhichDoor(int count) {
+    return 'أي فرع؟ ($count بموقع محدد)';
+  }
+
+  @override
+  String get visitWhichDay => 'أي يوم';
+
+  @override
+  String get visitNewRoute => 'مسار جديد…';
+
+  @override
+  String visitNewRouteOn(String date) {
+    return 'مسار جديد يوم $date';
+  }
+
+  @override
+  String get visitNoUpcomingRoutes => 'لا توجد مسارات قادمة بعد.';
+
+  @override
+  String get visitNoDoorsToRoute => 'لا يوجد هنا ما يمكن التوجه إليه.';
+
+  @override
+  String get visitNoDoorsToRouteHint =>
+      'لا يحتوي هذا السجل على فرع بموقع محدد. أضف الموقع أولاً ليصبح محطة.';
+
+  @override
+  String get visitFilters => 'عوامل التصفية';
+
+  @override
+  String get visitClearFilters => 'مسح الكل';
+
+  @override
+  String get visitFilterTier => 'فئة الملاءمة';
+
+  @override
+  String get visitFilterCategory => 'التصنيف';
+
+  @override
+  String get visitFilterArea => 'المنطقة';
+
+  @override
+  String visitFilterMinFit(int score) {
+    return 'أقل درجة ملاءمة: $score';
+  }
+
+  @override
+  String get visitFilterSpecialty => 'التخصصية فقط';
+
+  @override
+  String get visitFilterNeverVisited => 'التي لم تُزر من قبل فقط';
+
+  @override
+  String get visitFilterNeverVisitedHint => 'أماكن لم يدخلها أحد بعد.';
+
+  @override
+  String get visitEmptyDayHint =>
+      'اختر الأماكن بالأسفل، أو اضغط «خطّط يومي». يتكوّن المسار أثناء اختيارك.';
+
+  @override
+  String get visitCostingDay => 'جارٍ حساب المسار…';
+
+  @override
+  String get visitManualOrderNote =>
+      'ترتيبك أنت — اضغط «تحسين المسار» لإعادته تلقائياً.';
+
+  @override
+  String visitSkippedNoPin(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString مكاناً بلا موقع ولن تظهر على المسار',
+      few: '$countString أماكن بلا موقع ولن تظهر على المسار',
+      two: 'مكانان بلا موقع ولن يظهرا على المسار',
+      one: 'مكان واحد بلا موقع ولن يظهر على المسار',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get visitSaveDraft => 'حفظ كمسودة';
 }

@@ -5,63 +5,74 @@ import 'package:latlong2/latlong.dart';
 import '../../../leads/presentation/leads_theme.dart';
 import '../../data/models/visit_plan.dart';
 
+/// One place on a drawn route, independent of where it came from.
+///
+/// The saved-plan map and the live builder preview draw the same picture from
+/// different types, so the picture takes this instead of either of them. Two
+/// map implementations would drift, and the one a rep checks the sequence on
+/// is not the place to discover that.
+class RouteMapStop {
+  const RouteMapStop({
+    required this.latitude,
+    required this.longitude,
+    this.status = 'Planned',
+  });
+
+  final double latitude;
+  final double longitude;
+  final String status;
+}
+
 /// The day drawn on a map: the stops, numbered, joined in visiting order.
 ///
 /// Two things it deliberately does NOT do. It does not cluster — a day is a
 /// dozen pins, and hiding two of them behind a "3" on the one screen where the
 /// rep is checking the *sequence* would defeat the purpose. And it does not
-/// re-fit the camera on every rebuild, only when the set of stops actually
+/// re-fit the camera on every rebuild, only when the set of positions actually
 /// changes, so a check-in does not yank the map out from under a finger.
-///
-/// [VisitPlan.geometry] is the road path when OSRM drew one. Without it the
-/// polyline is straight segments between stops — visibly an approximation,
-/// which is honest: the totals are approximations too in that case.
-class RouteMap extends StatefulWidget {
-  const RouteMap({
+class RouteMapView extends StatefulWidget {
+  const RouteMapView({
     super.key,
-    required this.plan,
+    required this.stops,
+    this.start,
+    this.geometry,
     this.height = 240,
     this.onStopTap,
   });
 
-  final VisitPlan plan;
+  final List<RouteMapStop> stops;
+  final LatLng? start;
+
+  /// Road path through the stops, `[[lat, lng], ...]`. Null draws straight
+  /// segments instead — visibly an approximation, which is honest, because the
+  /// totals are approximations in that case too.
+  final List<List<double>>? geometry;
+
   final double height;
-  final ValueChanged<VisitStop>? onStopTap;
+  final ValueChanged<int>? onStopTap;
 
   @override
-  State<RouteMap> createState() => _RouteMapState();
+  State<RouteMapView> createState() => _RouteMapViewState();
 }
 
-class _RouteMapState extends State<RouteMap> {
+class _RouteMapViewState extends State<RouteMapView> {
   final MapController _controller = MapController();
   String _fittedSignature = '';
   bool _ready = false;
 
   /// What the camera was fitted to. Positions only — a status change must not
   /// count as a new shape, or every check-in would re-frame the map.
-  String get _signature => widget.plan.stops
-      .where((s) => s.hasLocation)
-      .map((s) => '${s.latitude},${s.longitude}')
-      .join(';');
+  String get _signature =>
+      widget.stops.map((s) => '${s.latitude},${s.longitude}').join(';');
 
-  List<LatLng> get _points => [
-        for (final stop in widget.plan.stops)
-          if (stop.hasLocation && stop.status != 'Cancelled')
-            LatLng(stop.latitude!, stop.longitude!),
-      ];
-
-  LatLng? get _start {
-    final lat = widget.plan.startLatitude;
-    final lng = widget.plan.startLongitude;
-    if (lat == null || lng == null) return null;
-    return LatLng(lat, lng);
-  }
+  List<LatLng> get _points =>
+      [for (final s in widget.stops) LatLng(s.latitude, s.longitude)];
 
   void _fitIfNeeded() {
     if (!_ready) return;
     final signature = _signature;
     if (signature == _fittedSignature || signature.isEmpty) return;
-    final all = [..._points, if (_start != null) _start!];
+    final all = [..._points, if (widget.start != null) widget.start!];
     if (all.isEmpty) return;
     _fittedSignature = signature;
     if (all.length == 1) {
@@ -78,7 +89,7 @@ class _RouteMapState extends State<RouteMap> {
   }
 
   @override
-  void didUpdateWidget(covariant RouteMap oldWidget) {
+  void didUpdateWidget(covariant RouteMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
     WidgetsBinding.instance.addPostFrameCallback((_) => _fitIfNeeded());
   }
@@ -86,7 +97,7 @@ class _RouteMapState extends State<RouteMap> {
   @override
   Widget build(BuildContext context) {
     final points = _points;
-    final geometry = widget.plan.geometry;
+    final geometry = widget.geometry;
     final line = geometry != null && geometry.length > 1
         ? [for (final pair in geometry) LatLng(pair[0], pair[1])]
         : points;
@@ -98,7 +109,7 @@ class _RouteMapState extends State<RouteMap> {
         options: MapOptions(
           initialCenter: points.isNotEmpty
               ? points.first
-              : (_start ?? const LatLng(30.0444, 31.2357)),
+              : (widget.start ?? const LatLng(30.0444, 31.2357)),
           initialZoom: 12,
           minZoom: 4,
           maxZoom: 18,
@@ -117,7 +128,7 @@ class _RouteMapState extends State<RouteMap> {
             PolylineLayer(
               polylines: [
                 Polyline(
-                  points: [if (_start != null) _start!, ...line],
+                  points: [if (widget.start != null) widget.start!, ...line],
                   strokeWidth: 4,
                   color: LeadsTheme.sahelBlue.withValues(alpha: 0.75),
                 ),
@@ -125,42 +136,75 @@ class _RouteMapState extends State<RouteMap> {
             ),
           MarkerLayer(
             markers: [
-              if (_start != null)
+              if (widget.start != null)
                 Marker(
-                  point: _start!,
+                  point: widget.start!,
                   width: 26,
                   height: 26,
                   child: const _StartMarker(),
                 ),
-              ..._stopMarkers(),
+              for (var i = 0; i < widget.stops.length; i++)
+                Marker(
+                  point: LatLng(
+                      widget.stops[i].latitude, widget.stops[i].longitude),
+                  width: 30,
+                  height: 30,
+                  child: GestureDetector(
+                    onTap: widget.onStopTap == null
+                        ? null
+                        : () => widget.onStopTap!(i),
+                    child: _StopMarker(
+                      position: i + 1,
+                      status: widget.stops[i].status,
+                    ),
+                  ),
+                ),
             ],
           ),
         ],
       ),
     );
   }
+}
 
-  List<Marker> _stopMarkers() {
-    final markers = <Marker>[];
-    var position = 0;
-    for (final stop in widget.plan.stops) {
-      if (!stop.hasLocation || stop.status == 'Cancelled') continue;
-      position += 1;
-      markers.add(
-        Marker(
-          point: LatLng(stop.latitude!, stop.longitude!),
-          width: 30,
-          height: 30,
-          child: GestureDetector(
-            onTap: widget.onStopTap == null
-                ? null
-                : () => widget.onStopTap!(stop),
-            child: _StopMarker(position: position, status: stop.status),
+/// The saved plan's map. A thin adapter over [RouteMapView].
+class RouteMap extends StatelessWidget {
+  const RouteMap({
+    super.key,
+    required this.plan,
+    this.height = 240,
+    this.onStopTap,
+  });
+
+  final VisitPlan plan;
+  final double height;
+  final ValueChanged<VisitStop>? onStopTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final drawn = plan.stops
+        .where((s) => s.hasLocation && s.status != 'Cancelled')
+        .toList();
+    final lat = plan.startLatitude;
+    final lng = plan.startLongitude;
+    return RouteMapView(
+      stops: [
+        for (final s in drawn)
+          RouteMapStop(
+            latitude: s.latitude!,
+            longitude: s.longitude!,
+            status: s.status,
           ),
-        ),
-      );
-    }
-    return markers;
+      ],
+      start: (lat != null && lng != null) ? LatLng(lat, lng) : null,
+      geometry: plan.geometry,
+      height: height,
+      onStopTap: onStopTap == null
+          ? null
+          : (index) {
+              if (index >= 0 && index < drawn.length) onStopTap!(drawn[index]);
+            },
+    );
   }
 }
 

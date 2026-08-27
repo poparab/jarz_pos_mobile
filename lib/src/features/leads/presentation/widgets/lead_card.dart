@@ -6,6 +6,7 @@ import '../../domain/lead_clustering.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../leads_theme.dart';
 import 'lead_actions.dart';
+import '../../../visits/presentation/widgets/add_to_visit_sheet.dart';
 import 'sahel_badge.dart';
 import 'talabat_badge.dart';
 import 'score_bar.dart';
@@ -165,6 +166,22 @@ class LeadCard extends StatelessWidget {
                               );
                             }
                           },
+                        ),
+                        // Routable only when the brand has a pin somewhere.
+                        // The sheet resolves the actual doors; this just
+                        // avoids offering the action on a lead that has none.
+                        LeadActionButton(
+                          icon: Icons.route,
+                          enabled: lead.locations.isNotEmpty ||
+                              (lead.latitude != null && lead.longitude != null),
+                          tooltip: context.l10n.visitAddToRoute,
+                          color: LeadsTheme.sahelBlue,
+                          onTap: () => addToVisitAndConfirm(
+                            context,
+                            referenceDoctype: 'Lead',
+                            referenceName: lead.name,
+                            title: lead.leadName,
+                          ),
                         ),
                         const Spacer(),
                         Icon(

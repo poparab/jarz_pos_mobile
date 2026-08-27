@@ -14384,6 +14384,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} pages'**
   String materialsPagesRead(Object count);
+
+  /// No description provided for @commonDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get commonDone;
+
+  /// No description provided for @visitAddToRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to a route'**
+  String get visitAddToRoute;
+
+  /// No description provided for @visitAddStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get visitAddStop;
+
+  /// No description provided for @visitAddedToRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to the route'**
+  String get visitAddedToRoute;
+
+  /// No description provided for @visitOpenRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get visitOpenRoute;
+
+  /// No description provided for @visitWhichDoor.
+  ///
+  /// In en, this message translates to:
+  /// **'Which branch? ({count} located)'**
+  String visitWhichDoor(int count);
+
+  /// No description provided for @visitWhichDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Which day'**
+  String get visitWhichDay;
+
+  /// No description provided for @visitNewRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'New route…'**
+  String get visitNewRoute;
+
+  /// No description provided for @visitNewRouteOn.
+  ///
+  /// In en, this message translates to:
+  /// **'New route on {date}'**
+  String visitNewRouteOn(String date);
+
+  /// No description provided for @visitNoUpcomingRoutes.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming routes yet.'**
+  String get visitNoUpcomingRoutes;
+
+  /// No description provided for @visitNoDoorsToRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here can be routed to.'**
+  String get visitNoDoorsToRoute;
+
+  /// No description provided for @visitNoDoorsToRouteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This record has no branch with a location on it. Add a pin first and it becomes a stop.'**
+  String get visitNoDoorsToRouteHint;
+
+  /// No description provided for @visitFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get visitFilters;
+
+  /// No description provided for @visitClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get visitClearFilters;
+
+  /// No description provided for @visitFilterTier.
+  ///
+  /// In en, this message translates to:
+  /// **'Fit tier'**
+  String get visitFilterTier;
+
+  /// No description provided for @visitFilterCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get visitFilterCategory;
+
+  /// No description provided for @visitFilterArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Area'**
+  String get visitFilterArea;
+
+  /// No description provided for @visitFilterMinFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum fit score: {score}'**
+  String visitFilterMinFit(int score);
+
+  /// No description provided for @visitFilterSpecialty.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialty only'**
+  String get visitFilterSpecialty;
+
+  /// No description provided for @visitFilterNeverVisited.
+  ///
+  /// In en, this message translates to:
+  /// **'Never visited only'**
+  String get visitFilterNeverVisited;
+
+  /// No description provided for @visitFilterNeverVisitedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Doors nobody has walked into yet.'**
+  String get visitFilterNeverVisitedHint;
+
+  /// No description provided for @visitEmptyDayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick doors below, or tap Plan my day. The route builds as you choose.'**
+  String get visitEmptyDayHint;
+
+  /// No description provided for @visitCostingDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Working out the route…'**
+  String get visitCostingDay;
+
+  /// No description provided for @visitManualOrderNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order — tap Optimise to hand it back.'**
+  String get visitManualOrderNote;
+
+  /// No description provided for @visitSkippedNoPin.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 door has no location and is not on the route} other{{count} doors have no location and are not on the route}}'**
+  String visitSkippedNoPin(num count);
+
+  /// No description provided for @visitSaveDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Save draft'**
+  String get visitSaveDraft;
 }
 
 class _AppLocalizationsDelegate

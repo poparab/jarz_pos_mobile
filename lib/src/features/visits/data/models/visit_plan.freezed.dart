@@ -2872,3 +2872,863 @@ abstract class _RouteEngineStatus extends RouteEngineStatus {
   _$$RouteEngineStatusImplCopyWith<_$RouteEngineStatusImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+RoutePreview _$RoutePreviewFromJson(Map<String, dynamic> json) {
+  return _RoutePreview.fromJson(json);
+}
+
+/// @nodoc
+mixin _$RoutePreview {
+  List<PreviewStop> get stops => throw _privateConstructorUsedError;
+  List<int> get order => throw _privateConstructorUsedError;
+  String get engine => throw _privateConstructorUsedError;
+  @JsonKey(name: 'engine_note')
+  String? get engineNote => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_distance_km')
+  double get totalDistanceKm => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_drive_minutes')
+  int get totalDriveMinutes => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_duration_minutes')
+  int get totalDurationMinutes => throw _privateConstructorUsedError;
+
+  /// Doors that were ticked but have no usable pin. Skipped rather than
+  /// refused — a rep should see the rest of their day, not an error — but
+  /// surfaced, because a stop silently missing from a route is the bug this
+  /// whole feature exists to avoid.
+  int get skipped => throw _privateConstructorUsedError;
+
+  /// Serializes this RoutePreview to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of RoutePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $RoutePreviewCopyWith<RoutePreview> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $RoutePreviewCopyWith<$Res> {
+  factory $RoutePreviewCopyWith(
+    RoutePreview value,
+    $Res Function(RoutePreview) then,
+  ) = _$RoutePreviewCopyWithImpl<$Res, RoutePreview>;
+  @useResult
+  $Res call({
+    List<PreviewStop> stops,
+    List<int> order,
+    String engine,
+    @JsonKey(name: 'engine_note') String? engineNote,
+    @JsonKey(name: 'total_distance_km') double totalDistanceKm,
+    @JsonKey(name: 'total_drive_minutes') int totalDriveMinutes,
+    @JsonKey(name: 'total_duration_minutes') int totalDurationMinutes,
+    int skipped,
+  });
+}
+
+/// @nodoc
+class _$RoutePreviewCopyWithImpl<$Res, $Val extends RoutePreview>
+    implements $RoutePreviewCopyWith<$Res> {
+  _$RoutePreviewCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of RoutePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? stops = null,
+    Object? order = null,
+    Object? engine = null,
+    Object? engineNote = freezed,
+    Object? totalDistanceKm = null,
+    Object? totalDriveMinutes = null,
+    Object? totalDurationMinutes = null,
+    Object? skipped = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            stops: null == stops
+                ? _value.stops
+                : stops // ignore: cast_nullable_to_non_nullable
+                      as List<PreviewStop>,
+            order: null == order
+                ? _value.order
+                : order // ignore: cast_nullable_to_non_nullable
+                      as List<int>,
+            engine: null == engine
+                ? _value.engine
+                : engine // ignore: cast_nullable_to_non_nullable
+                      as String,
+            engineNote: freezed == engineNote
+                ? _value.engineNote
+                : engineNote // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            totalDistanceKm: null == totalDistanceKm
+                ? _value.totalDistanceKm
+                : totalDistanceKm // ignore: cast_nullable_to_non_nullable
+                      as double,
+            totalDriveMinutes: null == totalDriveMinutes
+                ? _value.totalDriveMinutes
+                : totalDriveMinutes // ignore: cast_nullable_to_non_nullable
+                      as int,
+            totalDurationMinutes: null == totalDurationMinutes
+                ? _value.totalDurationMinutes
+                : totalDurationMinutes // ignore: cast_nullable_to_non_nullable
+                      as int,
+            skipped: null == skipped
+                ? _value.skipped
+                : skipped // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$RoutePreviewImplCopyWith<$Res>
+    implements $RoutePreviewCopyWith<$Res> {
+  factory _$$RoutePreviewImplCopyWith(
+    _$RoutePreviewImpl value,
+    $Res Function(_$RoutePreviewImpl) then,
+  ) = __$$RoutePreviewImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    List<PreviewStop> stops,
+    List<int> order,
+    String engine,
+    @JsonKey(name: 'engine_note') String? engineNote,
+    @JsonKey(name: 'total_distance_km') double totalDistanceKm,
+    @JsonKey(name: 'total_drive_minutes') int totalDriveMinutes,
+    @JsonKey(name: 'total_duration_minutes') int totalDurationMinutes,
+    int skipped,
+  });
+}
+
+/// @nodoc
+class __$$RoutePreviewImplCopyWithImpl<$Res>
+    extends _$RoutePreviewCopyWithImpl<$Res, _$RoutePreviewImpl>
+    implements _$$RoutePreviewImplCopyWith<$Res> {
+  __$$RoutePreviewImplCopyWithImpl(
+    _$RoutePreviewImpl _value,
+    $Res Function(_$RoutePreviewImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of RoutePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? stops = null,
+    Object? order = null,
+    Object? engine = null,
+    Object? engineNote = freezed,
+    Object? totalDistanceKm = null,
+    Object? totalDriveMinutes = null,
+    Object? totalDurationMinutes = null,
+    Object? skipped = null,
+  }) {
+    return _then(
+      _$RoutePreviewImpl(
+        stops: null == stops
+            ? _value._stops
+            : stops // ignore: cast_nullable_to_non_nullable
+                  as List<PreviewStop>,
+        order: null == order
+            ? _value._order
+            : order // ignore: cast_nullable_to_non_nullable
+                  as List<int>,
+        engine: null == engine
+            ? _value.engine
+            : engine // ignore: cast_nullable_to_non_nullable
+                  as String,
+        engineNote: freezed == engineNote
+            ? _value.engineNote
+            : engineNote // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        totalDistanceKm: null == totalDistanceKm
+            ? _value.totalDistanceKm
+            : totalDistanceKm // ignore: cast_nullable_to_non_nullable
+                  as double,
+        totalDriveMinutes: null == totalDriveMinutes
+            ? _value.totalDriveMinutes
+            : totalDriveMinutes // ignore: cast_nullable_to_non_nullable
+                  as int,
+        totalDurationMinutes: null == totalDurationMinutes
+            ? _value.totalDurationMinutes
+            : totalDurationMinutes // ignore: cast_nullable_to_non_nullable
+                  as int,
+        skipped: null == skipped
+            ? _value.skipped
+            : skipped // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$RoutePreviewImpl extends _RoutePreview {
+  const _$RoutePreviewImpl({
+    final List<PreviewStop> stops = const <PreviewStop>[],
+    final List<int> order = const <int>[],
+    this.engine = 'haversine',
+    @JsonKey(name: 'engine_note') this.engineNote,
+    @JsonKey(name: 'total_distance_km') this.totalDistanceKm = 0.0,
+    @JsonKey(name: 'total_drive_minutes') this.totalDriveMinutes = 0,
+    @JsonKey(name: 'total_duration_minutes') this.totalDurationMinutes = 0,
+    this.skipped = 0,
+  }) : _stops = stops,
+       _order = order,
+       super._();
+
+  factory _$RoutePreviewImpl.fromJson(Map<String, dynamic> json) =>
+      _$$RoutePreviewImplFromJson(json);
+
+  final List<PreviewStop> _stops;
+  @override
+  @JsonKey()
+  List<PreviewStop> get stops {
+    if (_stops is EqualUnmodifiableListView) return _stops;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_stops);
+  }
+
+  final List<int> _order;
+  @override
+  @JsonKey()
+  List<int> get order {
+    if (_order is EqualUnmodifiableListView) return _order;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_order);
+  }
+
+  @override
+  @JsonKey()
+  final String engine;
+  @override
+  @JsonKey(name: 'engine_note')
+  final String? engineNote;
+  @override
+  @JsonKey(name: 'total_distance_km')
+  final double totalDistanceKm;
+  @override
+  @JsonKey(name: 'total_drive_minutes')
+  final int totalDriveMinutes;
+  @override
+  @JsonKey(name: 'total_duration_minutes')
+  final int totalDurationMinutes;
+
+  /// Doors that were ticked but have no usable pin. Skipped rather than
+  /// refused — a rep should see the rest of their day, not an error — but
+  /// surfaced, because a stop silently missing from a route is the bug this
+  /// whole feature exists to avoid.
+  @override
+  @JsonKey()
+  final int skipped;
+
+  @override
+  String toString() {
+    return 'RoutePreview(stops: $stops, order: $order, engine: $engine, engineNote: $engineNote, totalDistanceKm: $totalDistanceKm, totalDriveMinutes: $totalDriveMinutes, totalDurationMinutes: $totalDurationMinutes, skipped: $skipped)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RoutePreviewImpl &&
+            const DeepCollectionEquality().equals(other._stops, _stops) &&
+            const DeepCollectionEquality().equals(other._order, _order) &&
+            (identical(other.engine, engine) || other.engine == engine) &&
+            (identical(other.engineNote, engineNote) ||
+                other.engineNote == engineNote) &&
+            (identical(other.totalDistanceKm, totalDistanceKm) ||
+                other.totalDistanceKm == totalDistanceKm) &&
+            (identical(other.totalDriveMinutes, totalDriveMinutes) ||
+                other.totalDriveMinutes == totalDriveMinutes) &&
+            (identical(other.totalDurationMinutes, totalDurationMinutes) ||
+                other.totalDurationMinutes == totalDurationMinutes) &&
+            (identical(other.skipped, skipped) || other.skipped == skipped));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    const DeepCollectionEquality().hash(_stops),
+    const DeepCollectionEquality().hash(_order),
+    engine,
+    engineNote,
+    totalDistanceKm,
+    totalDriveMinutes,
+    totalDurationMinutes,
+    skipped,
+  );
+
+  /// Create a copy of RoutePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RoutePreviewImplCopyWith<_$RoutePreviewImpl> get copyWith =>
+      __$$RoutePreviewImplCopyWithImpl<_$RoutePreviewImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$RoutePreviewImplToJson(this);
+  }
+}
+
+abstract class _RoutePreview extends RoutePreview {
+  const factory _RoutePreview({
+    final List<PreviewStop> stops,
+    final List<int> order,
+    final String engine,
+    @JsonKey(name: 'engine_note') final String? engineNote,
+    @JsonKey(name: 'total_distance_km') final double totalDistanceKm,
+    @JsonKey(name: 'total_drive_minutes') final int totalDriveMinutes,
+    @JsonKey(name: 'total_duration_minutes') final int totalDurationMinutes,
+    final int skipped,
+  }) = _$RoutePreviewImpl;
+  const _RoutePreview._() : super._();
+
+  factory _RoutePreview.fromJson(Map<String, dynamic> json) =
+      _$RoutePreviewImpl.fromJson;
+
+  @override
+  List<PreviewStop> get stops;
+  @override
+  List<int> get order;
+  @override
+  String get engine;
+  @override
+  @JsonKey(name: 'engine_note')
+  String? get engineNote;
+  @override
+  @JsonKey(name: 'total_distance_km')
+  double get totalDistanceKm;
+  @override
+  @JsonKey(name: 'total_drive_minutes')
+  int get totalDriveMinutes;
+  @override
+  @JsonKey(name: 'total_duration_minutes')
+  int get totalDurationMinutes;
+
+  /// Doors that were ticked but have no usable pin. Skipped rather than
+  /// refused — a rep should see the rest of their day, not an error — but
+  /// surfaced, because a stop silently missing from a route is the bug this
+  /// whole feature exists to avoid.
+  @override
+  int get skipped;
+
+  /// Create a copy of RoutePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$RoutePreviewImplCopyWith<_$RoutePreviewImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+PreviewStop _$PreviewStopFromJson(Map<String, dynamic> json) {
+  return _PreviewStop.fromJson(json);
+}
+
+/// @nodoc
+mixin _$PreviewStop {
+  String get key => throw _privateConstructorUsedError;
+  String get title => throw _privateConstructorUsedError;
+  @JsonKey(name: 'branch_name')
+  String get branchName => throw _privateConstructorUsedError;
+  String get area => throw _privateConstructorUsedError;
+  @JsonKey(name: 'reference_doctype')
+  String get referenceDoctype => throw _privateConstructorUsedError;
+  @JsonKey(name: 'reference_name')
+  String get referenceName => throw _privateConstructorUsedError;
+  double get latitude => throw _privateConstructorUsedError;
+  double get longitude => throw _privateConstructorUsedError;
+  String get address => throw _privateConstructorUsedError;
+  String get phone => throw _privateConstructorUsedError;
+  @JsonKey(name: 'maps_url')
+  String get mapsUrl => throw _privateConstructorUsedError;
+  int get position => throw _privateConstructorUsedError;
+  @JsonKey(name: 'leg_km')
+  double get legKm => throw _privateConstructorUsedError;
+  @JsonKey(name: 'leg_minutes')
+  int get legMinutes => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _flag)
+  bool get locked => throw _privateConstructorUsedError;
+
+  /// Serializes this PreviewStop to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of PreviewStop
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $PreviewStopCopyWith<PreviewStop> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $PreviewStopCopyWith<$Res> {
+  factory $PreviewStopCopyWith(
+    PreviewStop value,
+    $Res Function(PreviewStop) then,
+  ) = _$PreviewStopCopyWithImpl<$Res, PreviewStop>;
+  @useResult
+  $Res call({
+    String key,
+    String title,
+    @JsonKey(name: 'branch_name') String branchName,
+    String area,
+    @JsonKey(name: 'reference_doctype') String referenceDoctype,
+    @JsonKey(name: 'reference_name') String referenceName,
+    double latitude,
+    double longitude,
+    String address,
+    String phone,
+    @JsonKey(name: 'maps_url') String mapsUrl,
+    int position,
+    @JsonKey(name: 'leg_km') double legKm,
+    @JsonKey(name: 'leg_minutes') int legMinutes,
+    @JsonKey(fromJson: _flag) bool locked,
+  });
+}
+
+/// @nodoc
+class _$PreviewStopCopyWithImpl<$Res, $Val extends PreviewStop>
+    implements $PreviewStopCopyWith<$Res> {
+  _$PreviewStopCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of PreviewStop
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? key = null,
+    Object? title = null,
+    Object? branchName = null,
+    Object? area = null,
+    Object? referenceDoctype = null,
+    Object? referenceName = null,
+    Object? latitude = null,
+    Object? longitude = null,
+    Object? address = null,
+    Object? phone = null,
+    Object? mapsUrl = null,
+    Object? position = null,
+    Object? legKm = null,
+    Object? legMinutes = null,
+    Object? locked = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            key: null == key
+                ? _value.key
+                : key // ignore: cast_nullable_to_non_nullable
+                      as String,
+            title: null == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                      as String,
+            branchName: null == branchName
+                ? _value.branchName
+                : branchName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            area: null == area
+                ? _value.area
+                : area // ignore: cast_nullable_to_non_nullable
+                      as String,
+            referenceDoctype: null == referenceDoctype
+                ? _value.referenceDoctype
+                : referenceDoctype // ignore: cast_nullable_to_non_nullable
+                      as String,
+            referenceName: null == referenceName
+                ? _value.referenceName
+                : referenceName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            latitude: null == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double,
+            longitude: null == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double,
+            address: null == address
+                ? _value.address
+                : address // ignore: cast_nullable_to_non_nullable
+                      as String,
+            phone: null == phone
+                ? _value.phone
+                : phone // ignore: cast_nullable_to_non_nullable
+                      as String,
+            mapsUrl: null == mapsUrl
+                ? _value.mapsUrl
+                : mapsUrl // ignore: cast_nullable_to_non_nullable
+                      as String,
+            position: null == position
+                ? _value.position
+                : position // ignore: cast_nullable_to_non_nullable
+                      as int,
+            legKm: null == legKm
+                ? _value.legKm
+                : legKm // ignore: cast_nullable_to_non_nullable
+                      as double,
+            legMinutes: null == legMinutes
+                ? _value.legMinutes
+                : legMinutes // ignore: cast_nullable_to_non_nullable
+                      as int,
+            locked: null == locked
+                ? _value.locked
+                : locked // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$PreviewStopImplCopyWith<$Res>
+    implements $PreviewStopCopyWith<$Res> {
+  factory _$$PreviewStopImplCopyWith(
+    _$PreviewStopImpl value,
+    $Res Function(_$PreviewStopImpl) then,
+  ) = __$$PreviewStopImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String key,
+    String title,
+    @JsonKey(name: 'branch_name') String branchName,
+    String area,
+    @JsonKey(name: 'reference_doctype') String referenceDoctype,
+    @JsonKey(name: 'reference_name') String referenceName,
+    double latitude,
+    double longitude,
+    String address,
+    String phone,
+    @JsonKey(name: 'maps_url') String mapsUrl,
+    int position,
+    @JsonKey(name: 'leg_km') double legKm,
+    @JsonKey(name: 'leg_minutes') int legMinutes,
+    @JsonKey(fromJson: _flag) bool locked,
+  });
+}
+
+/// @nodoc
+class __$$PreviewStopImplCopyWithImpl<$Res>
+    extends _$PreviewStopCopyWithImpl<$Res, _$PreviewStopImpl>
+    implements _$$PreviewStopImplCopyWith<$Res> {
+  __$$PreviewStopImplCopyWithImpl(
+    _$PreviewStopImpl _value,
+    $Res Function(_$PreviewStopImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of PreviewStop
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? key = null,
+    Object? title = null,
+    Object? branchName = null,
+    Object? area = null,
+    Object? referenceDoctype = null,
+    Object? referenceName = null,
+    Object? latitude = null,
+    Object? longitude = null,
+    Object? address = null,
+    Object? phone = null,
+    Object? mapsUrl = null,
+    Object? position = null,
+    Object? legKm = null,
+    Object? legMinutes = null,
+    Object? locked = null,
+  }) {
+    return _then(
+      _$PreviewStopImpl(
+        key: null == key
+            ? _value.key
+            : key // ignore: cast_nullable_to_non_nullable
+                  as String,
+        title: null == title
+            ? _value.title
+            : title // ignore: cast_nullable_to_non_nullable
+                  as String,
+        branchName: null == branchName
+            ? _value.branchName
+            : branchName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        area: null == area
+            ? _value.area
+            : area // ignore: cast_nullable_to_non_nullable
+                  as String,
+        referenceDoctype: null == referenceDoctype
+            ? _value.referenceDoctype
+            : referenceDoctype // ignore: cast_nullable_to_non_nullable
+                  as String,
+        referenceName: null == referenceName
+            ? _value.referenceName
+            : referenceName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        latitude: null == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double,
+        longitude: null == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double,
+        address: null == address
+            ? _value.address
+            : address // ignore: cast_nullable_to_non_nullable
+                  as String,
+        phone: null == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String,
+        mapsUrl: null == mapsUrl
+            ? _value.mapsUrl
+            : mapsUrl // ignore: cast_nullable_to_non_nullable
+                  as String,
+        position: null == position
+            ? _value.position
+            : position // ignore: cast_nullable_to_non_nullable
+                  as int,
+        legKm: null == legKm
+            ? _value.legKm
+            : legKm // ignore: cast_nullable_to_non_nullable
+                  as double,
+        legMinutes: null == legMinutes
+            ? _value.legMinutes
+            : legMinutes // ignore: cast_nullable_to_non_nullable
+                  as int,
+        locked: null == locked
+            ? _value.locked
+            : locked // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$PreviewStopImpl extends _PreviewStop {
+  const _$PreviewStopImpl({
+    this.key = '',
+    this.title = '',
+    @JsonKey(name: 'branch_name') this.branchName = '',
+    this.area = '',
+    @JsonKey(name: 'reference_doctype') this.referenceDoctype = 'Lead',
+    @JsonKey(name: 'reference_name') this.referenceName = '',
+    this.latitude = 0.0,
+    this.longitude = 0.0,
+    this.address = '',
+    this.phone = '',
+    @JsonKey(name: 'maps_url') this.mapsUrl = '',
+    this.position = 0,
+    @JsonKey(name: 'leg_km') this.legKm = 0.0,
+    @JsonKey(name: 'leg_minutes') this.legMinutes = 0,
+    @JsonKey(fromJson: _flag) this.locked = false,
+  }) : super._();
+
+  factory _$PreviewStopImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PreviewStopImplFromJson(json);
+
+  @override
+  @JsonKey()
+  final String key;
+  @override
+  @JsonKey()
+  final String title;
+  @override
+  @JsonKey(name: 'branch_name')
+  final String branchName;
+  @override
+  @JsonKey()
+  final String area;
+  @override
+  @JsonKey(name: 'reference_doctype')
+  final String referenceDoctype;
+  @override
+  @JsonKey(name: 'reference_name')
+  final String referenceName;
+  @override
+  @JsonKey()
+  final double latitude;
+  @override
+  @JsonKey()
+  final double longitude;
+  @override
+  @JsonKey()
+  final String address;
+  @override
+  @JsonKey()
+  final String phone;
+  @override
+  @JsonKey(name: 'maps_url')
+  final String mapsUrl;
+  @override
+  @JsonKey()
+  final int position;
+  @override
+  @JsonKey(name: 'leg_km')
+  final double legKm;
+  @override
+  @JsonKey(name: 'leg_minutes')
+  final int legMinutes;
+  @override
+  @JsonKey(fromJson: _flag)
+  final bool locked;
+
+  @override
+  String toString() {
+    return 'PreviewStop(key: $key, title: $title, branchName: $branchName, area: $area, referenceDoctype: $referenceDoctype, referenceName: $referenceName, latitude: $latitude, longitude: $longitude, address: $address, phone: $phone, mapsUrl: $mapsUrl, position: $position, legKm: $legKm, legMinutes: $legMinutes, locked: $locked)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PreviewStopImpl &&
+            (identical(other.key, key) || other.key == key) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.branchName, branchName) ||
+                other.branchName == branchName) &&
+            (identical(other.area, area) || other.area == area) &&
+            (identical(other.referenceDoctype, referenceDoctype) ||
+                other.referenceDoctype == referenceDoctype) &&
+            (identical(other.referenceName, referenceName) ||
+                other.referenceName == referenceName) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.mapsUrl, mapsUrl) || other.mapsUrl == mapsUrl) &&
+            (identical(other.position, position) ||
+                other.position == position) &&
+            (identical(other.legKm, legKm) || other.legKm == legKm) &&
+            (identical(other.legMinutes, legMinutes) ||
+                other.legMinutes == legMinutes) &&
+            (identical(other.locked, locked) || other.locked == locked));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    key,
+    title,
+    branchName,
+    area,
+    referenceDoctype,
+    referenceName,
+    latitude,
+    longitude,
+    address,
+    phone,
+    mapsUrl,
+    position,
+    legKm,
+    legMinutes,
+    locked,
+  );
+
+  /// Create a copy of PreviewStop
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PreviewStopImplCopyWith<_$PreviewStopImpl> get copyWith =>
+      __$$PreviewStopImplCopyWithImpl<_$PreviewStopImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$PreviewStopImplToJson(this);
+  }
+}
+
+abstract class _PreviewStop extends PreviewStop {
+  const factory _PreviewStop({
+    final String key,
+    final String title,
+    @JsonKey(name: 'branch_name') final String branchName,
+    final String area,
+    @JsonKey(name: 'reference_doctype') final String referenceDoctype,
+    @JsonKey(name: 'reference_name') final String referenceName,
+    final double latitude,
+    final double longitude,
+    final String address,
+    final String phone,
+    @JsonKey(name: 'maps_url') final String mapsUrl,
+    final int position,
+    @JsonKey(name: 'leg_km') final double legKm,
+    @JsonKey(name: 'leg_minutes') final int legMinutes,
+    @JsonKey(fromJson: _flag) final bool locked,
+  }) = _$PreviewStopImpl;
+  const _PreviewStop._() : super._();
+
+  factory _PreviewStop.fromJson(Map<String, dynamic> json) =
+      _$PreviewStopImpl.fromJson;
+
+  @override
+  String get key;
+  @override
+  String get title;
+  @override
+  @JsonKey(name: 'branch_name')
+  String get branchName;
+  @override
+  String get area;
+  @override
+  @JsonKey(name: 'reference_doctype')
+  String get referenceDoctype;
+  @override
+  @JsonKey(name: 'reference_name')
+  String get referenceName;
+  @override
+  double get latitude;
+  @override
+  double get longitude;
+  @override
+  String get address;
+  @override
+  String get phone;
+  @override
+  @JsonKey(name: 'maps_url')
+  String get mapsUrl;
+  @override
+  int get position;
+  @override
+  @JsonKey(name: 'leg_km')
+  double get legKm;
+  @override
+  @JsonKey(name: 'leg_minutes')
+  int get legMinutes;
+  @override
+  @JsonKey(fromJson: _flag)
+  bool get locked;
+
+  /// Create a copy of PreviewStop
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PreviewStopImplCopyWith<_$PreviewStopImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}

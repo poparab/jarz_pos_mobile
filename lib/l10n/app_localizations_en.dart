@@ -8580,4 +8580,104 @@ class AppLocalizationsEn extends AppLocalizations {
   String materialsPagesRead(Object count) {
     return '$count pages';
   }
+
+  @override
+  String get commonDone => 'Done';
+
+  @override
+  String get visitAddToRoute => 'Add to a route';
+
+  @override
+  String get visitAddStop => 'Add';
+
+  @override
+  String get visitAddedToRoute => 'Added to the route';
+
+  @override
+  String get visitOpenRoute => 'Open';
+
+  @override
+  String visitWhichDoor(int count) {
+    return 'Which branch? ($count located)';
+  }
+
+  @override
+  String get visitWhichDay => 'Which day';
+
+  @override
+  String get visitNewRoute => 'New route…';
+
+  @override
+  String visitNewRouteOn(String date) {
+    return 'New route on $date';
+  }
+
+  @override
+  String get visitNoUpcomingRoutes => 'No upcoming routes yet.';
+
+  @override
+  String get visitNoDoorsToRoute => 'Nothing here can be routed to.';
+
+  @override
+  String get visitNoDoorsToRouteHint =>
+      'This record has no branch with a location on it. Add a pin first and it becomes a stop.';
+
+  @override
+  String get visitFilters => 'Filters';
+
+  @override
+  String get visitClearFilters => 'Clear all';
+
+  @override
+  String get visitFilterTier => 'Fit tier';
+
+  @override
+  String get visitFilterCategory => 'Category';
+
+  @override
+  String get visitFilterArea => 'Area';
+
+  @override
+  String visitFilterMinFit(int score) {
+    return 'Minimum fit score: $score';
+  }
+
+  @override
+  String get visitFilterSpecialty => 'Specialty only';
+
+  @override
+  String get visitFilterNeverVisited => 'Never visited only';
+
+  @override
+  String get visitFilterNeverVisitedHint => 'Doors nobody has walked into yet.';
+
+  @override
+  String get visitEmptyDayHint =>
+      'Pick doors below, or tap Plan my day. The route builds as you choose.';
+
+  @override
+  String get visitCostingDay => 'Working out the route…';
+
+  @override
+  String get visitManualOrderNote =>
+      'Your order — tap Optimise to hand it back.';
+
+  @override
+  String visitSkippedNoPin(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString doors have no location and are not on the route',
+      one: '1 door has no location and is not on the route',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get visitSaveDraft => 'Save draft';
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../journey/presentation/widgets/journey_badge.dart';
 import '../../data/models/b2b_models.dart';
+import '../../../visits/presentation/widgets/add_to_visit_sheet.dart';
 import 'b2b_stage_chip.dart';
 
 /// A single draggable card on the B2B pipeline board.
@@ -203,6 +204,10 @@ class _CardMenu extends StatelessWidget {
 
   static const _openLeadValue = '__open_lead__';
 
+  /// Sentinel for the add-to-visit entry. A separate value from the stage
+  /// names so a stage can never be read as an action.
+  static const _addToVisitValue = '__add_to_visit__';
+
   final B2bCard card;
   final List<String> targets;
   final void Function(B2bCard card, String stage)? onMove;
@@ -222,6 +227,17 @@ class _CardMenu extends StatelessWidget {
           onOpenLead?.call(card);
           return;
         }
+        if (value == _addToVisitValue) {
+          // The card already knows its doctype and name, which is everything
+          // the sheet needs — it resolves the doors itself.
+          addToVisitAndConfirm(
+            context,
+            referenceDoctype: card.doctype,
+            referenceName: card.name,
+            title: card.title,
+          );
+          return;
+        }
         onMove?.call(card, value);
       },
       itemBuilder: (context) => [
@@ -236,8 +252,18 @@ class _CardMenu extends StatelessWidget {
               ],
             ),
           ),
-          if (targets.isNotEmpty) const PopupMenuDivider(),
         ],
+        PopupMenuItem<String>(
+          value: _addToVisitValue,
+          child: Row(
+            children: [
+              const Icon(Icons.route, size: 16),
+              const SizedBox(width: 8),
+              Text(context.l10n.visitAddToRoute),
+            ],
+          ),
+        ),
+        if (targets.isNotEmpty) const PopupMenuDivider(),
         if (targets.isNotEmpty) ...[
           PopupMenuItem<String>(
             enabled: false,

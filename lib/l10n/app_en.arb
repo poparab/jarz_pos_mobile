@@ -5035,5 +5035,60 @@
     "placeholders": {
       "count": {}
     }
-  }
+  },
+  "commonDone": "Done",
+  "visitAddToRoute": "Add to a route",
+  "visitAddStop": "Add",
+  "visitAddedToRoute": "Added to the route",
+  "visitOpenRoute": "Open",
+  "visitWhichDoor": "Which branch? ({count} located)",
+  "@visitWhichDoor": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "visitWhichDay": "Which day",
+  "visitNewRoute": "New route…",
+  "visitNewRouteOn": "New route on {date}",
+  "@visitNewRouteOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "visitNoUpcomingRoutes": "No upcoming routes yet.",
+  "visitNoDoorsToRoute": "Nothing here can be routed to.",
+  "visitNoDoorsToRouteHint": "This record has no branch with a location on it. Add a pin first and it becomes a stop.",
+  "visitFilters": "Filters",
+  "visitClearFilters": "Clear all",
+  "visitFilterTier": "Fit tier",
+  "visitFilterCategory": "Category",
+  "visitFilterArea": "Area",
+  "visitFilterMinFit": "Minimum fit score: {score}",
+  "@visitFilterMinFit": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "visitFilterSpecialty": "Specialty only",
+  "visitFilterNeverVisited": "Never visited only",
+  "visitFilterNeverVisitedHint": "Doors nobody has walked into yet.",
+  "visitEmptyDayHint": "Pick doors below, or tap Plan my day. The route builds as you choose.",
+  "visitCostingDay": "Working out the route…",
+  "visitManualOrderNote": "Your order — tap Optimise to hand it back.",
+  "visitSkippedNoPin": "{count, plural, =1{1 door has no location and is not on the route} other{{count} doors have no location and are not on the route}}",
+  "@visitSkippedNoPin": {
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "visitSaveDraft": "Save draft"
 }
