@@ -124,6 +124,60 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
     }
   }
 
+  Future<void> _removeImage(String receiptName) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.receiptRemoveConfirmTitle),
+        content: Text(l10n.receiptRemoveConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(l10n.receiptRemoveImageButton),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(SnackBar(content: Text(l10n.receiptRemoving)));
+
+    try {
+      final result = await ref.read(kanbanProvider.notifier).removeReceiptImage(
+            receiptName: receiptName,
+          );
+
+      if (!mounted) return;
+
+      if (result != null && result['success'] == true) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.receiptRemovedSuccess)),
+        );
+        await _loadData();
+      } else {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.receiptRemoveFailed)),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      final errorMessage = extractFrappeErrorMessage(
+        e,
+        fallback: l10n.receiptRemoveFailed,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.receiptRemoveError(errorMessage))),
+      );
+    }
+  }
+
   void _showFullImage(BuildContext context, String imageUrl) {
     showDialog(
       context: context,
@@ -299,6 +353,9 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
     final uploadedBy = receipt['uploaded_by'] as String?;
 
     final isConfirmed = status == 'Confirmed';
+    // Only an Unconfirmed receipt may have its screenshot swapped or dropped;
+    // Confirmed is evidence and Changed is audit history.
+    final isEditable = status == 'Unconfirmed';
     final hasImage = receiptImageUrl != null && receiptImageUrl.isNotEmpty;
     final canConfirm = receipt['can_confirm'] == true ||
       receipt['can_confirm'] == 1 ||
@@ -366,6 +423,7 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
             // Receipt image thumbnail or upload button
             if (hasImage)
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GestureDetector(
                     onTap: () => _showFullImage(context, fullImageUrl!),
@@ -386,19 +444,46 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
                     ),
                   ),
                   const SizedBox(width: 12),
-                  if (!isConfirmed && canConfirm)
-                    ElevatedButton.icon(
-                      onPressed: () => _confirmReceipt(receiptName),
-                      icon: const Icon(Icons.check, size: 16),
-                      label: Text(context.l10n.commonConfirm),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                      ),
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        if (!isConfirmed && canConfirm)
+                          ElevatedButton.icon(
+                            onPressed: () => _confirmReceipt(receiptName),
+                            icon: const Icon(Icons.check, size: 16),
+                            label: Text(context.l10n.commonConfirm),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        if (isEditable) ...[
+                          OutlinedButton.icon(
+                            onPressed: () => _uploadImage(receiptName),
+                            icon: const Icon(Icons.refresh, size: 16),
+                            label: Text(
+                              context.l10n.receiptReplaceImageButton,
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: () => _removeImage(receiptName),
+                            icon: const Icon(Icons.delete_outline, size: 16),
+                            label: Text(
+                              context.l10n.receiptRemoveImageButton,
+                            ),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
+                  ),
                 ],
               )
-            else
+            else if (isEditable)
               ElevatedButton.icon(
                 onPressed: () => _uploadImage(receiptName),
                 icon: const Icon(Icons.upload, size: 16),

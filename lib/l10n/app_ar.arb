@@ -1569,6 +1569,14 @@
   "receiptFilterByPosProfile": "تصفية حسب ملف نقطة البيع",
   "receiptNoReceiptsFound": "لا توجد إيصالات دفع",
   "receiptUploadImageButton": "رفع صورة الإيصال",
+  "receiptReplaceImageButton": "استبدال الصورة",
+  "receiptRemoveImageButton": "حذف الصورة",
+  "receiptRemoveConfirmTitle": "حذف صورة الإيصال؟",
+  "receiptRemoveConfirmBody": "سيتم حذف الصورة المرفوعة، ويمكنك رفع صورة جديدة بعد ذلك.",
+  "receiptRemoving": "جارٍ حذف صورة الإيصال...",
+  "receiptRemovedSuccess": "تم حذف صورة الإيصال",
+  "receiptRemoveFailed": "فشل حذف صورة الإيصال",
+  "receiptRemoveError": "خطأ في حذف الصورة: {error}",
   "receiptPreviewTitle": "معاينة الإيصال",
   "receiptPreviewButton": "معاينة الإيصال",
   "commonPrint": "طباعة",
@@ -2061,6 +2069,11 @@
     }
   },
   "@receiptConfirmError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "@receiptRemoveError": {
     "placeholders": {
       "error": {}
     }

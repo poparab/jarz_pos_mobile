@@ -68,6 +68,7 @@ class _PaymentCollectionChangeDialogState
   String? _receiptImageUrl;
   bool _isPreparingReceipt = false;
   bool _isUploadingReceipt = false;
+  bool _isRemovingReceipt = false;
 
   String get _currentMethod {
     final actual = widget.invoice.actualPaymentMethod?.trim() ?? '';
@@ -88,6 +89,13 @@ class _PaymentCollectionChangeDialogState
     final receiptName = (_receiptName ?? '').trim();
     final imageUrl = (_receiptImageUrl ?? '').trim();
     return receiptName.isNotEmpty && imageUrl.isNotEmpty;
+  }
+
+  /// The screenshot can only be swapped or dropped while nobody has confirmed
+  /// it yet — a Confirmed receipt is evidence, a Changed one is history.
+  bool get _isReceiptEditable {
+    final status = (_receiptStatus ?? '').trim();
+    return status.isEmpty || status == 'Unconfirmed';
   }
 
   double get _receiptAmount {
@@ -275,7 +283,7 @@ class _PaymentCollectionChangeDialogState
   }
 
   Future<void> _uploadReceiptImage() async {
-    if (!_requiresReceipt || _isPreparingReceipt || _isUploadingReceipt) {
+    if (!_requiresReceipt || _isBusy || !_isReceiptEditable) {
       return;
     }
     final image = await _pickReceiptImage();
@@ -342,6 +350,75 @@ class _PaymentCollectionChangeDialogState
     }
   }
 
+  bool get _isBusy =>
+      _isPreparingReceipt || _isUploadingReceipt || _isRemovingReceipt;
+
+  Future<void> _removeReceiptImage() async {
+    if (!_hasUploadedReceipt || _isBusy || !_isReceiptEditable) {
+      return;
+    }
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.receiptRemoveConfirmTitle),
+        content: Text(l10n.receiptRemoveConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(l10n.receiptRemoveImageButton),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    final messenger = ScaffoldMessenger.of(context);
+    final receiptName = (_receiptName ?? '').trim();
+    try {
+      setState(() => _isRemovingReceipt = true);
+      messenger.showSnackBar(
+        SnackBar(content: Text(context.l10n.receiptRemoving)),
+      );
+
+      await ref.read(kanbanProvider.notifier).removeReceiptImage(
+            receiptName: receiptName,
+          );
+
+      if (!mounted) {
+        return;
+      }
+
+      // The receipt record survives so the next upload reuses the same row.
+      setState(() {
+        _receiptImageUrl = null;
+        _isRemovingReceipt = false;
+      });
+      messenger.showSnackBar(
+        SnackBar(content: Text(context.l10n.receiptRemovedSuccess)),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isRemovingReceipt = false);
+      final message = error.toString().trim();
+      final friendly = message.startsWith('Exception: ')
+          ? message.substring('Exception: '.length)
+          : message;
+      messenger.showSnackBar(
+        SnackBar(content: Text(context.l10n.receiptRemoveError(friendly))),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -349,7 +426,7 @@ class _PaymentCollectionChangeDialogState
       context,
       _currentMethod.isEmpty ? null : _currentMethod,
     );
-    final isBusy = _isPreparingReceipt || _isUploadingReceipt;
+    final isBusy = _isBusy;
     final receiptMethodLabel = localizedPaymentMethodLabel(
       context,
       (_receiptMethod ?? '').isEmpty ? _selectedMethod : _receiptMethod,
@@ -487,16 +564,34 @@ class _PaymentCollectionChangeDialogState
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          ElevatedButton.icon(
-                            onPressed: isBusy ? null : _uploadReceiptImage,
-                            icon: const Icon(Icons.upload_file_outlined),
-                            label: Text(l10n.receiptUploadImageButton),
-                          ),
+                          if (_isReceiptEditable)
+                            ElevatedButton.icon(
+                              onPressed: isBusy ? null : _uploadReceiptImage,
+                              icon: Icon(
+                                _hasUploadedReceipt
+                                    ? Icons.refresh
+                                    : Icons.upload_file_outlined,
+                              ),
+                              label: Text(
+                                _hasUploadedReceipt
+                                    ? l10n.receiptReplaceImageButton
+                                    : l10n.receiptUploadImageButton,
+                              ),
+                            ),
                           if (_hasUploadedReceipt)
                             OutlinedButton.icon(
-                              onPressed: _previewReceipt,
+                              onPressed: isBusy ? null : _previewReceipt,
                               icon: const Icon(Icons.open_in_new),
                               label: Text(l10n.commonPreview),
+                            ),
+                          if (_hasUploadedReceipt && _isReceiptEditable)
+                            TextButton.icon(
+                              onPressed: isBusy ? null : _removeReceiptImage,
+                              icon: const Icon(Icons.delete_outline),
+                              label: Text(l10n.receiptRemoveImageButton),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red,
+                              ),
                             ),
                         ],
                       ),

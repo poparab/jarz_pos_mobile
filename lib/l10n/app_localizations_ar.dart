@@ -3843,6 +3843,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get receiptUploadImageButton => 'رفع صورة الإيصال';
 
   @override
+  String get receiptReplaceImageButton => 'استبدال الصورة';
+
+  @override
+  String get receiptRemoveImageButton => 'حذف الصورة';
+
+  @override
+  String get receiptRemoveConfirmTitle => 'حذف صورة الإيصال؟';
+
+  @override
+  String get receiptRemoveConfirmBody =>
+      'سيتم حذف الصورة المرفوعة، ويمكنك رفع صورة جديدة بعد ذلك.';
+
+  @override
+  String get receiptRemoving => 'جارٍ حذف صورة الإيصال...';
+
+  @override
+  String get receiptRemovedSuccess => 'تم حذف صورة الإيصال';
+
+  @override
+  String get receiptRemoveFailed => 'فشل حذف صورة الإيصال';
+
+  @override
+  String receiptRemoveError(Object error) {
+    return 'خطأ في حذف الصورة: $error';
+  }
+
+  @override
   String get receiptPreviewTitle => 'معاينة الإيصال';
 
   @override

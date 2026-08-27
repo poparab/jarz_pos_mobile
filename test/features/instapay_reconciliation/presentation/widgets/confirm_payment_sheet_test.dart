@@ -40,6 +40,7 @@ Future<void> _pumpHost(
 UnconfirmedOnlineOrder _order({
   String? receiptName,
   String? receiptImageUrl,
+  String? receiptStatus,
 }) {
   return UnconfirmedOnlineOrder(
     invoice: 'INV-0001',
@@ -48,6 +49,7 @@ UnconfirmedOnlineOrder _order({
     amount: 150,
     paymentMethod: 'Instapay',
     receiptName: receiptName,
+    receiptStatus: receiptStatus,
     receiptImageUrl: receiptImageUrl,
     canConfirm: true,
   );
@@ -109,6 +111,55 @@ void main() {
         await tester.enterText(find.byType(TextField), 'REF-123');
         await tester.pumpAndSettle();
         expect(_confirmButton(tester).onPressed, isNotNull);
+      },
+    );
+
+    testWidgets(
+      'an unconfirmed receipt can be replaced or removed',
+      (tester) async {
+        await _pumpHost(tester, () {
+          return ConfirmPaymentSheet.show(
+            tester.element(find.text('open')),
+            order: _order(
+              receiptName: 'PPR-0001',
+              receiptImageUrl: '/files/receipt.png',
+              receiptStatus: 'Unconfirmed',
+            ),
+            posProfile: 'Nasr City',
+          );
+        });
+
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Replace Image'), findsOneWidget);
+        expect(find.text('Remove Image'), findsOneWidget);
+        expect(find.text('Upload Receipt Image'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a confirmed receipt is frozen — no replace, no remove',
+      (tester) async {
+        await _pumpHost(tester, () {
+          return ConfirmPaymentSheet.show(
+            tester.element(find.text('open')),
+            order: _order(
+              receiptName: 'PPR-0001',
+              receiptImageUrl: '/files/receipt.png',
+              receiptStatus: 'Confirmed',
+            ),
+            posProfile: 'Nasr City',
+          );
+        });
+
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Replace Image'), findsNothing);
+        expect(find.text('Remove Image'), findsNothing);
+        expect(find.text('Upload Receipt Image'), findsNothing);
+        expect(find.text('Preview'), findsOneWidget);
       },
     );
   });

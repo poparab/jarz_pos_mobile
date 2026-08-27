@@ -159,5 +159,61 @@ void main() {
       expect(result?.method, 'Cash');
       expect(result?.referenceNo, isNull);
     });
+
+    testWidgets(
+      'should offer replace and remove while the receipt is unconfirmed',
+      (tester) async {
+        await _pumpHost(tester, () {
+          return PaymentCollectionChangeDialog.show(
+            tester.element(find.text('open')),
+            invoice: _invoice(
+              paymentMethod: 'Cash',
+              paymentReceiptName: 'PPR-0001',
+              paymentReceiptMethod: 'InstaPay',
+              paymentReceiptStatus: 'Unconfirmed',
+              paymentReceiptImageUrl: '/files/receipt.png',
+            ),
+            posProfile: 'Nasr City',
+          );
+        });
+
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        // With an image already attached the primary action becomes a swap,
+        // and the screenshot can be dropped outright.
+        expect(find.text('Replace Image'), findsOneWidget);
+        expect(find.text('Remove Image'), findsOneWidget);
+        expect(find.text('Upload Receipt Image'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'should not offer replace or remove once the receipt is confirmed',
+      (tester) async {
+        await _pumpHost(tester, () {
+          return PaymentCollectionChangeDialog.show(
+            tester.element(find.text('open')),
+            invoice: _invoice(
+              paymentMethod: 'Cash',
+              paymentReceiptName: 'PPR-0001',
+              paymentReceiptMethod: 'InstaPay',
+              paymentReceiptStatus: 'Confirmed',
+              paymentReceiptImageUrl: '/files/receipt.png',
+            ),
+            posProfile: 'Nasr City',
+          );
+        });
+
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Replace Image'), findsNothing);
+        expect(find.text('Remove Image'), findsNothing);
+        expect(find.text('Upload Receipt Image'), findsNothing);
+        // Preview survives — a confirmed screenshot is still viewable.
+        expect(find.text('Preview'), findsOneWidget);
+      },
+    );
   });
 }

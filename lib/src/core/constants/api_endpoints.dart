@@ -323,6 +323,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.payment_receipts.create_payment_receipt';
   static const uploadReceiptImage =
       '/api/method/jarz_pos.api.payment_receipts.upload_receipt_image';
+  static const removeReceiptImage =
+      '/api/method/jarz_pos.api.payment_receipts.remove_receipt_image';
   static const confirmReceipt =
       '/api/method/jarz_pos.api.payment_receipts.confirm_receipt';
   static const getAccessiblePosProfiles =

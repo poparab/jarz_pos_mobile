@@ -1879,6 +1879,19 @@
   "receiptFilterByPosProfile": "Filter by POS Profile",
   "receiptNoReceiptsFound": "No payment receipts found",
   "receiptUploadImageButton": "Upload Receipt Image",
+  "receiptReplaceImageButton": "Replace Image",
+  "receiptRemoveImageButton": "Remove Image",
+  "receiptRemoveConfirmTitle": "Remove receipt image?",
+  "receiptRemoveConfirmBody": "The uploaded screenshot will be deleted. You can upload a new one afterwards.",
+  "receiptRemoving": "Removing receipt image...",
+  "receiptRemovedSuccess": "Receipt image removed",
+  "receiptRemoveFailed": "Failed to remove receipt image",
+  "receiptRemoveError": "Error removing image: {error}",
+  "@receiptRemoveError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "receiptPreviewTitle": "Receipt Preview",
   "receiptPreviewButton": "Preview Receipt",
   "commonPrint": "Print",

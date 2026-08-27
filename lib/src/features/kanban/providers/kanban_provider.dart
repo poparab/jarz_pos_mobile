@@ -1567,6 +1567,20 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     }
   }
 
+  /// Remove receipt image
+  Future<Map<String, dynamic>?> removeReceiptImage({
+    required String receiptName,
+  }) async {
+    try {
+      return await _kanbanService.removeReceiptImage(
+        receiptName: receiptName,
+      );
+    } catch (e) {
+      debugPrint('Remove receipt image error: $e');
+      throw Exception(_formatActionError(e, action: 'Failed to remove image'));
+    }
+  }
+
   /// Confirm receipt
   Future<Map<String, dynamic>?> confirmReceipt({
     required String receiptName,

@@ -6643,6 +6643,54 @@ abstract class AppLocalizations {
   /// **'Upload Receipt Image'**
   String get receiptUploadImageButton;
 
+  /// No description provided for @receiptReplaceImageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace Image'**
+  String get receiptReplaceImageButton;
+
+  /// No description provided for @receiptRemoveImageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Image'**
+  String get receiptRemoveImageButton;
+
+  /// No description provided for @receiptRemoveConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove receipt image?'**
+  String get receiptRemoveConfirmTitle;
+
+  /// No description provided for @receiptRemoveConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The uploaded screenshot will be deleted. You can upload a new one afterwards.'**
+  String get receiptRemoveConfirmBody;
+
+  /// No description provided for @receiptRemoving.
+  ///
+  /// In en, this message translates to:
+  /// **'Removing receipt image...'**
+  String get receiptRemoving;
+
+  /// No description provided for @receiptRemovedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt image removed'**
+  String get receiptRemovedSuccess;
+
+  /// No description provided for @receiptRemoveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove receipt image'**
+  String get receiptRemoveFailed;
+
+  /// No description provided for @receiptRemoveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error removing image: {error}'**
+  String receiptRemoveError(Object error);
+
   /// No description provided for @receiptPreviewTitle.
   ///
   /// In en, this message translates to:

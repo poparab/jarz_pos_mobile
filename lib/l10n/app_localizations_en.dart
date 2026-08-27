@@ -3854,6 +3854,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiptUploadImageButton => 'Upload Receipt Image';
 
   @override
+  String get receiptReplaceImageButton => 'Replace Image';
+
+  @override
+  String get receiptRemoveImageButton => 'Remove Image';
+
+  @override
+  String get receiptRemoveConfirmTitle => 'Remove receipt image?';
+
+  @override
+  String get receiptRemoveConfirmBody =>
+      'The uploaded screenshot will be deleted. You can upload a new one afterwards.';
+
+  @override
+  String get receiptRemoving => 'Removing receipt image...';
+
+  @override
+  String get receiptRemovedSuccess => 'Receipt image removed';
+
+  @override
+  String get receiptRemoveFailed => 'Failed to remove receipt image';
+
+  @override
+  String receiptRemoveError(Object error) {
+    return 'Error removing image: $error';
+  }
+
+  @override
   String get receiptPreviewTitle => 'Receipt Preview';
 
   @override

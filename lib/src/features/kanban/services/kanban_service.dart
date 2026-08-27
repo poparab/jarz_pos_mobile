@@ -1114,6 +1114,30 @@ class KanbanService {
     }
   }
 
+  /// Remove the uploaded image from an unconfirmed payment receipt
+  Future<Map<String, dynamic>> removeReceiptImage({
+    required String receiptName,
+  }) async {
+    try {
+      _logger.info('Removing receipt image for $receiptName');
+      final resp = await _dio.post(
+        ApiEndpoints.removeReceiptImage,
+        data: {
+          'receipt_name': receiptName,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        _logger.info('Receipt image removed successfully');
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(_friendlyMessage(msg, fallback: 'Failed to remove image'));
+    } catch (e) {
+      _logger.error('Failed to remove receipt image', e);
+      throw _friendlyException(e, fallback: 'Failed to remove image');
+    }
+  }
+
   /// Confirm a payment receipt
   Future<Map<String, dynamic>> confirmReceipt({
     required String receiptName,
