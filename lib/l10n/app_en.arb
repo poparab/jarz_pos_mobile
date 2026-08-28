@@ -5222,5 +5222,164 @@
         "type": "int"
       }
     }
-  }
+  },
+  "expensesAdvanceTabExpenses": "Expenses",
+  "expensesAdvanceTabAdvances": "Employee Advances",
+  "expensesAdvanceNewRequest": "New Advance",
+  "expensesAdvanceFormTitle": "Request Employee Advance",
+  "expensesAdvanceEmployeeLabel": "Employee",
+  "expensesAdvanceEmployeeRequired": "Select an employee",
+  "expensesAdvanceEmployeeHint": "Tap to choose an employee",
+  "expensesAdvanceEmployeePickerTitle": "Choose employee",
+  "expensesAdvanceEmployeeSearchHint": "Search by name, branch or department",
+  "expensesAdvanceEmployeeNoMatches": "No employees match that search",
+  "expensesAdvanceAmountLabel": "Advance amount",
+  "expensesAdvanceAmountInvalid": "Enter a valid amount",
+  "expensesAdvancePurposeLabel": "Purpose",
+  "expensesAdvancePurposeRequired": "Describe what the advance is for",
+  "expensesAdvancePayFromLabel": "Pay from",
+  "expensesAdvancePaymentSourceRequired": "Select a payment source",
+  "expensesAdvanceDateLabel": "Advance date (optional)",
+  "expensesAdvanceDateNotSet": "Today",
+  "expensesAdvanceDateClear": "Clear date",
+  "expensesAdvanceSubmit": "Submit request",
+  "expensesAdvanceNoOptions": "Advances cannot be requested until an employee list and a payment source are available.",
+  "expensesAdvanceSubmitted": "Advance request submitted for approval",
+  "expensesAdvanceMonthLabel": "Month",
+  "expensesAdvanceStatusFilterLabel": "Status",
+  "expensesAdvanceStatusFilterAll": "All statuses",
+  "expensesAdvanceEmptyTitle": "No employee advances for this month.",
+  "expensesAdvanceEmptyApproverBody": "Requests raised by line managers will appear here for approval.",
+  "expensesAdvanceEmptyRequesterBody": "Use the New Advance button to request cash for an employee.",
+  "expensesAdvanceEmptyReadOnlyBody": "You do not have permission to request or approve advances.",
+  "expensesAdvanceUnavailableTitle": "Employee advances are unavailable",
+  "expensesAdvanceUnavailableBody": "The HR module is not installed on this site, so advances cannot be requested here.",
+  "expensesAdvanceSummaryTotal": "Total",
+  "expensesAdvanceSummaryPending": "Awaiting approval",
+  "expensesAdvanceSummaryApproved": "Approved",
+  "expensesAdvanceSummaryOutstanding": "Outstanding",
+  "expensesAdvanceSummaryCount": "{count} request(s)",
+  "@expensesAdvanceSummaryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expensesAdvanceSummaryPendingValue": "{count} | {amount}",
+  "@expensesAdvanceSummaryPendingValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {}
+    }
+  },
+  "expensesAdvanceApprove": "Approve & pay",
+  "expensesAdvanceReject": "Reject",
+  "expensesAdvanceApproveTitle": "Approve advance?",
+  "expensesAdvanceApproveBody": "Approving pays {amount} to {employee} right now, out of {source}. The cash leaves that account immediately and cannot be undone from this screen.",
+  "@expensesAdvanceApproveBody": {
+    "placeholders": {
+      "amount": {},
+      "employee": {},
+      "source": {}
+    }
+  },
+  "expensesAdvanceApproveConfirm": "Approve & pay now",
+  "expensesAdvanceApproved": "Advance approved and paid",
+  "expensesAdvanceApprovedWithEntry": "Advance approved and paid · {entry}",
+  "@expensesAdvanceApprovedWithEntry": {
+    "placeholders": {
+      "entry": {}
+    }
+  },
+  "expensesAdvanceRejectTitle": "Reject advance request?",
+  "expensesAdvanceRejectHint": "Tell the requester why this was rejected",
+  "expensesAdvanceRejectReasonRequired": "A reason is required",
+  "expensesAdvanceRejected": "Advance request rejected",
+  "expensesAdvanceIdLabel": "Advance",
+  "expensesAdvancePostingDateLabel": "Advance date",
+  "expensesAdvanceBranchLabel": "Branch",
+  "expensesAdvancePayingAccountLabel": "Paying account",
+  "expensesAdvancePaidLabel": "Paid",
+  "expensesAdvanceClaimedLabel": "Claimed",
+  "expensesAdvanceReturnedLabel": "Returned",
+  "expensesAdvanceBalanceLabel": "Outstanding balance",
+  "expensesAdvanceRequestedByLabel": "Requested by",
+  "expensesAdvanceApprovedByLabel": "Approved by",
+  "expensesAdvanceApprovedOnLabel": "Approved on",
+  "expensesAdvancePaymentEntryLabel": "Payment Entry",
+  "expensesAdvanceStatusDraft": "Awaiting approval",
+  "expensesAdvanceStatusPaid": "Paid",
+  "expensesAdvanceStatusPartiallyPaid": "Partially Paid",
+  "expensesAdvanceStatusUnpaid": "Unpaid",
+  "expensesAdvanceStatusClaimed": "Claimed",
+  "expensesAdvanceStatusReturned": "Returned",
+  "expensesAdvanceStatusPartlyClaimedAndReturned": "Partly Claimed and Returned",
+  "expensesAdvanceStatusCancelled": "Cancelled",
+  "managerEmployeeLedgerTitle": "Employee Ledger",
+  "managerEmployeeLedgerSubtitle": "What each employee owes: cash advances plus unpaid employee orders",
+  "managerEmployeeLedgerPeriodLabel": "Period",
+  "managerEmployeeLedgerWindow30": "Last 30 days",
+  "managerEmployeeLedgerWindow90": "Last 90 days",
+  "managerEmployeeLedgerWindow180": "Last 180 days",
+  "managerEmployeeLedgerWindow365": "Last 365 days",
+  "managerEmployeeLedgerActivityRange": "Listed activity: {from} to {to}",
+  "@managerEmployeeLedgerActivityRange": {
+    "placeholders": {
+      "from": {},
+      "to": {}
+    }
+  },
+  "managerEmployeeLedgerActivityInPeriod": "Activity in this period",
+  "managerEmployeeLedgerTotalOutstanding": "Total outstanding in this period",
+  "managerEmployeeLedgerTotalOutstandingAllTime": "Total outstanding (all time)",
+  "managerEmployeeLedgerAllTimeHint": "Every open item, whatever its age. The period below only controls which lines are listed.",
+  "managerEmployeeLedgerAdvancesLabel": "Cash advances",
+  "managerEmployeeLedgerOrdersLabel": "Unpaid orders",
+  "managerEmployeeLedgerAdvanceCount": "{count, plural, =0{No advances} =1{1 advance} other{{count} advances}}",
+  "@managerEmployeeLedgerAdvanceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "managerEmployeeLedgerOrderCount": "{count, plural, =0{No orders} =1{1 order} other{{count} orders}}",
+  "@managerEmployeeLedgerOrderCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "managerEmployeeLedgerEmployeeCount": "{count, plural, =0{Nobody owes anything} =1{1 person owes money} other{{count} people owe money}}",
+  "@managerEmployeeLedgerEmployeeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "managerEmployeeLedgerSplit": "Advances {advances} • Orders {orders}",
+  "@managerEmployeeLedgerSplit": {
+    "placeholders": {
+      "advances": {},
+      "orders": {}
+    }
+  },
+  "managerEmployeeLedgerOutstandingLabel": "Outstanding",
+  "managerEmployeeLedgerOrderTotalLabel": "Order total",
+  "managerEmployeeLedgerAdvanceAmountLabel": "Advance",
+  "managerEmployeeLedgerEmpty": "Nothing outstanding, and no activity in this period",
+  "managerEmployeeLedgerNoAdvances": "No cash advances in this period",
+  "managerEmployeeLedgerNoOrders": "No unpaid orders in this period",
+  "managerEmployeeLedgerBalancePredatesPeriod": "Nothing listed in this period. The balance above is older than that, so widen the period to see the lines behind it.",
+  "managerEmployeeLedgerUnmatched": "No employee record",
+  "managerEmployeeLedgerLoadFailed": "Failed to load employee ledger",
+  "managerEmployeeLedgerNoticeNoBranchAssigned": "You have no branch assigned, so there is nothing to show here yet.",
+  "managerEmployeeLedgerNoticeBranchNotPermitted": "You cannot view that branch, so it was ignored.",
+  "managerEmployeeLedgerNoticeHrmsUnavailable": "HRMS is not installed, so cash advances are not tracked. Unpaid employee orders are still shown.",
+  "managerEmployeeLedgerNoticeResultsTruncated": "Only the first results are shown. Narrow the branch or the period to see the rest."
 }

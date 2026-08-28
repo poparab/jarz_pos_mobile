@@ -2,7 +2,12 @@ import 'dart:convert';
 
 import 'package:intl/intl.dart';
 
-String _localizedExpenseLabel({
+/// Picks the right server-supplied label out of the `label` / `label_en` /
+/// `label_ar` triple every jarz_pos endpoint sends.
+///
+/// Public (it used to be file-private) so the Employee Advance models can reuse
+/// the ONE mechanism for `payment_label*` instead of growing a second copy.
+String localizedExpenseLabel({
   required String languageCode,
   required String fallbackLabel,
   String? englishLabel,
@@ -55,7 +60,7 @@ class ExpensePaymentSource {
   String get displayBalance => NumberFormat.currency(symbol: '').format(balance);
 
   String localizedLabel(String languageCode) {
-    return _localizedExpenseLabel(
+    return localizedExpenseLabel(
       languageCode: languageCode,
       fallbackLabel: label,
       englishLabel: labelEn,
@@ -110,7 +115,7 @@ class ExpenseReason {
   });
 
   String localizedLabel(String languageCode) {
-    return _localizedExpenseLabel(
+    return localizedExpenseLabel(
       languageCode: languageCode,
       fallbackLabel: label,
       englishLabel: labelEn,
@@ -224,7 +229,7 @@ class ExpenseRecord {
   });
 
   String localizedReasonLabel(String languageCode) {
-    return _localizedExpenseLabel(
+    return localizedExpenseLabel(
       languageCode: languageCode,
       fallbackLabel: reasonLabel,
       englishLabel: reasonLabelEn,
@@ -233,7 +238,7 @@ class ExpenseRecord {
   }
 
   String localizedPaymentLabel(String languageCode) {
-    return _localizedExpenseLabel(
+    return localizedExpenseLabel(
       languageCode: languageCode,
       fallbackLabel: paymentLabel,
       englishLabel: paymentLabelEn,

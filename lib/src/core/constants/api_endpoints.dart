@@ -238,6 +238,10 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.manager.get_manager_states';
   static const updateInvoiceBranch =
       '/api/method/jarz_pos.api.manager.update_invoice_branch';
+  // Per-employee outstanding: HRMS cash advances + unpaid Employee-purpose
+  // POS orders, rolled up into a single balance per person.
+  static const getEmployeeLedger =
+      '/api/method/jarz_pos.api.manager.get_employee_ledger';
 
   // ── Stock Transfer ────────────────────────────────────────────────────
   static const transferListPosProfiles =
@@ -331,6 +335,19 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.expenses.create_expense';
   static const approveExpense =
       '/api/method/jarz_pos.api.expenses.approve_expense';
+
+  // ── Employee Advances ─────────────────────────────────────────────────
+  // Cash advances a line manager requests for an employee and a JARZ Manager
+  // approves. Approval submits the HRMS Employee Advance AND posts the Payment
+  // Entry in one call, so cash leaves the chosen branch account immediately.
+  static const getEmployeeAdvanceBootstrap =
+      '/api/method/jarz_pos.api.employee_advances.get_employee_advance_bootstrap';
+  static const createEmployeeAdvanceRequest =
+      '/api/method/jarz_pos.api.employee_advances.create_employee_advance_request';
+  static const approveEmployeeAdvance =
+      '/api/method/jarz_pos.api.employee_advances.approve_employee_advance';
+  static const rejectEmployeeAdvance =
+      '/api/method/jarz_pos.api.employee_advances.reject_employee_advance';
 
   // ── Payment Receipts ──────────────────────────────────────────────────
   static const listPaymentReceipts =

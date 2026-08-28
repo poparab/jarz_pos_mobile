@@ -8865,4 +8865,369 @@ class AppLocalizationsEn extends AppLocalizations {
   String shiftMonitorCourierRowDetail(int count, Object amount, int days) {
     return '$count order(s) · $amount · oldest $days day(s)';
   }
+
+  @override
+  String get expensesAdvanceTabExpenses => 'Expenses';
+
+  @override
+  String get expensesAdvanceTabAdvances => 'Employee Advances';
+
+  @override
+  String get expensesAdvanceNewRequest => 'New Advance';
+
+  @override
+  String get expensesAdvanceFormTitle => 'Request Employee Advance';
+
+  @override
+  String get expensesAdvanceEmployeeLabel => 'Employee';
+
+  @override
+  String get expensesAdvanceEmployeeRequired => 'Select an employee';
+
+  @override
+  String get expensesAdvanceEmployeeHint => 'Tap to choose an employee';
+
+  @override
+  String get expensesAdvanceEmployeePickerTitle => 'Choose employee';
+
+  @override
+  String get expensesAdvanceEmployeeSearchHint =>
+      'Search by name, branch or department';
+
+  @override
+  String get expensesAdvanceEmployeeNoMatches =>
+      'No employees match that search';
+
+  @override
+  String get expensesAdvanceAmountLabel => 'Advance amount';
+
+  @override
+  String get expensesAdvanceAmountInvalid => 'Enter a valid amount';
+
+  @override
+  String get expensesAdvancePurposeLabel => 'Purpose';
+
+  @override
+  String get expensesAdvancePurposeRequired =>
+      'Describe what the advance is for';
+
+  @override
+  String get expensesAdvancePayFromLabel => 'Pay from';
+
+  @override
+  String get expensesAdvancePaymentSourceRequired => 'Select a payment source';
+
+  @override
+  String get expensesAdvanceDateLabel => 'Advance date (optional)';
+
+  @override
+  String get expensesAdvanceDateNotSet => 'Today';
+
+  @override
+  String get expensesAdvanceDateClear => 'Clear date';
+
+  @override
+  String get expensesAdvanceSubmit => 'Submit request';
+
+  @override
+  String get expensesAdvanceNoOptions =>
+      'Advances cannot be requested until an employee list and a payment source are available.';
+
+  @override
+  String get expensesAdvanceSubmitted =>
+      'Advance request submitted for approval';
+
+  @override
+  String get expensesAdvanceMonthLabel => 'Month';
+
+  @override
+  String get expensesAdvanceStatusFilterLabel => 'Status';
+
+  @override
+  String get expensesAdvanceStatusFilterAll => 'All statuses';
+
+  @override
+  String get expensesAdvanceEmptyTitle =>
+      'No employee advances for this month.';
+
+  @override
+  String get expensesAdvanceEmptyApproverBody =>
+      'Requests raised by line managers will appear here for approval.';
+
+  @override
+  String get expensesAdvanceEmptyRequesterBody =>
+      'Use the New Advance button to request cash for an employee.';
+
+  @override
+  String get expensesAdvanceEmptyReadOnlyBody =>
+      'You do not have permission to request or approve advances.';
+
+  @override
+  String get expensesAdvanceUnavailableTitle =>
+      'Employee advances are unavailable';
+
+  @override
+  String get expensesAdvanceUnavailableBody =>
+      'The HR module is not installed on this site, so advances cannot be requested here.';
+
+  @override
+  String get expensesAdvanceSummaryTotal => 'Total';
+
+  @override
+  String get expensesAdvanceSummaryPending => 'Awaiting approval';
+
+  @override
+  String get expensesAdvanceSummaryApproved => 'Approved';
+
+  @override
+  String get expensesAdvanceSummaryOutstanding => 'Outstanding';
+
+  @override
+  String expensesAdvanceSummaryCount(int count) {
+    return '$count request(s)';
+  }
+
+  @override
+  String expensesAdvanceSummaryPendingValue(int count, Object amount) {
+    return '$count | $amount';
+  }
+
+  @override
+  String get expensesAdvanceApprove => 'Approve & pay';
+
+  @override
+  String get expensesAdvanceReject => 'Reject';
+
+  @override
+  String get expensesAdvanceApproveTitle => 'Approve advance?';
+
+  @override
+  String expensesAdvanceApproveBody(
+    Object amount,
+    Object employee,
+    Object source,
+  ) {
+    return 'Approving pays $amount to $employee right now, out of $source. The cash leaves that account immediately and cannot be undone from this screen.';
+  }
+
+  @override
+  String get expensesAdvanceApproveConfirm => 'Approve & pay now';
+
+  @override
+  String get expensesAdvanceApproved => 'Advance approved and paid';
+
+  @override
+  String expensesAdvanceApprovedWithEntry(Object entry) {
+    return 'Advance approved and paid · $entry';
+  }
+
+  @override
+  String get expensesAdvanceRejectTitle => 'Reject advance request?';
+
+  @override
+  String get expensesAdvanceRejectHint =>
+      'Tell the requester why this was rejected';
+
+  @override
+  String get expensesAdvanceRejectReasonRequired => 'A reason is required';
+
+  @override
+  String get expensesAdvanceRejected => 'Advance request rejected';
+
+  @override
+  String get expensesAdvanceIdLabel => 'Advance';
+
+  @override
+  String get expensesAdvancePostingDateLabel => 'Advance date';
+
+  @override
+  String get expensesAdvanceBranchLabel => 'Branch';
+
+  @override
+  String get expensesAdvancePayingAccountLabel => 'Paying account';
+
+  @override
+  String get expensesAdvancePaidLabel => 'Paid';
+
+  @override
+  String get expensesAdvanceClaimedLabel => 'Claimed';
+
+  @override
+  String get expensesAdvanceReturnedLabel => 'Returned';
+
+  @override
+  String get expensesAdvanceBalanceLabel => 'Outstanding balance';
+
+  @override
+  String get expensesAdvanceRequestedByLabel => 'Requested by';
+
+  @override
+  String get expensesAdvanceApprovedByLabel => 'Approved by';
+
+  @override
+  String get expensesAdvanceApprovedOnLabel => 'Approved on';
+
+  @override
+  String get expensesAdvancePaymentEntryLabel => 'Payment Entry';
+
+  @override
+  String get expensesAdvanceStatusDraft => 'Awaiting approval';
+
+  @override
+  String get expensesAdvanceStatusPaid => 'Paid';
+
+  @override
+  String get expensesAdvanceStatusPartiallyPaid => 'Partially Paid';
+
+  @override
+  String get expensesAdvanceStatusUnpaid => 'Unpaid';
+
+  @override
+  String get expensesAdvanceStatusClaimed => 'Claimed';
+
+  @override
+  String get expensesAdvanceStatusReturned => 'Returned';
+
+  @override
+  String get expensesAdvanceStatusPartlyClaimedAndReturned =>
+      'Partly Claimed and Returned';
+
+  @override
+  String get expensesAdvanceStatusCancelled => 'Cancelled';
+
+  @override
+  String get managerEmployeeLedgerTitle => 'Employee Ledger';
+
+  @override
+  String get managerEmployeeLedgerSubtitle =>
+      'What each employee owes: cash advances plus unpaid employee orders';
+
+  @override
+  String get managerEmployeeLedgerPeriodLabel => 'Period';
+
+  @override
+  String get managerEmployeeLedgerWindow30 => 'Last 30 days';
+
+  @override
+  String get managerEmployeeLedgerWindow90 => 'Last 90 days';
+
+  @override
+  String get managerEmployeeLedgerWindow180 => 'Last 180 days';
+
+  @override
+  String get managerEmployeeLedgerWindow365 => 'Last 365 days';
+
+  @override
+  String managerEmployeeLedgerActivityRange(Object from, Object to) {
+    return 'Listed activity: $from to $to';
+  }
+
+  @override
+  String get managerEmployeeLedgerActivityInPeriod => 'Activity in this period';
+
+  @override
+  String get managerEmployeeLedgerTotalOutstanding =>
+      'Total outstanding in this period';
+
+  @override
+  String get managerEmployeeLedgerTotalOutstandingAllTime =>
+      'Total outstanding (all time)';
+
+  @override
+  String get managerEmployeeLedgerAllTimeHint =>
+      'Every open item, whatever its age. The period below only controls which lines are listed.';
+
+  @override
+  String get managerEmployeeLedgerAdvancesLabel => 'Cash advances';
+
+  @override
+  String get managerEmployeeLedgerOrdersLabel => 'Unpaid orders';
+
+  @override
+  String managerEmployeeLedgerAdvanceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count advances',
+      one: '1 advance',
+      zero: 'No advances',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String managerEmployeeLedgerOrderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count orders',
+      one: '1 order',
+      zero: 'No orders',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String managerEmployeeLedgerEmployeeCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people owe money',
+      one: '1 person owes money',
+      zero: 'Nobody owes anything',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String managerEmployeeLedgerSplit(Object advances, Object orders) {
+    return 'Advances $advances • Orders $orders';
+  }
+
+  @override
+  String get managerEmployeeLedgerOutstandingLabel => 'Outstanding';
+
+  @override
+  String get managerEmployeeLedgerOrderTotalLabel => 'Order total';
+
+  @override
+  String get managerEmployeeLedgerAdvanceAmountLabel => 'Advance';
+
+  @override
+  String get managerEmployeeLedgerEmpty =>
+      'Nothing outstanding, and no activity in this period';
+
+  @override
+  String get managerEmployeeLedgerNoAdvances =>
+      'No cash advances in this period';
+
+  @override
+  String get managerEmployeeLedgerNoOrders => 'No unpaid orders in this period';
+
+  @override
+  String get managerEmployeeLedgerBalancePredatesPeriod =>
+      'Nothing listed in this period. The balance above is older than that, so widen the period to see the lines behind it.';
+
+  @override
+  String get managerEmployeeLedgerUnmatched => 'No employee record';
+
+  @override
+  String get managerEmployeeLedgerLoadFailed =>
+      'Failed to load employee ledger';
+
+  @override
+  String get managerEmployeeLedgerNoticeNoBranchAssigned =>
+      'You have no branch assigned, so there is nothing to show here yet.';
+
+  @override
+  String get managerEmployeeLedgerNoticeBranchNotPermitted =>
+      'You cannot view that branch, so it was ignored.';
+
+  @override
+  String get managerEmployeeLedgerNoticeHrmsUnavailable =>
+      'HRMS is not installed, so cash advances are not tracked. Unpaid employee orders are still shown.';
+
+  @override
+  String get managerEmployeeLedgerNoticeResultsTruncated =>
+      'Only the first results are shown. Narrow the branch or the period to see the rest.';
 }

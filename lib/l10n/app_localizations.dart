@@ -14802,6 +14802,604 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} order(s) · {amount} · oldest {days} day(s)'**
   String shiftMonitorCourierRowDetail(int count, Object amount, int days);
+
+  /// No description provided for @expensesAdvanceTabExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get expensesAdvanceTabExpenses;
+
+  /// No description provided for @expensesAdvanceTabAdvances.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee Advances'**
+  String get expensesAdvanceTabAdvances;
+
+  /// No description provided for @expensesAdvanceNewRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'New Advance'**
+  String get expensesAdvanceNewRequest;
+
+  /// No description provided for @expensesAdvanceFormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Employee Advance'**
+  String get expensesAdvanceFormTitle;
+
+  /// No description provided for @expensesAdvanceEmployeeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get expensesAdvanceEmployeeLabel;
+
+  /// No description provided for @expensesAdvanceEmployeeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an employee'**
+  String get expensesAdvanceEmployeeRequired;
+
+  /// No description provided for @expensesAdvanceEmployeeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to choose an employee'**
+  String get expensesAdvanceEmployeeHint;
+
+  /// No description provided for @expensesAdvanceEmployeePickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose employee'**
+  String get expensesAdvanceEmployeePickerTitle;
+
+  /// No description provided for @expensesAdvanceEmployeeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, branch or department'**
+  String get expensesAdvanceEmployeeSearchHint;
+
+  /// No description provided for @expensesAdvanceEmployeeNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No employees match that search'**
+  String get expensesAdvanceEmployeeNoMatches;
+
+  /// No description provided for @expensesAdvanceAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance amount'**
+  String get expensesAdvanceAmountLabel;
+
+  /// No description provided for @expensesAdvanceAmountInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount'**
+  String get expensesAdvanceAmountInvalid;
+
+  /// No description provided for @expensesAdvancePurposeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Purpose'**
+  String get expensesAdvancePurposeLabel;
+
+  /// No description provided for @expensesAdvancePurposeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe what the advance is for'**
+  String get expensesAdvancePurposeRequired;
+
+  /// No description provided for @expensesAdvancePayFromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay from'**
+  String get expensesAdvancePayFromLabel;
+
+  /// No description provided for @expensesAdvancePaymentSourceRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a payment source'**
+  String get expensesAdvancePaymentSourceRequired;
+
+  /// No description provided for @expensesAdvanceDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance date (optional)'**
+  String get expensesAdvanceDateLabel;
+
+  /// No description provided for @expensesAdvanceDateNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get expensesAdvanceDateNotSet;
+
+  /// No description provided for @expensesAdvanceDateClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear date'**
+  String get expensesAdvanceDateClear;
+
+  /// No description provided for @expensesAdvanceSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit request'**
+  String get expensesAdvanceSubmit;
+
+  /// No description provided for @expensesAdvanceNoOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Advances cannot be requested until an employee list and a payment source are available.'**
+  String get expensesAdvanceNoOptions;
+
+  /// No description provided for @expensesAdvanceSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance request submitted for approval'**
+  String get expensesAdvanceSubmitted;
+
+  /// No description provided for @expensesAdvanceMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get expensesAdvanceMonthLabel;
+
+  /// No description provided for @expensesAdvanceStatusFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get expensesAdvanceStatusFilterLabel;
+
+  /// No description provided for @expensesAdvanceStatusFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All statuses'**
+  String get expensesAdvanceStatusFilterAll;
+
+  /// No description provided for @expensesAdvanceEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No employee advances for this month.'**
+  String get expensesAdvanceEmptyTitle;
+
+  /// No description provided for @expensesAdvanceEmptyApproverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests raised by line managers will appear here for approval.'**
+  String get expensesAdvanceEmptyApproverBody;
+
+  /// No description provided for @expensesAdvanceEmptyRequesterBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the New Advance button to request cash for an employee.'**
+  String get expensesAdvanceEmptyRequesterBody;
+
+  /// No description provided for @expensesAdvanceEmptyReadOnlyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have permission to request or approve advances.'**
+  String get expensesAdvanceEmptyReadOnlyBody;
+
+  /// No description provided for @expensesAdvanceUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee advances are unavailable'**
+  String get expensesAdvanceUnavailableTitle;
+
+  /// No description provided for @expensesAdvanceUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The HR module is not installed on this site, so advances cannot be requested here.'**
+  String get expensesAdvanceUnavailableBody;
+
+  /// No description provided for @expensesAdvanceSummaryTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get expensesAdvanceSummaryTotal;
+
+  /// No description provided for @expensesAdvanceSummaryPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting approval'**
+  String get expensesAdvanceSummaryPending;
+
+  /// No description provided for @expensesAdvanceSummaryApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get expensesAdvanceSummaryApproved;
+
+  /// No description provided for @expensesAdvanceSummaryOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get expensesAdvanceSummaryOutstanding;
+
+  /// No description provided for @expensesAdvanceSummaryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} request(s)'**
+  String expensesAdvanceSummaryCount(int count);
+
+  /// No description provided for @expensesAdvanceSummaryPendingValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} | {amount}'**
+  String expensesAdvanceSummaryPendingValue(int count, Object amount);
+
+  /// No description provided for @expensesAdvanceApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve & pay'**
+  String get expensesAdvanceApprove;
+
+  /// No description provided for @expensesAdvanceReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get expensesAdvanceReject;
+
+  /// No description provided for @expensesAdvanceApproveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve advance?'**
+  String get expensesAdvanceApproveTitle;
+
+  /// No description provided for @expensesAdvanceApproveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Approving pays {amount} to {employee} right now, out of {source}. The cash leaves that account immediately and cannot be undone from this screen.'**
+  String expensesAdvanceApproveBody(
+    Object amount,
+    Object employee,
+    Object source,
+  );
+
+  /// No description provided for @expensesAdvanceApproveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve & pay now'**
+  String get expensesAdvanceApproveConfirm;
+
+  /// No description provided for @expensesAdvanceApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance approved and paid'**
+  String get expensesAdvanceApproved;
+
+  /// No description provided for @expensesAdvanceApprovedWithEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance approved and paid · {entry}'**
+  String expensesAdvanceApprovedWithEntry(Object entry);
+
+  /// No description provided for @expensesAdvanceRejectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject advance request?'**
+  String get expensesAdvanceRejectTitle;
+
+  /// No description provided for @expensesAdvanceRejectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell the requester why this was rejected'**
+  String get expensesAdvanceRejectHint;
+
+  /// No description provided for @expensesAdvanceRejectReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A reason is required'**
+  String get expensesAdvanceRejectReasonRequired;
+
+  /// No description provided for @expensesAdvanceRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance request rejected'**
+  String get expensesAdvanceRejected;
+
+  /// No description provided for @expensesAdvanceIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance'**
+  String get expensesAdvanceIdLabel;
+
+  /// No description provided for @expensesAdvancePostingDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance date'**
+  String get expensesAdvancePostingDateLabel;
+
+  /// No description provided for @expensesAdvanceBranchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get expensesAdvanceBranchLabel;
+
+  /// No description provided for @expensesAdvancePayingAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paying account'**
+  String get expensesAdvancePayingAccountLabel;
+
+  /// No description provided for @expensesAdvancePaidLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get expensesAdvancePaidLabel;
+
+  /// No description provided for @expensesAdvanceClaimedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Claimed'**
+  String get expensesAdvanceClaimedLabel;
+
+  /// No description provided for @expensesAdvanceReturnedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get expensesAdvanceReturnedLabel;
+
+  /// No description provided for @expensesAdvanceBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding balance'**
+  String get expensesAdvanceBalanceLabel;
+
+  /// No description provided for @expensesAdvanceRequestedByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested by'**
+  String get expensesAdvanceRequestedByLabel;
+
+  /// No description provided for @expensesAdvanceApprovedByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved by'**
+  String get expensesAdvanceApprovedByLabel;
+
+  /// No description provided for @expensesAdvanceApprovedOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved on'**
+  String get expensesAdvanceApprovedOnLabel;
+
+  /// No description provided for @expensesAdvancePaymentEntryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Entry'**
+  String get expensesAdvancePaymentEntryLabel;
+
+  /// No description provided for @expensesAdvanceStatusDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting approval'**
+  String get expensesAdvanceStatusDraft;
+
+  /// No description provided for @expensesAdvanceStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get expensesAdvanceStatusPaid;
+
+  /// No description provided for @expensesAdvanceStatusPartiallyPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Partially Paid'**
+  String get expensesAdvanceStatusPartiallyPaid;
+
+  /// No description provided for @expensesAdvanceStatusUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get expensesAdvanceStatusUnpaid;
+
+  /// No description provided for @expensesAdvanceStatusClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Claimed'**
+  String get expensesAdvanceStatusClaimed;
+
+  /// No description provided for @expensesAdvanceStatusReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get expensesAdvanceStatusReturned;
+
+  /// No description provided for @expensesAdvanceStatusPartlyClaimedAndReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Partly Claimed and Returned'**
+  String get expensesAdvanceStatusPartlyClaimedAndReturned;
+
+  /// No description provided for @expensesAdvanceStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get expensesAdvanceStatusCancelled;
+
+  /// No description provided for @managerEmployeeLedgerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee Ledger'**
+  String get managerEmployeeLedgerTitle;
+
+  /// No description provided for @managerEmployeeLedgerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What each employee owes: cash advances plus unpaid employee orders'**
+  String get managerEmployeeLedgerSubtitle;
+
+  /// No description provided for @managerEmployeeLedgerPeriodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get managerEmployeeLedgerPeriodLabel;
+
+  /// No description provided for @managerEmployeeLedgerWindow30.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get managerEmployeeLedgerWindow30;
+
+  /// No description provided for @managerEmployeeLedgerWindow90.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 90 days'**
+  String get managerEmployeeLedgerWindow90;
+
+  /// No description provided for @managerEmployeeLedgerWindow180.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 180 days'**
+  String get managerEmployeeLedgerWindow180;
+
+  /// No description provided for @managerEmployeeLedgerWindow365.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 365 days'**
+  String get managerEmployeeLedgerWindow365;
+
+  /// No description provided for @managerEmployeeLedgerActivityRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Listed activity: {from} to {to}'**
+  String managerEmployeeLedgerActivityRange(Object from, Object to);
+
+  /// No description provided for @managerEmployeeLedgerActivityInPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity in this period'**
+  String get managerEmployeeLedgerActivityInPeriod;
+
+  /// No description provided for @managerEmployeeLedgerTotalOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Total outstanding in this period'**
+  String get managerEmployeeLedgerTotalOutstanding;
+
+  /// No description provided for @managerEmployeeLedgerTotalOutstandingAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Total outstanding (all time)'**
+  String get managerEmployeeLedgerTotalOutstandingAllTime;
+
+  /// No description provided for @managerEmployeeLedgerAllTimeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Every open item, whatever its age. The period below only controls which lines are listed.'**
+  String get managerEmployeeLedgerAllTimeHint;
+
+  /// No description provided for @managerEmployeeLedgerAdvancesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash advances'**
+  String get managerEmployeeLedgerAdvancesLabel;
+
+  /// No description provided for @managerEmployeeLedgerOrdersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid orders'**
+  String get managerEmployeeLedgerOrdersLabel;
+
+  /// No description provided for @managerEmployeeLedgerAdvanceCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No advances} =1{1 advance} other{{count} advances}}'**
+  String managerEmployeeLedgerAdvanceCount(int count);
+
+  /// No description provided for @managerEmployeeLedgerOrderCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No orders} =1{1 order} other{{count} orders}}'**
+  String managerEmployeeLedgerOrderCount(int count);
+
+  /// No description provided for @managerEmployeeLedgerEmployeeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nobody owes anything} =1{1 person owes money} other{{count} people owe money}}'**
+  String managerEmployeeLedgerEmployeeCount(int count);
+
+  /// No description provided for @managerEmployeeLedgerSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Advances {advances} • Orders {orders}'**
+  String managerEmployeeLedgerSplit(Object advances, Object orders);
+
+  /// No description provided for @managerEmployeeLedgerOutstandingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get managerEmployeeLedgerOutstandingLabel;
+
+  /// No description provided for @managerEmployeeLedgerOrderTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order total'**
+  String get managerEmployeeLedgerOrderTotalLabel;
+
+  /// No description provided for @managerEmployeeLedgerAdvanceAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance'**
+  String get managerEmployeeLedgerAdvanceAmountLabel;
+
+  /// No description provided for @managerEmployeeLedgerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing outstanding, and no activity in this period'**
+  String get managerEmployeeLedgerEmpty;
+
+  /// No description provided for @managerEmployeeLedgerNoAdvances.
+  ///
+  /// In en, this message translates to:
+  /// **'No cash advances in this period'**
+  String get managerEmployeeLedgerNoAdvances;
+
+  /// No description provided for @managerEmployeeLedgerNoOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No unpaid orders in this period'**
+  String get managerEmployeeLedgerNoOrders;
+
+  /// No description provided for @managerEmployeeLedgerBalancePredatesPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing listed in this period. The balance above is older than that, so widen the period to see the lines behind it.'**
+  String get managerEmployeeLedgerBalancePredatesPeriod;
+
+  /// No description provided for @managerEmployeeLedgerUnmatched.
+  ///
+  /// In en, this message translates to:
+  /// **'No employee record'**
+  String get managerEmployeeLedgerUnmatched;
+
+  /// No description provided for @managerEmployeeLedgerLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load employee ledger'**
+  String get managerEmployeeLedgerLoadFailed;
+
+  /// No description provided for @managerEmployeeLedgerNoticeNoBranchAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no branch assigned, so there is nothing to show here yet.'**
+  String get managerEmployeeLedgerNoticeNoBranchAssigned;
+
+  /// No description provided for @managerEmployeeLedgerNoticeBranchNotPermitted.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot view that branch, so it was ignored.'**
+  String get managerEmployeeLedgerNoticeBranchNotPermitted;
+
+  /// No description provided for @managerEmployeeLedgerNoticeHrmsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'HRMS is not installed, so cash advances are not tracked. Unpaid employee orders are still shown.'**
+  String get managerEmployeeLedgerNoticeHrmsUnavailable;
+
+  /// No description provided for @managerEmployeeLedgerNoticeResultsTruncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the first results are shown. Narrow the branch or the period to see the rest.'**
+  String get managerEmployeeLedgerNoticeResultsTruncated;
 }
 
 class _AppLocalizationsDelegate

@@ -223,6 +223,28 @@ class UserRoles {
       isProductionRole ||
       roles.contains(RoleNames.productionOperator);
 
+  /// Whether this user may REQUEST a cash advance for an employee.
+  ///
+  /// Mirrors the backend LINE_MANAGER_TIER that
+  /// `employee_advances.create_employee_advance_request` accepts, which is
+  /// exactly what [canActAsLineManager] already encodes — including BOTH
+  /// spellings of the line-manager Role record, so a line manager holding the
+  /// lowercase one is not silently dropped.
+  ///
+  /// Deliberately its own getter rather than call sites reusing
+  /// [canActAsLineManager]: if the backend ever narrows or widens this one
+  /// endpoint, this is the single line that moves.
+  bool get canRequestEmployeeAdvance => canActAsLineManager;
+
+  /// Whether this user may APPROVE or REJECT a cash advance.
+  ///
+  /// Narrower than [canRequestEmployeeAdvance] on purpose — approval submits
+  /// the HRMS Employee Advance AND posts the Payment Entry, so cash actually
+  /// leaves the branch account. Mirrors the JARZ Manager + admin tier that
+  /// `approve_employee_advance` / `reject_employee_advance` accept: a line
+  /// manager asks, it does not sign off on its own request.
+  bool get canApproveEmployeeAdvance => isJarzManager || isAdminManager;
+
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
     final rolesList = rolesRaw is List
@@ -452,6 +474,32 @@ final canBackDateProductionProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canBackDateProduction,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user may request a cash advance for an employee.
+/// Mirrors LINE_MANAGER_TIER as enforced by
+/// `api/employee_advances.create_employee_advance_request`.
+///
+/// This only hides the control. The bootstrap's `can_request` flag is the
+/// truth, and the Employee Advances tab respects that as well.
+final canRequestEmployeeAdvanceProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canRequestEmployeeAdvance,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user may approve or reject a cash advance. Deliberately
+/// narrower than [canRequestEmployeeAdvanceProvider]: approving posts the
+/// Payment Entry, so cash leaves the branch account immediately. Mirrors
+/// `api/employee_advances.approve_employee_advance`.
+final canApproveEmployeeAdvanceProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canApproveEmployeeAdvance,
     orElse: () => false,
   );
 });

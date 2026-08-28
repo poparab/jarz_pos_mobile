@@ -8831,4 +8831,368 @@ class AppLocalizationsAr extends AppLocalizations {
   String shiftMonitorCourierRowDetail(int count, Object amount, int days) {
     return '$count طلب · $amount · أقدمها $days يوم';
   }
+
+  @override
+  String get expensesAdvanceTabExpenses => 'المصروفات';
+
+  @override
+  String get expensesAdvanceTabAdvances => 'سلف الموظفين';
+
+  @override
+  String get expensesAdvanceNewRequest => 'سلفة جديدة';
+
+  @override
+  String get expensesAdvanceFormTitle => 'طلب سلفة لموظف';
+
+  @override
+  String get expensesAdvanceEmployeeLabel => 'الموظف';
+
+  @override
+  String get expensesAdvanceEmployeeRequired => 'اختر موظفًا';
+
+  @override
+  String get expensesAdvanceEmployeeHint => 'اضغط لاختيار موظف';
+
+  @override
+  String get expensesAdvanceEmployeePickerTitle => 'اختيار الموظف';
+
+  @override
+  String get expensesAdvanceEmployeeSearchHint =>
+      'ابحث بالاسم أو الفرع أو القسم';
+
+  @override
+  String get expensesAdvanceEmployeeNoMatches => 'لا يوجد موظف مطابق للبحث';
+
+  @override
+  String get expensesAdvanceAmountLabel => 'قيمة السلفة';
+
+  @override
+  String get expensesAdvanceAmountInvalid => 'من فضلك أدخل قيمة صحيحة';
+
+  @override
+  String get expensesAdvancePurposeLabel => 'الغرض من السلفة';
+
+  @override
+  String get expensesAdvancePurposeRequired => 'اكتب سبب طلب السلفة';
+
+  @override
+  String get expensesAdvancePayFromLabel => 'الصرف من';
+
+  @override
+  String get expensesAdvancePaymentSourceRequired => 'اختر مصدر الصرف';
+
+  @override
+  String get expensesAdvanceDateLabel => 'تاريخ السلفة (اختياري)';
+
+  @override
+  String get expensesAdvanceDateNotSet => 'اليوم';
+
+  @override
+  String get expensesAdvanceDateClear => 'مسح التاريخ';
+
+  @override
+  String get expensesAdvanceSubmit => 'إرسال الطلب';
+
+  @override
+  String get expensesAdvanceNoOptions =>
+      'لا يمكن طلب سلفة قبل توفر قائمة الموظفين ومصدر للصرف.';
+
+  @override
+  String get expensesAdvanceSubmitted => 'تم إرسال طلب السلفة للاعتماد';
+
+  @override
+  String get expensesAdvanceMonthLabel => 'الشهر';
+
+  @override
+  String get expensesAdvanceStatusFilterLabel => 'الحالة';
+
+  @override
+  String get expensesAdvanceStatusFilterAll => 'كل الحالات';
+
+  @override
+  String get expensesAdvanceEmptyTitle => 'لا توجد سلف موظفين لهذا الشهر.';
+
+  @override
+  String get expensesAdvanceEmptyApproverBody =>
+      'ستظهر هنا طلبات مديري الخطوط في انتظار الاعتماد.';
+
+  @override
+  String get expensesAdvanceEmptyRequesterBody =>
+      'استخدم زر سلفة جديدة لطلب نقدية لموظف.';
+
+  @override
+  String get expensesAdvanceEmptyReadOnlyBody =>
+      'لا تملك صلاحية طلب أو اعتماد السلف.';
+
+  @override
+  String get expensesAdvanceUnavailableTitle => 'سلف الموظفين غير متاحة';
+
+  @override
+  String get expensesAdvanceUnavailableBody =>
+      'وحدة الموارد البشرية غير مثبتة على هذا الموقع، لذلك لا يمكن طلب السلف من هنا.';
+
+  @override
+  String get expensesAdvanceSummaryTotal => 'الإجمالي';
+
+  @override
+  String get expensesAdvanceSummaryPending => 'في انتظار الاعتماد';
+
+  @override
+  String get expensesAdvanceSummaryApproved => 'المعتمدة';
+
+  @override
+  String get expensesAdvanceSummaryOutstanding => 'المتبقي';
+
+  @override
+  String expensesAdvanceSummaryCount(int count) {
+    return '$count طلب';
+  }
+
+  @override
+  String expensesAdvanceSummaryPendingValue(int count, Object amount) {
+    return '$count | $amount';
+  }
+
+  @override
+  String get expensesAdvanceApprove => 'اعتماد وصرف';
+
+  @override
+  String get expensesAdvanceReject => 'رفض';
+
+  @override
+  String get expensesAdvanceApproveTitle => 'اعتماد السلفة؟';
+
+  @override
+  String expensesAdvanceApproveBody(
+    Object amount,
+    Object employee,
+    Object source,
+  ) {
+    return 'الاعتماد يصرف $amount إلى $employee الآن من $source. تخرج النقدية من هذا الحساب فورًا ولا يمكن التراجع عن ذلك من هذه الشاشة.';
+  }
+
+  @override
+  String get expensesAdvanceApproveConfirm => 'اعتماد وصرف الآن';
+
+  @override
+  String get expensesAdvanceApproved => 'تم اعتماد السلفة وصرفها';
+
+  @override
+  String expensesAdvanceApprovedWithEntry(Object entry) {
+    return 'تم اعتماد السلفة وصرفها · $entry';
+  }
+
+  @override
+  String get expensesAdvanceRejectTitle => 'رفض طلب السلفة؟';
+
+  @override
+  String get expensesAdvanceRejectHint => 'وضح لمقدم الطلب سبب الرفض';
+
+  @override
+  String get expensesAdvanceRejectReasonRequired => 'السبب مطلوب';
+
+  @override
+  String get expensesAdvanceRejected => 'تم رفض طلب السلفة';
+
+  @override
+  String get expensesAdvanceIdLabel => 'رقم السلفة';
+
+  @override
+  String get expensesAdvancePostingDateLabel => 'تاريخ السلفة';
+
+  @override
+  String get expensesAdvanceBranchLabel => 'الفرع';
+
+  @override
+  String get expensesAdvancePayingAccountLabel => 'حساب الصرف';
+
+  @override
+  String get expensesAdvancePaidLabel => 'المصروف';
+
+  @override
+  String get expensesAdvanceClaimedLabel => 'المسوى';
+
+  @override
+  String get expensesAdvanceReturnedLabel => 'المرتجع';
+
+  @override
+  String get expensesAdvanceBalanceLabel => 'الرصيد المتبقي';
+
+  @override
+  String get expensesAdvanceRequestedByLabel => 'مقدم الطلب';
+
+  @override
+  String get expensesAdvanceApprovedByLabel => 'المعتمد';
+
+  @override
+  String get expensesAdvanceApprovedOnLabel => 'تاريخ الاعتماد';
+
+  @override
+  String get expensesAdvancePaymentEntryLabel => 'سند الدفع';
+
+  @override
+  String get expensesAdvanceStatusDraft => 'في انتظار الاعتماد';
+
+  @override
+  String get expensesAdvanceStatusPaid => 'مصروفة';
+
+  @override
+  String get expensesAdvanceStatusPartiallyPaid => 'مصروفة جزئيا';
+
+  @override
+  String get expensesAdvanceStatusUnpaid => 'غير مصروفة';
+
+  @override
+  String get expensesAdvanceStatusClaimed => 'تمت التسوية';
+
+  @override
+  String get expensesAdvanceStatusReturned => 'مرتجعة';
+
+  @override
+  String get expensesAdvanceStatusPartlyClaimedAndReturned =>
+      'تسوية جزئية وإرجاع';
+
+  @override
+  String get expensesAdvanceStatusCancelled => 'ملغاة';
+
+  @override
+  String get managerEmployeeLedgerTitle => 'حساب الموظفين';
+
+  @override
+  String get managerEmployeeLedgerSubtitle =>
+      'المستحق على كل موظف: السلف النقدية + الطلبات غير المدفوعة';
+
+  @override
+  String get managerEmployeeLedgerPeriodLabel => 'الفترة';
+
+  @override
+  String get managerEmployeeLedgerWindow30 => 'آخر 30 يوم';
+
+  @override
+  String get managerEmployeeLedgerWindow90 => 'آخر 90 يوم';
+
+  @override
+  String get managerEmployeeLedgerWindow180 => 'آخر 180 يوم';
+
+  @override
+  String get managerEmployeeLedgerWindow365 => 'آخر 365 يوم';
+
+  @override
+  String managerEmployeeLedgerActivityRange(Object from, Object to) {
+    return 'الحركة المعروضة: من $from إلى $to';
+  }
+
+  @override
+  String get managerEmployeeLedgerActivityInPeriod => 'الحركة في الفترة دي';
+
+  @override
+  String get managerEmployeeLedgerTotalOutstanding =>
+      'إجمالي المستحق في الفترة دي';
+
+  @override
+  String get managerEmployeeLedgerTotalOutstandingAllTime =>
+      'إجمالي المستحق (كل الفترات)';
+
+  @override
+  String get managerEmployeeLedgerAllTimeHint =>
+      'كل المستحقات المفتوحة مهما كان تاريخها. الفترة تحت بتحدد السطور المعروضة بس.';
+
+  @override
+  String get managerEmployeeLedgerAdvancesLabel => 'السلف النقدية';
+
+  @override
+  String get managerEmployeeLedgerOrdersLabel => 'طلبات غير مدفوعة';
+
+  @override
+  String managerEmployeeLedgerAdvanceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count سلفة',
+      few: '$count سلف',
+      two: 'سلفتين',
+      one: 'سلفة واحدة',
+      zero: 'مفيش سلف',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String managerEmployeeLedgerOrderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count طلب',
+      few: '$count طلبات',
+      two: 'طلبين',
+      one: 'طلب واحد',
+      zero: 'مفيش طلبات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String managerEmployeeLedgerEmployeeCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شخص عليهم مستحقات',
+      few: '$count أشخاص عليهم مستحقات',
+      two: 'شخصين عليهم مستحقات',
+      one: 'شخص واحد عليه مستحقات',
+      zero: 'مفيش حد عليه مستحقات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String managerEmployeeLedgerSplit(Object advances, Object orders) {
+    return 'سلف $advances • طلبات $orders';
+  }
+
+  @override
+  String get managerEmployeeLedgerOutstandingLabel => 'المستحق';
+
+  @override
+  String get managerEmployeeLedgerOrderTotalLabel => 'إجمالي الطلب';
+
+  @override
+  String get managerEmployeeLedgerAdvanceAmountLabel => 'السلفة';
+
+  @override
+  String get managerEmployeeLedgerEmpty =>
+      'مفيش مستحقات، ومفيش حركة في الفترة دي';
+
+  @override
+  String get managerEmployeeLedgerNoAdvances => 'مفيش سلف نقدية في الفترة دي';
+
+  @override
+  String get managerEmployeeLedgerNoOrders =>
+      'مفيش طلبات غير مدفوعة في الفترة دي';
+
+  @override
+  String get managerEmployeeLedgerBalancePredatesPeriod =>
+      'مفيش حاجة معروضة في الفترة دي. الرصيد فوق أقدم من كده، فوسع الفترة عشان تشوف السطور اللي وراه.';
+
+  @override
+  String get managerEmployeeLedgerUnmatched => 'مش مربوط بموظف';
+
+  @override
+  String get managerEmployeeLedgerLoadFailed => 'تعذر تحميل حساب الموظفين';
+
+  @override
+  String get managerEmployeeLedgerNoticeNoBranchAssigned =>
+      'مفيش فرع متخصص ليك، فمفيش حاجة تتعرض هنا لسه.';
+
+  @override
+  String get managerEmployeeLedgerNoticeBranchNotPermitted =>
+      'مش مسموح لك تشوف الفرع ده، فاتم تجاهله.';
+
+  @override
+  String get managerEmployeeLedgerNoticeHrmsUnavailable =>
+      'نظام HRMS مش متثبت، فالسلف النقدية مش بتتسجل. الطلبات غير المدفوعة لسه بتتعرض.';
+
+  @override
+  String get managerEmployeeLedgerNoticeResultsTruncated =>
+      'بتتعرض أول النتائج بس. ضيق الفرع أو الفترة عشان تشوف الباقي.';
 }
