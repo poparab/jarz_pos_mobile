@@ -133,6 +133,34 @@ jobs:
             }
           }
 
+          # A hand-dispatched release_type is honoured verbatim above, so an
+          # operator can ask for a patch the changed paths cannot support. That
+          # is not theoretical: on 2026-08-28 a production `shorebird_patch` was
+          # dispatched for 11c8dea, whose diff carries lib/l10n/*.arb and
+          # lib/src/core/localization/*.dart. It set up Java, Flutter and
+          # Shorebird, built for ~9 minutes, and only then failed at the patch
+          # step. The classifier had the answer the whole time -- $classifiedType
+          # is computed on every event above -- it was simply never consulted on
+          # this path.
+          #
+          # Only a positive 'full_apk' verdict blocks. 'none' must still be
+          # allowed through: a merge commit's own diff shows no mobile paths
+          # (see the merge-commit trap), and re-patching an already-built
+          # release from such a ref is a legitimate deliberate action.
+          if (-not $patchBlocked -and
+              $effectiveReleaseType -eq 'shorebird_patch' -and
+              $requestedReleaseType -ne 'auto' -and
+              $classifiedType -eq 'full_apk') {
+            $patchBlocked = $true
+            $supportNote = (
+              "Requested release_type=shorebird_patch, but this commit needs a full APK. " +
+              "Classifier: $classifiedReason " +
+              "A Shorebird patch cannot carry these changes, so the build would fail after " +
+              "~9 minutes of setup. Re-dispatch with release_type=full_apk (testers then " +
+              "install the new APK; an OTA patch will not reach devices on the old build)."
+            )
+          }
+
           $releaseEngine = switch ($effectiveReleaseType) {
             'shorebird_patch' { 'shorebird' }
             'full_apk' {
