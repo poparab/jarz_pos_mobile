@@ -9,7 +9,20 @@ param(
     [switch]$ForceReinstallApps,
     [switch]$ForceMigrate,
     [switch]$Yes,
-    [string]$SshKeyPath
+    [string]$SshKeyPath,
+
+    # Pin the deploy to a known commit. Without it, "deploy commit X" is a
+    # statement of intent, not a constraint: this script ships whatever the
+    # remote branch head happens to be at the instant it pulls, and several
+    # Claude chats push to the same `main`. On 2026-08-27 a production deploy
+    # planned at 4349631 shipped 778bb30 because another chat pushed 1m49s
+    # after the plan run — which also put production a commit AHEAD of
+    # staging, so a change reached prod having never run on staging.
+    #
+    # Accepts a 7-40 char hex SHA, prefix-matched against the resolved remote
+    # head of each deployed app; the run is refused before the backup and
+    # before the pull if none matches, so a refused run changes nothing.
+    [string]$Commit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -213,6 +226,38 @@ function Get-RemoteBranchHead($GitTarget) {
     }
 
     return ($lsRemote -split '\s+')[0]
+}
+
+function Assert-RequestedCommit($GitTargets, $RequestedCommit) {
+    # Enforce -Commit against the remote heads this run actually resolved.
+    #
+    # Called after every app's RemoteHead is known but BEFORE the backup and
+    # before any pull, so a mismatch costs nothing: the server is untouched.
+    # Prefix-matched because callers naturally quote the short SHA that git
+    # log and the GitHub UI show them.
+    if (-not $RequestedCommit) { return }
+
+    $wanted = $RequestedCommit.Trim().ToLowerInvariant()
+    if ($wanted -notmatch '^[0-9a-f]{7,40}$') {
+        throw "-Commit must be a hex git SHA of 7-40 characters; got '$RequestedCommit'."
+    }
+
+    $matched = @($GitTargets | Where-Object { $_.RemoteHead.ToLowerInvariant().StartsWith($wanted) })
+    if ($matched.Count -gt 0) {
+        Write-Info "-Commit $wanted confirmed: $($matched[0].AppName) remote head is $($matched[0].RemoteHead)"
+        return
+    }
+
+    $listing = (@($GitTargets | ForEach-Object { "  $($_.AppName): $($_.RemoteHead)" }) -join "`n")
+    throw (
+        "COMMIT PIN MISMATCH: -Commit $wanted matches no deployed app's remote head.`n`n" +
+        "Remote heads resolved for this run:`n$listing`n`n" +
+        "Another chat almost certainly pushed to main between your plan run and now, " +
+        "so continuing would ship their commits under your deploy. Nothing has been " +
+        "changed on the server.`n`n" +
+        "Re-read what is on main (git ls-remote origin main), confirm you still want " +
+        "that code, then re-run with the -Commit value it reports."
+    )
 }
 
 function Assert-AppRepoIntegrity($GitTarget) {
@@ -753,6 +798,8 @@ $gitTargets = foreach ($appName in $config.CustomApps) {
     $gitTarget
 }
 
+Assert-RequestedCommit $gitTargets $Commit
+
 $appsNeedingUpdate = @($gitTargets | Where-Object { $_.PendingUpdate })
 $deployRequired = $appsNeedingUpdate.Count -gt 0
 
@@ -838,7 +885,7 @@ foreach ($gitTarget in $gitTargets) {
     Invoke-Remote "sudo GIT_SSH_COMMAND='$gitSshCommand' git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) fetch --quiet $($gitTarget.RemoteName) $($gitTarget.BranchName)" | Out-Null
 
     $splitLines = { param($text) ($text -split "`r?`n") | ForEach-Object { $_.Trim() } | Where-Object { $_ } }
-    $addedPaths = & $splitLines (Invoke-Remote "sudo git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) diff --diff-filter=A --name-only HEAD FETCH_HEAD" -IgnoreExitCode)
+    $addedPaths = & $splitLines (Invoke-Remote "sudo git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) diff --diff-filter=A --name-only HEAD $($gitTarget.RemoteHead)" -IgnoreExitCode)
     $untrackedPaths = & $splitLines (Invoke-Remote "sudo git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) ls-files --others --exclude-standard" -IgnoreExitCode)
 
     $collisions = @($addedPaths | Where-Object { $untrackedPaths -contains $_ })
@@ -849,13 +896,42 @@ foreach ($gitTarget in $gitTargets) {
         Invoke-Remote "sudo rm -f $quotedPaths" | Out-Null
     }
 
-    Write-Info "Pulling $($gitTarget.AppName) from $($gitTarget.RemoteName)/$($gitTarget.BranchName)"
-    $pullOutput = Invoke-Remote "sudo GIT_SSH_COMMAND='$gitSshCommand' git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) pull --quiet $($gitTarget.RemoteName) $($gitTarget.BranchName)"
+    # Fast-forward to the EXACT commit this run resolved and verified, not to
+    # whatever the branch tip is right now.
+    #
+    # `git pull <remote> <branch>` re-resolves the tip at pull time, which
+    # re-opens the very race -Commit exists to close: the pin is checked, a
+    # peer chat pushes, and the pull silently takes their commit instead.
+    # RemoteHead came from ls-remote earlier in this run and the fetch above
+    # brought it down, so merging that SHA is deterministic.
+    #
+    # --ff-only is deliberate. A live app volume must never grow a merge
+    # commit, and divergence here means something outside this script wrote to
+    # the volume — which is exactly the CI-clobber class of bug that has
+    # false-greened deploys before. Failing is correct, and it fails BEFORE
+    # anything lands, so the abort leaves no half-deployed state.
+    Write-Info "Fast-forwarding $($gitTarget.AppName) to $($gitTarget.RemoteHead)"
+    $pullOutput = Invoke-Remote "sudo GIT_SSH_COMMAND='$gitSshCommand' git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) merge --ff-only --quiet $($gitTarget.RemoteHead)"
     if ($pullOutput) {
         Write-Host $pullOutput
     }
 
     $gitTarget.HeadAfter = (Invoke-Remote "sudo git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) rev-parse HEAD").Trim()
+
+    # Tripwire. The ff-only merge above targets an exact SHA, so this can only
+    # fire if something else moved HEAD underneath the deploy — the class of
+    # event that has silently false-greened deploys here before. Report what
+    # actually landed rather than trusting the intent.
+    if ($gitTarget.HeadAfter -ne $gitTarget.RemoteHead) {
+        throw (
+            "$($gitTarget.AppName) landed on $($gitTarget.HeadAfter) but this run " +
+            "resolved and verified $($gitTarget.RemoteHead). Something outside this " +
+            "script moved HEAD on the volume mid-deploy. The new code is on disk but " +
+            "the running workers have NOT been restarted - treat the app as serving " +
+            "the old code until you re-run this script with -ForceMigrate."
+        )
+    }
+
     $gitTarget.Changed = $gitTarget.HeadBefore -ne $gitTarget.HeadAfter
     $gitTarget.RequiresPipInstall = Test-AppRequiresEditableReinstall $gitTarget
     $gitTarget.SchemaChanged = Test-AppHasSchemaChanges $gitTarget

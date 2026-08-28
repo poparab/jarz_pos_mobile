@@ -6,7 +6,15 @@ param(
     [switch]$PlanOnly,
     [switch]$ForceDeploy,
     [switch]$AllowDirty,
-    [string]$SshKeyPath
+    [string]$SshKeyPath,
+
+    # Pin the deploy to a known commit; mirrors deploy_backend.ps1 -Commit so
+    # "deploy commit X" means the same thing on both halves of a release.
+    # Here it asserts the LOCAL checkout is at that commit, because this script
+    # builds the working tree rather than pulling on the server. Several chats
+    # share this checkout, so the HEAD you reasoned about and the HEAD that
+    # gets stamped into release-metadata.json are not necessarily the same one.
+    [string]$Commit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -231,6 +239,25 @@ Write-Info "============================================"
 Write-Host ''
 
 $localHead = Get-RepoHead
+
+# Enforce -Commit before the dirty check and before any build, so a mismatch
+# costs nothing. Prefix-matched: callers quote the short SHA git log shows them.
+if ($Commit) {
+    $wantedCommit = $Commit.Trim().ToLowerInvariant()
+    if ($wantedCommit -notmatch '^[0-9a-f]{7,40}$') {
+        throw "-Commit must be a hex git SHA of 7-40 characters; got '$Commit'."
+    }
+    if (-not $localHead.ToLowerInvariant().StartsWith($wantedCommit)) {
+        throw (
+            "COMMIT PIN MISMATCH: -Commit $wantedCommit but this checkout is at $localHead.`n`n" +
+            "Another chat has moved HEAD in this shared checkout, so the build would ship " +
+            "code you have not reviewed, stamped with a commit you did not intend. Nothing " +
+            "has been built or uploaded.`n`n" +
+            "Confirm what is checked out (git log --oneline -1), then re-run with that SHA."
+        )
+    }
+    Write-Info "-Commit $wantedCommit confirmed: local HEAD is $localHead"
+}
 
 # The build below compiles the WORKING TREE, but release-metadata.json is stamped
 # with $localHead. Several Claude chats share this checkout, so a dirty tree means
