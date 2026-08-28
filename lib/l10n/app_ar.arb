@@ -1240,6 +1240,7 @@
   "paymentMethodInstapay": "إنستاباي",
   "paymentMethodMobileWallet": "محفظة إلكترونية",
   "paymentMethodSettleLater": "سداد لاحق",
+  "paymentMethodOnline": "دفع إلكتروني",
   "checkoutTotal": "الإجمالي:",
   "checkoutPay": "ادفع",
   "checkoutSelectProfileFirst": "اختر ملف نقطة البيع أولاً",

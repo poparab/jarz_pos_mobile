@@ -64,6 +64,10 @@ String localizedPaymentMethodLabel(BuildContext context, String? rawMethod) {
       return context.l10n.paymentMethodMobileWallet;
     case 'settle later':
       return context.l10n.paymentMethodSettleLater;
+    // The backend reports "Online" for a delivery-partner order the partner
+    // collected for us: real, but not one of our own tills or ledgers.
+    case 'online':
+      return context.l10n.paymentMethodOnline;
     default:
       return method.isEmpty ? context.l10n.commonNotSpecified : method;
   }

@@ -62,5 +62,19 @@ void main() {
 
       expect(find.text('غير محدد'), findsNWidgets(3));
     });
+
+    // "Online" is what the backend reports for a delivery-partner order the
+    // partner collected for us. It used to arrive as "Cash" (see
+    // jarz_pos/tests/test_kanban_payment_method.py), and once fixed it must not
+    // then fall through to the untranslated English default here.
+    testWidgets('should map the delivery-partner Online method to Arabic', (tester) async {
+      await _pumpLocalizedApp(
+        tester,
+        const _MapperProbe(status: 'Paid', method: 'Online', partyType: 'Sales Partner'),
+      );
+
+      expect(find.text('دفع إلكتروني'), findsOneWidget);
+      expect(find.text('Online'), findsNothing);
+    });
   });
 }

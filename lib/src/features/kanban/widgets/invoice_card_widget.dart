@@ -2707,6 +2707,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         textColor = Colors.purple[700]!;
         icon = Icons.phone_android;
         break;
+      // A delivery partner collected online on our behalf. Deliberately NOT the
+      // green cash styling: the whole point of the fix behind this case is that
+      // these orders must not read as cash at a glance.
+      case 'Online':
+        bgColor = Colors.teal[50]!;
+        textColor = Colors.teal[700]!;
+        icon = Icons.language;
+        break;
       default:
         bgColor = Colors.grey[100]!;
         textColor = Colors.grey[700]!;

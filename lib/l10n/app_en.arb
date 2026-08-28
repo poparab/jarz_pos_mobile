@@ -1315,6 +1315,7 @@
   "paymentMethodInstapay": "Instapay",
   "paymentMethodMobileWallet": "Mobile Wallet",
   "paymentMethodSettleLater": "Settle Later",
+  "paymentMethodOnline": "Online",
   "checkoutTotal": "Total:",
   "checkoutPay": "Pay",
   "checkoutSelectProfileFirst": "Select POS profile first",

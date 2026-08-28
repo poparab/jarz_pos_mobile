@@ -2814,6 +2814,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentMethodSettleLater => 'Settle Later';
 
   @override
+  String get paymentMethodOnline => 'Online';
+
+  @override
   String get checkoutTotal => 'Total:';
 
   @override

@@ -2808,6 +2808,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paymentMethodSettleLater => 'سداد لاحق';
 
   @override
+  String get paymentMethodOnline => 'دفع إلكتروني';
+
+  @override
   String get checkoutTotal => 'الإجمالي:';
 
   @override

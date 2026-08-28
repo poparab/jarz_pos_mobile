@@ -4852,6 +4852,12 @@ abstract class AppLocalizations {
   /// **'Settle Later'**
   String get paymentMethodSettleLater;
 
+  /// No description provided for @paymentMethodOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get paymentMethodOnline;
+
   /// No description provided for @checkoutTotal.
   ///
   /// In en, this message translates to:
