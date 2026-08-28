@@ -283,6 +283,15 @@ abstract final class ApiEndpoints {
   static const returnWipToStore =
       '/api/method/jarz_pos.api.manufacturing.return_wip_to_store';
 
+  // ── Sub-assemblies (bases) ────────────────────────────────────────────
+  // Bases are never sold, so the sales-driven board computes zero for them.
+  // These two answer "what bases exist" and "what would N batches cost me"
+  // instead; starting one still goes through `start_production_batch`.
+  static const getBaseItems =
+      '/api/method/jarz_pos.api.subassembly.get_base_items';
+  static const previewBaseBatch =
+      '/api/method/jarz_pos.api.subassembly.preview_base_batch';
+
   // ── Daily Production Plan ─────────────────────────────────────────────
   static const dailyPlanTemplate =
       '/api/method/jarz_pos.api.daily_plan.get_plan_template';

@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/widgets/app_drawer.dart';
+import '../state/base_production_providers.dart';
 import '../state/production_basket_notifier.dart';
 import '../state/production_providers.dart';
 import '../state/running_batches_notifier.dart';
+import 'screens/base_production_tab.dart';
 import 'screens/daily_plan_tab.dart';
 import 'screens/production_batch_tab.dart';
 import 'screens/production_plan_tab.dart';
@@ -15,10 +17,11 @@ import 'widgets/recent_work_orders_sheet.dart';
 
 /// The Production Board.
 ///
-/// A thin three-tab host: Plan answers "what should we make", Batch holds what
-/// has been queued, Running holds what is on the floor right now. All the state
-/// lives in providers, so every tab stays independently loadable and the basket
-/// survives navigation.
+/// A thin five-tab host: Daily is the morning jar plan, Plan answers "what
+/// should we make", Batch holds what has been queued, Bases makes the
+/// sub-assemblies the jars are built from, and Running holds what is on the
+/// floor right now. All the state lives in providers, so every tab stays
+/// independently loadable and the basket survives navigation.
 class ManufacturingScreen extends ConsumerStatefulWidget {
   const ManufacturingScreen({super.key, this.initialTab = 0});
 
@@ -37,9 +40,11 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 4,
+      length: kProductionTabCount,
       vsync: this,
-      initialIndex: widget.initialTab.clamp(0, 3),
+      // Deep-linked (`/manufacturing?tab=N`), so an index from an older link
+      // is clamped rather than thrown.
+      initialIndex: widget.initialTab.clamp(0, kProductionTabCount - 1),
     );
     // Hive opens asynchronously, so the basket is hydrated after first frame
     // rather than in the notifier's build().
@@ -113,6 +118,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
                 count: basket.isNotEmpty ? basket.lines.length : 0,
               ),
             ),
+            Tab(text: l10n.productionTabBases),
             Tab(
               child: _TabLabel(
                 text: l10n.productionTabRunning,
@@ -129,6 +135,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
           DailyPlanTab(),
           ProductionPlanTab(),
           ProductionBatchTab(),
+          BaseProductionTab(),
           ProductionRunningTab(),
         ],
       ),
@@ -141,11 +148,14 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
   /// so firing it while the user is looking at running batches is a slow answer
   /// to a question nobody asked.
   void _refreshVisibleTab() {
-    if (_tabController.index == kProductionRunningTabIndex) {
-      ref.read(runningBatchesProvider.notifier).refresh();
-      return;
+    switch (_tabController.index) {
+      case kProductionRunningTabIndex:
+        ref.read(runningBatchesProvider.notifier).refresh();
+      case kProductionBasesTabIndex:
+        ref.read(baseItemsProvider.notifier).refresh();
+      default:
+        ref.read(productionSuggestionsProvider.notifier).refresh();
     }
-    ref.read(productionSuggestionsProvider.notifier).refresh();
   }
 }
 

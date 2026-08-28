@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/network/frappe_error_message.dart';
 import '../../../core/constants/api_endpoints.dart';
+import 'models/base_batch_preview.dart';
+import 'models/base_item.dart';
 import 'models/basket_rollup.dart';
 import 'models/bom_details.dart';
 import 'models/production_suggestion.dart';
@@ -174,6 +176,67 @@ class ManufacturingService {
   /// Typed wrapper over [getBomDetails].
   Future<BomDetails> fetchBomDetails(String itemCode) async {
     return BomDetails.fromJson(await getBomDetails(itemCode));
+  }
+
+  // ── Sub-assemblies / bases ──────────────────────────
+
+  /// The bases the floor can make a run of, with freezer stock already read
+  /// back as batches.
+  ///
+  /// Bases are never sold, so `get_production_suggestions` computes zero for
+  /// every one of them and the Plan tab hides its action panel. This endpoint
+  /// answers the batch question instead.
+  ///
+  /// [includeDemand] false skips the plan / suggestion roll-up server-side and
+  /// returns rows with no `demand` block — the escape hatch if the list gets
+  /// slow, matching `includeCapacity` on the sales board.
+  Future<BaseItemsPage> getBaseItems({
+    String? company,
+    String? search,
+    bool includeDemand = true,
+    String? planDate,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.getBaseItems,
+        data: {
+          if (company != null) 'company': company,
+          if (search != null && search.isNotEmpty) 'search': search,
+          'include_demand': includeDemand ? 1 : 0,
+          if (planDate != null && planDate.isNotEmpty) 'plan_date': planDate,
+        },
+      );
+      return BaseItemsPage.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to load base items');
+    }
+  }
+
+  /// What a run of [batches] would consume, before anybody commits to it.
+  ///
+  /// Deliberately a separate call from [startProductionBatch]: the preview is
+  /// re-taken every time the operator moves the stepper, and a start is a
+  /// stock movement that must happen exactly once.
+  Future<BaseBatchPreview> previewBaseBatch({
+    required String itemCode,
+    required double batches,
+    String? bomName,
+    String? company,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.previewBaseBatch,
+        data: {
+          'item_code': itemCode,
+          'batches': batches,
+          if (bomName != null && bomName.isNotEmpty) 'bom_name': bomName,
+          if (company != null) 'company': company,
+        },
+      );
+      return BaseBatchPreview.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to check batch materials');
+    }
   }
 
   // ── Start / finish (stage 2) ────────────────────────────────────────

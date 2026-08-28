@@ -2576,6 +2576,104 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productionNotStartedYet => 'This batch was never started';
 
   @override
+  String get productionTabBases => 'Bases';
+
+  @override
+  String get basesHeaderHint =>
+      'Bases never sell, so the plan cannot suggest them. Pick one and set how many batches to mix.';
+
+  @override
+  String get basesEmpty => 'No bases configured';
+
+  @override
+  String basesSummaryShort(Object count) {
+    return '$count below what the jars need';
+  }
+
+  @override
+  String basesSummaryBlocked(Object count) {
+    return '$count blocked — no materials';
+  }
+
+  @override
+  String basesBatchYield(Object quantity, Object uom) {
+    return '1 batch = $quantity $uom';
+  }
+
+  @override
+  String get basesInFreezer => 'In freezer';
+
+  @override
+  String basesBatchesValue(Object batches) {
+    return '$batches batches';
+  }
+
+  @override
+  String basesQtyValue(Object quantity, Object uom) {
+    return '$quantity $uom';
+  }
+
+  @override
+  String get basesCanMakeNow => 'Can make now';
+
+  @override
+  String basesDemandHint(Object needed, Object onHand) {
+    return 'The plan needs $needed batches · you have $onHand';
+  }
+
+  @override
+  String basesDemandDriver(Object driver) {
+    return 'from $driver';
+  }
+
+  @override
+  String basesUseBatches(Object batches) {
+    return 'Use $batches';
+  }
+
+  @override
+  String get basesRunSizes => 'Mixer runs';
+
+  @override
+  String get basesRunSizeOff =>
+      'Not one of the mixer\'s usual runs — double-check before mixing';
+
+  @override
+  String basesMakes(Object quantity, Object uom) {
+    return 'Makes $quantity $uom';
+  }
+
+  @override
+  String get basesConsumes => 'Consumes';
+
+  @override
+  String basesEstimatedCost(Object amount) {
+    return 'Est. materials $amount';
+  }
+
+  @override
+  String get basesChecking => 'Checking materials…';
+
+  @override
+  String basesPreviewFailed(Object reason) {
+    return 'Could not check materials — $reason';
+  }
+
+  @override
+  String basesShortage(Object component, Object quantity, Object uom) {
+    return '$component is short by $quantity $uom';
+  }
+
+  @override
+  String basesReduceTo(Object batches) {
+    return 'Reduce to $batches';
+  }
+
+  @override
+  String get basesNothingPossible =>
+      'Not enough materials for even half a batch';
+
+  @override
   String get sopTitle => 'Work instructions';
 
   @override

@@ -6,15 +6,29 @@ import '../../../core/network/user_service.dart';
 import '../data/manufacturing_service.dart';
 import '../data/models/running_batch.dart';
 
+/// Tab index of the Bases tab on the Production Board.
+///
+/// Bases (Fudge Cake, Sponge Cake, Savoiardi, …) are never sold, so the
+/// sales-driven Plan tab computes zero for them and hides its action panel.
+/// They get their own tab, ordered right before Running because making a base
+/// is the step immediately upstream of a run.
+const int kProductionBasesTabIndex = 3;
+
 /// Tab index of the Running tab on the Production Board.
 ///
 /// Named rather than inlined because two files agree on it: the host builds the
-/// tabs and the Batch tab asks to be moved here after a successful start.
+/// tabs and the Batch and Bases tabs ask to be moved here after a successful
+/// start.
 ///
-/// Order is Daily, Plan, Batch, Running — Daily was added at the front because
-/// it is what the floor opens the board for first thing in the morning, which
-/// pushed this index from 2 to 3.
-const int kProductionRunningTabIndex = 3;
+/// Order is Daily, Plan, Batch, Bases, Running. Daily was added at the front
+/// because it is what the floor opens the board for first thing in the morning
+/// (2 → 3), and Bases was inserted before Running (3 → 4).
+const int kProductionRunningTabIndex = 4;
+
+/// How many tabs the Production Board has. Kept next to the indices above so a
+/// new tab cannot be added without the `TabController` length and the deep-link
+/// clamp moving with it.
+const int kProductionTabCount = 5;
 
 /// A one-shot request to move the Production Board to another tab.
 ///

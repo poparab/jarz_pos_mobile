@@ -4462,6 +4462,144 @@ abstract class AppLocalizations {
   /// **'This batch was never started'**
   String get productionNotStartedYet;
 
+  /// No description provided for @productionTabBases.
+  ///
+  /// In en, this message translates to:
+  /// **'Bases'**
+  String get productionTabBases;
+
+  /// No description provided for @basesHeaderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Bases never sell, so the plan cannot suggest them. Pick one and set how many batches to mix.'**
+  String get basesHeaderHint;
+
+  /// No description provided for @basesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No bases configured'**
+  String get basesEmpty;
+
+  /// No description provided for @basesSummaryShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} below what the jars need'**
+  String basesSummaryShort(Object count);
+
+  /// No description provided for @basesSummaryBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} blocked — no materials'**
+  String basesSummaryBlocked(Object count);
+
+  /// No description provided for @basesBatchYield.
+  ///
+  /// In en, this message translates to:
+  /// **'1 batch = {quantity} {uom}'**
+  String basesBatchYield(Object quantity, Object uom);
+
+  /// No description provided for @basesInFreezer.
+  ///
+  /// In en, this message translates to:
+  /// **'In freezer'**
+  String get basesInFreezer;
+
+  /// No description provided for @basesBatchesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{batches} batches'**
+  String basesBatchesValue(Object batches);
+
+  /// No description provided for @basesQtyValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{quantity} {uom}'**
+  String basesQtyValue(Object quantity, Object uom);
+
+  /// No description provided for @basesCanMakeNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Can make now'**
+  String get basesCanMakeNow;
+
+  /// No description provided for @basesDemandHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan needs {needed} batches · you have {onHand}'**
+  String basesDemandHint(Object needed, Object onHand);
+
+  /// No description provided for @basesDemandDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'from {driver}'**
+  String basesDemandDriver(Object driver);
+
+  /// No description provided for @basesUseBatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {batches}'**
+  String basesUseBatches(Object batches);
+
+  /// No description provided for @basesRunSizes.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixer runs'**
+  String get basesRunSizes;
+
+  /// No description provided for @basesRunSizeOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Not one of the mixer\'\'s usual runs — double-check before mixing'**
+  String get basesRunSizeOff;
+
+  /// No description provided for @basesMakes.
+  ///
+  /// In en, this message translates to:
+  /// **'Makes {quantity} {uom}'**
+  String basesMakes(Object quantity, Object uom);
+
+  /// No description provided for @basesConsumes.
+  ///
+  /// In en, this message translates to:
+  /// **'Consumes'**
+  String get basesConsumes;
+
+  /// No description provided for @basesEstimatedCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Est. materials {amount}'**
+  String basesEstimatedCost(Object amount);
+
+  /// No description provided for @basesChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking materials…'**
+  String get basesChecking;
+
+  /// No description provided for @basesPreviewFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check materials — {reason}'**
+  String basesPreviewFailed(Object reason);
+
+  /// No description provided for @basesShortage.
+  ///
+  /// In en, this message translates to:
+  /// **'{component} is short by {quantity} {uom}'**
+  String basesShortage(Object component, Object quantity, Object uom);
+
+  /// No description provided for @basesReduceTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce to {batches}'**
+  String basesReduceTo(Object batches);
+
+  /// No description provided for @basesNothingPossible.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough materials for even half a batch'**
+  String get basesNothingPossible;
+
   /// No description provided for @sopTitle.
   ///
   /// In en, this message translates to:

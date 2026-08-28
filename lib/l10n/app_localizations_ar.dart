@@ -2570,6 +2570,103 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productionNotStartedYet => 'التشغيلة دي ماابتدتش أصلاً';
 
   @override
+  String get productionTabBases => 'الأساسات';
+
+  @override
+  String get basesHeaderHint =>
+      'الأساسات مش بتتباع، فالخطة عمرها ما هتقترحها. اختار واحد وحدد عايز تعجن كام تشغيلة.';
+
+  @override
+  String get basesEmpty => 'مفيش أساسات متظبّطة';
+
+  @override
+  String basesSummaryShort(Object count) {
+    return '$count أقل من اللي البرطمانات محتاجاه';
+  }
+
+  @override
+  String basesSummaryBlocked(Object count) {
+    return '$count متوقف — مفيش خامات';
+  }
+
+  @override
+  String basesBatchYield(Object quantity, Object uom) {
+    return 'التشغيلة الواحدة = $quantity $uom';
+  }
+
+  @override
+  String get basesInFreezer => 'في الفريزر';
+
+  @override
+  String basesBatchesValue(Object batches) {
+    return '$batches تشغيلة';
+  }
+
+  @override
+  String basesQtyValue(Object quantity, Object uom) {
+    return '$quantity $uom';
+  }
+
+  @override
+  String get basesCanMakeNow => 'ينفع دلوقتي';
+
+  @override
+  String basesDemandHint(Object needed, Object onHand) {
+    return 'الخطة محتاجة $needed تشغيلة · عندك $onHand';
+  }
+
+  @override
+  String basesDemandDriver(Object driver) {
+    return 'من $driver';
+  }
+
+  @override
+  String basesUseBatches(Object batches) {
+    return 'خُد $batches';
+  }
+
+  @override
+  String get basesRunSizes => 'أحجام العجّان';
+
+  @override
+  String get basesRunSizeOff =>
+      'مش من أحجام العجّان المعتادة — راجع قبل ما تعجن';
+
+  @override
+  String basesMakes(Object quantity, Object uom) {
+    return 'هيطلع $quantity $uom';
+  }
+
+  @override
+  String get basesConsumes => 'هياخد من الخامات';
+
+  @override
+  String basesEstimatedCost(Object amount) {
+    return 'تكلفة الخامات تقريباً $amount';
+  }
+
+  @override
+  String get basesChecking => 'بيراجع الخامات…';
+
+  @override
+  String basesPreviewFailed(Object reason) {
+    return 'مش قادر يراجع الخامات — $reason';
+  }
+
+  @override
+  String basesShortage(Object component, Object quantity, Object uom) {
+    return '$component ناقص $quantity $uom';
+  }
+
+  @override
+  String basesReduceTo(Object batches) {
+    return 'قلّلها لـ $batches';
+  }
+
+  @override
+  String get basesNothingPossible => 'الخامات مش كفاية ولا لنص تشغيلة';
+
+  @override
   String get sopTitle => 'تعليمات التشغيل';
 
   @override
