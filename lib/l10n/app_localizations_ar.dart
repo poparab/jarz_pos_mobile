@@ -8647,4 +8647,88 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get visitSaveDraft => 'حفظ كمسودة';
+
+  @override
+  String get shiftCourierCarryTitle => 'أموال ما زالت مع المندوبين';
+
+  @override
+  String shiftCourierCarryBody(int transactions, Object amount, int couriers) {
+    return '$transactions طلب بقيمة $amount ما زالت مع $couriers مندوب. أكِّد كل طلب أو سوِّه الآن.';
+  }
+
+  @override
+  String get shiftCourierCarryHint =>
+      'علّم كل طلب ما زال نقده مع المندوب. أي طلب تتركه بدون تأكيد يجب تسويته قبل إغلاق الشيفت.';
+
+  @override
+  String get shiftCourierCarryConfirmAll => 'تأكيد الكل';
+
+  @override
+  String get shiftCourierCarryClearAll => 'إلغاء الكل';
+
+  @override
+  String get shiftCourierCarrySettleNow => 'تسوية مندوب الآن';
+
+  @override
+  String shiftCourierCarryConfirmedOf(int confirmed, int total) {
+    return 'تم تأكيد $confirmed من $total';
+  }
+
+  @override
+  String shiftCourierCarryRowLabel(Object invoice, Object customer) {
+    return '$invoice — $customer';
+  }
+
+  @override
+  String get shiftCourierCarryCheckboxLabel => 'النقد ما زال مع المندوب';
+
+  @override
+  String shiftCourierCarryCarriedBadge(int count, int days) {
+    return 'مرحّل عبر $count شيفت · $days يوم خارج الفرع';
+  }
+
+  @override
+  String get shiftCourierCarryUnconfirmed =>
+      'أكِّد كل طلب ما زال مع مندوب، أو سوِّه، قبل إغلاق الشيفت.';
+
+  @override
+  String shiftCourierCarriedSummary(int count, Object amount) {
+    return '$count طلب بقيمة $amount خرجت من الشيفت وما زالت مع المندوبين، وتبقى مفتوحة حتى تتم تسويتها.';
+  }
+
+  @override
+  String shiftMonitorCarriedOut(int count, Object amount) {
+    return 'مُرحَّل للخارج: $count · $amount';
+  }
+
+  @override
+  String shiftMonitorSettledIn(int count, Object amount) {
+    return 'محصَّل من شيفتات سابقة: $count · $amount';
+  }
+
+  @override
+  String get shiftMonitorCourierOutstandingTitle => 'مع المندوبين الآن';
+
+  @override
+  String shiftMonitorCourierOutstandingSummary(
+    Object amount,
+    int transactions,
+    int days,
+  ) {
+    return '$amount على $transactions طلب، وأقدمها $days يوم.';
+  }
+
+  @override
+  String get shiftMonitorCourierOutstandingEmpty =>
+      'لا يوجد مندوب يحمل نقدًا حاليًا.';
+
+  @override
+  String shiftMonitorCourierRow(Object name, Object branch) {
+    return '$name · $branch';
+  }
+
+  @override
+  String shiftMonitorCourierRowDetail(int count, Object amount, int days) {
+    return '$count طلب · $amount · أقدمها $days يوم';
+  }
 }

@@ -8680,4 +8680,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get visitSaveDraft => 'Save draft';
+
+  @override
+  String get shiftCourierCarryTitle => 'Money still with couriers';
+
+  @override
+  String shiftCourierCarryBody(int transactions, Object amount, int couriers) {
+    return '$transactions order(s) worth $amount are still out with $couriers courier(s). Confirm each one, or settle it now.';
+  }
+
+  @override
+  String get shiftCourierCarryHint =>
+      'Tick every order whose cash is still with the courier. Anything you leave unticked must be settled before you can close.';
+
+  @override
+  String get shiftCourierCarryConfirmAll => 'Confirm all';
+
+  @override
+  String get shiftCourierCarryClearAll => 'Clear all';
+
+  @override
+  String get shiftCourierCarrySettleNow => 'Settle a courier now';
+
+  @override
+  String shiftCourierCarryConfirmedOf(int confirmed, int total) {
+    return '$confirmed of $total confirmed';
+  }
+
+  @override
+  String shiftCourierCarryRowLabel(Object invoice, Object customer) {
+    return '$invoice — $customer';
+  }
+
+  @override
+  String get shiftCourierCarryCheckboxLabel => 'Cash still with the courier';
+
+  @override
+  String shiftCourierCarryCarriedBadge(int count, int days) {
+    return 'Carried $count shift(s) · $days day(s) out';
+  }
+
+  @override
+  String get shiftCourierCarryUnconfirmed =>
+      'Confirm every order still out with a courier, or settle it, before closing.';
+
+  @override
+  String shiftCourierCarriedSummary(int count, Object amount) {
+    return '$count order(s) worth $amount left the shift still with couriers. They stay open until settled.';
+  }
+
+  @override
+  String shiftMonitorCarriedOut(int count, Object amount) {
+    return 'Carried out: $count · $amount';
+  }
+
+  @override
+  String shiftMonitorSettledIn(int count, Object amount) {
+    return 'Collected from earlier shifts: $count · $amount';
+  }
+
+  @override
+  String get shiftMonitorCourierOutstandingTitle => 'Out with couriers now';
+
+  @override
+  String shiftMonitorCourierOutstandingSummary(
+    Object amount,
+    int transactions,
+    int days,
+  ) {
+    return '$amount across $transactions order(s); oldest $days day(s) out.';
+  }
+
+  @override
+  String get shiftMonitorCourierOutstandingEmpty =>
+      'No courier is holding cash right now.';
+
+  @override
+  String shiftMonitorCourierRow(Object name, Object branch) {
+    return '$name · $branch';
+  }
+
+  @override
+  String shiftMonitorCourierRowDetail(int count, Object amount, int days) {
+    return '$count order(s) · $amount · oldest $days day(s)';
+  }
 }

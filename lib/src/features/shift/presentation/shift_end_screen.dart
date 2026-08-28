@@ -70,6 +70,11 @@ class ShiftEndScreen extends ConsumerStatefulWidget {
 
 class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
   final Map<String, TextEditingController> _controllers = {};
+
+  /// Courier Transaction names the closer has ticked as "cash still with the
+  /// courier". Held by name rather than by index so a mid-close settlement by a
+  /// colleague simply drops the row without shifting anyone else's tick.
+  final Set<String> _confirmedCourierTransactions = {};
   ShiftSummary? _endResult;
   String? _validationError;
   bool _loggingOut = false;
@@ -153,6 +158,14 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
     final theme = Theme.of(context);
     final courierCloseBlock = summary.courierCloseBlock;
     final hasCourierCloseBlock = courierCloseBlock?.blocked == true;
+    // A backend that offers per-line confirmation lets the shift close with
+    // money still out; one that does not still refuses, and the old
+    // "go settle first" flow is the only way through.
+    final canAcknowledge = courierCloseBlock?.requiresAcknowledgement == true;
+    final courierTransactions = courierCloseBlock?.transactions ?? const <ShiftCourierCloseTransaction>[];
+    final allCourierConfirmed = courierTransactions.every(
+      (row) => _confirmedCourierTransactions.contains(row.courierTransaction),
+    );
     final hasClosingPaymentModes = summary.paymentReconciliation.isNotEmpty;
     final displayError = _validationError ??
         (shiftState.error != null ? _localizedShiftError(context, shiftState.error!) : null);
@@ -172,7 +185,10 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
               padding: const EdgeInsets.only(bottom: 12),
               children: [
                 if (hasCourierCloseBlock) ...[
-                  _buildCourierCloseBlockCard(context, courierCloseBlock!),
+                  if (canAcknowledge)
+                    _buildCourierCarryCard(context, courierCloseBlock!, summary)
+                  else
+                    _buildCourierCloseBlockCard(context, courierCloseBlock!),
                   const SizedBox(height: 14),
                 ],
                 Text(l10n.shiftClosingPrompt, style: theme.textTheme.titleSmall),
@@ -244,16 +260,22 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
                 child: FilledButton.icon(
                   onPressed: shiftState.isLoading
                       ? null
-                      : hasCourierCloseBlock
+                      : (hasCourierCloseBlock && !canAcknowledge)
                       ? () => _handleCourierSettlementReview(summary)
                       : !hasClosingPaymentModes
                       ? null
+                      : (hasCourierCloseBlock && !allCourierConfirmed)
+                      ? null
                       : () => _handleEndShift(summary),
                   icon: Icon(
-                    hasCourierCloseBlock ? Icons.local_shipping_outlined : Icons.task_alt_outlined,
+                    (hasCourierCloseBlock && !canAcknowledge)
+                        ? Icons.local_shipping_outlined
+                        : Icons.task_alt_outlined,
                   ),
                   label: Text(
-                    hasCourierCloseBlock ? l10n.shiftCourierReviewButton : l10n.shiftEndButton,
+                    (hasCourierCloseBlock && !canAcknowledge)
+                        ? l10n.shiftCourierReviewButton
+                        : l10n.shiftEndButton,
                   ),
                 ),
               ),
@@ -282,6 +304,35 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
             if (result.closingEntry != null)
               _infoRow('${l10n.shiftClosingEntry}: ${result.closingEntry}', Icons.check_circle),
             _infoRow(l10n.shiftInvoices(result.invoiceCount), Icons.receipt_long),
+            // The last thing the closer reads before logging out: what is still
+            // out there, and that it stays open until somebody settles it.
+            if (result.carriedCourierCount > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.local_shipping_outlined, color: Colors.orange, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.shiftCourierCarriedSummary(
+                            result.carriedCourierCount,
+                            result.carriedCourierAmount.toStringAsFixed(2),
+                          ),
+                          style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             if (result.journalEntry != null && result.journalEntry!.isNotEmpty && result.journalEntry != 'null')
               Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -377,6 +428,190 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
           Icon(icon, size: 18, color: Colors.grey),
           const SizedBox(width: 8),
           Expanded(child: Text(text)),
+        ],
+      ),
+    );
+  }
+
+  /// The end-of-day confirmation: every order whose cash is still with a
+  /// courier, listed one by one and grouped by who is holding it.
+  ///
+  /// A courier who takes the last order of the day and drives home is a normal
+  /// night, so this is not a wall — but it is not a formality either. The closer
+  /// ticks each line, and what they tick is stamped onto the transaction as the
+  /// shift that let the money walk.
+  Widget _buildCourierCarryCard(
+    BuildContext context,
+    ShiftCourierCloseBlock block,
+    ShiftSummary summary,
+  ) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final transactions = block.transactions;
+    final confirmedCount = transactions
+        .where((row) => _confirmedCourierTransactions.contains(row.courierTransaction))
+        .length;
+    final allConfirmed = confirmedCount == transactions.length;
+
+    // Grouped by courier, in the order the server sent them (oldest dispatch
+    // first), so the money that has been out longest is read first.
+    final groups = <String, List<ShiftCourierCloseTransaction>>{};
+    for (final row in transactions) {
+      groups.putIfAbsent(row.partyKey, () => []).add(row);
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.32)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 2),
+                child: Icon(Icons.local_shipping_outlined, color: Colors.orange),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.shiftCourierCarryTitle,
+                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.shiftCourierCarryBody(
+                        block.transactionCount,
+                        block.netBalance.toStringAsFixed(2),
+                        block.partyCount,
+                      ),
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.shiftCourierCarryHint,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.shiftCourierCarryConfirmedOf(confirmedCount, transactions.length),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: allConfirmed ? Colors.green.shade700 : theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => setState(() {
+                  if (allConfirmed) {
+                    _confirmedCourierTransactions.clear();
+                  } else {
+                    _confirmedCourierTransactions.addAll(
+                      transactions.map((row) => row.courierTransaction),
+                    );
+                  }
+                  _validationError = null;
+                }),
+                child: Text(
+                  allConfirmed
+                      ? l10n.shiftCourierCarryClearAll
+                      : l10n.shiftCourierCarryConfirmAll,
+                ),
+              ),
+            ],
+          ),
+          for (final entry in groups.entries) ...[
+            const Divider(height: 18),
+            Text(
+              l10n.shiftCourierBlockPartySummary(
+                entry.value.first.displayName.isNotEmpty
+                    ? entry.value.first.displayName
+                    : entry.value.first.party,
+                entry.value.length,
+                entry.value.map((row) => row.referenceInvoice).toSet().length,
+              ),
+              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            ...entry.value.map((row) => _buildCourierCarryRow(context, row)),
+          ],
+          const SizedBox(height: 6),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              onPressed: () => _handleCourierSettlementReview(summary),
+              icon: const Icon(Icons.payments_outlined, size: 18),
+              label: Text(l10n.shiftCourierCarrySettleNow),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCourierCarryRow(
+    BuildContext context,
+    ShiftCourierCloseTransaction row,
+  ) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final confirmed = _confirmedCourierTransactions.contains(row.courierTransaction);
+
+    return CheckboxListTile(
+      value: confirmed,
+      onChanged: (value) => setState(() {
+        if (value == true) {
+          _confirmedCourierTransactions.add(row.courierTransaction);
+        } else {
+          _confirmedCourierTransactions.remove(row.courierTransaction);
+        }
+        _validationError = null;
+      }),
+      controlAffinity: ListTileControlAffinity.leading,
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        l10n.shiftCourierCarryRowLabel(
+          row.referenceInvoice,
+          row.customerName.isNotEmpty ? row.customerName : row.displayName,
+        ),
+        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${l10n.shiftCourierCarryCheckboxLabel} · '
+            '${l10n.shiftCourierBlockNetBalance(row.netBalance.toStringAsFixed(2))}',
+            style: theme.textTheme.bodySmall,
+          ),
+          // Second night out is a different fact from the first, and the only
+          // place it can be read at close time is right here.
+          if (row.carried)
+            Text(
+              l10n.shiftCourierCarryCarriedBadge(row.carryCount, row.daysOutstanding),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
         ],
       ),
     );
@@ -551,6 +786,19 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
       return;
     }
 
+    final courierTransactions =
+        summary.courierCloseBlock?.transactions ?? const <ShiftCourierCloseTransaction>[];
+    final acknowledged = courierTransactions
+        .map((row) => row.courierTransaction)
+        .where(_confirmedCourierTransactions.contains)
+        .toList();
+    if (acknowledged.length != courierTransactions.length) {
+      setState(() {
+        _validationError = context.l10n.shiftCourierCarryUnconfirmed;
+      });
+      return;
+    }
+
     final balances = <Map<String, dynamic>>[];
     for (final row in summary.paymentReconciliation) {
       final text = _controllers[row.modeOfPayment]?.text ?? '';
@@ -575,6 +823,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
         .endShift(
           closingBalances: balances,
           openingEntry: summary.openingEntry,
+          acknowledgedCourierTransactions: acknowledged,
         );
 
     if (!mounted) return;

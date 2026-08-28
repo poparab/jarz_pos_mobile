@@ -85,9 +85,16 @@ class ShiftRepository {
     throw Exception('Unexpected shift summary response');
   }
 
+  /// Close the shift.
+  ///
+  /// [acknowledgedCourierTransactions] is the set of Courier Transaction names
+  /// the closer confirmed are still out with a courier. It is always sent, even
+  /// when empty — an empty list is the positive statement "nothing is out",
+  /// while omitting the field asks the server for the old hard refusal.
   Future<ShiftSummary> endShift({
     required String openingEntry,
     required List<Map<String, dynamic>> closingBalances,
+    List<String> acknowledgedCourierTransactions = const [],
   }) async {
     try {
       final response = await _dio.post(
@@ -95,6 +102,7 @@ class ShiftRepository {
         data: {
           'pos_opening_entry': openingEntry,
           'closing_balances': closingBalances,
+          'acknowledged_courier_transactions': acknowledgedCourierTransactions,
         },
       );
 

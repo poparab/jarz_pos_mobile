@@ -14540,6 +14540,124 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save draft'**
   String get visitSaveDraft;
+
+  /// No description provided for @shiftCourierCarryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Money still with couriers'**
+  String get shiftCourierCarryTitle;
+
+  /// No description provided for @shiftCourierCarryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{transactions} order(s) worth {amount} are still out with {couriers} courier(s). Confirm each one, or settle it now.'**
+  String shiftCourierCarryBody(int transactions, Object amount, int couriers);
+
+  /// No description provided for @shiftCourierCarryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick every order whose cash is still with the courier. Anything you leave unticked must be settled before you can close.'**
+  String get shiftCourierCarryHint;
+
+  /// No description provided for @shiftCourierCarryConfirmAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm all'**
+  String get shiftCourierCarryConfirmAll;
+
+  /// No description provided for @shiftCourierCarryClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get shiftCourierCarryClearAll;
+
+  /// No description provided for @shiftCourierCarrySettleNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle a courier now'**
+  String get shiftCourierCarrySettleNow;
+
+  /// No description provided for @shiftCourierCarryConfirmedOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{confirmed} of {total} confirmed'**
+  String shiftCourierCarryConfirmedOf(int confirmed, int total);
+
+  /// No description provided for @shiftCourierCarryRowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{invoice} — {customer}'**
+  String shiftCourierCarryRowLabel(Object invoice, Object customer);
+
+  /// No description provided for @shiftCourierCarryCheckboxLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash still with the courier'**
+  String get shiftCourierCarryCheckboxLabel;
+
+  /// No description provided for @shiftCourierCarryCarriedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Carried {count} shift(s) · {days} day(s) out'**
+  String shiftCourierCarryCarriedBadge(int count, int days);
+
+  /// No description provided for @shiftCourierCarryUnconfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm every order still out with a courier, or settle it, before closing.'**
+  String get shiftCourierCarryUnconfirmed;
+
+  /// No description provided for @shiftCourierCarriedSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} order(s) worth {amount} left the shift still with couriers. They stay open until settled.'**
+  String shiftCourierCarriedSummary(int count, Object amount);
+
+  /// No description provided for @shiftMonitorCarriedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Carried out: {count} · {amount}'**
+  String shiftMonitorCarriedOut(int count, Object amount);
+
+  /// No description provided for @shiftMonitorSettledIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Collected from earlier shifts: {count} · {amount}'**
+  String shiftMonitorSettledIn(int count, Object amount);
+
+  /// No description provided for @shiftMonitorCourierOutstandingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Out with couriers now'**
+  String get shiftMonitorCourierOutstandingTitle;
+
+  /// No description provided for @shiftMonitorCourierOutstandingSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} across {transactions} order(s); oldest {days} day(s) out.'**
+  String shiftMonitorCourierOutstandingSummary(
+    Object amount,
+    int transactions,
+    int days,
+  );
+
+  /// No description provided for @shiftMonitorCourierOutstandingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No courier is holding cash right now.'**
+  String get shiftMonitorCourierOutstandingEmpty;
+
+  /// No description provided for @shiftMonitorCourierRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {branch}'**
+  String shiftMonitorCourierRow(Object name, Object branch);
+
+  /// No description provided for @shiftMonitorCourierRowDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} order(s) · {amount} · oldest {days} day(s)'**
+  String shiftMonitorCourierRowDetail(int count, Object amount, int days);
 }
 
 class _AppLocalizationsDelegate

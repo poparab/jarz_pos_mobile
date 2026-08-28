@@ -41,6 +41,7 @@ class _FakeShiftRepository extends ShiftRepository {
   final ShiftSummary? endShiftSummary;
   List<Map<String, dynamic>>? submittedClosingBalances;
   String? submittedOpeningEntry;
+  List<String>? submittedCourierAcknowledgement;
 
   @override
   Future<ShiftEntry?> getActiveShift({String? posProfile}) async {
@@ -56,11 +57,14 @@ class _FakeShiftRepository extends ShiftRepository {
   Future<ShiftSummary> endShift({
     required String openingEntry,
     required List<Map<String, dynamic>> closingBalances,
+    List<String> acknowledgedCourierTransactions = const [],
   }) async {
     submittedOpeningEntry = openingEntry;
     submittedClosingBalances = closingBalances
         .map((row) => Map<String, dynamic>.from(row))
         .toList();
+    submittedCourierAcknowledgement =
+        List<String>.from(acknowledgedCourierTransactions);
     return endShiftSummary ?? summary;
   }
 }
@@ -340,6 +344,135 @@ void main() {
       expect(find.textContaining('2 unsettled courier transaction(s)'), findsOneWidget);
       expect(find.textContaining('Ali Courier'), findsOneWidget);
       expect(find.text('Review & Settle Couriers'), findsOneWidget);
+    });
+  });
+
+  group('ShiftEndScreen courier carry-over', () {
+    const carryBlock = ShiftCourierCloseBlock(
+      blocked: true,
+      requiresAcknowledgement: true,
+      posProfile: 'Dokki',
+      transactionCount: 2,
+      invoiceCount: 2,
+      partyCount: 1,
+      netBalance: 160,
+      parties: [
+        ShiftCourierCloseParty(
+          partyType: 'Employee',
+          party: 'HR-EMP-0001',
+          displayName: 'Ali Courier',
+          transactionCount: 2,
+          invoiceCount: 2,
+          netBalance: 160,
+        ),
+      ],
+      transactions: [
+        ShiftCourierCloseTransaction(
+          courierTransaction: 'CT-0001',
+          referenceInvoice: 'ACC-SINV-0001',
+          customerName: 'Mona',
+          partyType: 'Employee',
+          party: 'HR-EMP-0001',
+          displayName: 'Ali Courier',
+          netBalance: 90,
+        ),
+        ShiftCourierCloseTransaction(
+          courierTransaction: 'CT-0002',
+          referenceInvoice: 'ACC-SINV-0002',
+          customerName: 'Karim',
+          partyType: 'Employee',
+          party: 'HR-EMP-0001',
+          displayName: 'Ali Courier',
+          netBalance: 70,
+          carried: true,
+          carryCount: 2,
+          daysOutstanding: 3,
+        ),
+      ],
+    );
+
+    _FakeShiftRepository buildRepository() {
+      return _FakeShiftRepository(
+        activeShift: const ShiftEntry(
+          name: 'POS-OPN-001',
+          posProfile: 'Dokki',
+          status: 'Open',
+        ),
+        summary: const ShiftSummary(
+          openingEntry: 'POS-OPN-001',
+          status: 'Open',
+          invoiceCount: 3,
+          paymentReconciliation: [ShiftBalanceDetail(modeOfPayment: 'Cash')],
+          amountsHidden: true,
+          courierCloseBlock: carryBlock,
+        ),
+        endShiftSummary: const ShiftSummary(
+          openingEntry: 'POS-OPN-001',
+          status: 'Closed',
+          closingEntry: 'POS-CLO-001',
+          carriedCourierCount: 2,
+          carriedCourierAmount: 160,
+        ),
+      );
+    }
+
+    testWidgets('lists every unsettled invoice and flags one already carried', (tester) async {
+      final repository = buildRepository();
+
+      await _pumpShiftEndScreen(tester, repository);
+
+      expect(find.text('Money still with couriers'), findsOneWidget);
+      expect(find.textContaining('ACC-SINV-0001'), findsOneWidget);
+      expect(find.textContaining('ACC-SINV-0002'), findsOneWidget);
+      // The second night out reads differently from the first.
+      expect(find.textContaining('Carried 2 shift(s)'), findsOneWidget);
+      expect(find.text('0 of 2 confirmed'), findsOneWidget);
+    });
+
+    testWidgets('refuses to close while one invoice is unconfirmed', (tester) async {
+      final repository = buildRepository();
+      await _pumpShiftEndScreen(tester, repository);
+
+      // Confirm only the first of the two.
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 of 2 confirmed'), findsOneWidget);
+      final endButton = tester.widget<ButtonStyleButton>(
+        _buttonWithLabel('End Shift').first,
+      );
+      expect(endButton.onPressed, isNull);
+      expect(repository.submittedCourierAcknowledgement, isNull);
+    });
+
+    testWidgets('closes once every invoice is confirmed and sends the acknowledgement', (tester) async {
+      final repository = buildRepository();
+      await _pumpShiftEndScreen(tester, repository);
+
+      await tester.tap(find.text('Confirm all'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 of 2 confirmed'), findsOneWidget);
+
+      // The carry checklist pushes the cash count below the fold, and a
+      // ListView only mounts what it lays out.
+      await tester.scrollUntilVisible(
+        find.byType(TextField),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.enterText(find.byType(TextField).first, '1000');
+      await tester.pumpAndSettle();
+
+      await tester.tap(_buttonWithLabel('End Shift').first);
+      await tester.pumpAndSettle();
+
+      expect(
+        repository.submittedCourierAcknowledgement,
+        equals(['CT-0001', 'CT-0002']),
+      );
+      // The closer's last screen says what walked out the door.
+      expect(find.textContaining('still with couriers'), findsOneWidget);
     });
   });
 }

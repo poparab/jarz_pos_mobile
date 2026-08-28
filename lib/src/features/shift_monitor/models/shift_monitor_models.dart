@@ -4,12 +4,17 @@ class ShiftMonitorResponse {
     required this.filters,
     required this.profiles,
     required this.shifts,
+    required this.courierOutstanding,
   });
 
   final ShiftMonitorSummary summary;
   final ShiftMonitorFilters filters;
   final List<ShiftMonitorProfileOption> profiles;
   final List<ShiftMonitorShift> shifts;
+
+  /// Money with couriers right now — deliberately not bound to the date filter,
+  /// because "who is holding our cash" is never a question about last week.
+  final CourierOutstanding courierOutstanding;
 
   factory ShiftMonitorResponse.fromJson(Map<String, dynamic> json) {
     return ShiftMonitorResponse(
@@ -34,6 +39,9 @@ class ShiftMonitorResponse {
                 ShiftMonitorShift.fromJson(Map<String, dynamic>.from(entry)),
           )
           .toList(),
+      courierOutstanding: CourierOutstanding.fromJson(
+        Map<String, dynamic>.from(json['courier_outstanding'] as Map? ?? const {}),
+      ),
     );
   }
 }
@@ -44,12 +52,16 @@ class ShiftMonitorSummary {
     required this.closedCount,
     required this.discrepancyCount,
     required this.discrepancyTotal,
+    this.carriedOutCount = 0,
+    this.carriedOutTotal = 0,
   });
 
   final int openCount;
   final int closedCount;
   final int discrepancyCount;
   final double discrepancyTotal;
+  final int carriedOutCount;
+  final double carriedOutTotal;
 
   factory ShiftMonitorSummary.fromJson(Map<String, dynamic> json) {
     return ShiftMonitorSummary(
@@ -57,6 +69,8 @@ class ShiftMonitorSummary {
       closedCount: (json['closed_count'] as num?)?.toInt() ?? 0,
       discrepancyCount: (json['discrepancy_count'] as num?)?.toInt() ?? 0,
       discrepancyTotal: (json['discrepancy_total'] as num?)?.toDouble() ?? 0,
+      carriedOutCount: (json['carried_out_count'] as num?)?.toInt() ?? 0,
+      carriedOutTotal: (json['carried_out_total'] as num?)?.toDouble() ?? 0,
     );
   }
 }
@@ -122,6 +136,10 @@ class ShiftMonitorShift {
     required this.differenceAmount,
     required this.differenceKind,
     required this.journalEntry,
+    this.carriedOutCount = 0,
+    this.carriedOutAmount = 0,
+    this.settledInCount = 0,
+    this.settledInAmount = 0,
   });
 
   final String posProfile;
@@ -146,6 +164,14 @@ class ShiftMonitorShift {
   final double? differenceAmount;
   final String differenceKind;
   final String? journalEntry;
+
+  /// Courier money this shift closed on while it was still out …
+  final int carriedOutCount;
+  final double carriedOutAmount;
+
+  /// … and money an EARLIER shift carried that this one finally collected.
+  final int settledInCount;
+  final double settledInAmount;
 
   bool get isOpen => shiftStatus == 'open';
   bool get isClosed => shiftStatus == 'closed';
@@ -182,6 +208,86 @@ class ShiftMonitorShift {
       differenceAmount: (json['difference_amount'] as num?)?.toDouble(),
       differenceKind: (json['difference_kind'] ?? 'none').toString(),
       journalEntry: json['journal_entry']?.toString(),
+      carriedOutCount: (json['carried_out_count'] as num?)?.toInt() ?? 0,
+      carriedOutAmount: (json['carried_out_amount'] as num?)?.toDouble() ?? 0,
+      settledInCount: (json['settled_in_count'] as num?)?.toInt() ?? 0,
+      settledInAmount: (json['settled_in_amount'] as num?)?.toDouble() ?? 0,
+    );
+  }
+}
+
+/// Cash currently held by couriers, aged oldest first.
+///
+/// The confirmation at shift close is worth little on its own — a branch that
+/// ticks the same order every night for a week must be visible as exactly that,
+/// not as a fresh confirmation each time. This is where that shows.
+class CourierOutstanding {
+  const CourierOutstanding({
+    this.couriers = const [],
+    this.totalNetBalance = 0,
+    this.transactionCount = 0,
+    this.carriedCount = 0,
+    this.oldestDaysOutstanding = 0,
+  });
+
+  final List<CourierOutstandingParty> couriers;
+  final double totalNetBalance;
+  final int transactionCount;
+  final int carriedCount;
+  final int oldestDaysOutstanding;
+
+  bool get isEmpty => transactionCount == 0;
+
+  factory CourierOutstanding.fromJson(Map<String, dynamic> json) {
+    return CourierOutstanding(
+      couriers: (json['couriers'] as List<dynamic>? ?? const [])
+          .whereType<Map>()
+          .map((entry) =>
+              CourierOutstandingParty.fromJson(Map<String, dynamic>.from(entry)))
+          .toList(),
+      totalNetBalance: (json['total_net_balance'] as num?)?.toDouble() ?? 0,
+      transactionCount: (json['transaction_count'] as num?)?.toInt() ?? 0,
+      carriedCount: (json['carried_count'] as num?)?.toInt() ?? 0,
+      oldestDaysOutstanding:
+          (json['oldest_days_outstanding'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+class CourierOutstandingParty {
+  const CourierOutstandingParty({
+    required this.displayName,
+    required this.posProfile,
+    this.partyType = '',
+    this.party = '',
+    this.transactionCount = 0,
+    this.carriedCount = 0,
+    this.netBalance = 0,
+    this.maxDaysOutstanding = 0,
+    this.maxCarryCount = 0,
+  });
+
+  final String displayName;
+  final String posProfile;
+  final String partyType;
+  final String party;
+  final int transactionCount;
+  final int carriedCount;
+  final double netBalance;
+  final int maxDaysOutstanding;
+  final int maxCarryCount;
+
+  factory CourierOutstandingParty.fromJson(Map<String, dynamic> json) {
+    return CourierOutstandingParty(
+      displayName: (json['display_name'] ?? json['party'] ?? '').toString(),
+      posProfile: (json['pos_profile'] ?? '').toString(),
+      partyType: (json['party_type'] ?? '').toString(),
+      party: (json['party'] ?? '').toString(),
+      transactionCount: (json['transaction_count'] as num?)?.toInt() ?? 0,
+      carriedCount: (json['carried_count'] as num?)?.toInt() ?? 0,
+      netBalance: (json['net_balance'] as num?)?.toDouble() ?? 0,
+      maxDaysOutstanding: (json['max_days_outstanding'] as num?)?.toInt() ?? 0,
+      maxCarryCount: (json['max_carry_count'] as num?)?.toInt() ?? 0,
     );
   }
 }

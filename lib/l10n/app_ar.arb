@@ -3305,5 +3305,113 @@
   "visitCostingDay": "جارٍ حساب المسار…",
   "visitManualOrderNote": "ترتيبك أنت — اضغط «تحسين المسار» لإعادته تلقائياً.",
   "visitSkippedNoPin": "{count, plural, =1{مكان واحد بلا موقع ولن يظهر على المسار} =2{مكانان بلا موقع ولن يظهرا على المسار} few{{count} أماكن بلا موقع ولن تظهر على المسار} other{{count} مكاناً بلا موقع ولن تظهر على المسار}}",
-  "visitSaveDraft": "حفظ كمسودة"
+  "visitSaveDraft": "حفظ كمسودة",
+  "shiftCourierCarryTitle": "أموال ما زالت مع المندوبين",
+  "shiftCourierCarryBody": "{transactions} طلب بقيمة {amount} ما زالت مع {couriers} مندوب. أكِّد كل طلب أو سوِّه الآن.",
+  "@shiftCourierCarryBody": {
+    "placeholders": {
+      "transactions": {
+        "type": "int"
+      },
+      "amount": {},
+      "couriers": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftCourierCarryHint": "علّم كل طلب ما زال نقده مع المندوب. أي طلب تتركه بدون تأكيد يجب تسويته قبل إغلاق الشيفت.",
+  "shiftCourierCarryConfirmAll": "تأكيد الكل",
+  "shiftCourierCarryClearAll": "إلغاء الكل",
+  "shiftCourierCarrySettleNow": "تسوية مندوب الآن",
+  "shiftCourierCarryConfirmedOf": "تم تأكيد {confirmed} من {total}",
+  "@shiftCourierCarryConfirmedOf": {
+    "placeholders": {
+      "confirmed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftCourierCarryRowLabel": "{invoice} — {customer}",
+  "@shiftCourierCarryRowLabel": {
+    "placeholders": {
+      "invoice": {},
+      "customer": {}
+    }
+  },
+  "shiftCourierCarryCheckboxLabel": "النقد ما زال مع المندوب",
+  "shiftCourierCarryCarriedBadge": "مرحّل عبر {count} شيفت · {days} يوم خارج الفرع",
+  "@shiftCourierCarryCarriedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftCourierCarryUnconfirmed": "أكِّد كل طلب ما زال مع مندوب، أو سوِّه، قبل إغلاق الشيفت.",
+  "shiftCourierCarriedSummary": "{count} طلب بقيمة {amount} خرجت من الشيفت وما زالت مع المندوبين، وتبقى مفتوحة حتى تتم تسويتها.",
+  "@shiftCourierCarriedSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {}
+    }
+  },
+  "shiftMonitorCarriedOut": "مُرحَّل للخارج: {count} · {amount}",
+  "@shiftMonitorCarriedOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {}
+    }
+  },
+  "shiftMonitorSettledIn": "محصَّل من شيفتات سابقة: {count} · {amount}",
+  "@shiftMonitorSettledIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {}
+    }
+  },
+  "shiftMonitorCourierOutstandingTitle": "مع المندوبين الآن",
+  "shiftMonitorCourierOutstandingSummary": "{amount} على {transactions} طلب، وأقدمها {days} يوم.",
+  "@shiftMonitorCourierOutstandingSummary": {
+    "placeholders": {
+      "amount": {},
+      "transactions": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftMonitorCourierOutstandingEmpty": "لا يوجد مندوب يحمل نقدًا حاليًا.",
+  "shiftMonitorCourierRow": "{name} · {branch}",
+  "@shiftMonitorCourierRow": {
+    "placeholders": {
+      "name": {},
+      "branch": {}
+    }
+  },
+  "shiftMonitorCourierRowDetail": "{count} طلب · {amount} · أقدمها {days} يوم",
+  "@shiftMonitorCourierRowDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {},
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

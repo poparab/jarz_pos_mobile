@@ -183,6 +183,80 @@ class ShiftEntry {
   }
 }
 
+/// One courier transaction still unsettled at close: an invoice whose cash is
+/// out with a courier, which the closer must confirm line by line.
+class ShiftCourierCloseTransaction {
+  final String courierTransaction;
+  final String referenceInvoice;
+  final String customerName;
+  final String partyType;
+  final String party;
+  final String displayName;
+  final double amount;
+  final double shippingAmount;
+  final double netBalance;
+  final String dispatchedAt;
+
+  /// True once a previous close already carried this money forward. The second
+  /// night is a different conversation from the first, so the UI says so.
+  final bool carried;
+  final int carryCount;
+  final int daysOutstanding;
+
+  const ShiftCourierCloseTransaction({
+    required this.courierTransaction,
+    this.referenceInvoice = '',
+    this.customerName = '',
+    this.partyType = '',
+    this.party = '',
+    this.displayName = '',
+    this.amount = 0,
+    this.shippingAmount = 0,
+    this.netBalance = 0,
+    this.dispatchedAt = '',
+    this.carried = false,
+    this.carryCount = 0,
+    this.daysOutstanding = 0,
+  });
+
+  String get partyKey => '$partyType::$party';
+
+  factory ShiftCourierCloseTransaction.fromJson(Map<String, dynamic> json) {
+    double toDouble(dynamic value) {
+      if (value is num) return value.toDouble();
+      return double.tryParse(value?.toString() ?? '') ?? 0;
+    }
+
+    int toInt(dynamic value) {
+      if (value is num) return value.toInt();
+      return int.tryParse(value?.toString() ?? '') ?? 0;
+    }
+
+    bool toBool(dynamic value) {
+      if (value is bool) return value;
+      if (value is num) return value != 0;
+      final normalized = value?.toString().trim().toLowerCase();
+      return normalized == 'true' || normalized == '1' || normalized == 'yes';
+    }
+
+    return ShiftCourierCloseTransaction(
+      courierTransaction: (json['courier_transaction'] ?? '').toString(),
+      referenceInvoice: (json['reference_invoice'] ?? '').toString(),
+      customerName: (json['customer_name'] ?? '').toString(),
+      partyType: (json['party_type'] ?? '').toString(),
+      party: (json['party'] ?? '').toString(),
+      displayName: (json['display_name'] ?? '').toString(),
+      amount: toDouble(json['amount']),
+      shippingAmount: toDouble(json['shipping_amount']),
+      netBalance: toDouble(json['net_balance']),
+      dispatchedAt: (json['dispatched_at'] ?? '').toString(),
+      carried: toBool(json['carried']),
+      carryCount: toInt(json['carry_count']),
+      daysOutstanding: toInt(json['days_outstanding']),
+    );
+  }
+}
+
 class ShiftCourierCloseParty {
   final String partyType;
   final String party;
@@ -232,21 +306,30 @@ class ShiftCourierCloseParty {
 
 class ShiftCourierCloseBlock {
   final bool blocked;
+
+  /// The server offers a per-transaction confirmation instead of a hard refusal.
+  /// Absent on an older backend, where [blocked] still means "cannot close".
+  final bool requiresAcknowledgement;
   final String posProfile;
   final int transactionCount;
   final int invoiceCount;
   final int partyCount;
   final double netBalance;
+  final int carriedCount;
   final List<ShiftCourierCloseParty> parties;
+  final List<ShiftCourierCloseTransaction> transactions;
 
   const ShiftCourierCloseBlock({
     required this.blocked,
     required this.posProfile,
+    this.requiresAcknowledgement = false,
     this.transactionCount = 0,
     this.invoiceCount = 0,
     this.partyCount = 0,
     this.netBalance = 0,
+    this.carriedCount = 0,
     this.parties = const [],
+    this.transactions = const [],
   });
 
   factory ShiftCourierCloseBlock.fromJson(Map<String, dynamic> json) {
@@ -275,14 +358,27 @@ class ShiftCourierCloseBlock {
             .toList()
         : <ShiftCourierCloseParty>[];
 
+    final transactionsRaw = json['transactions'];
+    final transactions = transactionsRaw is List
+        ? transactionsRaw
+            .whereType<Map>()
+            .map((row) =>
+                ShiftCourierCloseTransaction.fromJson(Map<String, dynamic>.from(row)))
+            .where((row) => row.courierTransaction.isNotEmpty)
+            .toList()
+        : <ShiftCourierCloseTransaction>[];
+
     return ShiftCourierCloseBlock(
       blocked: toBool(json['blocked']),
+      requiresAcknowledgement: toBool(json['requires_acknowledgement']),
       posProfile: (json['pos_profile'] ?? '').toString(),
       transactionCount: toInt(json['transaction_count']),
       invoiceCount: toInt(json['invoice_count']),
       partyCount: toInt(json['party_count']),
       netBalance: toDouble(json['net_balance']),
+      carriedCount: toInt(json['carried_count']),
       parties: parties,
+      transactions: transactions,
     );
   }
 }
@@ -308,6 +404,10 @@ class ShiftSummary {
   final bool varianceVisible;
   final ShiftCourierCloseBlock? courierCloseBlock;
 
+  /// What this close handed forward, populated on the post-close summary.
+  final int carriedCourierCount;
+  final double carriedCourierAmount;
+
   const ShiftSummary({
     required this.openingEntry,
     required this.status,
@@ -328,6 +428,8 @@ class ShiftSummary {
     this.amountsHidden = false,
     this.varianceVisible = false,
     this.courierCloseBlock,
+    this.carriedCourierCount = 0,
+    this.carriedCourierAmount = 0,
   });
 
   factory ShiftSummary.fromJson(Map<String, dynamic> json) {
@@ -390,6 +492,8 @@ class ShiftSummary {
       courierCloseBlock: courierCloseBlockRaw is Map
           ? ShiftCourierCloseBlock.fromJson(Map<String, dynamic>.from(courierCloseBlockRaw))
           : null,
+      carriedCourierCount: (json['carried_courier_count'] as num?)?.toInt() ?? 0,
+      carriedCourierAmount: toDouble(json['carried_courier_amount']),
     );
   }
 }

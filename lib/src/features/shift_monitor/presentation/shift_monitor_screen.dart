@@ -327,6 +327,8 @@ class _ShiftMonitorContent extends StatelessWidget {
       children: [
         _SummaryCards(summary: data.summary),
         const SizedBox(height: 16),
+        _CourierOutstandingCard(outstanding: data.courierOutstanding),
+        const SizedBox(height: 16),
         if (groups.isEmpty)
           Card(
             child: Padding(
@@ -390,6 +392,119 @@ class _SummaryCards extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Cash held by couriers right now, oldest first.
+///
+/// The confirmation at shift close only records that somebody vouched for the
+/// money; this is where it stops being invisible afterwards. A courier who has
+/// been holding the same order for four days reads as four days here, however
+/// many nights it was ticked through.
+class _CourierOutstandingCard extends StatelessWidget {
+  const _CourierOutstandingCard({required this.outstanding});
+
+  final CourierOutstanding outstanding;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+
+    if (outstanding.isEmpty) {
+      return Card(
+        child: ListTile(
+          leading: const Icon(Icons.local_shipping_outlined, color: Colors.grey),
+          title: Text(l10n.shiftMonitorCourierOutstandingTitle),
+          subtitle: Text(l10n.shiftMonitorCourierOutstandingEmpty),
+        ),
+      );
+    }
+
+    // Anything out for more than a day has stopped being an end-of-day carry.
+    final stale = outstanding.oldestDaysOutstanding > 1;
+    final accent = stale ? Colors.deepOrange : Colors.orange;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.local_shipping_outlined, color: accent),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.shiftMonitorCourierOutstandingTitle,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Text(
+                  formatCurrency(context, outstanding.totalNetBalance),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: accent,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l10n.shiftMonitorCourierOutstandingSummary(
+                formatCurrency(context, outstanding.totalNetBalance),
+                outstanding.transactionCount,
+                outstanding.oldestDaysOutstanding,
+              ),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const Divider(height: 20),
+            for (final courier in outstanding.couriers)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.shiftMonitorCourierRow(
+                              courier.displayName,
+                              courier.posProfile,
+                            ),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            l10n.shiftMonitorCourierRowDetail(
+                              courier.transactionCount,
+                              formatCurrency(context, courier.netBalance),
+                              courier.maxDaysOutstanding,
+                            ),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: courier.maxDaysOutstanding > 1
+                                  ? Colors.deepOrange
+                                  : theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -541,6 +656,32 @@ class _ShiftDetailsCard extends ConsumerWidget {
                 Chip(
                   avatar: const Icon(Icons.receipt_long, size: 18),
                   label: Text(shift.journalEntry!),
+                ),
+              // What this shift handed to couriers on its way out …
+              if (shift.carriedOutCount > 0)
+                Chip(
+                  avatar: const Icon(Icons.local_shipping_outlined, size: 18),
+                  label: Text(
+                    l10n.shiftMonitorCarriedOut(
+                      shift.carriedOutCount,
+                      formatCurrency(context, shift.carriedOutAmount),
+                    ),
+                  ),
+                  backgroundColor: Colors.orange.withValues(alpha: 0.12),
+                  side: BorderSide(color: Colors.orange.withValues(alpha: 0.24)),
+                ),
+              // … and what an earlier shift handed to it.
+              if (shift.settledInCount > 0)
+                Chip(
+                  avatar: const Icon(Icons.savings_outlined, size: 18),
+                  label: Text(
+                    l10n.shiftMonitorSettledIn(
+                      shift.settledInCount,
+                      formatCurrency(context, shift.settledInAmount),
+                    ),
+                  ),
+                  backgroundColor: Colors.green.withValues(alpha: 0.12),
+                  side: BorderSide(color: Colors.green.withValues(alpha: 0.24)),
                 ),
             ],
           ),

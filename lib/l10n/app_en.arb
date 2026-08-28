@@ -5090,5 +5090,113 @@
       }
     }
   },
-  "visitSaveDraft": "Save draft"
+  "visitSaveDraft": "Save draft",
+  "shiftCourierCarryTitle": "Money still with couriers",
+  "shiftCourierCarryBody": "{transactions} order(s) worth {amount} are still out with {couriers} courier(s). Confirm each one, or settle it now.",
+  "@shiftCourierCarryBody": {
+    "placeholders": {
+      "transactions": {
+        "type": "int"
+      },
+      "amount": {},
+      "couriers": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftCourierCarryHint": "Tick every order whose cash is still with the courier. Anything you leave unticked must be settled before you can close.",
+  "shiftCourierCarryConfirmAll": "Confirm all",
+  "shiftCourierCarryClearAll": "Clear all",
+  "shiftCourierCarrySettleNow": "Settle a courier now",
+  "shiftCourierCarryConfirmedOf": "{confirmed} of {total} confirmed",
+  "@shiftCourierCarryConfirmedOf": {
+    "placeholders": {
+      "confirmed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftCourierCarryRowLabel": "{invoice} — {customer}",
+  "@shiftCourierCarryRowLabel": {
+    "placeholders": {
+      "invoice": {},
+      "customer": {}
+    }
+  },
+  "shiftCourierCarryCheckboxLabel": "Cash still with the courier",
+  "shiftCourierCarryCarriedBadge": "Carried {count} shift(s) · {days} day(s) out",
+  "@shiftCourierCarryCarriedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftCourierCarryUnconfirmed": "Confirm every order still out with a courier, or settle it, before closing.",
+  "shiftCourierCarriedSummary": "{count} order(s) worth {amount} left the shift still with couriers. They stay open until settled.",
+  "@shiftCourierCarriedSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {}
+    }
+  },
+  "shiftMonitorCarriedOut": "Carried out: {count} · {amount}",
+  "@shiftMonitorCarriedOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {}
+    }
+  },
+  "shiftMonitorSettledIn": "Collected from earlier shifts: {count} · {amount}",
+  "@shiftMonitorSettledIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {}
+    }
+  },
+  "shiftMonitorCourierOutstandingTitle": "Out with couriers now",
+  "shiftMonitorCourierOutstandingSummary": "{amount} across {transactions} order(s); oldest {days} day(s) out.",
+  "@shiftMonitorCourierOutstandingSummary": {
+    "placeholders": {
+      "amount": {},
+      "transactions": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftMonitorCourierOutstandingEmpty": "No courier is holding cash right now.",
+  "shiftMonitorCourierRow": "{name} · {branch}",
+  "@shiftMonitorCourierRow": {
+    "placeholders": {
+      "name": {},
+      "branch": {}
+    }
+  },
+  "shiftMonitorCourierRowDetail": "{count} order(s) · {amount} · oldest {days} day(s)",
+  "@shiftMonitorCourierRowDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {},
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }
