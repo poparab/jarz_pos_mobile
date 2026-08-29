@@ -466,12 +466,25 @@ class _ShiftCell extends ConsumerWidget {
     IconData? badge;
 
     if (data == null || data.isUnrostered) {
-      // Deliberately not a blank: an unrostered day now refuses check-ins, so
-      // drawing nothing would hide a state that stops somebody working.
-      background = theme.colorScheme.errorContainer.withValues(alpha: 0.35);
-      foreground = theme.colorScheme.error;
-      label = '—';
-      badge = Icons.block;
+      if (_isPast(date)) {
+        // History, not a gap. HRMS retires an assignment once its end date has
+        // passed, so old days legitimately read as unrostered — flagging them
+        // red would paint every past month as a wall of alarms and train
+        // people to ignore the colour that matters.
+        background = theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.4,
+        );
+        foreground = theme.colorScheme.outline;
+        label = '·';
+        badge = null;
+      } else {
+        // Deliberately not a blank: an unrostered day refuses check-ins, so
+        // drawing nothing would hide a state that stops somebody working.
+        background = theme.colorScheme.errorContainer.withValues(alpha: 0.35);
+        foreground = theme.colorScheme.error;
+        label = '—';
+        badge = Icons.block;
+      }
     } else if (data.isOff) {
       background = theme.colorScheme.tertiaryContainer;
       foreground = theme.colorScheme.onTertiaryContainer;
@@ -524,6 +537,18 @@ class _ShiftCell extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Whether this cell's day has already gone.
+  ///
+  /// Compared date-only: a cell for today must never count as past, because
+  /// today is the one day where an empty cell has an immediate consequence.
+  static bool _isPast(String date) {
+    final parsed = DateTime.tryParse(date);
+    if (parsed == null) return false;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return DateTime(parsed.year, parsed.month, parsed.day).isBefore(today);
   }
 
   /// Stable colour per shift type.
