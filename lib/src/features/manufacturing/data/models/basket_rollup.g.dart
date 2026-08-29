@@ -50,6 +50,10 @@ _$RollupComponentImpl _$$RollupComponentImplFromJson(
           ?.map((e) => ContributingLine.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const <ContributingLine>[],
+  availableElsewhere: (json['available_elsewhere'] as num?)?.toDouble(),
+  alternatives: (json['alternatives'] as List<dynamic>?)
+      ?.map((e) => StockAlternative.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$$RollupComponentImplToJson(
@@ -64,6 +68,8 @@ Map<String, dynamic> _$$RollupComponentImplToJson(
   'missing_qty': instance.missingQty,
   'reason': instance.reason,
   'contributing_lines': instance.contributingLines,
+  'available_elsewhere': instance.availableElsewhere,
+  'alternatives': instance.alternatives,
 };
 
 _$ContributingLineImpl _$$ContributingLineImplFromJson(

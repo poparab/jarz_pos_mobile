@@ -7,6 +7,7 @@ import 'package:jarz_pos/src/core/constants/api_endpoints.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/manufacturing_service.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/base_item.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/base_production_tab.dart';
+import 'package:jarz_pos/src/features/manufacturing/presentation/widgets/stock_elsewhere_note.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/base_production_providers.dart';
 
 import '../../../helpers/mock_services.dart';
@@ -417,5 +418,118 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.widgetWithText(OutlinedButton, 'Retry'), findsOneWidget);
+  });
+
+  testWidgets(
+      'a shortage that exists in another store still blocks Start, and says so',
+      (tester) async {
+    // The whole point of the hint: it is NOT an override. Eight jar labels
+    // really were received into the wrong store on production, and the
+    // operator went looking for a purchase because the card only ever said
+    // "not enough". Start stays disabled either way.
+    await _pump(
+      tester,
+      BaseItemsPage(items: [_base(canMakeNowBatches: 0)]),
+      preview: _preview(
+        hasShortage: true,
+        components: const [
+          {
+            'item_code': 'RM-LABEL',
+            'item_name': 'Jar label',
+            'uom': 'Nos',
+            'required_qty': 10.0,
+            'available_qty': 0.0,
+            'shortfall': 10.0,
+            'available_elsewhere': 48.5,
+            'alternatives': [
+              {'warehouse': 'Stores - J', 'available_qty': 40.5},
+              {'warehouse': 'Nasr City - J', 'available_qty': 8.0},
+            ],
+          },
+        ],
+      ),
+    );
+
+    expect(find.text('Jar label is short by 10 Nos'), findsOneWidget);
+    expect(
+      find.text(
+        '40.5 Nos is in Stores - J and 1 more '
+        '— needs a stock transfer, not a purchase',
+      ),
+      findsOneWidget,
+    );
+
+    final start = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Start batch'),
+    );
+    expect(start.onPressed, isNull, reason: 'the shortage still blocks');
+  });
+
+  testWidgets('a lookup that found none anywhere says buying is the fix',
+      (tester) async {
+    // Zero with an empty list is a real answer, not a missing one: it is what
+    // stops the operator ringing round the other branches.
+    await _pump(
+      tester,
+      BaseItemsPage(items: [_base(canMakeNowBatches: 0)]),
+      preview: _preview(
+        hasShortage: true,
+        components: const [
+          {
+            'item_code': 'RM-LABEL',
+            'item_name': 'Jar label',
+            'uom': 'Nos',
+            'required_qty': 10.0,
+            'available_qty': 0.0,
+            'shortfall': 10.0,
+            'available_elsewhere': 0.0,
+            'alternatives': <Map<String, dynamic>>[],
+          },
+        ],
+      ),
+    );
+
+    expect(
+      find.text(
+        'None of it in any other store — this one has to be bought',
+      ),
+      findsOneWidget,
+    );
+
+    final start = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Start batch'),
+    );
+    expect(start.onPressed, isNull);
+  });
+
+  testWidgets('a server that never looked renders nothing extra',
+      (tester) async {
+    await _pump(
+      tester,
+      BaseItemsPage(items: [_base(canMakeNowBatches: 0)]),
+      preview: _preview(
+        hasShortage: true,
+        components: const [
+          {
+            'item_code': 'RM-LABEL',
+            'item_name': 'Jar label',
+            'uom': 'Nos',
+            'required_qty': 10.0,
+            'available_qty': 0.0,
+            'shortfall': 10.0,
+          },
+        ],
+      ),
+    );
+
+    expect(find.text('Jar label is short by 10 Nos'), findsOneWidget);
+    expect(find.byType(StockElsewhereNote), findsOneWidget);
+    // Present in the tree but rendering nothing: no empty row, no "unknown".
+    expect(
+      tester.getSize(find.byType(StockElsewhereNote)),
+      Size.zero,
+    );
+    expect(find.textContaining('stock transfer'), findsNothing);
+    expect(find.textContaining('any other store'), findsNothing);
   });
 }

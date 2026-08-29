@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/batch_line.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/production_suggestion.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/stock_alternative.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/repositories/production_basket_repository.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_plan_tab.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/production_basket_notifier.dart';
@@ -178,6 +179,50 @@ void main() {
 
     final addButton = tester.widget<OutlinedButton>(find.byType(OutlinedButton));
     expect(addButton.onPressed, isNull);
+  });
+
+  testWidgets('a blocked row whose material is in another store still blocks',
+      (tester) async {
+    // Naming the store is a hint, not an override: the material is not in the
+    // warehouse this recipe draws on, so the row stays unaddable. It only
+    // stops the operator raising a purchase for stock the company owns.
+    await _pump(
+      tester,
+      ProductionSuggestionsPage(
+        items: [
+          _item(
+            itemCode: 'CAKE-BLOCKED',
+            suggestedBatches: 12,
+            canMakeNowBatches: 0,
+            limiting: const LimitingComponent(
+              itemCode: 'RM-LABEL',
+              itemName: 'Jar label',
+              uom: 'Nos',
+              sourceWarehouse: 'Raw Material - J',
+              requiredQty: 8,
+              reason: 'insufficient_stock',
+              availableElsewhere: 40.5,
+              alternatives: [
+                StockAlternative(warehouse: 'Stores - J', availableQty: 40.5),
+              ],
+            ),
+          ),
+        ],
+        summary: const ProductionSummary(critical: 1),
+        velocityUpdatedOn: '2026-08-01 00:00:00',
+      ),
+    );
+
+    expect(
+      find.text(
+        '40.5 Nos is in Stores - J '
+        '— needs a stock transfer, not a purchase',
+      ),
+      findsOneWidget,
+    );
+
+    final addButton = tester.widget<OutlinedButton>(find.byType(OutlinedButton));
+    expect(addButton.onPressed, isNull, reason: 'the shortage still blocks');
   });
 
   testWidgets('warns when velocity has never been calculated', (tester) async {

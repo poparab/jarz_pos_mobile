@@ -58,6 +58,10 @@ _$BasePreviewComponentImpl _$$BasePreviewComponentImplFromJson(
   availableQty: (json['available_qty'] as num?)?.toDouble() ?? 0.0,
   shortfall: (json['shortfall'] as num?)?.toDouble() ?? 0.0,
   sourceWarehouse: json['source_warehouse'] as String?,
+  availableElsewhere: (json['available_elsewhere'] as num?)?.toDouble(),
+  alternatives: (json['alternatives'] as List<dynamic>?)
+      ?.map((e) => StockAlternative.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$$BasePreviewComponentImplToJson(
@@ -70,4 +74,6 @@ Map<String, dynamic> _$$BasePreviewComponentImplToJson(
   'available_qty': instance.availableQty,
   'shortfall': instance.shortfall,
   'source_warehouse': instance.sourceWarehouse,
+  'available_elsewhere': instance.availableElsewhere,
+  'alternatives': instance.alternatives,
 };

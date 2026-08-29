@@ -25,3 +25,9 @@ String _plainQty(double value, int decimals) {
   if (!fixed.contains('.')) return fixed;
   return fixed.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
 }
+
+/// Wraps always-Latin data (a warehouse name, an item code) in a directional
+/// isolate so the bidi algorithm cannot drag its trailing " - J" to the front
+/// when it is embedded in an Arabic sentence.
+String isolateLtr(String value) =>
+    value.isEmpty ? value : '$_ltrIsolate$value$_popIsolate';

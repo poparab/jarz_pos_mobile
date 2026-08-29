@@ -15,6 +15,7 @@ import '../../state/base_production_providers.dart';
 import '../../state/running_batches_notifier.dart';
 import 'batch_line_card.dart' show DecimalTextInputFormatter;
 import 'production_format.dart';
+import 'stock_elsewhere_note.dart';
 import 'status_chip.dart';
 import 'view_sop_button.dart';
 
@@ -786,6 +787,15 @@ class _ShortageBanner extends StatelessWidget {
     final worst = preview?.worstShortage;
     final limiter = item.limitingComponent;
 
+    // Whichever payload produced the headline also carries the "it is in
+    // another store" answer. Read from one source only: mixing the preview
+    // component's quantity with the list endpoint's warehouses would name a
+    // store for the wrong item.
+    final elsewhereQty =
+        worst != null ? worst.availableElsewhere : limiter?.availableElsewhere;
+    final elsewhereList =
+        worst != null ? worst.alternatives : limiter?.alternatives;
+
     final String headline;
     if (worst != null) {
       headline = l10n.basesShortage(
@@ -840,6 +850,16 @@ class _ShortageBanner extends StatelessWidget {
                   style: theme.textTheme.labelSmall
                       ?.copyWith(color: scheme.onErrorContainer),
                 ),
+              // Says where the material is; changes nothing about the block.
+              // The Start button above stays disabled exactly as before —
+              // moving stock between stores is somebody's job in ERPNext, not
+              // this screen's.
+              StockElsewhereNote(
+                availableElsewhere: elsewhereQty,
+                alternatives: elsewhereList,
+                uom: worst?.uom ?? '',
+                color: scheme.onErrorContainer,
+              ),
             ],
           ),
           if (canReduce)

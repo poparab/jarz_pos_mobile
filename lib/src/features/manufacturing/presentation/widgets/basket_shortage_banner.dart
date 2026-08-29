@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../data/models/basket_rollup.dart';
 import 'production_format.dart';
+import 'stock_elsewhere_note.dart';
 
 /// The consolidated pick list, and the shortages only it can see.
 ///
@@ -147,6 +148,15 @@ class _PickListRow extends StatelessWidget {
                 ),
             ],
           ),
+          // Only ever under a line that is already short, and only when the
+          // backend looked: the shortage above still blocks Start, this just
+          // says whether the fix is a transfer or a purchase.
+          if (component.isShort)
+            StockElsewhereNote(
+              availableElsewhere: component.availableElsewhere,
+              alternatives: component.alternatives,
+              uom: component.uom,
+            ),
         ],
       ),
     );

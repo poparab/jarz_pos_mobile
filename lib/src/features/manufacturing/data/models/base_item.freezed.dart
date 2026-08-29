@@ -1383,6 +1383,16 @@ mixin _$BaseLimitingComponent {
   @JsonKey(name: 'is_missing_warehouse')
   bool get isMissingWarehouse => throw _privateConstructorUsedError;
 
+  /// Where else this material is sitting, when the backend looked.
+  ///
+  /// Null means nobody looked — deliberately distinct from `0.0` with an
+  /// empty [alternatives] list, which means the lookup ran and there is none
+  /// of it anywhere in the company.
+  @JsonKey(name: 'available_elsewhere')
+  double? get availableElsewhere => throw _privateConstructorUsedError;
+  List<StockAlternative>? get alternatives =>
+      throw _privateConstructorUsedError;
+
   /// Serializes this BaseLimitingComponent to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -1406,6 +1416,8 @@ abstract class $BaseLimitingComponentCopyWith<$Res> {
     @JsonKey(name: 'available_qty') double availableQty,
     @JsonKey(name: 'required_qty') double requiredQty,
     @JsonKey(name: 'is_missing_warehouse') bool isMissingWarehouse,
+    @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
+    List<StockAlternative>? alternatives,
   });
 }
 
@@ -1432,6 +1444,8 @@ class _$BaseLimitingComponentCopyWithImpl<
     Object? availableQty = null,
     Object? requiredQty = null,
     Object? isMissingWarehouse = null,
+    Object? availableElsewhere = freezed,
+    Object? alternatives = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -1455,6 +1469,14 @@ class _$BaseLimitingComponentCopyWithImpl<
                 ? _value.isMissingWarehouse
                 : isMissingWarehouse // ignore: cast_nullable_to_non_nullable
                       as bool,
+            availableElsewhere: freezed == availableElsewhere
+                ? _value.availableElsewhere
+                : availableElsewhere // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            alternatives: freezed == alternatives
+                ? _value.alternatives
+                : alternatives // ignore: cast_nullable_to_non_nullable
+                      as List<StockAlternative>?,
           )
           as $Val,
     );
@@ -1476,6 +1498,8 @@ abstract class _$$BaseLimitingComponentImplCopyWith<$Res>
     @JsonKey(name: 'available_qty') double availableQty,
     @JsonKey(name: 'required_qty') double requiredQty,
     @JsonKey(name: 'is_missing_warehouse') bool isMissingWarehouse,
+    @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
+    List<StockAlternative>? alternatives,
   });
 }
 
@@ -1499,6 +1523,8 @@ class __$$BaseLimitingComponentImplCopyWithImpl<$Res>
     Object? availableQty = null,
     Object? requiredQty = null,
     Object? isMissingWarehouse = null,
+    Object? availableElsewhere = freezed,
+    Object? alternatives = freezed,
   }) {
     return _then(
       _$BaseLimitingComponentImpl(
@@ -1522,6 +1548,14 @@ class __$$BaseLimitingComponentImplCopyWithImpl<$Res>
             ? _value.isMissingWarehouse
             : isMissingWarehouse // ignore: cast_nullable_to_non_nullable
                   as bool,
+        availableElsewhere: freezed == availableElsewhere
+            ? _value.availableElsewhere
+            : availableElsewhere // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        alternatives: freezed == alternatives
+            ? _value._alternatives
+            : alternatives // ignore: cast_nullable_to_non_nullable
+                  as List<StockAlternative>?,
       ),
     );
   }
@@ -1536,7 +1570,10 @@ class _$BaseLimitingComponentImpl extends _BaseLimitingComponent {
     @JsonKey(name: 'available_qty') this.availableQty = 0.0,
     @JsonKey(name: 'required_qty') this.requiredQty = 0.0,
     @JsonKey(name: 'is_missing_warehouse') this.isMissingWarehouse = false,
-  }) : super._();
+    @JsonKey(name: 'available_elsewhere') this.availableElsewhere,
+    final List<StockAlternative>? alternatives,
+  }) : _alternatives = alternatives,
+       super._();
 
   factory _$BaseLimitingComponentImpl.fromJson(Map<String, dynamic> json) =>
       _$$BaseLimitingComponentImplFromJson(json);
@@ -1557,9 +1594,27 @@ class _$BaseLimitingComponentImpl extends _BaseLimitingComponent {
   @JsonKey(name: 'is_missing_warehouse')
   final bool isMissingWarehouse;
 
+  /// Where else this material is sitting, when the backend looked.
+  ///
+  /// Null means nobody looked — deliberately distinct from `0.0` with an
+  /// empty [alternatives] list, which means the lookup ran and there is none
+  /// of it anywhere in the company.
+  @override
+  @JsonKey(name: 'available_elsewhere')
+  final double? availableElsewhere;
+  final List<StockAlternative>? _alternatives;
+  @override
+  List<StockAlternative>? get alternatives {
+    final value = _alternatives;
+    if (value == null) return null;
+    if (_alternatives is EqualUnmodifiableListView) return _alternatives;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
   @override
   String toString() {
-    return 'BaseLimitingComponent(itemCode: $itemCode, itemName: $itemName, availableQty: $availableQty, requiredQty: $requiredQty, isMissingWarehouse: $isMissingWarehouse)';
+    return 'BaseLimitingComponent(itemCode: $itemCode, itemName: $itemName, availableQty: $availableQty, requiredQty: $requiredQty, isMissingWarehouse: $isMissingWarehouse, availableElsewhere: $availableElsewhere, alternatives: $alternatives)';
   }
 
   @override
@@ -1576,7 +1631,13 @@ class _$BaseLimitingComponentImpl extends _BaseLimitingComponent {
             (identical(other.requiredQty, requiredQty) ||
                 other.requiredQty == requiredQty) &&
             (identical(other.isMissingWarehouse, isMissingWarehouse) ||
-                other.isMissingWarehouse == isMissingWarehouse));
+                other.isMissingWarehouse == isMissingWarehouse) &&
+            (identical(other.availableElsewhere, availableElsewhere) ||
+                other.availableElsewhere == availableElsewhere) &&
+            const DeepCollectionEquality().equals(
+              other._alternatives,
+              _alternatives,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1588,6 +1649,8 @@ class _$BaseLimitingComponentImpl extends _BaseLimitingComponent {
     availableQty,
     requiredQty,
     isMissingWarehouse,
+    availableElsewhere,
+    const DeepCollectionEquality().hash(_alternatives),
   );
 
   /// Create a copy of BaseLimitingComponent
@@ -1615,6 +1678,8 @@ abstract class _BaseLimitingComponent extends BaseLimitingComponent {
     @JsonKey(name: 'available_qty') final double availableQty,
     @JsonKey(name: 'required_qty') final double requiredQty,
     @JsonKey(name: 'is_missing_warehouse') final bool isMissingWarehouse,
+    @JsonKey(name: 'available_elsewhere') final double? availableElsewhere,
+    final List<StockAlternative>? alternatives,
   }) = _$BaseLimitingComponentImpl;
   const _BaseLimitingComponent._() : super._();
 
@@ -1636,6 +1701,17 @@ abstract class _BaseLimitingComponent extends BaseLimitingComponent {
   @override
   @JsonKey(name: 'is_missing_warehouse')
   bool get isMissingWarehouse;
+
+  /// Where else this material is sitting, when the backend looked.
+  ///
+  /// Null means nobody looked — deliberately distinct from `0.0` with an
+  /// empty [alternatives] list, which means the lookup ran and there is none
+  /// of it anywhere in the company.
+  @override
+  @JsonKey(name: 'available_elsewhere')
+  double? get availableElsewhere;
+  @override
+  List<StockAlternative>? get alternatives;
 
   /// Create a copy of BaseLimitingComponent
   /// with the given fields replaced by the non-null parameter values.

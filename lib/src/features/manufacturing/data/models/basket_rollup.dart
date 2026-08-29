@@ -1,6 +1,8 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'stock_alternative.dart';
+
 part 'basket_rollup.freezed.dart';
 part 'basket_rollup.g.dart';
 
@@ -46,6 +48,14 @@ class RollupComponent with _$RollupComponent {
     @JsonKey(name: 'contributing_lines')
     @Default(<ContributingLine>[])
     List<ContributingLine> contributingLines,
+
+    /// Where else this material is sitting, when the backend looked.
+    ///
+    /// Null means nobody looked — deliberately distinct from `0.0` with an
+    /// empty [alternatives] list, which means the lookup ran and there is none
+    /// of it anywhere in the company.
+    @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
+    List<StockAlternative>? alternatives,
   }) = _RollupComponent;
 
   factory RollupComponent.fromJson(Map<String, dynamic> json) =>

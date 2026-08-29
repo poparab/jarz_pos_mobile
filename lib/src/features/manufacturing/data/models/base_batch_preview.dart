@@ -2,6 +2,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../domain/base_batch_math.dart';
+import 'stock_alternative.dart';
 
 part 'base_batch_preview.freezed.dart';
 part 'base_batch_preview.g.dart';
@@ -86,6 +87,14 @@ class BasePreviewComponent with _$BasePreviewComponent {
     @JsonKey(name: 'available_qty') @Default(0.0) double availableQty,
     @Default(0.0) double shortfall,
     @JsonKey(name: 'source_warehouse') String? sourceWarehouse,
+
+    /// Where else this material is sitting, when the backend looked.
+    ///
+    /// Null means nobody looked — deliberately distinct from `0.0` with an
+    /// empty [alternatives] list, which means the lookup ran and there is none
+    /// of it anywhere in the company.
+    @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
+    List<StockAlternative>? alternatives,
   }) = _BasePreviewComponent;
 
   factory BasePreviewComponent.fromJson(Map<String, dynamic> json) =>

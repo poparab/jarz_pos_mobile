@@ -1,6 +1,8 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'stock_alternative.dart';
+
 part 'production_suggestion.freezed.dart';
 part 'production_suggestion.g.dart';
 
@@ -156,6 +158,14 @@ class LimitingComponent with _$LimitingComponent {
 
     /// `insufficient_stock` or `missing_source_warehouse`.
     @Default('insufficient_stock') String reason,
+
+    /// Where else this material is sitting, when the backend looked.
+    ///
+    /// Null means nobody looked — deliberately distinct from `0.0` with an
+    /// empty [alternatives] list, which means the lookup ran and there is none
+    /// of it anywhere in the company.
+    @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
+    List<StockAlternative>? alternatives,
   }) = _LimitingComponent;
 
   factory LimitingComponent.fromJson(Map<String, dynamic> json) =>

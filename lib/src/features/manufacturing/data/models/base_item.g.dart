@@ -117,6 +117,10 @@ _$BaseLimitingComponentImpl _$$BaseLimitingComponentImplFromJson(
   availableQty: (json['available_qty'] as num?)?.toDouble() ?? 0.0,
   requiredQty: (json['required_qty'] as num?)?.toDouble() ?? 0.0,
   isMissingWarehouse: json['is_missing_warehouse'] as bool? ?? false,
+  availableElsewhere: (json['available_elsewhere'] as num?)?.toDouble(),
+  alternatives: (json['alternatives'] as List<dynamic>?)
+      ?.map((e) => StockAlternative.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$$BaseLimitingComponentImplToJson(
@@ -127,4 +131,6 @@ Map<String, dynamic> _$$BaseLimitingComponentImplToJson(
   'available_qty': instance.availableQty,
   'required_qty': instance.requiredQty,
   'is_missing_warehouse': instance.isMissingWarehouse,
+  'available_elsewhere': instance.availableElsewhere,
+  'alternatives': instance.alternatives,
 };

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../data/models/production_suggestion.dart';
 import 'production_format.dart';
+import 'stock_elsewhere_note.dart';
 import 'status_chip.dart';
 
 /// One producible item on the Plan tab.
@@ -199,6 +200,16 @@ class _SuggestionAction extends StatelessWidget {
                     why,
                     style: theme.textTheme.labelSmall
                         ?.copyWith(color: scheme.onSurfaceVariant),
+                  ),
+                // The backend only fills these for an item that cannot make a
+                // single batch, so this lands on the blocked row. It does not
+                // unblock anything: Add stays disabled, the operator just
+                // learns the stock is in another store.
+                if (limiter != null)
+                  StockElsewhereNote(
+                    availableElsewhere: limiter.availableElsewhere,
+                    alternatives: limiter.alternatives,
+                    uom: limiter.uom,
                   ),
               ],
             ),

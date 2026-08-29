@@ -169,6 +169,10 @@ _$LimitingComponentImpl _$$LimitingComponentImplFromJson(
   requiredQty: (json['required_qty'] as num?)?.toDouble() ?? 0.0,
   availableQty: (json['available_qty'] as num?)?.toDouble() ?? 0.0,
   reason: json['reason'] as String? ?? 'insufficient_stock',
+  availableElsewhere: (json['available_elsewhere'] as num?)?.toDouble(),
+  alternatives: (json['alternatives'] as List<dynamic>?)
+      ?.map((e) => StockAlternative.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$$LimitingComponentImplToJson(
@@ -181,4 +185,6 @@ Map<String, dynamic> _$$LimitingComponentImplToJson(
   'required_qty': instance.requiredQty,
   'available_qty': instance.availableQty,
   'reason': instance.reason,
+  'available_elsewhere': instance.availableElsewhere,
+  'alternatives': instance.alternatives,
 };

@@ -539,6 +539,16 @@ mixin _$BasePreviewComponent {
   @JsonKey(name: 'source_warehouse')
   String? get sourceWarehouse => throw _privateConstructorUsedError;
 
+  /// Where else this material is sitting, when the backend looked.
+  ///
+  /// Null means nobody looked — deliberately distinct from `0.0` with an
+  /// empty [alternatives] list, which means the lookup ran and there is none
+  /// of it anywhere in the company.
+  @JsonKey(name: 'available_elsewhere')
+  double? get availableElsewhere => throw _privateConstructorUsedError;
+  List<StockAlternative>? get alternatives =>
+      throw _privateConstructorUsedError;
+
   /// Serializes this BasePreviewComponent to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -564,6 +574,8 @@ abstract class $BasePreviewComponentCopyWith<$Res> {
     @JsonKey(name: 'available_qty') double availableQty,
     double shortfall,
     @JsonKey(name: 'source_warehouse') String? sourceWarehouse,
+    @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
+    List<StockAlternative>? alternatives,
   });
 }
 
@@ -592,6 +604,8 @@ class _$BasePreviewComponentCopyWithImpl<
     Object? availableQty = null,
     Object? shortfall = null,
     Object? sourceWarehouse = freezed,
+    Object? availableElsewhere = freezed,
+    Object? alternatives = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -623,6 +637,14 @@ class _$BasePreviewComponentCopyWithImpl<
                 ? _value.sourceWarehouse
                 : sourceWarehouse // ignore: cast_nullable_to_non_nullable
                       as String?,
+            availableElsewhere: freezed == availableElsewhere
+                ? _value.availableElsewhere
+                : availableElsewhere // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            alternatives: freezed == alternatives
+                ? _value.alternatives
+                : alternatives // ignore: cast_nullable_to_non_nullable
+                      as List<StockAlternative>?,
           )
           as $Val,
     );
@@ -646,6 +668,8 @@ abstract class _$$BasePreviewComponentImplCopyWith<$Res>
     @JsonKey(name: 'available_qty') double availableQty,
     double shortfall,
     @JsonKey(name: 'source_warehouse') String? sourceWarehouse,
+    @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
+    List<StockAlternative>? alternatives,
   });
 }
 
@@ -670,6 +694,8 @@ class __$$BasePreviewComponentImplCopyWithImpl<$Res>
     Object? availableQty = null,
     Object? shortfall = null,
     Object? sourceWarehouse = freezed,
+    Object? availableElsewhere = freezed,
+    Object? alternatives = freezed,
   }) {
     return _then(
       _$BasePreviewComponentImpl(
@@ -701,6 +727,14 @@ class __$$BasePreviewComponentImplCopyWithImpl<$Res>
             ? _value.sourceWarehouse
             : sourceWarehouse // ignore: cast_nullable_to_non_nullable
                   as String?,
+        availableElsewhere: freezed == availableElsewhere
+            ? _value.availableElsewhere
+            : availableElsewhere // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        alternatives: freezed == alternatives
+            ? _value._alternatives
+            : alternatives // ignore: cast_nullable_to_non_nullable
+                  as List<StockAlternative>?,
       ),
     );
   }
@@ -717,7 +751,10 @@ class _$BasePreviewComponentImpl extends _BasePreviewComponent {
     @JsonKey(name: 'available_qty') this.availableQty = 0.0,
     this.shortfall = 0.0,
     @JsonKey(name: 'source_warehouse') this.sourceWarehouse,
-  }) : super._();
+    @JsonKey(name: 'available_elsewhere') this.availableElsewhere,
+    final List<StockAlternative>? alternatives,
+  }) : _alternatives = alternatives,
+       super._();
 
   factory _$BasePreviewComponentImpl.fromJson(Map<String, dynamic> json) =>
       _$$BasePreviewComponentImplFromJson(json);
@@ -746,9 +783,27 @@ class _$BasePreviewComponentImpl extends _BasePreviewComponent {
   @JsonKey(name: 'source_warehouse')
   final String? sourceWarehouse;
 
+  /// Where else this material is sitting, when the backend looked.
+  ///
+  /// Null means nobody looked — deliberately distinct from `0.0` with an
+  /// empty [alternatives] list, which means the lookup ran and there is none
+  /// of it anywhere in the company.
+  @override
+  @JsonKey(name: 'available_elsewhere')
+  final double? availableElsewhere;
+  final List<StockAlternative>? _alternatives;
+  @override
+  List<StockAlternative>? get alternatives {
+    final value = _alternatives;
+    if (value == null) return null;
+    if (_alternatives is EqualUnmodifiableListView) return _alternatives;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
   @override
   String toString() {
-    return 'BasePreviewComponent(itemCode: $itemCode, itemName: $itemName, uom: $uom, requiredQty: $requiredQty, availableQty: $availableQty, shortfall: $shortfall, sourceWarehouse: $sourceWarehouse)';
+    return 'BasePreviewComponent(itemCode: $itemCode, itemName: $itemName, uom: $uom, requiredQty: $requiredQty, availableQty: $availableQty, shortfall: $shortfall, sourceWarehouse: $sourceWarehouse, availableElsewhere: $availableElsewhere, alternatives: $alternatives)';
   }
 
   @override
@@ -768,7 +823,13 @@ class _$BasePreviewComponentImpl extends _BasePreviewComponent {
             (identical(other.shortfall, shortfall) ||
                 other.shortfall == shortfall) &&
             (identical(other.sourceWarehouse, sourceWarehouse) ||
-                other.sourceWarehouse == sourceWarehouse));
+                other.sourceWarehouse == sourceWarehouse) &&
+            (identical(other.availableElsewhere, availableElsewhere) ||
+                other.availableElsewhere == availableElsewhere) &&
+            const DeepCollectionEquality().equals(
+              other._alternatives,
+              _alternatives,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -782,6 +843,8 @@ class _$BasePreviewComponentImpl extends _BasePreviewComponent {
     availableQty,
     shortfall,
     sourceWarehouse,
+    availableElsewhere,
+    const DeepCollectionEquality().hash(_alternatives),
   );
 
   /// Create a copy of BasePreviewComponent
@@ -811,6 +874,8 @@ abstract class _BasePreviewComponent extends BasePreviewComponent {
     @JsonKey(name: 'available_qty') final double availableQty,
     final double shortfall,
     @JsonKey(name: 'source_warehouse') final String? sourceWarehouse,
+    @JsonKey(name: 'available_elsewhere') final double? availableElsewhere,
+    final List<StockAlternative>? alternatives,
   }) = _$BasePreviewComponentImpl;
   const _BasePreviewComponent._() : super._();
 
@@ -838,6 +903,17 @@ abstract class _BasePreviewComponent extends BasePreviewComponent {
   @override
   @JsonKey(name: 'source_warehouse')
   String? get sourceWarehouse;
+
+  /// Where else this material is sitting, when the backend looked.
+  ///
+  /// Null means nobody looked — deliberately distinct from `0.0` with an
+  /// empty [alternatives] list, which means the lookup ran and there is none
+  /// of it anywhere in the company.
+  @override
+  @JsonKey(name: 'available_elsewhere')
+  double? get availableElsewhere;
+  @override
+  List<StockAlternative>? get alternatives;
 
   /// Create a copy of BasePreviewComponent
   /// with the given fields replaced by the non-null parameter values.

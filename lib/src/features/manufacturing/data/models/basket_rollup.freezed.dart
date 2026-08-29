@@ -354,6 +354,16 @@ mixin _$RollupComponent {
   List<ContributingLine> get contributingLines =>
       throw _privateConstructorUsedError;
 
+  /// Where else this material is sitting, when the backend looked.
+  ///
+  /// Null means nobody looked — deliberately distinct from `0.0` with an
+  /// empty [alternatives] list, which means the lookup ran and there is none
+  /// of it anywhere in the company.
+  @JsonKey(name: 'available_elsewhere')
+  double? get availableElsewhere => throw _privateConstructorUsedError;
+  List<StockAlternative>? get alternatives =>
+      throw _privateConstructorUsedError;
+
   /// Serializes this RollupComponent to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -382,6 +392,8 @@ abstract class $RollupComponentCopyWith<$Res> {
     String? reason,
     @JsonKey(name: 'contributing_lines')
     List<ContributingLine> contributingLines,
+    @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
+    List<StockAlternative>? alternatives,
   });
 }
 
@@ -409,6 +421,8 @@ class _$RollupComponentCopyWithImpl<$Res, $Val extends RollupComponent>
     Object? missingQty = null,
     Object? reason = freezed,
     Object? contributingLines = null,
+    Object? availableElsewhere = freezed,
+    Object? alternatives = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -448,6 +462,14 @@ class _$RollupComponentCopyWithImpl<$Res, $Val extends RollupComponent>
                 ? _value.contributingLines
                 : contributingLines // ignore: cast_nullable_to_non_nullable
                       as List<ContributingLine>,
+            availableElsewhere: freezed == availableElsewhere
+                ? _value.availableElsewhere
+                : availableElsewhere // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            alternatives: freezed == alternatives
+                ? _value.alternatives
+                : alternatives // ignore: cast_nullable_to_non_nullable
+                      as List<StockAlternative>?,
           )
           as $Val,
     );
@@ -474,6 +496,8 @@ abstract class _$$RollupComponentImplCopyWith<$Res>
     String? reason,
     @JsonKey(name: 'contributing_lines')
     List<ContributingLine> contributingLines,
+    @JsonKey(name: 'available_elsewhere') double? availableElsewhere,
+    List<StockAlternative>? alternatives,
   });
 }
 
@@ -500,6 +524,8 @@ class __$$RollupComponentImplCopyWithImpl<$Res>
     Object? missingQty = null,
     Object? reason = freezed,
     Object? contributingLines = null,
+    Object? availableElsewhere = freezed,
+    Object? alternatives = freezed,
   }) {
     return _then(
       _$RollupComponentImpl(
@@ -539,6 +565,14 @@ class __$$RollupComponentImplCopyWithImpl<$Res>
             ? _value._contributingLines
             : contributingLines // ignore: cast_nullable_to_non_nullable
                   as List<ContributingLine>,
+        availableElsewhere: freezed == availableElsewhere
+            ? _value.availableElsewhere
+            : availableElsewhere // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        alternatives: freezed == alternatives
+            ? _value._alternatives
+            : alternatives // ignore: cast_nullable_to_non_nullable
+                  as List<StockAlternative>?,
       ),
     );
   }
@@ -558,7 +592,10 @@ class _$RollupComponentImpl extends _RollupComponent {
     this.reason,
     @JsonKey(name: 'contributing_lines')
     final List<ContributingLine> contributingLines = const <ContributingLine>[],
+    @JsonKey(name: 'available_elsewhere') this.availableElsewhere,
+    final List<StockAlternative>? alternatives,
   }) : _contributingLines = contributingLines,
+       _alternatives = alternatives,
        super._();
 
   factory _$RollupComponentImpl.fromJson(Map<String, dynamic> json) =>
@@ -597,9 +634,27 @@ class _$RollupComponentImpl extends _RollupComponent {
     return EqualUnmodifiableListView(_contributingLines);
   }
 
+  /// Where else this material is sitting, when the backend looked.
+  ///
+  /// Null means nobody looked — deliberately distinct from `0.0` with an
+  /// empty [alternatives] list, which means the lookup ran and there is none
+  /// of it anywhere in the company.
+  @override
+  @JsonKey(name: 'available_elsewhere')
+  final double? availableElsewhere;
+  final List<StockAlternative>? _alternatives;
+  @override
+  List<StockAlternative>? get alternatives {
+    final value = _alternatives;
+    if (value == null) return null;
+    if (_alternatives is EqualUnmodifiableListView) return _alternatives;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
   @override
   String toString() {
-    return 'RollupComponent(itemCode: $itemCode, itemName: $itemName, uom: $uom, sourceWarehouse: $sourceWarehouse, requiredQty: $requiredQty, availableQty: $availableQty, missingQty: $missingQty, reason: $reason, contributingLines: $contributingLines)';
+    return 'RollupComponent(itemCode: $itemCode, itemName: $itemName, uom: $uom, sourceWarehouse: $sourceWarehouse, requiredQty: $requiredQty, availableQty: $availableQty, missingQty: $missingQty, reason: $reason, contributingLines: $contributingLines, availableElsewhere: $availableElsewhere, alternatives: $alternatives)';
   }
 
   @override
@@ -624,6 +679,12 @@ class _$RollupComponentImpl extends _RollupComponent {
             const DeepCollectionEquality().equals(
               other._contributingLines,
               _contributingLines,
+            ) &&
+            (identical(other.availableElsewhere, availableElsewhere) ||
+                other.availableElsewhere == availableElsewhere) &&
+            const DeepCollectionEquality().equals(
+              other._alternatives,
+              _alternatives,
             ));
   }
 
@@ -640,6 +701,8 @@ class _$RollupComponentImpl extends _RollupComponent {
     missingQty,
     reason,
     const DeepCollectionEquality().hash(_contributingLines),
+    availableElsewhere,
+    const DeepCollectionEquality().hash(_alternatives),
   );
 
   /// Create a copy of RollupComponent
@@ -671,6 +734,8 @@ abstract class _RollupComponent extends RollupComponent {
     final String? reason,
     @JsonKey(name: 'contributing_lines')
     final List<ContributingLine> contributingLines,
+    @JsonKey(name: 'available_elsewhere') final double? availableElsewhere,
+    final List<StockAlternative>? alternatives,
   }) = _$RollupComponentImpl;
   const _RollupComponent._() : super._();
 
@@ -702,6 +767,17 @@ abstract class _RollupComponent extends RollupComponent {
   @override
   @JsonKey(name: 'contributing_lines')
   List<ContributingLine> get contributingLines;
+
+  /// Where else this material is sitting, when the backend looked.
+  ///
+  /// Null means nobody looked — deliberately distinct from `0.0` with an
+  /// empty [alternatives] list, which means the lookup ran and there is none
+  /// of it anywhere in the company.
+  @override
+  @JsonKey(name: 'available_elsewhere')
+  double? get availableElsewhere;
+  @override
+  List<StockAlternative>? get alternatives;
 
   /// Create a copy of RollupComponent
   /// with the given fields replaced by the non-null parameter values.
