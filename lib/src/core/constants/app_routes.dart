@@ -12,6 +12,11 @@ abstract final class AppRoutes {
   static const printers = '/printers';
   static const manager = '/manager';
   static const shiftMonitor = '/shift-monitor';
+
+  /// Monthly shift distribution — who works which shift, and who is off.
+  /// Distinct from [shiftMonitor], which watches POS cash drawers: the two
+  /// senses of "shift" in this app are unrelated.
+  static const roster = '/roster';
   static const purchase = '/purchase';
 
   /// Team item requests. Open to all floor staff, unlike [purchase] which is

@@ -26,6 +26,7 @@ class AppDrawer extends ConsumerWidget {
       canAccessManagerDashboardRoleProvider,
     );
     final canAccessShiftMonitor = ref.watch(canAccessShiftMonitorProvider);
+    final canActAsLineManager = ref.watch(canActAsLineManagerProvider);
     final managerAccess = canAccessManagerDashboardRole
         ? ref.watch(managerAccessProvider)
         : const AsyncValue<bool>.data(false);
@@ -283,6 +284,15 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuShiftMonitor,
           onTap: () => navigate(AppRoutes.shiftMonitor),
         ),
+      // Gated on the line-manager tier, which is exactly the set
+      // `api/roster.py` accepts — a narrower gate here would be a dead tile,
+      // a wider one a tile that 403s on tap.
+      if (canActAsLineManager)
+        navTile(
+          icon: Icons.calendar_month,
+          title: l10n.menuShiftDistribution,
+          onTap: () => navigate(AppRoutes.roster),
+        ),
       // Kept for the line-manager tier: the hub still holds one report they may
       // read (Materials & Consumables), and the hub itself drops every tile
       // their role would be refused on, so the entry is never a dead end.
@@ -317,6 +327,7 @@ class AppDrawer extends ConsumerWidget {
       AppRoutes.masterOrders,
       AppRoutes.manager,
       AppRoutes.shiftMonitor,
+      AppRoutes.roster,
       AppRoutes.reports,
       AppRoutes.reportsShipping,
       AppRoutes.reportsInventory,

@@ -595,4 +595,18 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.custom_shipping.reject_custom_shipping';
   static const getPendingCustomShippingRequests =
       '/api/method/jarz_pos.api.custom_shipping.get_pending_custom_shipping_requests';
+
+  // ── Shift distribution (roster) ───────────────────────────────────────
+  // Writes HRMS Shift Assignments, which is the same record the geofenced
+  // check-in reads — so emptying a day here stops that person clocking in.
+  static const rosterBootstrap =
+      '/api/method/jarz_pos.api.roster.get_bootstrap';
+  static const rosterMonth = '/api/method/jarz_pos.api.roster.get_month';
+  static const rosterMonthHours =
+      '/api/method/jarz_pos.api.roster.get_month_hours';
+  static const rosterAssignShift =
+      '/api/method/jarz_pos.api.roster.assign_shift';
+  static const rosterSetDayOff = '/api/method/jarz_pos.api.roster.set_day_off';
+  static const rosterClearDayOff =
+      '/api/method/jarz_pos.api.roster.clear_day_off';
 }

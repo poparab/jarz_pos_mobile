@@ -5680,5 +5680,101 @@
   "reportsColumnVelocity": "Velocity",
   "@reportsColumnVelocity": {
     "description": "Report column: sales velocity"
-  }
+  },
+  "menuShiftDistribution": "Shift Distribution",
+  "rosterTitle": "Shift Distribution",
+  "rosterAccessDenied": "Shift distribution is for managers and line managers only.",
+  "rosterHoursTitle": "Hours & overtime",
+  "rosterHoursBasis": "Rostered hours — what people were scheduled to work. Overtime is credited at each person''s rate.",
+  "rosterPreviousMonth": "Previous month",
+  "rosterNextMonth": "Next month",
+  "rosterAllBranches": "All branches",
+  "rosterEmployeeColumn": "Employee",
+  "rosterHrmsMissing": "HRMS is not installed on this site, so there is no roster to show.",
+  "rosterNobodyRostered": "Nobody is rostered for this month yet.",
+  "rosterScopeUnconfigured": "No branches are linked to your POS profiles yet, so there is nobody to show. Ask an administrator to set the HR Shift Location on your POS Profile.",
+  "rosterUncoveredWarning": "{count, plural, =1{1 day off with nobody covering} other{{count} days off with nobody covering}}",
+  "@rosterUncoveredWarning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rosterStandardDay": "Normal day: {hours}h",
+  "@rosterStandardDay": {
+    "placeholders": {
+      "hours": {}
+    }
+  },
+  "rosterOffShort": "OFF",
+  "rosterHolidayShort": "HOL",
+  "rosterChangeShift": "Change shift",
+  "rosterMarkDayOff": "Mark day off",
+  "rosterClearDayOff": "Cancel this day off",
+  "rosterNoShiftTypes": "No shift types are configured yet.",
+  "rosterShiftWindow": "{window} · {hours}h",
+  "@rosterShiftWindow": {
+    "placeholders": {
+      "window": {},
+      "hours": {}
+    }
+  },
+  "rosterWorkingShift": "On {shiftType} · {hours}h · {location}",
+  "@rosterWorkingShift": {
+    "placeholders": {
+      "shiftType": {},
+      "hours": {},
+      "location": {}
+    }
+  },
+  "rosterOffCoveredBy": "Off ({offType}) — covered by {name}",
+  "@rosterOffCoveredBy": {
+    "placeholders": {
+      "offType": {},
+      "name": {}
+    }
+  },
+  "rosterOffUncovered": "Off ({offType}) — nobody is covering this day",
+  "@rosterOffUncovered": {
+    "placeholders": {
+      "offType": {}
+    }
+  },
+  "rosterHoliday": "Holiday",
+  "rosterUnrosteredWarning": "Not on the roster — this person cannot check in on this day.",
+  "rosterOffType": "Reason",
+  "rosterCoveredBy": "Covered by",
+  "rosterCoverHelper": "Who absorbs this day at the branch.",
+  "rosterNobodyCovers": "Nobody",
+  "rosterCoverShift": "Cover shift",
+  "rosterCoverShiftHelper": "The shift they move onto for this day, normally the longer full-day one.",
+  "rosterNotes": "Notes (optional)",
+  "rosterOffTypeWeekly": "Weekly off",
+  "rosterOffTypeVacation": "Vacation",
+  "rosterOffTypeSick": "Sick",
+  "rosterOffTypeUnpaid": "Unpaid",
+  "rosterOffTypeOther": "Other",
+  "rosterWorkedHours": "Worked",
+  "rosterOvertimeHours": "Overtime",
+  "rosterCreditedOvertime": "Credited OT",
+  "rosterCreditedHours": "Paid hours",
+  "rosterCourierTag": "Courier ×{multiplier}",
+  "@rosterCourierTag": {
+    "placeholders": {
+      "multiplier": {}
+    }
+  },
+  "rosterRowDays": "{worked} worked · {off} off · {cover} cover",
+  "@rosterRowDays": {
+    "placeholders": {
+      "worked": {},
+      "off": {},
+      "cover": {}
+    }
+  },
+  "rosterLegendWorking": "Working",
+  "rosterLegendOff": "Day off",
+  "rosterLegendUnrostered": "Not rostered",
+  "rosterLegendHoliday": "Holiday"
 }

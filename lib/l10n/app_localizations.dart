@@ -15866,6 +15866,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Velocity'**
   String get reportsColumnVelocity;
+
+  /// No description provided for @menuShiftDistribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Distribution'**
+  String get menuShiftDistribution;
+
+  /// No description provided for @rosterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Distribution'**
+  String get rosterTitle;
+
+  /// No description provided for @rosterAccessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift distribution is for managers and line managers only.'**
+  String get rosterAccessDenied;
+
+  /// No description provided for @rosterHoursTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours & overtime'**
+  String get rosterHoursTitle;
+
+  /// No description provided for @rosterHoursBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'Rostered hours — what people were scheduled to work. Overtime is credited at each person\'\'s rate.'**
+  String get rosterHoursBasis;
+
+  /// No description provided for @rosterPreviousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get rosterPreviousMonth;
+
+  /// No description provided for @rosterNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get rosterNextMonth;
+
+  /// No description provided for @rosterAllBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'All branches'**
+  String get rosterAllBranches;
+
+  /// No description provided for @rosterEmployeeColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get rosterEmployeeColumn;
+
+  /// No description provided for @rosterHrmsMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'HRMS is not installed on this site, so there is no roster to show.'**
+  String get rosterHrmsMissing;
+
+  /// No description provided for @rosterNobodyRostered.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody is rostered for this month yet.'**
+  String get rosterNobodyRostered;
+
+  /// No description provided for @rosterScopeUnconfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No branches are linked to your POS profiles yet, so there is nobody to show. Ask an administrator to set the HR Shift Location on your POS Profile.'**
+  String get rosterScopeUnconfigured;
+
+  /// No description provided for @rosterUncoveredWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day off with nobody covering} other{{count} days off with nobody covering}}'**
+  String rosterUncoveredWarning(int count);
+
+  /// No description provided for @rosterStandardDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal day: {hours}h'**
+  String rosterStandardDay(Object hours);
+
+  /// No description provided for @rosterOffShort.
+  ///
+  /// In en, this message translates to:
+  /// **'OFF'**
+  String get rosterOffShort;
+
+  /// No description provided for @rosterHolidayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'HOL'**
+  String get rosterHolidayShort;
+
+  /// No description provided for @rosterChangeShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Change shift'**
+  String get rosterChangeShift;
+
+  /// No description provided for @rosterMarkDayOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark day off'**
+  String get rosterMarkDayOff;
+
+  /// No description provided for @rosterClearDayOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this day off'**
+  String get rosterClearDayOff;
+
+  /// No description provided for @rosterNoShiftTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'No shift types are configured yet.'**
+  String get rosterNoShiftTypes;
+
+  /// No description provided for @rosterShiftWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'{window} · {hours}h'**
+  String rosterShiftWindow(Object window, Object hours);
+
+  /// No description provided for @rosterWorkingShift.
+  ///
+  /// In en, this message translates to:
+  /// **'On {shiftType} · {hours}h · {location}'**
+  String rosterWorkingShift(Object shiftType, Object hours, Object location);
+
+  /// No description provided for @rosterOffCoveredBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Off ({offType}) — covered by {name}'**
+  String rosterOffCoveredBy(Object offType, Object name);
+
+  /// No description provided for @rosterOffUncovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Off ({offType}) — nobody is covering this day'**
+  String rosterOffUncovered(Object offType);
+
+  /// No description provided for @rosterHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday'**
+  String get rosterHoliday;
+
+  /// No description provided for @rosterUnrosteredWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on the roster — this person cannot check in on this day.'**
+  String get rosterUnrosteredWarning;
+
+  /// No description provided for @rosterOffType.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get rosterOffType;
+
+  /// No description provided for @rosterCoveredBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Covered by'**
+  String get rosterCoveredBy;
+
+  /// No description provided for @rosterCoverHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Who absorbs this day at the branch.'**
+  String get rosterCoverHelper;
+
+  /// No description provided for @rosterNobodyCovers.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody'**
+  String get rosterNobodyCovers;
+
+  /// No description provided for @rosterCoverShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover shift'**
+  String get rosterCoverShift;
+
+  /// No description provided for @rosterCoverShiftHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The shift they move onto for this day, normally the longer full-day one.'**
+  String get rosterCoverShiftHelper;
+
+  /// No description provided for @rosterNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get rosterNotes;
+
+  /// No description provided for @rosterOffTypeWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly off'**
+  String get rosterOffTypeWeekly;
+
+  /// No description provided for @rosterOffTypeVacation.
+  ///
+  /// In en, this message translates to:
+  /// **'Vacation'**
+  String get rosterOffTypeVacation;
+
+  /// No description provided for @rosterOffTypeSick.
+  ///
+  /// In en, this message translates to:
+  /// **'Sick'**
+  String get rosterOffTypeSick;
+
+  /// No description provided for @rosterOffTypeUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get rosterOffTypeUnpaid;
+
+  /// No description provided for @rosterOffTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get rosterOffTypeOther;
+
+  /// No description provided for @rosterWorkedHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked'**
+  String get rosterWorkedHours;
+
+  /// No description provided for @rosterOvertimeHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Overtime'**
+  String get rosterOvertimeHours;
+
+  /// No description provided for @rosterCreditedOvertime.
+  ///
+  /// In en, this message translates to:
+  /// **'Credited OT'**
+  String get rosterCreditedOvertime;
+
+  /// No description provided for @rosterCreditedHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid hours'**
+  String get rosterCreditedHours;
+
+  /// No description provided for @rosterCourierTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier ×{multiplier}'**
+  String rosterCourierTag(Object multiplier);
+
+  /// No description provided for @rosterRowDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{worked} worked · {off} off · {cover} cover'**
+  String rosterRowDays(Object worked, Object off, Object cover);
+
+  /// No description provided for @rosterLegendWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Working'**
+  String get rosterLegendWorking;
+
+  /// No description provided for @rosterLegendOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Day off'**
+  String get rosterLegendOff;
+
+  /// No description provided for @rosterLegendUnrostered.
+  ///
+  /// In en, this message translates to:
+  /// **'Not rostered'**
+  String get rosterLegendUnrostered;
+
+  /// No description provided for @rosterLegendHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday'**
+  String get rosterLegendHoliday;
 }
 
 class _AppLocalizationsDelegate

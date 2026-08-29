@@ -9470,4 +9470,176 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportsColumnVelocity => 'Velocity';
+
+  @override
+  String get menuShiftDistribution => 'Shift Distribution';
+
+  @override
+  String get rosterTitle => 'Shift Distribution';
+
+  @override
+  String get rosterAccessDenied =>
+      'Shift distribution is for managers and line managers only.';
+
+  @override
+  String get rosterHoursTitle => 'Hours & overtime';
+
+  @override
+  String get rosterHoursBasis =>
+      'Rostered hours — what people were scheduled to work. Overtime is credited at each person\'s rate.';
+
+  @override
+  String get rosterPreviousMonth => 'Previous month';
+
+  @override
+  String get rosterNextMonth => 'Next month';
+
+  @override
+  String get rosterAllBranches => 'All branches';
+
+  @override
+  String get rosterEmployeeColumn => 'Employee';
+
+  @override
+  String get rosterHrmsMissing =>
+      'HRMS is not installed on this site, so there is no roster to show.';
+
+  @override
+  String get rosterNobodyRostered => 'Nobody is rostered for this month yet.';
+
+  @override
+  String get rosterScopeUnconfigured =>
+      'No branches are linked to your POS profiles yet, so there is nobody to show. Ask an administrator to set the HR Shift Location on your POS Profile.';
+
+  @override
+  String rosterUncoveredWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days off with nobody covering',
+      one: '1 day off with nobody covering',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rosterStandardDay(Object hours) {
+    return 'Normal day: ${hours}h';
+  }
+
+  @override
+  String get rosterOffShort => 'OFF';
+
+  @override
+  String get rosterHolidayShort => 'HOL';
+
+  @override
+  String get rosterChangeShift => 'Change shift';
+
+  @override
+  String get rosterMarkDayOff => 'Mark day off';
+
+  @override
+  String get rosterClearDayOff => 'Cancel this day off';
+
+  @override
+  String get rosterNoShiftTypes => 'No shift types are configured yet.';
+
+  @override
+  String rosterShiftWindow(Object window, Object hours) {
+    return '$window · ${hours}h';
+  }
+
+  @override
+  String rosterWorkingShift(Object shiftType, Object hours, Object location) {
+    return 'On $shiftType · ${hours}h · $location';
+  }
+
+  @override
+  String rosterOffCoveredBy(Object offType, Object name) {
+    return 'Off ($offType) — covered by $name';
+  }
+
+  @override
+  String rosterOffUncovered(Object offType) {
+    return 'Off ($offType) — nobody is covering this day';
+  }
+
+  @override
+  String get rosterHoliday => 'Holiday';
+
+  @override
+  String get rosterUnrosteredWarning =>
+      'Not on the roster — this person cannot check in on this day.';
+
+  @override
+  String get rosterOffType => 'Reason';
+
+  @override
+  String get rosterCoveredBy => 'Covered by';
+
+  @override
+  String get rosterCoverHelper => 'Who absorbs this day at the branch.';
+
+  @override
+  String get rosterNobodyCovers => 'Nobody';
+
+  @override
+  String get rosterCoverShift => 'Cover shift';
+
+  @override
+  String get rosterCoverShiftHelper =>
+      'The shift they move onto for this day, normally the longer full-day one.';
+
+  @override
+  String get rosterNotes => 'Notes (optional)';
+
+  @override
+  String get rosterOffTypeWeekly => 'Weekly off';
+
+  @override
+  String get rosterOffTypeVacation => 'Vacation';
+
+  @override
+  String get rosterOffTypeSick => 'Sick';
+
+  @override
+  String get rosterOffTypeUnpaid => 'Unpaid';
+
+  @override
+  String get rosterOffTypeOther => 'Other';
+
+  @override
+  String get rosterWorkedHours => 'Worked';
+
+  @override
+  String get rosterOvertimeHours => 'Overtime';
+
+  @override
+  String get rosterCreditedOvertime => 'Credited OT';
+
+  @override
+  String get rosterCreditedHours => 'Paid hours';
+
+  @override
+  String rosterCourierTag(Object multiplier) {
+    return 'Courier ×$multiplier';
+  }
+
+  @override
+  String rosterRowDays(Object worked, Object off, Object cover) {
+    return '$worked worked · $off off · $cover cover';
+  }
+
+  @override
+  String get rosterLegendWorking => 'Working';
+
+  @override
+  String get rosterLegendOff => 'Day off';
+
+  @override
+  String get rosterLegendUnrostered => 'Not rostered';
+
+  @override
+  String get rosterLegendHoliday => 'Holiday';
 }

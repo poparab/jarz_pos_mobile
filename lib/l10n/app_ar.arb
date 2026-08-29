@@ -3640,5 +3640,101 @@
   "reportsColumnCover": "أيام التغطية",
   "reportsColumnSold": "المُباع",
   "reportsColumnRevenue": "الإيراد",
-  "reportsColumnVelocity": "السرعة"
+  "reportsColumnVelocity": "السرعة",
+  "menuShiftDistribution": "توزيع الشيفتات",
+  "rosterTitle": "توزيع الشيفتات",
+  "rosterAccessDenied": "توزيع الشيفتات متاح للمديرين ومديري الخطوط فقط.",
+  "rosterHoursTitle": "الساعات والوقت الإضافي",
+  "rosterHoursBasis": "ساعات حسب الجدول — الشيفتات المخصصة فعليًا. الوقت الإضافي يُحتسب بمعدل كل موظف.",
+  "rosterPreviousMonth": "الشهر السابق",
+  "rosterNextMonth": "الشهر التالي",
+  "rosterAllBranches": "كل الفروع",
+  "rosterEmployeeColumn": "الموظف",
+  "rosterHrmsMissing": "تطبيق الموارد البشرية غير مثبت على هذا الموقع، لذا لا يوجد جدول للعرض.",
+  "rosterNobodyRostered": "لا يوجد أحد مُدرج في جدول هذا الشهر بعد.",
+  "rosterScopeUnconfigured": "لا توجد فروع مرتبطة بملفات نقاط البيع الخاصة بك، لذا لا يوجد من يُعرض. اطلب من المسؤول ضبط موقع الشيفت في ملف نقطة البيع.",
+  "rosterUncoveredWarning": "{count, plural, =1{يوم إجازة واحد بدون تغطية} =2{يوما إجازة بدون تغطية} other{{count} أيام إجازة بدون تغطية}}",
+  "@rosterUncoveredWarning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rosterStandardDay": "اليوم العادي: {hours} ساعة",
+  "@rosterStandardDay": {
+    "placeholders": {
+      "hours": {}
+    }
+  },
+  "rosterOffShort": "إجازة",
+  "rosterHolidayShort": "عطلة",
+  "rosterChangeShift": "تغيير الشيفت",
+  "rosterMarkDayOff": "تسجيل يوم إجازة",
+  "rosterClearDayOff": "إلغاء يوم الإجازة",
+  "rosterNoShiftTypes": "لم يتم إعداد أي أنواع شيفتات بعد.",
+  "rosterShiftWindow": "{window} · {hours} ساعة",
+  "@rosterShiftWindow": {
+    "placeholders": {
+      "window": {},
+      "hours": {}
+    }
+  },
+  "rosterWorkingShift": "على {shiftType} · {hours} ساعة · {location}",
+  "@rosterWorkingShift": {
+    "placeholders": {
+      "shiftType": {},
+      "hours": {},
+      "location": {}
+    }
+  },
+  "rosterOffCoveredBy": "إجازة ({offType}) — يغطيها {name}",
+  "@rosterOffCoveredBy": {
+    "placeholders": {
+      "offType": {},
+      "name": {}
+    }
+  },
+  "rosterOffUncovered": "إجازة ({offType}) — لا أحد يغطي هذا اليوم",
+  "@rosterOffUncovered": {
+    "placeholders": {
+      "offType": {}
+    }
+  },
+  "rosterHoliday": "عطلة رسمية",
+  "rosterUnrosteredWarning": "غير مُدرج في الجدول — لن يتمكن هذا الموظف من تسجيل الحضور في هذا اليوم.",
+  "rosterOffType": "السبب",
+  "rosterCoveredBy": "التغطية بواسطة",
+  "rosterCoverHelper": "من يتحمل هذا اليوم في الفرع.",
+  "rosterNobodyCovers": "لا أحد",
+  "rosterCoverShift": "شيفت التغطية",
+  "rosterCoverShiftHelper": "الشيفت الذي ينتقل إليه في هذا اليوم، عادةً شيفت اليوم الكامل الأطول.",
+  "rosterNotes": "ملاحظات (اختياري)",
+  "rosterOffTypeWeekly": "راحة أسبوعية",
+  "rosterOffTypeVacation": "إجازة",
+  "rosterOffTypeSick": "إجازة مرضية",
+  "rosterOffTypeUnpaid": "إجازة بدون أجر",
+  "rosterOffTypeOther": "أخرى",
+  "rosterWorkedHours": "ساعات العمل",
+  "rosterOvertimeHours": "الوقت الإضافي",
+  "rosterCreditedOvertime": "الإضافي المحتسب",
+  "rosterCreditedHours": "الساعات المدفوعة",
+  "rosterCourierTag": "مندوب ×{multiplier}",
+  "@rosterCourierTag": {
+    "placeholders": {
+      "multiplier": {}
+    }
+  },
+  "rosterRowDays": "{worked} عمل · {off} إجازة · {cover} تغطية",
+  "@rosterRowDays": {
+    "placeholders": {
+      "worked": {},
+      "off": {},
+      "cover": {}
+    }
+  },
+  "rosterLegendWorking": "عمل",
+  "rosterLegendOff": "إجازة",
+  "rosterLegendUnrostered": "غير مُدرج",
+  "rosterLegendHoliday": "عطلة"
 }

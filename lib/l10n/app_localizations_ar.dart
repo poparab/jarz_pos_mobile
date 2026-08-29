@@ -9435,4 +9435,177 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportsColumnVelocity => 'السرعة';
+
+  @override
+  String get menuShiftDistribution => 'توزيع الشيفتات';
+
+  @override
+  String get rosterTitle => 'توزيع الشيفتات';
+
+  @override
+  String get rosterAccessDenied =>
+      'توزيع الشيفتات متاح للمديرين ومديري الخطوط فقط.';
+
+  @override
+  String get rosterHoursTitle => 'الساعات والوقت الإضافي';
+
+  @override
+  String get rosterHoursBasis =>
+      'ساعات حسب الجدول — الشيفتات المخصصة فعليًا. الوقت الإضافي يُحتسب بمعدل كل موظف.';
+
+  @override
+  String get rosterPreviousMonth => 'الشهر السابق';
+
+  @override
+  String get rosterNextMonth => 'الشهر التالي';
+
+  @override
+  String get rosterAllBranches => 'كل الفروع';
+
+  @override
+  String get rosterEmployeeColumn => 'الموظف';
+
+  @override
+  String get rosterHrmsMissing =>
+      'تطبيق الموارد البشرية غير مثبت على هذا الموقع، لذا لا يوجد جدول للعرض.';
+
+  @override
+  String get rosterNobodyRostered => 'لا يوجد أحد مُدرج في جدول هذا الشهر بعد.';
+
+  @override
+  String get rosterScopeUnconfigured =>
+      'لا توجد فروع مرتبطة بملفات نقاط البيع الخاصة بك، لذا لا يوجد من يُعرض. اطلب من المسؤول ضبط موقع الشيفت في ملف نقطة البيع.';
+
+  @override
+  String rosterUncoveredWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أيام إجازة بدون تغطية',
+      two: 'يوما إجازة بدون تغطية',
+      one: 'يوم إجازة واحد بدون تغطية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rosterStandardDay(Object hours) {
+    return 'اليوم العادي: $hours ساعة';
+  }
+
+  @override
+  String get rosterOffShort => 'إجازة';
+
+  @override
+  String get rosterHolidayShort => 'عطلة';
+
+  @override
+  String get rosterChangeShift => 'تغيير الشيفت';
+
+  @override
+  String get rosterMarkDayOff => 'تسجيل يوم إجازة';
+
+  @override
+  String get rosterClearDayOff => 'إلغاء يوم الإجازة';
+
+  @override
+  String get rosterNoShiftTypes => 'لم يتم إعداد أي أنواع شيفتات بعد.';
+
+  @override
+  String rosterShiftWindow(Object window, Object hours) {
+    return '$window · $hours ساعة';
+  }
+
+  @override
+  String rosterWorkingShift(Object shiftType, Object hours, Object location) {
+    return 'على $shiftType · $hours ساعة · $location';
+  }
+
+  @override
+  String rosterOffCoveredBy(Object offType, Object name) {
+    return 'إجازة ($offType) — يغطيها $name';
+  }
+
+  @override
+  String rosterOffUncovered(Object offType) {
+    return 'إجازة ($offType) — لا أحد يغطي هذا اليوم';
+  }
+
+  @override
+  String get rosterHoliday => 'عطلة رسمية';
+
+  @override
+  String get rosterUnrosteredWarning =>
+      'غير مُدرج في الجدول — لن يتمكن هذا الموظف من تسجيل الحضور في هذا اليوم.';
+
+  @override
+  String get rosterOffType => 'السبب';
+
+  @override
+  String get rosterCoveredBy => 'التغطية بواسطة';
+
+  @override
+  String get rosterCoverHelper => 'من يتحمل هذا اليوم في الفرع.';
+
+  @override
+  String get rosterNobodyCovers => 'لا أحد';
+
+  @override
+  String get rosterCoverShift => 'شيفت التغطية';
+
+  @override
+  String get rosterCoverShiftHelper =>
+      'الشيفت الذي ينتقل إليه في هذا اليوم، عادةً شيفت اليوم الكامل الأطول.';
+
+  @override
+  String get rosterNotes => 'ملاحظات (اختياري)';
+
+  @override
+  String get rosterOffTypeWeekly => 'راحة أسبوعية';
+
+  @override
+  String get rosterOffTypeVacation => 'إجازة';
+
+  @override
+  String get rosterOffTypeSick => 'إجازة مرضية';
+
+  @override
+  String get rosterOffTypeUnpaid => 'إجازة بدون أجر';
+
+  @override
+  String get rosterOffTypeOther => 'أخرى';
+
+  @override
+  String get rosterWorkedHours => 'ساعات العمل';
+
+  @override
+  String get rosterOvertimeHours => 'الوقت الإضافي';
+
+  @override
+  String get rosterCreditedOvertime => 'الإضافي المحتسب';
+
+  @override
+  String get rosterCreditedHours => 'الساعات المدفوعة';
+
+  @override
+  String rosterCourierTag(Object multiplier) {
+    return 'مندوب ×$multiplier';
+  }
+
+  @override
+  String rosterRowDays(Object worked, Object off, Object cover) {
+    return '$worked عمل · $off إجازة · $cover تغطية';
+  }
+
+  @override
+  String get rosterLegendWorking => 'عمل';
+
+  @override
+  String get rosterLegendOff => 'إجازة';
+
+  @override
+  String get rosterLegendUnrostered => 'غير مُدرج';
+
+  @override
+  String get rosterLegendHoliday => 'عطلة';
 }
