@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/customer_analytics.dart';
 import '../../data/models/report_json.dart';
@@ -815,7 +816,7 @@ Widget _segmentChip(BuildContext context, String segment) {
       ),
       const SizedBox(width: 6),
       Text(
-        segment,
+        localizedCustomerSegment(context, segment),
         style: theme.textTheme.bodySmall,
       ),
     ],

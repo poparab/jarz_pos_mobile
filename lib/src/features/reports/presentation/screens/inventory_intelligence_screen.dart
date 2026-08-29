@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/inventory_intelligence.dart';
 import '../../data/models/report_json.dart';
@@ -127,13 +128,15 @@ class _Body extends StatelessWidget {
           _TableCard(
             title: l10n.reportTopMovers,
             columns: [
-              _Column('Item', (r) => _itemLabel(r)),
-              _Column('Vel 30d', (r) => _fmtNum(_n(r, _velocity30)),
+              _Column(l10n.reportsColumnItem, (r) => _itemLabel(r)),
+              _Column(l10n.reportsColumnVelocity30d,
+                  (r) => _fmtNum(_n(r, _velocity30)),
                   numeric: true),
-              _Column('Vel 60d',
+              _Column(l10n.reportsColumnVelocity60d,
                   (r) => _fmtNum(_n(r, const ['velocity_60d', 'velocity_60'])),
                   numeric: true),
-              _Column('Trend', (r) => _text(r, const ['trend']),
+              _Column(l10n.reportsColumnTrend,
+                  (r) => localizedVelocityTrend(context, _text(r, const ['trend'])),
                   numeric: true),
             ],
             rows: data.topMovers,
@@ -156,7 +159,7 @@ class _Body extends StatelessWidget {
             _TableCard(
               title: l10n.reportCriticalItems,
               titleColor: scheme.error,
-              columns: _alertColumns(),
+              columns: _alertColumns(context),
               rows: data.alerts.critical,
             ),
           if (!criticalEmpty && !watchEmpty) const SizedBox(height: 8),
@@ -164,7 +167,7 @@ class _Body extends StatelessWidget {
             _TableCard(
               title: l10n.reportWatchList,
               titleColor: Colors.amber.shade800,
-              columns: _alertColumns(),
+              columns: _alertColumns(context),
               rows: data.alerts.watchList,
             ),
         ],
@@ -175,10 +178,12 @@ class _Body extends StatelessWidget {
           title: l10n.reportSlowMovers,
           hideIfEmpty: false,
           columns: [
-            _Column('Item', (r) => _itemLabel(r)),
-            _Column('Stock', (r) => _fmtNum(_n(r, _currentStock)),
+            _Column(l10n.reportsColumnItem, (r) => _itemLabel(r)),
+            _Column(l10n.reportsColumnStock,
+                (r) => _fmtNum(_n(r, _currentStock)),
                 numeric: true),
-            _Column('Trend', (r) => _text(r, const ['trend']),
+            _Column(l10n.reportsColumnTrend,
+                (r) => localizedVelocityTrend(context, _text(r, const ['trend'])),
                 numeric: true),
           ],
           rows: data.alerts.slowMovers,
@@ -190,10 +195,11 @@ class _Body extends StatelessWidget {
           title: l10n.reportOverstocked,
           hideIfEmpty: true,
           columns: [
-            _Column('Item', (r) => _itemLabel(r)),
-            _Column('Stock', (r) => _fmtNum(_n(r, _currentStock)),
+            _Column(l10n.reportsColumnItem, (r) => _itemLabel(r)),
+            _Column(l10n.reportsColumnStock,
+                (r) => _fmtNum(_n(r, _currentStock)),
                 numeric: true),
-            _Column('Cover', (r) => _fmtNum(_n(r, _daysCover)),
+            _Column(l10n.reportsColumnCover, (r) => _fmtNum(_n(r, _daysCover)),
                 numeric: true),
           ],
           rows: data.alerts.overstocked,
@@ -205,9 +211,10 @@ class _Body extends StatelessWidget {
           title: l10n.reportTopSellers,
           hideIfEmpty: true,
           columns: [
-            _Column('Item', (r) => _itemLabel(r)),
-            _Column('Sold', (r) => _fmtNum(_n(r, _qtySold)), numeric: true),
-            _Column('Revenue',
+            _Column(l10n.reportsColumnItem, (r) => _itemLabel(r)),
+            _Column(l10n.reportsColumnSold, (r) => _fmtNum(_n(r, _qtySold)),
+                numeric: true),
+            _Column(l10n.reportsColumnRevenue,
                 (r) => _fmtMoney(_n(r, const ['revenue', 'stock_value', 'value'])),
                 numeric: true),
           ],
@@ -218,12 +225,18 @@ class _Body extends StatelessWidget {
   }
 
   /// Shared column layout for critical / watch-list alert rows.
-  List<_Column> _alertColumns() => [
-        _Column('Item', (r) => _itemLabel(r)),
-        _Column('Stock', (r) => _fmtNum(_n(r, _currentStock)), numeric: true),
-        _Column('Cover', (r) => _fmtNum(_n(r, _daysCover)), numeric: true),
-        _Column('Velocity', (r) => _fmtNum(_n(r, _velocity30)), numeric: true),
-      ];
+  List<_Column> _alertColumns(BuildContext context) {
+    final l10n = context.l10n;
+    return [
+      _Column(l10n.reportsColumnItem, (r) => _itemLabel(r)),
+      _Column(l10n.reportsColumnStock, (r) => _fmtNum(_n(r, _currentStock)),
+          numeric: true),
+      _Column(l10n.reportsColumnCover, (r) => _fmtNum(_n(r, _daysCover)),
+          numeric: true),
+      _Column(l10n.reportsColumnVelocity, (r) => _fmtNum(_n(r, _velocity30)),
+          numeric: true),
+    ];
+  }
 }
 
 // ── KPI layout ─────────────────────────────────────────────────────────
@@ -268,10 +281,13 @@ class _VelocityDonut extends StatelessWidget {
     final entries = <_Slice>[];
     for (var i = 0; i < rows.length; i++) {
       final r = rows[i];
-      final label = _text(
-        r,
-        const ['trend', 'label', 'bucket', 'velocity_band'],
-        fallback: '—',
+      final label = localizedVelocityTrend(
+        context,
+        _text(
+          r,
+          const ['trend', 'label', 'bucket', 'velocity_band'],
+          fallback: '—',
+        ),
       );
       final value = _n(r, const ['count', 'value', 'qty']);
       if (value <= 0) continue;

@@ -2444,6 +2444,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productionNoSourceWarehouse => 'No source warehouse configured';
 
   @override
+  String productionStockElsewhere(Object quantity, Object warehouse) {
+    return '$quantity is in $warehouse — needs a stock transfer, not a purchase';
+  }
+
+  @override
+  String productionStockElsewhereMore(
+    Object count,
+    Object quantity,
+    Object warehouse,
+  ) {
+    return '$quantity is in $warehouse and $count more — needs a stock transfer, not a purchase';
+  }
+
+  @override
+  String get productionStockNowhere =>
+      'None of it in any other store — this one has to be bought';
+
+  @override
   String get productionNegativeStock => 'Stock is negative — count this item';
 
   @override
@@ -9230,4 +9248,226 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get managerEmployeeLedgerNoticeResultsTruncated =>
       'Only the first results are shown. Narrow the branch or the period to see the rest.';
+
+  @override
+  String get kanbanStateReceived => 'Received';
+
+  @override
+  String get kanbanStateInProgress => 'In Progress';
+
+  @override
+  String get kanbanStateReady => 'Ready';
+
+  @override
+  String get cancelReasonCustomerRequested => 'Customer requested cancellation';
+
+  @override
+  String get cancelReasonCreatedInError => 'Order created in error / duplicate';
+
+  @override
+  String get cancelReasonInventoryUnavailable => 'Inventory unavailable';
+
+  @override
+  String get cancelReasonPaymentIssue => 'Payment issue';
+
+  @override
+  String get cancelReasonOther => 'Other';
+
+  @override
+  String get notSuitableReasonOutOfBusiness => 'Out of Business';
+
+  @override
+  String get notSuitableReasonWrongCategory => 'Wrong Category';
+
+  @override
+  String get notSuitableReasonTooSmall => 'Too Small';
+
+  @override
+  String get notSuitableReasonNoContactInfo => 'No Contact Info';
+
+  @override
+  String get notSuitableReasonUnreachable => 'Unreachable';
+
+  @override
+  String get notSuitableReasonAlreadySupplied => 'Already Supplied';
+
+  @override
+  String get notSuitableReasonPriceMismatch => 'Price Mismatch';
+
+  @override
+  String get notSuitableReasonOutsideDeliveryArea => 'Outside Delivery Area';
+
+  @override
+  String get notSuitableReasonDuplicate => 'Duplicate';
+
+  @override
+  String get notSuitableReasonNotInterested => 'Not Interested';
+
+  @override
+  String get notSuitableReasonOther => 'Other';
+
+  @override
+  String get leadSourceWalkIn => 'Walk In';
+
+  @override
+  String get leadSourceReference => 'Reference';
+
+  @override
+  String get leadSourceCampaign => 'Campaign';
+
+  @override
+  String get leadSourceExistingCustomer => 'Existing Customer';
+
+  @override
+  String get leadSourceColdCall => 'Cold Call';
+
+  @override
+  String get leadSourceSocialMedia => 'Social Media';
+
+  @override
+  String get customerSegmentChampion => 'Champion';
+
+  @override
+  String get customerSegmentLoyal => 'Loyal';
+
+  @override
+  String get customerSegmentPotentialLoyalist => 'Potential Loyalist';
+
+  @override
+  String get customerSegmentNewCustomer => 'New Customer';
+
+  @override
+  String get customerSegmentAtRisk => 'At Risk';
+
+  @override
+  String get customerSegmentCantLoseThem => 'Can\'t Lose Them';
+
+  @override
+  String get customerSegmentLost => 'Lost';
+
+  @override
+  String get customerSegmentOneTime => 'One-Time';
+
+  @override
+  String get customerSegmentUnclassified => 'Unclassified';
+
+  @override
+  String get velocityTrendAccelerating => 'Accelerating';
+
+  @override
+  String get velocityTrendStable => 'Stable';
+
+  @override
+  String get velocityTrendDeclining => 'Declining';
+
+  @override
+  String get velocityTrendNewItem => 'New Item';
+
+  @override
+  String get velocityTrendNoSales => 'No Sales';
+
+  @override
+  String get visitStatusPlanned => 'Planned';
+
+  @override
+  String get visitStatusInProgress => 'In Progress';
+
+  @override
+  String get visitStatusVisited => 'Visited';
+
+  @override
+  String get visitStatusSkipped => 'Skipped';
+
+  @override
+  String get materialTypePriceList => 'Price List';
+
+  @override
+  String get materialTypeProductPhotos => 'Product Photos';
+
+  @override
+  String get materialTypeCatalog => 'Catalog';
+
+  @override
+  String get materialTypeCertificate => 'Certificate';
+
+  @override
+  String get materialTypeOther => 'Other';
+
+  @override
+  String get b2bStageShortLead => 'Lead';
+
+  @override
+  String get b2bStageShortQualify => 'Qual';
+
+  @override
+  String get b2bStageShortSample => 'Samp';
+
+  @override
+  String get b2bStageShortApproved => 'Appr';
+
+  @override
+  String get b2bStageShortTrial => 'Trial';
+
+  @override
+  String get b2bStageShortCheckup => 'Chk';
+
+  @override
+  String get b2bStageShortActive => 'Actv';
+
+  @override
+  String get b2bStageShortLostOnHold => 'Lost';
+
+  @override
+  String get statusChanged => 'Changed';
+
+  @override
+  String get statusSettled => 'Settled';
+
+  @override
+  String get statusUnsettled => 'Unsettled';
+
+  @override
+  String get statusAccepted => 'Accepted';
+
+  @override
+  String get statusActive => 'Active';
+
+  @override
+  String get statusPaused => 'Paused';
+
+  @override
+  String get statusEnded => 'Ended';
+
+  @override
+  String get statusClosed => 'Closed';
+
+  @override
+  String get statusInProgress => 'In Progress';
+
+  @override
+  String get reportsColumnItem => 'Item';
+
+  @override
+  String get reportsColumnVelocity30d => 'Vel 30d';
+
+  @override
+  String get reportsColumnVelocity60d => 'Vel 60d';
+
+  @override
+  String get reportsColumnTrend => 'Trend';
+
+  @override
+  String get reportsColumnStock => 'Stock';
+
+  @override
+  String get reportsColumnCover => 'Cover';
+
+  @override
+  String get reportsColumnSold => 'Sold';
+
+  @override
+  String get reportsColumnRevenue => 'Revenue';
+
+  @override
+  String get reportsColumnVelocity => 'Velocity';
 }

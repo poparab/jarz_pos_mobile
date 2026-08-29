@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/kanban_models.dart';
 import '../../../core/constants/business_constants.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/localized_display_mappers.dart';
 
 class CancelOrderResult {
   final String reason;
@@ -87,8 +88,10 @@ class _CancelOrderDialogState extends State<CancelOrderDialog> {
                 items: _presetReasons
                     .map(
                       (reason) => DropdownMenuItem<String>(
+                        // The English text stays the value: it is what the
+                        // server stores as the cancellation reason.
                         value: reason,
-                        child: Text(reason),
+                        child: Text(localizedCancelReason(context, reason)),
                       ),
                     )
                     .toList(),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../data/materials_repository.dart';
 import '../../data/models/sales_material.dart';
 import '../../state/materials_notifier.dart';
@@ -415,7 +416,8 @@ class _MaterialTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final bits = <String>[
-      if (material.materialType.trim().isNotEmpty) material.materialType.trim(),
+      if (material.materialType.trim().isNotEmpty)
+        localizedMaterialType(context, material.materialType),
       if (material.pageCount > 1) l10n.materialsPageCount(material.pageCount),
       if (!material.ready) l10n.materialsPreparing,
     ];

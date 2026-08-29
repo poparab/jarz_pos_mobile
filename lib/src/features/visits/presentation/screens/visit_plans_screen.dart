@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../journey/presentation/journey_format.dart';
 import '../../../leads/presentation/leads_theme.dart';
 import '../../data/models/visit_plan.dart';
@@ -404,7 +405,7 @@ class _StatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
-        status,
+        localizedVisitStatus(context, status),
         style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );

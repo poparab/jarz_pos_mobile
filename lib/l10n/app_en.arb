@@ -1215,6 +1215,9 @@
   "productionScaleToFit": "Reduce to what materials allow",
   "productionTargetDays": "Target {days} days",
   "productionNoSourceWarehouse": "No source warehouse configured",
+  "productionStockElsewhere": "{quantity} is in {warehouse} — needs a stock transfer, not a purchase",
+  "productionStockElsewhereMore": "{quantity} is in {warehouse} and {count} more — needs a stock transfer, not a purchase",
+  "productionStockNowhere": "None of it in any other store — this one has to be bought",
   "productionNegativeStock": "Stock is negative — count this item",
   "productionMakeUnits": "Make {units} {uom}",
   "productionCannotStart": "Cannot start — {limiter} is short",
@@ -5381,5 +5384,301 @@
   "managerEmployeeLedgerNoticeNoBranchAssigned": "You have no branch assigned, so there is nothing to show here yet.",
   "managerEmployeeLedgerNoticeBranchNotPermitted": "You cannot view that branch, so it was ignored.",
   "managerEmployeeLedgerNoticeHrmsUnavailable": "HRMS is not installed, so cash advances are not tracked. Unpaid employee orders are still shown.",
-  "managerEmployeeLedgerNoticeResultsTruncated": "Only the first results are shown. Narrow the branch or the period to see the rest."
+  "managerEmployeeLedgerNoticeResultsTruncated": "Only the first results are shown. Narrow the branch or the period to see the rest.",
+  "kanbanStateReceived": "Received",
+  "@kanbanStateReceived": {
+    "description": "Kanban column: order received, not started yet"
+  },
+  "kanbanStateInProgress": "In Progress",
+  "@kanbanStateInProgress": {
+    "description": "Kanban column: order being prepared"
+  },
+  "kanbanStateReady": "Ready",
+  "@kanbanStateReady": {
+    "description": "Kanban column: order packed and ready to dispatch"
+  },
+  "cancelReasonCustomerRequested": "Customer requested cancellation",
+  "@cancelReasonCustomerRequested": {
+    "description": "Cancel reason option"
+  },
+  "cancelReasonCreatedInError": "Order created in error / duplicate",
+  "@cancelReasonCreatedInError": {
+    "description": "Cancel reason option"
+  },
+  "cancelReasonInventoryUnavailable": "Inventory unavailable",
+  "@cancelReasonInventoryUnavailable": {
+    "description": "Cancel reason option"
+  },
+  "cancelReasonPaymentIssue": "Payment issue",
+  "@cancelReasonPaymentIssue": {
+    "description": "Cancel reason option"
+  },
+  "cancelReasonOther": "Other",
+  "@cancelReasonOther": {
+    "description": "Cancel reason option"
+  },
+  "notSuitableReasonOutOfBusiness": "Out of Business",
+  "@notSuitableReasonOutOfBusiness": {
+    "description": "Lead disqualify reason"
+  },
+  "notSuitableReasonWrongCategory": "Wrong Category",
+  "@notSuitableReasonWrongCategory": {
+    "description": "Lead disqualify reason"
+  },
+  "notSuitableReasonTooSmall": "Too Small",
+  "@notSuitableReasonTooSmall": {
+    "description": "Lead disqualify reason"
+  },
+  "notSuitableReasonNoContactInfo": "No Contact Info",
+  "@notSuitableReasonNoContactInfo": {
+    "description": "Lead disqualify reason"
+  },
+  "notSuitableReasonUnreachable": "Unreachable",
+  "@notSuitableReasonUnreachable": {
+    "description": "Lead disqualify reason"
+  },
+  "notSuitableReasonAlreadySupplied": "Already Supplied",
+  "@notSuitableReasonAlreadySupplied": {
+    "description": "Lead disqualify reason"
+  },
+  "notSuitableReasonPriceMismatch": "Price Mismatch",
+  "@notSuitableReasonPriceMismatch": {
+    "description": "Lead disqualify reason"
+  },
+  "notSuitableReasonOutsideDeliveryArea": "Outside Delivery Area",
+  "@notSuitableReasonOutsideDeliveryArea": {
+    "description": "Lead disqualify reason"
+  },
+  "notSuitableReasonDuplicate": "Duplicate",
+  "@notSuitableReasonDuplicate": {
+    "description": "Lead disqualify reason"
+  },
+  "notSuitableReasonNotInterested": "Not Interested",
+  "@notSuitableReasonNotInterested": {
+    "description": "Lead disqualify reason"
+  },
+  "notSuitableReasonOther": "Other",
+  "@notSuitableReasonOther": {
+    "description": "Lead disqualify reason"
+  },
+  "leadSourceWalkIn": "Walk In",
+  "@leadSourceWalkIn": {
+    "description": "Lead source option"
+  },
+  "leadSourceReference": "Reference",
+  "@leadSourceReference": {
+    "description": "Lead source option"
+  },
+  "leadSourceCampaign": "Campaign",
+  "@leadSourceCampaign": {
+    "description": "Lead source option"
+  },
+  "leadSourceExistingCustomer": "Existing Customer",
+  "@leadSourceExistingCustomer": {
+    "description": "Lead source option"
+  },
+  "leadSourceColdCall": "Cold Call",
+  "@leadSourceColdCall": {
+    "description": "Lead source option"
+  },
+  "leadSourceSocialMedia": "Social Media",
+  "@leadSourceSocialMedia": {
+    "description": "Lead source option"
+  },
+  "customerSegmentChampion": "Champion",
+  "@customerSegmentChampion": {
+    "description": "RFM customer segment"
+  },
+  "customerSegmentLoyal": "Loyal",
+  "@customerSegmentLoyal": {
+    "description": "RFM customer segment"
+  },
+  "customerSegmentPotentialLoyalist": "Potential Loyalist",
+  "@customerSegmentPotentialLoyalist": {
+    "description": "RFM customer segment"
+  },
+  "customerSegmentNewCustomer": "New Customer",
+  "@customerSegmentNewCustomer": {
+    "description": "RFM customer segment"
+  },
+  "customerSegmentAtRisk": "At Risk",
+  "@customerSegmentAtRisk": {
+    "description": "RFM customer segment"
+  },
+  "customerSegmentCantLoseThem": "Can''t Lose Them",
+  "@customerSegmentCantLoseThem": {
+    "description": "RFM customer segment"
+  },
+  "customerSegmentLost": "Lost",
+  "@customerSegmentLost": {
+    "description": "RFM customer segment"
+  },
+  "customerSegmentOneTime": "One-Time",
+  "@customerSegmentOneTime": {
+    "description": "RFM customer segment"
+  },
+  "customerSegmentUnclassified": "Unclassified",
+  "@customerSegmentUnclassified": {
+    "description": "RFM customer segment"
+  },
+  "velocityTrendAccelerating": "Accelerating",
+  "@velocityTrendAccelerating": {
+    "description": "Item sales-velocity trend"
+  },
+  "velocityTrendStable": "Stable",
+  "@velocityTrendStable": {
+    "description": "Item sales-velocity trend"
+  },
+  "velocityTrendDeclining": "Declining",
+  "@velocityTrendDeclining": {
+    "description": "Item sales-velocity trend"
+  },
+  "velocityTrendNewItem": "New Item",
+  "@velocityTrendNewItem": {
+    "description": "Item sales-velocity trend"
+  },
+  "velocityTrendNoSales": "No Sales",
+  "@velocityTrendNoSales": {
+    "description": "Item sales-velocity trend"
+  },
+  "visitStatusPlanned": "Planned",
+  "@visitStatusPlanned": {
+    "description": "Visit plan or stop status"
+  },
+  "visitStatusInProgress": "In Progress",
+  "@visitStatusInProgress": {
+    "description": "Visit plan status"
+  },
+  "visitStatusVisited": "Visited",
+  "@visitStatusVisited": {
+    "description": "Visit stop status"
+  },
+  "visitStatusSkipped": "Skipped",
+  "@visitStatusSkipped": {
+    "description": "Visit stop status"
+  },
+  "materialTypePriceList": "Price List",
+  "@materialTypePriceList": {
+    "description": "Sales material type"
+  },
+  "materialTypeProductPhotos": "Product Photos",
+  "@materialTypeProductPhotos": {
+    "description": "Sales material type"
+  },
+  "materialTypeCatalog": "Catalog",
+  "@materialTypeCatalog": {
+    "description": "Sales material type"
+  },
+  "materialTypeCertificate": "Certificate",
+  "@materialTypeCertificate": {
+    "description": "Sales material type"
+  },
+  "materialTypeOther": "Other",
+  "@materialTypeOther": {
+    "description": "Sales material type"
+  },
+  "b2bStageShortLead": "Lead",
+  "@b2bStageShortLead": {
+    "description": "Short axis label for the Lead pipeline stage"
+  },
+  "b2bStageShortQualify": "Qual",
+  "@b2bStageShortQualify": {
+    "description": "Short axis label for the Qualify pipeline stage"
+  },
+  "b2bStageShortSample": "Samp",
+  "@b2bStageShortSample": {
+    "description": "Short axis label for the Sample pipeline stage"
+  },
+  "b2bStageShortApproved": "Appr",
+  "@b2bStageShortApproved": {
+    "description": "Short axis label for the Approved pipeline stage"
+  },
+  "b2bStageShortTrial": "Trial",
+  "@b2bStageShortTrial": {
+    "description": "Short axis label for the Trial pipeline stage"
+  },
+  "b2bStageShortCheckup": "Chk",
+  "@b2bStageShortCheckup": {
+    "description": "Short axis label for the Check-up pipeline stage"
+  },
+  "b2bStageShortActive": "Actv",
+  "@b2bStageShortActive": {
+    "description": "Short axis label for the Active pipeline stage"
+  },
+  "b2bStageShortLostOnHold": "Lost",
+  "@b2bStageShortLostOnHold": {
+    "description": "Short axis label for the Lost/On-hold pipeline stage"
+  },
+  "statusChanged": "Changed",
+  "@statusChanged": {
+    "description": "Payment receipt status: the collected method was changed"
+  },
+  "statusSettled": "Settled",
+  "@statusSettled": {
+    "description": "Courier / sales-partner transaction status"
+  },
+  "statusUnsettled": "Unsettled",
+  "@statusUnsettled": {
+    "description": "Courier / sales-partner transaction status"
+  },
+  "statusAccepted": "Accepted",
+  "@statusAccepted": {
+    "description": "Generic accepted status"
+  },
+  "statusActive": "Active",
+  "@statusActive": {
+    "description": "Generic active status"
+  },
+  "statusPaused": "Paused",
+  "@statusPaused": {
+    "description": "Generic paused status"
+  },
+  "statusEnded": "Ended",
+  "@statusEnded": {
+    "description": "Generic ended status"
+  },
+  "statusClosed": "Closed",
+  "@statusClosed": {
+    "description": "Generic closed status"
+  },
+  "statusInProgress": "In Progress",
+  "@statusInProgress": {
+    "description": "Generic in-progress status"
+  },
+  "reportsColumnItem": "Item",
+  "@reportsColumnItem": {
+    "description": "Report table column header"
+  },
+  "reportsColumnVelocity30d": "Vel 30d",
+  "@reportsColumnVelocity30d": {
+    "description": "Report column: 30-day sales velocity"
+  },
+  "reportsColumnVelocity60d": "Vel 60d",
+  "@reportsColumnVelocity60d": {
+    "description": "Report column: 60-day sales velocity"
+  },
+  "reportsColumnTrend": "Trend",
+  "@reportsColumnTrend": {
+    "description": "Report column: sales-velocity trend"
+  },
+  "reportsColumnStock": "Stock",
+  "@reportsColumnStock": {
+    "description": "Report column: current stock on hand"
+  },
+  "reportsColumnCover": "Cover",
+  "@reportsColumnCover": {
+    "description": "Report column: days of cover"
+  },
+  "reportsColumnSold": "Sold",
+  "@reportsColumnSold": {
+    "description": "Report column: quantity sold"
+  },
+  "reportsColumnRevenue": "Revenue",
+  "@reportsColumnRevenue": {
+    "description": "Report column: revenue"
+  },
+  "reportsColumnVelocity": "Velocity",
+  "@reportsColumnVelocity": {
+    "description": "Report column: sales velocity"
+  }
 }

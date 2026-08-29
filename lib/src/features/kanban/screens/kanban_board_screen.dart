@@ -28,6 +28,7 @@ import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/branch_filter_dialog.dart';
 import '../../../core/widgets/ofd_shortage_dialog.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/utils/territory_label.dart';
 
 class KanbanBoardScreen extends ConsumerStatefulWidget {
@@ -830,7 +831,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                 ),
               ),
               label: Text(
-                column.name,
+                localizedKanbanState(context, column.name),
                 overflow: TextOverflow.ellipsis,
               ),
               onPressed: () => _scrollToKanbanColumn(index),
@@ -1637,7 +1638,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                       final column = targets[index];
                       return ListTile(
                         leading: const Icon(Icons.arrow_forward),
-                        title: Text(column.name),
+                        title: Text(localizedKanbanState(context, column.name)),
                         subtitle: Text(invoice.customerName, maxLines: 1, overflow: TextOverflow.ellipsis),
                         onTap: () => Navigator.of(sheetContext).pop(column),
                       );

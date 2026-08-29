@@ -2439,6 +2439,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productionNoSourceWarehouse => 'مفيش مخزن مصدر متظبّط';
 
   @override
+  String productionStockElsewhere(Object quantity, Object warehouse) {
+    return '$quantity موجودة في $warehouse — محتاجة تحويل مخزني مش شراء';
+  }
+
+  @override
+  String productionStockElsewhereMore(
+    Object count,
+    Object quantity,
+    Object warehouse,
+  ) {
+    return '$quantity موجودة في $warehouse و$count مخزن كمان — محتاجة تحويل مخزني مش شراء';
+  }
+
+  @override
+  String get productionStockNowhere =>
+      'مفيش منها في أي مخزن تاني — لازم تتشترى';
+
+  @override
   String get productionNegativeStock => 'الرصيد بالسالب — اعمل جرد للصنف ده';
 
   @override
@@ -9195,4 +9213,226 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get managerEmployeeLedgerNoticeResultsTruncated =>
       'بتتعرض أول النتائج بس. ضيق الفرع أو الفترة عشان تشوف الباقي.';
+
+  @override
+  String get kanbanStateReceived => 'مستلم';
+
+  @override
+  String get kanbanStateInProgress => 'بيتجهز';
+
+  @override
+  String get kanbanStateReady => 'جاهز';
+
+  @override
+  String get cancelReasonCustomerRequested => 'العميل طلب الإلغاء';
+
+  @override
+  String get cancelReasonCreatedInError => 'الطلب اتعمل بالغلط أو مكرر';
+
+  @override
+  String get cancelReasonInventoryUnavailable => 'البضاعة مش متوفرة';
+
+  @override
+  String get cancelReasonPaymentIssue => 'مشكلة في الدفع';
+
+  @override
+  String get cancelReasonOther => 'سبب تاني';
+
+  @override
+  String get notSuitableReasonOutOfBusiness => 'قافل خلاص';
+
+  @override
+  String get notSuitableReasonWrongCategory => 'نشاط مش مناسب';
+
+  @override
+  String get notSuitableReasonTooSmall => 'صغير أوي';
+
+  @override
+  String get notSuitableReasonNoContactInfo => 'مفيش بيانات تواصل';
+
+  @override
+  String get notSuitableReasonUnreachable => 'مش بيرد';
+
+  @override
+  String get notSuitableReasonAlreadySupplied => 'متعامل مع مورّد تاني';
+
+  @override
+  String get notSuitableReasonPriceMismatch => 'السعر مش مناسب';
+
+  @override
+  String get notSuitableReasonOutsideDeliveryArea => 'برة نطاق التوصيل';
+
+  @override
+  String get notSuitableReasonDuplicate => 'مكرر';
+
+  @override
+  String get notSuitableReasonNotInterested => 'مش مهتم';
+
+  @override
+  String get notSuitableReasonOther => 'سبب تاني';
+
+  @override
+  String get leadSourceWalkIn => 'جه بنفسه';
+
+  @override
+  String get leadSourceReference => 'ترشيح';
+
+  @override
+  String get leadSourceCampaign => 'حملة إعلانية';
+
+  @override
+  String get leadSourceExistingCustomer => 'عميل حالي';
+
+  @override
+  String get leadSourceColdCall => 'اتصال مباشر';
+
+  @override
+  String get leadSourceSocialMedia => 'سوشال ميديا';
+
+  @override
+  String get customerSegmentChampion => 'أفضل العملاء';
+
+  @override
+  String get customerSegmentLoyal => 'عميل وفي';
+
+  @override
+  String get customerSegmentPotentialLoyalist => 'قرّب يبقى وفي';
+
+  @override
+  String get customerSegmentNewCustomer => 'عميل جديد';
+
+  @override
+  String get customerSegmentAtRisk => 'في خطر';
+
+  @override
+  String get customerSegmentCantLoseThem => 'مينفعش نخسرهم';
+
+  @override
+  String get customerSegmentLost => 'خسرناه';
+
+  @override
+  String get customerSegmentOneTime => 'طلب مرة واحدة';
+
+  @override
+  String get customerSegmentUnclassified => 'غير مصنّف';
+
+  @override
+  String get velocityTrendAccelerating => 'بيزيد';
+
+  @override
+  String get velocityTrendStable => 'ثابت';
+
+  @override
+  String get velocityTrendDeclining => 'بيقل';
+
+  @override
+  String get velocityTrendNewItem => 'صنف جديد';
+
+  @override
+  String get velocityTrendNoSales => 'مفيش مبيعات';
+
+  @override
+  String get visitStatusPlanned => 'مخططة';
+
+  @override
+  String get visitStatusInProgress => 'جارية';
+
+  @override
+  String get visitStatusVisited => 'اتزارت';
+
+  @override
+  String get visitStatusSkipped => 'اتخطّت';
+
+  @override
+  String get materialTypePriceList => 'قائمة أسعار';
+
+  @override
+  String get materialTypeProductPhotos => 'صور المنتجات';
+
+  @override
+  String get materialTypeCatalog => 'كتالوج';
+
+  @override
+  String get materialTypeCertificate => 'شهادة';
+
+  @override
+  String get materialTypeOther => 'غير كده';
+
+  @override
+  String get b2bStageShortLead => 'محتمل';
+
+  @override
+  String get b2bStageShortQualify => 'تأهيل';
+
+  @override
+  String get b2bStageShortSample => 'عينة';
+
+  @override
+  String get b2bStageShortApproved => 'موافقة';
+
+  @override
+  String get b2bStageShortTrial => 'تجربة';
+
+  @override
+  String get b2bStageShortCheckup => 'متابعة';
+
+  @override
+  String get b2bStageShortActive => 'نشط';
+
+  @override
+  String get b2bStageShortLostOnHold => 'خسران';
+
+  @override
+  String get statusChanged => 'اتغيّر';
+
+  @override
+  String get statusSettled => 'متسوّي';
+
+  @override
+  String get statusUnsettled => 'لسه متسوّاش';
+
+  @override
+  String get statusAccepted => 'مقبول';
+
+  @override
+  String get statusActive => 'نشط';
+
+  @override
+  String get statusPaused => 'متوقف مؤقتاً';
+
+  @override
+  String get statusEnded => 'منتهي';
+
+  @override
+  String get statusClosed => 'مقفول';
+
+  @override
+  String get statusInProgress => 'جاري';
+
+  @override
+  String get reportsColumnItem => 'الصنف';
+
+  @override
+  String get reportsColumnVelocity30d => 'سرعة ٣٠ ي';
+
+  @override
+  String get reportsColumnVelocity60d => 'سرعة ٦٠ ي';
+
+  @override
+  String get reportsColumnTrend => 'الاتجاه';
+
+  @override
+  String get reportsColumnStock => 'الرصيد';
+
+  @override
+  String get reportsColumnCover => 'أيام التغطية';
+
+  @override
+  String get reportsColumnSold => 'المُباع';
+
+  @override
+  String get reportsColumnRevenue => 'الإيراد';
+
+  @override
+  String get reportsColumnVelocity => 'السرعة';
 }

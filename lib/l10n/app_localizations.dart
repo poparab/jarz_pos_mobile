@@ -4252,6 +4252,28 @@ abstract class AppLocalizations {
   /// **'No source warehouse configured'**
   String get productionNoSourceWarehouse;
 
+  /// No description provided for @productionStockElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'{quantity} is in {warehouse} — needs a stock transfer, not a purchase'**
+  String productionStockElsewhere(Object quantity, Object warehouse);
+
+  /// No description provided for @productionStockElsewhereMore.
+  ///
+  /// In en, this message translates to:
+  /// **'{quantity} is in {warehouse} and {count} more — needs a stock transfer, not a purchase'**
+  String productionStockElsewhereMore(
+    Object count,
+    Object quantity,
+    Object warehouse,
+  );
+
+  /// No description provided for @productionStockNowhere.
+  ///
+  /// In en, this message translates to:
+  /// **'None of it in any other store — this one has to be bought'**
+  String get productionStockNowhere;
+
   /// No description provided for @productionNegativeStock.
   ///
   /// In en, this message translates to:
@@ -15400,6 +15422,450 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only the first results are shown. Narrow the branch or the period to see the rest.'**
   String get managerEmployeeLedgerNoticeResultsTruncated;
+
+  /// Kanban column: order received, not started yet
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get kanbanStateReceived;
+
+  /// Kanban column: order being prepared
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get kanbanStateInProgress;
+
+  /// Kanban column: order packed and ready to dispatch
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get kanbanStateReady;
+
+  /// Cancel reason option
+  ///
+  /// In en, this message translates to:
+  /// **'Customer requested cancellation'**
+  String get cancelReasonCustomerRequested;
+
+  /// Cancel reason option
+  ///
+  /// In en, this message translates to:
+  /// **'Order created in error / duplicate'**
+  String get cancelReasonCreatedInError;
+
+  /// Cancel reason option
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory unavailable'**
+  String get cancelReasonInventoryUnavailable;
+
+  /// Cancel reason option
+  ///
+  /// In en, this message translates to:
+  /// **'Payment issue'**
+  String get cancelReasonPaymentIssue;
+
+  /// Cancel reason option
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get cancelReasonOther;
+
+  /// Lead disqualify reason
+  ///
+  /// In en, this message translates to:
+  /// **'Out of Business'**
+  String get notSuitableReasonOutOfBusiness;
+
+  /// Lead disqualify reason
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong Category'**
+  String get notSuitableReasonWrongCategory;
+
+  /// Lead disqualify reason
+  ///
+  /// In en, this message translates to:
+  /// **'Too Small'**
+  String get notSuitableReasonTooSmall;
+
+  /// Lead disqualify reason
+  ///
+  /// In en, this message translates to:
+  /// **'No Contact Info'**
+  String get notSuitableReasonNoContactInfo;
+
+  /// Lead disqualify reason
+  ///
+  /// In en, this message translates to:
+  /// **'Unreachable'**
+  String get notSuitableReasonUnreachable;
+
+  /// Lead disqualify reason
+  ///
+  /// In en, this message translates to:
+  /// **'Already Supplied'**
+  String get notSuitableReasonAlreadySupplied;
+
+  /// Lead disqualify reason
+  ///
+  /// In en, this message translates to:
+  /// **'Price Mismatch'**
+  String get notSuitableReasonPriceMismatch;
+
+  /// Lead disqualify reason
+  ///
+  /// In en, this message translates to:
+  /// **'Outside Delivery Area'**
+  String get notSuitableReasonOutsideDeliveryArea;
+
+  /// Lead disqualify reason
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get notSuitableReasonDuplicate;
+
+  /// Lead disqualify reason
+  ///
+  /// In en, this message translates to:
+  /// **'Not Interested'**
+  String get notSuitableReasonNotInterested;
+
+  /// Lead disqualify reason
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get notSuitableReasonOther;
+
+  /// Lead source option
+  ///
+  /// In en, this message translates to:
+  /// **'Walk In'**
+  String get leadSourceWalkIn;
+
+  /// Lead source option
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get leadSourceReference;
+
+  /// Lead source option
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign'**
+  String get leadSourceCampaign;
+
+  /// Lead source option
+  ///
+  /// In en, this message translates to:
+  /// **'Existing Customer'**
+  String get leadSourceExistingCustomer;
+
+  /// Lead source option
+  ///
+  /// In en, this message translates to:
+  /// **'Cold Call'**
+  String get leadSourceColdCall;
+
+  /// Lead source option
+  ///
+  /// In en, this message translates to:
+  /// **'Social Media'**
+  String get leadSourceSocialMedia;
+
+  /// RFM customer segment
+  ///
+  /// In en, this message translates to:
+  /// **'Champion'**
+  String get customerSegmentChampion;
+
+  /// RFM customer segment
+  ///
+  /// In en, this message translates to:
+  /// **'Loyal'**
+  String get customerSegmentLoyal;
+
+  /// RFM customer segment
+  ///
+  /// In en, this message translates to:
+  /// **'Potential Loyalist'**
+  String get customerSegmentPotentialLoyalist;
+
+  /// RFM customer segment
+  ///
+  /// In en, this message translates to:
+  /// **'New Customer'**
+  String get customerSegmentNewCustomer;
+
+  /// RFM customer segment
+  ///
+  /// In en, this message translates to:
+  /// **'At Risk'**
+  String get customerSegmentAtRisk;
+
+  /// RFM customer segment
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'\'t Lose Them'**
+  String get customerSegmentCantLoseThem;
+
+  /// RFM customer segment
+  ///
+  /// In en, this message translates to:
+  /// **'Lost'**
+  String get customerSegmentLost;
+
+  /// RFM customer segment
+  ///
+  /// In en, this message translates to:
+  /// **'One-Time'**
+  String get customerSegmentOneTime;
+
+  /// RFM customer segment
+  ///
+  /// In en, this message translates to:
+  /// **'Unclassified'**
+  String get customerSegmentUnclassified;
+
+  /// Item sales-velocity trend
+  ///
+  /// In en, this message translates to:
+  /// **'Accelerating'**
+  String get velocityTrendAccelerating;
+
+  /// Item sales-velocity trend
+  ///
+  /// In en, this message translates to:
+  /// **'Stable'**
+  String get velocityTrendStable;
+
+  /// Item sales-velocity trend
+  ///
+  /// In en, this message translates to:
+  /// **'Declining'**
+  String get velocityTrendDeclining;
+
+  /// Item sales-velocity trend
+  ///
+  /// In en, this message translates to:
+  /// **'New Item'**
+  String get velocityTrendNewItem;
+
+  /// Item sales-velocity trend
+  ///
+  /// In en, this message translates to:
+  /// **'No Sales'**
+  String get velocityTrendNoSales;
+
+  /// Visit plan or stop status
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get visitStatusPlanned;
+
+  /// Visit plan status
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get visitStatusInProgress;
+
+  /// Visit stop status
+  ///
+  /// In en, this message translates to:
+  /// **'Visited'**
+  String get visitStatusVisited;
+
+  /// Visit stop status
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get visitStatusSkipped;
+
+  /// Sales material type
+  ///
+  /// In en, this message translates to:
+  /// **'Price List'**
+  String get materialTypePriceList;
+
+  /// Sales material type
+  ///
+  /// In en, this message translates to:
+  /// **'Product Photos'**
+  String get materialTypeProductPhotos;
+
+  /// Sales material type
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog'**
+  String get materialTypeCatalog;
+
+  /// Sales material type
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate'**
+  String get materialTypeCertificate;
+
+  /// Sales material type
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get materialTypeOther;
+
+  /// Short axis label for the Lead pipeline stage
+  ///
+  /// In en, this message translates to:
+  /// **'Lead'**
+  String get b2bStageShortLead;
+
+  /// Short axis label for the Qualify pipeline stage
+  ///
+  /// In en, this message translates to:
+  /// **'Qual'**
+  String get b2bStageShortQualify;
+
+  /// Short axis label for the Sample pipeline stage
+  ///
+  /// In en, this message translates to:
+  /// **'Samp'**
+  String get b2bStageShortSample;
+
+  /// Short axis label for the Approved pipeline stage
+  ///
+  /// In en, this message translates to:
+  /// **'Appr'**
+  String get b2bStageShortApproved;
+
+  /// Short axis label for the Trial pipeline stage
+  ///
+  /// In en, this message translates to:
+  /// **'Trial'**
+  String get b2bStageShortTrial;
+
+  /// Short axis label for the Check-up pipeline stage
+  ///
+  /// In en, this message translates to:
+  /// **'Chk'**
+  String get b2bStageShortCheckup;
+
+  /// Short axis label for the Active pipeline stage
+  ///
+  /// In en, this message translates to:
+  /// **'Actv'**
+  String get b2bStageShortActive;
+
+  /// Short axis label for the Lost/On-hold pipeline stage
+  ///
+  /// In en, this message translates to:
+  /// **'Lost'**
+  String get b2bStageShortLostOnHold;
+
+  /// Payment receipt status: the collected method was changed
+  ///
+  /// In en, this message translates to:
+  /// **'Changed'**
+  String get statusChanged;
+
+  /// Courier / sales-partner transaction status
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get statusSettled;
+
+  /// Courier / sales-partner transaction status
+  ///
+  /// In en, this message translates to:
+  /// **'Unsettled'**
+  String get statusUnsettled;
+
+  /// Generic accepted status
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get statusAccepted;
+
+  /// Generic active status
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get statusActive;
+
+  /// Generic paused status
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get statusPaused;
+
+  /// Generic ended status
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get statusEnded;
+
+  /// Generic closed status
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get statusClosed;
+
+  /// Generic in-progress status
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get statusInProgress;
+
+  /// Report table column header
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get reportsColumnItem;
+
+  /// Report column: 30-day sales velocity
+  ///
+  /// In en, this message translates to:
+  /// **'Vel 30d'**
+  String get reportsColumnVelocity30d;
+
+  /// Report column: 60-day sales velocity
+  ///
+  /// In en, this message translates to:
+  /// **'Vel 60d'**
+  String get reportsColumnVelocity60d;
+
+  /// Report column: sales-velocity trend
+  ///
+  /// In en, this message translates to:
+  /// **'Trend'**
+  String get reportsColumnTrend;
+
+  /// Report column: current stock on hand
+  ///
+  /// In en, this message translates to:
+  /// **'Stock'**
+  String get reportsColumnStock;
+
+  /// Report column: days of cover
+  ///
+  /// In en, this message translates to:
+  /// **'Cover'**
+  String get reportsColumnCover;
+
+  /// Report column: quantity sold
+  ///
+  /// In en, this message translates to:
+  /// **'Sold'**
+  String get reportsColumnSold;
+
+  /// Report column: revenue
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get reportsColumnRevenue;
+
+  /// Report column: sales velocity
+  ///
+  /// In en, this message translates to:
+  /// **'Velocity'**
+  String get reportsColumnVelocity;
 }
 
 class _AppLocalizationsDelegate

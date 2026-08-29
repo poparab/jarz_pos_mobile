@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../models/kanban_models.dart';
 import 'invoice_card_widget.dart';
@@ -111,7 +112,7 @@ class _KanbanColumnWidgetState extends State<KanbanColumnWidget> {
               children: [
                 Expanded(
                   child: Text(
-                    widget.column.name,
+                    localizedKanbanState(context, widget.column.name),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

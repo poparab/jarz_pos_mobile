@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../b2b/data/b2b_repository.dart' show b2bLeadSourcesProvider;
 import '../../../b2b/state/b2b_pipeline_notifier.dart' show b2bPipelineProvider;
 import '../../../pos/presentation/widgets/customer_search_widget.dart'
@@ -462,7 +463,10 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         style: LeadsTheme.body,
         items: [
           for (final s in sources)
-            DropdownMenuItem<String>(value: s, child: Text(s)),
+            DropdownMenuItem<String>(
+              value: s,
+              child: Text(localizedLeadSource(context, s)),
+            ),
         ],
         onChanged: (v) => setState(() => _source = v),
       ),

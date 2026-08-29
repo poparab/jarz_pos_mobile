@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/localized_display_mappers.dart';
 import '../../auth/state/login_notifier.dart';
 import '../../pos/presentation/widgets/courier_balances_dialog.dart';
 import '../models/shift_models.dart';
@@ -212,7 +213,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(row.modeOfPayment),
+                          Text(localizedPaymentMethodLabel(context, row.modeOfPayment)),
                           const SizedBox(height: 6),
                           TextField(
                             controller: controller,

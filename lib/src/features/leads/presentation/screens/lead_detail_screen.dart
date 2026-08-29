@@ -788,7 +788,8 @@ class _NotSuitableBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final detail = [
-      if (lead.notSuitableReason.isNotEmpty) lead.notSuitableReason,
+      if (lead.notSuitableReason.isNotEmpty)
+        localizedNotSuitableReason(context, lead.notSuitableReason),
       if (lead.notSuitableBy.isNotEmpty)
         context.l10n.leadDetailByWhom(lead.notSuitableBy),
       if (lead.notSuitableOn != null && lead.notSuitableOn!.isNotEmpty)
@@ -1040,7 +1041,10 @@ class _NotSuitableDialogState extends State<_NotSuitableDialog> {
             ),
             items: [
               for (final reason in widget.reasons)
-                DropdownMenuItem<String>(value: reason, child: Text(reason)),
+                DropdownMenuItem<String>(
+                  value: reason,
+                  child: Text(localizedNotSuitableReason(context, reason)),
+                ),
             ],
             onChanged: (value) => setState(() => _reason = value),
           ),

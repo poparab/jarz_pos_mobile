@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../data/models/lead.dart';
 import '../leads_theme.dart';
 
@@ -11,13 +12,16 @@ class CategoryChip extends StatelessWidget {
     this.category,
     required this.selected,
     required this.onTap,
-    this.allLabel = 'All',
+    this.allLabel,
   });
 
   final LeadCategory? category;
   final bool selected;
   final VoidCallback onTap;
-  final String allLabel;
+
+  /// Text for the "no category" chip. Null resolves to the localized "All" —
+  /// no caller passes it, so the old English default was what always rendered.
+  final String? allLabel;
 
   Color _color() {
     final hex = category?.color;
@@ -31,7 +35,9 @@ class CategoryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = category?.categoryName.isNotEmpty == true
         ? category!.categoryName
-        : (category == null ? allLabel : category!.name);
+        : (category == null
+            ? (allLabel ?? context.l10n.leadsFilterAll)
+            : category!.name);
     final accent = category == null ? LeadsTheme.deepPlum : _color();
     return Padding(
       padding: const EdgeInsets.only(right: 6),

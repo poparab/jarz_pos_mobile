@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/b2b_sales_clients.dart';
 import '../../state/reports_providers.dart';
@@ -88,27 +89,6 @@ Color _stageColor(String stage) {
       return Colors.red;
     default:
       return Colors.blueGrey;
-  }
-}
-
-/// Short axis label so long stage names ("Lost/On-hold") don't overflow the
-/// bar-chart bottom axis.
-String _stageShort(String stage) {
-  switch (stage) {
-    case 'Qualify':
-      return 'Qual';
-    case 'Sample':
-      return 'Samp';
-    case 'Approved':
-      return 'Appr';
-    case 'Check-up':
-      return 'Chk';
-    case 'Active':
-      return 'Actv';
-    case 'Lost/On-hold':
-      return 'Lost';
-    default:
-      return stage;
   }
 }
 
@@ -434,7 +414,7 @@ class _PipelineChart extends StatelessWidget {
                     axisSide: meta.axisSide,
                     space: 4,
                     child: Text(
-                      _stageShort(ordered[i].stage),
+                      localizedB2bStageShort(context, ordered[i].stage),
                       style: theme.textTheme.labelSmall,
                     ),
                   );

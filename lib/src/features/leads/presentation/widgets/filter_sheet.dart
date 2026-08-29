@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../b2b/presentation/widgets/b2b_stage_chip.dart'
     show B2bStageChip, kB2bStages;
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../state/lead_filter.dart';
 import '../../state/leads_notifier.dart';
 import '../leads_theme.dart';
@@ -140,7 +141,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                 ),
                 for (final stage in kB2bStages)
                   FilterChip(
-                    label: Text(stage),
+                    label: Text(localizedLeadStage(context, stage)),
                     selected: filter.selectedStages.contains(stage),
                     selectedColor:
                         B2bStageChip.colorFor(stage).withValues(alpha: 0.2),
