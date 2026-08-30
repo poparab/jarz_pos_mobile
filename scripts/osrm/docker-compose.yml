@@ -1,0 +1,65 @@
+# Self-hosted OSRM routing, shared by every backend service.
+#
+# WHY THIS EXISTS
+# The visit planner (and anything else that needs a real driving distance) has
+# always had a straight-line fallback: haversine inflated by a road factor. It
+# gets the visiting ORDER right in a dense city but the minutes are a guess.
+# This service replaces the guess with the road network.
+#
+# WHY IT IS NOT INTERNET-FACING
+# There is no `ports:` mapping on purpose. OSRM has no authentication of any
+# kind — anyone who can reach it can run unlimited matrix queries — and this
+# estate has already had ports 8000/8080/9000 exposed once. It joins the ERP
+# docker network instead, so `http://osrm:5000` resolves from erp-backend, all
+# three queue/scheduler workers and jarz_courier, and from nowhere else.
+# The Flutter clients never call it directly; they call the Frappe API, which
+# calls this.
+#
+# WHY read_only + tmpfs
+# The dataset is immutable once built. A routing engine has no business writing
+# to its own data directory, and saying so costs nothing.
+services:
+  osrm:
+    image: ghcr.io/project-osrm/osrm-backend:latest
+    container_name: osrm
+    restart: unless-stopped
+    # ALGORITHM and MMAP_FLAG are substituted by scripts/setup_osrm.ps1 from
+    # what it measured, rather than being guessed here.
+    command: >
+      osrm-routed
+      --algorithm ${OSRM_ALGORITHM:-mld}
+      ${OSRM_MMAP_FLAG:-}
+      --max-table-size ${OSRM_MAX_TABLE:-2000}
+      /data/${OSRM_DATASET:-jarz-north}.osrm
+    volumes:
+      - ${OSRM_DATA_DIR:-/home/ubuntu/osrm/data}:/data:ro
+    networks:
+      - erp_network
+    read_only: true
+    tmpfs:
+      - /tmp
+    # A dead router must not take the feature down — the app falls back to
+    # estimates on its own — but it should be restarted and it should be
+    # visible in `docker ps` as unhealthy rather than quietly wrong.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- 'http://127.0.0.1:5000/route/v1/driving/31.2357,30.0444;31.2197,30.0614?overview=false' | grep -q '\"code\":\"Ok\"' || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    # Bounded so a pathological matrix request cannot starve the ERP stack that
+    # shares this box. OSRM is the optional half of the system; MariaDB is not.
+    deploy:
+      resources:
+        limits:
+          memory: ${OSRM_MEM_LIMIT:-1600m}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  erp_network:
+    external: true
+    name: ${ERP_NETWORK:-erp_frappe_network}
