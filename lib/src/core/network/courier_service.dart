@@ -127,6 +127,10 @@ class CourierService {
     String? party,
     String paymentMode = PaymentModes.cash,
     String? courier,
+    // The partner's own price for this trip, typed by the cashier off the partner's
+    // app. Only present on a delivery-partner dispatch; the server refuses one
+    // without it rather than falling back to our own area rate.
+    double? partnerFee,
   }) async {
     try {
       final resp = await _dio.post(
@@ -140,6 +144,7 @@ class CourierService {
           if (party != null) 'party': party,
           'payment_mode': paymentMode,
           if (courier != null && courier.trim().isNotEmpty) 'courier': courier,
+          if (partnerFee != null) 'partner_fee': partnerFee,
         },
       );
       return _parseMethodResponse(

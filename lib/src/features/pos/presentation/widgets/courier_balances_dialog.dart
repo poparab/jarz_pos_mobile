@@ -329,14 +329,14 @@ class _CourierTile extends StatelessWidget {
                                           if (party.isEmpty && (preview['party'] ?? '') != '') party = preview['party'];
                                           if (!ctx.mounted) return;
 
-                                          final confirmed = await showSettlementConfirmDialog(
+                                          final confirmation = await showSettlementConfirmDialog(
                                             ctx,
                                             preview,
                                             invoice: d.invoice,
                                             orderFallback: d.amount,
                                             shippingFallback: d.shipping,
                                           );
-                                          if (confirmed != true) return;
+                                          if (confirmation?.confirmed != true) return;
 
                                           final netRaw = preview['net_amount'];
                                           final net = (netRaw is num) ? netRaw.toDouble() : double.tryParse(netRaw?.toString() ?? '0') ?? 0.0;

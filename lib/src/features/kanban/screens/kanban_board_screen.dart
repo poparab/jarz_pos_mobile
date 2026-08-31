@@ -1457,7 +1457,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           }
           if (!screenContext.mounted) return;
 
-          final confirmed = await showSettlementConfirmDialog(
+          final confirmation = await showSettlementConfirmDialog(
             screenContext,
             preview,
             invoice: invoiceId,
@@ -1469,7 +1469,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             orderFallback: inv?.grandTotal,
             shippingFallback: inv?.shippingExpenseDisplay,
           );
-          if (confirmed != true) {
+          if (confirmation?.confirmed != true) {
             // Revert visual move if user cancelled
             final fromCol = ref.read(kanbanProvider).columns.firstWhere(
               (c) => c.id == fromColumnId,
@@ -1501,6 +1501,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             party: resolvedParty,
             paymentMode: PaymentModes.cash,
             courier: courier ?? courierDisplay ?? 'UNKNOWN',
+            partnerFee: confirmation?.partnerFee,
           );
           if (res['success'] != true) {
             messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanSettlementFailed)));

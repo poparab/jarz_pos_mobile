@@ -3736,5 +3736,11 @@
   "rosterLegendWorking": "عمل",
   "rosterLegendOff": "إجازة",
   "rosterLegendUnrostered": "غير مُدرج",
-  "rosterLegendHoliday": "عطلة"
+  "rosterLegendHoliday": "عطلة",
+  "settlementPartnerFeeInputLabel": "تكلفة التوصيل لدى الشريك",
+  "settlementPartnerFeeInputHint": "اقرأها من تطبيق الشريك",
+  "settlementPartnerFeeRequired": "أدخل تكلفة التوصيل لدى الشريك لهذا الطلب",
+  "settlementPartnerFeeInvalid": "أدخل مبلغًا صحيحًا",
+  "settlementPartnerFeeWhy": "أسعار مناطقنا لا تنطبق على الشريك — فهو يسعّر هذا العنوان بنفسه.",
+  "settlementPartnerNoDeduction": "المندوب يسلّم المبلغ كاملًا. لا يُخصم شيء مقابل أجرته — تُحاسب شركته أسبوعيًا."
 }

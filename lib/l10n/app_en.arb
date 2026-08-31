@@ -5776,5 +5776,11 @@
   "rosterLegendWorking": "Working",
   "rosterLegendOff": "Day off",
   "rosterLegendUnrostered": "Not rostered",
-  "rosterLegendHoliday": "Holiday"
+  "rosterLegendHoliday": "Holiday",
+  "settlementPartnerFeeInputLabel": "Partner delivery cost",
+  "settlementPartnerFeeInputHint": "Read it from the partner''s app",
+  "settlementPartnerFeeRequired": "Enter the partner''s delivery cost for this order",
+  "settlementPartnerFeeInvalid": "Enter a valid amount",
+  "settlementPartnerFeeWhy": "Our area rates don''t apply to the partner - they price this address themselves.",
+  "settlementPartnerNoDeduction": "The rider hands over the full amount. Nothing is deducted for his fee - his company is billed weekly."
 }

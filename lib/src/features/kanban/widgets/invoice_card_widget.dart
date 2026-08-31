@@ -2121,7 +2121,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           return;
         }
         if (!mounted) return;
-        final confirmed = await showSettlementConfirmDialog(
+        final confirmation = await showSettlementConfirmDialog(
           context,
           preview,
           invoice: widget.invoice.name,
@@ -2133,7 +2133,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           orderFallback: widget.invoice.grandTotal,
           shippingFallback: widget.invoice.shippingExpenseDisplay.toDouble(),
         );
-        if (confirmed != true) return;
+        if (confirmation?.confirmed != true) return;
         final token = (preview['preview_token'] ?? preview['token'] ?? '').toString();
         if (token.isEmpty) {
           messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoicePreviewExpired)));
@@ -2149,6 +2149,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           party: party,
           paymentMode: PaymentModes.cash,
           courier: courierLabel,
+          partnerFee: confirmation?.partnerFee,
         );
         if (res['success'] == true) {
           messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementConfirmed)));
@@ -2623,7 +2624,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       if (!context.mounted) return;
 
       // 2. Show confirmation dialog with collect / pay details (shared helper)
-      final confirmed = await showSettlementConfirmDialog(
+      final confirmation = await showSettlementConfirmDialog(
         context,
         preview,
         invoice: widget.invoice.name,
@@ -2635,7 +2636,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         orderFallback: widget.invoice.grandTotal, // use invoice total when preview omits
         shippingFallback: (widget.invoice.shippingExpenseDisplay).toDouble(),
       );
-      if (confirmed != true) return; // user cancelled
+      if (confirmation?.confirmed != true) return; // user cancelled
 
       // 3. Determine which backend endpoint based on net amount sign
       final netRaw = preview['net_amount'];

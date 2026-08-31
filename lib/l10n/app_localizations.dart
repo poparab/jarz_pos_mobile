@@ -16154,6 +16154,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Holiday'**
   String get rosterLegendHoliday;
+
+  /// No description provided for @settlementPartnerFeeInputLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner delivery cost'**
+  String get settlementPartnerFeeInputLabel;
+
+  /// No description provided for @settlementPartnerFeeInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Read it from the partner\'\'s app'**
+  String get settlementPartnerFeeInputHint;
+
+  /// No description provided for @settlementPartnerFeeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the partner\'\'s delivery cost for this order'**
+  String get settlementPartnerFeeRequired;
+
+  /// No description provided for @settlementPartnerFeeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount'**
+  String get settlementPartnerFeeInvalid;
+
+  /// No description provided for @settlementPartnerFeeWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Our area rates don\'\'t apply to the partner - they price this address themselves.'**
+  String get settlementPartnerFeeWhy;
+
+  /// No description provided for @settlementPartnerNoDeduction.
+  ///
+  /// In en, this message translates to:
+  /// **'The rider hands over the full amount. Nothing is deducted for his fee - his company is billed weekly.'**
+  String get settlementPartnerNoDeduction;
 }
 
 class _AppLocalizationsDelegate

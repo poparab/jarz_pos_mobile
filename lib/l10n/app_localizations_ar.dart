@@ -9608,4 +9608,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rosterLegendHoliday => 'عطلة';
+
+  @override
+  String get settlementPartnerFeeInputLabel => 'تكلفة التوصيل لدى الشريك';
+
+  @override
+  String get settlementPartnerFeeInputHint => 'اقرأها من تطبيق الشريك';
+
+  @override
+  String get settlementPartnerFeeRequired =>
+      'أدخل تكلفة التوصيل لدى الشريك لهذا الطلب';
+
+  @override
+  String get settlementPartnerFeeInvalid => 'أدخل مبلغًا صحيحًا';
+
+  @override
+  String get settlementPartnerFeeWhy =>
+      'أسعار مناطقنا لا تنطبق على الشريك — فهو يسعّر هذا العنوان بنفسه.';
+
+  @override
+  String get settlementPartnerNoDeduction =>
+      'المندوب يسلّم المبلغ كاملًا. لا يُخصم شيء مقابل أجرته — تُحاسب شركته أسبوعيًا.';
 }

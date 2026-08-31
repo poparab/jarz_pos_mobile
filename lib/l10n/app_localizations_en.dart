@@ -9642,4 +9642,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rosterLegendHoliday => 'Holiday';
+
+  @override
+  String get settlementPartnerFeeInputLabel => 'Partner delivery cost';
+
+  @override
+  String get settlementPartnerFeeInputHint => 'Read it from the partner\'s app';
+
+  @override
+  String get settlementPartnerFeeRequired =>
+      'Enter the partner\'s delivery cost for this order';
+
+  @override
+  String get settlementPartnerFeeInvalid => 'Enter a valid amount';
+
+  @override
+  String get settlementPartnerFeeWhy =>
+      'Our area rates don\'t apply to the partner - they price this address themselves.';
+
+  @override
+  String get settlementPartnerNoDeduction =>
+      'The rider hands over the full amount. Nothing is deducted for his fee - his company is billed weekly.';
 }

@@ -223,7 +223,22 @@ Widget _netChip(String value, Color color, String label) {
   );
 }
 
-Future<bool?> showSettlementConfirmDialog(
+/// What the confirm dialog hands back.
+///
+/// A delivery-partner dispatch needs more than a yes: the cashier types the
+/// partner's own price for this address (their zones are far finer than ours, so
+/// no rate of ours can stand in for it) and that number has to reach the server
+/// with the confirmation.
+class SettlementConfirmation {
+  const SettlementConfirmation({required this.confirmed, this.partnerFee});
+
+  final bool confirmed;
+  final double? partnerFee;
+
+  static const cancelled = SettlementConfirmation(confirmed: false);
+}
+
+Future<SettlementConfirmation?> showSettlementConfirmDialog(
   BuildContext context,
   Map<String, dynamic> preview, {
   String? invoice,
@@ -251,12 +266,24 @@ Future<bool?> showSettlementConfirmDialog(
         : l10n.settlementPaidNoteAfterOfd)
       : '');
 
-  return showDialog<bool>(
+  // A partner dispatch that has not gone out yet must carry the partner's own
+  // price for this address. There is deliberately no default: our territory rates
+  // are for our own couriers, and quietly reusing one here would book a cost that
+  // is wrong on essentially every partner order.
+  final requiresFee = preview['requires_partner_fee'] == true;
+  final feeController = TextEditingController(
+    text: d.shipping > 0 ? d.shipping.toStringAsFixed(2) : '',
+  );
+  String? feeError;
+
+  return showDialog<SettlementConfirmation>(
     context: context,
     barrierDismissible: false,
-    builder: (ctx) => AlertDialog(
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setState) => AlertDialog(
       title: Text(title),
-      content: Column(
+      content: SingleChildScrollView(
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -350,12 +377,73 @@ Future<bool?> showSettlementConfirmDialog(
             const SizedBox(height: 6),
             Row(children: [const Icon(Icons.map, size: 18, color: Colors.blueGrey), const SizedBox(width: 6), Text(l10n.settlementTerritoryLabel(territory))]),
           ],
+          if (requiresFee) ...[
+            const SizedBox(height: 14),
+            TextField(
+              controller: feeController,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: l10n.settlementPartnerFeeInputLabel,
+                hintText: l10n.settlementPartnerFeeInputHint,
+                prefixIcon: const Icon(Icons.handshake, size: 18),
+                border: const OutlineInputBorder(),
+                isDense: true,
+                errorText: feeError,
+              ),
+              onChanged: (_) {
+                if (feeError != null) setState(() => feeError = null);
+              },
+            ),
+            const SizedBox(height: 6),
+            Text(l10n.settlementPartnerFeeWhy,
+                style: const TextStyle(fontSize: 11, color: Colors.blueGrey)),
+          ],
+          if (d.isPartnerOrder && d.unpaidEffective) ...[
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.info_outline, size: 16, color: Colors.indigo),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(l10n.settlementPartnerNoDeduction,
+                      style: const TextStyle(fontSize: 11, color: Colors.indigo)),
+                ),
+              ],
+            ),
+          ],
         ],
+        ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text(l10n.commonCancel)),
-        ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: Text(l10n.commonConfirm)),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(SettlementConfirmation.cancelled),
+          child: Text(l10n.commonCancel),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            double? fee;
+            if (requiresFee) {
+              final raw = feeController.text.trim();
+              if (raw.isEmpty) {
+                setState(() => feeError = l10n.settlementPartnerFeeRequired);
+                return;
+              }
+              fee = double.tryParse(raw);
+              if (fee == null || fee < 0) {
+                setState(() => feeError = l10n.settlementPartnerFeeInvalid);
+                return;
+              }
+            }
+            Navigator.of(ctx).pop(
+              SettlementConfirmation(confirmed: true, partnerFee: fee),
+            );
+          },
+          child: Text(l10n.commonConfirm),
+        ),
       ],
+      ),
     ),
   );
 }
