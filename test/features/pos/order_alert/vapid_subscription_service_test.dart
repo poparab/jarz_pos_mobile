@@ -88,6 +88,27 @@ void main() {
       );
       expect(result.browser, 'Safari/iOS');
     });
+
+    test('failingStep names which stage broke', () {
+      // Four awaits in _doSubscribe share one TimeoutException catch, so
+      // without the step a "timed out" report cannot be traced to a stage.
+      const result = VapidSubscriptionResult(
+        status: VapidSubscriptionStatus.failed,
+        message: 'Push subscription timed out at "subscribe".',
+        failingStep: 'subscribe',
+      );
+      expect(result.failingStep, 'subscribe');
+      expect(result.isSuccess, isFalse);
+    });
+
+    test('failingStep is null on success', () {
+      const result = VapidSubscriptionResult(
+        status: VapidSubscriptionStatus.subscribed,
+        message: 'OK',
+        subscriptionJson: '{}',
+      );
+      expect(result.failingStep, isNull);
+    });
   });
 
   // ── VapidSubscriptionService stub (non-web platforms) ─────────────────────

@@ -21,12 +21,18 @@ class WebNotificationService {
   /// Request notification permission from the browser
   static Future<bool> requestPermission({
     Duration timeout = const Duration(seconds: 5),
+    bool forcePrompt = false,
   }) async {
-    return await requestPermissionStatus(timeout: timeout) == 'granted';
+    return await requestPermissionStatus(
+          timeout: timeout,
+          forcePrompt: forcePrompt,
+        ) ==
+        'granted';
   }
 
   static Future<String> requestPermissionStatus({
     Duration timeout = const Duration(seconds: 5),
+    bool forcePrompt = false,
   }) async {
     _permissionStatus = _currentPermissionStatus();
 
@@ -35,7 +41,12 @@ class WebNotificationService {
       return _permissionStatus;
     }
 
-    if (_permissionRequested) return _permissionStatus;
+    // The latch keeps background callers from re-prompting on every app load.
+    // An explicit "Enable Notifications" tap must get past it: dismissing the
+    // iOS prompt resolves as 'default' and sets the latch, so without
+    // forcePrompt the user's second tap would short-circuit here and never
+    // reach the system prompt again.
+    if (_permissionRequested && !forcePrompt) return _permissionStatus;
 
     try {
       final permission = await html.Notification.requestPermission().timeout(

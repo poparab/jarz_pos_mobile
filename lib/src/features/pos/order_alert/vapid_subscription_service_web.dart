@@ -13,11 +13,19 @@ import 'web_push_paths.dart';
 class VapidSubscriptionService {
   static final Logger _logger = Logger('VapidSubscriptionService');
 
+  /// The application server key is a stable per-site value, so it is fetched
+  /// once per session. On iOS this also keeps a retry from spending another
+  /// network round-trip between the tap and `subscribe()`.
+  static String? _cachedPublicKey;
+
   /// Requests a new VAPID web push subscription.
   ///
-  /// Must be called from a user gesture (e.g. button tap) if notification
-  /// permission has not been granted yet. Once granted, it can be called
-  /// silently on subsequent app loads via [subscribeIfPermissionGranted].
+  /// Notification permission must ALREADY be granted. iOS Safari does not
+  /// prompt from `pushManager.subscribe()` the way Chrome does — with
+  /// permission still `default` the subscribe promise never settles, which at
+  /// the call site is indistinguishable from a network stall. The caller
+  /// (`OrderAlertBridge.enableWebPushNotifications`) is responsible for calling
+  /// `Notification.requestPermission()` first, inside the tap gesture.
   static Future<VapidSubscriptionResult> requestSubscription({
     required OrderAlertService service,
   }) async {
@@ -29,21 +37,19 @@ class VapidSubscriptionService {
   static Future<VapidSubscriptionResult> subscribeIfPermissionGranted({
     required OrderAlertService service,
   }) async {
-    try {
-      final permission = js_util.getProperty<Object?>(
-        js_util.getProperty<Object>(html.window, 'Notification') as Object,
-        'permission',
-      )?.toString();
-      if (permission != 'granted') {
-        return const VapidSubscriptionResult(
-          status: VapidSubscriptionStatus.permissionDenied,
-          message: 'Notification permission not yet granted.',
-        );
-      }
-    } catch (_) {
+    final permission = _permissionStatus();
+    if (permission == 'unsupported') {
       return const VapidSubscriptionResult(
         status: VapidSubscriptionStatus.unsupported,
         message: 'Notification API not available.',
+        failingStep: 'permission',
+      );
+    }
+    if (permission != 'granted') {
+      return const VapidSubscriptionResult(
+        status: VapidSubscriptionStatus.permissionDenied,
+        message: 'Notification permission not yet granted.',
+        failingStep: 'permission',
       );
     }
     return _doSubscribe(service: service);
@@ -59,15 +65,37 @@ class VapidSubscriptionService {
       return const VapidSubscriptionResult(
         status: VapidSubscriptionStatus.unsupported,
         message: 'Service Worker API not available — upgrade to a modern browser.',
+        failingStep: 'service_worker_support',
       );
     }
 
-    try {
-      // 2. Fetch VAPID public key from backend
-      final publicKey = await service.fetchVapidPublicKey()
-          .timeout(const Duration(seconds: 10));
+    // 2. Refuse to subscribe without permission.
+    //
+    // This guard is the difference between a clear message and a 30-second
+    // hang. WebKit does not surface the permission prompt from inside
+    // `pushManager.subscribe()`, and with permission at `default` it leaves the
+    // returned promise pending rather than rejecting — so the only symptom the
+    // user ever saw was "Push subscription timed out", which points at the
+    // network instead of at the missing permission.
+    final permission = _permissionStatus();
+    if (permission != 'granted') {
+      return VapidSubscriptionResult(
+        status: VapidSubscriptionStatus.permissionDenied,
+        message: permission == 'denied'
+            ? 'Notifications are blocked for this app. Delete and re-add the Home Screen app, then choose Allow.'
+            : 'Notification permission was not granted. Tap Enable Notifications again and choose Allow.',
+        failingStep: 'permission',
+      );
+    }
 
-      // 3. Get the dedicated Firebase messaging service worker registration.
+    var step = 'key_fetch';
+    try {
+      // 3. Fetch VAPID public key from backend (cached after the first call)
+      final publicKey = _cachedPublicKey ??
+          await service.fetchVapidPublicKey().timeout(const Duration(seconds: 10));
+      _cachedPublicKey = publicKey;
+
+      // 4. Get the dedicated Firebase messaging service worker registration.
       // The VAPID subscription MUST belong to firebase-messaging-sw.js — the only
       // worker with a `push` handler that calls showNotification. Flutter's own
       // flutter_service_worker.js controls the app scope and has no push handler,
@@ -77,40 +105,48 @@ class VapidSubscriptionService {
       // at a dedicated sub-scope makes it its own registration that is never
       // clobbered by Flutter's root worker and still receives pushes regardless
       // of which worker controls the page.
+      step = 'service_worker';
       final registration = await _ensurePushRegistration(swContainer)
           .timeout(const Duration(seconds: 15));
       if (registration == null) {
         return const VapidSubscriptionResult(
           status: VapidSubscriptionStatus.unsupported,
           message: 'Notification service worker is unavailable. On iOS, reopen the Home Screen app and try again.',
+          failingStep: 'service_worker',
         );
       }
 
-      // 4. Get PushManager
+      // 5. Get PushManager
       final pushManager = js_util.getProperty<Object?>(registration, 'pushManager');
       if (pushManager == null) {
         return const VapidSubscriptionResult(
           status: VapidSubscriptionStatus.unsupported,
           message: 'Push API not supported in this browser. On iOS, install the app to the Home Screen first.',
+          failingStep: 'push_manager',
         );
       }
 
-      // 4b. On an explicit user re-enable, drop any existing subscription first
+      // 6. On an explicit user re-enable, drop any existing subscription first
       // so we always bind to the CURRENT VAPID application server key. A
       // subscription created against a previous key (e.g. after a server re-key
       // or AMI clone) is rejected by the push service with VapidPkHashMismatch,
       // and subscribe() cannot overwrite a subscription bound to a different
       // key — it must be unsubscribed first. Silent re-registration keeps the
       // existing subscription (forceResubscribe = false) to avoid endpoint churn.
+      //
+      // Both calls are individually bounded: they reach the platform push
+      // daemon, and an unbounded await here would wedge the whole enable flow
+      // with no timeout to escape through and no message to show.
+      step = 'clear_existing';
       if (forceResubscribe) {
         try {
           final existing = await _promiseOrNull(
             js_util.callMethod<Object?>(pushManager, 'getSubscription', const []),
-          );
+          ).timeout(const Duration(seconds: 10));
           if (existing != null) {
             await _promiseOrNull(
               js_util.callMethod<Object?>(existing, 'unsubscribe', const []),
-            );
+            ).timeout(const Duration(seconds: 10));
             _logger.info('Cleared existing push subscription before re-subscribing');
           }
         } catch (error) {
@@ -120,16 +156,18 @@ class VapidSubscriptionService {
         }
       }
 
-      // 5. Convert VAPID public key (base64url) to JS Uint8Array
+      // 7. Convert VAPID public key (base64url) to JS Uint8Array
       final keyBytes = _base64UrlDecode(publicKey);
       final keyArray = _toJsUint8Array(keyBytes);
 
-      // 6. Build subscribe options
+      // 8. Build subscribe options
       final options = js_util.newObject<Object>();
       js_util.setProperty(options, 'userVisibleOnly', true);
       js_util.setProperty(options, 'applicationServerKey', keyArray);
 
-      // 7. Subscribe — on iOS this shows the system notification prompt if not already granted
+      // 9. Subscribe — permission is already granted, so this is a straight
+      // round-trip to the push service with no prompt in the way.
+      step = 'subscribe';
       final subscribePromise = js_util.callMethod<Object>(
         pushManager as Object,
         'subscribe',
@@ -139,7 +177,7 @@ class VapidSubscriptionService {
           .promiseToFuture<Object>(subscribePromise)
           .timeout(const Duration(seconds: 30));
 
-      // 8. Serialize to JSON string
+      // 10. Serialize to JSON string
       final jsonObj = js_util.callMethod<Object>(subscription, 'toJSON', []);
       final jsonStr = js_util.callMethod<String>(
         js_util.getProperty<Object>(html.window, 'JSON') as Object,
@@ -155,10 +193,13 @@ class VapidSubscriptionService {
         browser: _detectBrowserHint(),
       );
     } on TimeoutException catch (e) {
-      _logger.warning('VAPID subscription timed out: $e');
+      // A stalled key fetch is worth retrying from scratch.
+      if (step == 'key_fetch') _cachedPublicKey = null;
+      _logger.warning('VAPID subscription timed out at $step: $e');
       return VapidSubscriptionResult(
         status: VapidSubscriptionStatus.failed,
-        message: 'Push subscription timed out. Check your connection and try again.',
+        message: 'Push subscription timed out at "$step". Check your connection and try again.',
+        failingStep: step,
       );
     } catch (error) {
       final errorStr = error.toString().toLowerCase();
@@ -168,17 +209,32 @@ class VapidSubscriptionService {
         return const VapidSubscriptionResult(
           status: VapidSubscriptionStatus.permissionDenied,
           message: 'Notification permission was denied.',
+          failingStep: 'permission',
         );
       }
-      _logger.error('VAPID subscription failed', error, StackTrace.current);
+      if (step == 'key_fetch') _cachedPublicKey = null;
+      _logger.error('VAPID subscription failed at $step', error, StackTrace.current);
       return VapidSubscriptionResult(
         status: VapidSubscriptionStatus.failed,
-        message: 'Failed to create web push subscription: ${_sanitizeError(error)}',
+        message: 'Failed to create web push subscription at "$step": ${_sanitizeError(error)}',
+        failingStep: step,
       );
     }
   }
 
   // ── Private helpers ──────────────────────────────────────────────────────
+
+  /// `Notification.permission`, or `unsupported` when the API is missing.
+  static String _permissionStatus() {
+    try {
+      final notification = js_util.getProperty<Object?>(html.window, 'Notification');
+      if (notification == null) return 'unsupported';
+      return js_util.getProperty<Object?>(notification, 'permission')?.toString() ??
+          'default';
+    } catch (_) {
+      return 'unsupported';
+    }
+  }
 
   static Object? _serviceWorkerContainer() {
     try {

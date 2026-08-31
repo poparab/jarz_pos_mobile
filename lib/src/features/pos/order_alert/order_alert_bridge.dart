@@ -231,6 +231,30 @@ class OrderAlertBridge {
     }
 
     try {
+      // Permission FIRST, before any other await.
+      //
+      // iOS requires Notification.requestPermission() to be the first async
+      // call triggered by the user tap — the gesture does not survive a network
+      // round-trip. It also has to happen before pushManager.subscribe(), which
+      // on WebKit does not prompt on its own: with permission at `default` that
+      // promise simply never settles, and the only thing the user saw was a
+      // 30-second "Push subscription timed out". The timeout is generous
+      // because it is a human answering a native modal, not a network call.
+      final permission = await WebNotificationService.requestPermissionStatus(
+        timeout: const Duration(seconds: 60),
+        forcePrompt: true,
+      );
+      if (permission != 'granted') {
+        _logger.warning('Web push enable stopped at permission: $permission');
+        return webPushPermissionNotGrantedResult(
+          permission,
+          diagnostics: WebPushRegistrationService.captureEmergencyDiagnostics(
+            failingStep: 'permission_prompt',
+            failureReason: 'permission_not_granted',
+          ),
+        );
+      }
+
       // VAPID: standard W3C push — works on iOS Safari PWA, Chrome, Firefox, Edge.
       // No Apple Developer account required.
       final vapidResult = await VapidSubscriptionService.requestSubscription(
@@ -238,7 +262,14 @@ class OrderAlertBridge {
       );
 
       if (vapidResult.status == VapidSubscriptionStatus.permissionDenied) {
-        return webPushPermissionNotGrantedResult('denied');
+        return webPushPermissionNotGrantedResult(
+          'denied',
+          diagnostics: WebPushRegistrationService.captureEmergencyDiagnostics(
+            failingStep: vapidResult.failingStep ?? 'vapid_permission',
+            failureReason: 'vapid_permission_denied',
+            error: vapidResult.message,
+          ),
+        );
       }
 
       if (vapidResult.isSuccess && vapidResult.subscriptionJson != null) {
@@ -270,10 +301,23 @@ class OrderAlertBridge {
         return fcmResult.asRegistered();
       }
 
-      // Both failed — surface the VAPID failure message
+      // Both failed — surface the VAPID failure message, and carry the FCM
+      // diagnostics with it. Returning a bare message here is what made the
+      // last iOS report undiagnosable: the screen only prints a diagnostics
+      // line when the result has one, so a VAPID failure showed the release
+      // stamp and nothing about which step actually broke.
       return WebPushRegistrationResult(
         status: WebPushRegistrationStatus.failed,
         message: vapidResult.message,
+        diagnostics: (fcmResult.diagnostics ??
+                WebPushRegistrationService.captureEmergencyDiagnostics(
+                  failingStep: 'vapid_subscribe',
+                ))
+            .copyWith(
+          failingStep: 'vapid_${vapidResult.failingStep ?? 'unknown'}',
+          failureReason: 'vapid_subscription_failed',
+          errorSummary: vapidResult.message,
+        ),
       );
     } catch (error, stackTrace) {
       _logger.error('Failed to enable web push', error, stackTrace);
