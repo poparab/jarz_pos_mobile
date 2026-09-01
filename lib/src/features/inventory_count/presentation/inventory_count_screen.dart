@@ -13,6 +13,7 @@ import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../manager/state/manager_providers.dart';
 import '../data/inventory_count_service.dart';
+import 'widgets/inventory_count_history.dart';
 
 enum _InventoryCountStep { setup, blindEntry, review }
 
@@ -1231,6 +1232,20 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                 ),
           title: Text(l10n.menuInventoryCount),
           actions: [
+            // Setup step only. Past counts carry the system quantity each one
+            // corrected, and for a slow-moving item that is close enough to
+            // today's expected figure to defeat the blind entry step — so the
+            // history is reachable before a count starts, not during it.
+            if (_currentStep == _InventoryCountStep.setup)
+              IconButton(
+                tooltip: l10n.inventoryCountHistoryTitle,
+                icon: const Icon(Icons.history),
+                onPressed: () => InventoryCountHistory.show(
+                  context,
+                  ref,
+                  warehouse: _selectedWarehouse,
+                ),
+              ),
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: _loading || _selectedWarehouse == null ? null : _loadItems,

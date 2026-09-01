@@ -254,5 +254,90 @@ void main() {
         expect(requests.first['data'].containsKey('posting_date'), isFalse);
       });
     });
+
+    group('listTransfers', () {
+      const path = '/api/method/jarz_pos.api.transfer.list_transfers';
+
+      test('unwraps the rows and the filtered total', () async {
+        mockDio.setResponse(path, {
+          'message': {
+            'transfers': [
+              {'name': 'MAT-STE-0001', 'total_qty': 5.0, 'items': []},
+            ],
+            'total': 12,
+          },
+        });
+
+        final result = await service.listTransfers();
+
+        expect(result.transfers, hasLength(1));
+        expect(result.transfers.first['name'], equals('MAT-STE-0001'));
+        expect(result.total, equals(12),
+            reason: 'the sheet pages against total, not the row count');
+      });
+
+      test('falls back to the row count when total is missing', () async {
+        mockDio.setResponse(path, {
+          'message': {
+            'transfers': [
+              {'name': 'A'},
+              {'name': 'B'},
+            ],
+          },
+        });
+
+        final result = await service.listTransfers();
+
+        expect(result.total, equals(2));
+      });
+
+      test('returns nothing rather than throwing on an unexpected shape',
+          () async {
+        mockDio.setResponse(path, {'message': 'nope'});
+
+        final result = await service.listTransfers();
+
+        expect(result.transfers, isEmpty);
+        expect(result.total, equals(0));
+      });
+
+      test('omits filters that were not supplied', () async {
+        mockDio.setResponse(path, {
+          'message': {'transfers': [], 'total': 0},
+        });
+
+        await service.listTransfers(limit: 10, page: 2);
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data['limit'], equals(10));
+        expect(data['page'], equals(2));
+        expect(data.containsKey('source_warehouse'), isFalse);
+        expect(data.containsKey('from_date'), isFalse);
+        expect(data.containsKey('search'), isFalse);
+      });
+
+      test('sends every filter it is given, and drops an empty search',
+          () async {
+        mockDio.setResponse(path, {
+          'message': {'transfers': [], 'total': 0},
+        });
+
+        await service.listTransfers(
+          sourceWarehouse: 'Stores - J',
+          targetWarehouse: 'Finished Goods - J',
+          fromDate: '2026-01-01',
+          toDate: '2026-01-31',
+          search: '',
+        );
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data['source_warehouse'], equals('Stores - J'));
+        expect(data['target_warehouse'], equals('Finished Goods - J'));
+        expect(data['from_date'], equals('2026-01-01'));
+        expect(data['to_date'], equals('2026-01-31'));
+        expect(data.containsKey('search'), isFalse,
+            reason: 'an empty box must not narrow the results');
+      });
+    });
   });
 }

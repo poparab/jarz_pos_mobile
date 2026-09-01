@@ -292,5 +292,62 @@ void main() {
         expect(payload.containsKey('posting_date'), isFalse);
       });
     });
+
+    group('listReconciliations', () {
+      const path =
+          '/api/method/jarz_pos.api.inventory_count.list_reconciliations';
+
+      test('unwraps the counts and the filtered total', () async {
+        mockDio.setResponse(path, {
+          'message': {
+            'counts': [
+              {
+                'name': 'MAT-RECO-0001',
+                'warehouse': 'Dokki - J',
+                'item_count': 4,
+                'increase_count': 1,
+                'decrease_count': 3,
+                'items': [],
+              },
+            ],
+            'total': 9,
+          },
+        });
+
+        final result = await service.listReconciliations();
+
+        expect(result.counts, hasLength(1));
+        expect(result.counts.first['warehouse'], equals('Dokki - J'));
+        expect(result.total, equals(9));
+      });
+
+      test('returns nothing rather than throwing on an unexpected shape',
+          () async {
+        mockDio.setResponse(path, {'message': 'nope'});
+
+        final result = await service.listReconciliations();
+
+        expect(result.counts, isEmpty);
+        expect(result.total, equals(0));
+      });
+
+      test('sends only the filters it is given', () async {
+        mockDio.setResponse(path, {
+          'message': {'counts': [], 'total': 0},
+        });
+
+        await service.listReconciliations(
+          warehouse: 'Dokki - J',
+          toDate: '2026-01-31',
+          search: '',
+        );
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data['warehouse'], equals('Dokki - J'));
+        expect(data['to_date'], equals('2026-01-31'));
+        expect(data.containsKey('from_date'), isFalse);
+        expect(data.containsKey('search'), isFalse);
+      });
+    });
   });
 }

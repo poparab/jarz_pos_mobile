@@ -8,6 +8,7 @@ import '../../../core/network/user_service.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../manager/state/manager_providers.dart';
+import '../../shift/presentation/widgets/shift_history.dart';
 import '../models/shift_monitor_models.dart';
 import 'force_close_shift_dialog.dart';
 import 'providers/shift_monitor_providers.dart';
@@ -34,6 +35,13 @@ class ShiftMonitorScreen extends ConsumerWidget {
         ),
         title: Text(l10n.shiftMonitorTitle),
         actions: [
+          // The monitor lists only what is still open, so a closed shift used
+          // to leave the app for good.
+          IconButton(
+            tooltip: l10n.shiftHistoryTitle,
+            onPressed: () => ShiftHistory.show(context, ref),
+            icon: const Icon(Icons.history),
+          ),
           IconButton(
             tooltip: l10n.commonRetry,
             onPressed: () => ref.invalidate(shiftMonitorDataProvider),

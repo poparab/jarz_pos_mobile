@@ -5827,5 +5827,62 @@
   "receiptRejectConfirm": "Reject receipt",
   "receiptRejected": "Receipt rejected",
   "receiptRejectedStatus": "Rejected",
-  "receiptRejectionReason": "Rejection reason"
+  "receiptRejectionReason": "Rejection reason",
+  "historyDateRangeAll": "All dates",
+  "historyDateRangeValue": "{from} - {to}",
+  "@historyDateRangeValue": {
+    "placeholders": {
+      "from": {},
+      "to": {}
+    }
+  },
+  "stockTransferHistoryTitle": "Transfer history",
+  "stockTransferHistorySearchHint": "Entry no. or item",
+  "stockTransferHistoryEmpty": "No stock transfers yet.",
+  "stockTransferHistoryRoute": "{source} to {target}",
+  "@stockTransferHistoryRoute": {
+    "placeholders": {
+      "source": {},
+      "target": {}
+    }
+  },
+  "stockTransferHistoryMixed": "Multiple warehouses",
+  "stockTransferHistorySummary": "{items} items, {qty} units",
+  "@stockTransferHistorySummary": {
+    "placeholders": {
+      "items": {},
+      "qty": {}
+    }
+  },
+  "cashTransferHistoryTitle": "Cash transfer history",
+  "cashTransferHistorySearchHint": "Entry no. or remark",
+  "cashTransferHistoryEmpty": "No cash transfers yet.",
+  "inventoryCountHistoryTitle": "Count history",
+  "inventoryCountHistorySearchHint": "Count no. or item",
+  "inventoryCountHistoryEmpty": "No stock counts yet.",
+  "inventoryCountHistoryAdjusted": "{items} items adjusted",
+  "inventoryCountHistoryDeltas": "{up} up, {down} down",
+  "@inventoryCountHistoryDeltas": {
+    "placeholders": {
+      "up": {},
+      "down": {}
+    }
+  },
+  "inventoryCountHistoryValueChange": "Value change",
+  "shiftHistoryTitle": "Shift history",
+  "shiftHistoryEmpty": "No shifts yet.",
+  "shiftHistoryStatusOpen": "Open",
+  "shiftHistoryStatusClosed": "Closed",
+  "shiftHistoryAmountsHidden": "Amounts are shown to managers only.",
+  "shiftHistoryDifference": "Over / short",
+  "shiftHistoryMineOnly": "My shifts only",
+  "shiftHistoryStillOpen": "Still open",
+  "shiftHistoryDuration": "{start} to {end}",
+  "@shiftHistoryDuration": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "shiftHistoryOpenedBy": "Opened by {name}"
 }

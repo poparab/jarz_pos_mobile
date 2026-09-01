@@ -16394,6 +16394,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rejection reason'**
   String get receiptRejectionReason;
+
+  /// No description provided for @historyDateRangeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All dates'**
+  String get historyDateRangeAll;
+
+  /// No description provided for @historyDateRangeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} - {to}'**
+  String historyDateRangeValue(Object from, Object to);
+
+  /// No description provided for @stockTransferHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer history'**
+  String get stockTransferHistoryTitle;
+
+  /// No description provided for @stockTransferHistorySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry no. or item'**
+  String get stockTransferHistorySearchHint;
+
+  /// No description provided for @stockTransferHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No stock transfers yet.'**
+  String get stockTransferHistoryEmpty;
+
+  /// No description provided for @stockTransferHistoryRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'{source} to {target}'**
+  String stockTransferHistoryRoute(Object source, Object target);
+
+  /// No description provided for @stockTransferHistoryMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple warehouses'**
+  String get stockTransferHistoryMixed;
+
+  /// No description provided for @stockTransferHistorySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{items} items, {qty} units'**
+  String stockTransferHistorySummary(Object items, Object qty);
+
+  /// No description provided for @cashTransferHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash transfer history'**
+  String get cashTransferHistoryTitle;
+
+  /// No description provided for @cashTransferHistorySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry no. or remark'**
+  String get cashTransferHistorySearchHint;
+
+  /// No description provided for @cashTransferHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No cash transfers yet.'**
+  String get cashTransferHistoryEmpty;
+
+  /// No description provided for @inventoryCountHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Count history'**
+  String get inventoryCountHistoryTitle;
+
+  /// No description provided for @inventoryCountHistorySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Count no. or item'**
+  String get inventoryCountHistorySearchHint;
+
+  /// No description provided for @inventoryCountHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No stock counts yet.'**
+  String get inventoryCountHistoryEmpty;
+
+  /// No description provided for @inventoryCountHistoryAdjusted.
+  ///
+  /// In en, this message translates to:
+  /// **'{items} items adjusted'**
+  String inventoryCountHistoryAdjusted(Object items);
+
+  /// No description provided for @inventoryCountHistoryDeltas.
+  ///
+  /// In en, this message translates to:
+  /// **'{up} up, {down} down'**
+  String inventoryCountHistoryDeltas(Object up, Object down);
+
+  /// No description provided for @inventoryCountHistoryValueChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Value change'**
+  String get inventoryCountHistoryValueChange;
+
+  /// No description provided for @shiftHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift history'**
+  String get shiftHistoryTitle;
+
+  /// No description provided for @shiftHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No shifts yet.'**
+  String get shiftHistoryEmpty;
+
+  /// No description provided for @shiftHistoryStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get shiftHistoryStatusOpen;
+
+  /// No description provided for @shiftHistoryStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get shiftHistoryStatusClosed;
+
+  /// No description provided for @shiftHistoryAmountsHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Amounts are shown to managers only.'**
+  String get shiftHistoryAmountsHidden;
+
+  /// No description provided for @shiftHistoryDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Over / short'**
+  String get shiftHistoryDifference;
+
+  /// No description provided for @shiftHistoryMineOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'My shifts only'**
+  String get shiftHistoryMineOnly;
+
+  /// No description provided for @shiftHistoryStillOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Still open'**
+  String get shiftHistoryStillOpen;
+
+  /// No description provided for @shiftHistoryDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String shiftHistoryDuration(Object start, Object end);
+
+  /// No description provided for @shiftHistoryOpenedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Opened by {name}'**
+  String shiftHistoryOpenedBy(Object name);
 }
 
 class _AppLocalizationsDelegate

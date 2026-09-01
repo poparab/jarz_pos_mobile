@@ -85,6 +85,54 @@ class ShiftRepository {
     throw Exception('Unexpected shift summary response');
   }
 
+  /// Past shifts, newest first.
+  ///
+  /// `amountsHidden` mirrors the server's decision: a non-manager gets their
+  /// own shifts with dates, profile and status but no money, because
+  /// [getShiftSummary] withholds those figures from the closing cashier on
+  /// purpose and a history that handed them back would undo that.
+  Future<({List<Map<String, dynamic>> shifts, int total, bool amountsHidden})>
+      listShifts({
+    int limit = 30,
+    int page = 0,
+    String? posProfile,
+    String? status,
+    String? fromDate,
+    String? toDate,
+    bool mineOnly = false,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.listShifts,
+        data: {
+          'limit': limit,
+          'page': page,
+          if (posProfile != null && posProfile.isNotEmpty)
+            'pos_profile': posProfile,
+          if (status != null && status.isNotEmpty) 'status': status,
+          if (fromDate != null) 'from_date': fromDate,
+          if (toDate != null) 'to_date': toDate,
+          'mine_only': mineOnly ? 1 : 0,
+        },
+      );
+      final message = response.data is Map ? response.data['message'] : null;
+      final map = message is Map
+          ? Map<String, dynamic>.from(message)
+          : <String, dynamic>{};
+      final rows = (map['shifts'] as List?) ?? const [];
+      return (
+        shifts: rows
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList(),
+        total: (map['total'] as num?)?.toInt() ?? rows.length,
+        amountsHidden: ((map['amounts_hidden'] as num?)?.toInt() ?? 1) == 1,
+      );
+    } catch (e) {
+      throw _mapApiException(e, fallback: 'Failed to load shift history');
+    }
+  }
+
   /// Close the shift.
   ///
   /// [acknowledgedCourierTransactions] is the set of Courier Transaction names

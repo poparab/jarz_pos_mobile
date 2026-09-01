@@ -9738,4 +9738,99 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get receiptRejectionReason => 'سبب الرفض';
+
+  @override
+  String get historyDateRangeAll => 'كل التواريخ';
+
+  @override
+  String historyDateRangeValue(Object from, Object to) {
+    return '$from - $to';
+  }
+
+  @override
+  String get stockTransferHistoryTitle => 'سجل التحويلات';
+
+  @override
+  String get stockTransferHistorySearchHint => 'رقم القيد أو الصنف';
+
+  @override
+  String get stockTransferHistoryEmpty => 'لا توجد تحويلات مخزون بعد.';
+
+  @override
+  String stockTransferHistoryRoute(Object source, Object target) {
+    return 'من $source إلى $target';
+  }
+
+  @override
+  String get stockTransferHistoryMixed => 'مخازن متعددة';
+
+  @override
+  String stockTransferHistorySummary(Object items, Object qty) {
+    return '$items صنف، $qty وحدة';
+  }
+
+  @override
+  String get cashTransferHistoryTitle => 'سجل التحويلات النقدية';
+
+  @override
+  String get cashTransferHistorySearchHint => 'رقم القيد أو الملاحظة';
+
+  @override
+  String get cashTransferHistoryEmpty => 'لا توجد تحويلات نقدية بعد.';
+
+  @override
+  String get inventoryCountHistoryTitle => 'سجل الجرد';
+
+  @override
+  String get inventoryCountHistorySearchHint => 'رقم الجرد أو الصنف';
+
+  @override
+  String get inventoryCountHistoryEmpty => 'لا توجد عمليات جرد بعد.';
+
+  @override
+  String inventoryCountHistoryAdjusted(Object items) {
+    return 'تم تعديل $items صنف';
+  }
+
+  @override
+  String inventoryCountHistoryDeltas(Object up, Object down) {
+    return '$up زيادة، $down نقص';
+  }
+
+  @override
+  String get inventoryCountHistoryValueChange => 'تغير القيمة';
+
+  @override
+  String get shiftHistoryTitle => 'سجل الورديات';
+
+  @override
+  String get shiftHistoryEmpty => 'لا توجد ورديات بعد.';
+
+  @override
+  String get shiftHistoryStatusOpen => 'مفتوحة';
+
+  @override
+  String get shiftHistoryStatusClosed => 'مغلقة';
+
+  @override
+  String get shiftHistoryAmountsHidden => 'المبالغ تظهر للمديرين فقط.';
+
+  @override
+  String get shiftHistoryDifference => 'زيادة / عجز';
+
+  @override
+  String get shiftHistoryMineOnly => 'وردياتي فقط';
+
+  @override
+  String get shiftHistoryStillOpen => 'ما زالت مفتوحة';
+
+  @override
+  String shiftHistoryDuration(Object start, Object end) {
+    return 'من $start إلى $end';
+  }
+
+  @override
+  String shiftHistoryOpenedBy(Object name) {
+    return 'فتحها $name';
+  }
 }

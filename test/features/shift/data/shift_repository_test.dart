@@ -453,5 +453,95 @@ void main() {
         );
       });
     });
+
+    // ── listShifts ────────────────────────────────────────────────────
+
+    group('listShifts', () {
+      test('reports the manager view: rows, total, and amounts visible',
+          () async {
+        mockDio.setResponse(
+          ApiEndpoints.listShifts,
+          createSuccessResponse(data: {
+            'shifts': [
+              {
+                'opening_entry': 'POS-OPE-0001',
+                'closing_entry': 'POS-CLO-0001',
+                'pos_profile': 'Dokki',
+                'is_open': false,
+                'grand_total': 5000.0,
+                'difference': -50.0,
+              },
+            ],
+            'total': 19,
+            'amounts_hidden': 0,
+          }),
+        );
+
+        final result = await repo.listShifts();
+
+        expect(result.shifts, hasLength(1));
+        expect(result.total, equals(19));
+        expect(result.amountsHidden, isFalse);
+        expect(result.shifts.first['difference'], equals(-50.0));
+      });
+
+      test('treats a missing amounts_hidden flag as hidden', () async {
+        // Fail closed: a response that does not say amounts are allowed must
+        // not be read as permission to show them.
+        mockDio.setResponse(
+          ApiEndpoints.listShifts,
+          createSuccessResponse(data: {'shifts': [], 'total': 0}),
+        );
+
+        final result = await repo.listShifts();
+
+        expect(result.amountsHidden, isTrue);
+      });
+
+      test('falls back to the row count when total is missing', () async {
+        mockDio.setResponse(
+          ApiEndpoints.listShifts,
+          createSuccessResponse(data: {
+            'shifts': [
+              {'opening_entry': 'A'},
+              {'opening_entry': 'B'},
+            ],
+            'amounts_hidden': 1,
+          }),
+        );
+
+        final result = await repo.listShifts();
+
+        expect(result.total, equals(2));
+      });
+
+      test('sends mine_only as an int flag and omits unset filters', () async {
+        mockDio.setResponse(
+          ApiEndpoints.listShifts,
+          createSuccessResponse(data: {'shifts': [], 'total': 0}),
+        );
+
+        await repo.listShifts(limit: 10, page: 1, mineOnly: true);
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data['limit'], equals(10));
+        expect(data['page'], equals(1));
+        expect(data['mine_only'], equals(1));
+        expect(data.containsKey('pos_profile'), isFalse);
+        expect(data.containsKey('from_date'), isFalse);
+      });
+
+      test('always sends mine_only, even when false', () async {
+        mockDio.setResponse(
+          ApiEndpoints.listShifts,
+          createSuccessResponse(data: {'shifts': [], 'total': 0}),
+        );
+
+        await repo.listShifts();
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data['mine_only'], equals(0));
+      });
+    });
   });
 }

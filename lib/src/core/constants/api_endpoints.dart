@@ -91,6 +91,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.shift.get_force_close_preview';
   static const forceCloseShift =
       '/api/method/jarz_pos.api.shift.force_close_shift';
+  /// Past shifts, newest first. Amounts come back only for managers.
+  static const listShifts = '/api/method/jarz_pos.api.shift.list_shifts';
 
   // ── Kanban ────────────────────────────────────────────────────────────
   static const getKanbanColumns =
@@ -252,12 +254,16 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.transfer.search_items_with_stock';
   static const submitTransfer =
       '/api/method/jarz_pos.api.transfer.submit_transfer';
+  static const transferListHistory =
+      '/api/method/jarz_pos.api.transfer.list_transfers';
 
   // ── Cash Transfer ─────────────────────────────────────────────────────
   static const cashTransferListAccounts =
       '/api/method/jarz_pos.api.cash_transfer.list_accounts';
   static const cashTransferSubmit =
       '/api/method/jarz_pos.api.cash_transfer.submit_transfer';
+  static const cashTransferListHistory =
+      '/api/method/jarz_pos.api.cash_transfer.list_transfers';
 
   // ── Manufacturing / Production ────────────────────────────────────────
   static const getProductionSuggestions =
@@ -337,6 +343,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.inventory_count.list_items_for_count';
   static const submitReconciliation =
       '/api/method/jarz_pos.api.inventory_count.submit_reconciliation';
+  static const listReconciliations =
+      '/api/method/jarz_pos.api.inventory_count.list_reconciliations';
 
   // ── Expenses ──────────────────────────────────────────────────────────
   static const getExpenseBootstrap =

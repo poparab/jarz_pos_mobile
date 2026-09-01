@@ -189,5 +189,59 @@ void main() {
         expect(data.containsKey('remark'), isFalse);
       });
     });
+
+    group('listTransfers', () {
+      const path = '/api/method/jarz_pos.api.cash_transfer.list_transfers';
+
+      test('unwraps the rows and the filtered total', () async {
+        mockDio.setResponse(path, {
+          'message': {
+            'transfers': [
+              {
+                'name': 'ACC-JV-0001',
+                'from_account': 'Cash - J',
+                'to_account': 'Bank Account - J',
+                'amount': 500.0,
+              },
+            ],
+            'total': 3,
+          },
+        });
+
+        final result = await service.listTransfers();
+
+        expect(result.transfers, hasLength(1));
+        expect(result.transfers.first['from_account'], equals('Cash - J'));
+        expect(result.total, equals(3));
+      });
+
+      test('returns nothing rather than throwing on an unexpected shape',
+          () async {
+        mockDio.setResponse(path, {'message': 'nope'});
+
+        final result = await service.listTransfers();
+
+        expect(result.transfers, isEmpty);
+        expect(result.total, equals(0));
+      });
+
+      test('sends only the filters it is given', () async {
+        mockDio.setResponse(path, {
+          'message': {'transfers': [], 'total': 0},
+        });
+
+        await service.listTransfers(
+          account: 'Cash - J',
+          fromDate: '2026-01-01',
+          search: '',
+        );
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data['account'], equals('Cash - J'));
+        expect(data['from_date'], equals('2026-01-01'));
+        expect(data.containsKey('to_date'), isFalse);
+        expect(data.containsKey('search'), isFalse);
+      });
+    });
   });
 }

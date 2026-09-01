@@ -8,6 +8,7 @@ import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../manager/state/manager_providers.dart';
 import '../data/stock_transfer_service.dart';
+import 'widgets/stock_transfer_history.dart';
 
 class StockTransferScreen extends ConsumerStatefulWidget {
   const StockTransferScreen({super.key});
@@ -57,7 +58,16 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
     final isPhone = ResponsiveUtils.isPhone(context);
     final padding = ResponsiveUtils.getResponsivePadding(context, small: 10, medium: 12, large: 12);
 
-    final appBar = AppBar(title: Text(l10n.stockTransferTitle));
+    final appBar = AppBar(
+      title: Text(l10n.stockTransferTitle),
+      actions: [
+        IconButton(
+          tooltip: l10n.stockTransferHistoryTitle,
+          icon: const Icon(Icons.history),
+          onPressed: () => StockTransferHistory.show(context, ref),
+        ),
+      ],
+    );
 
     final leftPanel = Padding(
       padding: padding,

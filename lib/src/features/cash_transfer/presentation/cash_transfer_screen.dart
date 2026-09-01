@@ -6,6 +6,7 @@ import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../manager/state/manager_providers.dart';
 import '../data/cash_transfer_service.dart';
+import 'widgets/cash_transfer_history.dart';
 
 class CashTransferScreen extends ConsumerStatefulWidget {
   const CashTransferScreen({super.key});
@@ -108,7 +109,16 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
     final fromAfter = fromBal - amt;
     final toAfter = toBal + amt;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.menuCashTransfer)),
+      appBar: AppBar(
+        title: Text(l10n.menuCashTransfer),
+        actions: [
+          IconButton(
+            tooltip: l10n.cashTransferHistoryTitle,
+            icon: const Icon(Icons.history),
+            onPressed: () => CashTransferHistory.show(context, ref),
+          ),
+        ],
+      ),
       drawer: const AppDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(12),

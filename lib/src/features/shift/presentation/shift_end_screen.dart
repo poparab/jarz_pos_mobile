@@ -9,6 +9,7 @@ import '../../auth/state/login_notifier.dart';
 import '../../pos/presentation/widgets/courier_balances_dialog.dart';
 import '../models/shift_models.dart';
 import '../state/shift_notifier.dart';
+import 'widgets/shift_history.dart';
 
 String _normalizeShiftError(String error) {
   return error.replaceFirst(RegExp(r'^Exception:\s*'), '').trim();
@@ -103,7 +104,18 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
     final activeShiftAsync = ref.watch(activeShiftProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.shiftEndTitle)),
+      appBar: AppBar(
+        title: Text(l10n.shiftEndTitle),
+        actions: [
+          // A cashier's own past shifts. Amounts stay server-side unless the
+          // viewer is a manager, so this does not undo the blind close.
+          IconButton(
+            tooltip: l10n.shiftHistoryTitle,
+            icon: const Icon(Icons.history),
+            onPressed: () => ShiftHistory.show(context, ref),
+          ),
+        ],
+      ),
       body: activeShiftAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(

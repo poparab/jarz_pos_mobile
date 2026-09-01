@@ -46,6 +46,42 @@ class StockTransferService {
     return [];
   }
 
+  /// Past Material Transfer entries, newest first.
+  ///
+  /// Returns `(transfers, total)`; `total` is the count matching the filters,
+  /// which is what the caller pages against.
+  Future<({List<Map<String, dynamic>> transfers, int total})> listTransfers({
+    int limit = 30,
+    int page = 0,
+    String? sourceWarehouse,
+    String? targetWarehouse,
+    String? fromDate,
+    String? toDate,
+    String? search,
+  }) async {
+    final resp = await _dio.post(ApiEndpoints.transferListHistory, data: {
+      'limit': limit,
+      'page': page,
+      if (sourceWarehouse != null) 'source_warehouse': sourceWarehouse,
+      if (targetWarehouse != null) 'target_warehouse': targetWarehouse,
+      if (fromDate != null) 'from_date': fromDate,
+      if (toDate != null) 'to_date': toDate,
+      if (search != null && search.isNotEmpty) 'search': search,
+    });
+    final payload = resp.data;
+    final message = (payload is Map && payload['message'] is Map)
+        ? Map<String, dynamic>.from(payload['message'] as Map)
+        : (payload is Map ? Map<String, dynamic>.from(payload) : <String, dynamic>{});
+    final rows = (message['transfers'] as List?) ?? const [];
+    return (
+      transfers: rows
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList(),
+      total: (message['total'] as num?)?.toInt() ?? rows.length,
+    );
+  }
+
   Future<Map<String, dynamic>> submitTransfer({
     required String sourceWarehouse,
     required String targetWarehouse,

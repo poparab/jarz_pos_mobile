@@ -52,6 +52,40 @@ class InventoryCountService {
     return [];
   }
 
+  /// Past stock counts, newest first.
+  ///
+  /// A submitted reconciliation only carries the lines that actually differed,
+  /// so this is the record of what each count corrected.
+  Future<({List<Map<String, dynamic>> counts, int total})> listReconciliations({
+    int limit = 30,
+    int page = 0,
+    String? warehouse,
+    String? fromDate,
+    String? toDate,
+    String? search,
+  }) async {
+    final resp = await _dio.post(ApiEndpoints.listReconciliations, data: {
+      'limit': limit,
+      'page': page,
+      if (warehouse != null) 'warehouse': warehouse,
+      if (fromDate != null) 'from_date': fromDate,
+      if (toDate != null) 'to_date': toDate,
+      if (search != null && search.isNotEmpty) 'search': search,
+    });
+    final payload = resp.data;
+    final message = (payload is Map && payload['message'] is Map)
+        ? Map<String, dynamic>.from(payload['message'] as Map)
+        : (payload is Map ? Map<String, dynamic>.from(payload) : <String, dynamic>{});
+    final rows = (message['counts'] as List?) ?? const [];
+    return (
+      counts: rows
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList(),
+      total: (message['total'] as num?)?.toInt() ?? rows.length,
+    );
+  }
+
   Future<Map<String, dynamic>> submitReconciliation({
     required String warehouse,
     required List<Map<String, dynamic>> lines,

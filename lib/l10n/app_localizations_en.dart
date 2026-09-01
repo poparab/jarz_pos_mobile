@@ -9774,4 +9774,99 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get receiptRejectionReason => 'Rejection reason';
+
+  @override
+  String get historyDateRangeAll => 'All dates';
+
+  @override
+  String historyDateRangeValue(Object from, Object to) {
+    return '$from - $to';
+  }
+
+  @override
+  String get stockTransferHistoryTitle => 'Transfer history';
+
+  @override
+  String get stockTransferHistorySearchHint => 'Entry no. or item';
+
+  @override
+  String get stockTransferHistoryEmpty => 'No stock transfers yet.';
+
+  @override
+  String stockTransferHistoryRoute(Object source, Object target) {
+    return '$source to $target';
+  }
+
+  @override
+  String get stockTransferHistoryMixed => 'Multiple warehouses';
+
+  @override
+  String stockTransferHistorySummary(Object items, Object qty) {
+    return '$items items, $qty units';
+  }
+
+  @override
+  String get cashTransferHistoryTitle => 'Cash transfer history';
+
+  @override
+  String get cashTransferHistorySearchHint => 'Entry no. or remark';
+
+  @override
+  String get cashTransferHistoryEmpty => 'No cash transfers yet.';
+
+  @override
+  String get inventoryCountHistoryTitle => 'Count history';
+
+  @override
+  String get inventoryCountHistorySearchHint => 'Count no. or item';
+
+  @override
+  String get inventoryCountHistoryEmpty => 'No stock counts yet.';
+
+  @override
+  String inventoryCountHistoryAdjusted(Object items) {
+    return '$items items adjusted';
+  }
+
+  @override
+  String inventoryCountHistoryDeltas(Object up, Object down) {
+    return '$up up, $down down';
+  }
+
+  @override
+  String get inventoryCountHistoryValueChange => 'Value change';
+
+  @override
+  String get shiftHistoryTitle => 'Shift history';
+
+  @override
+  String get shiftHistoryEmpty => 'No shifts yet.';
+
+  @override
+  String get shiftHistoryStatusOpen => 'Open';
+
+  @override
+  String get shiftHistoryStatusClosed => 'Closed';
+
+  @override
+  String get shiftHistoryAmountsHidden => 'Amounts are shown to managers only.';
+
+  @override
+  String get shiftHistoryDifference => 'Over / short';
+
+  @override
+  String get shiftHistoryMineOnly => 'My shifts only';
+
+  @override
+  String get shiftHistoryStillOpen => 'Still open';
+
+  @override
+  String shiftHistoryDuration(Object start, Object end) {
+    return '$start to $end';
+  }
+
+  @override
+  String shiftHistoryOpenedBy(Object name) {
+    return 'Opened by $name';
+  }
 }
