@@ -116,6 +116,27 @@ class DailyPlanService {
     }
   }
 
+  /// Calls the day off entirely.
+  ///
+  /// Distinct from [close], which records what was actually made. Closing a day
+  /// that never ran with zero counts would say the floor tried and produced
+  /// nothing, dragging down the realised-units-per-batch figure the plan exists
+  /// to measure. Cancelling also frees the date to be planned again.
+  Future<DailyPlan> cancel({
+    required String name,
+    required String reason,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.dailyPlanCancel,
+        data: {'name': name, 'reason': reason},
+      );
+      return DailyPlan.fromJson(_unwrap(resp.data, 'cancel plan'));
+    } catch (error) {
+      throw mapFrappeError(error, fallback: 'Failed to cancel the plan');
+    }
+  }
+
   Future<DailyPlan> getPlan(String name) async {
     try {
       final resp = await _dio.post(ApiEndpoints.dailyPlanGet, data: {'name': name});

@@ -153,6 +153,27 @@ class DailyPlanDraftNotifier extends Notifier<DailyPlanDraft> {
     return plan;
   }
 
+  /// Calls off the saved plan and empties the form.
+  ///
+  /// The draft is cleared rather than left showing the quantities that were
+  /// just cancelled: the point of cancelling is that the day gets planned
+  /// again from scratch, and leaving the old numbers on screen invites them to
+  /// be re-saved unchanged. The template is invalidated too, so
+  /// `existingPlan` no longer points at the cancelled document.
+  Future<DailyPlan> cancel(String reason) async {
+    final name = state.savedPlanName;
+    if (name == null || name.isEmpty) {
+      throw StateError('No saved plan to cancel');
+    }
+    final plan = await ref.read(dailyPlanServiceProvider).cancel(
+          name: name,
+          reason: reason,
+        );
+    clear();
+    ref.invalidate(dailyPlanTemplateProvider);
+    return plan;
+  }
+
   static bool _sameQuantities(Map<String, int> a, Map<String, int> b) {
     if (a.length != b.length) return false;
     for (final entry in a.entries) {

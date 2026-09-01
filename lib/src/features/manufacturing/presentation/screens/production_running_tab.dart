@@ -8,6 +8,7 @@ import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/ui/loading_overlay.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/widgets/reason_prompt_dialog.dart';
 import '../../../printing/pos_printer_provider.dart';
 import '../../../printing/pos_printer_service.dart'
     if (dart.library.html) '../../../printing/pos_printer_service_web.dart';
@@ -75,6 +76,12 @@ class ProductionRunningTab extends ConsumerWidget {
                             : null,
                         onReturnWip: canManageWip
                             ? () => _returnWip(context, ref, batch)
+                            : null,
+                        // Hidden once anything has been produced: the server
+                        // refuses that case outright, and the batch has to be
+                        // finished for what it actually made.
+                        onCancel: canExecute && batch.producedQty <= 0
+                            ? () => _cancelBatch(context, ref, batch)
                             : null,
                         onPrint: () => _printBatchSheet(context, ref, batch),
                       );
@@ -231,6 +238,54 @@ class ProductionRunningTab extends ConsumerWidget {
           SnackBar(content: Text(l10n.invoicePrintFailed('$result'))),
         );
     }
+  }
+
+  /// Aborts a batch that was started and must not be finished.
+  ///
+  /// The dialog spells out what happens to the material, because the operator's
+  /// real question is "where does the cream go" — and answers it before asking
+  /// for the reason the server requires.
+  Future<void> _cancelBatch(
+    BuildContext context,
+    WidgetRef ref,
+    RunningBatch batch,
+  ) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+
+    final reason = await promptForReason(
+      context,
+      title: l10n.productionCancelBatchTitle,
+      message: l10n.productionCancelBatchBody(
+        batch.itemName.isEmpty ? batch.itemCode : batch.itemName,
+      ),
+      hint: l10n.productionCancelBatchHint,
+      confirmLabel: l10n.productionCancelBatchConfirm,
+    );
+    if (reason == null || !context.mounted) return;
+
+    ref.loading.show(l10n.productionSubmitting);
+    try {
+      await ref.read(runningBatchesProvider.notifier).cancel(
+            workOrder: batch.workOrder,
+            reason: reason,
+          );
+    } catch (error) {
+      ref.loading.hide();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            extractFrappeErrorMessage(error, fallback: l10n.commonError),
+          ),
+        ),
+      );
+      return;
+    }
+    ref.loading.hide();
+
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.productionBatchCancelled)),
+    );
   }
 
   Future<void> _returnWip(

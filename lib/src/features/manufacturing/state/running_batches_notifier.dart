@@ -97,6 +97,23 @@ class RunningBatchesNotifier extends AsyncNotifier<List<RunningBatch>> {
     ref.invalidate(batchCostProvider(workOrder));
     await refresh();
   }
+
+  /// Aborts [workOrder]: WIP goes back to the store and the Work Order stops.
+  ///
+  /// Errors propagate for the same reason [finish] lets them: the caller has to
+  /// be able to show the server's refusal, which is the message that tells the
+  /// operator to finish the batch instead.
+  Future<void> cancel({
+    required String workOrder,
+    required String reason,
+  }) async {
+    await _service.cancelProductionBatch(
+      workOrder: workOrder,
+      reason: reason,
+    );
+    ref.invalidate(batchCostProvider(workOrder));
+    await refresh();
+  }
 }
 
 /// One batch's material cost, cached briefly while its card is on screen.

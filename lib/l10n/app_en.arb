@@ -5783,5 +5783,49 @@
   "settlementPartnerFeeRequired": "Enter the partner''s delivery cost for this order",
   "settlementPartnerFeeInvalid": "Enter a valid amount",
   "settlementPartnerFeeWhy": "Our area rates don''t apply to the partner - they price this address themselves.",
-  "settlementPartnerNoDeduction": "The rider hands over the full amount. Nothing is deducted for his fee - his company is billed weekly."
+  "settlementPartnerNoDeduction": "The rider hands over the full amount. Nothing is deducted for his fee - his company is billed weekly.",
+  "commonReasonRequired": "A reason is required",
+  "expensesReject": "Reject",
+  "expensesRejectTitle": "Reject this expense?",
+  "expensesRejectHint": "Tell the person who filed it why",
+  "expensesRejected": "Expense rejected",
+  "expensesRejectedStatus": "Rejected",
+  "expensesRejectionReason": "Rejection reason",
+  "expensesCancelAction": "Cancel expense",
+  "expensesCancelTitle": "Cancel this approved expense?",
+  "expensesCancelBody": "This reverses the journal entry for {amount} and puts the money back in {source}.",
+  "@expensesCancelBody": {
+    "placeholders": {
+      "amount": {},
+      "source": {}
+    }
+  },
+  "expensesCancelHint": "Why is this being reversed?",
+  "expensesCancelConfirm": "Cancel & reverse",
+  "expensesCancelled": "Expense cancelled and journal entry reversed",
+  "productionCancelBatch": "Cancel batch",
+  "productionCancelBatchTitle": "Cancel this batch?",
+  "productionCancelBatchBody": "Everything still in WIP for {item} goes back to the store. Nothing has been produced yet, so no finished goods are affected.",
+  "@productionCancelBatchBody": {
+    "placeholders": {
+      "item": {}
+    }
+  },
+  "productionCancelBatchHint": "Why is this batch not being finished?",
+  "productionCancelBatchConfirm": "Cancel batch",
+  "productionBatchCancelled": "Batch cancelled and material returned to store",
+  "productionPlanCancel": "Cancel plan",
+  "productionPlanCancelTitle": "Cancel this day''s plan?",
+  "productionPlanCancelBody": "Use this when the day will not be produced at all. Closing with zero counts instead would record a day that tried and made nothing.",
+  "productionPlanCancelHint": "Why is the day being called off?",
+  "productionPlanCancelConfirm": "Cancel plan",
+  "productionPlanCancelled": "Production plan cancelled",
+  "productionPlanCancelledStatus": "Cancelled",
+  "receiptReject": "Reject",
+  "receiptRejectTitle": "Reject this receipt?",
+  "receiptRejectHint": "What is wrong with the proof of transfer?",
+  "receiptRejectConfirm": "Reject receipt",
+  "receiptRejected": "Receipt rejected",
+  "receiptRejectedStatus": "Rejected",
+  "receiptRejectionReason": "Rejection reason"
 }

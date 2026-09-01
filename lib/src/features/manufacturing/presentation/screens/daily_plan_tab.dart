@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/network/frappe_error_message.dart';
+import '../../../../core/widgets/reason_prompt_dialog.dart';
 import '../../data/daily_plan_service.dart';
 import '../../data/models/daily_plan.dart';
 import '../../state/daily_plan_providers.dart';
@@ -158,9 +160,48 @@ class _PlanBody extends ConsumerWidget {
               : () => ref
                   .read(dailyPlanDraftProvider.notifier)
                   .refreshPreview(withMaterials: true),
+          // Only offered once a plan actually exists for the day: there is
+          // nothing to call off while the form is still a draft in memory.
+          onCancelPlan: (draft.savedPlanName ?? '').isEmpty
+              ? null
+              : () => _cancelPlan(context, ref),
         ),
       ],
     );
+  }
+
+  /// Calls off the day.
+  ///
+  /// Deliberately not the same act as closing with zeroes: the dialog says so,
+  /// because the two are one tap apart and only one of them tells the truth
+  /// about a day the mixer was down.
+  Future<void> _cancelPlan(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+
+    final reason = await promptForReason(
+      context,
+      title: l10n.productionPlanCancelTitle,
+      message: l10n.productionPlanCancelBody,
+      hint: l10n.productionPlanCancelHint,
+      confirmLabel: l10n.productionPlanCancelConfirm,
+    );
+    if (reason == null || !context.mounted) return;
+
+    try {
+      await ref.read(dailyPlanDraftProvider.notifier).cancel(reason);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.productionPlanCancelled)),
+      );
+    } catch (error) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            extractFrappeErrorMessage(error, fallback: l10n.commonError),
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _save(BuildContext context, WidgetRef ref, dynamic l10n) async {

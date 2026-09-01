@@ -3743,5 +3743,49 @@
   "settlementPartnerFeeRequired": "أدخل تكلفة التوصيل لدى الشريك لهذا الطلب",
   "settlementPartnerFeeInvalid": "أدخل مبلغًا صحيحًا",
   "settlementPartnerFeeWhy": "أسعار مناطقنا لا تنطبق على الشريك — فهو يسعّر هذا العنوان بنفسه.",
-  "settlementPartnerNoDeduction": "المندوب يسلّم المبلغ كاملًا. لا يُخصم شيء مقابل أجرته — تُحاسب شركته أسبوعيًا."
+  "settlementPartnerNoDeduction": "المندوب يسلّم المبلغ كاملًا. لا يُخصم شيء مقابل أجرته — تُحاسب شركته أسبوعيًا.",
+  "commonReasonRequired": "السبب مطلوب",
+  "expensesReject": "رفض",
+  "expensesRejectTitle": "رفض هذا المصروف؟",
+  "expensesRejectHint": "وضح لمقدم الطلب سبب الرفض",
+  "expensesRejected": "تم رفض المصروف",
+  "expensesRejectedStatus": "مرفوض",
+  "expensesRejectionReason": "سبب الرفض",
+  "expensesCancelAction": "إلغاء المصروف",
+  "expensesCancelTitle": "إلغاء هذا المصروف المعتمد؟",
+  "expensesCancelBody": "سيتم عكس القيد المحاسبي بمبلغ {amount} وإعادة المبلغ إلى {source}.",
+  "@expensesCancelBody": {
+    "placeholders": {
+      "amount": {},
+      "source": {}
+    }
+  },
+  "expensesCancelHint": "لماذا يتم عكس هذا المصروف؟",
+  "expensesCancelConfirm": "إلغاء وعكس القيد",
+  "expensesCancelled": "تم إلغاء المصروف وعكس القيد المحاسبي",
+  "productionCancelBatch": "إلغاء الدفعة",
+  "productionCancelBatchTitle": "إلغاء هذه الدفعة؟",
+  "productionCancelBatchBody": "كل ما تبقى في التشغيل الجاري لـ {item} سيعود إلى المخزن. لم يتم إنتاج أي كمية بعد، لذا لن تتأثر المنتجات الجاهزة.",
+  "@productionCancelBatchBody": {
+    "placeholders": {
+      "item": {}
+    }
+  },
+  "productionCancelBatchHint": "لماذا لن يتم إنهاء هذه الدفعة؟",
+  "productionCancelBatchConfirm": "إلغاء الدفعة",
+  "productionBatchCancelled": "تم إلغاء الدفعة وإرجاع الخامات إلى المخزن",
+  "productionPlanCancel": "إلغاء الخطة",
+  "productionPlanCancelTitle": "إلغاء خطة هذا اليوم؟",
+  "productionPlanCancelBody": "استخدم هذا عندما لن يتم الإنتاج نهائيًا في هذا اليوم. الإقفال بكميات صفرية بدلًا من ذلك يسجل يومًا حاول ولم ينتج شيئًا.",
+  "productionPlanCancelHint": "لماذا تم إلغاء اليوم؟",
+  "productionPlanCancelConfirm": "إلغاء الخطة",
+  "productionPlanCancelled": "تم إلغاء خطة الإنتاج",
+  "productionPlanCancelledStatus": "ملغاة",
+  "receiptReject": "رفض",
+  "receiptRejectTitle": "رفض هذا الإيصال؟",
+  "receiptRejectHint": "ما المشكلة في إثبات التحويل؟",
+  "receiptRejectConfirm": "رفض الإيصال",
+  "receiptRejected": "تم رفض الإيصال",
+  "receiptRejectedStatus": "مرفوض",
+  "receiptRejectionReason": "سبب الرفض"
 }

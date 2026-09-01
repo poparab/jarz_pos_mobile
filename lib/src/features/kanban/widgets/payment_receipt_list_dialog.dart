@@ -9,6 +9,7 @@ import '../../../core/localization/localization_extensions.dart';
 import '../../../core/network/frappe_error_message.dart';
 import '../../../core/utils/order_display_id.dart';
 import '../../../core/utils/responsive_utils.dart';
+import '../../../core/widgets/reason_prompt_dialog.dart';
 import '../providers/kanban_provider.dart';
 
 class PaymentReceiptListDialog extends ConsumerStatefulWidget {
@@ -211,6 +212,47 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
     );
   }
 
+  /// Turn a receipt down, with the reason the server requires.
+  ///
+  /// Collected before the call rather than after a failure: the reason IS the
+  /// deliverable here -- it is what the branch reads to know what to send
+  /// instead.
+  Future<void> _rejectReceipt(String receiptName) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+
+    final reason = await promptForReason(
+      context,
+      title: l10n.receiptRejectTitle,
+      hint: l10n.receiptRejectHint,
+      confirmLabel: l10n.receiptRejectConfirm,
+    );
+    if (reason == null || !mounted) return;
+
+    try {
+      final result = await ref.read(kanbanProvider.notifier).rejectReceipt(
+            receiptName: receiptName,
+            reason: reason,
+          );
+      if (!mounted) return;
+      if (result != null && result['success'] == true) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.receiptRejected)),
+        );
+        await _loadData();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            extractFrappeErrorMessage(e, fallback: l10n.commonError),
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _confirmReceipt(String receiptName) async {
     try {
       final l10n = context.l10n;
@@ -353,8 +395,11 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
     final uploadedBy = receipt['uploaded_by'] as String?;
 
     final isConfirmed = status == 'Confirmed';
+    final isRejected = status == 'Rejected';
+    final rejectionReason = receipt['rejection_reason'] as String?;
     // Only an Unconfirmed receipt may have its screenshot swapped or dropped;
-    // Confirmed is evidence and Changed is audit history.
+    // Confirmed is evidence, Changed is audit history, and a Rejected one keeps
+    // its image so the branch can see what was turned down.
     final isEditable = status == 'Unconfirmed';
     final hasImage = receiptImageUrl != null && receiptImageUrl.isNotEmpty;
     final canConfirm = receipt['can_confirm'] == true ||
@@ -395,13 +440,21 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isConfirmed ? Colors.green[100] : Colors.orange[100],
+                    color: isConfirmed
+                        ? Colors.green[100]
+                        : isRejected
+                            ? Colors.red[100]
+                            : Colors.orange[100],
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     localizedStatusLabel(context, status),
                     style: TextStyle(
-                      color: isConfirmed ? Colors.green[900] : Colors.orange[900],
+                      color: isConfirmed
+                          ? Colors.green[900]
+                          : isRejected
+                              ? Colors.red[900]
+                              : Colors.orange[900],
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -418,6 +471,18 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
             Text('${context.l10n.commonPosProfileLabel}: $posProfile', style: const TextStyle(fontSize: 14)),
             if (uploadedBy != null)
               Text('${context.l10n.commonUploadedByLabel}: $uploadedBy', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            if (isRejected && (rejectionReason ?? '').isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '${context.l10n.receiptRejectionReason}: $rejectionReason',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).colorScheme.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             const SizedBox(height: 8),
 
             // Receipt image thumbnail or upload button
@@ -457,6 +522,16 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
                               foregroundColor: Colors.white,
+                            ),
+                          ),
+                        if (!isConfirmed && !isRejected && canConfirm)
+                          OutlinedButton.icon(
+                            onPressed: () => _rejectReceipt(receiptName),
+                            icon: const Icon(Icons.block, size: 16),
+                            label: Text(context.l10n.receiptReject),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor:
+                                  Theme.of(context).colorScheme.error,
                             ),
                           ),
                         if (isEditable) ...[

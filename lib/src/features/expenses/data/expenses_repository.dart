@@ -64,10 +64,26 @@ class ExpensesRepository {
   }
 
   Future<ExpenseRecord> approveExpense(String name) async {
-    final response = await _dio.post(
-      ApiEndpoints.approveExpense,
-      data: {'name': name},
-    );
+    return _decide(ApiEndpoints.approveExpense, {'name': name});
+  }
+
+  /// Turn down a request that has not been approved. Leaves it a draft with the
+  /// reason attached, so the person who filed it finds out why.
+  Future<ExpenseRecord> rejectExpense(String name, String reason) async {
+    return _decide(ApiEndpoints.rejectExpense, {'name': name, 'reason': reason});
+  }
+
+  /// Reverse a request that was already approved. The server cancels the
+  /// journal entry the approval posted; a failure to do so fails the call
+  /// rather than leaving a cancelled request next to a live expense entry.
+  Future<ExpenseRecord> cancelExpense(String name, String reason) async {
+    return _decide(ApiEndpoints.cancelExpense, {'name': name, 'reason': reason});
+  }
+
+  /// The three decision endpoints return the same `{expense: {...}}` envelope,
+  /// so the unwrapping lives here once instead of three times.
+  Future<ExpenseRecord> _decide(String endpoint, Map<String, dynamic> body) async {
+    final response = await _dio.post(endpoint, data: body);
     final data = response.data is Map ? response.data['message'] ?? response.data : response.data;
     final expenseJson = Map<String, dynamic>.from(data['expense'] as Map);
     return ExpenseRecord.fromJson(expenseJson);

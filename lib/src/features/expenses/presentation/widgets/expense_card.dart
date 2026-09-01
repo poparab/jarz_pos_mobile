@@ -10,11 +10,24 @@ class ExpenseCard extends StatelessWidget {
   final bool canApprove;
   final Future<void> Function()? onApprove;
 
+  /// Refuse a request that has not been approved. Null hides the action.
+  ///
+  /// Shown beside Approve rather than behind a menu: an approval screen that
+  /// offers only "yes" makes "no" mean doing nothing, which is exactly how a
+  /// request the manager did not want to pay sat in Pending for weeks.
+  final Future<void> Function()? onReject;
+
+  /// Reverse a request that WAS approved -- a different act from refusing one,
+  /// because the approval already posted a journal entry. Null hides it.
+  final Future<void> Function()? onCancel;
+
   const ExpenseCard({
     super.key,
     required this.expense,
     required this.canApprove,
     this.onApprove,
+    this.onReject,
+    this.onCancel,
   });
 
   @override
@@ -79,17 +92,49 @@ class ExpenseCard extends StatelessWidget {
             _InfoRow(label: context.l10n.expensesRemarksLabel, value: expense.remarks!),
           if (expense.journalEntry != null && expense.journalEntry!.isNotEmpty)
             _InfoRow(label: context.l10n.expensesJournalEntry, value: expense.journalEntry!),
+          if ((expense.rejectionReason ?? '').isNotEmpty)
+            _InfoRow(
+              label: context.l10n.expensesRejectionReason,
+              value: expense.rejectionReason!,
+            ),
           const SizedBox(height: 12),
           _Timeline(events: expense.timeline),
           if (expense.isPending && canApprove && onApprove != null)
             Padding(
               padding: const EdgeInsets.only(top: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (onReject != null)
+                    TextButton.icon(
+                      icon: const Icon(Icons.cancel_outlined),
+                      label: Text(context.l10n.expensesReject),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                      onPressed: () => onReject?.call(),
+                    ),
+                  const SizedBox(width: 8),
+                  FilledButton.icon(
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: Text(context.l10n.expensesApprove),
+                    onPressed: () => onApprove?.call(),
+                  ),
+                ],
+              ),
+            ),
+          if (expense.isApproved && canApprove && onCancel != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
               child: Align(
                 alignment: AlignmentDirectional.centerEnd,
-                child: FilledButton.icon(
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: Text(context.l10n.expensesApprove),
-                  onPressed: () => onApprove?.call(),
+                child: TextButton.icon(
+                  icon: const Icon(Icons.undo),
+                  label: Text(context.l10n.expensesCancelAction),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.error,
+                  ),
+                  onPressed: () => onCancel?.call(),
                 ),
               ),
             ),
@@ -100,20 +145,25 @@ class ExpenseCard extends StatelessWidget {
 
   Color _statusColor(ExpenseRecord record, ThemeData theme) {
     if (record.isApproved) return Colors.green;
+    // Rejected is checked before pending: a rejected request is still
+    // docstatus 0, and reading it as "waiting" is the whole bug.
+    if (record.isRejected) return Colors.red;
     if (record.isPending) return Colors.orange;
-    if (record.docstatus == 2) return Colors.red;
+    if (record.isCancelled) return Colors.red;
     return theme.colorScheme.primary;
   }
 
   IconData _statusIcon(ExpenseRecord record) {
     if (record.isApproved) return Icons.verified;
+    if (record.isRejected) return Icons.do_not_disturb_on_outlined;
     if (record.isPending) return Icons.hourglass_bottom;
-    if (record.docstatus == 2) return Icons.cancel;
+    if (record.isCancelled) return Icons.cancel;
     return Icons.receipt_long;
   }
 
   String _localizedStatus(BuildContext context) {
     if (expense.isApproved) return context.l10n.expensesApprovedStatus;
+    if (expense.isRejected) return context.l10n.expensesRejectedStatus;
     if (expense.isPending) return context.l10n.expensesPendingStatus;
     if (expense.docstatus == 0) return context.l10n.expensesDraftStatus;
     return localizedStatusLabel(context, expense.status);
@@ -225,6 +275,17 @@ class _Timeline extends StatelessWidget {
                             if (event.user != null && event.user!.isNotEmpty) context.l10n.commonByUser(event.user!),
                           ].join(' '),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+                        ),
+                      // Only the Rejected / Cancelled entry carries one, and it
+                      // is the single most useful line on the whole card for
+                      // the person whose request was turned down.
+                      if ((event.reason ?? '').isNotEmpty)
+                        Text(
+                          event.reason!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                                fontStyle: FontStyle.italic,
+                              ),
                         ),
                     ],
                   ),

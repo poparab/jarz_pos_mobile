@@ -20,6 +20,7 @@ class RunningBatchCard extends StatefulWidget {
     this.onFinish,
     this.onViewSop,
     this.onReturnWip,
+    this.onCancel,
     this.onPrint,
   });
 
@@ -35,6 +36,15 @@ class RunningBatchCard extends StatefulWidget {
   /// Manager-only. Null hides the action even when WIP is stranded, so an
   /// operator sees the problem without being handed a stock correction.
   final VoidCallback? onReturnWip;
+
+  /// Abort the batch: WIP goes back to the store and the Work Order stops.
+  ///
+  /// Sits next to Finish because those are the two ways a started batch ends,
+  /// and hiding one of them behind a menu is what left "finish a batch that was
+  /// never made" as the only exit. Hidden once anything has been produced —
+  /// the server refuses that case, and offering a button that always fails is
+  /// worse than not offering one.
+  final VoidCallback? onCancel;
 
   /// Null hides the printer action — the tab owns the printer service so this
   /// widget stays free of Bluetooth and of the web/mobile conditional import.
@@ -164,6 +174,16 @@ class _RunningBatchCardState extends State<RunningBatchCard> {
                   hasSop: widget.onViewSop != null,
                 ),
                 const Spacer(),
+                if (widget.onCancel != null) ...[
+                  TextButton(
+                    onPressed: widget.onCancel,
+                    style: TextButton.styleFrom(
+                      foregroundColor: scheme.error,
+                    ),
+                    child: Text(l10n.productionCancelBatch),
+                  ),
+                  const SizedBox(width: 4),
+                ],
                 if (widget.onFinish != null)
                   FilledButton(
                     onPressed: widget.onFinish,

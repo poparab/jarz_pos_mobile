@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/widgets/app_drawer.dart';
+import '../../../core/widgets/reason_prompt_dialog.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/network/user_service.dart';
@@ -297,16 +298,82 @@ class _ExpensesTab extends ConsumerWidget {
           if (state.expenses.isEmpty)
             _EmptyState(isManager: state.isManager)
           else
+            // `canApprove` gates the pending row; the cancel affordance on an
+            // approved row needs the same manager check without the pending
+            // one, so the flag is widened here and the card decides which of
+            // the two action groups its own status calls for.
             ...state.expenses.map((expense) => ExpenseCard(
                   expense: expense,
-                  canApprove: state.isManager &&
-                      expense.isPending &&
-                      !state.isSubmitting,
+                  canApprove: state.isManager && !state.isSubmitting,
                   onApprove: () => notifier.approveExpense(expense.name),
+                  onReject: () => _rejectExpense(context, ref, expense),
+                  onCancel: () => _cancelExpense(context, ref, expense),
                 )),
         ],
       ),
     );
+  }
+
+  /// Refuse a pending request.
+  ///
+  /// The reason is mandatory server-side, so it is collected before the call
+  /// rather than after a failure: the point of a rejection is that the person
+  /// who filed the request finds out why.
+  Future<void> _rejectExpense(
+    BuildContext context,
+    WidgetRef ref,
+    ExpenseRecord expense,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+
+    final reason = await promptForReason(
+      context,
+      title: l10n.expensesRejectTitle,
+      hint: l10n.expensesRejectHint,
+      confirmLabel: l10n.expensesReject,
+    );
+    if (reason == null) return;
+
+    final updated = await ref
+        .read(expensesNotifierProvider.notifier)
+        .rejectExpense(expense.name, reason);
+    if (!context.mounted || updated == null) return;
+    messenger.showSnackBar(SnackBar(content: Text(l10n.expensesRejected)));
+  }
+
+  /// Reverse one that was already approved.
+  ///
+  /// Spelled out in the dialog because this is not a refusal: the approval
+  /// posted a journal entry, and cancelling reverses it. The amount and the
+  /// account it goes back to are named so the manager is deciding with the
+  /// numbers in front of them.
+  Future<void> _cancelExpense(
+    BuildContext context,
+    WidgetRef ref,
+    ExpenseRecord expense,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final languageCode = Localizations.localeOf(context).languageCode;
+
+    final reason = await promptForReason(
+      context,
+      title: l10n.expensesCancelTitle,
+      message: l10n.expensesCancelBody(
+        formatCurrency(context, expense.amount, currencyCode: expense.currency),
+        expense.localizedPaymentLabel(languageCode),
+      ),
+      hint: l10n.expensesCancelHint,
+      confirmLabel: l10n.expensesCancelConfirm,
+    );
+    if (reason == null) return;
+
+    final updated = await ref
+        .read(expensesNotifierProvider.notifier)
+        .cancelExpense(expense.name, reason);
+    if (!context.mounted || updated == null) return;
+    messenger.showSnackBar(SnackBar(content: Text(l10n.expensesCancelled)));
   }
 }
 

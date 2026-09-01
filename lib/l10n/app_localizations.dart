@@ -16196,6 +16196,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The rider hands over the full amount. Nothing is deducted for his fee - his company is billed weekly.'**
   String get settlementPartnerNoDeduction;
+
+  /// No description provided for @commonReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A reason is required'**
+  String get commonReasonRequired;
+
+  /// No description provided for @expensesReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get expensesReject;
+
+  /// No description provided for @expensesRejectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject this expense?'**
+  String get expensesRejectTitle;
+
+  /// No description provided for @expensesRejectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell the person who filed it why'**
+  String get expensesRejectHint;
+
+  /// No description provided for @expensesRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense rejected'**
+  String get expensesRejected;
+
+  /// No description provided for @expensesRejectedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get expensesRejectedStatus;
+
+  /// No description provided for @expensesRejectionReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejection reason'**
+  String get expensesRejectionReason;
+
+  /// No description provided for @expensesCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel expense'**
+  String get expensesCancelAction;
+
+  /// No description provided for @expensesCancelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this approved expense?'**
+  String get expensesCancelTitle;
+
+  /// No description provided for @expensesCancelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This reverses the journal entry for {amount} and puts the money back in {source}.'**
+  String expensesCancelBody(Object amount, Object source);
+
+  /// No description provided for @expensesCancelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is this being reversed?'**
+  String get expensesCancelHint;
+
+  /// No description provided for @expensesCancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel & reverse'**
+  String get expensesCancelConfirm;
+
+  /// No description provided for @expensesCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense cancelled and journal entry reversed'**
+  String get expensesCancelled;
+
+  /// No description provided for @productionCancelBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel batch'**
+  String get productionCancelBatch;
+
+  /// No description provided for @productionCancelBatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this batch?'**
+  String get productionCancelBatchTitle;
+
+  /// No description provided for @productionCancelBatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything still in WIP for {item} goes back to the store. Nothing has been produced yet, so no finished goods are affected.'**
+  String productionCancelBatchBody(Object item);
+
+  /// No description provided for @productionCancelBatchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is this batch not being finished?'**
+  String get productionCancelBatchHint;
+
+  /// No description provided for @productionCancelBatchConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel batch'**
+  String get productionCancelBatchConfirm;
+
+  /// No description provided for @productionBatchCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch cancelled and material returned to store'**
+  String get productionBatchCancelled;
+
+  /// No description provided for @productionPlanCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel plan'**
+  String get productionPlanCancel;
+
+  /// No description provided for @productionPlanCancelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this day\'\'s plan?'**
+  String get productionPlanCancelTitle;
+
+  /// No description provided for @productionPlanCancelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this when the day will not be produced at all. Closing with zero counts instead would record a day that tried and made nothing.'**
+  String get productionPlanCancelBody;
+
+  /// No description provided for @productionPlanCancelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is the day being called off?'**
+  String get productionPlanCancelHint;
+
+  /// No description provided for @productionPlanCancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel plan'**
+  String get productionPlanCancelConfirm;
+
+  /// No description provided for @productionPlanCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Production plan cancelled'**
+  String get productionPlanCancelled;
+
+  /// No description provided for @productionPlanCancelledStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get productionPlanCancelledStatus;
+
+  /// No description provided for @receiptReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get receiptReject;
+
+  /// No description provided for @receiptRejectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject this receipt?'**
+  String get receiptRejectTitle;
+
+  /// No description provided for @receiptRejectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What is wrong with the proof of transfer?'**
+  String get receiptRejectHint;
+
+  /// No description provided for @receiptRejectConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject receipt'**
+  String get receiptRejectConfirm;
+
+  /// No description provided for @receiptRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt rejected'**
+  String get receiptRejected;
+
+  /// No description provided for @receiptRejectedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get receiptRejectedStatus;
+
+  /// No description provided for @receiptRejectionReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejection reason'**
+  String get receiptRejectionReason;
 }
 
 class _AppLocalizationsDelegate

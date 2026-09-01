@@ -145,7 +145,15 @@ class ExpenseTimelineEvent {
   final DateTime? timestamp;
   final String? user;
 
-  const ExpenseTimelineEvent({required this.label, this.timestamp, this.user});
+  /// Present on the Rejected / Cancelled entry only -- the manager's reason.
+  final String? reason;
+
+  const ExpenseTimelineEvent({
+    required this.label,
+    this.timestamp,
+    this.user,
+    this.reason,
+  });
 
   factory ExpenseTimelineEvent.fromJson(Map<String, dynamic> json) {
     DateTime? parseTs(dynamic value) {
@@ -158,6 +166,7 @@ class ExpenseTimelineEvent {
       label: (json['label'] ?? '').toString(),
       timestamp: parseTs(json['timestamp']),
       user: json['user']?.toString(),
+      reason: json['reason']?.toString(),
     );
   }
 
@@ -165,6 +174,7 @@ class ExpenseTimelineEvent {
         'label': label,
         'timestamp': timestamp?.toIso8601String(),
         'user': user,
+        'reason': reason,
       };
 }
 
@@ -189,6 +199,9 @@ class ExpenseRecord {
   final String? requestedBy;
   final String? approvedBy;
   final DateTime? approvedOn;
+  final String? rejectedBy;
+  final DateTime? rejectedOn;
+  final String? rejectionReason;
   final String? remarks;
   final String? journalEntry;
   final String? company;
@@ -196,8 +209,20 @@ class ExpenseRecord {
   final DateTime? modifiedOn;
   final List<ExpenseTimelineEvent> timeline;
 
-  bool get isPending => docstatus == 0 && requiresApproval;
+  /// A request still waiting for an answer.
+  ///
+  /// A rejected request is also `docstatus == 0` -- there is no docstatus for
+  /// "refused" -- so without the `!isRejected` clause a request a manager
+  /// turned down would keep offering the Approve button.
+  bool get isPending => docstatus == 0 && requiresApproval && !isRejected;
   bool get isApproved => docstatus == 1;
+  bool get isRejected =>
+      docstatus == 0 && ((rejectionReason ?? '').isNotEmpty || rejectedOn != null);
+
+  /// An approved expense already posted its journal entry, so undoing it is a
+  /// reversal rather than a refusal -- a different endpoint and a different
+  /// confirmation.
+  bool get isCancelled => docstatus == 2;
 
   const ExpenseRecord({
     required this.name,
@@ -220,6 +245,9 @@ class ExpenseRecord {
     required this.requestedBy,
     required this.approvedBy,
     required this.approvedOn,
+    this.rejectedBy,
+    this.rejectedOn,
+    this.rejectionReason,
     required this.remarks,
     required this.journalEntry,
     required this.company,
@@ -299,6 +327,9 @@ class ExpenseRecord {
       requestedBy: json['requested_by']?.toString(),
       approvedBy: json['approved_by']?.toString(),
       approvedOn: parseDate(json['approved_on']),
+      rejectedBy: json['rejected_by']?.toString(),
+      rejectedOn: parseDate(json['rejected_on']),
+      rejectionReason: json['rejection_reason']?.toString(),
       remarks: json['remarks']?.toString(),
       journalEntry: json['journal_entry']?.toString(),
       company: json['company']?.toString(),

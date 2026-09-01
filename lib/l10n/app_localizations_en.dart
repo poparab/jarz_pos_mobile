@@ -9667,4 +9667,111 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settlementPartnerNoDeduction =>
       'The rider hands over the full amount. Nothing is deducted for his fee - his company is billed weekly.';
+
+  @override
+  String get commonReasonRequired => 'A reason is required';
+
+  @override
+  String get expensesReject => 'Reject';
+
+  @override
+  String get expensesRejectTitle => 'Reject this expense?';
+
+  @override
+  String get expensesRejectHint => 'Tell the person who filed it why';
+
+  @override
+  String get expensesRejected => 'Expense rejected';
+
+  @override
+  String get expensesRejectedStatus => 'Rejected';
+
+  @override
+  String get expensesRejectionReason => 'Rejection reason';
+
+  @override
+  String get expensesCancelAction => 'Cancel expense';
+
+  @override
+  String get expensesCancelTitle => 'Cancel this approved expense?';
+
+  @override
+  String expensesCancelBody(Object amount, Object source) {
+    return 'This reverses the journal entry for $amount and puts the money back in $source.';
+  }
+
+  @override
+  String get expensesCancelHint => 'Why is this being reversed?';
+
+  @override
+  String get expensesCancelConfirm => 'Cancel & reverse';
+
+  @override
+  String get expensesCancelled =>
+      'Expense cancelled and journal entry reversed';
+
+  @override
+  String get productionCancelBatch => 'Cancel batch';
+
+  @override
+  String get productionCancelBatchTitle => 'Cancel this batch?';
+
+  @override
+  String productionCancelBatchBody(Object item) {
+    return 'Everything still in WIP for $item goes back to the store. Nothing has been produced yet, so no finished goods are affected.';
+  }
+
+  @override
+  String get productionCancelBatchHint =>
+      'Why is this batch not being finished?';
+
+  @override
+  String get productionCancelBatchConfirm => 'Cancel batch';
+
+  @override
+  String get productionBatchCancelled =>
+      'Batch cancelled and material returned to store';
+
+  @override
+  String get productionPlanCancel => 'Cancel plan';
+
+  @override
+  String get productionPlanCancelTitle => 'Cancel this day\'s plan?';
+
+  @override
+  String get productionPlanCancelBody =>
+      'Use this when the day will not be produced at all. Closing with zero counts instead would record a day that tried and made nothing.';
+
+  @override
+  String get productionPlanCancelHint => 'Why is the day being called off?';
+
+  @override
+  String get productionPlanCancelConfirm => 'Cancel plan';
+
+  @override
+  String get productionPlanCancelled => 'Production plan cancelled';
+
+  @override
+  String get productionPlanCancelledStatus => 'Cancelled';
+
+  @override
+  String get receiptReject => 'Reject';
+
+  @override
+  String get receiptRejectTitle => 'Reject this receipt?';
+
+  @override
+  String get receiptRejectHint => 'What is wrong with the proof of transfer?';
+
+  @override
+  String get receiptRejectConfirm => 'Reject receipt';
+
+  @override
+  String get receiptRejected => 'Receipt rejected';
+
+  @override
+  String get receiptRejectedStatus => 'Rejected';
+
+  @override
+  String get receiptRejectionReason => 'Rejection reason';
 }

@@ -172,6 +172,7 @@ class DailyPlan with _$DailyPlan {
   const DailyPlan._();
 
   bool get isClosed => status == 'Closed';
+  bool get isCancelled => status == 'Cancelled';
 }
 
 @freezed

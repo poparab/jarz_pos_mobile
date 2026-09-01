@@ -9633,4 +9633,109 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settlementPartnerNoDeduction =>
       'المندوب يسلّم المبلغ كاملًا. لا يُخصم شيء مقابل أجرته — تُحاسب شركته أسبوعيًا.';
+
+  @override
+  String get commonReasonRequired => 'السبب مطلوب';
+
+  @override
+  String get expensesReject => 'رفض';
+
+  @override
+  String get expensesRejectTitle => 'رفض هذا المصروف؟';
+
+  @override
+  String get expensesRejectHint => 'وضح لمقدم الطلب سبب الرفض';
+
+  @override
+  String get expensesRejected => 'تم رفض المصروف';
+
+  @override
+  String get expensesRejectedStatus => 'مرفوض';
+
+  @override
+  String get expensesRejectionReason => 'سبب الرفض';
+
+  @override
+  String get expensesCancelAction => 'إلغاء المصروف';
+
+  @override
+  String get expensesCancelTitle => 'إلغاء هذا المصروف المعتمد؟';
+
+  @override
+  String expensesCancelBody(Object amount, Object source) {
+    return 'سيتم عكس القيد المحاسبي بمبلغ $amount وإعادة المبلغ إلى $source.';
+  }
+
+  @override
+  String get expensesCancelHint => 'لماذا يتم عكس هذا المصروف؟';
+
+  @override
+  String get expensesCancelConfirm => 'إلغاء وعكس القيد';
+
+  @override
+  String get expensesCancelled => 'تم إلغاء المصروف وعكس القيد المحاسبي';
+
+  @override
+  String get productionCancelBatch => 'إلغاء الدفعة';
+
+  @override
+  String get productionCancelBatchTitle => 'إلغاء هذه الدفعة؟';
+
+  @override
+  String productionCancelBatchBody(Object item) {
+    return 'كل ما تبقى في التشغيل الجاري لـ $item سيعود إلى المخزن. لم يتم إنتاج أي كمية بعد، لذا لن تتأثر المنتجات الجاهزة.';
+  }
+
+  @override
+  String get productionCancelBatchHint => 'لماذا لن يتم إنهاء هذه الدفعة؟';
+
+  @override
+  String get productionCancelBatchConfirm => 'إلغاء الدفعة';
+
+  @override
+  String get productionBatchCancelled =>
+      'تم إلغاء الدفعة وإرجاع الخامات إلى المخزن';
+
+  @override
+  String get productionPlanCancel => 'إلغاء الخطة';
+
+  @override
+  String get productionPlanCancelTitle => 'إلغاء خطة هذا اليوم؟';
+
+  @override
+  String get productionPlanCancelBody =>
+      'استخدم هذا عندما لن يتم الإنتاج نهائيًا في هذا اليوم. الإقفال بكميات صفرية بدلًا من ذلك يسجل يومًا حاول ولم ينتج شيئًا.';
+
+  @override
+  String get productionPlanCancelHint => 'لماذا تم إلغاء اليوم؟';
+
+  @override
+  String get productionPlanCancelConfirm => 'إلغاء الخطة';
+
+  @override
+  String get productionPlanCancelled => 'تم إلغاء خطة الإنتاج';
+
+  @override
+  String get productionPlanCancelledStatus => 'ملغاة';
+
+  @override
+  String get receiptReject => 'رفض';
+
+  @override
+  String get receiptRejectTitle => 'رفض هذا الإيصال؟';
+
+  @override
+  String get receiptRejectHint => 'ما المشكلة في إثبات التحويل؟';
+
+  @override
+  String get receiptRejectConfirm => 'رفض الإيصال';
+
+  @override
+  String get receiptRejected => 'تم رفض الإيصال';
+
+  @override
+  String get receiptRejectedStatus => 'مرفوض';
+
+  @override
+  String get receiptRejectionReason => 'سبب الرفض';
 }

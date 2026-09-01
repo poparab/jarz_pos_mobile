@@ -177,10 +177,27 @@ class ExpensesNotifier extends StateNotifier<ExpensesState> {
     }
   }
 
-  Future<ExpenseRecord?> approveExpense(String name) async {
+  Future<ExpenseRecord?> approveExpense(String name) =>
+      _decide(name, () => _repository.approveExpense(name));
+
+  /// Refuse a pending request.
+  Future<ExpenseRecord?> rejectExpense(String name, String reason) =>
+      _decide(name, () => _repository.rejectExpense(name, reason));
+
+  /// Reverse an approved one.
+  Future<ExpenseRecord?> cancelExpense(String name, String reason) =>
+      _decide(name, () => _repository.cancelExpense(name, reason));
+
+  /// Approve, reject and cancel differ only in which call they make: each
+  /// returns the updated record, which replaces the row in place so the list
+  /// does not have to be refetched.
+  Future<ExpenseRecord?> _decide(
+    String name,
+    Future<ExpenseRecord> Function() call,
+  ) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
-      final updated = await _repository.approveExpense(name);
+      final updated = await call();
       final expenses = state.expenses.toList();
       final index = expenses.indexWhere((e) => e.name == name);
       if (index >= 0) {

@@ -1162,6 +1162,38 @@ class KanbanService {
     }
   }
 
+  /// Turn down a payment receipt, recording why.
+  ///
+  /// The counterpart Confirm never had. Without it the only way to register
+  /// "this screenshot is not proof of payment" was to leave the receipt alone,
+  /// which reads exactly like nobody having looked at it yet -- and the branch
+  /// keeps chasing a customer who already paid, or stops chasing one who did
+  /// not.
+  Future<Map<String, dynamic>> rejectReceipt({
+    required String receiptName,
+    required String reason,
+  }) async {
+    try {
+      _logger.info('Rejecting receipt $receiptName');
+      final resp = await _dio.post(
+        ApiEndpoints.rejectReceipt,
+        data: {
+          'receipt_name': receiptName,
+          'reason': reason,
+        },
+      );
+      final msg = resp.data['message'];
+      if (msg is Map && msg['success'] == true) {
+        _logger.info('Receipt rejected');
+        return Map<String, dynamic>.from(msg);
+      }
+      throw Exception(_friendlyMessage(msg, fallback: 'Failed to reject receipt'));
+    } catch (e) {
+      _logger.error('Failed to reject receipt', e);
+      throw _friendlyException(e, fallback: 'Failed to reject receipt');
+    }
+  }
+
   /// Get user's accessible POS profiles
   Future<List<String>> getAccessiblePOSProfiles() async {
     try {

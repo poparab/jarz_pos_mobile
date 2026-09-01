@@ -286,6 +286,12 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.manufacturing.get_batch_cost';
   static const returnWipToStore =
       '/api/method/jarz_pos.api.manufacturing.return_wip_to_store';
+  // Abort a batch that was started and must not be finished: returns whatever
+  // is still in WIP and stops the Work Order. Refused by the server once
+  // anything has been produced -- that batch has to be finished for what it
+  // actually made.
+  static const cancelProductionBatch =
+      '/api/method/jarz_pos.api.manufacturing.cancel_production_batch';
 
   // ── Sub-assemblies (bases) ────────────────────────────────────────────
   // Bases are never sold, so the sales-driven board computes zero for them.
@@ -303,6 +309,10 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.daily_plan.preview_plan';
   static const dailyPlanSave = '/api/method/jarz_pos.api.daily_plan.save_plan';
   static const dailyPlanClose = '/api/method/jarz_pos.api.daily_plan.close_plan';
+  // Calling off a day that will not be produced. Distinct from closing it with
+  // zero actuals, which reads as "we tried and made nothing".
+  static const dailyPlanCancel =
+      '/api/method/jarz_pos.api.daily_plan.cancel_plan';
   static const dailyPlanGet = '/api/method/jarz_pos.api.daily_plan.get_plan';
   static const dailyPlanList = '/api/method/jarz_pos.api.daily_plan.list_plans';
   static const dailyPlanBomReadiness =
@@ -335,6 +345,14 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.expenses.create_expense';
   static const approveExpense =
       '/api/method/jarz_pos.api.expenses.approve_expense';
+  // Turning a request down. `reject` refuses a pending request and leaves it a
+  // draft; `cancel` reverses one that was already approved, and therefore also
+  // reverses the journal entry the approval posted. Two endpoints rather than
+  // one because they are two different acts.
+  static const rejectExpense =
+      '/api/method/jarz_pos.api.expenses.reject_expense';
+  static const cancelExpense =
+      '/api/method/jarz_pos.api.expenses.cancel_expense';
 
   // ── Employee Advances ─────────────────────────────────────────────────
   // Cash advances a line manager requests for an employee and a JARZ Manager
@@ -360,6 +378,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.payment_receipts.remove_receipt_image';
   static const confirmReceipt =
       '/api/method/jarz_pos.api.payment_receipts.confirm_receipt';
+  static const rejectReceipt =
+      '/api/method/jarz_pos.api.payment_receipts.reject_receipt';
   static const getAccessiblePosProfiles =
       '/api/method/jarz_pos.api.payment_receipts.get_accessible_pos_profiles';
 

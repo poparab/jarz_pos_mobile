@@ -330,6 +330,28 @@ class ManufacturingService {
     }
   }
 
+  /// Aborts a started batch: returns whatever is still in WIP and stops the
+  /// Work Order.
+  ///
+  /// The server refuses once anything has been produced, and the message it
+  /// returns names the alternative (finish the batch for what was actually
+  /// made). That message is surfaced verbatim rather than replaced by the
+  /// fallback, which is the whole point of `_friendlyError`.
+  Future<Map<String, dynamic>> cancelProductionBatch({
+    required String workOrder,
+    required String reason,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.cancelProductionBatch,
+        data: {'work_order': workOrder, 'reason': reason},
+      );
+      return _unwrapMap(resp.data);
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to cancel the batch');
+    }
+  }
+
   // ── SOPs (stage 3) ──────────────────────────────────────────────────
 
   /// Returns `hasSop: false` rather than throwing when an item has no SOP —

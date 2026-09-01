@@ -19,6 +19,7 @@ class MixerRunSummary extends StatelessWidget {
     required this.totalJars,
     this.onSave,
     this.onCheckMaterials,
+    this.onCancelPlan,
   });
 
   final DailyPlanPreview? preview;
@@ -27,6 +28,10 @@ class MixerRunSummary extends StatelessWidget {
   final int totalJars;
   final VoidCallback? onSave;
   final VoidCallback? onCheckMaterials;
+
+  /// Calls off a plan that was already saved for this day. Null when there is
+  /// nothing saved yet -- there is no plan to call off before one exists.
+  final VoidCallback? onCancelPlan;
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +142,18 @@ class MixerRunSummary extends StatelessWidget {
                   ),
                 ],
               ),
+              if (onCancelPlan != null)
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: TextButton.icon(
+                    onPressed: onCancelPlan,
+                    icon: const Icon(Icons.event_busy_outlined, size: 18),
+                    label: Text(l10n.productionPlanCancel),
+                    style: TextButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

@@ -1595,6 +1595,22 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     }
   }
 
+  /// Reject receipt
+  Future<Map<String, dynamic>?> rejectReceipt({
+    required String receiptName,
+    required String reason,
+  }) async {
+    try {
+      return await _kanbanService.rejectReceipt(
+        receiptName: receiptName,
+        reason: reason,
+      );
+    } catch (e) {
+      debugPrint('Reject receipt error: $e');
+      throw Exception(_formatActionError(e, action: 'Failed to reject receipt'));
+    }
+  }
+
   /// Get accessible POS profiles
   Future<List<String>> getAccessiblePOSProfiles() async {
     try {
