@@ -42,6 +42,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
 
   late final Future<List<Map<String, dynamic>>> _warehousesFuture;
   String? _selectedWarehouse;
+  String? _selectedCategory;
   DateTime _postingDate = DateTime.now();
   final TextEditingController _searchCtrl = TextEditingController();
   final Map<String, Map<String, dynamic>> _counts = {}; // item_code -> {qty,uom}
@@ -111,6 +112,12 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
       );
       setState(() {
         _items = data.map((item) => Map<String, dynamic>.from(item)).toList();
+        // A category from the previous warehouse would filter everything away
+        // and read as an empty sheet rather than a stale filter.
+        if (_selectedCategory != null &&
+            !_items.any((item) => _categoryOf(item) == _selectedCategory)) {
+          _selectedCategory = null;
+        }
         _pruneDraftToLoadedItems();
       });
       _saveCache();
@@ -483,10 +490,42 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     return qty * factor;
   }
 
+  /// Category of an item, falling back to the "Uncategorized" label.
+  String _categoryOf(Map<String, dynamic> item) {
+    final group = item['item_group']?.toString().trim() ?? '';
+    return group.isEmpty ? context.l10n.inventoryCountUncategorized : group;
+  }
+
+  /// Categories present in the loaded sheet, in the order they should be shown,
+  /// each with how many of its rows are still uncounted.
+  ///
+  /// Derived from what actually came back rather than from a fixed list, so a
+  /// warehouse whose count profile covers three groups shows three chips.
+  Map<String, int> get _categoryPending {
+    final pending = <String, int>{};
+    for (final item in _items) {
+      final code = item['item_code'] as String? ?? '';
+      final category = _categoryOf(item);
+      pending[category] = (pending[category] ?? 0) + (_confirmed.contains(code) ? 0 : 1);
+    }
+    return Map.fromEntries(
+      pending.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
+    );
+  }
+
   List<Map<String, dynamic>> get _visibleItems {
     final query = _searchCtrl.text.trim().toLowerCase();
+    final category = _selectedCategory;
     final items = [..._items]
+      ..removeWhere((item) => category != null && _categoryOf(item) != category)
       ..sort((left, right) {
+        // Category first, so each one is a contiguous run the section headers
+        // can label. Within a category the old ordering is kept: still to
+        // count, then alphabetical.
+        final byCategory = _categoryOf(left).compareTo(_categoryOf(right));
+        if (byCategory != 0) {
+          return byCategory;
+        }
         final leftCode = left['item_code'] as String? ?? '';
         final rightCode = right['item_code'] as String? ?? '';
         final leftPending = !_confirmed.contains(leftCode);
@@ -818,6 +857,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                 ],
               ),
               const SizedBox(height: 8),
+              _buildCategoryFilter(context),
               if (visibleItems.isEmpty)
                 Card(
                   child: Padding(
@@ -826,31 +866,120 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                   ),
                 )
               else
-                ...visibleItems.map((item) {
-                  final itemCode = item['item_code'] as String? ?? '';
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _BlindEntryRow(
-                      key: ValueKey(itemCode),
-                      itemCode: itemCode,
-                      itemName: (item['item_name'] as String?)?.trim().isNotEmpty == true
-                          ? item['item_name'] as String
-                          : itemCode,
-                      quantity: _confirmed.contains(itemCode) ? _qtyForItem(itemCode) : null,
-                      selectedUom: _selectedUomForItem(item),
-                      uomOptions: _uomOptionsForItem(item),
-                      isCounted: _confirmed.contains(itemCode),
-                      onSubmitQuantity: (value) => _submitItemCount(item, value),
-                      onUomChanged: (value) => _updateItemUom(item, value),
-                      onClear: () => _clearItemEntry(itemCode),
-                    ),
-                  );
-                }),
+                ..._buildCountRows(context, visibleItems),
             ],
           ),
         ),
       ],
     );
+  }
+
+  /// A chip per category in the sheet, each showing how many rows are still
+  /// uncounted, so a counter can take one shelf at a time instead of scrolling
+  /// a single flat list.
+  Widget _buildCategoryFilter(BuildContext context) {
+    final l10n = context.l10n;
+    final pending = _categoryPending;
+    // One category is not a choice — the chips would only take up space.
+    if (pending.length < 2) return const SizedBox.shrink();
+
+    final totalPending = pending.values.fold<int>(0, (sum, value) => sum + value);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          FilterChip(
+            label: Text('${l10n.stockTransferAllGroups} ($totalPending)'),
+            selected: _selectedCategory == null,
+            onSelected: (_) => setState(() => _selectedCategory = null),
+          ),
+          ...pending.entries.map(
+            (entry) => FilterChip(
+              label: Text('${entry.key} (${entry.value})'),
+              selected: _selectedCategory == entry.key,
+              onSelected: (selected) => setState(
+                () => _selectedCategory = selected ? entry.key : null,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The entry rows, with a header before each category.
+  ///
+  /// Headers are only worth their space when more than one category is on
+  /// screen — filtering to a single category already names it on the chip.
+  List<Widget> _buildCountRows(
+    BuildContext context,
+    List<Map<String, dynamic>> visibleItems,
+  ) {
+    final theme = Theme.of(context);
+    final showHeaders =
+        visibleItems.map(_categoryOf).toSet().length > 1;
+    final counts = <String, List<int>>{};
+    for (final item in visibleItems) {
+      final code = item['item_code'] as String? ?? '';
+      final bucket = counts.putIfAbsent(_categoryOf(item), () => [0, 0]);
+      bucket[1] += 1;
+      if (_confirmed.contains(code)) bucket[0] += 1;
+    }
+
+    final widgets = <Widget>[];
+    String? currentCategory;
+    for (final item in visibleItems) {
+      final category = _categoryOf(item);
+      if (showHeaders && category != currentCategory) {
+        currentCategory = category;
+        final bucket = counts[category] ?? [0, 0];
+        widgets.add(
+          Padding(
+            padding: EdgeInsets.only(top: widgets.isEmpty ? 0 : 8, bottom: 8),
+            child: Row(
+              children: [
+                Text(category, style: theme.textTheme.titleSmall),
+                const SizedBox(width: 8),
+                Expanded(
+                  // Digits only, deliberately. The screen already shows
+                  // "Confirmed x / y" for the sheet as a whole, and repeating
+                  // that phrase per category would read as the same number
+                  // twice over rather than progress through one shelf.
+                  child: Text(
+                    '${bucket[0]}/${bucket[1]}',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: theme.hintColor),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      final itemCode = item['item_code'] as String? ?? '';
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _BlindEntryRow(
+            key: ValueKey(itemCode),
+            itemCode: itemCode,
+            itemName: (item['item_name'] as String?)?.trim().isNotEmpty == true
+                ? item['item_name'] as String
+                : itemCode,
+            quantity: _confirmed.contains(itemCode) ? _qtyForItem(itemCode) : null,
+            selectedUom: _selectedUomForItem(item),
+            uomOptions: _uomOptionsForItem(item),
+            isCounted: _confirmed.contains(itemCode),
+            onSubmitQuantity: (value) => _submitItemCount(item, value),
+            onUomChanged: (value) => _updateItemUom(item, value),
+            onClear: () => _clearItemEntry(itemCode),
+          ),
+        ),
+      );
+    }
+    return widgets;
   }
 
   Widget _buildReviewStep(

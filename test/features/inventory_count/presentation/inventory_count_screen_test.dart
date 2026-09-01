@@ -493,11 +493,108 @@ void main() {
         expect(find.text('Counted'), findsNothing);
       },
     );
+    testWidgets(
+      'groups the sheet by category and filters to one category on tap',
+      (tester) async {
+        // A factory sheet is several shelves in one list. Without headers and
+        // chips the only way to reach one shelf was to type its group name into
+        // the search box.
+        final service = _FakeInventoryCountService(
+          warehouses: const [
+            {'name': 'Raw Material - J', 'company': 'Jarz'},
+          ],
+          items: const [
+            {
+              'item_code': 'RM-1',
+              'item_name': 'flour',
+              'item_group': 'Raw Material',
+              'current_qty': 5,
+              'stock_uom': 'Kg',
+            },
+            {
+              'item_code': 'LB-1',
+              'item_name': 'Lotus Jar label 212',
+              'item_group': 'Labels',
+              'current_qty': 200,
+              'stock_uom': 'Nos',
+            },
+            {
+              'item_code': 'PK-1',
+              'item_name': 'Glass Jar',
+              'item_group': 'Packaging',
+              'current_qty': 40,
+              'stock_uom': 'Nos',
+            },
+          ],
+        );
+
+        await _pumpInventoryCountScreen(tester, service);
+        await _selectWarehouse(tester, 'Raw Material - J');
+        await _startCount(tester);
+
+        // One chip per category, plus All, each carrying its uncounted total.
+        expect(find.widgetWithText(FilterChip, 'All Groups (3)'), findsOneWidget);
+        expect(find.widgetWithText(FilterChip, 'Raw Material (1)'), findsOneWidget);
+        expect(find.widgetWithText(FilterChip, 'Labels (1)'), findsOneWidget);
+        expect(find.widgetWithText(FilterChip, 'Packaging (1)'), findsOneWidget);
+
+        // Headers label each run. Assert only that they appear: the list is
+        // lazily built, so entry rows below the test viewport are absent from
+        // the element tree and asserting on them would tie this to screen size.
+        // The "N of M items" counter is the viewport-safe read on filtering.
+        expect(find.text('0/1'), findsWidgets);
+        expect(find.text('3 of 3 items'), findsOneWidget);
+
+        await tester.tap(find.widgetWithText(FilterChip, 'Packaging (1)'));
+        await tester.pumpAndSettle();
+
+        // Only the chosen shelf remains, and its header is dropped as
+        // redundant with the selected chip.
+        expect(find.text('1 of 3 items'), findsOneWidget);
+        expect(find.text('0/1'), findsNothing);
+        expect(find.byKey(const ValueKey('LB-1')), findsNothing);
+        expect(find.byKey(const ValueKey('RM-1')), findsNothing);
+
+        await tester.tap(find.widgetWithText(FilterChip, 'All Groups (3)'));
+        await tester.pumpAndSettle();
+        expect(find.text('3 of 3 items'), findsOneWidget);
+        expect(find.text('0/1'), findsWidgets);
+      },
+    );
+
+    testWidgets(
+      'hides the category chips when the sheet is a single category',
+      (tester) async {
+        final service = _FakeInventoryCountService(
+          warehouses: const [
+            {'name': 'Consumables - J', 'company': 'Jarz'},
+          ],
+          items: const [
+            {
+              'item_code': 'CN-1',
+              'item_name': 'Tissue',
+              'item_group': 'Consumable',
+              'current_qty': 12,
+              'stock_uom': 'Nos',
+            },
+            {
+              'item_code': 'CN-2',
+              'item_name': 'gloves',
+              'item_group': 'Consumable',
+              'current_qty': 50,
+              'stock_uom': 'Nos',
+            },
+          ],
+        );
+
+        await _pumpInventoryCountScreen(tester, service);
+        await _selectWarehouse(tester, 'Consumables - J');
+        await _startCount(tester);
+
+        expect(find.byType(FilterChip), findsNothing);
+        expect(find.text('0/2'), findsNothing);
+        expect(find.text('2 of 2 items'), findsOneWidget);
+      },
+    );
   });
 }
-
-
-
-
-
-
