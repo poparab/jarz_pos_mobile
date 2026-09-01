@@ -1600,6 +1600,7 @@
   "invoiceActualCollectionMethod": "Actual collection",
   "invoiceCollectionReferenceLabel": "Reference number",
   "invoiceCollectionReferenceRequired": "Online collection requires a reference number.",
+  "invoiceCollectionCashAtBranchNotice": "The courier for this order has already closed out, so this cash is recorded as received at the branch and will be expected in the drawer at the next count.",
   "invoiceChangingCollectionMethod": "Changing collection method...",
   "invoiceCollectionMethodChanged": "Collection method changed to {method}",
   "@invoiceCollectionMethodChanged": {

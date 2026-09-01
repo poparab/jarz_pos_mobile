@@ -78,7 +78,29 @@ class _PaymentCollectionChangeDialogState
     return widget.invoice.paymentMethod?.trim() ?? '';
   }
 
-  bool get _requiresReceipt => _normalizeMethod(_selectedMethod) != 'cash';
+  /// A screenshot is proof of a transfer that has already landed, so it is only
+  /// demanded when there is one to show. An unpaid online-intent order has not been
+  /// paid by anyone yet -- switching it between online methods only retargets the
+  /// ledger the transfer is expected in, and the proof is collected later, when a
+  /// manager confirms the payment. The backend applies the same rule; demanding an
+  /// upload here made that switch impossible from the board.
+  bool get _requiresReceipt =>
+      _normalizeMethod(_selectedMethod) != 'cash' && !_isUnpaidOnlineIntent;
+
+  /// The order went Out for Delivery on the promise of a transfer that has still not
+  /// arrived: nothing has been collected, and the receivable is still the customer's.
+  bool get _isUnpaidOnlineIntent =>
+      widget.invoice.isAwaitingOnlinePayment && !widget.invoice.isFullyPaid;
+
+  /// Switching THIS order to cash puts the money in the branch drawer rather than on
+  /// the courier's balance, because his row is settled (or he was never assigned one):
+  /// he closed out and went home, so nothing can be added to what he owes the branch.
+  /// Worth saying out loud -- it makes the manager responsible for the cash being in
+  /// the till, and the next shift count will expect it.
+  bool get _showsCashAtBranchNotice =>
+      _isUnpaidOnlineIntent &&
+      !widget.invoice.hasUnsettledCourierTxn &&
+      _normalizeMethod(_selectedMethod) == 'cash';
 
   bool get _hasPosProfile => (widget.posProfile?.trim().isNotEmpty ?? false);
 
@@ -609,6 +631,26 @@ class _PaymentCollectionChangeDialogState
                   border: const OutlineInputBorder(),
                 ),
               ),
+              if (_showsCashAtBranchNotice) ...[
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.account_balance_outlined,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.invoiceCollectionCashAtBranchNotice,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               if (_isSameMethod) ...[
                 const SizedBox(height: 12),
                 Text(

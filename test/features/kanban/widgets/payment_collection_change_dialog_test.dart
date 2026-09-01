@@ -45,6 +45,9 @@ InvoiceCard _invoice({
   String? paymentReceiptMethod,
   String? paymentReceiptStatus,
   String? paymentReceiptImageUrl,
+  String? paymentConfirmationStatus,
+  double outstandingAmount = 0,
+  bool hasUnsettledCourierTxn = true,
 }) {
   return InvoiceCard(
     id: 'INV-0001',
@@ -65,9 +68,21 @@ InvoiceCard _invoice({
     paymentReceiptMethod: paymentReceiptMethod,
     paymentReceiptStatus: paymentReceiptStatus,
     paymentReceiptImageUrl: paymentReceiptImageUrl,
-    hasUnsettledCourierTxn: true,
+    paymentConfirmationStatus: paymentConfirmationStatus,
+    outstandingAmount: outstandingAmount,
+    hasUnsettledCourierTxn: hasUnsettledCourierTxn,
   );
 }
+
+/// An order taken Out for Delivery on the promise of an InstaPay transfer that has
+/// still not arrived: nobody has paid anything, so there is no screenshot to demand
+/// and no courier holding the customer's money.
+InvoiceCard _awaitingOnlinePayment({bool courierStillOpen = true}) => _invoice(
+  paymentMethod: 'Instapay',
+  paymentConfirmationStatus: 'Awaiting Payment',
+  outstandingAmount: 150,
+  hasUnsettledCourierTxn: courierStillOpen,
+);
 
 void main() {
   group('PaymentCollectionChangeDialog', () {
@@ -185,6 +200,85 @@ void main() {
         expect(find.text('Replace Image'), findsOneWidget);
         expect(find.text('Remove Image'), findsOneWidget);
         expect(find.text('Upload Receipt Image'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'should not demand a receipt to retarget an order nobody has paid yet',
+      (tester) async {
+        Future<PaymentCollectionChangeRequest?>? dialogFuture;
+
+        await _pumpHost(tester, () {
+          dialogFuture = PaymentCollectionChangeDialog.show(
+            tester.element(find.text('open')),
+            invoice: _awaitingOnlinePayment(),
+            posProfile: 'Nasr City',
+          );
+          return dialogFuture!;
+        });
+
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        // Defaults to Cash for an Instapay order, so pick an online method to prove
+        // the online branch no longer blocks.
+        await tester.tap(find.text('Mobile Wallet'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Upload Receipt Image'), findsNothing);
+        final submit = tester.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, 'Submit'),
+        );
+        expect(submit.onPressed, isNotNull);
+
+        await tester.tap(find.widgetWithText(ElevatedButton, 'Submit'));
+        await tester.pumpAndSettle();
+
+        final result = await dialogFuture;
+        expect(result?.method, 'Mobile Wallet');
+        expect(result?.receiptName, isNull);
+      },
+    );
+
+    testWidgets(
+      'should say the cash lands in the branch drawer once the courier closed out',
+      (tester) async {
+        await _pumpHost(tester, () {
+          return PaymentCollectionChangeDialog.show(
+            tester.element(find.text('open')),
+            invoice: _awaitingOnlinePayment(courierStillOpen: false),
+            posProfile: 'Nasr City',
+          );
+        });
+
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.textContaining('recorded as received at the branch'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'should stay silent about the drawer while the courier can still carry it',
+      (tester) async {
+        await _pumpHost(tester, () {
+          return PaymentCollectionChangeDialog.show(
+            tester.element(find.text('open')),
+            invoice: _awaitingOnlinePayment(),
+            posProfile: 'Nasr City',
+          );
+        });
+
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.textContaining('recorded as received at the branch'),
+          findsNothing,
+        );
       },
     );
 

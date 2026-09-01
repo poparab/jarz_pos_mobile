@@ -5948,6 +5948,12 @@ abstract class AppLocalizations {
   /// **'Online collection requires a reference number.'**
   String get invoiceCollectionReferenceRequired;
 
+  /// No description provided for @invoiceCollectionCashAtBranchNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'The courier for this order has already closed out, so this cash is recorded as received at the branch and will be expected in the drawer at the next count.'**
+  String get invoiceCollectionCashAtBranchNotice;
+
   /// No description provided for @invoiceChangingCollectionMethod.
   ///
   /// In en, this message translates to:

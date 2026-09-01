@@ -3451,6 +3451,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'التحصيل الإلكتروني يتطلب رقم مرجع.';
 
   @override
+  String get invoiceCollectionCashAtBranchNotice =>
+      'مندوب التوصيل لهذا الطلب أغلق حسابه بالفعل، لذلك يُسجل هذا المبلغ كنقدية مُستلمة في الفرع وسيُطلب في جرد الدرج القادم.';
+
+  @override
   String get invoiceChangingCollectionMethod => 'جارٍ تغيير طريقة التحصيل...';
 
   @override

@@ -109,9 +109,13 @@ class InvoiceCard {
   final String? courierPartyType; // Employee/Supplier
   final String? courierParty; // party id
   final bool hasUnsettledCourierTxn; // new flag from backend
-  // Customer cash still to be collected at the door (unsettled Courier Transaction
-  // customer leg). Narrower than [hasUnsettledCourierTxn]: a COD order switched to an
-  // online method keeps an unsettled SHIPPING leg while the customer has already paid.
+  // Whether the CUSTOMER still owes money on this order: the customer leg of an
+  // unsettled Courier Transaction for a COD order, or the invoice's outstanding amount
+  // for an unpaid online-intent one, whose courier row is a freight row that never
+  // reports the customer's money at all. Differs from [hasUnsettledCourierTxn] in both
+  // directions -- a COD order switched to an online method keeps an unsettled SHIPPING
+  // leg while the customer has already paid, and an unpaid online-intent order keeps
+  // owing its full total once a shift close settles that freight row.
   // Absent on an older backend, where it falls back to [hasUnsettledCourierTxn].
   final bool hasUnsettledCustomerAmount;
   final String? salesPartner; // optional sales partner on the invoice

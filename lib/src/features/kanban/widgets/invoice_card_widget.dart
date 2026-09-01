@@ -1845,8 +1845,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   }
 
   bool _canShowCollectionChangeAction(bool hasManagerAccess) {
+    // Gated on the CUSTOMER still owing, not on the courier's row being unsettled.
+    // Those are different questions, and the courier one answered this wrongly in both
+    // directions: an unpaid online-intent order still owes its full grand total after a
+    // shift close settles the courier's freight row, and a COD order switched to an
+    // online method owes nothing while its shipping leg stays unsettled. Three orders
+    // went unreachable on production on 2026-09-01 for the first reason -- the backend
+    // would have served them; the card simply stopped offering the action.
     if (!hasManagerAccess ||
-        !widget.invoice.hasUnsettledCourierTxn ||
+        !widget.invoice.hasUnsettledCustomerAmount ||
         widget.invoice.isPickup ||
         widget.invoice.isReturn ||
         (widget.invoice.salesPartner?.trim().isNotEmpty ?? false)) {

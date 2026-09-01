@@ -1422,6 +1422,7 @@
   "invoiceActualCollectionMethod": "التحصيل الفعلي",
   "invoiceCollectionReferenceLabel": "رقم المرجع",
   "invoiceCollectionReferenceRequired": "التحصيل الإلكتروني يتطلب رقم مرجع.",
+  "invoiceCollectionCashAtBranchNotice": "مندوب التوصيل لهذا الطلب أغلق حسابه بالفعل، لذلك يُسجل هذا المبلغ كنقدية مُستلمة في الفرع وسيُطلب في جرد الدرج القادم.",
   "invoiceChangingCollectionMethod": "جارٍ تغيير طريقة التحصيل...",
   "invoiceCollectionMethodChanged": "تم تغيير طريقة التحصيل إلى {method}",
   "@invoiceCollectionMethodChanged": {

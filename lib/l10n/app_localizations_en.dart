@@ -3458,6 +3458,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Online collection requires a reference number.';
 
   @override
+  String get invoiceCollectionCashAtBranchNotice =>
+      'The courier for this order has already closed out, so this cash is recorded as received at the branch and will be expected in the drawer at the next count.';
+
+  @override
   String get invoiceChangingCollectionMethod => 'Changing collection method...';
 
   @override
