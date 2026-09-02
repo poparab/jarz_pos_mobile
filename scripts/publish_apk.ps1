@@ -36,7 +36,16 @@ param(
     [string]$ApkPath,
 
     [string]$SshKeyPath,
-    [switch]$PlanOnly
+    [switch]$PlanOnly,
+
+    # Publish the page WITHOUT making this build mandatory. The default raises the
+    # Android update floor to the published build, which is what forces every installed
+    # app onto it; pass this only when re-rendering the page must not touch devices.
+    [switch]$SkipForceUpdate,
+
+    # Where the floor lives: the Frappe backend container and site on the same host.
+    [string]$BackendContainer = 'erp-backend-1',
+    [string]$SiteName = 'frontend'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -368,6 +377,65 @@ catch {
     Write-Warn "Could not verify the landing page at $downloadUrl -- $($_.Exception.Message)"
 }
 
+# --- Force installed apps onto this build ------------------------------------
+#
+# Publishing the APK only helps people who go looking for it. What makes an update
+# actually land on the tills is the floor in Jarz POS Settings: once it equals this
+# build, every older app shows a non-dismissible update screen pointing at this page and
+# the backend refuses its API calls (jarz_pos.api.app_release). So the floor follows the
+# published build, automatically, on every full APK release.
+#
+# Runs only AFTER the page is verified to serve this exact APK: raising the floor sends
+# every older device here, and a device sent to a download that is not there yet is
+# stuck. Shorebird patches never pass through this script (they publish no APK), which
+# is why a patch never moves the floor - the patch itself is the update.
+#
+# bench execute, not HTTP: the raise is deliberately not a whitelisted endpoint, so the
+# only way to move the floor is to already hold a shell on that server.
+Write-Host ''
+if ($SkipForceUpdate) {
+    Write-Warn 'SkipForceUpdate: the Android update floor was NOT raised. Devices on older builds keep working.'
+}
+elseif ($buildNumber -notmatch '^\d+$') {
+    throw "Cannot raise the update floor: build number resolved to '$buildNumber'. Publish from a CI run (its metadata artifact carries the build number), or pass -SkipForceUpdate if leaving devices alone is intended."
+}
+else {
+    Write-Step "Raising the Android update floor to build $buildNumber..."
+    $floorKwargs = "{'build_number': $buildNumber, 'download_url': '$downloadUrl'}"
+    $floorCommand = "docker exec $BackendContainer bench --site $SiteName execute jarz_pos.api.app_release.publish_android_release --kwargs `"$floorKwargs`""
+    $floorOutput = Invoke-Remote $floorCommand
+    $floorSummary = ($floorOutput -split "`r?`n" | Where-Object { $_ -match 'minimum_build' } | Select-Object -Last 1)
+    if ($floorSummary) { Write-Info $floorSummary } elseif ($floorOutput) { Write-Host $floorOutput }
+
+    # Prove it from the outside, the way a device would ask: a build one behind this one
+    # must now be told to update, and told that THIS build is the floor.
+    Write-Step 'Verifying the update gate over HTTPS...'
+    $probeBuild = [int]$buildNumber - 1
+    $probeUrl = "$($config.BaseUrl)/api/method/jarz_pos.api.app_release.get_app_requirement?platform=android&build_number=$probeBuild"
+    $requirement = $null
+    $attempt = 0
+    while ($attempt -lt 6) {
+        $attempt++
+        try {
+            $probe = Invoke-RestMethod -Uri $probeUrl -Method Get -UseBasicParsing -TimeoutSec 30
+            $requirement = $probe.message
+            if ($requirement -and $requirement.update_required -and ([int]$requirement.minimum_build -eq [int]$buildNumber)) { break }
+        }
+        catch {
+            Write-Warn "Gate probe attempt $attempt failed: $($_.Exception.Message)"
+        }
+        Start-Sleep -Seconds 5
+    }
+    if (-not $requirement) {
+        throw "The update gate could not be read at $probeUrl"
+    }
+    if (-not $requirement.update_required -or ([int]$requirement.minimum_build -ne [int]$buildNumber)) {
+        throw "The update gate did not take: build $probeBuild reports update_required=$($requirement.update_required) minimum_build=$($requirement.minimum_build), expected minimum_build=$buildNumber. Check Jarz POS Settings > Minimum Android Build on $($config.EnvLabel)."
+    }
+    Write-Info "update floor=$($requirement.minimum_build) latest=$($requirement.latest_build) download_url=$($requirement.download_url)"
+    Write-Info "Installed apps below build $buildNumber are now forced to update from $downloadUrl"
+}
+
 Write-Host ''
 Write-Info "Published: $downloadUrl"
-Write-Info "Direct APK: $apkUrl"
+Write-Info "Direct APK: $apkUrl\"
