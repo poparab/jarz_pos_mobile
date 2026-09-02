@@ -402,8 +402,15 @@ elseif ($buildNumber -notmatch '^\d+$') {
 else {
     Write-Step "Raising the Android update floor to build $buildNumber..."
     $floorKwargs = "{'build_number': $buildNumber, 'download_url': '$downloadUrl'}"
-    $floorCommand = "docker exec $BackendContainer bench --site $SiteName execute jarz_pos.api.app_release.publish_android_release --kwargs `"$floorKwargs`""
-    $floorOutput = Invoke-Remote $floorCommand
+    # Shipped to the host as base64: PowerShell rewrites the quotes in a native command's
+    # arguments (5.1 drops them outright), so a bench --kwargs dict typed inline arrives
+    # at the remote shell split into words and bench answers with its usage text. The
+    # stderr merge is inside the script so ssh itself stays silent; a native command
+    # writing to stderr under $ErrorActionPreference = 'Stop' would throw before the
+    # exit code is ever read.
+    $floorScript = "docker exec $BackendContainer bench --site $SiteName execute jarz_pos.api.app_release.publish_android_release --kwargs `"$floorKwargs`" 2>&1"
+    $floorEncoded = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($floorScript))
+    $floorOutput = Invoke-Remote "echo $floorEncoded | base64 -d | bash"
     $floorSummary = ($floorOutput -split "`r?`n" | Where-Object { $_ -match 'minimum_build' } | Select-Object -Last 1)
     if ($floorSummary) { Write-Info $floorSummary } elseif ($floorOutput) { Write-Host $floorOutput }
 
