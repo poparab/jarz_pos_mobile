@@ -12,8 +12,15 @@ class _FakeCourierService extends CourierService {
   List<Map<String, dynamic>> balancesResult = [];
   bool shouldThrow = false;
 
+  /// Records what the notifier asked for, so a test can prove the open branch
+  /// actually reaches the wire rather than being dropped on the way down.
+  String? lastPosProfile;
+  int callCount = 0;
+
   @override
-  Future<List<dynamic>> getBalances() async {
+  Future<List<dynamic>> getBalances({String? posProfile}) async {
+    lastPosProfile = posProfile;
+    callCount++;
     if (shouldThrow) throw Exception('balances error');
     return balancesResult;
   }
@@ -114,6 +121,26 @@ void main() {
       expect(notifier.state.loading, false);
       expect(notifier.state.error, isNotNull);
       expect(notifier.state.balances, isEmpty);
+    });
+
+    test('forwards the open branch down to the service', () async {
+      final fake = _FakeCourierService();
+      final repo = CourierRepository(fake);
+      CourierBalancesNotifier(repo, posProfile: 'Nasr city');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(fake.lastPosProfile, 'Nasr city');
+    });
+
+    test('omitting the branch sends no profile, leaving the server to scope',
+        () async {
+      final fake = _FakeCourierService();
+      final repo = CourierRepository(fake);
+      CourierBalancesNotifier(repo);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(fake.callCount, 1);
+      expect(fake.lastPosProfile, isNull);
     });
 
     test('load() can be called again to refresh', () async {

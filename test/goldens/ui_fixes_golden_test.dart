@@ -167,7 +167,8 @@ class _FakeCourierRepository extends CourierRepository {
   final List<CourierBalance> _balances;
 
   @override
-  Future<List<CourierBalance>> getBalances() async => _balances;
+  Future<List<CourierBalance>> getBalances({String? posProfile}) async =>
+      _balances;
 }
 
 // ── Fixtures ────────────────────────────────────────────────────────────────
@@ -363,6 +364,9 @@ void main() {
         courierRepositoryProvider.overrideWithValue(
           _FakeCourierRepository(_courierBalancesFixture()),
         ),
+        // The balances provider watches the open branch, so the POS notifier
+        // has to exist here or the dialog throws NotInitializedError on build.
+        posNotifierProvider.overrideWith((ref) => _FakePosNotifier()),
         webSocketServiceProvider.overrideWithValue(MockWebSocketService()),
       ],
     );

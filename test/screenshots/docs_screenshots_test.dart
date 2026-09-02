@@ -225,7 +225,8 @@ class _FakeCourierRepo extends CourierRepository {
   _FakeCourierRepo(this._balances) : super(CourierService(createMockDio()));
   final List<CourierBalance> _balances;
   @override
-  Future<List<CourierBalance>> getBalances() async => _balances;
+  Future<List<CourierBalance>> getBalances({String? posProfile}) async =>
+      _balances;
 }
 
 /// The real one reads the saved locale out of a Hive box that no test binding
@@ -484,6 +485,10 @@ void main() {
           overrides: [
             courierRepositoryProvider
                 .overrideWithValue(_FakeCourierRepo(_balancesFixture())),
+            // The balances provider watches the open branch, so the POS
+            // notifier has to exist here or the dialog throws
+            // NotInitializedError on build.
+            posNotifierProvider.overrideWith((ref) => _FakePos()),
             webSocketServiceProvider.overrideWithValue(MockWebSocketService()),
           ],
         );
