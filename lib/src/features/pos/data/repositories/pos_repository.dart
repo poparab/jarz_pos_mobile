@@ -504,19 +504,27 @@ class PosRepository {
   /// Customer Group.default_price_list and returns the resolved name, or null
   /// when the customer has no tier price list configured.
   ///
+  /// [orderPurpose] matters: for a "B2B Supply" order the backend falls back to
+  /// the B2B base list rather than letting an un-tiered B2B customer price at
+  /// retail. Omitting it makes the cart show the POS default while the server
+  /// still books the B2B rate, so it is always passed for a policy order.
+  ///
   /// Returns the resolved price-list name, or `null` when none is configured /
   /// on any error (non-manager, network failure, etc.) so the caller can simply
   /// fall back to the POS default price list.
   Future<String?> getCustomerPriceList(
     String customer,
-    String posProfile,
-  ) async {
+    String posProfile, {
+    String? orderPurpose,
+  }) async {
     try {
       final response = await _dio.post(
         ApiEndpoints.resolveCustomerPriceList,
         data: {
           'customer': customer,
           if (posProfile.trim().isNotEmpty) 'pos_profile': posProfile,
+          if ((orderPurpose ?? '').trim().isNotEmpty)
+            'order_purpose': orderPurpose!.trim(),
         },
       );
 

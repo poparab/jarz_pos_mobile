@@ -1383,6 +1383,9 @@ class PosNotifier extends StateNotifier<PosState> {
   ///      * customer selected → resolve via the backend; apply the resolved
   ///        list, or fall back to the POS default and flag
   ///        [PosState.customerHasNoTierPriceList] when none is configured.
+  ///        For a B2B Supply order the backend answers with the B2B base list
+  ///        rather than nothing, so the tier-missing flag there now means the
+  ///        base list itself is missing — not merely that no tier was assigned.
   ///      * no customer yet → no-op; resolution happens when a customer is set.
   ///
   /// Race-safe: captures a resolution token up front and ignores its async
@@ -1423,6 +1426,10 @@ class PosNotifier extends StateNotifier<PosState> {
     final resolved = await _repository.getCustomerPriceList(
       customerName,
       posProfileName,
+      // Without the purpose the backend cannot tell a B2B Supply order from a
+      // Free Shipping Waiver, and only the former may fall back to the B2B base
+      // list — so an un-tiered B2B customer would keep showing retail prices.
+      orderPurpose: policy.orderPurpose,
     );
 
     // A newer customer/policy selection superseded this resolution — bail.
