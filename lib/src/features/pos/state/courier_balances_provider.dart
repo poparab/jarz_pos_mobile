@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/courier_balance.dart';
 import '../data/repositories/courier_repository.dart';
+import 'pos_notifier.dart';
 
 class CourierBalancesState {
   final bool loading;
@@ -31,7 +32,13 @@ class CourierBalancesState {
 
 class CourierBalancesNotifier extends StateNotifier<CourierBalancesState> {
   final CourierRepository _repo;
-  CourierBalancesNotifier(this._repo) : super(CourierBalancesState.initial()) {
+
+  /// The branch these balances belong to. Settlement is funded by this branch's
+  /// cash account, so the list must show only this branch's courier money —
+  /// never another branch's.
+  final String? posProfile;
+
+  CourierBalancesNotifier(this._repo, {this.posProfile}) : super(CourierBalancesState.initial()) {
     // initial load
     load();
   }
@@ -40,7 +47,7 @@ class CourierBalancesNotifier extends StateNotifier<CourierBalancesState> {
     if (state.loading) return; // guard against concurrent loads
     try {
       state = state.copyWith(loading: true, error: null);
-      final result = await _repo.getBalances();
+      final result = await _repo.getBalances(posProfile: posProfile);
       state = state.copyWith(loading: false, balances: result, error: null, hasLoaded: true);
     } catch (e) {
       state = state.copyWith(loading: false, error: e.toString(), hasLoaded: true);
@@ -50,5 +57,11 @@ class CourierBalancesNotifier extends StateNotifier<CourierBalancesState> {
 
 final courierBalancesProvider = StateNotifierProvider<CourierBalancesNotifier, CourierBalancesState>((ref) {
   final repo = ref.watch(courierRepositoryProvider);
-  return CourierBalancesNotifier(repo);
+  // Watched, not read: switching branch rebuilds the notifier, which reloads the
+  // list for the branch now open instead of leaving the previous one's rows on
+  // screen next to a Settle button that would post against the new drawer.
+  final posProfile = ref.watch(
+    posNotifierProvider.select((s) => s.selectedProfile?['name'] as String?),
+  );
+  return CourierBalancesNotifier(repo, posProfile: posProfile);
 });

@@ -47,10 +47,17 @@ class CourierService {
     return payload;
   }
 
-  Future<List<dynamic>> getBalances() async {
+  /// Unsettled courier balances for [posProfile] — the branch currently open.
+  ///
+  /// The server scopes to the caller's assigned branches regardless, so an
+  /// omitted profile is safe; passing it narrows a multi-branch user to the one
+  /// branch they are actually working in.
+  Future<List<dynamic>> getBalances({String? posProfile}) async {
     final resp = await _dio.post(
       ApiEndpoints.getCourierBalances,
-      data: {},
+      data: <String, dynamic>{
+        if (posProfile != null && posProfile.isNotEmpty) 'pos_profile': posProfile,
+      },
     );
     // Frappe packs data in 'message' for /api/method
     final payload = resp.data;

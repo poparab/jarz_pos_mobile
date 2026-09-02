@@ -11,8 +11,8 @@ class CourierRepository {
   final CourierService _service;
   CourierRepository(this._service);
 
-  Future<List<CourierBalance>> getBalances() async {
-    final list = await _service.getBalances();
+  Future<List<CourierBalance>> getBalances({String? posProfile}) async {
+    final list = await _service.getBalances(posProfile: posProfile);
     return list
         .map((e) => CourierBalance.fromMap(Map<String, dynamic>.from(e as Map)))
         .toList();

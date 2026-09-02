@@ -54,6 +54,33 @@ void main() {
         final result = await service.getBalances();
         expect(result, isEmpty);
       });
+
+      test('sends the open branch so only its courier money comes back', () async {
+        mockDio.setResponse(
+          ApiEndpoints.getCourierBalances,
+          createSuccessResponse(data: []),
+        );
+
+        await service.getBalances(posProfile: 'Nasr city');
+
+        final req = mockDio.requestLog.first;
+        expect(req['data']['pos_profile'], 'Nasr city');
+      });
+
+      test('omits pos_profile when no branch is selected', () async {
+        mockDio.setResponse(
+          ApiEndpoints.getCourierBalances,
+          createSuccessResponse(data: []),
+        );
+
+        await service.getBalances();
+
+        // The server falls back to every branch the caller is assigned to, so
+        // an absent profile is safe — but it must not be sent as an empty
+        // string, which would name a branch that does not exist.
+        final req = mockDio.requestLog.first;
+        expect((req['data'] as Map).containsKey('pos_profile'), isFalse);
+      });
     });
 
     // ── getSettlementPreview ──────────────────────────────────────────
