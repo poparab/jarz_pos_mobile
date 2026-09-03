@@ -4306,6 +4306,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loginModeEmployeeDesc => 'فتح وردية قبل بدء العمل';
 
   @override
+  String get customerSearchHint => 'بحث بالاسم أو رقم الهاتف';
+
+  @override
+  String get customerSearchStartTyping =>
+      'ابدأ بكتابة الاسم أو رقم الهاتف للبحث عن عميل';
+
+  @override
+  String get customerSearchNoResults => 'لا يوجد عملاء مطابقون';
+
+  @override
   String get customerSearchByPhone => '...بحث برقم الهاتف';
 
   @override

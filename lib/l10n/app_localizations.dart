@@ -7421,6 +7421,24 @@ abstract class AppLocalizations {
   /// **'Open a shift before starting work'**
   String get loginModeEmployeeDesc;
 
+  /// No description provided for @customerSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or phone'**
+  String get customerSearchHint;
+
+  /// No description provided for @customerSearchStartTyping.
+  ///
+  /// In en, this message translates to:
+  /// **'Start typing a name or phone number to find a customer'**
+  String get customerSearchStartTyping;
+
+  /// No description provided for @customerSearchNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers found'**
+  String get customerSearchNoResults;
+
   /// No description provided for @customerSearchByPhone.
   ///
   /// In en, this message translates to:

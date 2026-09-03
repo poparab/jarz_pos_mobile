@@ -4324,6 +4324,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginModeEmployeeDesc => 'Open a shift before starting work';
 
   @override
+  String get customerSearchHint => 'Search by name or phone';
+
+  @override
+  String get customerSearchStartTyping =>
+      'Start typing a name or phone number to find a customer';
+
+  @override
+  String get customerSearchNoResults => 'No customers found';
+
+  @override
   String get customerSearchByPhone => 'Search by phone number...';
 
   @override

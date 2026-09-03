@@ -466,290 +466,184 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
   }
 
   Widget _buildSearchField() {
+    // The customer bar sits at the very top of the POS screen. On a phone an
+    // inline overlay has nowhere to land — downward it is buried by the
+    // keyboard, upward (the old behaviour) it draws over the app bar and gets
+    // clipped — and the bar itself collapses with the header while scrolling,
+    // dragging the anchor with it. Give phones the whole viewport instead.
+    if (ResponsiveUtils.isPhone(context)) {
+      return _buildFullScreenSearchLauncher();
+    }
+    return _buildInlineAutocomplete();
+  }
+
+  /// Phone affordance: looks like the search field, opens the full-screen
+  /// search page on tap.
+  Widget _buildFullScreenSearchLauncher() {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => _openCustomerSearchPage(),
+      child: InputDecorator(
+        isEmpty: true,
+        decoration: InputDecoration(
+          hintText: context.l10n.customerSearchHint,
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
+        child: const SizedBox(height: 24),
+      ),
+    );
+  }
+
+  Future<void> _openCustomerSearchPage() async {
+    final selection = await Navigator.of(context)
+        .push<Map<String, dynamic>>(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => const _CustomerSearchPage(),
+          ),
+        );
+    if (selection == null || !mounted) return;
+
+    if (selection['_isQuickAdd'] == true) {
+      _showQuickAddCustomerDialog(selection['searchQuery']?.toString() ?? '');
+    } else {
+      await _selectCustomerWithShippingAddress(
+        Map<String, dynamic>.from(selection),
+      );
+    }
+  }
+
+  /// Tablet/desktop affordance: an inline dropdown anchored to the field.
+  /// Always opens downward — the field is the topmost element, so upward is
+  /// never the right direction — and the panel is sized to the field's own
+  /// width instead of a hardcoded 450px.
+  Widget _buildInlineAutocomplete() {
     final isPhoneSearch = RegExp(
       r'^[0-9+\-\s()]+$',
     ).hasMatch(_currentQuery.trim());
 
-    final isPhone = ResponsiveUtils.isPhone(context);
-    return Autocomplete<Map<String, dynamic>>(
-      optionsViewOpenDirection: isPhone
-          ? OptionsViewOpenDirection.up
-          : OptionsViewOpenDirection.down,
-      optionsBuilder: (textEditingValue) async {
-        if (textEditingValue.text.isEmpty) {
-          return const Iterable<Map<String, dynamic>>.empty();
-        }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final fieldWidth = constraints.maxWidth;
+        return Autocomplete<Map<String, dynamic>>(
+          optionsViewOpenDirection: OptionsViewOpenDirection.down,
+          optionsBuilder: (textEditingValue) async {
+            if (textEditingValue.text.isEmpty) {
+              return const Iterable<Map<String, dynamic>>.empty();
+            }
 
-        try {
-          final customers = await ref.read(
-            dynamicCustomerSearchProvider(textEditingValue.text).future,
-          );
+            try {
+              final customers = await ref.read(
+                dynamicCustomerSearchProvider(textEditingValue.text).future,
+              );
 
-          // If no customers found, add a "Quick Add Customer" option
-          if (customers.isEmpty && textEditingValue.text.trim().isNotEmpty) {
-            return [
-              {
-                '_isQuickAdd': true,
-                'customer_name': 'Quick Add Customer: ${textEditingValue.text}',
-                'searchQuery': textEditingValue.text,
-              },
-            ];
-          }
-
-          return customers;
-        } catch (e) {
-          return const Iterable<Map<String, dynamic>>.empty();
-        }
-      },
-      displayStringForOption: (customer) =>
-          customer['customer_name'] ?? customer['name'] ?? 'Unknown',
-      onSelected: (customer) {
-        if (customer['_isQuickAdd'] == true) {
-          _showQuickAddCustomerDialog(customer['searchQuery'] ?? '');
-        } else {
-          _selectCustomerWithShippingAddress(
-            Map<String, dynamic>.from(customer),
-          );
-        }
-      },
-      fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
-        _controller.text = controller.text;
-        return TextField(
-          controller: controller,
-          focusNode: focusNode,
-          onEditingComplete: onEditingComplete,
-          onChanged: _onSearchChanged,
-          keyboardType: isPhoneSearch
-              ? TextInputType.phone
-              : TextInputType.text,
-          decoration: InputDecoration(
-            hintText: isPhoneSearch
-                ? context.l10n.customerSearchByPhone
-                : context.l10n.customerSearchByName,
-            prefixIcon: Icon(isPhoneSearch ? Icons.phone : Icons.search),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            suffixIcon: _currentQuery.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      controller.clear();
-                      setState(() {
-                        _currentQuery = '';
-                      });
-                    },
-                  )
-                : null,
-          ),
-        );
-      },
-      optionsViewBuilder: (context, onSelected, options) {
-        return Align(
-          alignment: AlignmentDirectional.topStart,
-          child: Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(8),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: ResponsiveUtils.isPhoneLandscape(context)
-                    ? 180
-                    : 250,
-                maxWidth: ResponsiveUtils.getDialogWidth(
-                  context,
-                  small: 450,
-                  medium: 450,
-                  large: 450,
+              // A "create this customer" row is always offered, not only when
+              // the search comes back empty: a near-miss match is exactly when
+              // the operator still needs a new record.
+              return [
+                ...customers,
+                {
+                  '_isQuickAdd': true,
+                  'customer_name':
+                      'Quick Add Customer: ${textEditingValue.text}',
+                  'searchQuery': textEditingValue.text,
+                },
+              ];
+            } catch (e) {
+              return const Iterable<Map<String, dynamic>>.empty();
+            }
+          },
+          displayStringForOption: (customer) =>
+              customer['customer_name'] ?? customer['name'] ?? 'Unknown',
+          onSelected: (customer) {
+            if (customer['_isQuickAdd'] == true) {
+              _showQuickAddCustomerDialog(customer['searchQuery'] ?? '');
+            } else {
+              _selectCustomerWithShippingAddress(
+                Map<String, dynamic>.from(customer),
+              );
+            }
+          },
+          fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
+            _controller.text = controller.text;
+            return TextField(
+              controller: controller,
+              focusNode: focusNode,
+              onEditingComplete: onEditingComplete,
+              onChanged: _onSearchChanged,
+              keyboardType: isPhoneSearch
+                  ? TextInputType.phone
+                  : TextInputType.text,
+              decoration: InputDecoration(
+                hintText: isPhoneSearch
+                    ? context.l10n.customerSearchByPhone
+                    : context.l10n.customerSearchByName,
+                prefixIcon: Icon(isPhoneSearch ? Icons.phone : Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                suffixIcon: _currentQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          controller.clear();
+                          setState(() {
+                            _currentQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+              ),
+            );
+          },
+          optionsViewBuilder: (context, onSelected, options) {
+            // Half the viewport, bounded — the field is pinned to the top of
+            // the screen so there is always room below it.
+            final maxHeight = (MediaQuery.sizeOf(context).height * 0.5).clamp(
+              200.0,
+              420.0,
+            );
+            return Align(
+              alignment: AlignmentDirectional.topStart,
+              child: Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(8),
+                clipBehavior: Clip.antiAlias,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: maxHeight,
+                    maxWidth: fieldWidth,
+                  ),
+                  child: SizedBox(
+                    width: fieldWidth,
+                    child: ListView.builder(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: options.length,
+                      itemBuilder: (context, index) {
+                        final customer = options.elementAt(index);
+                        return buildCustomerOptionTile(
+                          context,
+                          customer,
+                          isPhoneSearch: isPhoneSearch,
+                          onTap: () => onSelected(customer),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: options.length,
-                itemBuilder: (context, index) {
-                  final customer = options.elementAt(index);
-                  final isQuickAdd = customer['_isQuickAdd'] == true;
-
-                  return InkWell(
-                    onTap: () => onSelected(customer),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: isQuickAdd
-                            ? Theme.of(context).colorScheme.primaryContainer
-                                  .withValues(alpha: 0.3)
-                            : null,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Theme.of(context).dividerColor,
-                            width: 0.5,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isQuickAdd
-                                ? Icons.add_circle
-                                : (isPhoneSearch ? Icons.phone : Icons.person),
-                            size: 20,
-                            color: isQuickAdd
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: isQuickAdd
-                                ? Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        context.l10n.quickAddCustomerTitle,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.primary,
-                                            ),
-                                      ),
-                                      Text(
-                                        context.l10n.quickAddCustomerTap,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.onSurfaceVariant,
-                                            ),
-                                      ),
-                                    ],
-                                  )
-                                : Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        customer['customer_name'] ??
-                                            customer['name'] ??
-                                            'Unknown',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                      ),
-                                      if (customer['mobile_no'] != null)
-                                        Text(
-                                          customer['mobile_no'],
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.primary,
-                                                fontWeight: isPhoneSearch
-                                                    ? FontWeight.w600
-                                                    : FontWeight.normal,
-                                              ),
-                                        ),
-                                      if (customer['territory'] != null)
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.location_on,
-                                              size: 12,
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.onSurfaceVariant,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Expanded(
-                                              child: Text(
-                                                territoryLabel(
-                                                  nameAr: customer['territory_name_ar'],
-                                                  display: customer['territory_name'],
-                                                  raw: customer['territory'],
-                                                ),
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall
-                                                    ?.copyWith(
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurfaceVariant,
-                                                    ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      if (customer['delivery_income'] != null &&
-                                          customer['delivery_income'] > 0)
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.attach_money,
-                                              size: 12,
-                                              color: Colors.green,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              'Income: \$${customer['delivery_income']}',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall
-                                                  ?.copyWith(
-                                                    color: Colors.green,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                            ),
-                                            if (customer['delivery_expense'] !=
-                                                    null &&
-                                                customer['delivery_expense'] >
-                                                    0) ...[
-                                              const SizedBox(width: 8),
-                                              Icon(
-                                                Icons.money_off,
-                                                size: 12,
-                                                color: Colors.orange,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                'Expense: \$${customer['delivery_expense']}',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall
-                                                    ?.copyWith(
-                                                      color: Colors.orange,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                    ],
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -1248,5 +1142,327 @@ class _QuickAddCustomerWidgetState
         });
       }
     }
+  }
+}
+
+/// One result row, shared by the tablet dropdown and the phone search page so
+/// the two surfaces cannot drift apart.
+Widget buildCustomerOptionTile(
+  BuildContext context,
+  Map<String, dynamic> customer, {
+  required bool isPhoneSearch,
+  required VoidCallback onTap,
+}) {
+  final theme = Theme.of(context);
+  final isQuickAdd = customer['_isQuickAdd'] == true;
+
+  return InkWell(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: isQuickAdd
+            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
+            : null,
+        border: Border(
+          bottom: BorderSide(color: theme.dividerColor, width: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isQuickAdd
+                ? Icons.add_circle
+                : (isPhoneSearch ? Icons.phone : Icons.person),
+            size: 20,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: isQuickAdd
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        context.l10n.quickAddCustomerTitle,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      Text(
+                        context.l10n.quickAddCustomerTap,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        customer['customer_name'] ??
+                            customer['name'] ??
+                            context.l10n.posUnknownCustomer,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (customer['mobile_no'] != null)
+                        Text(
+                          customer['mobile_no'].toString(),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: isPhoneSearch
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      if (customer['territory'] != null)
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              size: 12,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                territoryLabel(
+                                  nameAr: customer['territory_name_ar'],
+                                  display: customer['territory_name'],
+                                  raw: customer['territory'],
+                                ),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (customer['delivery_income'] is num &&
+                          (customer['delivery_income'] as num) > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            context.l10n.posCustomerDeliveryIncomeValue(
+                              formatPosCurrency(customer['delivery_income']),
+                            ),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.green,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+          ),
+          if (!isQuickAdd)
+            Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+        ],
+      ),
+    ),
+  );
+}
+
+String formatPosCurrency(dynamic value) {
+  if (value is num) {
+    return '\$${value.toStringAsFixed(2)}';
+  }
+  if (value == null) {
+    return '\$0.00';
+  }
+  return '\$${value.toString()}';
+}
+
+/// Full-screen customer search used on phones.
+///
+/// A `Scaffold` route rather than an anchored overlay: `resizeToAvoidBottomInset`
+/// keeps the list clear of the keyboard, the whole viewport holds results, and
+/// nothing depends on where the (collapsible) POS customer bar happens to be.
+/// Pops the chosen customer map, or a `_isQuickAdd` marker map.
+class _CustomerSearchPage extends ConsumerStatefulWidget {
+  const _CustomerSearchPage();
+
+  @override
+  ConsumerState<_CustomerSearchPage> createState() =>
+      _CustomerSearchPageState();
+}
+
+class _CustomerSearchPageState extends ConsumerState<_CustomerSearchPage> {
+  final TextEditingController _controller = TextEditingController();
+  Timer? _debounceTimer;
+
+  /// Every keystroke — drives the clear button only.
+  String _rawText = '';
+
+  /// Debounced — drives the network search and the keyboard type, so neither
+  /// churns while the operator is still typing.
+  String _query = '';
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onChanged(String value) {
+    setState(() => _rawText = value);
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(UiDebounce.customerSearch, () {
+      if (mounted) {
+        setState(() => _query = value.trim());
+      }
+    });
+  }
+
+  void _clear() {
+    _debounceTimer?.cancel();
+    _controller.clear();
+    setState(() {
+      _rawText = '';
+      _query = '';
+    });
+  }
+
+  bool get _isPhoneSearch =>
+      _query.isNotEmpty && RegExp(r'^[0-9+\-\s()]+$').hasMatch(_query);
+
+  void _submitQuickAdd() {
+    Navigator.of(context).pop(<String, dynamic>{
+      '_isQuickAdd': true,
+      'searchQuery': _controller.text.trim(),
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        titleSpacing: 0,
+        title: TextField(
+          controller: _controller,
+          autofocus: true,
+          onChanged: _onChanged,
+          textInputAction: TextInputAction.search,
+          keyboardType: _isPhoneSearch
+              ? TextInputType.phone
+              : TextInputType.text,
+          style: theme.textTheme.titleMedium,
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            hintText: _isPhoneSearch
+                ? l10n.customerSearchByPhone
+                : l10n.customerSearchHint,
+            suffixIcon: _rawText.isEmpty
+                ? null
+                : IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: _clear,
+                  ),
+          ),
+        ),
+      ),
+      body: SafeArea(child: _buildBody(context)),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    final l10n = context.l10n;
+
+    if (_query.isEmpty) {
+      return _placeholder(
+        icon: Icons.person_search,
+        message: l10n.customerSearchStartTyping,
+      );
+    }
+
+    return ref
+        .watch(dynamicCustomerSearchProvider(_query))
+        .when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, _) =>
+              _placeholder(icon: Icons.error_outline, message: l10n.commonError),
+          data: (customers) {
+            // The quick-add row always trails the results — a partial match is
+            // exactly when a new customer still has to be created.
+            return ListView.builder(
+              padding: EdgeInsets.zero,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              itemCount: customers.length + (customers.isEmpty ? 2 : 1),
+              itemBuilder: (context, index) {
+                if (customers.isEmpty && index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 24,
+                    ),
+                    child: Text(
+                      l10n.customerSearchNoResults,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  );
+                }
+                final offset = customers.isEmpty ? 1 : 0;
+                if (index - offset >= customers.length) {
+                  return buildCustomerOptionTile(
+                    context,
+                    const {'_isQuickAdd': true},
+                    isPhoneSearch: _isPhoneSearch,
+                    onTap: _submitQuickAdd,
+                  );
+                }
+                final customer = customers[index - offset];
+                return buildCustomerOptionTile(
+                  context,
+                  customer,
+                  isPhoneSearch: _isPhoneSearch,
+                  onTap: () => Navigator.of(context).pop(customer),
+                );
+              },
+            );
+          },
+        );
+  }
+
+  Widget _placeholder({required IconData icon, required String message}) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 48, color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
