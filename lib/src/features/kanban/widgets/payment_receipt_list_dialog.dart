@@ -397,10 +397,13 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
     final isConfirmed = status == 'Confirmed';
     final isRejected = status == 'Rejected';
     final rejectionReason = receipt['rejection_reason'] as String?;
-    // Only an Unconfirmed receipt may have its screenshot swapped or dropped;
-    // Confirmed is evidence, Changed is audit history, and a Rejected one keeps
-    // its image so the branch can see what was turned down.
-    final isEditable = status == 'Unconfirmed';
+    // Confirmed is evidence and Changed is audit history, so both freeze the
+    // screenshot. A Rejected one does NOT: a rejection asks the branch for a
+    // better screenshot, and gating this on Unconfirmed alone made every
+    // rejection a dead end — the row kept its reason and offered no button to
+    // act on it. Re-uploading flips the receipt back to Unconfirmed server-side
+    // so it re-enters the manager's queue.
+    final isEditable = status == 'Unconfirmed' || isRejected;
     final hasImage = receiptImageUrl != null && receiptImageUrl.isNotEmpty;
     final canConfirm = receipt['can_confirm'] == true ||
       receipt['can_confirm'] == 1 ||

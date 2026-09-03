@@ -204,6 +204,33 @@ void main() {
     );
 
     testWidgets(
+      'should still offer a swap after a manager rejected the receipt',
+      (tester) async {
+        await _pumpHost(tester, () {
+          return PaymentCollectionChangeDialog.show(
+            tester.element(find.text('open')),
+            invoice: _invoice(
+              paymentMethod: 'Cash',
+              paymentReceiptName: 'PPR-0001',
+              paymentReceiptMethod: 'InstaPay',
+              paymentReceiptStatus: 'Rejected',
+              paymentReceiptImageUrl: '/files/receipt.png',
+            ),
+            posProfile: 'Nasr City',
+          );
+        });
+
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        // A rejection asks the branch for a better screenshot. Freezing the
+        // receipt here -- which the Unconfirmed-only gate used to do -- left the
+        // rejection reason on screen with no button to act on it.
+        expect(find.text('Replace Image'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
       'should not demand a receipt to retarget an order nobody has paid yet',
       (tester) async {
         Future<PaymentCollectionChangeRequest?>? dialogFuture;

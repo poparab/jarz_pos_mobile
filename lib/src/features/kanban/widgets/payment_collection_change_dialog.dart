@@ -113,11 +113,18 @@ class _PaymentCollectionChangeDialogState
     return receiptName.isNotEmpty && imageUrl.isNotEmpty;
   }
 
-  /// The screenshot can only be swapped or dropped while nobody has confirmed
-  /// it yet — a Confirmed receipt is evidence, a Changed one is history.
+  /// A receipt can be swapped or dropped until a manager confirms it: a
+  /// Confirmed one is evidence, a Changed one is history.
+  ///
+  /// `Rejected` counts as editable on purpose: a rejection asks the branch for
+  /// a better screenshot, and treating it as frozen left the order with no way
+  /// forward. The server agrees and flips the row back to Unconfirmed once a
+  /// new image lands.
   bool get _isReceiptEditable {
     final status = (_receiptStatus ?? '').trim();
-    return status.isEmpty || status == 'Unconfirmed';
+    return status.isEmpty ||
+        status == 'Unconfirmed' ||
+        status == 'Rejected';
   }
 
   double get _receiptAmount {
@@ -344,7 +351,7 @@ class _PaymentCollectionChangeDialogState
 
       setState(() {
         _receiptMethod = _receiptApiMethod(_selectedMethod);
-        _receiptStatus = 'Unconfirmed';
+        _receiptStatus = (result?['status'] ?? 'Unconfirmed').toString().trim();
         _receiptImageUrl = (result?['file_url'] ?? '').toString().trim();
         _isUploadingReceipt = false;
       });

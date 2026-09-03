@@ -55,6 +55,9 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
 
   String? _receiptName;
   String? _receiptImageUrl;
+  /// Server status of the attached receipt, re-read after every upload so a
+  /// rejected one flips back to Unconfirmed without reopening the sheet.
+  String? _receiptStatus;
   bool _isPreparingReceipt = false;
   bool _isUploadingReceipt = false;
   bool _isRemovingReceipt = false;
@@ -67,6 +70,7 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
     // just add the reference and confirm.
     _receiptName = widget.order.receiptName;
     _receiptImageUrl = widget.order.receiptImageUrl;
+    _receiptStatus = widget.order.receiptStatus;
     if ((widget.order.expectedReference ?? '').isNotEmpty) {
       _referenceController.text = widget.order.expectedReference!;
     }
@@ -98,10 +102,18 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
       _isRemovingReceipt ||
       _isConfirming;
 
-  /// A receipt can only be swapped or dropped before it is confirmed.
+  /// A receipt can be swapped or dropped until a manager confirms it.
+  ///
+  /// `Rejected` counts as editable on purpose: a rejection asks the branch for
+  /// a better screenshot, and treating it as frozen — which this getter used to
+  /// do — left the order with no way forward but a phone call. The server
+  /// agrees (`_ensure_receipt_image_editable` blocks only Confirmed/Changed)
+  /// and flips the row back to Unconfirmed once a new image lands.
   bool get _isReceiptEditable {
-    final status = (widget.order.receiptStatus ?? '').trim();
-    return status.isEmpty || status == 'Unconfirmed';
+    final status = (_receiptStatus ?? '').trim();
+    return status.isEmpty ||
+        status == 'Unconfirmed' ||
+        status == 'Rejected';
   }
 
   bool get _canConfirm =>
@@ -192,6 +204,8 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
 
       setState(() {
         _receiptImageUrl = (result?['file_url'] ?? '').toString().trim();
+        _receiptStatus =
+            (result?['status'] ?? 'Unconfirmed').toString().trim();
         _isUploadingReceipt = false;
       });
       messenger.showSnackBar(
