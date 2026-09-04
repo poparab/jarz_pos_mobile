@@ -43,7 +43,17 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   socket_io_client: ^3.1.2
-  firebase_core: ^4.2.0
+  # >=4.14.0 constrains firebase_core_web to >=3.11.0, which carries the two
+  # WebKit fixes we need. 3.2.0 loads every component bundle with concurrent
+  # dynamic imports, and they race on the shared firebase-app.js module; on
+  # WebKit the returned namespace can still be in the temporal dead zone, so
+  # `firebase.app()` reports an app exists while the handle is null and
+  # initializeApp throws a null check. It also matched Blink's "of undefined"
+  # wording when swallowing an error, so WebKit's "undefined is not an object"
+  # rethrew instead. Together that killed Firebase init on Chrome/iOS only,
+  # which the app catches and continues past -- so iPhone staff on the web
+  # build silently got no push at all. flutterfire#18436.
+  firebase_core: ^4.14.0
   firebase_messaging: ^16.0.3
   shared_preferences: ^2.3.2
   file_picker: ^8.1.4
