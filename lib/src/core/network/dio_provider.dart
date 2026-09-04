@@ -10,6 +10,7 @@ import '../monitoring/sentry_service.dart';
 import '../session/session_manager.dart';
 import 'app_upgrade_signal.dart';
 import 'cookie_manager.dart';
+import 'session_expired_signal.dart';
 import '../offline/offline_queue.dart';
 
 /// Headers the server's release gate reads. Every request carries them so a
@@ -134,6 +135,13 @@ class SessionInterceptor extends Interceptor {
         clearCookies: CookieManager.clearCookies,
       );
     }
+
+    // The server has stopped recognising this session. Frappe answers that
+    // with 403 (not 401), so without this the app stays "logged in" against a
+    // dead session and every poller retries forever.
+    if (looksLikeDeadSession(err.response?.statusCode, err.response?.data)) {
+      SessionExpiredSignal.instance.report();
+    }
     
     // Add to offline queue if network error and it's a modifying request
     if (err.type == DioExceptionType.connectionError || 
@@ -176,6 +184,64 @@ AppUpgradeRefusal readUpgradeRefusal(Object? body) {
     downloadUrl: '${map['download_url'] ?? ''}'.trim(),
     message: '${map['message'] ?? ''}'.trim(),
   );
+}
+
+/// Frappe's wording when the request ran as Guest because the session is
+/// gone. `_server_messages` carries both of these together.
+const _guestLoginMarker = 'login to access';
+const _guestNotWhitelistedMarker = 'not whitelisted';
+const _guestNotPermittedMarker = 'not permitted to access this resource';
+
+/// True when this response means "your session is gone", as opposed to "you
+/// are signed in but this is not yours".
+///
+/// The distinction is the whole point of this function and it is load-bearing:
+/// 403 is ALSO the legitimate role-denial answer for the fleet map
+/// (`FleetPermissionDeniedException`) and the manager menu probe. Keying off
+/// the status code alone would log a supervisor-less user out of a live till
+/// mid-shift, losing an open cart - a far worse bug than the one being fixed.
+/// So a 403 only counts when the body carries Frappe's Guest signature.
+///
+/// Deliberately narrower than "any PermissionError": a role denial raised with
+/// `frappe.PermissionError` carries the same `exc_type`, so that field alone
+/// cannot separate the two cases. "not whitelisted" alone is also not enough -
+/// an authenticated call to a genuinely un-whitelisted method would then log
+/// the user out on every retry, i.e. a login loop. It is accepted only paired
+/// with the "not permitted to access this resource" sentence, which is how
+/// Frappe phrases it for Guest, and which is what production actually sends.
+///
+/// 401 needs no body check: Frappe only returns it for authentication, and the
+/// interceptor already clears the stored session on it for the same reason.
+@visibleForTesting
+bool looksLikeDeadSession(int? status, Object? body) {
+  if (status == 401) {
+    return true;
+  }
+  if (status != 403) {
+    return false;
+  }
+
+  // toString() rather than a structured parse: `_server_messages` is a JSON
+  // string holding JSON strings, and an upstream proxy can replace the body
+  // with HTML entirely. A substring scan survives both shapes.
+  final text = body == null ? '' : body.toString().toLowerCase();
+  if (text.isEmpty) {
+    return false;
+  }
+  if (text.contains(_guestLoginMarker)) {
+    return true;
+  }
+  if (text.contains(_guestNotWhitelistedMarker) &&
+      text.contains(_guestNotPermittedMarker)) {
+    return true;
+  }
+
+  final excType = body is Map
+      ? '${body['exc_type'] ?? ''}'.trim().toLowerCase()
+      : '';
+  return excType == 'sessionexpired' ||
+      excType == 'sessionstopped' ||
+      excType == 'authenticationerror';
 }
 
 @visibleForTesting

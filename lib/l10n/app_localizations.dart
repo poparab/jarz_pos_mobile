@@ -14515,6 +14515,12 @@ abstract class AppLocalizations {
   /// **'Leave {token} where you want the link; it is replaced automatically when you send.'**
   String materialsLinkPlaceholderHint(Object token);
 
+  /// Shown after the server rejected the stored session and the app signed the user out
+  ///
+  /// In en, this message translates to:
+  /// **'Your session ended. Please sign in again.'**
+  String get sessionExpiredMessage;
+
   /// Title of the non-dismissible force-update screen
   ///
   /// In en, this message translates to:

@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb, visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,6 +11,7 @@ import '../../../core/env/app_build_identity.dart';
 import '../../../core/router.dart';
 import '../../../core/firebase/firebase_runtime_config.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/network/session_expired_signal.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/websocket/websocket_service.dart';
 import '../state/pos_notifier.dart';
@@ -25,6 +27,52 @@ import 'web_push_registration_result.dart';
 import 'web_push_registration_service.dart';
 import '../../../core/constants/timing_config.dart';
 
+/// Ceiling for the alert poll's backoff.
+///
+/// Two minutes, not "give up": a device that has been offline for an hour must
+/// still pick alerts back up on its own, just not by asking 360 times an hour.
+const kOrderAlertPollBackoffCeiling = Duration(seconds: 120);
+
+/// How long to wait before the next alert poll, given how many polls in a row
+/// have already failed.
+///
+/// Doubles from [PollingIntervals.orderAlert] and stops at
+/// [kOrderAlertPollBackoffCeiling]: 10s - 20s - 40s - 80s - 120s. Zero
+/// failures always means the normal interval, so one success snaps straight
+/// back to 10s rather than trickling down.
+@visibleForTesting
+Duration nextOrderAlertPollDelay(int consecutiveFailures) {
+  var delay = PollingIntervals.orderAlert;
+  for (var i = 0; i < consecutiveFailures; i++) {
+    if (delay >= kOrderAlertPollBackoffCeiling) {
+      break;
+    }
+    delay *= 2;
+  }
+  return delay > kOrderAlertPollBackoffCeiling
+      ? kOrderAlertPollBackoffCeiling
+      : delay;
+}
+
+/// The poll loop's whole decision in one pure place: how long to wait before
+/// the next alert poll, or `null` to stop the loop entirely.
+///
+/// `null` for a dead session is deliberate and is not a backoff. A session the
+/// server has thrown away cannot recover by being asked again, so every retry
+/// is a guaranteed 403 - which is exactly how this call became the app's
+/// highest-volume production error.
+@visibleForTesting
+Duration? nextOrderAlertPollDelayAfterRun({
+  required bool isAuthenticated,
+  required bool sessionExpired,
+  required int consecutiveFailures,
+}) {
+  if (sessionExpired || !isAuthenticated) {
+    return null;
+  }
+  return nextOrderAlertPollDelay(consecutiveFailures);
+}
+
 final orderAlertBridgeProvider = Provider<OrderAlertBridge>((ref) {
   final bridge = OrderAlertBridge(ref);
   ref.onDispose(bridge.dispose);
@@ -33,6 +81,9 @@ final orderAlertBridgeProvider = Provider<OrderAlertBridge>((ref) {
 
 class OrderAlertBridge {
   OrderAlertBridge(this._ref) {
+    // Registered before initialisation so a session that dies during startup
+    // still stops the poller.
+    SessionExpiredSignal.instance.expired.addListener(_onSessionExpiredChanged);
     Future.microtask(_initialise);
   }
 
@@ -56,6 +107,7 @@ class OrderAlertBridge {
   String? _queuedTokenRegistration;
   bool _queuedTokenRegistrationForce = false;
   String? _pendingWebNotificationInvoiceId;
+  bool _reportedPollLoopThrow = false;
 
   bool get _shouldSuppressFcmNativeEffects =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
@@ -184,6 +236,8 @@ class OrderAlertBridge {
   }
 
   void dispose() {
+    SessionExpiredSignal.instance.expired
+        .removeListener(_onSessionExpiredChanged);
     _onMessageSub?.cancel();
     _onOpenedSub?.cancel();
     _onTokenRefreshSub?.cancel();
@@ -716,26 +770,88 @@ class OrderAlertBridge {
     }
   }
 
-  void _startBackgroundPolling() {
-    // Cancel any existing timer
+  /// Stop polling the moment the server tells us the session is gone.
+  ///
+  /// A dead session cannot recover by being asked again, so retrying is pure
+  /// noise: this loop against a dead session was the app's single
+  /// highest-volume production error.
+  void _onSessionExpiredChanged() {
+    if (!SessionExpiredSignal.instance.expired.value) {
+      return;
+    }
+    if (_backgroundPollTimer == null) {
+      return;
+    }
+    _logger.info("🔕 Server session is gone - stopping alert polling");
     _backgroundPollTimer?.cancel();
-    
-    // Poll every 10 seconds to check for alert updates
-    // This ensures alerts are refreshed even when app is idle
-    _backgroundPollTimer = Timer.periodic(PollingIntervals.orderAlert, (timer) {
-      final isAuthenticated = _ref.read(currentAuthStateProvider);
-      if (!isAuthenticated) {
-        timer.cancel();
-        return;
+    _backgroundPollTimer = null;
+  }
+
+  /// A self-rescheduling one-shot rather than [Timer.periodic].
+  ///
+  /// Periodic fired every 10s regardless of whether the previous poll had
+  /// succeeded, so a permanent failure was retried 360 times an hour. This
+  /// version widens the gap while the server keeps refusing and drops back to
+  /// the normal interval on the first answer.
+  void _startBackgroundPolling() {
+    _scheduleNextPoll(PollingIntervals.orderAlert);
+    _logger.info(
+      "⏰ Started background polling for alerts "
+      "(every ${PollingIntervals.orderAlert.inSeconds}s)",
+    );
+  }
+
+  void _scheduleNextPoll(Duration delay) {
+    _backgroundPollTimer?.cancel();
+    _backgroundPollTimer = Timer(delay, () => unawaited(_runBackgroundPoll()));
+  }
+
+  Future<void> _runBackgroundPoll() async {
+    // The timer has fired; nothing is scheduled until this run schedules it.
+    _backgroundPollTimer = null;
+
+    if (!_ref.read(currentAuthStateProvider)) {
+      return;
+    }
+    if (SessionExpiredSignal.instance.expired.value) {
+      return;
+    }
+
+    _logger.debug("⏰ Background polling - syncing alerts");
+    final controller = _ref.read(orderAlertControllerProvider.notifier);
+    var pollThrew = false;
+    try {
+      await controller.syncPendingAlerts();
+    } catch (error, stackTrace) {
+      pollThrew = true;
+      // syncPendingAlerts handles its own failures, so this is only reachable
+      // if that contract breaks. Reported once: the fix for a flood must not
+      // become a second flood.
+      if (!_reportedPollLoopThrow) {
+        _reportedPollLoopThrow = true;
+        _logger.error('Background alert poll threw', error, stackTrace);
       }
-      
-      _logger.debug("⏰ Background polling - syncing alerts");
-      unawaited(
-        _ref.read(orderAlertControllerProvider.notifier).syncPendingAlerts(),
-      );
-    });
-    
-    _logger.info("⏰ Started background polling for alerts (every 10s)");
+    }
+
+    var failures = controller.consecutiveSyncFailures;
+    if (pollThrew && failures < 1) {
+      failures = 1;
+    }
+
+    final sessionExpired = SessionExpiredSignal.instance.expired.value;
+    final next = nextOrderAlertPollDelayAfterRun(
+      isAuthenticated: _ref.read(currentAuthStateProvider),
+      sessionExpired: sessionExpired,
+      consecutiveFailures: failures,
+    );
+    if (next == null) {
+      if (sessionExpired) {
+        // Latched by the poll that just ran.
+        _logger.info("🔕 Server session is gone - stopping alert polling");
+      }
+      return;
+    }
+    _scheduleNextPoll(next);
   }
 
   Future<List<String>?> _waitForPosProfiles({Duration timeout = PollingIntervals.waitForProfiles}) async {

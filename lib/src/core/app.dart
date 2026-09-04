@@ -20,6 +20,7 @@ import '../features/pos/order_alert/presentation/order_alert_overlay.dart';
 import '../features/about/data/about_release_info_repository.dart';
 import '../features/about/state/shorebird_update_provider.dart';
 import '../features/app_update/presentation/app_update_gate.dart';
+import '../features/auth/presentation/session_expired_gate.dart';
 import '../features/app_update/state/app_update_provider.dart';
 
 class JarzPosApp extends ConsumerWidget {
@@ -84,24 +85,30 @@ class JarzPosApp extends ConsumerWidget {
           // Outermost thing below orientation: a build the server has refused
           // must not reach routing, auth, or a till - only the update screen.
           child: AppUpdateGate(
-            child: AppErrorConsole(
-              child: OrderAlertOverlay(
-                child: GestureDetector(
-                  onTap: () {
-                    final currentScope = FocusScope.of(context);
-                    if (!currentScope.hasPrimaryFocus &&
-                        currentScope.hasFocus) {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                    }
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: LoadingOverlay(
-                    child: Column(
-                      children: [
-                        if (isAuthenticated) const _ShorebirdUpdateBanner(),
-                        if (isAuthenticated) const _AppUpdateAvailableBanner(),
-                        Expanded(child: routed),
-                      ],
+            // Below the update gate (a refused build must not even get to
+            // sign in) and above everything else: a session the server has
+            // dropped ends here rather than in each feature.
+            child: SessionExpiredGate(
+              child: AppErrorConsole(
+                child: OrderAlertOverlay(
+                  child: GestureDetector(
+                    onTap: () {
+                      final currentScope = FocusScope.of(context);
+                      if (!currentScope.hasPrimaryFocus &&
+                          currentScope.hasFocus) {
+                        FocusManager.instance.primaryFocus?.unfocus();
+                      }
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: LoadingOverlay(
+                      child: Column(
+                        children: [
+                          if (isAuthenticated) const _ShorebirdUpdateBanner(),
+                          if (isAuthenticated)
+                            const _AppUpdateAvailableBanner(),
+                          Expanded(child: routed),
+                        ],
+                      ),
                     ),
                   ),
                 ),

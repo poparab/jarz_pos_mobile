@@ -361,6 +361,64 @@ void main() {
 
         expect(AppErrorReporter.instance.records, hasLength(1));
       });
+
+      // The dead-session 403 was 587 events / 72% of all production client
+      // errors, because a permanent fault on a 10s loop reports 360 times an
+      // hour. One report per run of failures is enough to diagnose it.
+      test('a repeated 403 reports once, not once per poll', () async {
+        final options = requestOptions();
+        service.pendingAlertsError = DioException(
+          requestOptions: options,
+          type: DioExceptionType.badResponse,
+          response: Response<dynamic>(
+            requestOptions: options,
+            statusCode: 403,
+            data: const {
+              'exc_type': 'PermissionError',
+              '_server_messages':
+                  '["You are not permitted to access this resource. '
+                  'Login to access"]',
+            },
+          ),
+        );
+
+        for (var i = 0; i < 6; i++) {
+          await controller.syncPendingAlerts();
+        }
+
+        expect(AppErrorReporter.instance.records, hasLength(1));
+        expect(controller.consecutiveSyncFailures, 6);
+        // The state still tells the UI something is wrong on every poll.
+        expect(controller.state.error, isNotNull);
+      });
+
+      test('the counter resets after a success, so a new run reports again',
+          () async {
+        final options = requestOptions();
+        DioException fault() => DioException(
+          requestOptions: options,
+          type: DioExceptionType.badResponse,
+          response: Response<dynamic>(
+            requestOptions: options,
+            statusCode: 500,
+          ),
+        );
+
+        service.pendingAlertsError = fault();
+        await controller.syncPendingAlerts();
+        await controller.syncPendingAlerts();
+        expect(AppErrorReporter.instance.records, hasLength(1));
+        expect(controller.consecutiveSyncFailures, 2);
+
+        service.pendingAlertsError = null;
+        service.pendingAlerts = [];
+        await controller.syncPendingAlerts();
+        expect(controller.consecutiveSyncFailures, 0);
+
+        service.pendingAlertsError = fault();
+        await controller.syncPendingAlerts();
+        expect(AppErrorReporter.instance.records, hasLength(2));
+      });
     });
   });
 

@@ -8641,6 +8641,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get sessionExpiredMessage =>
+      'انتهت جلستك. يُرجى تسجيل الدخول مرة أخرى.';
+
+  @override
   String get appUpdateRequiredTitle => 'التحديث مطلوب';
 
   @override

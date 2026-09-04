@@ -46,6 +46,17 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
 
   SharedPreferences? _prefs;
   bool _loadingPending = false;
+
+  /// How many `syncPendingAlerts` runs in a row have failed, reset by the
+  /// first server answer.
+  ///
+  /// Two jobs. It keeps a permanent failure - a dead session used to be the
+  /// worst one - from being reported once every 10s forever, and the alert
+  /// poller reads it to widen its interval instead of hammering a server that
+  /// is plainly not answering.
+  int _consecutiveSyncFailures = 0;
+
+  int get consecutiveSyncFailures => _consecutiveSyncFailures;
   late final Future<void> _muteRestored;
 
   /// Bumped on every change to the mute state. An alarm start that began before
@@ -330,6 +341,8 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
     try {
       await _muteRestored;
       final rawAlerts = await _service.getPendingAlerts();
+      // The server answered; whatever run of failures preceded this is over.
+      _consecutiveSyncFailures = 0;
       // Filter out cancelled invoices client-side as a safety net
       final alerts = rawAlerts.where((a) {
         final st = a.salesInvoiceState?.toLowerCase() ?? '';
@@ -408,10 +421,21 @@ class OrderAlertController extends StateNotifier<OrderAlertState> {
       // the same "Failed host lookup" thousands of times per session and bury
       // real issues. Expected connectivity failures are logged and retried on
       // the next tick; anything else is still reported.
+      _consecutiveSyncFailures++;
       if (_isExpectedOfflineFailure(error)) {
         _logger.debug('Skipping alert sync while offline: $error');
-      } else {
+      } else if (_consecutiveSyncFailures == 1) {
         _logger.error('Failed to sync pending alerts', error, stackTrace);
+      } else {
+        // Same fault, still there, on a 10s loop. The first one is already in
+        // Sentry with the same stack; repeating it only buys 360 events an
+        // hour. Deliberately done here and not by widening
+        // AppErrorReporter's global dedup window, which would also hide
+        // genuinely distinct repeating faults everywhere else in the app.
+        _logger.debug(
+          'Alert sync still failing (attempt $_consecutiveSyncFailures), '
+          'already reported: $error',
+        );
       }
       state = state.copyWith(
         error: error.toString(),

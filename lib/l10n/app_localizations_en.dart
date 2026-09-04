@@ -8676,6 +8676,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sessionExpiredMessage =>
+      'Your session ended. Please sign in again.';
+
+  @override
   String get appUpdateRequiredTitle => 'Update Required';
 
   @override

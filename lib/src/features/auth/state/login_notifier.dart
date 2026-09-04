@@ -7,6 +7,7 @@ import 'package:hive/hive.dart';
 import '../data/auth_repository.dart';
 import '../../../core/router.dart';
 import '../../../core/constants/storage_keys.dart';
+import '../../../core/network/session_expired_signal.dart';
 import '../../../core/network/user_service.dart';
 import '../../b2b/state/b2b_pipeline_notifier.dart';
 import '../../manager/state/manager_providers.dart';
@@ -26,6 +27,9 @@ class LoginNotifier extends AsyncNotifier<bool> {
     try {
       final success = await repo.login(username, password);
       if (success) {
+        // A fresh session: whatever the previous one latched is history. Left
+        // set, the alert poller would refuse to poll on this new session.
+        SessionExpiredSignal.instance.clear();
         ref.read(currentAuthStateProvider.notifier).state = true;
         // Do NOT invalidate authStateProvider here — it is watched by
         // currentAuthStateProvider whose build() returns false while loading,
@@ -84,6 +88,11 @@ class LoginNotifier extends AsyncNotifier<bool> {
   /// once the user acknowledges. Both are idempotent, so calling one after the
   /// other is safe.
   Future<void> endSession() async {
+    // Tell the session gate to stand down. The very next alert poll will get a
+    // Guest 403 from the session we are about to kill, and the gate reacting
+    // to it would flip the auth flag and tear down the closing summary - the
+    // exact thing this method exists to avoid. [logout] clears the deferral.
+    SessionExpiredSignal.instance.deferClientFlip();
     await ref.read(authRepositoryProvider).logout();
   }
 
@@ -94,6 +103,9 @@ class LoginNotifier extends AsyncNotifier<bool> {
     // Fully wipe every user-scoped provider and per-user Hive cache so no
     // state or permission from the previous user survives into the next login.
     _resetUserScopedState();
+    // Consume the latch (and any deferral) now that the client side agrees the
+    // session is over, so the next login starts from a clean slate.
+    SessionExpiredSignal.instance.clear();
     state = AsyncData(false);
   }
 

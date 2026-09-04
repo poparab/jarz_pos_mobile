@@ -3291,6 +3291,7 @@
       "token": {}
     }
   },
+  "sessionExpiredMessage": "انتهت جلستك. يُرجى تسجيل الدخول مرة أخرى.",
   "appUpdateRequiredTitle": "التحديث مطلوب",
   "appUpdateRequiredBody": "هذا الإصدار من Jarz POS قديم ولم يعد قابلاً للاستخدام. ثبّت أحدث إصدار للمتابعة.",
   "appUpdateBuildLine": "الإصدار المثبّت {current} · الإصدار المطلوب {minimum}",

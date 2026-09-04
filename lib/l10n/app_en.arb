@@ -5019,6 +5019,10 @@
       "token": {}
     }
   },
+  "sessionExpiredMessage": "Your session ended. Please sign in again.",
+  "@sessionExpiredMessage": {
+    "description": "Shown after the server rejected the stored session and the app signed the user out"
+  },
   "appUpdateRequiredTitle": "Update Required",
   "@appUpdateRequiredTitle": {
     "description": "Title of the non-dismissible force-update screen"
