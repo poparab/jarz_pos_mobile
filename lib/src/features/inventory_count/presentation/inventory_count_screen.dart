@@ -101,16 +101,24 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
 
   Future<void> _loadItems() async {
     if (_selectedWarehouse == null) return;
+    // Reached from `_openBox` after its own await as well as from the button,
+    // so the State is not guaranteed alive on entry.
+    if (!mounted) return;
     setState(() => _loading = true);
     await _restoreCache(updateUi: false);
-    if (mounted) {
-      setState(() {});
-    }
+    // Backing out of Inventory Count while a cold Hive box opens disposes this
+    // State mid-await. The `ref.read` below then throws "Cannot use ref after
+    // the widget was disposed" — and it sat OUTSIDE both this guard and the
+    // try, so nothing caught it. Return instead of merely skipping the
+    // setState.
+    if (!mounted) return;
+    setState(() {});
     final service = ref.read(inventoryCountServiceProvider);
     try {
       final data = await service.listItemsForCount(
         warehouse: _selectedWarehouse!,
       );
+      if (!mounted) return;
       setState(() {
         _items = data.map((item) => Map<String, dynamic>.from(item)).toList();
         // A category from the previous warehouse would filter everything away
@@ -398,6 +406,10 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
 
   Future<void> _openBox() async {
     _box = await Hive.openBox(HiveBoxes.inventoryCount);
+    // Opening a cold box is slow enough that the user can be back on the
+    // previous screen by the time it lands. Everything below this line — and
+    // `_loadItems`, which this may call — writes State and reads `ref`.
+    if (!mounted) return;
     final savedWarehouse = _box!.get(_selectedWarehouseCacheKey);
     if (savedWarehouse is String && savedWarehouse.isNotEmpty) {
       _selectedWarehouse = savedWarehouse;

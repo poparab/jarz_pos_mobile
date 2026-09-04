@@ -1299,6 +1299,7 @@
   "sopUnresolvedTokens": "{count} instruction reference(s) could not be resolved",
   "sopPhotoCaptured": "Photo recorded",
   "sopCameraPermissionDenied": "Camera permission is needed to record a photo",
+  "sopPhotoEmpty": "Couldn''t read that photo. Take it again.",
   "sopImageUnavailable": "Image unavailable — you may not have access to it",
   "stockTransferTitle": "Stock Transfer",
   "stockTransferManagersOnly": "Managers only",
@@ -1888,6 +1889,7 @@
   "receiptUploading": "Uploading receipt image...",
   "receiptUploadedSuccess": "Receipt image uploaded successfully",
   "receiptUploadFailed": "Failed to upload receipt image",
+  "receiptImageEmpty": "Couldn''t read that photo. Try again, or pick a different one.",
   "receiptUploadError": "Error uploading image: {error}",
   "@receiptUploadError": {
     "placeholders": {

@@ -186,6 +186,23 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
       setState(() => _isPreparingReceipt = true);
       final receiptName = await _ensureReceiptRecord();
       final bytes = await image.readAsBytes();
+      if (!mounted) return;
+      // A picker can hand back a zero-byte file (revoked permission, an
+      // unreadable cloud/HEIC asset, a cancelled camera write). That encodes to
+      // the empty string, the backend answered "File does not exist", and the
+      // sheet still showed success — so an InstaPay payment was confirmed with
+      // no proof. Stop here and tell the user, rather than retrying silently
+      // with the same unreadable pick.
+      if (bytes.isEmpty) {
+        setState(() {
+          _isPreparingReceipt = false;
+          _isUploadingReceipt = false;
+        });
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.receiptImageEmpty)),
+        );
+        return;
+      }
       final encoded = base64Encode(bytes);
       if (!mounted) return;
 

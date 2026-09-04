@@ -414,6 +414,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       ),
     );
 
+    // The dialog can outlive the card (board rebuild, websocket refresh), so
+    // the State has to be re-checked before `setState` or any `ref` use.
+    if (!mounted) return;
     if (confirmed != true) {
       // Reset if user cancels
       setState(() {
@@ -426,8 +429,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     try {
       final orderAlertService = ref.read(orderAlertServiceProvider);
       await orderAlertService.acknowledgeInvoice(widget.invoice.id);
-      
-      if (!context.mounted) return;
+
+      // `mounted`, not `context.mounted`: what has to be alive for the
+      // `ref.read` below is this ConsumerState, and reading `ref` after the
+      // widget is disposed throws "Cannot use ref after the widget was
+      // disposed".
+      if (!mounted) return;
       
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -447,13 +454,16 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       // Refresh the kanban board to update the UI
       ref.read(kanbanProvider.notifier).loadInvoices();
     } catch (e) {
+      // The guard belongs ABOVE the setState, not below it. Inverted, a card
+      // disposed mid-await threw "setState() called after dispose()" from
+      // inside a catch block — nothing could handle it, so it went fatal.
+      if (!mounted) return;
+
       // Reset state on error
       setState(() {
         _isAccepting = false;
       });
-      
-      if (!context.mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -1726,6 +1736,17 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   }
 
   Future<void> _submitPayment(String method) async {
+    // Read the localisations ONCE, up front, exactly as `_acceptOrder` does.
+    //
+    // `context.l10n` is `AppLocalizations.of(context)!`. Once the card leaves
+    // the tree — a board rebuild after payment, a websocket refresh, a drag —
+    // `Localizations.of` returns null and that `!` throws. The outer catch
+    // below did this on the failure path, so the throw happened *inside* a
+    // catch block: nothing above it could handle it, it reached
+    // `PlatformDispatcher.onError`, and a failed payment became a fatal crash.
+    // Hoisting removes the post-await dependency on `context` entirely, which
+    // is stronger than sprinkling `context.mounted` at each use.
+    final l10n = context.l10n;
     // Resolve KanbanNotifier
     final container = ProviderScope.containerOf(context, listen: false);
     final notifier = container.read(kanbanProvider.notifier);
@@ -1736,14 +1757,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       posProfile = posState.selectedProfile?['name'];
       if (posProfile == null) {
         messenger.showSnackBar(
-          SnackBar(content: Text(context.l10n.invoiceNoPosProfileCash)),
+          SnackBar(content: Text(l10n.invoiceNoPosProfileCash)),
         );
         return;
       }
     }
     try {
       messenger.showSnackBar(
-        SnackBar(content: Text(context.l10n.invoiceProcessingPayment(method))),
+        SnackBar(content: Text(l10n.invoiceProcessingPayment(method))),
       );
       final result = await notifier.payInvoice(
         invoiceId: widget.invoice.name,
@@ -1752,7 +1773,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       );
       if (result != null && result['success'] == true) {
         messenger.showSnackBar(
-          SnackBar(content: Text(context.l10n.invoicePaymentSuccess('${result['payment_entry']}'))),
+          SnackBar(content: Text(l10n.invoicePaymentSuccess('${result['payment_entry']}'))),
         );
         
         // Show collect cash dialog for cash payments
@@ -1772,14 +1793,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           if (amount == null) {
             if (context.mounted) {
               messenger.showSnackBar(
-                SnackBar(content: Text(context.l10n.invoiceReceiptAmountWarning)),
+                SnackBar(content: Text(l10n.invoiceReceiptAmountWarning)),
               );
             }
           } else if (invoicePosProfile == null || invoicePosProfile.isEmpty) {
             if (context.mounted) {
               messenger.showSnackBar(
                 SnackBar(
-                  content: Text(context.l10n.invoiceReceiptNoPosProfile),
+                  content: Text(l10n.invoiceReceiptNoPosProfile),
                   duration: const Duration(seconds: 4),
                 ),
               );
@@ -1797,7 +1818,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 if (receiptResult != null && receiptResult['success'] == true) {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(context.l10n.invoiceReceiptCreated('${receiptResult['receipt_name']}')),
+                      content: Text(l10n.invoiceReceiptCreated('${receiptResult['receipt_name']}')),
                       duration: const Duration(seconds: 4),
                       backgroundColor: Colors.green[700],
                     ),
@@ -1805,7 +1826,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 } else {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(context.l10n.invoiceReceiptReturnedWarning(receiptResult?['message']?.toString() ?? context.l10n.commonError)),
+                      content: Text(l10n.invoiceReceiptReturnedWarning(receiptResult?['message']?.toString() ?? l10n.commonError)),
                       duration: const Duration(seconds: 3),
                     ),
                   );
@@ -1816,11 +1837,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               if (context.mounted) {
                 final errorMessage = _formatErrorMessage(
                   e,
-                  fallback: context.l10n.commonError,
+                  fallback: l10n.commonError,
                 );
                 messenger.showSnackBar(
                   SnackBar(
-                    content: Text(context.l10n.invoiceReceiptCreationFailed(errorMessage)),
+                    content: Text(l10n.invoiceReceiptCreationFailed(errorMessage)),
                     duration: const Duration(seconds: 3),
                   ),
                 );
@@ -1830,16 +1851,16 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         }
       } else {
         messenger.showSnackBar(
-          SnackBar(content: Text(context.l10n.invoicePaymentFailed)),
+          SnackBar(content: Text(l10n.invoicePaymentFailed)),
         );
       }
     } catch (e) {
       final errorMessage = _formatErrorMessage(
         e,
-        fallback: context.l10n.invoicePaymentFailed,
+        fallback: l10n.invoicePaymentFailed,
       );
       messenger.showSnackBar(
-        SnackBar(content: Text(context.l10n.invoicePaymentError(errorMessage))),
+        SnackBar(content: Text(l10n.invoicePaymentError(errorMessage))),
       );
     }
   }

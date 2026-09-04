@@ -2770,6 +2770,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sopCameraPermissionDenied => 'محتاج إذن الكاميرا عشان تصوّر';
 
   @override
+  String get sopPhotoEmpty => 'تعذّرت قراءة الصورة. صوّرها تاني.';
+
+  @override
   String get sopImageUnavailable =>
       'الصورة مش متاحة — يمكن ماعندكش صلاحية ليها';
 
@@ -3932,6 +3935,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get receiptUploadFailed => 'فشل رفع صورة الإيصال';
+
+  @override
+  String get receiptImageEmpty =>
+      'تعذّرت قراءة هذه الصورة. حاول مرة أخرى أو اختر صورة أخرى.';
 
   @override
   String receiptUploadError(Object error) {

@@ -2779,6 +2779,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Camera permission is needed to record a photo';
 
   @override
+  String get sopPhotoEmpty => 'Couldn\'t read that photo. Take it again.';
+
+  @override
   String get sopImageUnavailable =>
       'Image unavailable — you may not have access to it';
 
@@ -3944,6 +3947,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get receiptUploadFailed => 'Failed to upload receipt image';
+
+  @override
+  String get receiptImageEmpty =>
+      'Couldn\'t read that photo. Try again, or pick a different one.';
 
   @override
   String receiptUploadError(Object error) {

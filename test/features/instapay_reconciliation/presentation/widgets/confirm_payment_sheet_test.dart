@@ -1,17 +1,24 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+// ignore: depend_on_referenced_packages
+import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/instapay_reconciliation/data/models/unconfirmed_online_order.dart';
 import 'package:jarz_pos/src/features/instapay_reconciliation/presentation/widgets/confirm_payment_sheet.dart';
+import 'package:jarz_pos/src/features/kanban/providers/kanban_provider.dart';
 
 Future<void> _pumpHost(
   WidgetTester tester,
-  Future<bool?>? Function() openSheet,
-) async {
+  Future<bool?>? Function() openSheet, {
+  List<Override> overrides = const [],
+}) async {
   await tester.pumpWidget(
     ProviderScope(
+      overrides: overrides,
       child: MaterialApp(
         locale: const Locale('en'),
         localizationsDelegates: const [
@@ -162,5 +169,102 @@ void main() {
         expect(find.text('Preview'), findsOneWidget);
       },
     );
+
+    // Production, money path: a picker handed back a zero-byte file, so
+    // `image_data` went up as ''. The backend answered "File does not exist"
+    // and the sheet still showed success — an InstaPay payment confirmed with
+    // no proof attached to it.
+    testWidgets(
+      'a zero-byte pick shows the retry message and does not call upload',
+      (tester) async {
+        // Swap the picker's platform implementation for one that returns a
+        // zero-byte pick — exactly what a revoked permission, an unreadable
+        // cloud/HEIC asset or a cancelled camera write hands back.
+        final original = ImagePickerPlatform.instance;
+        ImagePickerPlatform.instance = _EmptyPickImagePickerPlatform();
+        addTearDown(() => ImagePickerPlatform.instance = original);
+
+        final kanban = _RecordingKanbanNotifier();
+
+        await _pumpHost(
+          tester,
+          () {
+            return ConfirmPaymentSheet.show(
+              tester.element(find.text('open')),
+              // Receipt row already exists, so `_ensureReceiptRecord` short
+              // circuits and the only server call left in the flow is upload.
+              order: _order(
+                receiptName: 'PPR-0001',
+                receiptStatus: 'Unconfirmed',
+              ),
+              posProfile: 'Nasr City',
+            );
+          },
+          overrides: [kanbanProvider.overrideWith((ref) => kanban)],
+        );
+
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        // `ElevatedButton.icon` builds a private subclass, so `byType` will not
+        // match it; the label Text is the reliable handle. The first match is
+        // the card header, the second is the button.
+        await tester.tap(find.text('Upload Receipt Image').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Gallery'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            "Couldn't read that photo. Try again, or pick a different one.",
+          ),
+          findsOneWidget,
+        );
+        // The whole point: no empty payload ever left the device.
+        expect(kanban.uploadCalls, 0);
+        // And the sheet is usable again rather than stuck on its busy flags —
+        // the progress bar only renders while `_isBusy` is true.
+        expect(find.byType(LinearProgressIndicator), findsNothing);
+      },
+    );
   });
+}
+
+/// Inert stand-in for the real KanbanNotifier, whose constructor opens sockets
+/// and arms polling timers. Only the upload call matters here, and any other
+/// server call reaching it is a test failure by way of NoSuchMethodError.
+class _RecordingKanbanNotifier extends StateNotifier<KanbanState>
+    implements KanbanNotifier {
+  _RecordingKanbanNotifier() : super(KanbanState());
+
+  int uploadCalls = 0;
+
+  @override
+  Future<Map<String, dynamic>?> uploadReceiptImage({
+    required String receiptName,
+    required String imageData,
+    required String filename,
+  }) async {
+    uploadCalls++;
+    return {'file_url': '/files/receipt.png', 'status': 'Unconfirmed'};
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Hands back a pick with no bytes in it.
+class _EmptyPickImagePickerPlatform extends ImagePickerPlatform {
+  @override
+  Future<XFile?> getImageFromSource({
+    required ImageSource source,
+    ImagePickerOptions options = const ImagePickerOptions(),
+  }) async {
+    return XFile.fromData(
+      Uint8List(0),
+      name: 'receipt.png',
+      mimeType: 'image/png',
+    );
+  }
 }

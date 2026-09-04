@@ -235,6 +235,14 @@ class _SopCaptureFieldState extends ConsumerState<SopCaptureField> {
       if (shot == null) return;
 
       final bytes = await shot.readAsBytes();
+      // Same failure as the InstaPay receipt sheet: a picker can hand back a
+      // zero-byte file, which uploads as an empty body and comes back "File
+      // does not exist" — or, worse, registers as a captured step photo that
+      // holds nothing. Ask for the shot again instead.
+      if (bytes.isEmpty) {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.sopPhotoEmpty)));
+        return;
+      }
       try {
         final url = await ref
             .read(sopPhotoUploaderProvider)

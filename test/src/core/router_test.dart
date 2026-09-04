@@ -463,6 +463,85 @@ void main() {
       expect(repository.getActiveShiftCalls, 0);
     });
   });
+
+  // Mirror of the group above for the *roles* lookup. `ref.listen` initialises
+  // the provider it listens to, and `routerProvider` is watched unconditionally
+  // by `JarzPosApp.build`, so an ungated listen fired `get_current_user_roles`
+  // with no session while the user sat on /login — 403, 149 production events.
+  // The same listen re-fired straight after `LoginNotifier.logout()`
+  // invalidates the provider, i.e. against a session that had just been killed.
+  group('routerProvider roles-gate wiring', () {
+    setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
+
+    ProviderContainer containerFor({
+      required bool isAuthenticated,
+      required UserService userService,
+    }) {
+      final container = ProviderContainer(
+        overrides: [
+          currentAuthStateProvider.overrideWith((ref) => isAuthenticated),
+          // Deliberately NOT overriding `userRolesFutureProvider` here: the
+          // point of these tests is whether that provider gets initialised at
+          // all, so the real one has to run and reach this recording service.
+          userServiceProvider.overrideWithValue(userService),
+          shiftRepositoryProvider.overrideWithValue(
+            _RecordingShiftRepository(),
+          ),
+          posNotifierProvider.overrideWith(
+            (ref) => _PosNotifierStub(
+              PosState(selectedProfile: const {'name': 'Dokki'}),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container;
+    }
+
+    test('does not fetch roles for an unauthenticated session', () async {
+      final service = _RecordingUserService();
+      final container = containerFor(
+        isAuthenticated: false,
+        userService: service,
+      );
+
+      container.read(routerProvider);
+      await pumpEventQueue();
+
+      // The login screen has no session, so get_current_user_roles can only
+      // ever answer 403 there.
+      expect(service.getCurrentUserRolesCalls, 0);
+    });
+
+    test('subscribes the gate to the roles lookup once authenticated', () async {
+      final service = _RecordingUserService();
+      final container = containerFor(
+        isAuthenticated: true,
+        userService: service,
+      );
+
+      container.read(routerProvider);
+      await pumpEventQueue();
+
+      // Regression guard on the fix: building the router while authenticated
+      // must still establish the subscription. Without it the landing gate at
+      // `router.dart` never re-runs when roles land, and a cold-start user is
+      // stranded on the spinner.
+      expect(service.getCurrentUserRolesCalls, greaterThan(0));
+    });
+  });
+}
+
+class _RecordingUserService extends UserService {
+  _RecordingUserService() : super(Dio());
+
+  int getCurrentUserRolesCalls = 0;
+
+  @override
+  Future<UserRoles> getCurrentUserRoles() async {
+    getCurrentUserRolesCalls++;
+    return const UserRoles(user: 'u@x.com', roles: [], requirePosShift: true);
+  }
 }
 
 class _RecordingShiftRepository extends ShiftRepository {

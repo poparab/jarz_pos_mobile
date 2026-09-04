@@ -1092,6 +1092,19 @@ class KanbanService {
     required String imageData,
     required String filename,
   }) async {
+    // Chokepoint guard, deliberately outside the try/catch below so it can
+    // never be reshaped into a server error.
+    //
+    // A picker that hands back a zero-byte file (permission revoked mid-pick,
+    // an unreadable cloud/HEIC asset, a cancelled camera write) base64-encodes
+    // to the empty string. The backend answered "File does not exist" and the
+    // sheet still reported success, so an InstaPay payment was confirmed with
+    // no proof attached. Refuse here rather than at any one call site: this is
+    // the single point every present and future caller passes through.
+    if (imageData.isEmpty) {
+      _logger.error('Refusing to upload an empty receipt image for $receiptName');
+      throw Exception('Receipt image is empty');
+    }
     try {
       _logger.info('Uploading receipt image for $receiptName');
       final resp = await _dio.post(

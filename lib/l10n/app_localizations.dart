@@ -4760,6 +4760,12 @@ abstract class AppLocalizations {
   /// **'Camera permission is needed to record a photo'**
   String get sopCameraPermissionDenied;
 
+  /// No description provided for @sopPhotoEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t read that photo. Take it again.'**
+  String get sopPhotoEmpty;
+
   /// No description provided for @sopImageUnavailable.
   ///
   /// In en, this message translates to:
@@ -6760,6 +6766,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to upload receipt image'**
   String get receiptUploadFailed;
+
+  /// No description provided for @receiptImageEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t read that photo. Try again, or pick a different one.'**
+  String get receiptImageEmpty;
 
   /// No description provided for @receiptUploadError.
   ///

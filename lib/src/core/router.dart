@@ -248,10 +248,18 @@ final routerProvider = Provider<GoRouter>((ref) {
   // listenable fires. Every provider the gate reads must therefore be wired to
   // it, otherwise the gate silently runs on stale data.
   final gateRefresh = ValueNotifier<int>(0);
-  // Re-run redirects when the user's roles finish loading (e.g. on cold start
-  // with a saved session) so the landing gate can resolve the correct home.
-  ref.listen(userRolesFutureProvider, (_, _) => gateRefresh.value++);
   if (isAuthenticated) {
+    // Re-run redirects when the user's roles finish loading (e.g. on cold start
+    // with a saved session) so the landing gate can resolve the correct home.
+    //
+    // Gated on auth for the same reason as the shift lookup below: `ref.listen`
+    // *initialises* the provider, and `routerProvider` is watched
+    // unconditionally by `JarzPosApp.build`, so leaving this ungated fired
+    // `get_current_user_roles` with no session while the user sat on /login →
+    // 403. It also fired again straight after `LoginNotifier.logout()`
+    // invalidates the provider, i.e. against a session that had just been
+    // destroyed.
+    ref.listen(userRolesFutureProvider, (_, _) => gateRefresh.value++);
     // The shift gate resolves asynchronously, and selecting a POS profile
     // invalidates it (a shift belongs to one profile). Without this the gate
     // never re-ran after the lookup landed, so the user sat on POS with no

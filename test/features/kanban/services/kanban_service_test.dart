@@ -703,5 +703,52 @@ void main() {
         expect(data['address_name'], equals('ADDR-1'));
       });
     });
+
+    group('Payment Receipt Images', () {
+      const uploadPath =
+          '/api/method/jarz_pos.api.payment_receipts.upload_receipt_image';
+
+      // The money-path regression: a picker handed back a zero-byte file, so
+      // `image_data` went up as ''. The backend answered "File does not exist",
+      // the sheet still reported success, and an InstaPay payment was confirmed
+      // with no proof attached. This is the chokepoint every caller — present
+      // and future — passes through, so the assertion that matters is that the
+      // request is never made at all.
+      test('rejects an empty image_data before it reaches the server', () async {
+        mockDio.setResponse(
+          uploadPath,
+          createSuccessResponse(data: {'success': true, 'file_url': '/x.png'}),
+        );
+
+        await expectLater(
+          service.uploadReceiptImage(
+            receiptName: 'PR-001',
+            imageData: '',
+            filename: 'receipt.png',
+          ),
+          throwsA(isA<Exception>()),
+        );
+
+        // Load-bearing: nothing was sent. A guard that let the POST through and
+        // only checked the reply would still leave the receipt half-created.
+        expect(mockDio.requestLog, isEmpty);
+      });
+
+      test('uploads normally when the image has bytes', () async {
+        mockDio.setResponse(
+          uploadPath,
+          createSuccessResponse(data: {'success': true, 'file_url': '/x.png'}),
+        );
+
+        final result = await service.uploadReceiptImage(
+          receiptName: 'PR-001',
+          imageData: 'aGVsbG8=',
+          filename: 'receipt.png',
+        );
+
+        expect(result['success'], isTrue);
+        expect(mockDio.requestLog.last['data']['image_data'], 'aGVsbG8=');
+      });
+    });
   });
 }
