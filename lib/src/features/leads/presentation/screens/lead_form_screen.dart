@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../b2b/data/b2b_repository.dart' show b2bLeadSourcesProvider;
 import '../../../b2b/state/b2b_pipeline_notifier.dart' show b2bPipelineProvider;
@@ -168,7 +169,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(
-                content: Text(context.l10n.leadDetailFailed('$e'))));
+                content: Text(context.userErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -211,7 +212,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(
-                content: Text(context.l10n.leadDetailFailed('$e'))));
+                content: Text(context.userErrorMessage(e))));
       }
     }
   }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../data/shift_monitor_repository.dart';
@@ -80,7 +81,7 @@ class _ForceCloseShiftDialogState extends ConsumerState<ForceCloseShiftDialog> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _loadError = error.toString();
+        _loadError = context.userErrorMessage(error);
         _loading = false;
       });
     }
@@ -114,7 +115,7 @@ class _ForceCloseShiftDialogState extends ConsumerState<ForceCloseShiftDialog> {
       if (!mounted) return;
       setState(() {
         _submitting = false;
-        _loadError = error.toString();
+        _loadError = context.userErrorMessage(error);
       });
     }
   }

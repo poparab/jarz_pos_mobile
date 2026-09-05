@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/pricing_models.dart';
 import '../../data/pricing_repository.dart';
@@ -90,7 +91,7 @@ class _CustomerPricingSearchScreenState
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
       return Center(
-          child: Text(context.l10n.customerPricingSearchFailed('$_error'),
+          child: Text(context.userErrorMessage('$_error'),
               textAlign: TextAlign.center));
     }
     if (_results.isEmpty) {
@@ -151,8 +152,7 @@ class CustomerPricingScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                    context.l10n
-                        .customerPricingLoadFailed(customer, '$error'),
+                    context.userErrorMessage(error),
                     textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 FilledButton(

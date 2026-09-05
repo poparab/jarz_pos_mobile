@@ -6,6 +6,7 @@ import '../../state/courier_ws_bridge.dart';
 import '../../data/models/courier_balance.dart';
 import '../../../pos/state/pos_notifier.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/network/courier_service.dart';
 import '../../../kanban/providers/kanban_provider.dart';
 import '../../data/repositories/courier_repository.dart';
@@ -142,7 +143,7 @@ class _DialogBody extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
     if (state.error != null) {
-      return Center(child: Text(l10n.commonErrorWithDetails('${state.error}')));
+      return Center(child: Text(context.userErrorMessage(state.error)));
     }
     final balances = allowedPartyKeys == null || allowedPartyKeys!.isEmpty
         ? state.balances
@@ -372,7 +373,7 @@ class _CourierTile extends StatelessWidget {
                                           }
                                         } catch (e) {
                                           if (ctx.mounted) {
-                                            messenger.showSnackBar(SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))));
+                                            messenger.showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
                                           }
                                         }
                                       },
@@ -478,7 +479,7 @@ class _InlineSettleAllButtonState extends ConsumerState<_InlineSettleAllButton> 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.courierSettlementFailed)));
       }
     } catch(e){
-      if(mounted){ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))));}
+      if(mounted){ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));}
     } finally { if(mounted) setState(()=>_loading=false); }
   }
 }
@@ -614,7 +615,7 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
       try { await ref.read(courierBalancesProvider.notifier).load(); } catch (_) {}
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _loading = false);

@@ -1,10 +1,10 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/router.dart';
 import '../../../../core/widgets/app_drawer.dart';
@@ -148,7 +148,7 @@ class _FleetMapScreenState extends ConsumerState<FleetMapScreen>
           icon: Icons.error_outline,
           iconColor: fleetFreshnessColor(FleetFreshness.stale),
           title: l10n.fleetErrorTitle,
-          body: extractFrappeErrorMessage(
+          body: context.userErrorMessage(
             state.error!,
             fallback: l10n.commonError,
           ),

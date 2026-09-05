@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../auth/state/login_notifier.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../models/shift_models.dart';
@@ -34,7 +35,7 @@ String _localizedShiftError(BuildContext context, String error) {
       if (message.isEmpty) {
         return l10n.commonError;
       }
-      return l10n.commonErrorWithDetails(message);
+      return context.userErrorMessage(message, fallback: l10n.commonError);
   }
 }
 

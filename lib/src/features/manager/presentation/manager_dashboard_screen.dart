@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/manager_providers.dart';
@@ -29,7 +30,7 @@ String _localizedManagerErrorDetail(BuildContext context, Object error) {
     case 'Failed to load employee ledger':
       return l10n.managerEmployeeLedgerLoadFailed;
     default:
-      return message.isEmpty ? l10n.commonError : message;
+      return context.userErrorMessage(error);
   }
 }
 
@@ -41,7 +42,7 @@ String _localizedManagerApproveError(BuildContext context, Object error) {
     return l10n.managerApproveDefaultError;
   }
 
-  return l10n.managerApproveFailed(_localizedManagerErrorDetail(context, error));
+  return context.userErrorMessage(_localizedManagerErrorDetail(context, error));
 }
 
 String _localizedManagerRejectError(BuildContext context, Object error) {
@@ -52,7 +53,7 @@ String _localizedManagerRejectError(BuildContext context, Object error) {
     return l10n.managerRejectDefaultError;
   }
 
-  return l10n.managerRejectFailed(_localizedManagerErrorDetail(context, error));
+  return context.userErrorMessage(_localizedManagerErrorDetail(context, error));
 }
 
 class ManagerDashboardScreen extends ConsumerWidget {
@@ -530,7 +531,7 @@ class _ChangeBranchButton extends ConsumerWidget {
         } catch (e) {
           if (!context.mounted) return;
           final errorMessage = _localizedManagerErrorDetail(context, e);
-          messenger.showSnackBar(SnackBar(content: Text(errorMessage)));
+          messenger.showSnackBar(SnackBar(content: Text(context.userErrorMessage(errorMessage))));
         }
       },
     );
@@ -549,7 +550,7 @@ class _ErrorTile extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Text(message == l10n.commonError ? message : l10n.commonErrorWithDetails(message)),
+          Text(message == l10n.commonError ? message : context.userErrorMessage(message)),
           const SizedBox(height: 8),
           OutlinedButton(onPressed: onRetry, child: Text(l10n.commonRetry)),
         ],

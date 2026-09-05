@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../leads/data/models/lead.dart';
 import '../../../leads/presentation/leads_theme.dart';
@@ -504,7 +505,6 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
     });
     // Failures land inline, not in a SnackBar: this sheet covers the bottom of
     // the screen, which is exactly where a SnackBar would appear.
-    final failed = context.l10n.journeyEditorContactFailed;
     try {
       final saved = await ref
           .read(journeyContactsProvider(reference).notifier)
@@ -513,7 +513,7 @@ class _JourneyNoteEditorState extends ConsumerState<_JourneyNoteEditor> {
       _selectContact(saved ?? draft);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _contactError = failed('$e'));
+      setState(() => _contactError = context.userErrorMessage(e));
     } finally {
       if (mounted) setState(() => _savingContact = false);
     }

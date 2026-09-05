@@ -1,8 +1,8 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../data/models/batch_line.dart';
 import '../../data/models/production_suggestion.dart';
 import '../../state/production_basket_notifier.dart';
@@ -25,7 +25,7 @@ class ProductionPlanTab extends ConsumerWidget {
     return pageAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => _ErrorRetry(
-        message: extractFrappeErrorMessage(error, fallback: l10n.commonError),
+        message: context.userErrorMessage(error, fallback: l10n.commonError),
         onRetry: () => ref.invalidate(productionSuggestionsProvider),
       ),
       data: (page) {

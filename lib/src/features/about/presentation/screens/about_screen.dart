@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../data/about_release_info_repository.dart';
 import '../providers/about_release_info_provider.dart';
@@ -137,7 +138,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  l10n.aboutError(error.toString()),
+                  context.userErrorMessage(error, fallback: l10n.commonError),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),

@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/storage_keys.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../manager/state/manager_providers.dart';
@@ -398,7 +399,9 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     } catch (e) {
       if (!mounted) return;
       _debugLog('Submit reconciliation error', e);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.userErrorMessage(e))),
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }

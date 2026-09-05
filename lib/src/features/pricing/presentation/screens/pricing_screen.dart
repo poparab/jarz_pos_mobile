@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/widgets/app_drawer.dart';
@@ -133,7 +134,7 @@ class PricingScreen extends ConsumerWidget {
       );
     } catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.pricingCreateFailed('$e'))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
     }
   }
@@ -216,7 +217,7 @@ class _ErrorView extends StatelessWidget {
             const Icon(Icons.error_outline, size: 48, color: Colors.red),
             const SizedBox(height: 12),
             Text(
-              context.l10n.pricingLoadFailed('$error'),
+              context.userErrorMessage(error),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),

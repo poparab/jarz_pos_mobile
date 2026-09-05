@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/localized_display_mappers.dart';
@@ -296,7 +297,7 @@ class _CreateTripDialogState extends ConsumerState<CreateTripDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.tripsCreateTripFailed(e.toString()))),
+          SnackBar(content: Text(context.userErrorMessage(e.toString()))),
         );
       }
     } finally {

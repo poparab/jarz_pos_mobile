@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../state/reports_providers.dart';
 
 class FinalProductsReportScreen extends ConsumerWidget {
@@ -31,7 +32,7 @@ class FinalProductsReportScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  error.toString(),
+                  context.userErrorMessage(error),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),

@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,7 +18,6 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/constants/business_constants.dart';
 import '../../../core/network/courier_service.dart';
-import '../../../core/network/frappe_error_message.dart';
 import '../../../core/network/user_service.dart';
 import '../../manager/data/manager_api.dart';
 import '../../manager/state/manager_providers.dart';
@@ -37,6 +37,7 @@ import '../../../core/utils/responsive_utils.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/widgets/customer_shipping_address_dialog.dart';
 import '../../../core/repositories/customer_address_repository.dart';
 import '../../../core/utils/territory_label.dart';
@@ -63,9 +64,16 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   late AnimationController _animationController;
   late Animation<double> _animation;
   bool _isAccepting = false; // Track acceptance state for optimistic UI
+  late AppLocalizations _errorLocalizations;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _errorLocalizations = context.l10n;
+  }
 
   String _formatErrorMessage(Object error, {required String fallback}) {
-    return extractFrappeErrorMessage(error, fallback: fallback);
+    return userErrorMessageFor(_errorLocalizations, error, fallback: fallback);
   }
 
   String _withActionPrefix(String action, Object error, {String? fallback}) {
@@ -350,7 +358,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.invoicePrintFailed('$res'))),);
+          SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, res, fallback: l10n.printerStatusError))),);
     }
   }
 
@@ -472,9 +480,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  l10n.invoiceAcceptFailed(
-                    _formatErrorMessage(e, fallback: l10n.commonError),
-                  ),
+                  userErrorMessageFor(_errorLocalizations, _formatErrorMessage(e, fallback: l10n.commonError)),
                 ),
               ),
             ],
@@ -1606,7 +1612,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       return;
     }
     final method = await _showPaymentMethodSheet(context);
-    if (method == null) return; // user cancelled
+    if (!mounted || !context.mounted || method == null) return;
     await _submitPayment(method); // TODO back-end integration
   }
 
@@ -1736,6 +1742,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   }
 
   Future<void> _submitPayment(String method) async {
+    if (!mounted) return;
     // Read the localisations ONCE, up front, exactly as `_acceptOrder` does.
     //
     // `context.l10n` is `AppLocalizations.of(context)!`. Once the card leaves
@@ -1826,7 +1833,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 } else {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(l10n.invoiceReceiptReturnedWarning(receiptResult?['message']?.toString() ?? l10n.commonError)),
+                      content: Text(userErrorMessageFor(_errorLocalizations, receiptResult?['message']?.toString() ?? l10n.commonError)),
                       duration: const Duration(seconds: 3),
                     ),
                   );
@@ -1841,7 +1848,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 );
                 messenger.showSnackBar(
                   SnackBar(
-                    content: Text(l10n.invoiceReceiptCreationFailed(errorMessage)),
+                    content: Text(userErrorMessageFor(_errorLocalizations, errorMessage)),
                     duration: const Duration(seconds: 3),
                   ),
                 );
@@ -1860,7 +1867,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         fallback: l10n.invoicePaymentFailed,
       );
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.invoicePaymentError(errorMessage))),
+        SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
       );
     }
   }
@@ -1958,14 +1965,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       if (!context.mounted) {
         return;
       }
-      final errorMessage = extractFrappeErrorMessage(
+      final errorMessage = userErrorMessageFor(_errorLocalizations,
         error,
         fallback: context.l10n.invoiceDeliveryFailed,
       );
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            context.l10n.invoiceCollectionMethodChangeError(errorMessage),
+            userErrorMessageFor(_errorLocalizations, errorMessage),
           ),
         ),
       );
@@ -2034,16 +2041,16 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               fallback: context.l10n.invoiceDeliveryFailed,
             );
             messenger.showSnackBar(
-              SnackBar(content: Text(context.l10n.invoiceOfdFailed(errorMessage))),
+              SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
             );
           }
         } catch (e) {
-          final errorMessage = extractFrappeErrorMessage(
+          final errorMessage = userErrorMessageFor(_errorLocalizations,
             e,
             fallback: context.l10n.invoiceDeliveryFailed,
           );
           messenger.showSnackBar(
-            SnackBar(content: Text(context.l10n.invoiceOfdError(errorMessage))),
+            SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
           );
         }
         return;
@@ -2052,12 +2059,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           await notifier.updateInvoiceState(widget.invoice.name, 'Out For Delivery');
           messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSentOfd)));
         } catch (e) {
-          final errorMessage = extractFrappeErrorMessage(
+          final errorMessage = userErrorMessageFor(_errorLocalizations,
             e,
             fallback: context.l10n.invoiceDeliveryFailed,
           );
           messenger.showSnackBar(
-            SnackBar(content: Text(context.l10n.invoiceActionFailed(errorMessage))),
+            SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
           );
         }
         return;
@@ -2118,12 +2125,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettleLaterFailed)));
         }
       } catch (e) {
-        final errorMessage = extractFrappeErrorMessage(
+        final errorMessage = userErrorMessageFor(_errorLocalizations,
           e,
           fallback: context.l10n.invoiceSettleLaterFailed,
         );
         messenger.showSnackBar(
-          SnackBar(content: Text(context.l10n.invoiceSettleLaterError(errorMessage))),
+          SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
         );
       }
       return;
@@ -2188,12 +2195,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementFailed)));
         }
       } catch (e) {
-        final errorMessage = extractFrappeErrorMessage(
+        final errorMessage = userErrorMessageFor(_errorLocalizations,
           e,
           fallback: context.l10n.invoiceSettlementFailed,
         );
         messenger.showSnackBar(
-          SnackBar(content: Text(context.l10n.invoiceSettlementError(errorMessage))),
+          SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
         );
       }
       return;
@@ -2216,12 +2223,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceDeliveryFailed)));
       }
     } catch (e) {
-      final errorMessage = extractFrappeErrorMessage(
+      final errorMessage = userErrorMessageFor(_errorLocalizations,
         e,
         fallback: context.l10n.invoiceDeliveryFailed,
       );
       messenger.showSnackBar(
-        SnackBar(content: Text(context.l10n.invoiceDeliveryError(errorMessage))),
+        SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
       );
     }
   }
@@ -2529,7 +2536,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                                                 fallback: context.l10n.commonError,
                                               );
                                               ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text(context.l10n.kanbanCreateFailed(errorMessage))),
+                                                SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
                                               );
                                             }
                                           } finally {
@@ -2704,12 +2711,12 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         messenger.showSnackBar(SnackBar(content: Text(context.l10n.invoiceSettlementFailed)));
       }
     } catch (e) {
-      final errorMessage = extractFrappeErrorMessage(
+      final errorMessage = userErrorMessageFor(_errorLocalizations,
         e,
         fallback: context.l10n.invoiceSettlementFailed,
       );
       messenger.showSnackBar(
-        SnackBar(content: Text(context.l10n.invoiceSettlementError(errorMessage))),
+        SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
       );
     }
   }
@@ -3122,7 +3129,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           e,
         );
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
+          SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
         );
       }
     }
@@ -3158,7 +3165,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           fallback: context.l10n.commonError,
         );
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.kanbanCustomShippingFailed(errorMessage))),
+          SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
         );
       }
     }
@@ -3178,7 +3185,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
       if (!details.canAmend) {
         final message = (details.amendmentBlockReason ?? '').trim().isNotEmpty
-            ? details.amendmentBlockReason!
+            ? userErrorMessageFor(_errorLocalizations, details.amendmentBlockReason, fallback: context.l10n.invoiceAmendmentUnavailable)
             : context.l10n.invoiceAmendmentUnavailable;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
@@ -3335,7 +3342,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         final error = result['error']?.toString() ??
             context.l10n.kanbanAmendmentFailed;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(userErrorMessageFor(_errorLocalizations, error)),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
@@ -3343,7 +3353,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(context.l10n.kanbanErrorWithMessage('$e')),
+          content: Text(userErrorMessageFor(_errorLocalizations, e)),
           backgroundColor: Colors.red,
         ),
       );
@@ -3381,7 +3391,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         fallback: context.l10n.customerShippingAddressLoadFailed,
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+        SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
       );
       return;
     }
@@ -3543,7 +3553,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 children: [
                   const Icon(Icons.error, color: Colors.white),
                   const SizedBox(width: 12),
-                  Expanded(child: Text(errMsg)),
+                  Expanded(child: Text(userErrorMessageFor(_errorLocalizations, errMsg))),
                 ],
               ),
               backgroundColor: Colors.red[600],
@@ -3583,7 +3593,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               const SizedBox(width: 12),
               Expanded(
                   child: Text(
-                      context.l10n.kanbanErrorWithMessage(errorMessage))),
+                      userErrorMessageFor(_errorLocalizations, errorMessage))),
             ],
           ),
           backgroundColor: Colors.red[600],
@@ -4030,7 +4040,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(errorMessage),
+                  child: Text(userErrorMessageFor(_errorLocalizations, errorMessage)),
                 ),
               ],
             ),
@@ -4056,7 +4066,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             children: [
               const Icon(Icons.error, color: Colors.white),
               const SizedBox(width: 12),
-              Expanded(child: Text(context.l10n.commonErrorWithDetails(errorMessage))),
+              Expanded(child: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
             ],
           ),
           backgroundColor: Colors.red[600],
@@ -4349,7 +4359,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(errorMessage),
+                  child: Text(userErrorMessageFor(_errorLocalizations, errorMessage)),
                 ),
               ],
             ),
@@ -4372,7 +4382,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               const SizedBox(width: 12),
               Expanded(
                   child: Text(
-                      context.l10n.kanbanErrorWithMessage(errorMessage))),
+                      userErrorMessageFor(_errorLocalizations, errorMessage))),
             ],
           ),
           backgroundColor: Colors.red[600],
@@ -4448,5 +4458,3 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 }
 
 // End of InvoiceCardWidget state class
-
-

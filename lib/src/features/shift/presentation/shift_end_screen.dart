@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../auth/state/login_notifier.dart';
 import '../../pos/presentation/widgets/courier_balances_dialog.dart';
@@ -30,7 +31,7 @@ String _localizedShiftError(BuildContext context, String error) {
       if (message.isEmpty) {
         return l10n.commonError;
       }
-      return l10n.commonErrorWithDetails(message);
+      return context.userErrorMessage(message, fallback: l10n.commonError);
   }
 }
 
@@ -119,7 +120,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
       body: activeShiftAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-          child: Text(l10n.shiftLoadActiveFailed(_normalizeShiftError(e.toString()))),
+          child: Text(context.userErrorMessage(_normalizeShiftError(e.toString()))),
         ),
         data: (activeShift) {
           if (activeShift == null) {

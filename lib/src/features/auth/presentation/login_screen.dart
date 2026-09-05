@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/network/user_service.dart';
 import '../state/login_notifier.dart';
@@ -26,7 +27,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   String _localizedLoginError(Object error) {
     final l10n = context.l10n;
-    final message = _normalizeErrorText(error);
+    final message = _normalizeErrorText(context.userErrorMessage(error));
 
     switch (message) {
       case 'Invalid credentials':
@@ -41,7 +42,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (message.isEmpty) {
           return l10n.authLoginFailed;
         }
-        return l10n.commonErrorWithDetails(message);
+        return context.userErrorMessage(error, fallback: l10n.authLoginFailed);
     }
   }
 

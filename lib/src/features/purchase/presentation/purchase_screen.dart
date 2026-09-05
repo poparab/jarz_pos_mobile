@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
@@ -992,7 +993,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.commonErrorWithDetails('$e'))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
     }
   }
@@ -1489,7 +1490,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       _sheetSetState?.call(() {});
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(l10n.purchaseSubmitFailed('$e'))));
+      messenger.showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
@@ -1744,7 +1745,7 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.commonErrorWithDetails('$e'))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
     }
   }
@@ -1850,7 +1851,7 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.commonErrorWithDetails('$e'))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
     }
   }
@@ -1973,7 +1974,7 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(context.l10n.commonErrorWithDetails(_error.toString()), textAlign: TextAlign.center),
+            Text(context.userErrorMessage(_error), textAlign: TextAlign.center),
             const SizedBox(height: 12),
             ElevatedButton(onPressed: _refresh, child: Text(context.l10n.commonRetry)),
           ],

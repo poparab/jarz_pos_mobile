@@ -1,9 +1,9 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../../reports/presentation/widgets/kpi_card.dart';
 import '../../data/models/running_batch.dart';
 import '../../state/running_batches_notifier.dart';
@@ -36,7 +36,7 @@ class BatchCostPanel extends ConsumerWidget {
           children: [
             Expanded(
               child: Text(
-                extractFrappeErrorMessage(error, fallback: l10n.commonError),
+                context.userErrorMessage(error, fallback: l10n.commonError),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),

@@ -1,9 +1,9 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/localized_formatters.dart';
-import '../../../core/network/frappe_error_message.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../models/roster_models.dart';
@@ -637,7 +637,7 @@ class _ErrorState extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              extractFrappeErrorMessage(error),
+              context.userErrorMessage(error),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium,
             ),

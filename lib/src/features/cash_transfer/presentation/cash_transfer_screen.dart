@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -369,7 +370,7 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(l10n.cashTransferFailed(e.toString()))));
+      messenger.showSnackBar(SnackBar(content: Text(context.userErrorMessage(e.toString()))));
     }
   }
 }

@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../models/kanban_models.dart';
 import '../providers/kanban_provider.dart';
@@ -367,13 +368,9 @@ class _PaymentCollectionChangeDialogState
         _isPreparingReceipt = false;
         _isUploadingReceipt = false;
       });
-      final message = error.toString().trim();
-      final friendly = message.startsWith('Exception: ')
-          ? message.substring('Exception: '.length)
-          : message;
       messenger.showSnackBar(
         SnackBar(
-          content: Text(context.l10n.receiptUploadError(friendly)),
+          content: Text(context.userErrorMessage(error)),
         ),
       );
     }
@@ -438,12 +435,8 @@ class _PaymentCollectionChangeDialogState
         return;
       }
       setState(() => _isRemovingReceipt = false);
-      final message = error.toString().trim();
-      final friendly = message.startsWith('Exception: ')
-          ? message.substring('Exception: '.length)
-          : message;
       messenger.showSnackBar(
-        SnackBar(content: Text(context.l10n.receiptRemoveError(friendly))),
+        SnackBar(content: Text(context.userErrorMessage(error))),
       );
     }
   }

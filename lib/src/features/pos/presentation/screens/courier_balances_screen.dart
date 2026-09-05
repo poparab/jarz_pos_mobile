@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../state/courier_balances_provider.dart';
 import '../../data/repositories/courier_repository.dart';
@@ -27,7 +28,7 @@ class CourierBalancesScreen extends ConsumerWidget {
               return const Center(child: CircularProgressIndicator());
             }
             if (state.error != null) {
-              return Center(child: Text(l10n.commonErrorWithDetails(state.error!)));
+              return Center(child: Text(context.userErrorMessage(state.error)));
             }
 
             final balances = state.balances;
@@ -226,7 +227,7 @@ Future<void> _showSettlementPreview(
     Navigator.of(ctx).pop();
     ScaffoldMessenger.of(ctx).showSnackBar(
       SnackBar(
-        content: Text(ctx.l10n.courierBalancesPreviewFailed('$e')),
+        content: Text(ctx.userErrorMessage(e)),
         backgroundColor: Theme.of(context).colorScheme.error,
       ),
     );

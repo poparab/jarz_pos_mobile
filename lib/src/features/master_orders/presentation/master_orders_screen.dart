@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/utils/order_display_id.dart';
 import '../state/master_orders_providers.dart';
 
@@ -140,7 +141,7 @@ class _MasterOrdersScreenState extends ConsumerState<MasterOrdersScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(error.toString(),
+                      Text(context.userErrorMessage(error),
                           textAlign: TextAlign.center),
                       const SizedBox(height: 16),
                       FilledButton(

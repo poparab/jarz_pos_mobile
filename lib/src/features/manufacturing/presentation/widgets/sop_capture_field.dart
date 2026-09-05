@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -8,7 +9,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../data/manufacturing_service.dart';
 import '../../data/models/sop.dart';
 import '../../state/sop_providers.dart';
@@ -256,7 +256,7 @@ class _SopCaptureFieldState extends ConsumerState<SopCaptureField> {
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              extractFrappeErrorMessage(error, fallback: l10n.commonError),
+              context.userErrorMessage(error, fallback: l10n.commonError),
             ),
           ),
         );
@@ -267,7 +267,7 @@ class _SopCaptureFieldState extends ConsumerState<SopCaptureField> {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            extractFrappeErrorMessage(error, fallback: l10n.commonError),
+            context.userErrorMessage(error, fallback: l10n.commonError),
           ),
         ),
       );
@@ -330,7 +330,7 @@ class _SopCaptureFieldState extends ConsumerState<SopCaptureField> {
       if (!mounted) return;
       messenger.showSnackBar(
         SnackBar(
-          content: Text(extractFrappeErrorMessage(error, fallback: fallback)),
+          content: Text(context.userErrorMessage(error, fallback: fallback)),
         ),
       );
     }

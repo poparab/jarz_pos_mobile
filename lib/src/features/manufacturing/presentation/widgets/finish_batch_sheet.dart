@@ -1,8 +1,8 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/ui/loading_overlay.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../data/models/running_batch.dart';
@@ -238,7 +238,7 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
       if (!mounted) return;
       setState(() {
         _submitError =
-            extractFrappeErrorMessage(error, fallback: l10n.commonError);
+            context.userErrorMessage(error, fallback: l10n.commonError);
       });
       return;
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../state/pos_notifier.dart';
 
 class CheckoutButtonWidget extends ConsumerWidget {
@@ -91,7 +92,7 @@ class CheckoutButtonWidget extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        state.error!,
+                        context.userErrorMessage(state.error),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onErrorContainer,
                         ),
@@ -152,7 +153,12 @@ class CheckoutButtonWidget extends ConsumerWidget {
 
       // Proceed with the already selected profile; no popup, no dimming
       await ref.read(posNotifierProvider.notifier).checkout();
-      if (context.mounted) {
+      if (!context.mounted) return;
+      final completedState = ref.read(posNotifierProvider);
+      // checkout() reports failures through provider state and returns normally.
+      // A successful checkout clears the cart only after the invoice response
+      // has been received, so require both signals before showing success.
+      if (completedState.error == null && completedState.cartItems.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(context.l10n.checkoutOrderSuccess),
@@ -160,12 +166,23 @@ class CheckoutButtonWidget extends ConsumerWidget {
             duration: Duration(seconds: 3),
           ),
         );
+        return;
+      }
+
+      if (completedState.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.userErrorMessage(completedState.error)),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.checkoutFailed('$e')),
+            content: Text(context.userErrorMessage(e)),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../leads/presentation/leads_theme.dart';
 import '../../data/models/journey_note.dart';
@@ -226,7 +227,7 @@ class JourneyNotesSection extends ConsumerWidget {
       onChanged?.call();
     } catch (e) {
       messenger.showSnackBar(
-          SnackBar(content: Text(l10n.journeyFailed('$e'))));
+          SnackBar(content: Text(userErrorMessageFor(l10n, e))));
     }
   }
 }
@@ -655,7 +656,7 @@ class _ErrorCard extends StatelessWidget {
         children: [
           Text(context.l10n.journeyLoadFailed, style: LeadsTheme.body),
           const SizedBox(height: 4),
-          Text('$error', style: LeadsTheme.bodyMuted),
+          Text(context.userErrorMessage(error), style: LeadsTheme.bodyMuted),
           const SizedBox(height: 8),
           OutlinedButton(
               onPressed: onRetry, child: Text(context.l10n.commonRetry)),

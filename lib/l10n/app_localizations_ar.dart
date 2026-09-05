@@ -555,6 +555,79 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get userErrorOffline =>
+      'تعذّر الاتصال بالخادم. راجع اتصالك وحالة العملية قبل المحاولة مرة أخرى.';
+
+  @override
+  String get userErrorTimeout =>
+      'استغرق الطلب وقتًا طويلًا. تحقّق من حالة العملية قبل المحاولة مرة أخرى.';
+
+  @override
+  String get userErrorCertificate => 'تعذّر تأمين الاتصال بالخادم.';
+
+  @override
+  String get userErrorCancelled => 'تم إلغاء الطلب.';
+
+  @override
+  String get userErrorUnauthorized => 'انتهت الجلسة. سجّل الدخول مرة أخرى.';
+
+  @override
+  String get userErrorForbidden => 'ليس لديك صلاحية لتنفيذ هذا الإجراء.';
+
+  @override
+  String get userErrorNotFound => 'العنصر المطلوب غير موجود.';
+
+  @override
+  String get userErrorConflict =>
+      'تتعارض العملية مع بيانات موجودة. حدّث البيانات وراجع حالة العملية قبل المتابعة.';
+
+  @override
+  String get userErrorRateLimited =>
+      'توجد محاولات كثيرة. انتظر قليلًا ثم حاول مرة أخرى.';
+
+  @override
+  String get userErrorServer =>
+      'حدثت مشكلة في الخادم. راجع حالة العملية قبل الإرسال مرة أخرى.';
+
+  @override
+  String get userErrorUnexpected => 'حدث خطأ غير متوقع.';
+
+  @override
+  String get userErrorValidationFallback =>
+      'راجِع البيانات المدخلة وحاول مرة أخرى.';
+
+  @override
+  String get userErrorDraftLimit =>
+      'وصلت إلى الحد الأقصى للمسودات. احذف مسودة غير مستخدمة قبل إنشاء أخرى.';
+
+  @override
+  String get userErrorReopenOrder =>
+      'بيانات الطلب ناقصة أو قديمة. أغلق الطلب وافتحه مرة أخرى لإعادة تحميل الأصناف.';
+
+  @override
+  String get userErrorShippingAddress =>
+      'عنوان الشحن لم يعد متاحًا. اختر عنوانًا صالحًا لهذا العميل.';
+
+  @override
+  String get userErrorInsufficientStock =>
+      'المخزون غير كافٍ. راجع الكمية المتاحة أو تواصل مع الفرع.';
+
+  @override
+  String get userErrorShiftRequired =>
+      'يجب وجود وردية مفتوحة. راجع حالة ورديتك قبل المتابعة.';
+
+  @override
+  String get userErrorAlreadyProcessed =>
+      'تم تنفيذ هذه العملية بالفعل. راجع حالة الطلب قبل الإرسال مرة أخرى.';
+
+  @override
+  String get userErrorRequiredFields => 'أكمل البيانات المطلوبة قبل المتابعة.';
+
+  @override
+  String get userErrorScreenFailed =>
+      'تعذّر عرض هذه الصفحة. أغلقها وافتحها مرة أخرى.';
+
+  @override
   String get commonSubmit => 'إرسال';
 
   @override

@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/ofd_shortage_dialog.dart';
 import '../models/trip_models.dart';
@@ -34,7 +35,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(context.l10n.commonErrorWithDetails(err.toString()), textAlign: TextAlign.center),
+              Text(context.userErrorMessage(err), textAlign: TextAlign.center),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () => ref.invalidate(tripDetailProvider(widget.tripName)),
@@ -238,7 +239,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       if (blockingMessage != null && blockingMessage.isNotEmpty) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(blockingMessage)),
+          SnackBar(content: Text(userErrorMessageFor(l10n, blockingMessage))),
         );
         return;
       }
@@ -252,7 +253,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.commonErrorWithDetails(e.toString()))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
       return;
     }
@@ -273,7 +274,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -309,7 +310,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
     } finally {
       if (mounted) setState(() => _sending = false);

@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/ui/loading_overlay.dart';
 import '../../data/manufacturing_service.dart';
 import '../../data/models/base_batch_preview.dart';
@@ -318,9 +318,7 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            l10n.manufacturingSubmitFailed(
-              extractFrappeErrorMessage(failure, fallback: l10n.commonError),
-            ),
+            context.userErrorMessage(failure, fallback: l10n.commonError),
           ),
         ),
       );
@@ -639,7 +637,7 @@ class _PreviewPanel extends StatelessWidget {
           Expanded(
             child: Text(
               l10n.basesPreviewFailed(
-                extractFrappeErrorMessage(
+                context.userErrorMessage(
                   draft.error!,
                   fallback: l10n.commonError,
                 ),

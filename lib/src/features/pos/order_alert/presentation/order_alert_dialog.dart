@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -133,8 +134,7 @@ class OrderAlertDialog extends ConsumerWidget {
             ],
             if (state.error != null) ...[
               const SizedBox(height: 12),
-              Text(
-                state.error!,
+              Text(context.userErrorMessage(state.error!),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.error,
                 ),
@@ -142,8 +142,7 @@ class OrderAlertDialog extends ConsumerWidget {
             ],
           if (error != null) ...[
             const SizedBox(height: 12),
-            Text(
-              error!,
+            Text(context.userErrorMessage(error!),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.error,
               ),

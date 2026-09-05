@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
@@ -659,7 +660,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
       });
       _sheetSetState?.call(() {});
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.stockTransferSubmitFailed('$e'))));
+      messenger.showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
     }
   }
 
@@ -693,7 +694,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.stockTransferBulkAddFailed('$e'))));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
     }
   }
 

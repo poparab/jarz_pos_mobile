@@ -1,8 +1,8 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../data/manufacturing_service.dart';
 
@@ -19,9 +19,7 @@ Future<void> showRecentWorkOrders(BuildContext context, WidgetRef ref) async {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          context.l10n.manufacturingLoadFailed(
-            extractFrappeErrorMessage(error, fallback: context.l10n.commonError),
-          ),
+          context.userErrorMessage(error, fallback: context.l10n.commonError),
         ),
       ),
     );

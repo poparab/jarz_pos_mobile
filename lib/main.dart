@@ -95,16 +95,39 @@ Future<void> _bootstrapAndRunApp() async {
   final alarmSoundService = await _createAlarmSoundService();
 
   if (!kIsWeb) {
-    await GlobalOrientationEnforcer.applyStartupOrientation();
+    try {
+      await GlobalOrientationEnforcer.applyStartupOrientation();
+    } catch (error, stackTrace) {
+      // A platform-channel failure must not prevent the till from starting.
+      AppErrorReporter.instance.capture(
+        source: 'StartupOrientation',
+        error: error,
+        stackTrace: stackTrace,
+        summary:
+            'Startup orientation could not be applied; continuing with the system default',
+      );
+    }
 
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarIconBrightness: Brightness.dark,
-      ),
-    );
+    try {
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.dark,
+        ),
+      );
+    } catch (error, stackTrace) {
+      // The overlay style is cosmetic. Keep startup alive if the platform
+      // rejects this channel call on an unusual device or webview.
+      AppErrorReporter.instance.capture(
+        source: 'StartupSystemUi',
+        error: error,
+        stackTrace: stackTrace,
+        summary:
+            'System UI styling could not be applied; continuing with defaults',
+      );
+    }
   }
 
   runApp(

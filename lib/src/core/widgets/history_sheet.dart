@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -340,7 +341,7 @@ class _HistorySheetState<T> extends State<HistorySheet<T>> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(l10n.commonErrorWithDetails('$_error'),
+              Text(context.userErrorMessage('$_error'),
                   textAlign: TextAlign.center),
               const SizedBox(height: 12),
               ElevatedButton(

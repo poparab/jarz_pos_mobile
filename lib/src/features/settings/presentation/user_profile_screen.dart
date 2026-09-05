@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/constants/business_constants.dart';
@@ -218,7 +219,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                 : () => _enableWebPushNotifications(context),
                           ),
                         ),
-                        if (_webPushDiagnosticMessage != null) ...[
+                        if (kDebugMode && _webPushDiagnosticMessage != null) ...[
                           const SizedBox(height: 8),
                           Text(
                             _webPushDiagnosticMessage!,
@@ -429,7 +430,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                         error: (error, stack) => Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
-                            context.l10n.settingsFailedToLoadAlarmSounds(error.toString()),
+                            context.userErrorMessage(error),
                             style: TextStyle(color: Colors.red[700]),
                           ),
                         ),
@@ -500,7 +501,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text(context.l10n.commonErrorWithDetails(e.toString())),
+                                    content: Text(context.userErrorMessage(e)),
                                     duration: const Duration(seconds: 3),
                                     backgroundColor: Colors.red,
                                   ),
@@ -620,7 +621,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                error.toString(),
+                context.userErrorMessage(error),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.grey[600],
                     ),
@@ -661,10 +662,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            diagnosticMessage == null
-                ? localizedWebPushMessage(
-                    context, result.status, result.message)
-                : '${localizedWebPushMessage(context, result.status, result.message)}\n$diagnosticMessage',
+            localizedWebPushMessage(context, result.status, result.message),
           ),
           duration: Duration(seconds: result.isSuccess ? 3 : 6),
           backgroundColor: result.isSuccess ? Colors.green : Colors.orange,
@@ -688,7 +686,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${context.l10n.webPushEnableFailed}\n$diagnosticMessage',
+            context.l10n.webPushEnableFailed,
           ),
           duration: const Duration(seconds: 6),
           backgroundColor: Colors.red,

@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/localized_formatters.dart';
-import '../../../core/network/frappe_error_message.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../kanban/providers/kanban_provider.dart';
 import '../../pos/state/pos_notifier.dart';
@@ -192,7 +192,7 @@ class _OrderCard extends ConsumerWidget {
         SnackBar(content: Text(l10n.instapayConvertedToCod)),
       );
     } catch (error) {
-      final friendly = extractFrappeErrorMessage(
+      final friendly = context.userErrorMessage(
         error,
         fallback: l10n.instapayConvertFailed,
       );

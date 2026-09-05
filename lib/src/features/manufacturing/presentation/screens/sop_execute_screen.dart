@@ -1,10 +1,10 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../data/models/sop.dart';
 import '../../state/sop_providers.dart';
 import '../widgets/sop_capture_field.dart';
@@ -146,7 +146,7 @@ class SopExecuteScreen extends ConsumerWidget {
         body: documentAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => _ErrorRetry(
-            message: extractFrappeErrorMessage(error, fallback: l10n.commonError),
+            message: context.userErrorMessage(error, fallback: l10n.commonError),
             onRetry: () {
               if (args.hasWorkOrder) {
                 ref.invalidate(sopForWorkOrderProvider(args.workOrder!));

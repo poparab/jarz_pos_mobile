@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
@@ -258,7 +259,7 @@ class _TripGroupCardState extends State<TripGroupCard> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.tripsFailed(e.toString())), backgroundColor: Colors.red),
+          SnackBar(content: Text(context.userErrorMessage(e.toString())), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -294,7 +295,7 @@ class _TripGroupCardState extends State<TripGroupCard> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.tripsFailed(e.toString())), backgroundColor: Colors.red),
+          SnackBar(content: Text(context.userErrorMessage(e.toString())), backgroundColor: Colors.red),
         );
       }
     } finally {

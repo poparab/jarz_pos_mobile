@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../models/purchase_request_models.dart';
 import '../state/purchase_request_notifier.dart';
@@ -109,7 +110,7 @@ class _PurchaseRequestsScreenState
       final error = next.error;
       if (error != null && error != previous?.error) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.commonErrorWithDetails(error))),
+          SnackBar(content: Text(context.userErrorMessage(error))),
         );
         ref.read(purchaseRequestNotifierProvider.notifier).clearError();
       }

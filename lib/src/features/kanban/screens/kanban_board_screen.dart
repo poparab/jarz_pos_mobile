@@ -23,11 +23,11 @@ import '../../printing/printer_status.dart';
 import '../../trips/providers/trip_provider.dart';
 import '../../trips/widgets/create_trip_dialog.dart';
 import '../../trips/widgets/trip_group_card.dart';
-import '../../../core/network/frappe_error_message.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/branch_filter_dialog.dart';
 import '../../../core/widgets/ofd_shortage_dialog.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/utils/territory_label.dart';
 
@@ -53,7 +53,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       if (blockingMessage != null && blockingMessage.isNotEmpty) {
         if (!mounted) return false;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(blockingMessage)),
+          SnackBar(content: Text(context.userErrorMessage(blockingMessage))),
         );
         return false;
       }
@@ -67,7 +67,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     } catch (e) {
       if (!mounted) return false;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.commonErrorWithDetails(e.toString()))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
       return false;
     }
@@ -86,7 +86,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     if (blockingMessage != null && blockingMessage.isNotEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(blockingMessage)),
+          SnackBar(content: Text(context.userErrorMessage(blockingMessage))),
         );
       }
       return null;
@@ -562,7 +562,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                         case PrinterUnifiedStatus.connecting:
                           return context.l10n.kanbanPrinterConnecting;
                         case PrinterUnifiedStatus.error:
-                          return printer.lastErrorMessage ?? context.l10n.commonError;
+                          return context.userErrorMessage(printer.lastErrorMessage);
                         case PrinterUnifiedStatus.disconnected:
                           return context.l10n.kanbanPrinterNotConnected;
                       }
@@ -1214,7 +1214,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           }
         } catch (e) {
           messenger.showSnackBar(
-            SnackBar(content: Text(l10n.commonErrorWithDetails(e.toString()))),
+            SnackBar(content: Text(context.userErrorMessage(e))),
           );
           return;
         }
@@ -1243,7 +1243,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         courierShortageReason = await _previewInvoiceOfdReason(invoiceId);
       } catch (e) {
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.commonErrorWithDetails(e.toString()))),
+          SnackBar(content: Text(context.userErrorMessage(e))),
         );
         return;
       }
@@ -1317,8 +1317,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           }
         } catch (e) {
           final errorMessage =
-              extractFrappeErrorMessage(e, fallback: l10n.commonError);
-          messenger.showSnackBar(SnackBar(content: Text(errorMessage)));
+              context.userErrorMessage(e, fallback: l10n.commonError);
+          messenger.showSnackBar(SnackBar(content: Text(context.userErrorMessage(errorMessage))));
           // Revert the optimistic move on failure.
           final fromCol = ref.read(kanbanProvider).columns.firstWhere(
             (c) => c.id == fromColumnId,
@@ -1435,12 +1435,12 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           } catch (_) {}
           return; // handled fully; backend already moved to OFD
         } catch (e) {
-          final errorMessage = extractFrappeErrorMessage(
+          final errorMessage = context.userErrorMessage(
             e,
             fallback: l10n.kanbanSettleLaterFailed,
           );
           messenger.showSnackBar(
-            SnackBar(content: Text(l10n.kanbanSettleLaterError(errorMessage))),
+            SnackBar(content: Text(context.userErrorMessage(errorMessage))),
           );
           // revert
           final fromCol = ref.read(kanbanProvider).columns.firstWhere(
@@ -1543,12 +1543,12 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanSettlementConfirmed)));
           return; // handled: server already performed OFD
         } catch (e) {
-          final errorMessage = extractFrappeErrorMessage(
+          final errorMessage = context.userErrorMessage(
             e,
             fallback: l10n.kanbanSettlementFailed,
           );
           messenger.showSnackBar(
-            SnackBar(content: Text(l10n.kanbanSettlementError(errorMessage))),
+            SnackBar(content: Text(context.userErrorMessage(errorMessage))),
           );
           // revert
           final fromCol = ref.read(kanbanProvider).columns.firstWhere(
@@ -1585,12 +1585,12 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             await _showSettlementResultDialog(preview, inv);
           } catch (e) {
             if (!mounted) return;
-            final errorMessage = extractFrappeErrorMessage(
+            final errorMessage = context.userErrorMessage(
               e,
               fallback: l10n.kanbanSettlementFailed,
             );
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.kanbanPreviewFailed(errorMessage))),
+              SnackBar(content: Text(context.userErrorMessage(errorMessage))),
             );
           }
         }
@@ -2123,12 +2123,12 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                             }
                                           } catch (e) {
                                             if (mounted) {
-                                              final errorMessage = extractFrappeErrorMessage(
+                                              final errorMessage = context.userErrorMessage(
                                                 e,
                                                 fallback: context.l10n.kanbanCreateFailedFallback,
                                               );
                                               ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text(context.l10n.kanbanCreateFailed(errorMessage))),
+                                                SnackBar(content: Text(context.userErrorMessage(errorMessage))),
                                               );
                                             }
                                           } finally {

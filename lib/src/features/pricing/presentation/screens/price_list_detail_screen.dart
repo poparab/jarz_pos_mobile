@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/network/user_service.dart';
 import '../../data/models/pricing_models.dart';
@@ -47,9 +48,9 @@ class PriceListDetailScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                    context.l10n
-                        .pricingDetailLoadFailed(priceList, '$error'),
-                    textAlign: TextAlign.center),
+                  context.userErrorMessage(error),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: notifier.refresh,
@@ -375,7 +376,7 @@ class PriceListDetailScreen extends ConsumerWidget {
       messenger.showSnackBar(SnackBar(content: Text(success)));
     } catch (e) {
       messenger.showSnackBar(
-          SnackBar(content: Text(l10n.pricingFailed('$e'))));
+          SnackBar(content: Text(userErrorMessageFor(l10n, e))));
     }
   }
 }

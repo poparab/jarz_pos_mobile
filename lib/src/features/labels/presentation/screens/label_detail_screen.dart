@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -124,7 +125,7 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(context.l10n.labelDetailLoadFailed(_error ?? ''),
+              Text(context.userErrorMessage(_error ?? ''),
                   textAlign: TextAlign.center),
               const SizedBox(height: 12),
               FilledButton(

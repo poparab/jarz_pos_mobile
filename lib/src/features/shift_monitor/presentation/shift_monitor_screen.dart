@@ -1,9 +1,9 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/localized_formatters.dart';
-import '../../../core/network/frappe_error_message.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
@@ -864,7 +864,7 @@ class _ErrorState extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final message = extractFrappeErrorMessage(
+    final message = context.userErrorMessage(
       error,
       fallback: l10n.commonError,
     );

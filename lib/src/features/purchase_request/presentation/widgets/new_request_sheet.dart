@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -127,7 +128,7 @@ class _NewRequestSheetState extends ConsumerState<NewRequestSheet> {
     if (created == null) {
       final error = ref.read(purchaseRequestNotifierProvider).error ?? '';
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.requestsSubmitFailed(error))),
+        SnackBar(content: Text(context.userErrorMessage(error))),
       );
       return;
     }

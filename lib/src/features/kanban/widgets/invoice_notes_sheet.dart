@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -117,7 +118,7 @@ class _InvoiceNotesSheetState extends ConsumerState<InvoiceNotesSheet> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.invoiceNoteAddFailed(e.toString()))),
+        SnackBar(content: Text(context.userErrorMessage(e.toString()))),
       );
     } finally {
       if (mounted) {
@@ -139,7 +140,7 @@ class _InvoiceNotesSheetState extends ConsumerState<InvoiceNotesSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              context.l10n.invoiceNotesLoadFailed(_error!),
+              context.userErrorMessage(_error!),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),

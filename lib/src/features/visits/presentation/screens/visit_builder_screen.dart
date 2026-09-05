@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -98,8 +99,7 @@ class VisitBuilderScreen extends ConsumerWidget {
           if (state.error != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                state.error!,
+              child: Text(context.userErrorMessage(state.error!),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../journey/presentation/widgets/journey_notes_section.dart';
 import '../../../labels/models/label_models.dart' show LabelStatus;
@@ -82,8 +83,7 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                        context.l10n
-                            .b2bAccountLoadFailed('${snapshot.error}'),
+                        context.userErrorMessage(snapshot.error),
                         textAlign: TextAlign.center),
                     const SizedBox(height: 12),
                     FilledButton(
@@ -198,7 +198,7 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.b2bFailed('$e'))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -227,7 +227,7 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.b2bLogActivityFailed('$e'))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -257,7 +257,7 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.b2bFailed('$e'))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
     } finally {
       if (mounted) setState(() => _busy = false);

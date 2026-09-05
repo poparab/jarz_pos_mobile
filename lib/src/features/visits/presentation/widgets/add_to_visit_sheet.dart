@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../journey/presentation/journey_format.dart';
 import '../../../leads/presentation/leads_theme.dart';
 import '../../data/models/visit_plan.dart';
@@ -138,16 +139,9 @@ class _AddToVisitSheetState extends ConsumerState<_AddToVisitSheet> {
         _busy = false;
         // Inline, never a SnackBar: this sheet covers the bottom of the
         // screen, which is exactly where a SnackBar renders.
-        _error = _message(error);
+        _error = context.userErrorMessage(error);
       });
     }
-  }
-
-  String _message(Object error) {
-    final text = error.toString();
-    final match = RegExp(r'"message":\s*"([^"]+)"').firstMatch(text);
-    if (match != null) return match.group(1)!.replaceAll(r'\n', ' ');
-    return text;
   }
 
   @override
@@ -439,7 +433,7 @@ class _Body extends ConsumerWidget {
         if (error != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Text(error!,
+            child: Text(context.userErrorMessage(error!),
                 style: TextStyle(color: theme.colorScheme.error)),
           ),
       ],

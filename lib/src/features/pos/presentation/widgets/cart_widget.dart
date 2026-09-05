@@ -1,4 +1,6 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
+import 'package:jarz_pos/src/core/debug/app_error_reporter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
@@ -1612,6 +1614,22 @@ class CartWidget extends ConsumerWidget {
   }
 
   Future<void> _handleCheckout(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    try {
+      await _checkoutWithPreflight(context, ref);
+    } catch (error, stackTrace) {
+      AppErrorReporter.instance.capture(
+        source: 'CheckoutPreflight', error: error, stackTrace: stackTrace,
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(userErrorMessageFor(l10n, error)),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ));
+    }
+  }
+
+  Future<void> _checkoutWithPreflight(BuildContext context, WidgetRef ref) async {
     final state = ref.read(posNotifierProvider);
     final l10n = context.l10n;
     // Checkout spans several dialogs and a network round-trip. This widget can
@@ -1696,7 +1714,7 @@ class CartWidget extends ConsumerWidget {
       final failure = updatedState.error ?? l10n.commonError;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(l10n.posCheckoutFailed(failure)),
+          content: Text(context.userErrorMessage(failure)),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );

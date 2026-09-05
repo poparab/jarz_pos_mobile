@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../models/trip_models.dart';
 import '../providers/trip_provider.dart';
@@ -66,7 +67,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
       body: state.isLoading && state.trips.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : state.error != null && state.trips.isEmpty
-              ? Center(child: Text(l10n.commonErrorWithDetails(state.error.toString())))
+              ? Center(child: Text(context.userErrorMessage(state.error)))
               : TabBarView(
                   controller: _tabController,
                   children: [

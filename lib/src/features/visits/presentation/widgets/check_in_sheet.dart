@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -197,8 +198,7 @@ class _CheckInSheetState extends ConsumerState<_CheckInSheet> {
             ],
             if (_error != null) ...[
               const SizedBox(height: 12),
-              Text(
-                _error!,
+              Text(context.userErrorMessage(_error!),
                 style: TextStyle(color: theme.colorScheme.error),
               ),
             ],

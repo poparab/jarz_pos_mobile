@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
-import '../../../../core/network/frappe_error_message.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/widgets/reason_prompt_dialog.dart';
 import '../../data/daily_plan_service.dart';
 import '../../data/models/daily_plan.dart';
@@ -49,7 +49,7 @@ class _DailyPlanTabState extends ConsumerState<DailyPlanTab> {
     return template.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => _ErrorState(
-        message: '$error',
+        message: context.userErrorMessage(error),
         onRetry: () => ref.invalidate(dailyPlanTemplateProvider),
       ),
       data: (data) {
@@ -142,7 +142,7 @@ class _PlanBody extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: Text(
-                    draft.error!,
+                    context.userErrorMessage(draft.error),
                     style: TextStyle(color: Theme.of(context).colorScheme.error),
                   ),
                 ),
@@ -197,7 +197,7 @@ class _PlanBody extends ConsumerWidget {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            extractFrappeErrorMessage(error, fallback: l10n.commonError),
+            context.userErrorMessage(error, fallback: l10n.commonError),
           ),
         ),
       );
@@ -214,7 +214,9 @@ class _PlanBody extends ConsumerWidget {
         SnackBar(content: Text(l10n.dailyPlanSaved(plan.name))),
       );
     } catch (error) {
-      messenger.showSnackBar(SnackBar(content: Text('$error')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(context.userErrorMessage(error))),
+      );
     }
   }
 }

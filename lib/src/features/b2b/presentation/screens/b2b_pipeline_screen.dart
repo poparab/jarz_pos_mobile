@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/network/user_service.dart';
@@ -193,7 +194,7 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
       );
     } catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.b2bAdvanceStageFailed('$e'))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
     }
   }
@@ -368,7 +369,7 @@ class _ErrorView extends StatelessWidget {
             const Icon(Icons.error_outline, size: 48, color: Colors.red),
             const SizedBox(height: 12),
             Text(
-              context.l10n.b2bPipelineLoadFailed('$error'),
+              context.userErrorMessage(error),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),

@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -475,7 +476,7 @@ class _FlavourStep extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.labelWizardFlavoursLoadFailed(error!)),
+          Text(context.userErrorMessage(error!)),
           const SizedBox(height: 8),
           OutlinedButton(onPressed: onRetry, child: Text(l10n.commonRetry)),
         ],

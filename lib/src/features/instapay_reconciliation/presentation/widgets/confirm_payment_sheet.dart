@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../kanban/providers/kanban_provider.dart';
 import '../../data/instapay_reconciliation_service.dart';
@@ -234,9 +234,9 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
         _isPreparingReceipt = false;
         _isUploadingReceipt = false;
       });
-      final friendly = extractFrappeErrorMessage(error, fallback: l10n.commonError);
+      final friendly = context.userErrorMessage(error, fallback: l10n.commonError);
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.receiptUploadError(friendly))),
+        SnackBar(content: Text(context.userErrorMessage(friendly))),
       );
     }
   }
@@ -286,12 +286,12 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _isRemovingReceipt = false);
-      final friendly = extractFrappeErrorMessage(
+      final friendly = context.userErrorMessage(
         error,
         fallback: l10n.receiptRemoveFailed,
       );
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.receiptRemoveError(friendly))),
+        SnackBar(content: Text(context.userErrorMessage(friendly))),
       );
     }
   }
@@ -342,7 +342,7 @@ class _ConfirmPaymentSheetState extends ConsumerState<ConfirmPaymentSheet> {
       setState(() => _isConfirming = false);
       final failedMessage = context.l10n.instapayConfirmFailed;
       final friendly =
-          extractFrappeErrorMessage(error, fallback: failedMessage);
+          context.userErrorMessage(error, fallback: failedMessage);
       messenger.showSnackBar(SnackBar(content: Text(friendly)));
     }
   }

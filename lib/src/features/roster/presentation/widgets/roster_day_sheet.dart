@@ -1,9 +1,9 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../data/roster_repository.dart';
 import '../../models/roster_models.dart';
 import '../../state/roster_providers.dart';
@@ -136,7 +136,7 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
       setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(extractFrappeErrorMessage(error)),
+          content: Text(context.userErrorMessage(error)),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );

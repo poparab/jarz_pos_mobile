@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../models/purchase_request_models.dart';
 import '../../state/purchase_request_notifier.dart';
@@ -148,7 +149,7 @@ class _BuyFromRequestsSheetState extends ConsumerState<BuyFromRequestsSheet> {
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Text(
-                        l10n.commonErrorWithDetails(error.toString()),
+                        context.userErrorMessage(error),
                         textAlign: TextAlign.center,
                       ),
                     ),

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/widgets/app_drawer.dart';
 
@@ -44,7 +45,7 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           _messengerKey.currentState?.showSnackBar(
-            SnackBar(content: Text(error)),
+            SnackBar(content: Text(context.userErrorMessage(error))),
           );
           ref.read(labelsNotifierProvider.notifier).clearError();
         });

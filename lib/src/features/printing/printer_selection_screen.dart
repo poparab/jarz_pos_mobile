@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -465,8 +466,7 @@ class _PrinterSelectionScreenState
                   const Icon(Icons.error_outline, color: Colors.red),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      printer.lastErrorMessage!,
+                    child: Text(context.userErrorMessage(printer.lastErrorMessage!),
                       style: const TextStyle(color: Colors.red),
                     ),
                   ),
@@ -547,7 +547,7 @@ class _PrinterSelectionScreenState
                           content: Text(
                             res == PrintResult.success
                                 ? l10n.printerTestSent
-                                : l10n.printerTestFailed(res.toString()),
+                                : context.userErrorMessage(res.toString()),
                           ),
                         ),
                       );
@@ -696,9 +696,7 @@ class _PrinterSelectionScreenState
                                         content: Text(
                                           res == PrintResult.success
                                               ? l10n.printerTestSent
-                                              : l10n.printerTestFailed(
-                                                  res.toString(),
-                                                ),
+                                              : context.userErrorMessage(res.toString()),
                                         ),
                                       ),
                                     );

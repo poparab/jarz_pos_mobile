@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/env/app_build_identity.dart';
+import '../../../core/debug/app_error_reporter.dart';
 import '../../../core/network/app_upgrade_signal.dart';
 import '../data/app_update_service.dart';
 
@@ -75,6 +76,18 @@ class AppUpdateNotifier extends AsyncNotifier<AppUpdateRequirement> {
       AppUpgradeSignal.instance.clear();
       final result = await _resolve();
       state = AsyncData(result);
+    } catch (error, stackTrace) {
+      // This method is called by lifecycle and Timer callbacks as well as by
+      // the update screen. Keep a failed background check from becoming an
+      // unhandled future while retaining the full diagnostic in the reporter.
+      // The last successful answer remains in state, so a transient outage
+      // cannot make a previously enforced update gate disappear.
+      AppErrorReporter.instance.capture(
+        source: 'AppUpdate.recheck',
+        error: error,
+        stackTrace: stackTrace,
+        summary: 'App update check failed; retaining the last known requirement',
+      );
     } finally {
       _inFlight = false;
     }

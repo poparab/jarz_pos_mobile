@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/connectivity/connectivity_service.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/utils/order_display_id.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/websocket/websocket_service.dart';
@@ -692,7 +693,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
           Text(l10n.commonError, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
           Text(
-            error,
+            context.userErrorMessage(error),
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
@@ -1068,7 +1069,7 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                     case PrinterUnifiedStatus.connecting:
                       return l10n.printerStatusConnecting;
                     case PrinterUnifiedStatus.error:
-                      return printer.lastErrorMessage ?? l10n.printerStatusError;
+                      return ctx.userErrorMessage(printer.lastErrorMessage, fallback: l10n.printerStatusError);
                     case PrinterUnifiedStatus.disconnected:
                       return l10n.printerStatusDisconnected;
                   }

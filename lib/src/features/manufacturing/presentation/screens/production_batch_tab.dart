@@ -1,8 +1,8 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/ui/loading_overlay.dart';
 import '../../../../core/utils/responsive_utils.dart';
@@ -222,7 +222,7 @@ class _BatchFooter extends ConsumerWidget {
       } catch (error) {
         issues.add(
           '${line.itemCode}: '
-          '${extractFrappeErrorMessage(error, fallback: l10n.commonError)}',
+          '${context.userErrorMessage(error, fallback: l10n.commonError)}',
         );
       }
     }
@@ -298,9 +298,7 @@ class _BatchFooter extends ConsumerWidget {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            l10n.manufacturingSubmitFailed(
-              extractFrappeErrorMessage(error, fallback: l10n.commonError),
-            ),
+            context.userErrorMessage(error, fallback: l10n.commonError),
           ),
         ),
       );

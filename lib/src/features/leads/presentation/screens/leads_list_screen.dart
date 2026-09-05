@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../data/models/lead.dart';
 import '../../domain/lead_clustering.dart';
@@ -99,7 +100,7 @@ class _LeadsListScreenState extends ConsumerState<LeadsListScreen> {
       body: leadsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => _ErrorState(
-          message: '$err',
+          message: context.userErrorMessage(err),
           onRetry: () => ref.read(leadsProvider.notifier).refresh(),
         ),
         data: (_) => Column(

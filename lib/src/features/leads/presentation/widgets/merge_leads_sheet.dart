@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/leads_repository.dart';
 import '../../data/models/lead.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../leads_theme.dart';
 
 /// Picks duplicates to fold into a surviving lead.
@@ -83,7 +84,7 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = '$e';
+        _error = context.userErrorMessage(e);
         _loading = false;
       });
     }
@@ -133,7 +134,7 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
       setState(() => _merging = false);
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(
-            content: Text(context.l10n.leadsMergeFailed('$e'))));
+            content: Text(context.userErrorMessage(e))));
     }
   }
 
@@ -248,7 +249,7 @@ class _MergeLeadsSheetState extends ConsumerState<MergeLeadsSheet> {
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: Column(
           children: [
-            Text(_error!, textAlign: TextAlign.center, style: LeadsTheme.bodyMuted),
+            Text(context.userErrorMessage(_error!), textAlign: TextAlign.center, style: LeadsTheme.bodyMuted),
             const SizedBox(height: 8),
             FilledButton(
               onPressed: () => _load(query: _searchController.text),

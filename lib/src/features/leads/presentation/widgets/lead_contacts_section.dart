@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../data/device_contact_picker.dart';
 import '../../data/models/lead.dart';
 import '../leads_theme.dart';
@@ -53,7 +54,7 @@ class _LeadContactsSectionState extends ConsumerState<LeadContactsSection> {
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.leadDetailFailed('$e'))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -491,8 +492,9 @@ class _LeadContactEditorSheetState extends State<LeadContactEditorSheet> {
                 ),
                         if (_error != null) ...[
                           const SizedBox(height: 4),
-                          Text(
-                            _error!,
+                          // _error only ever holds this section's own localised
+                          // validation text (see _submit); it is already user copy.
+                          Text(_error!,
                             style: LeadsTheme.body
                                 .copyWith(color: LeadsTheme.rejected),
                           ),

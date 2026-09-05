@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../data/materials_repository.dart';
 import '../../data/models/sales_material.dart';
@@ -183,7 +184,7 @@ class _SendMaterialsSheetState extends ConsumerState<_SendMaterialsSheet> {
       if (!mounted) return;
       setState(() => _sending = false);
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.materialsSendFailed('$error'))),
+        SnackBar(content: Text(context.userErrorMessage(error))),
       );
     }
   }
@@ -226,7 +227,7 @@ class _SendMaterialsSheetState extends ConsumerState<_SendMaterialsSheet> {
             child: Center(child: CircularProgressIndicator()),
           ),
           error: (error, _) => _ErrorState(
-            message: l10n.materialsLoadFailed('$error'),
+            message: context.userErrorMessage(error),
             onRetry: () => ref.invalidate(materialLibraryProvider),
           ),
           data: (value) {

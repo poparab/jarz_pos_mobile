@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../utils/responsive_utils.dart';
+import '../debug/app_error_reporter.dart';
 
 /// When `true`, the phone portrait-only lock is lifted so landscape is allowed.
 /// Set to `true` only by [PhoneLandscapeScope] while the Reports route is active.
@@ -100,7 +101,20 @@ class _GlobalOrientationEnforcerState
     final orientations = _targetOrientations();
     if (listEquals(_lastApplied, orientations)) return;
     _lastApplied = orientations;
-    unawaited(SystemChrome.setPreferredOrientations(orientations));
+    unawaited(
+      SystemChrome.setPreferredOrientations(orientations).catchError((
+        Object error,
+        StackTrace stack,
+      ) {
+        if (mounted && listEquals(_lastApplied, orientations))
+          _lastApplied = null;
+        AppErrorReporter.instance.capture(
+          source: 'OrientationPolicy',
+          error: error,
+          stackTrace: stack,
+        );
+      }),
+    );
   }
 
   List<DeviceOrientation> _targetOrientations() {
@@ -114,7 +128,10 @@ class _GlobalOrientationEnforcerState
   @override
   Widget build(BuildContext context) {
     // Re-apply whenever the landscape-exception provider changes.
-    ref.listen<bool>(allowPhoneLandscapeProvider, (previous, next) => _scheduleApply());
+    ref.listen<bool>(
+      allowPhoneLandscapeProvider,
+      (previous, next) => _scheduleApply(),
+    );
     return widget.child;
   }
 }
@@ -136,19 +153,30 @@ class PhoneLandscapeScope extends ConsumerStatefulWidget {
 }
 
 class _PhoneLandscapeScopeState extends ConsumerState<PhoneLandscapeScope> {
+  late final StateController<bool> _landscapeController;
+  static final _scopeCounts = Expando<int>();
   @override
   void initState() {
     super.initState();
+    _landscapeController = ref.read(allowPhoneLandscapeProvider.notifier);
+    _scopeCounts[_landscapeController] =
+        (_scopeCounts[_landscapeController] ?? 0) + 1;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ref.read(allowPhoneLandscapeProvider.notifier).state = true;
+        _landscapeController.state = true;
       }
     });
   }
 
   @override
   void dispose() {
-    ref.read(allowPhoneLandscapeProvider.notifier).state = false;
+    final controller = _landscapeController;
+    _scopeCounts[controller] = (_scopeCounts[controller] ?? 1) - 1;
+    // Provider listeners may rebuild widgets, so notify after tree disposal.
+    scheduleMicrotask(() {
+      if (controller.mounted)
+        controller.state = (_scopeCounts[controller] ?? 0) > 0;
+    });
     super.dispose();
   }
 

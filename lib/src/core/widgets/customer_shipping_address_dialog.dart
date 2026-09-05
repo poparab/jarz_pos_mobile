@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/geo/presentation/widgets/location_link_field.dart';
@@ -299,7 +300,7 @@ class _CustomerShippingAddressDialogState
         SnackBar(content: Text(l10n.customerShippingAddressUpdateSuccess)),
       );
     } catch (e) {
-      _showError('${context.l10n.customerShippingAddressUpdateFailed}: $e');
+      _showError(context.userErrorMessage(e, fallback: context.l10n.customerShippingAddressUpdateFailed));
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
@@ -354,7 +355,7 @@ class _CustomerShippingAddressDialogState
         SnackBar(content: Text(l10n.customerShippingAddressDeleteSuccess)),
       );
     } catch (e) {
-      _showError('${context.l10n.customerShippingAddressDeleteFailed}: $e');
+      _showError(context.userErrorMessage(e, fallback: context.l10n.customerShippingAddressDeleteFailed));
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }

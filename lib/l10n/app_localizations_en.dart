@@ -553,6 +553,83 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get userErrorOffline =>
+      'The server could not be reached. Check your connection and the operation status before trying again.';
+
+  @override
+  String get userErrorTimeout =>
+      'The request took too long. Check the operation status before trying again.';
+
+  @override
+  String get userErrorCertificate =>
+      'The secure connection to the server could not be established.';
+
+  @override
+  String get userErrorCancelled => 'The request was cancelled.';
+
+  @override
+  String get userErrorUnauthorized =>
+      'Your session has expired. Sign in again.';
+
+  @override
+  String get userErrorForbidden =>
+      'You do not have permission to perform this action.';
+
+  @override
+  String get userErrorNotFound => 'The requested item could not be found.';
+
+  @override
+  String get userErrorConflict =>
+      'This operation conflicts with existing data. Refresh and check its status before continuing.';
+
+  @override
+  String get userErrorRateLimited =>
+      'Too many requests. Wait a moment and try again.';
+
+  @override
+  String get userErrorServer =>
+      'The server encountered a problem. Check the operation status before submitting again.';
+
+  @override
+  String get userErrorUnexpected => 'Something went wrong unexpectedly.';
+
+  @override
+  String get userErrorValidationFallback =>
+      'Check the entered information and try again.';
+
+  @override
+  String get userErrorDraftLimit =>
+      'The draft limit has been reached. Delete an unused draft before creating another.';
+
+  @override
+  String get userErrorReopenOrder =>
+      'The order data is incomplete or outdated. Close the order and reopen it to reload its items.';
+
+  @override
+  String get userErrorShippingAddress =>
+      'The shipping address is no longer available. Select a valid address for this customer.';
+
+  @override
+  String get userErrorInsufficientStock =>
+      'There is not enough stock. Check the available quantity or contact the branch.';
+
+  @override
+  String get userErrorShiftRequired =>
+      'An open shift is required. Check your shift before continuing.';
+
+  @override
+  String get userErrorAlreadyProcessed =>
+      'This operation was already processed. Check the order status before submitting again.';
+
+  @override
+  String get userErrorRequiredFields =>
+      'Complete the required fields before continuing.';
+
+  @override
+  String get userErrorScreenFailed =>
+      'This page could not be displayed. Close it and open it again.';
+
+  @override
   String get commonSubmit => 'Submit';
 
   @override

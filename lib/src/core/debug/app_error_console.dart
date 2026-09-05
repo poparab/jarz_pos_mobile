@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../network/frappe_error_message.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 import '../router.dart';
 import 'app_error_reporter.dart';
 
@@ -284,40 +284,50 @@ class _DetailBlock extends StatelessWidget {
 }
 
 Widget buildAppErrorWidget(FlutterErrorDetails details) {
-  final message = extractFrappeErrorMessage(
-    details.exception,
-    fallback: details.exceptionAsString(),
-  );
+  return Builder(
+    builder: (context) {
+      final contextLocale = Localizations.maybeLocaleOf(context);
+      final locale =
+          contextLocale ?? WidgetsBinding.instance.platformDispatcher.locale;
+      final supportedLocale = locale.languageCode == 'ar'
+          ? const Locale('ar')
+          : const Locale('en');
+      final localizations = lookupAppLocalizations(supportedLocale);
+      // The reporter keeps the original exception and stack for diagnostics.
+      // The render fallback is deliberately generic: a build error can contain
+      // a full framework trace or a server payload, neither of which belongs
+      // in the operator-facing screen.
+      final message = localizations.userErrorScreenFailed;
 
-  return Material(
-    color: const Color(0xFFFFF7F7),
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: DefaultTextStyle(
-        style: const TextStyle(color: Color(0xFF7A1C1C)),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            const Icon(Icons.error_outline, color: Color(0xFFB3261E), size: 40),
-            const SizedBox(height: 16),
-            const Text(
-              'A screen failed to render.',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+      return Directionality(
+        textDirection: supportedLocale.languageCode == 'ar'
+            ? TextDirection.rtl
+            : TextDirection.ltr,
+        child: Material(
+          color: const Color(0xFFFFF7F7),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: DefaultTextStyle(
+              style: const TextStyle(color: Color(0xFF7A1C1C)),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Icon(
+                      Icons.error_outline,
+                      color: Color(0xFFB3261E),
+                      size: 40,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(message),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 10),
-            Text(message),
-            if (details.context != null) ...<Widget>[
-              const SizedBox(height: 10),
-              Text(details.context!.toDescription()),
-            ],
-            const SizedBox(height: 14),
-            const Text(
-              'Open the diagnostics button to inspect and copy the full error details.',
-            ),
-          ],
+          ),
         ),
-      ),
-    ),
+      );
+    },
   );
 }

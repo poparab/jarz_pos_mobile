@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../features/pos/order_alert/web_push_registration_result.dart';
 import 'localization_extensions.dart';
+import 'user_error_message.dart';
 
 String localizedStatusLabel(BuildContext context, String? rawStatus) {
   final status = rawStatus?.trim() ?? '';
@@ -218,9 +219,8 @@ String localizedJourneyOutcome(BuildContext context, String? rawOutcome) {
 ///
 /// The service layer runs without a BuildContext (conditional web imports,
 /// static helpers), so its `message` stays English for the logs and the
-/// status enum is what the screen translates. Only `failed` falls back to the
-/// raw message, because that one carries a sanitized error detail worth
-/// showing verbatim.
+/// status enum is what the screen translates. Failures use the shared safe
+/// presenter so technical details remain out of the operator-facing message.
 String localizedWebPushMessage(
   BuildContext context,
   WebPushRegistrationStatus status,
@@ -244,7 +244,7 @@ String localizedWebPushMessage(
     case WebPushRegistrationStatus.registered:
       return context.l10n.webPushEnabled;
     case WebPushRegistrationStatus.failed:
-      return fallback;
+      return context.userErrorMessage(fallback, fallback: context.l10n.webPushEnableFailed);
   }
 }
 

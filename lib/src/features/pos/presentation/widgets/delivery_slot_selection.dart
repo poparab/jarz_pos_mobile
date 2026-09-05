@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -164,8 +165,7 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              _error!,
+            Text(context.userErrorMessage(_error!),
               style: TextStyle(fontSize: 12, color: Colors.grey[500]),
               textAlign: TextAlign.center,
             ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../b2b/data/b2b_repository.dart' show b2bRepositoryProvider;
 import '../../../b2b/presentation/widgets/b2b_stage_chip.dart'
@@ -74,7 +75,7 @@ class LeadDetailScreen extends ConsumerWidget {
                 const Icon(Icons.cloud_off, size: 48, color: LeadsTheme.muted),
                 const SizedBox(height: 12),
                 Text(
-                  '$err',
+                  context.userErrorMessage(err),
                   textAlign: TextAlign.center,
                   style: LeadsTheme.bodyMuted,
                 ),
@@ -429,7 +430,7 @@ class _EditableSectionState extends ConsumerState<_EditableSection> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.leadDetailFailed('$e'))),
+          SnackBar(content: Text(context.userErrorMessage(e))),
         );
       }
     } finally {
@@ -562,7 +563,7 @@ class _FitScoreSectionState extends ConsumerState<_FitScoreSection> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.leadDetailFailed('$e'))),
+          SnackBar(content: Text(context.userErrorMessage(e))),
         );
       }
     } finally {
@@ -694,7 +695,7 @@ class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.leadDetailFailed('$e'))),
+          SnackBar(content: Text(context.userErrorMessage(e))),
         );
       }
     } finally {
@@ -929,7 +930,7 @@ class _SuitabilitySectionState extends ConsumerState<_SuitabilitySection> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.leadDetailFailed('$e'))),
+          SnackBar(content: Text(context.userErrorMessage(e))),
         );
       }
     } finally {
@@ -1309,7 +1310,7 @@ class _AddressEditorState extends ConsumerState<_AddressEditor> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.leadDetailFailed('$e'))),
+          SnackBar(content: Text(context.userErrorMessage(e))),
         );
       }
     } finally {

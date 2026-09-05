@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../journey/presentation/journey_format.dart';
 import '../../../leads/presentation/leads_theme.dart';
 import '../../../leads/state/my_location_notifier.dart';
@@ -70,7 +71,10 @@ class VisitPlanScreen extends ConsumerWidget {
               child: state.error != null
                   ? Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Text(state.error!, textAlign: TextAlign.center),
+                      child: Text(
+                        context.userErrorMessage(state.error),
+                        textAlign: TextAlign.center,
+                      ),
                     )
                   : const CircularProgressIndicator(),
             )
@@ -166,8 +170,7 @@ class _PlanBody extends ConsumerWidget {
             width: double.infinity,
             color: Theme.of(context).colorScheme.errorContainer,
             padding: const EdgeInsets.all(12),
-            child: Text(
-              error!,
+            child: Text(context.userErrorMessage(error!),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onErrorContainer,
               ),

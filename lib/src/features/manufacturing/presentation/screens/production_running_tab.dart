@@ -1,10 +1,10 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/ui/loading_overlay.dart';
 import '../../../../core/utils/responsive_utils.dart';
@@ -34,7 +34,7 @@ class ProductionRunningTab extends ConsumerWidget {
     return batchesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => _ErrorRetry(
-        message: extractFrappeErrorMessage(error, fallback: l10n.commonError),
+        message: context.userErrorMessage(error, fallback: l10n.commonError),
         onRetry: () => ref.invalidate(runningBatchesProvider),
       ),
       data: (batches) {
@@ -235,7 +235,7 @@ class ProductionRunningTab extends ConsumerWidget {
         );
       case PrintResult.failed:
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.invoicePrintFailed('$result'))),
+          SnackBar(content: Text(context.userErrorMessage(result, fallback: l10n.printerStatusError))),
         );
     }
   }
@@ -275,7 +275,7 @@ class ProductionRunningTab extends ConsumerWidget {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            extractFrappeErrorMessage(error, fallback: l10n.commonError),
+            context.userErrorMessage(error, fallback: l10n.commonError),
           ),
         ),
       );
@@ -304,7 +304,7 @@ class ProductionRunningTab extends ConsumerWidget {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            extractFrappeErrorMessage(error, fallback: l10n.commonError),
+            context.userErrorMessage(error, fallback: l10n.commonError),
           ),
         ),
       );

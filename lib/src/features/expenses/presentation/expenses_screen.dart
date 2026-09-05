@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/reason_prompt_dialog.dart';
 import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/user_error_message.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/network/user_service.dart';
 import '../models/employee_advance_models.dart';
@@ -59,7 +60,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen>
             final messenger = _messengerKey.currentState;
             if (messenger == null) return;
             messenger.showSnackBar(
-              SnackBar(content: Text(error)),
+              SnackBar(content: Text(context.userErrorMessage(error))),
             );
             ref.read(expensesNotifierProvider.notifier).clearError();
           });
@@ -78,7 +79,9 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen>
             if (!mounted) return;
             final messenger = _messengerKey.currentState;
             if (messenger == null) return;
-            messenger.showSnackBar(SnackBar(content: Text(error)));
+            messenger.showSnackBar(
+              SnackBar(content: Text(context.userErrorMessage(error))),
+            );
             ref.read(employeeAdvancesNotifierProvider.notifier).clearError();
           });
         }

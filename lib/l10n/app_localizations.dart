@@ -1082,6 +1082,126 @@ abstract class AppLocalizations {
   /// **'Error: {details}'**
   String commonErrorWithDetails(Object details);
 
+  /// No description provided for @userErrorOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'The server could not be reached. Check your connection and the operation status before trying again.'**
+  String get userErrorOffline;
+
+  /// No description provided for @userErrorTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The request took too long. Check the operation status before trying again.'**
+  String get userErrorTimeout;
+
+  /// No description provided for @userErrorCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'The secure connection to the server could not be established.'**
+  String get userErrorCertificate;
+
+  /// No description provided for @userErrorCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'The request was cancelled.'**
+  String get userErrorCancelled;
+
+  /// No description provided for @userErrorUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Sign in again.'**
+  String get userErrorUnauthorized;
+
+  /// No description provided for @userErrorForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have permission to perform this action.'**
+  String get userErrorForbidden;
+
+  /// No description provided for @userErrorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The requested item could not be found.'**
+  String get userErrorNotFound;
+
+  /// No description provided for @userErrorConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'This operation conflicts with existing data. Refresh and check its status before continuing.'**
+  String get userErrorConflict;
+
+  /// No description provided for @userErrorRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests. Wait a moment and try again.'**
+  String get userErrorRateLimited;
+
+  /// No description provided for @userErrorServer.
+  ///
+  /// In en, this message translates to:
+  /// **'The server encountered a problem. Check the operation status before submitting again.'**
+  String get userErrorServer;
+
+  /// No description provided for @userErrorUnexpected.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong unexpectedly.'**
+  String get userErrorUnexpected;
+
+  /// No description provided for @userErrorValidationFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the entered information and try again.'**
+  String get userErrorValidationFallback;
+
+  /// No description provided for @userErrorDraftLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'The draft limit has been reached. Delete an unused draft before creating another.'**
+  String get userErrorDraftLimit;
+
+  /// No description provided for @userErrorReopenOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'The order data is incomplete or outdated. Close the order and reopen it to reload its items.'**
+  String get userErrorReopenOrder;
+
+  /// No description provided for @userErrorShippingAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'The shipping address is no longer available. Select a valid address for this customer.'**
+  String get userErrorShippingAddress;
+
+  /// No description provided for @userErrorInsufficientStock.
+  ///
+  /// In en, this message translates to:
+  /// **'There is not enough stock. Check the available quantity or contact the branch.'**
+  String get userErrorInsufficientStock;
+
+  /// No description provided for @userErrorShiftRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'An open shift is required. Check your shift before continuing.'**
+  String get userErrorShiftRequired;
+
+  /// No description provided for @userErrorAlreadyProcessed.
+  ///
+  /// In en, this message translates to:
+  /// **'This operation was already processed. Check the order status before submitting again.'**
+  String get userErrorAlreadyProcessed;
+
+  /// No description provided for @userErrorRequiredFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the required fields before continuing.'**
+  String get userErrorRequiredFields;
+
+  /// No description provided for @userErrorScreenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'This page could not be displayed. Close it and open it again.'**
+  String get userErrorScreenFailed;
+
   /// No description provided for @commonSubmit.
   ///
   /// In en, this message translates to:

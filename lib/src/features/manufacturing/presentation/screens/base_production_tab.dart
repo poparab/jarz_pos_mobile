@@ -1,8 +1,8 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
-import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../data/models/base_item.dart';
 import '../../state/base_production_providers.dart';
@@ -30,7 +30,7 @@ class BaseProductionTab extends ConsumerWidget {
     return pageAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => _ErrorRetry(
-        message: extractFrappeErrorMessage(error, fallback: l10n.commonError),
+        message: context.userErrorMessage(error, fallback: l10n.commonError),
         onRetry: () => ref.invalidate(baseItemsProvider),
       ),
       data: (page) => RefreshIndicator(

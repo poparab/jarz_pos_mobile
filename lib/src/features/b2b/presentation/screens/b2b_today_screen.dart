@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../data/b2b_repository.dart';
@@ -47,7 +48,7 @@ class B2bTodayScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(context.l10n.b2bTodayLoadFailed('$error'),
+                Text(context.userErrorMessage(error),
                     textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 FilledButton(
@@ -135,7 +136,7 @@ class _TodoTileState extends ConsumerState<_TodoTile> {
     } catch (e) {
       if (mounted) setState(() => _busy = false);
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.b2bFollowUpFailed('$e'))),
+        SnackBar(content: Text(context.userErrorMessage(e))),
       );
     }
   }

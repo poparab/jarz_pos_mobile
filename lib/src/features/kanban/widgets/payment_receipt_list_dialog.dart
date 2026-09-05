@@ -1,3 +1,4 @@
+import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -6,7 +7,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
-import '../../../core/network/frappe_error_message.dart';
 import '../../../core/utils/order_display_id.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/reason_prompt_dialog.dart';
@@ -115,12 +115,12 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
     } catch (e) {
       if (!mounted) return;
       final l10n = context.l10n;
-      final errorMessage = extractFrappeErrorMessage(
+      final errorMessage = context.userErrorMessage(
         e,
         fallback: l10n.receiptUploadFailed,
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.receiptUploadError(errorMessage))),
+        SnackBar(content: Text(context.userErrorMessage(errorMessage))),
       );
     }
   }
@@ -169,12 +169,12 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
       }
     } catch (e) {
       if (!mounted) return;
-      final errorMessage = extractFrappeErrorMessage(
+      final errorMessage = context.userErrorMessage(
         e,
         fallback: l10n.receiptRemoveFailed,
       );
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.receiptRemoveError(errorMessage))),
+        SnackBar(content: Text(context.userErrorMessage(errorMessage))),
       );
     }
   }
@@ -246,7 +246,7 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            extractFrappeErrorMessage(e, fallback: l10n.commonError),
+            context.userErrorMessage(e, fallback: l10n.commonError),
           ),
         ),
       );
@@ -280,12 +280,12 @@ class _PaymentReceiptListDialogState extends ConsumerState<PaymentReceiptListDia
     } catch (e) {
       if (!mounted) return;
       final l10n = context.l10n;
-      final errorMessage = extractFrappeErrorMessage(
+      final errorMessage = context.userErrorMessage(
         e,
         fallback: l10n.receiptConfirmFailed,
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.receiptConfirmError(errorMessage))),
+        SnackBar(content: Text(context.userErrorMessage(errorMessage))),
       );
     }
   }

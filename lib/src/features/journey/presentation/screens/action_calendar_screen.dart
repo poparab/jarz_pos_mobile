@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/user_error_message.dart';
 import '../../../b2b/data/b2b_repository.dart';
 import '../../../b2b/state/b2b_today_notifier.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
@@ -616,7 +617,7 @@ class _ActionTileState extends ConsumerState<_ActionTile> {
         ),
       );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.journeyFailed('$e'))));
+      messenger.showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
