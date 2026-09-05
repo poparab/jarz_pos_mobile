@@ -78,6 +78,15 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
   bool _autoBranchesInitialized = false; // ensure we don't override user choice
   Timer? _loadInvoicesDebounce; // debounce rapid loadInvoices calls
   Completer<void>? _pendingLoad; // awaiters of the currently debounced load
+  //: Monotonic id of the most recently *issued* board fetch.
+  //:
+  //: The board is reloaded from ~35 call sites, several of them driven by
+  //: realtime events and screen lifecycle rather than by the user. Those fire
+  //: while a search request is still in flight, and responses come back in
+  //: completion order, not request order — so an unfiltered background refresh
+  //: that started earlier could land last and replace the search results with
+  //: the whole board. Only the newest request may write to state.
+  int _loadInvoicesSeq = 0;
 
   String _formatActionError(
     Object error, {
@@ -743,6 +752,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
   }
 
   Future<void> _doLoadInvoices() async {
+    final seq = ++_loadInvoicesSeq;
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -753,10 +763,16 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         filterMap['branches'] = state.selectedBranches.toList();
       }
       final invoices = await _kanbanService.getKanbanInvoices(filters: filterMap);
+      // A newer load was issued while this one was in flight; its filters are
+      // the ones the user is looking at, so this answer is stale by definition.
+      if (seq != _loadInvoicesSeq) return;
       final sorted = Map<String, List<InvoiceCard>>.from(invoices);
 
       state = state.copyWith(invoices: _sortReceivedColumn(sorted), isLoading: false);
     } catch (e) {
+      // Same rule for failures: a superseded request must not clear the
+      // spinner or post an error banner over the load that replaced it.
+      if (seq != _loadInvoicesSeq) return;
       state = state.copyWith(
         isLoading: false,
         error: _formatActionError(e, action: 'Failed to load invoices'),

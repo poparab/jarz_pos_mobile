@@ -26,6 +26,11 @@ class _FakeKanbanService extends KanbanService {
   String? lastExpectedState;
   bool updateShouldSucceed = true;
   Object? fetchInvoicesError;
+
+  /// Lets a test hold a board fetch open so two loads can be in flight at once,
+  /// and hand back a result set keyed to the request that asked for it.
+  Completer<Map<String, List<InvoiceCard>>>? Function(Map<String, dynamic>? filters)?
+      fetchInvoicesGate;
   final Map<String, List<InvoiceNote>> notesByInvoice = {
     'INV-OLD': [
       InvoiceNote.fromJson({
@@ -53,6 +58,10 @@ class _FakeKanbanService extends KanbanService {
       throw fetchInvoicesError!;
     }
     lastFilters = filters == null ? null : Map<String, dynamic>.from(filters);
+    final gate = fetchInvoicesGate?.call(filters);
+    if (gate != null) {
+      return gate.future;
+    }
     final older = InvoiceCard.fromJson({
       'name': 'INV-OLD',
       'invoice_id_short': 'OLD',
@@ -321,6 +330,23 @@ class _PosNotifierStub extends PosNotifier {
 }
 
 Future<void> _flushMicrotasks() => Future<void>.delayed(Duration.zero);
+
+InvoiceCard _card(String id) => InvoiceCard.fromJson({
+      'name': id,
+      'invoice_id_short': id,
+      'customer_name': 'Whoever',
+      'customer': 'CUST-9',
+      'territory': 'Metro',
+      'status': 'Received',
+      'posting_date': '2024-03-02',
+      'posting_time': '10:00:00',
+      'creation': '2024-03-02 10:00:00',
+      'grand_total': 10,
+      'net_total': 10,
+      'total_taxes_and_charges': 0,
+      'full_address': 'Somewhere',
+      'items': const [],
+    });
 Future<void> _waitForInvoiceReloadDebounce() =>
     Future<void>.delayed(const Duration(milliseconds: 600));
 
@@ -373,6 +399,90 @@ void main() {
       await _waitForInvoiceReloadDebounce();
 
       expect(service.lastFilters?['searchTerm'], 'bob');
+    });
+
+    test('a slower background refresh cannot overwrite newer search results', () async {
+      // The board is reloaded from realtime events and screen lifecycle as well
+      // as by the user. Those responses used to be applied in completion order,
+      // so an unfiltered refresh that started *before* a search but answered
+      // *after* it replaced the search results with the whole board — the board
+      // visibly snapping back moments after the matches appeared.
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      final backgroundGate = Completer<Map<String, List<InvoiceCard>>>();
+      final searchGate = Completer<Map<String, List<InvoiceCard>>>();
+      service.fetchInvoicesGate = (filters) {
+        final term = (filters?['searchTerm'] ?? '') as String;
+        return term == 'bob' ? searchGate : backgroundGate;
+      };
+
+      // A background refresh goes out first and is left in flight.
+      unawaited(notifier.loadInvoices(immediate: true));
+      await _flushMicrotasks();
+
+      // The user searches while it is still open.
+      notifier.updateFilters(const KanbanFilters(searchTerm: 'bob'));
+      await _waitForInvoiceReloadDebounce();
+
+      // The search answers first and is shown.
+      searchGate.complete({
+        'received': [_card('INV-BOB')],
+        'processing': const <InvoiceCard>[],
+      });
+      await _flushMicrotasks();
+      expect(
+        container.read(kanbanProvider).invoices['received']!.map((c) => c.id).toList(),
+        ['INV-BOB'],
+      );
+
+      // The stale unfiltered refresh lands afterwards and must be dropped.
+      backgroundGate.complete({
+        'received': [_card('INV-STALE')],
+        'processing': const <InvoiceCard>[],
+      });
+      await _flushMicrotasks();
+      expect(
+        container.read(kanbanProvider).invoices['received']!.map((c) => c.id).toList(),
+        ['INV-BOB'],
+      );
+    });
+
+    test('a superseded load that fails does not post an error over the search', () async {
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      final backgroundGate = Completer<Map<String, List<InvoiceCard>>>();
+      final searchGate = Completer<Map<String, List<InvoiceCard>>>();
+      service.fetchInvoicesGate = (filters) {
+        final term = (filters?['searchTerm'] ?? '') as String;
+        return term == 'bob' ? searchGate : backgroundGate;
+      };
+
+      unawaited(notifier.loadInvoices(immediate: true));
+      await _flushMicrotasks();
+
+      notifier.updateFilters(const KanbanFilters(searchTerm: 'bob'));
+      await _waitForInvoiceReloadDebounce();
+
+      searchGate.complete({
+        'received': [_card('INV-BOB')],
+        'processing': const <InvoiceCard>[],
+      });
+      await _flushMicrotasks();
+
+      backgroundGate.completeError(Exception('network dropped'));
+      await _flushMicrotasks();
+
+      final state = container.read(kanbanProvider);
+      expect(state.error, isNull);
+      expect(state.isLoading, isFalse);
+      expect(
+        state.invoices['received']!.map((c) => c.id).toList(),
+        ['INV-BOB'],
+      );
     });
 
     test('branch selection injects branches filter', () async {
