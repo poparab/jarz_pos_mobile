@@ -155,3 +155,43 @@ jobs:
 
       - name: Run offline stress tests
         run: flutter test test/stress/
+
+  # ── Web build ────────────────────────────────────────────────────────────────
+  # Nothing above compiles for the web. That is how the firebase_core ^4.14.0
+  # bump (40b27ca) left the web POS unbuildable for a day: firebase_core_web is
+  # web-only, so every Android job stayed green while `flutter build web` failed
+  # on a package that needed a newer Dart. This job runs the SAME script that
+  # deploy_web.ps1 runs - not a bare `flutter build web` - so it proves the exact
+  # artifact the deploy ships: the release compile, the web push config, and the
+  # locally bundled Firebase compat scripts.
+  web-build:
+    name: Web Build (staging)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Invoked through bash: the script is tracked without an exec bit.
+      - name: Build web release the way deploy_web.ps1 does
+        run: bash scripts/build_release.sh staging web
+
+      - name: Assert the deployable artifact is complete
+        run: |
+          set -euo pipefail
+          for f in build/web/main.dart.js                    build/web/flutter_bootstrap.js                    build/web/firebase-web-config.js                    build/web/firebase-app-compat.js                    build/web/firebase-messaging-compat.js; do
+            test -s "$f" || { echo "missing or empty: $f" >&2; exit 1; }
+          done
+          echo "main.dart.js: $(stat -c %s build/web/main.dart.js) bytes"
