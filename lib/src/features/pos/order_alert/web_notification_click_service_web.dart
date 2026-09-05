@@ -1,7 +1,13 @@
 // ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:async';
 import 'dart:html' as html;
-import 'dart:js_util' as js_util;
+// The analyzer runs under a non-web target where `dart:js_util` is not
+// declared (it lives under `_dart2js_common` in the SDK's libraries.json),
+// so it reports the URI as missing. This file is reachable only through the
+// `dart.library.html` conditional import and is compiled solely by dart2js,
+// which resolves it fine. Suppressed on this line only, so a genuinely
+// missing import elsewhere still fails analysis.
+import 'dart:js_util' as js_util; // ignore: uri_does_not_exist
 
 import 'web_notification_click_utils.dart';
 import 'web_push_paths.dart';

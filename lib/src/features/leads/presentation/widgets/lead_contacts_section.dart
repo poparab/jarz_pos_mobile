@@ -470,14 +470,23 @@ class _LeadContactEditorSheetState extends State<LeadContactEditorSheet> {
                 _field(_email, l10n.leadContactsEmail,
                     keyboardType: TextInputType.emailAddress),
                 _field(_notes, l10n.leadContactsNotes, maxLines: 2),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: _primary,
-                  onChanged: (v) => setState(() => _primary = v),
-                  title: Text(l10n.leadContactsPrimary, style: LeadsTheme.body),
-                  subtitle: Text(
-                    l10n.leadContactsPrimaryHint,
-                    style: LeadsTheme.bodyMuted,
+                // The card above paints its own white background, and a
+                // ListTile paints its tap ink on the nearest Material - which
+                // was the Scaffold, underneath that white box, so the splash
+                // was never visible. Flutter 3.41+ asserts on exactly this. A
+                // transparent Material here gives the tile a surface of its
+                // own without changing what the card looks like.
+                Material(
+                  type: MaterialType.transparency,
+                  child: SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: _primary,
+                    onChanged: (v) => setState(() => _primary = v),
+                    title: Text(l10n.leadContactsPrimary, style: LeadsTheme.body),
+                    subtitle: Text(
+                      l10n.leadContactsPrimaryHint,
+                      style: LeadsTheme.bodyMuted,
+                    ),
                   ),
                 ),
                         if (_error != null) ...[

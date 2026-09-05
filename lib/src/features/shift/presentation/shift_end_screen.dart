@@ -587,7 +587,14 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
     final theme = Theme.of(context);
     final confirmed = _confirmedCourierTransactions.contains(row.courierTransaction);
 
-    return CheckboxListTile(
+    // These rows sit inside the tinted carry-over box, and a ListTile paints
+    // its tap ink on the nearest Material - the Scaffold, underneath that
+    // tint, so the splash was never visible. Flutter 3.41+ asserts on it. A
+    // transparent Material gives the row a surface of its own without
+    // changing how the box looks.
+    return Material(
+      type: MaterialType.transparency,
+      child: CheckboxListTile(
       value: confirmed,
       onChanged: (value) => setState(() {
         if (value == true) {
@@ -626,6 +633,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
               ),
             ),
         ],
+      ),
       ),
     );
   }

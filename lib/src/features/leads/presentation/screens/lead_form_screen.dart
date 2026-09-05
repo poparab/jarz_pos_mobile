@@ -266,14 +266,20 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
                 _Field.half(
                     _text('primary_area', context.l10n.leadFormPrimaryArea)),
                 _Field.half(_scoreField()),
-                _Field.full(SwitchListTile.adaptive(
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                  activeThumbColor: LeadsTheme.berryPink,
-                  title: Text(context.l10n.leadFormSpecialty,
-                      style: LeadsTheme.body),
-                  value: _isSpecialty,
-                  onChanged: (v) => setState(() => _isSpecialty = v),
+                _Field.full(// Inside a card that paints its own background: give the tile its own
+                // Material so its tap ink is drawn above that background (Flutter 3.41+
+                // asserts on a colored box between a ListTile and its Material).
+                Material(
+                  type: MaterialType.transparency,
+                  child: SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    activeThumbColor: LeadsTheme.berryPink,
+                    title: Text(context.l10n.leadFormSpecialty,
+                        style: LeadsTheme.body),
+                    value: _isSpecialty,
+                    onChanged: (v) => setState(() => _isSpecialty = v),
+                  ),
                 )),
               ]),
             ]),
