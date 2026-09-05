@@ -199,7 +199,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(FinishBatchSheet), findsOneWidget);
-    expect(find.textContaining('Not enough material in WIP'), findsOneWidget);
+    // The server's ValidationError is a known stock refusal, so the cashier
+    // reads the localised line rather than the raw sentence.
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    expect(find.text(l10n.userErrorInsufficientStock), findsOneWidget);
+    expect(find.textContaining('Not enough material in WIP'), findsNothing);
   });
 
   testWidgets('a fully produced batch still has a way out', (tester) async {

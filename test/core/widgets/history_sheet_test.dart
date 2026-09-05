@@ -76,7 +76,11 @@ void main() {
       });
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('boom'), findsOneWidget);
+      // 'boom' is not user copy, so the sheet shows the localised line and
+      // keeps the raw text for diagnostics only.
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      expect(find.text(l10n.userErrorUnexpected), findsOneWidget);
+      expect(find.textContaining('boom'), findsNothing);
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Retry'));
       await tester.pumpAndSettle();

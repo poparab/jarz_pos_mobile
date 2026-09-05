@@ -324,7 +324,10 @@ void main() {
       await tester.tap(find.text('Make primary'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('boom'), findsOneWidget);
+      // The failure is shown, as the localised line - 'boom' is not user copy.
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      expect(find.text(l10n.userErrorUnexpected), findsOneWidget);
+      expect(find.textContaining('boom'), findsNothing);
     });
   });
 }
