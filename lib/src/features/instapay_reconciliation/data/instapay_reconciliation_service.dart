@@ -60,6 +60,8 @@ class InstapayReconciliationService {
     required String posProfile,
     String? partyType,
     String? party,
+    bool shortageApproved = false,
+    String? shortageReason,
   }) async {
     try {
       final resp = await _dio.post(
@@ -70,6 +72,9 @@ class InstapayReconciliationService {
           if (partyType != null && partyType.trim().isNotEmpty)
             'party_type': partyType.trim(),
           if (party != null && party.trim().isNotEmpty) 'party': party.trim(),
+          if (shortageApproved) 'shortage_approved': 1,
+          if (shortageReason != null && shortageReason.trim().isNotEmpty)
+            'shortage_reason': shortageReason.trim(),
         },
       );
       return _parseMethodResponse(

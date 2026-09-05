@@ -138,6 +138,11 @@ class CourierService {
     // app. Only present on a delivery-partner dispatch; the server refuses one
     // without it rather than falling back to our own area rate.
     double? partnerFee,
+    // The operator's stock-shortage approval, exactly as the plain state
+    // endpoint takes it. The server now applies the same pre-dispatch gates on
+    // this path and refuses an approvable shortage without a reason.
+    bool shortageApproved = false,
+    String? shortageReason,
   }) async {
     try {
       final resp = await _dio.post(
@@ -152,6 +157,9 @@ class CourierService {
           'payment_mode': paymentMode,
           if (courier != null && courier.trim().isNotEmpty) 'courier': courier,
           if (partnerFee != null) 'partner_fee': partnerFee,
+          if (shortageApproved) 'shortage_approved': 1,
+          if (shortageReason != null && shortageReason.trim().isNotEmpty)
+            'shortage_reason': shortageReason.trim(),
         },
       );
       return _parseMethodResponse(

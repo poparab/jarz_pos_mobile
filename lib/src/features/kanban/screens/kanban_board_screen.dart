@@ -1233,6 +1233,27 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         return;
       }
 
+      // Every courier dispatch runs the same pre-dispatch gates as the plain
+      // state move: sub-territory, pending shipping request, and a stock
+      // shortage that needs a reason. The server now enforces them on the
+      // courier endpoints too, so ask here rather than fail after the courier
+      // dialog. null = blocked or the operator backed out; '' = nothing needed.
+      final String? courierShortageReason;
+      try {
+        courierShortageReason = await _previewInvoiceOfdReason(invoiceId);
+      } catch (e) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.commonErrorWithDetails(e.toString()))),
+        );
+        return;
+      }
+      if (courierShortageReason == null) {
+        return;
+      }
+      final courierShortageApproved = courierShortageReason.isNotEmpty;
+      final String? courierShortageReasonText =
+          courierShortageReason.isEmpty ? null : courierShortageReason;
+
       // InstaPay-on-delivery: an UNPAID online order (Instapay / Mobile Wallet),
       // non-partner and non-pickup, still needs a courier assigned but must NOT
       // go through courier settlement (which would wrongly mark it paid via the
@@ -1275,6 +1296,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                 posProfile: posProfile,
                 partyType: courierPartyType,
                 party: courierParty,
+                shortageApproved: courierShortageApproved,
+                shortageReason: courierShortageReasonText,
               );
           messenger.showSnackBar(
             SnackBar(
@@ -1392,6 +1415,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             party: resolvedParty,
             // No immediate collection; include courier label if present
             courier: courier ?? courierDisplay ?? 'UNKNOWN',
+            shortageApproved: courierShortageApproved,
+            shortageReason: courierShortageReasonText,
           );
           if (res['success'] != true) {
             messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanSettleLaterFailed)));
@@ -1502,6 +1527,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
             paymentMode: PaymentModes.cash,
             courier: courier ?? courierDisplay ?? 'UNKNOWN',
             partnerFee: confirmation?.partnerFee,
+            shortageApproved: courierShortageApproved,
+            shortageReason: courierShortageReasonText,
           );
           if (res['success'] != true) {
             messenger.showSnackBar(SnackBar(content: Text(l10n.kanbanSettlementFailed)));
