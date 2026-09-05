@@ -1,15 +1,10 @@
-// ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html' as html;
-// The analyzer runs under a non-web target where `dart:js_util` is not
-// declared (it lives under `_dart2js_common` in the SDK's libraries.json),
-// so it reports the URI as missing. This file is reachable only through the
-// `dart.library.html` conditional import and is compiled solely by dart2js,
-// which resolves it fine. Suppressed on this line only, so a genuinely
-// missing import elsewhere still fails analysis.
-import 'dart:js_util' as js_util; // ignore: uri_does_not_exist
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
+
+import 'package:web/web.dart' as web;
 
 import '../../../core/utils/logger.dart';
 import 'data/order_alert_service.dart';
@@ -123,7 +118,12 @@ class VapidSubscriptionService {
       }
 
       // 5. Get PushManager
-      final pushManager = js_util.getProperty<Object?>(registration, 'pushManager');
+      // Read dynamically: package:web types `pushManager` as non-null, but
+      // Safari outside a Home Screen install simply does not have it.
+      final pushManagerValue = registration['pushManager'];
+      final pushManager = pushManagerValue.isUndefinedOrNull
+          ? null
+          : pushManagerValue as web.PushManager;
       if (pushManager == null) {
         return const VapidSubscriptionResult(
           status: VapidSubscriptionStatus.unsupported,
@@ -146,13 +146,15 @@ class VapidSubscriptionService {
       step = 'clear_existing';
       if (forceResubscribe) {
         try {
-          final existing = await _promiseOrNull(
-            js_util.callMethod<Object?>(pushManager, 'getSubscription', const []),
-          ).timeout(const Duration(seconds: 10));
+          final existing = await pushManager
+              .getSubscription()
+              .toDart
+              .timeout(const Duration(seconds: 10));
           if (existing != null) {
-            await _promiseOrNull(
-              js_util.callMethod<Object?>(existing, 'unsubscribe', const []),
-            ).timeout(const Duration(seconds: 10));
+            await existing
+                .unsubscribe()
+                .toDart
+                .timeout(const Duration(seconds: 10));
             _logger.info('Cleared existing push subscription before re-subscribing');
           }
         } catch (error) {
@@ -164,32 +166,23 @@ class VapidSubscriptionService {
 
       // 7. Convert VAPID public key (base64url) to JS Uint8Array
       final keyBytes = _base64UrlDecode(publicKey);
-      final keyArray = _toJsUint8Array(keyBytes);
+      final keyArray = keyBytes.toJS;
 
-      // 8. Build subscribe options
-      final options = js_util.newObject<Object>();
-      js_util.setProperty(options, 'userVisibleOnly', true);
-      js_util.setProperty(options, 'applicationServerKey', keyArray);
-
-      // 9. Subscribe — permission is already granted, so this is a straight
+      // 8. Subscribe — permission is already granted, so this is a straight
       // round-trip to the push service with no prompt in the way.
       step = 'subscribe';
-      final subscribePromise = js_util.callMethod<Object>(
-        pushManager as Object,
-        'subscribe',
-        [options],
-      );
-      final subscription = await js_util
-          .promiseToFuture<Object>(subscribePromise)
+      final subscription = await pushManager
+          .subscribe(
+            web.PushSubscriptionOptionsInit(
+              userVisibleOnly: true,
+              applicationServerKey: keyArray,
+            ),
+          )
+          .toDart
           .timeout(const Duration(seconds: 30));
 
-      // 10. Serialize to JSON string
-      final jsonObj = js_util.callMethod<Object>(subscription, 'toJSON', []);
-      final jsonStr = js_util.callMethod<String>(
-        js_util.getProperty<Object>(html.window, 'JSON') as Object,
-        'stringify',
-        [jsonObj],
-      );
+      // 9. Serialize to JSON string
+      final jsonStr = _jsonStringify(subscription.toJSON());
 
       _logger.info('VAPID subscription obtained');
       return VapidSubscriptionResult(
@@ -233,18 +226,20 @@ class VapidSubscriptionService {
   /// `Notification.permission`, or `unsupported` when the API is missing.
   static String _permissionStatus() {
     try {
-      final notification = js_util.getProperty<Object?>(html.window, 'Notification');
-      if (notification == null) return 'unsupported';
-      return js_util.getProperty<Object?>(notification, 'permission')?.toString() ??
-          'default';
+      if (!globalContext.has('Notification')) return 'unsupported';
+      return web.Notification.permission;
     } catch (_) {
       return 'unsupported';
     }
   }
 
-  static Object? _serviceWorkerContainer() {
+  /// `navigator.serviceWorker` is undefined in insecure contexts and some
+  /// embedded browsers. package:web types it non-null, so read it dynamically.
+  static web.ServiceWorkerContainer? _serviceWorkerContainer() {
     try {
-      return js_util.getProperty<Object?>(html.window.navigator, 'serviceWorker');
+      final value = web.window.navigator['serviceWorker'];
+      if (value.isUndefinedOrNull) return null;
+      return value as web.ServiceWorkerContainer;
     } catch (_) {
       return null;
     }
@@ -269,37 +264,38 @@ class VapidSubscriptionService {
   /// and returns the registration once it has an active worker. Returns null on
   /// failure. `register()` is idempotent for the same script+scope, so calling
   /// this on every subscribe is safe.
-  static Future<Object?> _ensurePushRegistration(Object swContainer) async {
+  static Future<web.ServiceWorkerRegistration?> _ensurePushRegistration(
+    web.ServiceWorkerContainer swContainer,
+  ) async {
     final base = _basePath;
     final swUrl = buildWebAppAssetUrl(base, _pushServiceWorkerFile);
     final scope = base == '/' ? '/$_pushScopeSuffix' : '$base$_pushScopeSuffix';
 
-    Object? registration;
+    final web.ServiceWorkerRegistration registration;
     try {
-      final options = js_util.newObject<Object>();
-      js_util.setProperty(options, 'scope', scope);
-      registration = await _promiseOrNull(
-        js_util.callMethod<Object?>(swContainer, 'register', [swUrl, options]),
-      );
+      registration = await swContainer
+          .register(swUrl.toJS, web.RegistrationOptions(scope: scope))
+          .toDart;
     } catch (error) {
       _logger.error('Failed registering push service worker at $scope', error, StackTrace.current);
       return null;
     }
-    if (registration == null) return null;
 
     // A fresh sub-scope has no existing controller, so the worker activates
     // without waiting. Poll briefly until `active` is populated.
     for (var i = 0; i < 50; i++) {
-      if (js_util.getProperty<Object?>(registration, 'active') != null) break;
+      if (registration.active != null) break;
       await Future<void>.delayed(const Duration(milliseconds: 100));
     }
     return registration;
   }
 
-  /// Awaits a JS promise, tolerating a null (no-op) handle.
-  static Future<Object?> _promiseOrNull(Object? maybePromise) async {
-    if (maybePromise == null) return null;
-    return js_util.promiseToFuture<Object?>(maybePromise);
+  /// The browser's `JSON.stringify`, not `jsonEncode`: the backend stores this
+  /// string and the push service is keyed on it, so it must be the exact bytes
+  /// the browser produces for its own subscription object.
+  static String _jsonStringify(JSAny? value) {
+    final json = globalContext.getProperty<JSObject>('JSON'.toJS);
+    return json.callMethod<JSString>('stringify'.toJS, value).toDart;
   }
 
   /// Decodes a base64url string (with or without padding) to bytes.
@@ -316,21 +312,9 @@ class VapidSubscriptionService {
     return base64Decode(padded);
   }
 
-  /// Creates a JS Uint8Array from a Dart Uint8List.
-  static Object _toJsUint8Array(Uint8List bytes) {
-    final jsBytes = js_util.jsify(bytes.toList());
-    final uint8ArrayCtor = js_util.getProperty<Object>(html.window, 'Uint8Array');
-    return js_util.callMethod<Object>(uint8ArrayCtor as Object, 'from', [jsBytes]);
-  }
-
   static String _detectBrowserHint() {
     try {
-      final ua = js_util
-          .getProperty<String>(
-            js_util.getProperty<Object>(html.window, 'navigator') as Object,
-            'userAgent',
-          )
-          .toLowerCase();
+      final ua = web.window.navigator.userAgent.toLowerCase();
       if (ua.contains('iphone') || ua.contains('ipad')) return 'Safari/iOS';
       if (ua.contains('chrome')) return 'Chrome/Web';
       if (ua.contains('firefox')) return 'Firefox/Web';

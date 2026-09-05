@@ -1,13 +1,8 @@
-// ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:async';
-import 'dart:html' as html;
-// The analyzer runs under a non-web target where `dart:js_util` is not
-// declared (it lives under `_dart2js_common` in the SDK's libraries.json),
-// so it reports the URI as missing. This file is reachable only through the
-// `dart.library.html` conditional import and is compiled solely by dart2js,
-// which resolves it fine. Suppressed on this line only, so a genuinely
-// missing import elsewhere still fails analysis.
-import 'dart:js_util' as js_util; // ignore: uri_does_not_exist
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
+
+import 'package:web/web.dart' as web;
 
 import 'web_notification_click_utils.dart';
 import 'web_push_paths.dart';
@@ -25,7 +20,7 @@ class WebNotificationClickService {
     }
 
     final basePath = normalizeWebAppBasePath(Uri.base.path);
-    html.window.history.replaceState(null, html.document.title, basePath);
+    web.window.history.replaceState(null, web.document.title, basePath);
     return notificationId;
   }
 
@@ -34,36 +29,55 @@ class WebNotificationClickService {
     return _clickController.stream;
   }
 
+  /// The notification id named by a service-worker `message` payload, or null
+  /// when the message is not a Jarz notification click. Kept separate from the
+  /// listener so a browser test can feed it a synthetic event.
+  static String? notificationIdFromMessage(JSAny? data) {
+    final message = data.dartify();
+    if (message is! Map) {
+      return null;
+    }
+
+    final type = message['type']?.toString();
+    if (type != 'jarz_pos_notification_click') {
+      return null;
+    }
+
+    return extractNotificationIdFromUrl(message['url']?.toString());
+  }
+
   static void _ensureListening() {
     if (_isListening) {
       return;
     }
     _isListening = true;
 
-    final serviceWorker = html.window.navigator.serviceWorker;
+    final serviceWorker = _serviceWorkerContainer();
     if (serviceWorker == null) {
       return;
     }
 
-    serviceWorker.onMessage.listen((event) {
-      final message = js_util.dartify(event.data);
-      if (message is! Map) {
-        return;
-      }
+    // A plain listener rather than package:web's EventStreamProviders: those
+    // live in its deprecated helpers library, and one callback is all this is.
+    serviceWorker.addEventListener(
+      'message',
+      ((web.MessageEvent event) {
+        final notificationId = notificationIdFromMessage(event.data);
+        if (notificationId != null) {
+          _clickController.add(notificationId);
+        }
+      }).toJS,
+    );
+  }
 
-      final type = message['type']?.toString();
-      if (type != 'jarz_pos_notification_click') {
-        return;
-      }
-
-      final notificationId = extractNotificationIdFromUrl(
-        message['url']?.toString(),
-      );
-      if (notificationId == null) {
-        return;
-      }
-
-      _clickController.add(notificationId);
-    });
+  /// `navigator.serviceWorker` is undefined in insecure contexts and some
+  /// embedded browsers. package:web types it non-null, so read it dynamically
+  /// rather than let a missing property surface as an exception.
+  static web.ServiceWorkerContainer? _serviceWorkerContainer() {
+    final value = web.window.navigator['serviceWorker'];
+    if (value.isUndefinedOrNull) {
+      return null;
+    }
+    return value as web.ServiceWorkerContainer;
   }
 }

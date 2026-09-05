@@ -1,15 +1,10 @@
-// ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:async';
-import 'dart:html' as html;
-// The analyzer runs under a non-web target where `dart:js_util` is not
-// declared (it lives under `_dart2js_common` in the SDK's libraries.json),
-// so it reports the URI as missing. This file is reachable only through the
-// `dart.library.html` conditional import and is compiled solely by dart2js,
-// which resolves it fine. Suppressed on this line only, so a genuinely
-// missing import elsewhere still fails analysis.
-import 'dart:js_util' as js_util; // ignore: uri_does_not_exist
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:web/web.dart' as web;
 
 import '../../../core/firebase/firebase_runtime_config.dart';
 import '../../../core/utils/logger.dart';
@@ -339,7 +334,7 @@ class WebPushRegistrationService {
   }
 
   static Future<_TokenResolution> _getTokenWithServiceWorker(
-    Object registration,
+    web.ServiceWorkerRegistration registration,
   ) async {
     final messagingResolution = _resolveWebMessaging();
     if (!messagingResolution.messagingLibraryAvailable) {
@@ -417,9 +412,13 @@ class WebPushRegistrationService {
     }
   }
 
-  static Object? _serviceWorkerContainer() {
+  /// `navigator.serviceWorker` is undefined in insecure contexts and some
+  /// embedded browsers. package:web types it non-null, so read it dynamically.
+  static web.ServiceWorkerContainer? _serviceWorkerContainer() {
     try {
-      return js_util.getProperty<Object?>(html.window.navigator, 'serviceWorker');
+      final value = web.window.navigator['serviceWorker'];
+      if (value.isUndefinedOrNull) return null;
+      return value as web.ServiceWorkerContainer;
     } catch (_) {
       return null;
     }
@@ -500,65 +499,48 @@ class WebPushRegistrationService {
     }
   }
 
-  static String? _registrationScope(Object? registration) {
+  static String? _registrationScope(web.ServiceWorkerRegistration? registration) {
     if (registration == null) {
       return null;
     }
 
     try {
-      return js_util.getProperty<Object?>(registration, 'scope')?.toString();
+      return registration.scope;
     } catch (_) {
       return null;
     }
   }
 
-  static Future<Object?> _getExistingServiceWorkerRegistration(
-    Object container,
+  static Future<web.ServiceWorkerRegistration?> _getExistingServiceWorkerRegistration(
+    web.ServiceWorkerContainer container,
   ) async {
     try {
-      final registrationPromise = js_util.callMethod<Object?>(
-        container,
-        'getRegistration',
-        <Object?>[_serviceWorkerScope],
-      );
-      if (registrationPromise == null) {
-        return null;
-      }
-
-      return await js_util.promiseToFuture<Object?>(registrationPromise);
+      return await container.getRegistration(_serviceWorkerScope).toDart;
     } catch (_) {
       return null;
     }
   }
 
-  static Future<Object?> _registerServiceWorker(Object container) async {
+  static Future<web.ServiceWorkerRegistration?> _registerServiceWorker(
+    web.ServiceWorkerContainer container,
+  ) async {
     try {
-      final options = js_util.newObject<Object>();
-      js_util.setProperty(options, 'scope', _serviceWorkerScope);
-
-      final registrationPromise = js_util.callMethod<Object?>(
-        container,
-        'register',
-        <Object?>[_serviceWorkerUrl, options],
-      );
-      if (registrationPromise == null) {
-        return null;
-      }
-
-      return await js_util.promiseToFuture<Object?>(registrationPromise);
+      return await container
+          .register(
+            _serviceWorkerUrl.toJS,
+            web.RegistrationOptions(scope: _serviceWorkerScope),
+          )
+          .toDart;
     } catch (error) {
       throw StateError('Notification service worker registration failed: $error');
     }
   }
 
-  static Future<Object?> _getReadyServiceWorkerRegistration(Object container) async {
+  static Future<web.ServiceWorkerRegistration?> _getReadyServiceWorkerRegistration(
+    web.ServiceWorkerContainer container,
+  ) async {
     try {
-      final readyPromise = js_util.getProperty<Object?>(container, 'ready');
-      if (readyPromise == null) {
-        return null;
-      }
-
-      return await js_util.promiseToFuture<Object?>(readyPromise);
+      return await container.ready.toDart;
     } catch (error) {
       throw StateError('Notification service worker readiness check failed: $error');
     }
@@ -573,11 +555,7 @@ class WebPushRegistrationService {
       );
     }
 
-    final messaging = js_util.callMethod<Object?>(
-      firebaseMessaging,
-      'getMessaging',
-      const <Object?>[],
-    );
+    final messaging = firebaseMessaging.callMethod<JSObject?>('getMessaging'.toJS);
     if (messaging == null) {
       return const _MessagingResolution(
         messagingLibraryAvailable: true,
@@ -592,49 +570,53 @@ class WebPushRegistrationService {
     );
   }
 
-  static Object? _firebaseMessagingLibrary() {
+  /// The Firebase compat bundle that build_release.sh ships next to the app
+  /// exposes itself as `window.firebase_messaging`.
+  static JSObject? _firebaseMessagingLibrary() {
     try {
-      return js_util.getProperty<Object?>(html.window, 'firebase_messaging');
+      final value = globalContext['firebase_messaging'];
+      if (value.isUndefinedOrNull) return null;
+      return value as JSObject;
     } catch (_) {
       return null;
     }
   }
 
-  static Future<Object?> _getWebPushToken(
-    Object messaging,
-    Object registration,
+  static Future<JSAny?> _getWebPushToken(
+    JSObject messaging,
+    web.ServiceWorkerRegistration registration,
   ) async {
     final firebaseMessaging = _firebaseMessagingLibrary();
     if (firebaseMessaging == null) {
       throw UnsupportedError('Firebase web messaging is unavailable in this browser context.');
     }
 
-    final options = js_util.newObject<Object>();
-    js_util.setProperty(options, 'vapidKey', FirebaseRuntimeConfig.webVapidKey);
-    js_util.setProperty(options, 'serviceWorkerRegistration', registration);
+    final options = JSObject()
+      ..setProperty('vapidKey'.toJS, FirebaseRuntimeConfig.webVapidKey.toJS)
+      ..setProperty('serviceWorkerRegistration'.toJS, registration);
 
-    final tokenPromise = js_util.callMethod<Object?>(
-      firebaseMessaging,
-      'getToken',
-      <Object?>[messaging, options],
+    final tokenPromise = firebaseMessaging.callMethod<JSPromise<JSAny?>?>(
+      'getToken'.toJS,
+      messaging,
+      options,
     );
     if (tokenPromise == null) {
       return null;
     }
 
-    return js_util.promiseToFuture<Object?>(tokenPromise);
+    return tokenPromise.toDart;
   }
 
-  static Object? _dartifyWebPushTokenValue(Object? value) {
+  static Object? _dartifyWebPushTokenValue(JSAny? value) {
     if (value == null) {
       return null;
     }
 
-    return js_util.dartify(value);
+    return value.dartify();
   }
 
   static _TokenResolution _tokenResolutionFromValue(
-    Object? value, {
+    JSAny? value, {
     required bool messagingLibraryAvailable,
     required bool messagingResolved,
   }) {
@@ -661,6 +643,34 @@ class WebPushRegistrationService {
       tokenState: 'ready',
     );
   }
+
+  /// Test seam: drives the `window.firebase_messaging` bridge exactly as
+  /// [_getTokenWithServiceWorker] does - resolve the library, call
+  /// `getMessaging`, call `getToken` with the options object, dartify and
+  /// normalise the result - minus the Firebase-init and permission gates a
+  /// browser test cannot satisfy. The registration is passed through untouched.
+  @visibleForTesting
+  static Future<({bool libraryAvailable, bool resolved, String? token})>
+      resolveTokenThroughMessagingBridge(
+    web.ServiceWorkerRegistration registration,
+  ) async {
+    final messaging = _resolveWebMessaging();
+    if (!messaging.messagingResolved || messaging.messaging == null) {
+      return (
+        libraryAvailable: messaging.messagingLibraryAvailable,
+        resolved: false,
+        token: null,
+      );
+    }
+
+    final value = await _getWebPushToken(messaging.messaging!, registration);
+    final resolution = _tokenResolutionFromValue(
+      value,
+      messagingLibraryAvailable: true,
+      messagingResolved: true,
+    );
+    return (libraryAvailable: true, resolved: true, token: resolution.token);
+  }
 }
 
 class _ServiceWorkerResolution {
@@ -670,7 +680,7 @@ class _ServiceWorkerResolution {
     this.readyRegistrationScope,
   });
 
-  final Object? registration;
+  final web.ServiceWorkerRegistration? registration;
   final String? existingRegistrationScope;
   final String? readyRegistrationScope;
 }
@@ -684,7 +694,7 @@ class _MessagingResolution {
 
   final bool messagingLibraryAvailable;
   final bool messagingResolved;
-  final Object? messaging;
+  final JSObject? messaging;
 }
 
 class _TokenResolution {

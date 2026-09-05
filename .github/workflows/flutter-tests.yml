@@ -195,3 +195,10 @@ jobs:
             test -s "$f" || { echo "missing or empty: $f" >&2; exit 1; }
           done
           echo "main.dart.js: $(stat -c %s build/web/main.dart.js) bytes"
+
+      # The web-push interop files only compile for the web, so the VM suite
+      # above never executes them - an interop change can pass analysis and
+      # every test while being broken at runtime. These run in the real Chrome
+      # that ubuntu-latest ships, so the JS interop is exercised, not just typed.
+      - name: Browser interop tests (Chrome)
+        run: flutter test --platform chrome test/features/pos/order_alert/web/
