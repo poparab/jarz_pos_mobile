@@ -12,6 +12,9 @@ import 'package:jarz_pos/src/features/manufacturing/state/base_production_provid
 
 import '../../../helpers/mock_services.dart';
 
+const _materialOptionsEndpoint =
+    '/api/method/jarz_pos.api.manufacturing.get_material_options';
+
 BaseItem _base({
   String itemCode = 'BASE-FUDGE',
   String itemName = 'Fudge Cake',
@@ -60,6 +63,38 @@ Future<MockDio> _pump(
   Locale? locale,
 }) async {
   final dio = MockDio();
+  final base = page.items.isEmpty ? _base() : page.items.first;
+  dio.setResponse(_materialOptionsEndpoint, {
+    'message': {
+      'bom_name': base.defaultBom,
+      'qty': base.batchYield,
+      'components': [
+        {
+          'original_item_code': 'RM-COCOA',
+          'original_item_name': 'Cocoa',
+          'required_qty': 1.0,
+          'stock_uom': 'Kg',
+          'combined_available_qty': 20.0,
+          'linked_items_display': 'Cocoa',
+          'alternative_selection_blocked_reason': null,
+          'options': [
+            {
+              'item_code': 'RM-COCOA',
+              'item_name': 'Cocoa',
+              'stock_uom': 'Kg',
+              'available_qty': 20.0,
+              'valuation_rate': 50.0,
+              'is_recipe_item': 1,
+              'source_warehouse': 'Stores - J',
+              'uoms': [
+                {'uom': 'Kg', 'conversion_factor': 1.0},
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  });
   if (preview != null) {
     dio.setResponse(ApiEndpoints.previewBaseBatch, {'message': preview});
   }
@@ -116,6 +151,10 @@ Map<String, dynamic> _preview({
 String _stepperText(WidgetTester tester) =>
     tester.widget<EditableText>(find.byType(EditableText)).controller.text;
 
+List<Map<String, dynamic>> _previewRequests(MockDio dio) => dio.requestLog
+    .where((request) => request['path'] == ApiEndpoints.previewBaseBatch)
+    .toList(growable: false);
+
 /// The label of the single selected run-size chip, or null when none is.
 String? _selectedRunSize(WidgetTester tester) {
   for (final chip in tester.widgetList<ChoiceChip>(find.byType(ChoiceChip))) {
@@ -155,6 +194,38 @@ void main() {
       find.widgetWithText(FilledButton, 'Start batch'),
     );
     expect(button.onPressed, isNotNull);
+  });
+
+  testWidgets('a stale material choice blocks Start until it is cleared',
+      (tester) async {
+    await _pump(
+      tester,
+      BaseItemsPage(items: [_base()]),
+      preview: _preview(),
+    );
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(BaseProductionTab)),
+    );
+    container
+        .read(baseBatchDraftProvider('BASE-FUDGE').notifier)
+        .setMaterialSelection('RM-OLD', 'RM-REMOVED');
+    await tester.pumpAndSettle();
+
+    var start = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Start batch'),
+    );
+    expect(start.onPressed, isNull);
+    expect(find.textContaining('RM-OLD'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextButton, 'Clear'));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+
+    start = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Start batch'),
+    );
+    expect(start.onPressed, isNotNull);
   });
 
   testWidgets('negative freezer stock is called out', (tester) async {
@@ -321,7 +392,7 @@ void main() {
       preview: _preview(),
     );
 
-    expect(dio.requestLog, hasLength(1), reason: 'the first preview');
+    expect(_previewRequests(dio), hasLength(1), reason: 'the first preview');
 
     final plus = find.byIcon(Icons.add);
     for (var i = 0; i < 3; i++) {
@@ -332,12 +403,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      dio.requestLog,
+      _previewRequests(dio),
       hasLength(2),
       reason: 'three taps inside the debounce window cost one request',
     );
-    expect(dio.requestLog.last['data']['batches'], 2.5);
-    expect(dio.requestLog.last['data']['item_code'], 'BASE-FUDGE');
+    expect(_previewRequests(dio).last['data']['batches'], 2.5);
+    expect(_previewRequests(dio).last['data']['item_code'], 'BASE-FUDGE');
   });
 
   testWidgets('the busiest card fits an Arabic 360 dp screen', (tester) async {
