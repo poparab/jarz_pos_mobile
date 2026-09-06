@@ -180,6 +180,22 @@ class CartWidget extends ConsumerWidget {
               ),
             ),
 
+          if (!canManagePricing &&
+              state.isB2bOrder &&
+              state.selectedProfile != null &&
+              state.selectedCommercialPolicy != null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: contentPadding,
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: _buildOrderPurposeControls(context, ref, state),
+                  ),
+                ),
+              ),
+            ),
+
           // Items or empty state
           if (cartItems.isEmpty)
             SliverFillRemaining(

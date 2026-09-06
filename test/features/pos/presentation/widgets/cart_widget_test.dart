@@ -4,7 +4,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
+import 'package:jarz_pos/src/core/network/user_service.dart';
 import 'package:jarz_pos/src/features/pos/data/models/draft_cart.dart';
+import 'package:jarz_pos/src/features/pos/data/models/pos_models.dart';
 import 'package:jarz_pos/src/features/pos/data/repositories/draft_cart_repository.dart';
 import 'package:jarz_pos/src/features/pos/data/repositories/pos_repository.dart';
 import 'package:jarz_pos/src/features/pos/presentation/widgets/cart_widget.dart';
@@ -59,11 +61,18 @@ class _PosNotifierStub extends PosNotifier {
   }
 }
 
-Future<void> _pumpCartWidget(WidgetTester tester, PosState state) async {
+Future<_PosNotifierStub> _pumpCartWidget(
+  WidgetTester tester,
+  PosState state, {
+  UserRoles? roles,
+}) async {
+  final notifier = _PosNotifierStub(state);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        posNotifierProvider.overrideWith((ref) => _PosNotifierStub(state)),
+        posNotifierProvider.overrideWith((ref) => notifier),
+        if (roles != null)
+          userRolesFutureProvider.overrideWith((ref) async => roles),
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -80,6 +89,7 @@ Future<void> _pumpCartWidget(WidgetTester tester, PosState state) async {
   );
 
   await tester.pumpAndSettle();
+  return notifier;
 }
 
 /// Builds a bundle cart item whose `bundle_details` came back through JSON, as
@@ -201,6 +211,50 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'B2B-only cart shows the bound purpose reason without manager pricing controls',
+    (tester) async {
+      const policy = CommercialPolicy(
+        name: 'POL-SAMPLE',
+        policyName: 'Sample order',
+        orderPurpose: 'Sample - Courier',
+        discountPercentage: 100,
+        waivesShippingIncome: true,
+      );
+      final notifier = await _pumpCartWidget(
+        tester,
+        PosState(
+          selectedProfile: {'name': 'Nasr city'},
+          isB2bOrder: true,
+          b2bSetupComplete: true,
+          selectedCommercialPolicy: policy,
+          availableCommercialPolicies: [policy],
+          boundB2bOrderPurpose: 'Sample - Courier',
+          policyReason: 'Existing sample reason',
+          zeroShippingOverride: true,
+        ),
+        roles: const UserRoles(
+          user: 'b2b-only@example.invalid',
+          roles: ['B2B Sales Rep'],
+          isB2bSalesRep: true,
+          canAccessB2b: true,
+        ),
+      );
+
+      final reasonField = find.byKey(
+        const ValueKey('policy-reason-POL-SAMPLE'),
+      );
+      expect(reasonField, findsOneWidget);
+      expect(find.text('Existing sample reason'), findsOneWidget);
+      expect(find.text('Price List'), findsNothing);
+
+      await tester.enterText(reasonField, 'Disposable sample visit');
+      await tester.pump();
+
+      expect(notifier.state.policyReason, 'Disposable sample visit');
+    },
+  );
 
   group('CartWidget amendment checkout', () {
     testWidgets(

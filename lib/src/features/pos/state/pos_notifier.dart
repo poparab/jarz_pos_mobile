@@ -347,6 +347,7 @@ class PosNotifier extends StateNotifier<PosState> {
   int _orderContextToken = 0;
   int _catalogRequestToken = 0;
   static const _supportedB2bOrderPurposes = {'B2B Supply', 'Sample - Courier'};
+  static const _policyDiscountMarker = '_policy_discount_percentage';
 
   // ── Draft auto-save debounce ──────────────────────────────────────────
   static const _kAutoSaveDebounce = Duration(milliseconds: 400);
@@ -835,9 +836,6 @@ class PosNotifier extends StateNotifier<PosState> {
         catalogData['selected_price_list'] as Map<String, dynamic>?,
       );
       final commercialPolicies = _commercialPoliciesFromCatalog(catalogData);
-      final repricedCart = state.cartItems.isEmpty
-          ? state.cartItems
-          : _repriceCartItemsForCatalog(state.cartItems, items, bundles);
       final reconciledPolicy = isB2bCatalog
           ? commercialPolicies.cast<CommercialPolicy?>().firstWhere(
               (policy) =>
@@ -845,6 +843,14 @@ class PosNotifier extends StateNotifier<PosState> {
               orElse: () => null,
             )
           : _reconcileSelectedPolicy(commercialPolicies);
+      final repricedCart = state.cartItems.isEmpty
+          ? state.cartItems
+          : _repriceCartItemsForCatalog(
+              state.cartItems,
+              items,
+              bundles,
+              policy: reconciledPolicy,
+            );
       final b2bPolicyStillValid =
           !state.isB2bOrder ||
           (reconciledPolicy != null &&
@@ -870,7 +876,7 @@ class PosNotifier extends StateNotifier<PosState> {
             ? false
             : state.customerHasNoTierPriceList,
         zeroShippingOverride: isB2bCatalog
-            ? _zeroShippingDefaultForPriceList(selectedPriceList)
+            ? _zeroShippingForPolicy(selectedPriceList, reconciledPolicy)
             : state.zeroShippingOverride,
         cartItems: repricedCart,
         isLoading: false,
@@ -1101,7 +1107,7 @@ class PosNotifier extends StateNotifier<PosState> {
       }
     } else {
       // Add new item to cart
-      final cartItem = {
+      final cartItem = <String, dynamic>{
         'item_code': item['name'],
         'item_name': item['item_name'],
         'rate': item['rate'],
@@ -1114,7 +1120,14 @@ class PosNotifier extends StateNotifier<PosState> {
         'quantity': 1,
         'type': 'item', // CRITICAL: Mark as regular item
       };
-      updatedCart = [...state.cartItems, cartItem];
+      updatedCart = [
+        ...state.cartItems,
+        _rebuildCartItemPricing(
+          _withPolicyDefaultDiscount(cartItem, state.selectedCommercialPolicy),
+          catalogRate: _coerceDouble(item['price_list_rate'] ?? item['rate']),
+          catalogData: item,
+        ),
+      ];
 
       if (kDebugMode) {
         debugPrint('📦 ADDED NEW ITEM TO CART:');
@@ -1430,6 +1443,7 @@ class PosNotifier extends StateNotifier<PosState> {
     );
 
     final normalizedItem = Map<String, dynamic>.from(cartItem);
+    normalizedItem.remove(_policyDiscountMarker);
     if (customRateOverride != null &&
         (customRateOverride - catalogRate).abs() > 0.0001) {
       normalizedItem['custom_rate_override'] = customRateOverride;
@@ -1568,7 +1582,10 @@ class PosNotifier extends StateNotifier<PosState> {
     state = state.copyWith(
       selectedPriceList: selection,
       clearSelectedPriceList: selection == null,
-      zeroShippingOverride: _zeroShippingDefaultForPriceList(selection),
+      zeroShippingOverride: _zeroShippingForPolicy(
+        selection,
+        state.selectedCommercialPolicy,
+      ),
       draftDirty: true,
     );
     _autoSaveDebounced();
@@ -1596,10 +1613,19 @@ class PosNotifier extends StateNotifier<PosState> {
       state = state.copyWith(b2bSetupComplete: false);
     }
     if (policy == null) {
+      final repricedCart = _repriceCartItemsForCatalog(
+        state.cartItems,
+        state.items,
+        state.bundles,
+      );
       state = state.copyWith(
         clearSelectedCommercialPolicy: true,
         clearPolicyReason: true,
         customerHasNoTierPriceList: false,
+        zeroShippingOverride: _zeroShippingDefaultForPriceList(
+          state.selectedPriceList,
+        ),
+        cartItems: repricedCart,
         draftDirty: true,
       );
       _autoSaveDebounced();
@@ -1608,9 +1634,20 @@ class PosNotifier extends StateNotifier<PosState> {
       return;
     }
 
+    final repricedCart = _repriceCartItemsForCatalog(
+      state.cartItems,
+      state.items,
+      state.bundles,
+      policy: policy,
+    );
     state = state.copyWith(
       selectedCommercialPolicy: policy,
       customerHasNoTierPriceList: false,
+      zeroShippingOverride: _zeroShippingForPolicy(
+        state.selectedPriceList,
+        policy,
+      ),
+      cartItems: repricedCart,
       draftDirty: true,
     );
     _autoSaveDebounced();
@@ -1712,7 +1749,12 @@ class PosNotifier extends StateNotifier<PosState> {
     );
     final repricedCart = state.cartItems.isEmpty
         ? state.cartItems
-        : _repriceCartItemsForCatalog(state.cartItems, items, bundles);
+        : _repriceCartItemsForCatalog(
+            state.cartItems,
+            items,
+            bundles,
+            policy: policy,
+          );
     final profileChanged =
         state.selectedProfile?['name']?.toString().trim() !=
         requiredProfileName;
@@ -1728,7 +1770,7 @@ class PosNotifier extends StateNotifier<PosState> {
       selectedCommercialPolicy: policy,
       boundB2bOrderPurpose: orderPurpose,
       customerHasNoTierPriceList: false,
-      zeroShippingOverride: _zeroShippingDefaultForPriceList(selectedPriceList),
+      zeroShippingOverride: _zeroShippingForPolicy(selectedPriceList, policy),
       cartItems: repricedCart,
       clearDeliverySlots: profileChanged,
       clearSelectedDeliverySlot: profileChanged,
@@ -2095,6 +2137,42 @@ class PosNotifier extends StateNotifier<PosState> {
     return _coerceBool(priceList?['zero_shipping_default']);
   }
 
+  bool _zeroShippingForPolicy(
+    Map<String, dynamic>? priceList,
+    CommercialPolicy? policy,
+  ) {
+    return (policy?.waivesShippingIncome ?? false) ||
+        _zeroShippingDefaultForPriceList(priceList);
+  }
+
+  double? _policyDefaultDiscount(CommercialPolicy? policy) {
+    final raw = policy?.discountPercentage;
+    if (raw == null || !raw.isFinite || raw <= 0) return null;
+    return raw.clamp(0.0, 100.0);
+  }
+
+  Map<String, dynamic> _withPolicyDefaultDiscount(
+    Map<String, dynamic> cartItem,
+    CommercialPolicy? policy,
+  ) {
+    final normalized = Map<String, dynamic>.from(cartItem);
+    if (normalized.containsKey(_policyDiscountMarker)) {
+      normalized.remove(_policyDiscountMarker);
+      normalized.remove('discount_percentage');
+    }
+
+    final policyDiscount = _policyDefaultDiscount(policy);
+    final isBundle = normalized['type'] == 'bundle';
+    final hasLineDiscount =
+        _coerceDouble(normalized['discount_amount']) > 0 ||
+        _coerceDouble(normalized['discount_percentage']) > 0;
+    if (!isBundle && !hasLineDiscount && policyDiscount != null) {
+      normalized['discount_percentage'] = policyDiscount;
+      normalized[_policyDiscountMarker] = policyDiscount;
+    }
+    return normalized;
+  }
+
   double _applyDiscountsToRate(
     double baseRate, {
     double? discountAmount,
@@ -2225,10 +2303,11 @@ class PosNotifier extends StateNotifier<PosState> {
   List<Map<String, dynamic>> _repriceCartItemsForCatalog(
     List<Map<String, dynamic>> cartItems,
     List<Map<String, dynamic>> items,
-    List<Map<String, dynamic>> bundles,
-  ) {
+    List<Map<String, dynamic>> bundles, {
+    CommercialPolicy? policy,
+  }) {
     return cartItems.map((entry) {
-      final cartItem = Map<String, dynamic>.from(entry);
+      final cartItem = _withPolicyDefaultDiscount(entry, policy);
       if (cartItem['type'] == 'bundle') {
         final catalogBundle = _catalogBundleForCartItem(cartItem, bundles);
         final catalogRate = _coerceDouble(

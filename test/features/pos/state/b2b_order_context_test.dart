@@ -64,13 +64,15 @@ class _B2bPosRepository extends PosRepository {
         policyName: orderPurpose,
         orderPurpose: orderPurpose,
         priceList: null,
+        discountPercentage: orderPurpose == 'Sample - Courier' ? 100 : null,
+        waivesShippingIncome: orderPurpose == 'Sample - Courier',
       ),
       priceList: {
         'name': priceList,
         'display_label': priceList,
         'currency': 'EGP',
         'is_default': true,
-        'zero_shipping_default': orderPurpose == 'Sample - Courier',
+        'zero_shipping_default': false,
       },
     );
   }
@@ -141,6 +143,14 @@ const _samplePolicy = CommercialPolicy(
   policyName: 'Sample',
   orderPurpose: 'Sample',
   priceList: 'Sample Price',
+);
+
+const _sampleCourierPolicy = CommercialPolicy(
+  name: 'POL-SAMPLE',
+  policyName: 'Sample order',
+  orderPurpose: 'Sample - Courier',
+  discountPercentage: 100,
+  waivesShippingIncome: true,
 );
 
 void main() {
@@ -358,6 +368,21 @@ void main() {
     expect(notifier.state.selectedCommercialPolicy?.name, 'POL-SAMPLE');
     expect(notifier.state.selectedPriceListName, contains('Sample - Courier'));
     expect(notifier.state.zeroShippingOverride, isTrue);
+    expect(notifier.addToCart(notifier.state.items.single), isTrue);
+    expect(notifier.state.cartItems.single['price_list_rate'], 80.0);
+    expect(notifier.state.cartItems.single['discount_percentage'], 100.0);
+    expect(notifier.state.cartItems.single['rate'], 0.0);
+    expect(notifier.state.cartTotal, 0.0);
+    expect(notifier.state.shippingCost, 0.0);
+    expect(notifier.state.totalWithShipping, 0.0);
+    expect(
+      await notifier.changeB2bBranch(_branchCustomer('CUST-S', 'Nasr city')),
+      isTrue,
+    );
+    expect(notifier.state.cartItems.single['price_list_rate'], 100.0);
+    expect(notifier.state.cartItems.single['discount_percentage'], 100.0);
+    expect(notifier.state.cartItems.single['rate'], 0.0);
+    expect(notifier.state.totalWithShipping, 0.0);
     expect(
       await notifier.setCommercialPolicyByOrderPurpose('Employee'),
       isFalse,
@@ -368,6 +393,51 @@ void main() {
       isEmpty,
     );
   });
+
+  test(
+    'Sample draft restore re-applies policy defaults and its reason',
+    () async {
+      final repository = _B2bPosRepository();
+      final drafts = _MemoryDraftRepository();
+      drafts.saved.add(
+        DraftCart(
+          id: 'sample-draft',
+          label: 'Sample draft',
+          cartItems: const [
+            {
+              'item_code': 'COFFEE',
+              'item_name': 'Coffee',
+              'quantity': 1,
+              'rate': 120.0,
+              'price_list_rate': 120.0,
+              'type': 'item',
+            },
+          ],
+          customer: _branchCustomer('CUST-S', 'Nasr city'),
+          selectedCommercialPolicy: _sampleCourierPolicy,
+          selectedPriceList: const {'name': 'STALE'},
+          isB2bOrder: true,
+          boundB2bOrderPurpose: 'Sample - Courier',
+          policyReason: 'Disposable sample visit',
+          isPickup: false,
+          createdAt: DateTime(2026, 9, 6),
+          updatedAt: DateTime(2026, 9, 6),
+        ),
+      );
+      final notifier = PosNotifier(repository, drafts);
+      addTearDown(notifier.dispose);
+      notifier.state = notifier.state.copyWith(
+        profiles: repository.profilesResult,
+      );
+
+      await notifier.switchDraft('sample-draft');
+
+      expect(notifier.state.cartItems.single['discount_percentage'], 100.0);
+      expect(notifier.state.cartItems.single['rate'], 0.0);
+      expect(notifier.state.totalWithShipping, 0.0);
+      expect(notifier.state.policyReason, 'Disposable sample visit');
+    },
+  );
 
   test(
     'an inaccessible delivery-branch profile leaves catalog unchanged',
