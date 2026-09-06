@@ -34,7 +34,10 @@ final TextInputFormatter _inventoryCountQuantityFormatter =
     });
 
 class InventoryCountScreen extends ConsumerStatefulWidget {
-  const InventoryCountScreen({super.key});
+  const InventoryCountScreen({super.key, this.cacheBox});
+
+  @visibleForTesting
+  final Box<dynamic>? cacheBox;
 
   @override
   ConsumerState<InventoryCountScreen> createState() =>
@@ -548,7 +551,11 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
   }
 
   Future<void> _openBox() async {
-    _box = await Hive.openBox(HiveBoxes.inventoryCount);
+    _box =
+        widget.cacheBox ??
+        (Hive.isBoxOpen(HiveBoxes.inventoryCount)
+            ? Hive.box(HiveBoxes.inventoryCount)
+            : await Hive.openBox(HiveBoxes.inventoryCount));
     // Opening a cold box is slow enough that the user can be back on the
     // previous screen by the time it lands. Everything below this line — and
     // `_loadItems`, which this may call — writes State and reads `ref`.
@@ -584,12 +591,26 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
 
   void _saveCache() {
     if (_box == null) return;
+    final cachedItems = _items
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList(growable: false);
+    final cachedCounts = _counts.map((itemCode, count) {
+      final snapshot = Map<String, dynamic>.from(count);
+      final components = count['components'];
+      if (components is List) {
+        snapshot['components'] = components
+            .whereType<Map>()
+            .map((component) => Map<String, dynamic>.from(component))
+            .toList(growable: false);
+      }
+      return MapEntry(itemCode, snapshot);
+    });
     _box!.put(_selectedWarehouseCacheKey, _selectedWarehouse);
     _box!.put(_enforceAllCacheKey, _enforceAll);
     _box!.put(_stepCacheKey, _currentStep.name);
     if (_selectedWarehouse == null) return;
-    _box!.put(_itemsKey(), _items);
-    _box!.put(_countsKey(), _counts);
+    _box!.put(_itemsKey(), cachedItems);
+    _box!.put(_countsKey(), cachedCounts);
     _box!.put(_dateKey(), DateFormat('yyyy-MM-dd').format(_postingDate));
     _box!.put(_confirmedKey(), _confirmed.toList());
   }

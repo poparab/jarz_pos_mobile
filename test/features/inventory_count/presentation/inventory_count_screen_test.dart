@@ -64,10 +64,34 @@ class _FakeInventoryCountService extends InventoryCountService {
   }
 }
 
+class _MemoryBox implements Box<dynamic> {
+  final Map<dynamic, dynamic> _values = <dynamic, dynamic>{};
+
+  @override
+  dynamic get(dynamic key, {dynamic defaultValue}) =>
+      _values.containsKey(key) ? _values[key] : defaultValue;
+
+  @override
+  Future<void> put(dynamic key, dynamic value) {
+    _values[key] = value;
+    return Future<void>.value();
+  }
+
+  @override
+  Future<void> delete(dynamic key) {
+    _values.remove(key);
+    return Future<void>.value();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Future<void> _pumpInventoryCountScreen(
   WidgetTester tester,
-  _FakeInventoryCountService service,
-) async {
+  _FakeInventoryCountService service, {
+  Box<dynamic>? cacheBox,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -92,7 +116,7 @@ Future<void> _pumpInventoryCountScreen(
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const InventoryCountScreen(),
+        home: InventoryCountScreen(cacheBox: cacheBox ?? _MemoryBox()),
       ),
     ),
   );
@@ -257,18 +281,12 @@ void main() {
   });
 
   tearDown(() async {
-    if (Hive.isBoxOpen(HiveBoxes.inventoryCount)) {
-      await Hive.box(HiveBoxes.inventoryCount).clear();
-    }
     if (Hive.isBoxOpen(HiveBoxes.appSettings)) {
       await Hive.box(HiveBoxes.appSettings).clear();
     }
   });
 
   tearDownAll(() async {
-    if (Hive.isBoxOpen(HiveBoxes.inventoryCount)) {
-      await Hive.box(HiveBoxes.inventoryCount).close();
-    }
     if (Hive.isBoxOpen(HiveBoxes.appSettings)) {
       await Hive.box(HiveBoxes.appSettings).close();
     }
@@ -520,8 +538,9 @@ void main() {
     );
 
     testWidgets(
-      'keeps an edited confirmed quantity pending across cache restore',
+      'restores mixed-UOM drafts without treating edited quantities as confirmed',
       (tester) async {
+        final cacheBox = _MemoryBox();
         final service = _FakeInventoryCountService(
           warehouses: const [
             {'name': 'Main Warehouse', 'company': 'Jarz'},
@@ -532,18 +551,39 @@ void main() {
               'item_name': 'Blueberry filling',
               'current_qty': 10,
               'stock_uom': 'Kg',
+              'uoms': [
+                {'uom': 'Box', 'conversion_factor': 2.7},
+              ],
             },
           ],
         );
 
-        await _pumpInventoryCountScreen(tester, service);
+        await _pumpInventoryCountScreen(tester, service, cacheBox: cacheBox);
         await _selectWarehouse(tester, 'Main Warehouse');
         await _startCount(tester);
+        await _selectItemComponentUom(
+          tester,
+          itemCode: 'BLUEBERRY',
+          currentUom: 'Kg',
+          nextUom: 'Box',
+        );
+        await _enterItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Box',
+          quantity: '4',
+        );
+        await _submitItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Box',
+        );
+        await _addItemUom(tester, 'BLUEBERRY');
         await _enterItemComponentCount(
           tester,
           itemCode: 'BLUEBERRY',
           uom: 'Kg',
-          quantity: '10',
+          quantity: '1.5',
         );
         await _submitItemComponentCount(
           tester,
@@ -559,9 +599,30 @@ void main() {
         );
         expect(find.text('Pending'), findsOneWidget);
 
+        await tester.tap(find.text('Back to setup'));
+        await tester.pumpAndSettle();
+        await _startCount(tester);
+
+        expect(find.text('Pending'), findsOneWidget);
+        final reloadedBoxField = find.descendant(
+          of: find.byKey(const ValueKey('BLUEBERRY:component:Box')),
+          matching: find.byType(TextField),
+        );
+        expect(
+          tester.widget<TextField>(reloadedBoxField).controller?.text,
+          '4',
+        );
+        final reloadedKgField = find.descendant(
+          of: find.byKey(const ValueKey('BLUEBERRY:component:Kg')),
+          matching: find.byType(TextField),
+        );
+        expect(
+          tester.widget<TextField>(reloadedKgField).controller?.text,
+          isEmpty,
+        );
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pumpAndSettle();
-        await _pumpInventoryCountScreen(tester, service);
+        await _pumpInventoryCountScreen(tester, service, cacheBox: cacheBox);
 
         expect(find.text('Pending'), findsOneWidget);
         final restoredField = find.descendant(
@@ -571,6 +632,14 @@ void main() {
         expect(
           tester.widget<TextField>(restoredField).controller?.text,
           isEmpty,
+        );
+        final restoredBoxField = find.descendant(
+          of: find.byKey(const ValueKey('BLUEBERRY:component:Box')),
+          matching: find.byType(TextField),
+        );
+        expect(
+          tester.widget<TextField>(restoredBoxField).controller?.text,
+          '4',
         );
         await _openReview(tester);
         expect(_buttonForIcon(tester, Icons.save_outlined).onPressed, isNull);
