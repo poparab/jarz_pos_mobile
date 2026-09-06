@@ -158,6 +158,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
     if (!_isB2bOrderRoute ||
         _b2bBindingApplied ||
         _b2bBindingInProgress ||
+        _b2bBindingError != null ||
         state.selectedProfile == null) {
       return;
     }
@@ -369,6 +370,11 @@ class _PosScreenState extends ConsumerState<PosScreen>
       if (state.error != null && state.profiles.isEmpty) {
         return _wrapWithAmendmentCleanupGuard(
           Scaffold(body: _buildError(context, state.error!)),
+        );
+      }
+      if (state.profiles.isEmpty) {
+        return _wrapWithAmendmentCleanupGuard(
+          Scaffold(body: _buildEmptyProfiles(context)),
         );
       }
       // Auto-select if only one profile available
@@ -850,6 +856,52 @@ class _PosScreenState extends ConsumerState<PosScreen>
             child: Text(l10n.commonRetry),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyProfiles(BuildContext context) {
+    final l10n = context.l10n;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.store_outlined,
+              size: 64,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              l10n.posProfileSelectionNoProfilesTitle,
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.posProfileSelectionNoProfilesBody,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () =>
+                  ref.read(posNotifierProvider.notifier).loadProfiles(),
+              icon: const Icon(Icons.refresh),
+              label: Text(l10n.commonRetry),
+            ),
+            if (_isB2bOrderRoute) ...[
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => context.go(AppRoutes.b2b),
+                icon: const Icon(Icons.arrow_back),
+                label: Text(l10n.b2bOrderChooseAccount),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
