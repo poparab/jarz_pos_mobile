@@ -135,12 +135,16 @@ class UserRoles {
   ///
   /// Mirrors the OTHER app's `ROLES.OPERATOR`
   /// (`jarz_woocommerce_integration/services/access.ensure_operator_access`),
-  /// which is `{System Manager, WooCommerce Sync Operator}` with Administrator
-  /// short-circuited. Deliberately NOT the JARZ manager set: a branch manager
-  /// has no business retrying sync events, and would get a 403 from every
-  /// call if this were widened to them.
+  /// which is `{System Manager, WooCommerce Sync Operator, JARZ Manager}` with
+  /// Administrator short-circuited server-side. JARZ Manager is in that set by
+  /// the owner's decision — Frappe roles do not inherit, so naming it there is
+  /// the only durable way to say "managers operate Woo sync".
+  ///
+  /// Keep these two lists identical. Widening either side alone is how a tile
+  /// appears in the drawer and then 403s on every call behind it.
   bool get canAccessWooSync =>
       roles.contains(RoleNames.wooSyncOperator) ||
+      roles.contains(RoleNames.jarzManager) ||
       roles.contains(RoleNames.systemManager) ||
       roles.contains(RoleNames.administrator);
 
@@ -477,10 +481,10 @@ final canAccessPartnerSettlementsProvider = Provider<bool>((ref) {
 /// Whether the current user may open the WooCommerce sync console.
 ///
 /// Mirrors `ROLES.OPERATOR` in the separate `jarz_woocommerce_integration`
-/// app, as enforced by its `services/access.ensure_operator_access`. Note the
-/// role record exists on both servers but is granted to nobody by default, so
-/// this correctly returns false for everyone until an administrator assigns
-/// it — the console is hidden rather than broken.
+/// app, as enforced by its `services/access.ensure_operator_access` — which
+/// includes JARZ Manager, so the console is visible to managers without anyone
+/// having to hand-assign the dedicated operator role. That role still exists
+/// for anyone who should run Woo sync WITHOUT being a manager.
 final canAccessWooSyncProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(

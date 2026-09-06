@@ -300,10 +300,11 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuMasterOrders,
           onTap: () => navigate(AppRoutes.masterOrders),
         ),
-      // Gated on the OTHER app's operator role, which is granted to nobody by
-      // default — so this tile is correctly invisible until an administrator
-      // assigns `WooCommerce Sync Operator`. Deliberately not the JARZ manager
-      // set: a branch manager would be refused by every call behind it.
+      // Gated on the OTHER app's `ROLES.OPERATOR`, which includes JARZ Manager
+      // by the owner's decision, plus the dedicated `WooCommerce Sync Operator`
+      // role for anyone who runs the sync without being a manager. The
+      // destructive operations behind that app stay System-Manager-only and are
+      // not reachable from here at all.
       if (canAccessWooSync)
         navTile(
           icon: Icons.sync_outlined,
