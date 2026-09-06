@@ -18,6 +18,7 @@ import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/basket_rollup.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/batch_line.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/bom_details.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/material_options.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/production_suggestion.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/repositories/production_basket_repository.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_batch_tab.dart';
@@ -130,6 +131,19 @@ Future<void> _shoot(
       overrides: [
         productionBasketRepositoryProvider
             .overrideWithValue(_FakeBasketRepository()),
+        // Every batch line renders a MaterialOptionsPanel, which calls the
+        // real service unless stubbed — in this harness that throws and the
+        // panel paints its Error/Retry card into the screenshot. Default to
+        // "no alternatives", the common BOM shape, so a shot shows the board
+        // rather than a failed fetch. A test needing real options overrides
+        // this family again in its own `overrides`.
+        materialOptionsProvider.overrideWith(
+          (ref, request) async => MaterialOptions(
+            bomName: request.bomName,
+            qty: request.qty,
+            components: const [],
+          ),
+        ),
         ...overrides,
       ],
       child: MaterialApp(
