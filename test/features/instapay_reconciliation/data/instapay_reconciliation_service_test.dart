@@ -171,6 +171,123 @@ void main() {
       });
     });
 
+    // ── fetchUnconfirmedPaymentEscalations ─────────────────────────────
+
+    group('fetchUnconfirmedPaymentEscalations', () {
+      test('parses escalated orders and sorts worst-first', () async {
+        mockDio.setResponse(
+          ApiEndpoints.unconfirmedPaymentEscalations,
+          createSuccessResponse(data: {
+            'success': true,
+            'threshold_hours': 4,
+            'orders': [
+              {
+                'invoice': 'INV-SHORT',
+                'customer': 'CUST-1',
+                'customer_name': 'Short',
+                'branch': 'Nasr City',
+                'amount': 120.0,
+                'payment_method': 'InstaPay',
+                'out_for_delivery_since': '2026-09-07 08:00:00',
+                'out_for_delivery_seconds': 5000,
+                'threshold_hours': 4,
+                'already_alerted': 1,
+              },
+              {
+                'invoice': 'INV-WORST',
+                'customer': 'CUST-2',
+                'customer_name': 'Worst',
+                'branch': 'Maadi',
+                'amount': 300.5,
+                'payment_method': 'Mobile Wallet',
+                'out_for_delivery_seconds': 90000,
+                'threshold_hours': 4,
+                'already_alerted': 0,
+              },
+            ],
+          }),
+        );
+
+        final result = await service.fetchUnconfirmedPaymentEscalations(
+          posProfile: 'Nasr City',
+        );
+
+        expect(result, hasLength(2));
+        // Worst-first: the longer out-for-delivery duration comes first.
+        expect(result.first.invoice, 'INV-WORST');
+        expect(result.first.outForDeliverySeconds, 90000);
+        expect(result.first.alreadyAlerted, isFalse);
+        expect(result.last.invoice, 'INV-SHORT');
+        expect(result.last.alreadyAlerted, isTrue);
+        expect(result.last.branch, 'Nasr City');
+        expect(result.last.thresholdHours, 4);
+
+        final req = mockDio.requestLog.single;
+        expect(req['path'], ApiEndpoints.unconfirmedPaymentEscalations);
+        expect(req['data']['pos_profile'], 'Nasr City');
+      });
+
+      test('omits pos_profile when not provided and handles empty list',
+          () async {
+        mockDio.setResponse(
+          ApiEndpoints.unconfirmedPaymentEscalations,
+          createSuccessResponse(
+              data: {'success': true, 'threshold_hours': 4, 'orders': []}),
+        );
+
+        final result = await service.fetchUnconfirmedPaymentEscalations();
+
+        expect(result, isEmpty);
+        final req = mockDio.requestLog.single;
+        expect((req['data'] as Map).containsKey('pos_profile'), isFalse);
+      });
+
+      test('falls back to a bare (unwrapped) payload map', () async {
+        mockDio.setResponse(
+          ApiEndpoints.unconfirmedPaymentEscalations,
+          {
+            'success': true,
+            'orders': [
+              {
+                'invoice': 'INV-BARE',
+                'customer_name': 'Bare Payload',
+                'amount': 42,
+                'out_for_delivery_seconds': 100,
+                'threshold_hours': 2,
+              },
+            ],
+          },
+        );
+
+        final result = await service.fetchUnconfirmedPaymentEscalations();
+
+        expect(result, hasLength(1));
+        expect(result.single.invoice, 'INV-BARE');
+        expect(result.single.amount, 42.0);
+      });
+
+      test('throws cleaned message on failure envelope', () async {
+        mockDio.setResponse(
+          ApiEndpoints.unconfirmedPaymentEscalations,
+          createSuccessResponse(data: {
+            'success': false,
+            'error': 'Not permitted',
+          }),
+        );
+
+        expect(
+          () => service.fetchUnconfirmedPaymentEscalations(),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Not permitted'),
+            ),
+          ),
+        );
+      });
+    });
+
     // ── convertToCod ──────────────────────────────────────────────────
 
     group('convertToCod', () {

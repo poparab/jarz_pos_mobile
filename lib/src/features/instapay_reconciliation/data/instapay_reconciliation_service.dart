@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/network/frappe_error_message.dart';
+import 'models/escalated_payment_order.dart';
 import 'models/unconfirmed_online_order.dart';
 
 final instapayReconciliationServiceProvider =
@@ -119,6 +120,46 @@ class InstapayReconciliationService {
       throw mapFrappeError(
         error,
         fallback: 'Failed to load unconfirmed online orders',
+      );
+    }
+  }
+
+  /// Unpaid online orders that are Out for Delivery past the configured
+  /// escalation threshold — the set the hourly escalation job flags and
+  /// writes a (largely unread) Notification Log about. Returned sorted
+  /// worst-first (longest out for delivery), so the riskiest money is always
+  /// the first row.
+  Future<List<EscalatedPaymentOrder>> fetchUnconfirmedPaymentEscalations({
+    String? posProfile,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.unconfirmedPaymentEscalations,
+        data: {
+          if (posProfile != null && posProfile.trim().isNotEmpty)
+            'pos_profile': posProfile.trim(),
+        },
+      );
+      final payload = _parseMethodResponse(
+        resp.data,
+        fallback: 'Failed to load payment escalations',
+      );
+      final orders = payload['orders'];
+      if (orders is List) {
+        final parsed = orders
+            .whereType<Map>()
+            .map((e) =>
+                EscalatedPaymentOrder.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+        parsed.sort((a, b) =>
+            b.outForDeliverySeconds.compareTo(a.outForDeliverySeconds));
+        return parsed;
+      }
+      return const [];
+    } catch (error) {
+      throw mapFrappeError(
+        error,
+        fallback: 'Failed to load payment escalations',
       );
     }
   }

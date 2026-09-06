@@ -54,6 +54,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuExpenses => 'Expenses';
 
   @override
+  String get escalationSectionTitle => 'Escalated — Unconfirmed Past Threshold';
+
+  @override
+  String get escalationBadge => 'ESCALATED';
+
+  @override
+  String escalationThresholdBreached(int hours) {
+    return 'Breached ${hours}h threshold';
+  }
+
+  @override
+  String escalationOutForDeliveryDuration(Object duration) {
+    return 'Out for delivery for $duration';
+  }
+
+  @override
+  String get escalationBranchLabel => 'Branch';
+
+  @override
+  String get escalationAlreadyNotified => 'Manager already notified';
+
+  @override
+  String get escalationNotYetNotified => 'Not yet notified';
+
+  @override
+  String get escalationLoadFailed => 'Couldn\'t load escalations';
+
+  @override
+  String get warehouseAlignTitle => 'Warehouse Alignment';
+
+  @override
+  String get warehouseAlignSubtitle =>
+      'Invoices whose stock left the wrong branch';
+
+  @override
+  String get warehouseAlignWatchlistBanner =>
+      'Read-only watchlist — fix mismatches in Desk, no repair action here';
+
+  @override
+  String get warehouseAlignEmpty => 'No warehouse mismatches found';
+
+  @override
+  String get warehouseAlignExpectedLabel => 'Expected';
+
+  @override
+  String get warehouseAlignActualLabel => 'Actual';
+
+  @override
+  String get warehouseAlignBranchFilterLabel => 'Branch';
+
+  @override
+  String get warehouseAlignBranchFilterAll => 'All branches';
+
+  @override
   String get menuCourierBalances => 'Courier Balances';
 
   @override
@@ -206,7 +260,715 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuStockTransfer => 'Stock Transfer';
 
   @override
+  String get wooSyncMenuTitle => 'WooCommerce Sync';
+
+  @override
+  String get wooSyncNotPermittedTitle => 'Not permitted';
+
+  @override
+  String get wooSyncNotPermittedBody =>
+      'WooCommerce Sync Operator access is required to open this screen.';
+
+  @override
+  String get wooSyncRefresh => 'Refresh';
+
+  @override
+  String get wooSyncBreakerOpenTitle => 'Outbound sync paused';
+
+  @override
+  String get wooSyncBreakerOpenBody =>
+      'The circuit breaker tripped after repeated failures pushing to WooCommerce. Every outbound push is paused until it clears.';
+
+  @override
+  String wooSyncBreakerOpenUntil(Object time) {
+    return 'Paused until $time';
+  }
+
+  @override
+  String wooSyncBreakerFailureCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count recent failures',
+      one: '1 recent failure',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get wooSyncBreakerClosedTitle => 'Outbound sync healthy';
+
+  @override
+  String get wooSyncBreakerClosedBody =>
+      'The outbound circuit breaker is closed. Pushes to WooCommerce are flowing normally.';
+
+  @override
+  String get wooSyncBacklogTitle => 'Backlog';
+
+  @override
+  String get wooSyncBacklogPending => 'Pending';
+
+  @override
+  String get wooSyncBacklogRetryScheduled => 'Retry scheduled';
+
+  @override
+  String get wooSyncBacklogProcessing => 'Processing';
+
+  @override
+  String get wooSyncBacklogNeedsAttention => 'Needs attention';
+
+  @override
+  String get wooSyncBacklogDueNow => 'Due now';
+
+  @override
+  String wooSyncBacklogOldestDue(Object time) {
+    return 'Oldest due $time';
+  }
+
+  @override
+  String get wooSyncBacklogExpiredProcessing => 'Stuck processing';
+
+  @override
+  String get wooSyncSearchHint =>
+      'Search event id, source id, invoice, reason...';
+
+  @override
+  String get wooSyncFilterAttentionOnly => 'Needs attention';
+
+  @override
+  String get wooSyncFilterAllEvents => 'All events';
+
+  @override
+  String get wooSyncFilterStatusLabel => 'Status';
+
+  @override
+  String get wooSyncFilterDirectionLabel => 'Direction';
+
+  @override
+  String get wooSyncFilterReviewStateLabel => 'Review state';
+
+  @override
+  String get wooSyncFilterAny => 'Any';
+
+  @override
+  String get wooSyncClearFilters => 'Clear filters';
+
+  @override
+  String get wooSyncEventsEmpty => 'No sync events match these filters.';
+
+  @override
+  String wooSyncEventCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count events',
+      one: '1 event',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get wooSyncEventRetry => 'Retry';
+
+  @override
+  String get wooSyncEventProcessNow => 'Process now';
+
+  @override
+  String get wooSyncEventSetReviewState => 'Review state';
+
+  @override
+  String get wooSyncEventPushInvoice => 'Push to WooCommerce';
+
+  @override
+  String wooSyncEventLocalInvoiceLabel(Object name) {
+    return 'Invoice $name';
+  }
+
+  @override
+  String wooSyncEventAttempt(Object count, Object max) {
+    return 'Attempt $count of $max';
+  }
+
+  @override
+  String wooSyncEventLastError(Object error) {
+    return 'Last error: $error';
+  }
+
+  @override
+  String wooSyncEventReviewReason(Object reason) {
+    return 'Review: $reason';
+  }
+
+  @override
+  String get wooSyncSelectAll => 'Select all';
+
+  @override
+  String get wooSyncClearSelection => 'Clear selection';
+
+  @override
+  String wooSyncSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected',
+      one: '1 selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get wooSyncBulkRetry => 'Retry selected';
+
+  @override
+  String get wooSyncBulkSetReviewState => 'Set review state';
+
+  @override
+  String wooSyncBulkLimitExceeded(int limit, int count) {
+    return 'Bulk actions are limited to $limit events at a time; $count are selected. Narrow the selection and try again.';
+  }
+
+  @override
+  String get wooSyncRunWorker => 'Run worker now';
+
+  @override
+  String get wooSyncRunWorkerConfirmTitle => 'Run the sync worker now?';
+
+  @override
+  String get wooSyncRunWorkerConfirmBody =>
+      'This immediately processes every sync event that is due across the whole store, not only what is shown here.';
+
+  @override
+  String get wooSyncClearBreaker => 'Clear outbound breaker';
+
+  @override
+  String get wooSyncClearBreakerConfirmTitle =>
+      'Clear the outbound circuit breaker?';
+
+  @override
+  String get wooSyncClearBreakerConfirmBody =>
+      'This resumes every paused outbound push immediately. Only do this once the WooCommerce outage that tripped it is confirmed resolved.';
+
+  @override
+  String get wooSyncConfirm => 'Confirm';
+
+  @override
+  String get wooSyncCancel => 'Cancel';
+
+  @override
+  String wooSyncRetryQueued(Object name) {
+    return 'Retry queued for $name';
+  }
+
+  @override
+  String wooSyncProcessedNow(Object name) {
+    return 'Processed $name';
+  }
+
+  @override
+  String get wooSyncReviewStateSaved => 'Review state updated';
+
+  @override
+  String wooSyncBulkRetryDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Retried $count events',
+      one: 'Retried 1 event',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String wooSyncBulkReviewStateDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Updated $count events',
+      one: 'Updated 1 event',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get wooSyncWorkerRunDone => 'Worker run complete';
+
+  @override
+  String wooSyncBreakerCleared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Breaker cleared, $count events released',
+      one: 'Breaker cleared, 1 event released',
+      zero: 'Breaker cleared',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String wooSyncInvoicePushed(Object name) {
+    return 'Pushed $name to WooCommerce';
+  }
+
+  @override
+  String get wooSyncReviewStateDialogTitle => 'Set review state';
+
+  @override
+  String get wooSyncReviewStateNotesLabel => 'Notes (optional)';
+
+  @override
+  String get wooSyncStatusPending => 'Pending';
+
+  @override
+  String get wooSyncStatusProcessing => 'Processing';
+
+  @override
+  String get wooSyncStatusSucceeded => 'Succeeded';
+
+  @override
+  String get wooSyncStatusRetryScheduled => 'Retry scheduled';
+
+  @override
+  String get wooSyncStatusSkipped => 'Skipped';
+
+  @override
+  String get wooSyncStatusSuperseded => 'Superseded';
+
+  @override
+  String get wooSyncStatusFailed => 'Failed';
+
+  @override
+  String get wooSyncStatusNeedsReview => 'Needs review';
+
+  @override
+  String get wooSyncStatusDeadLetter => 'Dead letter';
+
+  @override
+  String get wooSyncDirectionInbound => 'Inbound';
+
+  @override
+  String get wooSyncDirectionOutbound => 'Outbound';
+
+  @override
+  String get wooSyncReviewStateOpen => 'Open';
+
+  @override
+  String get wooSyncReviewStateInvestigating => 'Investigating';
+
+  @override
+  String get wooSyncReviewStateResolved => 'Resolved';
+
+  @override
+  String get wooSyncReviewStateIgnored => 'Ignored';
+
+  @override
+  String get wooDuplicatesMenuTitle => 'Duplicate Customers';
+
+  @override
+  String get wooDuplicatesIntro =>
+      'These phone numbers match more than one customer, but nothing here was clear enough to merge automatically.';
+
+  @override
+  String get wooDuplicatesReadOnlyBanner =>
+      'Read-only triage. Merging duplicate customers is administrator-only and is done in Desk, not here.';
+
+  @override
+  String get wooDuplicatesEmpty =>
+      'No duplicate customer groups need review right now.';
+
+  @override
+  String wooDuplicatesGroupSize(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count customers',
+      one: '1 customer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String wooDuplicatesGroupReason(Object reason) {
+    return 'Why not auto-merged: $reason';
+  }
+
+  @override
+  String wooDuplicatesCandidateInvoices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count invoices',
+      one: '1 invoice',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String wooDuplicatesCandidateSubmitted(int count) {
+    return '$count submitted';
+  }
+
+  @override
+  String wooDuplicatesCandidateRevenue(Object amount) {
+    return 'Revenue $amount';
+  }
+
+  @override
+  String wooDuplicatesCandidateCreated(Object date) {
+    return 'Created $date';
+  }
+
+  @override
+  String get wooDuplicatesCandidateDisabled => 'Disabled';
+
+  @override
+  String get wooDuplicatesCandidateActive => 'Active';
+
+  @override
+  String wooDuplicatesCandidateWooId(Object id) {
+    return 'Woo ID $id';
+  }
+
+  @override
+  String get wooDuplicatesCandidateNoWooId => 'No WooCommerce ID';
+
+  @override
   String get menuCashTransfer => 'Cash Transfer';
+
+  @override
+  String get unsettleAlreadyReversedLabel => 'Already reversed';
+
+  @override
+  String unsettleReversalEntryLabel(String entry) {
+    return 'Reversed by $entry';
+  }
+
+  @override
+  String get unsettleEntryPointTooltip => 'Reverse a settlement';
+
+  @override
+  String get unsettleHistoryTitle => 'Reverse a Settlement';
+
+  @override
+  String get unsettleHistorySearchHint =>
+      'Search by courier, party or Journal Entry';
+
+  @override
+  String get unsettleHistoryEmpty => 'No settlements found for this branch.';
+
+  @override
+  String unsettleRecordJournalEntry(Object entry) {
+    return 'Journal Entry: $entry';
+  }
+
+  @override
+  String unsettleRecordInvoiceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count transactions',
+      one: '1 transaction',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get unsettleModeCollect => 'Collected from courier';
+
+  @override
+  String get unsettleModePay => 'Paid to courier';
+
+  @override
+  String get unsettleModeBulk => 'Settle all';
+
+  @override
+  String get unsettleModeSettleNow => 'Settled now';
+
+  @override
+  String get unsettleModeSettleLater => 'Settled later';
+
+  @override
+  String get unsettleModeGeneric => 'Settlement';
+
+  @override
+  String get unsettleDialogTitle => 'Reverse Settlement';
+
+  @override
+  String get unsettlePreviewLoading => 'Loading reversal preview…';
+
+  @override
+  String get unsettlePreviewErrorTitle => 'Couldn\'t load the reversal preview';
+
+  @override
+  String get unsettleRefreshAndRetry => 'Refresh preview & retry';
+
+  @override
+  String unsettleOriginalEntryLabel(Object entry) {
+    return 'Original settlement: $entry';
+  }
+
+  @override
+  String unsettlePartyLabel(Object party) {
+    return 'Party: $party';
+  }
+
+  @override
+  String unsettleBranchLabel(Object branch) {
+    return 'Branch: $branch';
+  }
+
+  @override
+  String unsettlePostingDateLabel(Object date) {
+    return 'Originally posted: $date';
+  }
+
+  @override
+  String unsettleNetAmountLabel(Object amount) {
+    return 'Net amount: $amount';
+  }
+
+  @override
+  String get unsettleWillReopenSectionTitle => 'Transactions that will reopen';
+
+  @override
+  String get unsettleAccountLinesSectionTitle => 'Account lines that will flip';
+
+  @override
+  String unsettleTransactionLineSubtitle(Object city, Object amount) {
+    return '$city • $amount';
+  }
+
+  @override
+  String unsettleAccountLineSubtitle(Object debit, Object credit) {
+    return 'Debit $debit / Credit $credit';
+  }
+
+  @override
+  String get unsettleNoBreakdownAvailable =>
+      'The server did not return a line-level breakdown for this preview. The totals above are still accurate.';
+
+  @override
+  String get unsettleAuditTrailNotice =>
+      'This posts a new, opposite Journal Entry. The original settlement is never cancelled — both stay in the audit trail.';
+
+  @override
+  String get unsettleAckCheckboxLabel =>
+      'I understand this reverses real money movement and cannot be undone from here.';
+
+  @override
+  String get unsettleReasonFieldLabel => 'Reason (optional)';
+
+  @override
+  String get unsettleReasonFieldHint =>
+      'e.g. settled from the wrong branch till';
+
+  @override
+  String get unsettleConfirmButton => 'Reverse Settlement';
+
+  @override
+  String get unsettleCommitting => 'Posting the reversing entry…';
+
+  @override
+  String get unsettleSuccessTitle => 'Settlement reversed';
+
+  @override
+  String unsettleSuccessBody(Object entry) {
+    return 'The reversing Journal Entry $entry was posted. The affected transactions are back in Unsettled.';
+  }
+
+  @override
+  String get unsettleCommitErrorTitle => 'Couldn\'t reverse the settlement';
+
+  @override
+  String get unsettleAccessRestricted =>
+      'Only admins and line managers can reverse a settlement.';
+
+  @override
+  String get partnerSettlementMenuTitle => 'Partner Settlements';
+
+  @override
+  String get partnerSettlementTabDelivery => 'Delivery Partners';
+
+  @override
+  String get partnerSettlementTabSales => 'Sales Partners';
+
+  @override
+  String get partnerSettlementRefreshTooltip => 'Refresh';
+
+  @override
+  String get partnerSettlementDeliveryEmptyBalances =>
+      'No unbilled delivery partner fees.';
+
+  @override
+  String partnerSettlementTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count trips',
+      one: '1 trip',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String partnerSettlementOldestSince(Object date) {
+    return 'Oldest: $date';
+  }
+
+  @override
+  String get partnerSettlementReviewAndSettle => 'Review & settle';
+
+  @override
+  String partnerSettlementTripsTitle(Object partner) {
+    return '$partner — unsettled trips';
+  }
+
+  @override
+  String get partnerSettlementTripsEmpty =>
+      'No unsettled trips for this partner.';
+
+  @override
+  String get partnerSettlementSelectAll => 'Select all';
+
+  @override
+  String get partnerSettlementDeselectAll => 'Deselect all';
+
+  @override
+  String partnerSettlementSelectedOfTotal(int selected, int total) {
+    return '$selected of $total selected';
+  }
+
+  @override
+  String get partnerSettlementUnselectedWarning =>
+      'Unticked trips stay unbilled and will reappear next week.';
+
+  @override
+  String partnerSettlementTripInvoiceLabel(Object invoice) {
+    return 'Invoice: $invoice';
+  }
+
+  @override
+  String get partnerSettlementTripNoInvoice => 'No invoice reference';
+
+  @override
+  String get partnerSettlementExtraChargesTitle => 'Extra charges';
+
+  @override
+  String get partnerSettlementExtraChargesHint =>
+      'Fixed charges that never accrued per order — subscription, waiting time, a returned-trip charge.';
+
+  @override
+  String get partnerSettlementAddCharge => 'Add charge';
+
+  @override
+  String get partnerSettlementChargeLabel => 'Description';
+
+  @override
+  String get partnerSettlementChargeAmount => 'Amount';
+
+  @override
+  String get partnerSettlementNoCharges => 'No extra charges added.';
+
+  @override
+  String get partnerSettlementRemoveCharge => 'Remove charge';
+
+  @override
+  String get partnerSettlementFeesSubtotal => 'Trip fees';
+
+  @override
+  String get partnerSettlementChargesSubtotal => 'Extra charges';
+
+  @override
+  String get partnerSettlementGrandTotal => 'Total to transfer';
+
+  @override
+  String get partnerSettlementBankAccountOptional => 'Bank account (optional)';
+
+  @override
+  String get partnerSettlementSettleButton => 'Settle';
+
+  @override
+  String get partnerSettlementConfirmTitle => 'Confirm bank transfer';
+
+  @override
+  String get partnerSettlementConfirmMessage =>
+      'This posts a real bank transfer. Review the totals before you continue.';
+
+  @override
+  String partnerSettlementConfirmTripsLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count trips agreed',
+      one: '1 trip agreed',
+      zero: 'No trips selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String partnerSettlementConfirmChargesLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count extra charges',
+      one: '1 extra charge',
+      zero: 'No extra charges',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get partnerSettlementNothingToSettle =>
+      'Nothing selected — tick at least one trip or add a charge.';
+
+  @override
+  String partnerSettlementSettledMessage(Object journalEntry) {
+    return 'Settled. Journal Entry $journalEntry.';
+  }
+
+  @override
+  String get partnerSettlementSalesEmptyBalances =>
+      'No unsettled sales partner commission.';
+
+  @override
+  String partnerSettlementOrderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count orders',
+      one: '1 order',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String partnerSettlementOnlineCashSplit(Object online, Object cash) {
+    return 'Online $online • Cash $cash';
+  }
+
+  @override
+  String get partnerSettlementCommissionLabel => 'Commission';
+
+  @override
+  String get partnerSettlementVatLabel => 'VAT';
+
+  @override
+  String get partnerSettlementFeeTotalLabel => 'Total fee';
+
+  @override
+  String get partnerSettlementSettleCommissionButton => 'Settle commission';
+
+  @override
+  String get partnerSettlementSalesConfirmTitle =>
+      'Confirm commission settlement';
+
+  @override
+  String get partnerSettlementSalesConfirmMessage =>
+      'This posts the commission + VAT recognition journal entry. Review the totals before you continue.';
+
+  @override
+  String get partnerSettlementSalesNothingToSettle =>
+      'No unsettled transactions for this partner.';
 
   @override
   String get cashTransferFromAccount => 'From Account';
@@ -277,6 +1039,169 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuInventoryCount => 'Inventory Count';
+
+  @override
+  String get addressPinTitle => 'Fix delivery pin';
+
+  @override
+  String get addressPinCurrentPin => 'Current pin';
+
+  @override
+  String get addressPinNoPinYet => 'No pin set yet';
+
+  @override
+  String get addressPinProposeNew => 'Propose a new pin';
+
+  @override
+  String get addressPinPickOnMap => 'Pick on map';
+
+  @override
+  String get addressPinUseThisPoint => 'Use this point';
+
+  @override
+  String get addressPinPreviewChanges => 'Preview change';
+
+  @override
+  String get addressPinWillUpdate => 'This will update the pin.';
+
+  @override
+  String get addressPinWillKeepExisting =>
+      'The existing pin is kept — it already has equal or higher confidence.';
+
+  @override
+  String addressPinMovedBy(Object meters) {
+    return 'Moves the pin about $meters m from where it is now.';
+  }
+
+  @override
+  String get addressPinPermissionNote =>
+      'Only a line manager may commit a pin correction.';
+
+  @override
+  String get addressPinCommit => 'Save correction';
+
+  @override
+  String get addressPinNoteLabel => 'What was wrong? (optional)';
+
+  @override
+  String get addressPinSaveSuccessAccepted => 'Pin updated.';
+
+  @override
+  String get addressPinSaveSuccessRejected =>
+      'Kept the existing pin — it already has equal or higher confidence.';
+
+  @override
+  String get addressPinFixTooltip => 'Fix delivery pin';
+
+  @override
+  String get addressPinDryRunFailed => 'Could not preview this change.';
+
+  @override
+  String addressPinSourceLabel(Object source) {
+    return 'Source: $source';
+  }
+
+  @override
+  String addressPinConfidenceLabel(int rank) {
+    return 'Confidence rank: $rank';
+  }
+
+  @override
+  String addressPinAccuracyLabel(Object meters) {
+    return 'Accurate to about $meters m';
+  }
+
+  @override
+  String get addressPinAccuracyUnknown => 'Accuracy unknown';
+
+  @override
+  String addressPinVerifiedOn(Object date) {
+    return 'Verified $date';
+  }
+
+  @override
+  String get addressPinStoredLinkLabel => 'Original pasted link';
+
+  @override
+  String get addressPinSourceTerritoryCentroid => 'Territory centre (fallback)';
+
+  @override
+  String get addressPinSourcePosLink => 'Pasted link at order creation';
+
+  @override
+  String get addressPinSourceCustomerPin => 'Customer-shared pin';
+
+  @override
+  String get addressPinSourceCourierWeb => 'Courier check-in (web)';
+
+  @override
+  String get addressPinSourceCourierVerified => 'Courier check-in (verified)';
+
+  @override
+  String get addressPinSourceManualOverride => 'Manual correction';
+
+  @override
+  String get addressPinSourceUnknown => 'Unknown';
+
+  @override
+  String get rosterBulkSelectHint =>
+      'Long-press a day, then tap more days in the same row to add them to the selection.';
+
+  @override
+  String rosterBulkSelectionCount(int count, Object name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days selected for $name',
+      one: '1 day selected for $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rosterBulkAssignShift => 'Assign shift to all';
+
+  @override
+  String get rosterBulkMarkOff => 'Mark all off';
+
+  @override
+  String get rosterBulkClearOff => 'Clear day off (all)';
+
+  @override
+  String get rosterBulkCancelSelection => 'Cancel selection';
+
+  @override
+  String rosterBulkConfirmOffTitle(int count) {
+    return 'Mark $count days off?';
+  }
+
+  @override
+  String rosterBulkConfirmOffBody(Object name) {
+    return '$name will not be able to clock in on these days until they are rostered again.';
+  }
+
+  @override
+  String get rosterBulkApplying => 'Applying…';
+
+  @override
+  String get rosterBulkPartialFailureTitle => 'Some days could not be updated';
+
+  @override
+  String rosterBulkPartialFailureBody(int applied, int total) {
+    return '$applied of $total applied.';
+  }
+
+  @override
+  String get rosterBulkAllFailed =>
+      'None of the selected days could be updated.';
+
+  @override
+  String rosterBulkSuccess(int count) {
+    return '$count days updated.';
+  }
+
+  @override
+  String get rosterBulkViewFailures => 'View details';
 
   @override
   String get inventoryCountOfflineUsingCache => 'Offline using cached data';
@@ -4587,6 +5512,124 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuReports => 'Reports';
+
+  @override
+  String get velocityReportTileTitle => 'Reorder & Velocity Alerts';
+
+  @override
+  String get velocityReportTileSubtitle =>
+      'Restock alerts from weekly sales-velocity tracking';
+
+  @override
+  String get velocityReportTitle => 'Reorder & Velocity Alerts';
+
+  @override
+  String get velocityReportSummaryCritical => 'Critical';
+
+  @override
+  String get velocityReportSummaryWatch => 'Watch List';
+
+  @override
+  String get velocityReportSummarySlow => 'Slow Movers';
+
+  @override
+  String get velocityReportSummaryOverstock => 'Overstocked';
+
+  @override
+  String get velocityReportDetailTitle => 'Velocity Detail';
+
+  @override
+  String get velocityReportRecalculateAction => 'Recalculate Now';
+
+  @override
+  String get velocityReportRecalculateConfirmTitle =>
+      'Recalculate velocity now?';
+
+  @override
+  String get velocityReportRecalculateConfirmBody =>
+      'This recalculates sales velocity for every stock item and can take a while. The weekly job already keeps this up to date automatically.';
+
+  @override
+  String velocityReportRecalculateSuccess(int count) {
+    return 'Velocity updated for $count items';
+  }
+
+  @override
+  String get velocityReportRecalculateError =>
+      'Couldn\'t recalculate velocity. Please try again.';
+
+  @override
+  String get segmentReportTileTitle => 'Customer Segments (RFM)';
+
+  @override
+  String get segmentReportTileSubtitle =>
+      'Recency, frequency & value segmentation from the nightly job';
+
+  @override
+  String get segmentReportTitle => 'Customer Segments';
+
+  @override
+  String get segmentReportColumnCount => 'Customers';
+
+  @override
+  String get segmentReportTotalCustomers => 'Total Customers';
+
+  @override
+  String get segmentReportRecalculateAction => 'Recalculate Now';
+
+  @override
+  String get segmentReportRecalculateConfirmTitle =>
+      'Recalculate segments now?';
+
+  @override
+  String get segmentReportRecalculateConfirmBody =>
+      'This recalculates RFM segments for every customer; pinned customers are skipped. The nightly job already keeps this up to date automatically.';
+
+  @override
+  String segmentReportRecalculateSuccess(int updated) {
+    return 'Segments updated for $updated customers';
+  }
+
+  @override
+  String get segmentReportRecalculateError =>
+      'Couldn\'t recalculate segments. Please try again.';
+
+  @override
+  String segmentReportCustomersTitle(Object segment) {
+    return '$segment customers';
+  }
+
+  @override
+  String get segmentReportCopyAll => 'Copy All';
+
+  @override
+  String get segmentReportCopied => 'Copied to clipboard';
+
+  @override
+  String get segmentReportExportEmpty => 'No customers in this segment';
+
+  @override
+  String get segmentReportPin => 'Pin segment';
+
+  @override
+  String get segmentReportUnpin => 'Unpin segment';
+
+  @override
+  String segmentReportPinConfirmBody(Object customer) {
+    return 'Pin $customer\'s segment so it stops changing on the next recalculation?';
+  }
+
+  @override
+  String segmentReportUnpinConfirmBody(Object customer) {
+    return 'Unpin $customer so their segment recalculates automatically again?';
+  }
+
+  @override
+  String get segmentReportOverrideSuccess => 'Segment updated';
+
+  @override
+  String get segmentReportOverrideError =>
+      'Couldn\'t update segment. Please try again.';
 
   @override
   String get reportsTitle => 'Reports';
@@ -10079,4 +11122,367 @@ class AppLocalizationsEn extends AppLocalizations {
   String shiftHistoryOpenedBy(Object name) {
     return 'Opened by $name';
   }
+
+  @override
+  String get menuMonthlyExpenses => 'Monthly Expenses';
+
+  @override
+  String get monthlyExpensesTitle => 'Monthly Expenses';
+
+  @override
+  String get monthlyExpensesRefreshTooltip => 'Refresh';
+
+  @override
+  String get monthlyExpensesMonthLabel => 'Month';
+
+  @override
+  String get monthlyExpensesPreviousMonthTooltip => 'Previous month';
+
+  @override
+  String get monthlyExpensesNextMonthTooltip => 'Next month';
+
+  @override
+  String get monthlyExpensesLoadFailed => 'Could not load this month.';
+
+  @override
+  String get monthlyExpensesRemaining => 'Remaining';
+
+  @override
+  String get monthlyExpensesDue => 'Due';
+
+  @override
+  String get monthlyExpensesPaid => 'Paid';
+
+  @override
+  String get monthlyExpensesRunRate => 'Monthly run-rate';
+
+  @override
+  String monthlyExpensesRemainingCaption(Object paid, Object due) {
+    return '$paid paid of $due due';
+  }
+
+  @override
+  String monthlyExpensesOverpaidNotice(Object amount) {
+    return 'Overpaid by $amount';
+  }
+
+  @override
+  String monthlyExpensesItemsBreakdown(int paid, int partial, int unpaid) {
+    return '$paid paid, $partial partial, $unpaid unpaid';
+  }
+
+  @override
+  String monthlyExpensesItemsTotal(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items due',
+      one: '1 item due',
+      zero: 'No items due',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get monthlyExpensesGapsTitle => 'Needs attention';
+
+  @override
+  String get monthlyExpensesRecurringTitle => 'Recurring expenses';
+
+  @override
+  String get monthlyExpensesRecurringEmpty =>
+      'Nothing is in the recurring expense registry yet.';
+
+  @override
+  String get monthlyExpensesCategoryUncategorised => 'Uncategorised';
+
+  @override
+  String monthlyExpensesCategorySubtotal(Object remaining, Object due) {
+    return '$remaining left of $due';
+  }
+
+  @override
+  String get monthlyExpensesStatusPaid => 'Paid';
+
+  @override
+  String get monthlyExpensesStatusPartial => 'Partial';
+
+  @override
+  String get monthlyExpensesStatusUnpaid => 'Unpaid';
+
+  @override
+  String get monthlyExpensesStatusNotDue => 'Not due';
+
+  @override
+  String get monthlyExpensesStatusOverpaid => 'Overpaid';
+
+  @override
+  String get monthlyExpensesLifecyclePaused => 'Paused';
+
+  @override
+  String get monthlyExpensesLifecycleEnded => 'Ended';
+
+  @override
+  String get monthlyExpensesPayAction => 'Pay';
+
+  @override
+  String get monthlyExpensesInferredBadge => 'From the ledger';
+
+  @override
+  String monthlyExpensesInferredExplain(Object amount) {
+    return '$amount of the paid figure was read from the ledger, not paid through this app.';
+  }
+
+  @override
+  String get monthlyExpensesSharedAccountBadge => 'Shared account';
+
+  @override
+  String monthlyExpensesSharedAccountExplain(Object account) {
+    return 'Other expenses post to $account this month, so ledger payments cannot be matched to this one.';
+  }
+
+  @override
+  String get monthlyExpensesFrequencyLabel => 'Frequency';
+
+  @override
+  String get monthlyExpensesDueDateLabel => 'Due date';
+
+  @override
+  String get monthlyExpensesAccountLabel => 'Expense account';
+
+  @override
+  String get monthlyExpensesCostCenterLabel => 'Cost center';
+
+  @override
+  String get monthlyExpensesSupplierLabel => 'Supplier';
+
+  @override
+  String get monthlyExpensesNotesLabel => 'Notes';
+
+  @override
+  String get monthlyExpensesAmountLabel => 'Amount';
+
+  @override
+  String get monthlyExpensesMonthlyEquivalentLabel => 'Monthly equivalent';
+
+  @override
+  String get monthlyExpensesPaymentsTitle => 'Payments';
+
+  @override
+  String get monthlyExpensesPaymentsEmpty =>
+      'No payments recorded for this month.';
+
+  @override
+  String get monthlyExpensesPaymentCancelAction => 'Cancel payment';
+
+  @override
+  String get monthlyExpensesPaymentCancelTitle => 'Cancel this payment?';
+
+  @override
+  String monthlyExpensesPaymentCancelBody(Object amount, Object source) {
+    return 'This reverses the journal entry for $amount and puts the money back in $source.';
+  }
+
+  @override
+  String get monthlyExpensesPaymentCancelHint => 'Why is this being reversed?';
+
+  @override
+  String get monthlyExpensesPaymentCancelConfirm => 'Cancel and reverse';
+
+  @override
+  String get monthlyExpensesPaymentCancelled =>
+      'Payment cancelled and journal entry reversed';
+
+  @override
+  String get monthlyExpensesSalariesTitle => 'Salaries';
+
+  @override
+  String get monthlyExpensesSalariesEmpty =>
+      'No employee has a salary structure for this month.';
+
+  @override
+  String get monthlyExpensesPayrollNotConfigured =>
+      'Payroll is not set up, so salaries cannot be paid from this screen.';
+
+  @override
+  String get monthlyExpensesPayrollAccountLabel => 'Salary account';
+
+  @override
+  String get monthlyExpensesSalaryBaseLabel => 'Base';
+
+  @override
+  String get monthlyExpensesSalaryVariableLabel => 'Variable';
+
+  @override
+  String get monthlyExpensesSalarySlipExists =>
+      'A submitted salary slip already covers this month, so paying here would post the salary twice.';
+
+  @override
+  String monthlyExpensesMissingStructureTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count employees have no salary structure',
+      one: '1 employee has no salary structure',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get monthlyExpensesMissingStructureBody =>
+      'Their pay is not in the figures above. Assign a salary structure in HR to include them.';
+
+  @override
+  String monthlyExpensesUnattributedGl(Object amount) {
+    return '$amount posted to the salary account cannot be matched to any employee, so it is reported here instead of being added to a row.';
+  }
+
+  @override
+  String monthlyExpensesPayTitle(Object name) {
+    return 'Pay $name';
+  }
+
+  @override
+  String monthlyExpensesPayPeriod(Object month) {
+    return 'For $month';
+  }
+
+  @override
+  String get monthlyExpensesPayAmountLabel => 'Amount to pay';
+
+  @override
+  String get monthlyExpensesPayAmountInvalid =>
+      'Enter an amount greater than zero';
+
+  @override
+  String get monthlyExpensesPayFromLabel => 'Pay from';
+
+  @override
+  String get monthlyExpensesPayFromRequired => 'Choose an account to pay from';
+
+  @override
+  String get monthlyExpensesPayDateLabel => 'Payment date';
+
+  @override
+  String get monthlyExpensesPayRemarksLabel => 'Remarks (optional)';
+
+  @override
+  String get monthlyExpensesPaySubmit => 'Pay';
+
+  @override
+  String monthlyExpensesPaySourceOption(Object label, Object balance) {
+    return '$label — $balance';
+  }
+
+  @override
+  String get monthlyExpensesPayNoSources =>
+      'No cash or bank account is available to pay from.';
+
+  @override
+  String monthlyExpensesPayRemainingHint(Object amount) {
+    return 'Remaining: $amount';
+  }
+
+  @override
+  String get monthlyExpensesPaymentRecorded => 'Payment recorded';
+
+  @override
+  String get monthlyExpensesOverpayTitle => 'More than what is due';
+
+  @override
+  String get monthlyExpensesOverpayConfirm => 'Pay anyway';
+
+  @override
+  String get monthlyExpensesAddAction => 'Add expense';
+
+  @override
+  String get monthlyExpensesNewTitle => 'New recurring expense';
+
+  @override
+  String get monthlyExpensesEditTitle => 'Edit recurring expense';
+
+  @override
+  String get monthlyExpensesNameLabel => 'Name';
+
+  @override
+  String get monthlyExpensesNameRequired => 'Give this expense a name';
+
+  @override
+  String get monthlyExpensesAmountRequired =>
+      'Enter an amount greater than zero';
+
+  @override
+  String get monthlyExpensesCategoryLabel => 'Category';
+
+  @override
+  String get monthlyExpensesCategoryRequired => 'Choose a category';
+
+  @override
+  String get monthlyExpensesFrequencyRequired => 'Choose a frequency';
+
+  @override
+  String get monthlyExpensesAccountRequired => 'Choose an expense account';
+
+  @override
+  String get monthlyExpensesDayOfMonthLabel => 'Day of month';
+
+  @override
+  String get monthlyExpensesDayOfMonthInvalid => 'Enter a day between 1 and 28';
+
+  @override
+  String get monthlyExpensesStartDateLabel => 'Starts';
+
+  @override
+  String get monthlyExpensesEndDateLabel => 'Ends (optional)';
+
+  @override
+  String get monthlyExpensesDefaultPayingAccountLabel =>
+      'Usually paid from (optional)';
+
+  @override
+  String get monthlyExpensesNoneOption => 'None';
+
+  @override
+  String get monthlyExpensesSaved => 'Recurring expense saved';
+
+  @override
+  String get monthlyExpensesManageTooltip => 'Manage';
+
+  @override
+  String get monthlyExpensesEditAction => 'Edit';
+
+  @override
+  String get monthlyExpensesPauseAction => 'Pause';
+
+  @override
+  String get monthlyExpensesResumeAction => 'Resume';
+
+  @override
+  String get monthlyExpensesEndAction => 'End';
+
+  @override
+  String monthlyExpensesEndTitle(Object name) {
+    return 'End $name?';
+  }
+
+  @override
+  String get monthlyExpensesEndBody =>
+      'It stops being due from now on. Payments already made stay on the record.';
+
+  @override
+  String get monthlyExpensesEndConfirm => 'End it';
+
+  @override
+  String get monthlyExpensesStatusUpdated => 'Status updated';
+
+  @override
+  String get monthlyExpensesReadOnlyNotice =>
+      'You can see this month but not change the registry.';
+
+  @override
+  String get monthlyExpensesFormMissingOptions =>
+      'The server did not send the categories, frequencies and accounts this form needs.';
+
+  @override
+  String get monthlyExpensesSalarySlipBadge => 'Salary slip';
 }

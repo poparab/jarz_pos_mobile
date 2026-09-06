@@ -15,6 +15,34 @@
   "menuPointOfSale": "Point of Sale",
   "menuSalesKanban": "Sales Kanban",
   "menuExpenses": "Expenses",
+  "escalationSectionTitle": "Escalated — Unconfirmed Past Threshold",
+  "escalationBadge": "ESCALATED",
+  "escalationThresholdBreached": "Breached {hours}h threshold",
+  "@escalationThresholdBreached": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "escalationOutForDeliveryDuration": "Out for delivery for {duration}",
+  "@escalationOutForDeliveryDuration": {
+    "placeholders": {
+      "duration": {}
+    }
+  },
+  "escalationBranchLabel": "Branch",
+  "escalationAlreadyNotified": "Manager already notified",
+  "escalationNotYetNotified": "Not yet notified",
+  "escalationLoadFailed": "Couldn''t load escalations",
+  "warehouseAlignTitle": "Warehouse Alignment",
+  "warehouseAlignSubtitle": "Invoices whose stock left the wrong branch",
+  "warehouseAlignWatchlistBanner": "Read-only watchlist — fix mismatches in Desk, no repair action here",
+  "warehouseAlignEmpty": "No warehouse mismatches found",
+  "warehouseAlignExpectedLabel": "Expected",
+  "warehouseAlignActualLabel": "Actual",
+  "warehouseAlignBranchFilterLabel": "Branch",
+  "warehouseAlignBranchFilterAll": "All branches",
   "menuCourierBalances": "Courier Balances",
   "menuManagerDashboard": "Manager Dashboard",
   "managerMenuTooltip": "Menu",
@@ -74,7 +102,440 @@
   },
   "menuManufacturing": "Manufacturing",
   "menuStockTransfer": "Stock Transfer",
+  "wooSyncMenuTitle": "WooCommerce Sync",
+  "wooSyncNotPermittedTitle": "Not permitted",
+  "wooSyncNotPermittedBody": "WooCommerce Sync Operator access is required to open this screen.",
+  "wooSyncRefresh": "Refresh",
+  "wooSyncBreakerOpenTitle": "Outbound sync paused",
+  "wooSyncBreakerOpenBody": "The circuit breaker tripped after repeated failures pushing to WooCommerce. Every outbound push is paused until it clears.",
+  "wooSyncBreakerOpenUntil": "Paused until {time}",
+  "@wooSyncBreakerOpenUntil": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "wooSyncBreakerFailureCount": "{count, plural, =1{1 recent failure} other{{count} recent failures}}",
+  "@wooSyncBreakerFailureCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncBreakerClosedTitle": "Outbound sync healthy",
+  "wooSyncBreakerClosedBody": "The outbound circuit breaker is closed. Pushes to WooCommerce are flowing normally.",
+  "wooSyncBacklogTitle": "Backlog",
+  "wooSyncBacklogPending": "Pending",
+  "wooSyncBacklogRetryScheduled": "Retry scheduled",
+  "wooSyncBacklogProcessing": "Processing",
+  "wooSyncBacklogNeedsAttention": "Needs attention",
+  "wooSyncBacklogDueNow": "Due now",
+  "wooSyncBacklogOldestDue": "Oldest due {time}",
+  "@wooSyncBacklogOldestDue": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "wooSyncBacklogExpiredProcessing": "Stuck processing",
+  "wooSyncSearchHint": "Search event id, source id, invoice, reason...",
+  "wooSyncFilterAttentionOnly": "Needs attention",
+  "wooSyncFilterAllEvents": "All events",
+  "wooSyncFilterStatusLabel": "Status",
+  "wooSyncFilterDirectionLabel": "Direction",
+  "wooSyncFilterReviewStateLabel": "Review state",
+  "wooSyncFilterAny": "Any",
+  "wooSyncClearFilters": "Clear filters",
+  "wooSyncEventsEmpty": "No sync events match these filters.",
+  "wooSyncEventCount": "{count, plural, =1{1 event} other{{count} events}}",
+  "@wooSyncEventCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncEventRetry": "Retry",
+  "wooSyncEventProcessNow": "Process now",
+  "wooSyncEventSetReviewState": "Review state",
+  "wooSyncEventPushInvoice": "Push to WooCommerce",
+  "wooSyncEventLocalInvoiceLabel": "Invoice {name}",
+  "@wooSyncEventLocalInvoiceLabel": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "wooSyncEventAttempt": "Attempt {count} of {max}",
+  "@wooSyncEventAttempt": {
+    "placeholders": {
+      "count": {},
+      "max": {}
+    }
+  },
+  "wooSyncEventLastError": "Last error: {error}",
+  "@wooSyncEventLastError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "wooSyncEventReviewReason": "Review: {reason}",
+  "@wooSyncEventReviewReason": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "wooSyncSelectAll": "Select all",
+  "wooSyncClearSelection": "Clear selection",
+  "wooSyncSelectedCount": "{count, plural, =1{1 selected} other{{count} selected}}",
+  "@wooSyncSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncBulkRetry": "Retry selected",
+  "wooSyncBulkSetReviewState": "Set review state",
+  "wooSyncBulkLimitExceeded": "Bulk actions are limited to {limit} events at a time; {count} are selected. Narrow the selection and try again.",
+  "@wooSyncBulkLimitExceeded": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncRunWorker": "Run worker now",
+  "wooSyncRunWorkerConfirmTitle": "Run the sync worker now?",
+  "wooSyncRunWorkerConfirmBody": "This immediately processes every sync event that is due across the whole store, not only what is shown here.",
+  "wooSyncClearBreaker": "Clear outbound breaker",
+  "wooSyncClearBreakerConfirmTitle": "Clear the outbound circuit breaker?",
+  "wooSyncClearBreakerConfirmBody": "This resumes every paused outbound push immediately. Only do this once the WooCommerce outage that tripped it is confirmed resolved.",
+  "wooSyncConfirm": "Confirm",
+  "wooSyncCancel": "Cancel",
+  "wooSyncRetryQueued": "Retry queued for {name}",
+  "@wooSyncRetryQueued": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "wooSyncProcessedNow": "Processed {name}",
+  "@wooSyncProcessedNow": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "wooSyncReviewStateSaved": "Review state updated",
+  "wooSyncBulkRetryDone": "{count, plural, =1{Retried 1 event} other{Retried {count} events}}",
+  "@wooSyncBulkRetryDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncBulkReviewStateDone": "{count, plural, =1{Updated 1 event} other{Updated {count} events}}",
+  "@wooSyncBulkReviewStateDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncWorkerRunDone": "Worker run complete",
+  "wooSyncBreakerCleared": "{count, plural, =0{Breaker cleared} =1{Breaker cleared, 1 event released} other{Breaker cleared, {count} events released}}",
+  "@wooSyncBreakerCleared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncInvoicePushed": "Pushed {name} to WooCommerce",
+  "@wooSyncInvoicePushed": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "wooSyncReviewStateDialogTitle": "Set review state",
+  "wooSyncReviewStateNotesLabel": "Notes (optional)",
+  "wooSyncStatusPending": "Pending",
+  "wooSyncStatusProcessing": "Processing",
+  "wooSyncStatusSucceeded": "Succeeded",
+  "wooSyncStatusRetryScheduled": "Retry scheduled",
+  "wooSyncStatusSkipped": "Skipped",
+  "wooSyncStatusSuperseded": "Superseded",
+  "wooSyncStatusFailed": "Failed",
+  "wooSyncStatusNeedsReview": "Needs review",
+  "wooSyncStatusDeadLetter": "Dead letter",
+  "wooSyncDirectionInbound": "Inbound",
+  "wooSyncDirectionOutbound": "Outbound",
+  "wooSyncReviewStateOpen": "Open",
+  "wooSyncReviewStateInvestigating": "Investigating",
+  "wooSyncReviewStateResolved": "Resolved",
+  "wooSyncReviewStateIgnored": "Ignored",
+  "wooDuplicatesMenuTitle": "Duplicate Customers",
+  "wooDuplicatesIntro": "These phone numbers match more than one customer, but nothing here was clear enough to merge automatically.",
+  "wooDuplicatesReadOnlyBanner": "Read-only triage. Merging duplicate customers is administrator-only and is done in Desk, not here.",
+  "wooDuplicatesEmpty": "No duplicate customer groups need review right now.",
+  "wooDuplicatesGroupSize": "{count, plural, =1{1 customer} other{{count} customers}}",
+  "@wooDuplicatesGroupSize": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooDuplicatesGroupReason": "Why not auto-merged: {reason}",
+  "@wooDuplicatesGroupReason": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "wooDuplicatesCandidateInvoices": "{count, plural, =1{1 invoice} other{{count} invoices}}",
+  "@wooDuplicatesCandidateInvoices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooDuplicatesCandidateSubmitted": "{count} submitted",
+  "@wooDuplicatesCandidateSubmitted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooDuplicatesCandidateRevenue": "Revenue {amount}",
+  "@wooDuplicatesCandidateRevenue": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "wooDuplicatesCandidateCreated": "Created {date}",
+  "@wooDuplicatesCandidateCreated": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "wooDuplicatesCandidateDisabled": "Disabled",
+  "wooDuplicatesCandidateActive": "Active",
+  "wooDuplicatesCandidateWooId": "Woo ID {id}",
+  "@wooDuplicatesCandidateWooId": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "wooDuplicatesCandidateNoWooId": "No WooCommerce ID",
   "menuCashTransfer": "Cash Transfer",
+  "unsettleAlreadyReversedLabel": "Already reversed",
+  "unsettleReversalEntryLabel": "Reversed by {entry}",
+  "@unsettleReversalEntryLabel": {
+    "placeholders": {
+      "entry": {"type": "String"}
+    }
+  },
+  "unsettleEntryPointTooltip": "Reverse a settlement",
+  "unsettleHistoryTitle": "Reverse a Settlement",
+  "unsettleHistorySearchHint": "Search by courier, party or Journal Entry",
+  "unsettleHistoryEmpty": "No settlements found for this branch.",
+  "unsettleRecordJournalEntry": "Journal Entry: {entry}",
+  "@unsettleRecordJournalEntry": {
+    "placeholders": {
+      "entry": {}
+    }
+  },
+  "unsettleRecordInvoiceCount": "{count, plural, one{1 transaction} other{{count} transactions}}",
+  "@unsettleRecordInvoiceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unsettleModeCollect": "Collected from courier",
+  "unsettleModePay": "Paid to courier",
+  "unsettleModeBulk": "Settle all",
+  "unsettleModeSettleNow": "Settled now",
+  "unsettleModeSettleLater": "Settled later",
+  "unsettleModeGeneric": "Settlement",
+  "unsettleDialogTitle": "Reverse Settlement",
+  "unsettlePreviewLoading": "Loading reversal preview…",
+  "unsettlePreviewErrorTitle": "Couldn''t load the reversal preview",
+  "unsettleRefreshAndRetry": "Refresh preview & retry",
+  "unsettleOriginalEntryLabel": "Original settlement: {entry}",
+  "@unsettleOriginalEntryLabel": {
+    "placeholders": {
+      "entry": {}
+    }
+  },
+  "unsettlePartyLabel": "Party: {party}",
+  "@unsettlePartyLabel": {
+    "placeholders": {
+      "party": {}
+    }
+  },
+  "unsettleBranchLabel": "Branch: {branch}",
+  "@unsettleBranchLabel": {
+    "placeholders": {
+      "branch": {}
+    }
+  },
+  "unsettlePostingDateLabel": "Originally posted: {date}",
+  "@unsettlePostingDateLabel": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "unsettleNetAmountLabel": "Net amount: {amount}",
+  "@unsettleNetAmountLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "unsettleWillReopenSectionTitle": "Transactions that will reopen",
+  "unsettleAccountLinesSectionTitle": "Account lines that will flip",
+  "unsettleTransactionLineSubtitle": "{city} • {amount}",
+  "@unsettleTransactionLineSubtitle": {
+    "placeholders": {
+      "city": {},
+      "amount": {}
+    }
+  },
+  "unsettleAccountLineSubtitle": "Debit {debit} / Credit {credit}",
+  "@unsettleAccountLineSubtitle": {
+    "placeholders": {
+      "debit": {},
+      "credit": {}
+    }
+  },
+  "unsettleNoBreakdownAvailable": "The server did not return a line-level breakdown for this preview. The totals above are still accurate.",
+  "unsettleAuditTrailNotice": "This posts a new, opposite Journal Entry. The original settlement is never cancelled — both stay in the audit trail.",
+  "unsettleAckCheckboxLabel": "I understand this reverses real money movement and cannot be undone from here.",
+  "unsettleReasonFieldLabel": "Reason (optional)",
+  "unsettleReasonFieldHint": "e.g. settled from the wrong branch till",
+  "unsettleConfirmButton": "Reverse Settlement",
+  "unsettleCommitting": "Posting the reversing entry…",
+  "unsettleSuccessTitle": "Settlement reversed",
+  "unsettleSuccessBody": "The reversing Journal Entry {entry} was posted. The affected transactions are back in Unsettled.",
+  "@unsettleSuccessBody": {
+    "placeholders": {
+      "entry": {}
+    }
+  },
+  "unsettleCommitErrorTitle": "Couldn''t reverse the settlement",
+  "unsettleAccessRestricted": "Only admins and line managers can reverse a settlement.",
+  "partnerSettlementMenuTitle": "Partner Settlements",
+  "partnerSettlementTabDelivery": "Delivery Partners",
+  "partnerSettlementTabSales": "Sales Partners",
+  "partnerSettlementRefreshTooltip": "Refresh",
+  "partnerSettlementDeliveryEmptyBalances": "No unbilled delivery partner fees.",
+  "partnerSettlementTripCount": "{count, plural, =1{1 trip} other{{count} trips}}",
+  "@partnerSettlementTripCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerSettlementOldestSince": "Oldest: {date}",
+  "@partnerSettlementOldestSince": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "partnerSettlementReviewAndSettle": "Review & settle",
+  "partnerSettlementTripsTitle": "{partner} — unsettled trips",
+  "@partnerSettlementTripsTitle": {
+    "placeholders": {
+      "partner": {}
+    }
+  },
+  "partnerSettlementTripsEmpty": "No unsettled trips for this partner.",
+  "partnerSettlementSelectAll": "Select all",
+  "partnerSettlementDeselectAll": "Deselect all",
+  "partnerSettlementSelectedOfTotal": "{selected} of {total} selected",
+  "@partnerSettlementSelectedOfTotal": {
+    "placeholders": {
+      "selected": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerSettlementUnselectedWarning": "Unticked trips stay unbilled and will reappear next week.",
+  "partnerSettlementTripInvoiceLabel": "Invoice: {invoice}",
+  "@partnerSettlementTripInvoiceLabel": {
+    "placeholders": {
+      "invoice": {}
+    }
+  },
+  "partnerSettlementTripNoInvoice": "No invoice reference",
+  "partnerSettlementExtraChargesTitle": "Extra charges",
+  "partnerSettlementExtraChargesHint": "Fixed charges that never accrued per order — subscription, waiting time, a returned-trip charge.",
+  "partnerSettlementAddCharge": "Add charge",
+  "partnerSettlementChargeLabel": "Description",
+  "partnerSettlementChargeAmount": "Amount",
+  "partnerSettlementNoCharges": "No extra charges added.",
+  "partnerSettlementRemoveCharge": "Remove charge",
+  "partnerSettlementFeesSubtotal": "Trip fees",
+  "partnerSettlementChargesSubtotal": "Extra charges",
+  "partnerSettlementGrandTotal": "Total to transfer",
+  "partnerSettlementBankAccountOptional": "Bank account (optional)",
+  "partnerSettlementSettleButton": "Settle",
+  "partnerSettlementConfirmTitle": "Confirm bank transfer",
+  "partnerSettlementConfirmMessage": "This posts a real bank transfer. Review the totals before you continue.",
+  "partnerSettlementConfirmTripsLine": "{count, plural, =0{No trips selected} =1{1 trip agreed} other{{count} trips agreed}}",
+  "@partnerSettlementConfirmTripsLine": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerSettlementConfirmChargesLine": "{count, plural, =0{No extra charges} =1{1 extra charge} other{{count} extra charges}}",
+  "@partnerSettlementConfirmChargesLine": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerSettlementNothingToSettle": "Nothing selected — tick at least one trip or add a charge.",
+  "partnerSettlementSettledMessage": "Settled. Journal Entry {journalEntry}.",
+  "@partnerSettlementSettledMessage": {
+    "placeholders": {
+      "journalEntry": {}
+    }
+  },
+  "partnerSettlementSalesEmptyBalances": "No unsettled sales partner commission.",
+  "partnerSettlementOrderCount": "{count, plural, =1{1 order} other{{count} orders}}",
+  "@partnerSettlementOrderCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerSettlementOnlineCashSplit": "Online {online} • Cash {cash}",
+  "@partnerSettlementOnlineCashSplit": {
+    "placeholders": {
+      "online": {},
+      "cash": {}
+    }
+  },
+  "partnerSettlementCommissionLabel": "Commission",
+  "partnerSettlementVatLabel": "VAT",
+  "partnerSettlementFeeTotalLabel": "Total fee",
+  "partnerSettlementSettleCommissionButton": "Settle commission",
+  "partnerSettlementSalesConfirmTitle": "Confirm commission settlement",
+  "partnerSettlementSalesConfirmMessage": "This posts the commission + VAT recognition journal entry. Review the totals before you continue.",
+  "partnerSettlementSalesNothingToSettle": "No unsettled transactions for this partner.",
   "cashTransferFromAccount": "From Account",
   "cashTransferToAccount": "To Account",
   "cashTransferPostingToday": "Posting: Today",
@@ -124,6 +585,114 @@
   },
   "postingDateConfirmationDates": "Posting dates:",
   "menuInventoryCount": "Inventory Count",
+  "addressPinTitle": "Fix delivery pin",
+  "addressPinCurrentPin": "Current pin",
+  "addressPinNoPinYet": "No pin set yet",
+  "addressPinProposeNew": "Propose a new pin",
+  "addressPinPickOnMap": "Pick on map",
+  "addressPinUseThisPoint": "Use this point",
+  "addressPinPreviewChanges": "Preview change",
+  "addressPinWillUpdate": "This will update the pin.",
+  "addressPinWillKeepExisting": "The existing pin is kept — it already has equal or higher confidence.",
+  "addressPinMovedBy": "Moves the pin about {meters} m from where it is now.",
+  "@addressPinMovedBy": {
+    "placeholders": {
+      "meters": {}
+    }
+  },
+  "addressPinPermissionNote": "Only a line manager may commit a pin correction.",
+  "addressPinCommit": "Save correction",
+  "addressPinNoteLabel": "What was wrong? (optional)",
+  "addressPinSaveSuccessAccepted": "Pin updated.",
+  "addressPinSaveSuccessRejected": "Kept the existing pin — it already has equal or higher confidence.",
+  "addressPinFixTooltip": "Fix delivery pin",
+  "addressPinDryRunFailed": "Could not preview this change.",
+  "addressPinSourceLabel": "Source: {source}",
+  "@addressPinSourceLabel": {
+    "placeholders": {
+      "source": {}
+    }
+  },
+  "addressPinConfidenceLabel": "Confidence rank: {rank}",
+  "@addressPinConfidenceLabel": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "addressPinAccuracyLabel": "Accurate to about {meters} m",
+  "@addressPinAccuracyLabel": {
+    "placeholders": {
+      "meters": {}
+    }
+  },
+  "addressPinAccuracyUnknown": "Accuracy unknown",
+  "addressPinVerifiedOn": "Verified {date}",
+  "@addressPinVerifiedOn": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "addressPinStoredLinkLabel": "Original pasted link",
+  "addressPinSourceTerritoryCentroid": "Territory centre (fallback)",
+  "addressPinSourcePosLink": "Pasted link at order creation",
+  "addressPinSourceCustomerPin": "Customer-shared pin",
+  "addressPinSourceCourierWeb": "Courier check-in (web)",
+  "addressPinSourceCourierVerified": "Courier check-in (verified)",
+  "addressPinSourceManualOverride": "Manual correction",
+  "addressPinSourceUnknown": "Unknown",
+  "rosterBulkSelectHint": "Long-press a day, then tap more days in the same row to add them to the selection.",
+  "rosterBulkSelectionCount": "{count, plural, =1{1 day selected for {name}} other{{count} days selected for {name}}}",
+  "@rosterBulkSelectionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {}
+    }
+  },
+  "rosterBulkAssignShift": "Assign shift to all",
+  "rosterBulkMarkOff": "Mark all off",
+  "rosterBulkClearOff": "Clear day off (all)",
+  "rosterBulkCancelSelection": "Cancel selection",
+  "rosterBulkConfirmOffTitle": "Mark {count} days off?",
+  "@rosterBulkConfirmOffTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rosterBulkConfirmOffBody": "{name} will not be able to clock in on these days until they are rostered again.",
+  "@rosterBulkConfirmOffBody": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "rosterBulkApplying": "Applying…",
+  "rosterBulkPartialFailureTitle": "Some days could not be updated",
+  "rosterBulkPartialFailureBody": "{applied} of {total} applied.",
+  "@rosterBulkPartialFailureBody": {
+    "placeholders": {
+      "applied": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "rosterBulkAllFailed": "None of the selected days could be updated.",
+  "rosterBulkSuccess": "{count} days updated.",
+  "@rosterBulkSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rosterBulkViewFailures": "View details",
   "inventoryCountOfflineUsingCache": "Offline using cached data",
   "inventoryCountConfirmAllBeforeSubmit": "Please confirm all items before submitting ({remaining} remaining)",
   "@inventoryCountConfirmAllBeforeSubmit": {
@@ -2167,6 +2736,68 @@
   "authConnectionFailed": "Connection failed. Please verify network and server availability.",
   "authLoginFailed": "Login failed. Please try again.",
   "menuReports": "Reports",
+  "velocityReportTileTitle": "Reorder & Velocity Alerts",
+  "velocityReportTileSubtitle": "Restock alerts from weekly sales-velocity tracking",
+  "velocityReportTitle": "Reorder & Velocity Alerts",
+  "velocityReportSummaryCritical": "Critical",
+  "velocityReportSummaryWatch": "Watch List",
+  "velocityReportSummarySlow": "Slow Movers",
+  "velocityReportSummaryOverstock": "Overstocked",
+  "velocityReportDetailTitle": "Velocity Detail",
+  "velocityReportRecalculateAction": "Recalculate Now",
+  "velocityReportRecalculateConfirmTitle": "Recalculate velocity now?",
+  "velocityReportRecalculateConfirmBody": "This recalculates sales velocity for every stock item and can take a while. The weekly job already keeps this up to date automatically.",
+  "velocityReportRecalculateSuccess": "Velocity updated for {count} items",
+  "@velocityReportRecalculateSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "velocityReportRecalculateError": "Couldn''t recalculate velocity. Please try again.",
+  "segmentReportTileTitle": "Customer Segments (RFM)",
+  "segmentReportTileSubtitle": "Recency, frequency & value segmentation from the nightly job",
+  "segmentReportTitle": "Customer Segments",
+  "segmentReportColumnCount": "Customers",
+  "segmentReportTotalCustomers": "Total Customers",
+  "segmentReportRecalculateAction": "Recalculate Now",
+  "segmentReportRecalculateConfirmTitle": "Recalculate segments now?",
+  "segmentReportRecalculateConfirmBody": "This recalculates RFM segments for every customer; pinned customers are skipped. The nightly job already keeps this up to date automatically.",
+  "segmentReportRecalculateSuccess": "Segments updated for {updated} customers",
+  "@segmentReportRecalculateSuccess": {
+    "placeholders": {
+      "updated": {
+        "type": "int"
+      }
+    }
+  },
+  "segmentReportRecalculateError": "Couldn''t recalculate segments. Please try again.",
+  "segmentReportCustomersTitle": "{segment} customers",
+  "@segmentReportCustomersTitle": {
+    "placeholders": {
+      "segment": {}
+    }
+  },
+  "segmentReportCopyAll": "Copy All",
+  "segmentReportCopied": "Copied to clipboard",
+  "segmentReportExportEmpty": "No customers in this segment",
+  "segmentReportPin": "Pin segment",
+  "segmentReportUnpin": "Unpin segment",
+  "segmentReportPinConfirmBody": "Pin {customer}''s segment so it stops changing on the next recalculation?",
+  "@segmentReportPinConfirmBody": {
+    "placeholders": {
+      "customer": {}
+    }
+  },
+  "segmentReportUnpinConfirmBody": "Unpin {customer} so their segment recalculates automatically again?",
+  "@segmentReportUnpinConfirmBody": {
+    "placeholders": {
+      "customer": {}
+    }
+  },
+  "segmentReportOverrideSuccess": "Segment updated",
+  "segmentReportOverrideError": "Couldn''t update segment. Please try again.",
   "reportsTitle": "Reports",
   "reportsFinalProducts": "Final Products",
   "reportsFinalProductsDesc": "Stock count by warehouse for Medium & Large items",
@@ -5951,5 +6582,198 @@
       "end": {}
     }
   },
-  "shiftHistoryOpenedBy": "Opened by {name}"
+  "shiftHistoryOpenedBy": "Opened by {name}",
+  "menuMonthlyExpenses": "Monthly Expenses",
+  "monthlyExpensesTitle": "Monthly Expenses",
+  "monthlyExpensesRefreshTooltip": "Refresh",
+  "monthlyExpensesMonthLabel": "Month",
+  "monthlyExpensesPreviousMonthTooltip": "Previous month",
+  "monthlyExpensesNextMonthTooltip": "Next month",
+  "monthlyExpensesLoadFailed": "Could not load this month.",
+  "monthlyExpensesRemaining": "Remaining",
+  "monthlyExpensesDue": "Due",
+  "monthlyExpensesPaid": "Paid",
+  "monthlyExpensesRunRate": "Monthly run-rate",
+  "monthlyExpensesRemainingCaption": "{paid} paid of {due} due",
+  "@monthlyExpensesRemainingCaption": {
+    "placeholders": {
+      "paid": {},
+      "due": {}
+    }
+  },
+  "monthlyExpensesOverpaidNotice": "Overpaid by {amount}",
+  "@monthlyExpensesOverpaidNotice": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "monthlyExpensesItemsBreakdown": "{paid} paid, {partial} partial, {unpaid} unpaid",
+  "@monthlyExpensesItemsBreakdown": {
+    "placeholders": {
+      "paid": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "unpaid": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyExpensesItemsTotal": "{count, plural, =0{No items due} =1{1 item due} other{{count} items due}}",
+  "@monthlyExpensesItemsTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyExpensesGapsTitle": "Needs attention",
+  "monthlyExpensesRecurringTitle": "Recurring expenses",
+  "monthlyExpensesRecurringEmpty": "Nothing is in the recurring expense registry yet.",
+  "monthlyExpensesCategoryUncategorised": "Uncategorised",
+  "monthlyExpensesCategorySubtotal": "{remaining} left of {due}",
+  "@monthlyExpensesCategorySubtotal": {
+    "placeholders": {
+      "remaining": {},
+      "due": {}
+    }
+  },
+  "monthlyExpensesStatusPaid": "Paid",
+  "monthlyExpensesStatusPartial": "Partial",
+  "monthlyExpensesStatusUnpaid": "Unpaid",
+  "monthlyExpensesStatusNotDue": "Not due",
+  "monthlyExpensesStatusOverpaid": "Overpaid",
+  "monthlyExpensesLifecyclePaused": "Paused",
+  "monthlyExpensesLifecycleEnded": "Ended",
+  "monthlyExpensesPayAction": "Pay",
+  "monthlyExpensesInferredBadge": "From the ledger",
+  "monthlyExpensesInferredExplain": "{amount} of the paid figure was read from the ledger, not paid through this app.",
+  "@monthlyExpensesInferredExplain": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "monthlyExpensesSharedAccountBadge": "Shared account",
+  "monthlyExpensesSharedAccountExplain": "Other expenses post to {account} this month, so ledger payments cannot be matched to this one.",
+  "@monthlyExpensesSharedAccountExplain": {
+    "placeholders": {
+      "account": {}
+    }
+  },
+  "monthlyExpensesFrequencyLabel": "Frequency",
+  "monthlyExpensesDueDateLabel": "Due date",
+  "monthlyExpensesAccountLabel": "Expense account",
+  "monthlyExpensesCostCenterLabel": "Cost center",
+  "monthlyExpensesSupplierLabel": "Supplier",
+  "monthlyExpensesNotesLabel": "Notes",
+  "monthlyExpensesAmountLabel": "Amount",
+  "monthlyExpensesMonthlyEquivalentLabel": "Monthly equivalent",
+  "monthlyExpensesPaymentsTitle": "Payments",
+  "monthlyExpensesPaymentsEmpty": "No payments recorded for this month.",
+  "monthlyExpensesPaymentCancelAction": "Cancel payment",
+  "monthlyExpensesPaymentCancelTitle": "Cancel this payment?",
+  "monthlyExpensesPaymentCancelBody": "This reverses the journal entry for {amount} and puts the money back in {source}.",
+  "@monthlyExpensesPaymentCancelBody": {
+    "placeholders": {
+      "amount": {},
+      "source": {}
+    }
+  },
+  "monthlyExpensesPaymentCancelHint": "Why is this being reversed?",
+  "monthlyExpensesPaymentCancelConfirm": "Cancel and reverse",
+  "monthlyExpensesPaymentCancelled": "Payment cancelled and journal entry reversed",
+  "monthlyExpensesSalariesTitle": "Salaries",
+  "monthlyExpensesSalariesEmpty": "No employee has a salary structure for this month.",
+  "monthlyExpensesPayrollNotConfigured": "Payroll is not set up, so salaries cannot be paid from this screen.",
+  "monthlyExpensesPayrollAccountLabel": "Salary account",
+  "monthlyExpensesSalaryBaseLabel": "Base",
+  "monthlyExpensesSalaryVariableLabel": "Variable",
+  "monthlyExpensesSalarySlipExists": "A submitted salary slip already covers this month, so paying here would post the salary twice.",
+  "monthlyExpensesMissingStructureTitle": "{count, plural, =1{1 employee has no salary structure} other{{count} employees have no salary structure}}",
+  "@monthlyExpensesMissingStructureTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyExpensesMissingStructureBody": "Their pay is not in the figures above. Assign a salary structure in HR to include them.",
+  "monthlyExpensesUnattributedGl": "{amount} posted to the salary account cannot be matched to any employee, so it is reported here instead of being added to a row.",
+  "@monthlyExpensesUnattributedGl": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "monthlyExpensesPayTitle": "Pay {name}",
+  "@monthlyExpensesPayTitle": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "monthlyExpensesPayPeriod": "For {month}",
+  "@monthlyExpensesPayPeriod": {
+    "placeholders": {
+      "month": {}
+    }
+  },
+  "monthlyExpensesPayAmountLabel": "Amount to pay",
+  "monthlyExpensesPayAmountInvalid": "Enter an amount greater than zero",
+  "monthlyExpensesPayFromLabel": "Pay from",
+  "monthlyExpensesPayFromRequired": "Choose an account to pay from",
+  "monthlyExpensesPayDateLabel": "Payment date",
+  "monthlyExpensesPayRemarksLabel": "Remarks (optional)",
+  "monthlyExpensesPaySubmit": "Pay",
+  "monthlyExpensesPaySourceOption": "{label} — {balance}",
+  "@monthlyExpensesPaySourceOption": {
+    "placeholders": {
+      "label": {},
+      "balance": {}
+    }
+  },
+  "monthlyExpensesPayNoSources": "No cash or bank account is available to pay from.",
+  "monthlyExpensesPayRemainingHint": "Remaining: {amount}",
+  "@monthlyExpensesPayRemainingHint": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "monthlyExpensesPaymentRecorded": "Payment recorded",
+  "monthlyExpensesOverpayTitle": "More than what is due",
+  "monthlyExpensesOverpayConfirm": "Pay anyway",
+  "monthlyExpensesAddAction": "Add expense",
+  "monthlyExpensesNewTitle": "New recurring expense",
+  "monthlyExpensesEditTitle": "Edit recurring expense",
+  "monthlyExpensesNameLabel": "Name",
+  "monthlyExpensesNameRequired": "Give this expense a name",
+  "monthlyExpensesAmountRequired": "Enter an amount greater than zero",
+  "monthlyExpensesCategoryLabel": "Category",
+  "monthlyExpensesCategoryRequired": "Choose a category",
+  "monthlyExpensesFrequencyRequired": "Choose a frequency",
+  "monthlyExpensesAccountRequired": "Choose an expense account",
+  "monthlyExpensesDayOfMonthLabel": "Day of month",
+  "monthlyExpensesDayOfMonthInvalid": "Enter a day between 1 and 28",
+  "monthlyExpensesStartDateLabel": "Starts",
+  "monthlyExpensesEndDateLabel": "Ends (optional)",
+  "monthlyExpensesDefaultPayingAccountLabel": "Usually paid from (optional)",
+  "monthlyExpensesNoneOption": "None",
+  "monthlyExpensesSaved": "Recurring expense saved",
+  "monthlyExpensesManageTooltip": "Manage",
+  "monthlyExpensesEditAction": "Edit",
+  "monthlyExpensesPauseAction": "Pause",
+  "monthlyExpensesResumeAction": "Resume",
+  "monthlyExpensesEndAction": "End",
+  "monthlyExpensesEndTitle": "End {name}?",
+  "@monthlyExpensesEndTitle": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "monthlyExpensesEndBody": "It stops being due from now on. Payments already made stay on the record.",
+  "monthlyExpensesEndConfirm": "End it",
+  "monthlyExpensesStatusUpdated": "Status updated",
+  "monthlyExpensesReadOnlyNotice": "You can see this month but not change the registry.",
+  "monthlyExpensesFormMissingOptions": "The server did not send the categories, frequencies and accounts this form needs.",
+  "monthlyExpensesSalarySlipBadge": "Salary slip"
 }

@@ -12,6 +12,8 @@ import '../../../kanban/providers/kanban_provider.dart';
 import '../../data/repositories/courier_repository.dart';
 import '../../../kanban/widgets/settlement_preview_dialog.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/network/user_service.dart';
+import '../../../settlement_reversal/presentation/widgets/reverse_settlement_sheet.dart';
 
 String _courierPartyKey(String partyType, String party) => '$partyType::$party';
 
@@ -88,14 +90,18 @@ class _CourierBalancesDialogState extends ConsumerState<CourierBalancesDialog> {
   }
 }
 
-class _DialogHeader extends StatelessWidget {
+class _DialogHeader extends ConsumerWidget {
   final VoidCallback onClose;
   final VoidCallback onRefresh;
   const _DialogHeader({required this.onClose, required this.onRefresh});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    // Reversing a settlement is gated the same way server-side
+    // (Admin | Line Manager tier); hiding the entry point for everyone else
+    // avoids a round trip just to be told no.
+    final canReverse = ref.watch(canActAsLineManagerProvider);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       color: Theme.of(context).colorScheme.primary,
@@ -111,6 +117,15 @@ class _DialogHeader extends StatelessWidget {
                 ?.copyWith(color: Theme.of(context).colorScheme.onPrimary),
           ),
           const Spacer(),
+          if (canReverse)
+            IconButton(
+              tooltip: l10n.unsettleEntryPointTooltip,
+              icon: Icon(Icons.undo, color: Theme.of(context).colorScheme.onPrimary),
+              onPressed: () {
+                final posProfile = ref.read(posNotifierProvider).selectedProfile?['name'] as String?;
+                ReverseSettlementSheet.show(context, posProfile: posProfile);
+              },
+            ),
           IconButton(
             tooltip: l10n.expensesRefreshTooltip,
             icon: Icon(Icons.refresh, color: Theme.of(context).colorScheme.onPrimary),

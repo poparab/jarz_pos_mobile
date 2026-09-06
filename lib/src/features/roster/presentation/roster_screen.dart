@@ -8,6 +8,7 @@ import '../../../core/network/user_service.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../models/roster_models.dart';
 import '../state/roster_providers.dart';
+import 'widgets/roster_bulk_bar.dart';
 import 'widgets/roster_day_sheet.dart';
 import 'widgets/roster_hours_sheet.dart';
 import 'widgets/roster_legend.dart';
@@ -30,6 +31,21 @@ class RosterScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final canManage = ref.watch(canActAsLineManagerProvider);
     final monthAsync = ref.watch(rosterMonthDataProvider);
+    final selection = ref.watch(rosterSelectionProvider);
+
+    // A selection names dates in a SPECIFIC month; switching months or the
+    // branch filter must not leave it pointing at a grid the manager can no
+    // longer see, where a bulk action would look like it targets nothing.
+    ref.listen(rosterMonthProvider, (previous, next) {
+      if (previous != next) {
+        ref.read(rosterSelectionProvider.notifier).state = null;
+      }
+    });
+    ref.listen(rosterLocationFilterProvider, (previous, next) {
+      if (previous != next) {
+        ref.read(rosterSelectionProvider.notifier).state = null;
+      }
+    });
 
     return Scaffold(
       drawer: const AppDrawer(),
@@ -74,6 +90,7 @@ class RosterScreen extends ConsumerWidget {
                     error: (error, _) => _ErrorState(error: error),
                   ),
                 ),
+                if (selection != null) RosterBulkBar(selection: selection),
               ],
             ),
     );
@@ -198,6 +215,15 @@ class _RosterBody extends ConsumerWidget {
       children: [
         if (month.gaps.isNotEmpty) _UncoveredBanner(gaps: month.gaps),
         const RosterLegend(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Text(
+            l10n.rosterBulkSelectHint,
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(fontStyle: FontStyle.italic),
+          ),
+        ),
         Expanded(child: _RosterGrid(month: month)),
       ],
     );
@@ -459,6 +485,9 @@ class _ShiftCell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final data = cell;
+    final selection = ref.watch(rosterSelectionProvider);
+    final selectionIsThisRow = selection?.employee == employee.employee;
+    final isSelected = selectionIsThisRow && selection!.dates.contains(date);
 
     Color background;
     Color foreground;
@@ -506,13 +535,38 @@ class _ShiftCell extends ConsumerWidget {
     }
 
     return InkWell(
-      onTap: () => showRosterDaySheet(
-        context,
-        employee: employee,
-        date: date,
-        cell: data,
-        catalog: catalog,
-      ),
+      onTap: () {
+        // Tapping inside an active selection on THIS row extends or shrinks
+        // the run instead of opening the single-cell sheet — that sheet's
+        // per-day flow is still the entry point (via long-press) and the
+        // right tool for a lone edit, so nothing here removes it.
+        if (selectionIsThisRow) {
+          ref.read(rosterSelectionProvider.notifier).state = selection!
+              .toggle(date);
+          return;
+        }
+        showRosterDaySheet(
+          context,
+          employee: employee,
+          date: date,
+          cell: data,
+          catalog: catalog,
+        );
+      },
+      onLongPress: () {
+        final current = ref.read(rosterSelectionProvider);
+        if (current != null && current.employee == employee.employee) {
+          ref.read(rosterSelectionProvider.notifier).state = current.toggle(
+            date,
+          );
+        } else {
+          ref.read(rosterSelectionProvider.notifier).state = RosterSelection(
+            employee: employee.employee,
+            employeeName: employee.employeeName,
+            dates: {date},
+          );
+        }
+      },
       child: Container(
         width: width,
         height: height,
@@ -521,6 +575,9 @@ class _ShiftCell extends ConsumerWidget {
         decoration: BoxDecoration(
           color: background,
           borderRadius: BorderRadius.circular(6),
+          border: isSelected
+              ? Border.all(color: theme.colorScheme.primary, width: 2)
+              : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

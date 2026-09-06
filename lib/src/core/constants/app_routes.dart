@@ -31,6 +31,11 @@ abstract final class AppRoutes {
   static const cashTransfer = '/cash-transfer';
   static const inventoryCount = '/inventory-count';
   static const expenses = '/expenses';
+
+  /// The company's monthly bill — the recurring-expense registry plus payroll
+  /// for one month, with Pay actions. Distinct from [expenses], which records
+  /// one-off spending; this pays a *period* of a standing commitment.
+  static const monthlyExpenses = '/monthly-expenses';
   static const trips = '/trips';
 
   /// Live courier map. Supervisor-only: the tracking API deliberately refuses
@@ -78,4 +83,23 @@ abstract final class AppRoutes {
   static const leadsMap = '/leads/map';
   static const leadForm = '/leads/new';
   static const leadDetail = '/leads/:id';
+
+  // ── Partner settlements ───────────────────────────────────────────────
+  // Two payables that were only ever cleared outside the app: the delivery
+  // partner's weekly bank transfer, and sales partner commission.
+  static const partnerSettlements = '/partner-settlements';
+
+  // ── Address pin correction ────────────────────────────────────────────
+  // Pushed from an address or an order, never a drawer entry.
+  static const addressPin = '/address-pin';
+
+  // ── Reports added to the existing hub ─────────────────────────────────
+  static const reportsVelocity = '/reports/velocity';
+  static const reportsSegments = '/reports/segments';
+  static const reportsWarehouseAlignment = '/reports/warehouse-alignment';
+
+  // ── WooCommerce sync operations ───────────────────────────────────────
+  // The retry / review / breaker workflow that lived only in Desk.
+  static const wooSync = '/woo-sync';
+  static const wooDuplicates = '/woo-sync/duplicates';
 }

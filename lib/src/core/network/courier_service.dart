@@ -237,10 +237,14 @@ class CourierService {
     };
     final resp = await _dio.post(endpoint, data: data);
     final payload = resp.data;
+    final Map<String, dynamic> result;
     if (payload is Map && payload['message'] is Map) {
-      return Map<String, dynamic>.from(payload['message'] as Map);
+      result = Map<String, dynamic>.from(payload['message'] as Map);
+    } else if (payload is Map) {
+      result = Map<String, dynamic>.from(payload);
+    } else {
+      throw Exception('Unexpected settle all response');
     }
-    if (payload is Map) return Map<String, dynamic>.from(payload);
-    throw Exception('Unexpected settle all response');
+    return result;
   }
 }

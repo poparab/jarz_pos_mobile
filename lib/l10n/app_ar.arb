@@ -15,6 +15,34 @@
   "menuPointOfSale": "نقطة البيع",
   "menuSalesKanban": "لوحة المبيعات",
   "menuExpenses": "المصروفات",
+  "escalationSectionTitle": "متأخرة — غير مؤكدة بعد تجاوز الحد المسموح",
+  "escalationBadge": "متأخرة",
+  "escalationThresholdBreached": "تجاوز حد {hours} ساعة",
+  "@escalationThresholdBreached": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "escalationOutForDeliveryDuration": "خارج للتوصيل منذ {duration}",
+  "@escalationOutForDeliveryDuration": {
+    "placeholders": {
+      "duration": {}
+    }
+  },
+  "escalationBranchLabel": "الفرع",
+  "escalationAlreadyNotified": "تم إشعار المدير بالفعل",
+  "escalationNotYetNotified": "لم يتم الإشعار بعد",
+  "escalationLoadFailed": "تعذر تحميل الطلبات المتأخرة",
+  "warehouseAlignTitle": "مطابقة المخازن",
+  "warehouseAlignSubtitle": "فواتير خرج مخزونها من الفرع الخطأ",
+  "warehouseAlignWatchlistBanner": "قائمة مراقبة للقراءة فقط — عالج الفروقات من سطح المكتب، لا يوجد إجراء إصلاح هنا",
+  "warehouseAlignEmpty": "لا توجد فروقات في المخازن",
+  "warehouseAlignExpectedLabel": "المتوقع",
+  "warehouseAlignActualLabel": "الفعلي",
+  "warehouseAlignBranchFilterLabel": "الفرع",
+  "warehouseAlignBranchFilterAll": "كل الفروع",
   "menuCourierBalances": "أرصدة المندوبين",
   "menuManagerDashboard": "لوحة تحكم المدير",
   "managerMenuTooltip": "القائمة",
@@ -74,7 +102,440 @@
   },
   "menuManufacturing": "التصنيع",
   "menuStockTransfer": "تحويل المخزون",
+  "wooSyncMenuTitle": "مزامنة ووكومرس",
+  "wooSyncNotPermittedTitle": "غير مصرح به",
+  "wooSyncNotPermittedBody": "يلزم دور مشغّل مزامنة ووكومرس لفتح هذه الشاشة.",
+  "wooSyncRefresh": "تحديث",
+  "wooSyncBreakerOpenTitle": "المزامنة الصادرة متوقفة",
+  "wooSyncBreakerOpenBody": "توقف قاطع الدائرة بعد فشل متكرر في الدفع إلى ووكومرس. كل عملية دفع صادرة متوقفة حتى يُزال هذا التوقف.",
+  "wooSyncBreakerOpenUntil": "متوقف حتى {time}",
+  "@wooSyncBreakerOpenUntil": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "wooSyncBreakerFailureCount": "{count, plural, =1{فشل واحد مؤخرًا} other{{count} حالات فشل مؤخرًا}}",
+  "@wooSyncBreakerFailureCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncBreakerClosedTitle": "المزامنة الصادرة سليمة",
+  "wooSyncBreakerClosedBody": "قاطع الدائرة الصادر مغلق. عمليات الدفع إلى ووكومرس تسير بشكل طبيعي.",
+  "wooSyncBacklogTitle": "الأعمال المتراكمة",
+  "wooSyncBacklogPending": "قيد الانتظار",
+  "wooSyncBacklogRetryScheduled": "مجدولة لإعادة المحاولة",
+  "wooSyncBacklogProcessing": "قيد المعالجة",
+  "wooSyncBacklogNeedsAttention": "بحاجة إلى انتباه",
+  "wooSyncBacklogDueNow": "مستحقة الآن",
+  "wooSyncBacklogOldestDue": "أقدم استحقاق {time}",
+  "@wooSyncBacklogOldestDue": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "wooSyncBacklogExpiredProcessing": "عالقة في المعالجة",
+  "wooSyncSearchHint": "ابحث بمعرف الحدث أو المصدر أو الفاتورة أو السبب...",
+  "wooSyncFilterAttentionOnly": "بحاجة إلى انتباه",
+  "wooSyncFilterAllEvents": "كل الأحداث",
+  "wooSyncFilterStatusLabel": "الحالة",
+  "wooSyncFilterDirectionLabel": "الاتجاه",
+  "wooSyncFilterReviewStateLabel": "حالة المراجعة",
+  "wooSyncFilterAny": "أي",
+  "wooSyncClearFilters": "مسح الفلاتر",
+  "wooSyncEventsEmpty": "لا توجد أحداث مزامنة مطابقة لهذه الفلاتر.",
+  "wooSyncEventCount": "{count, plural, =1{حدث واحد} other{{count} حدث}}",
+  "@wooSyncEventCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncEventRetry": "إعادة المحاولة",
+  "wooSyncEventProcessNow": "معالجة الآن",
+  "wooSyncEventSetReviewState": "حالة المراجعة",
+  "wooSyncEventPushInvoice": "دفع إلى ووكومرس",
+  "wooSyncEventLocalInvoiceLabel": "الفاتورة {name}",
+  "@wooSyncEventLocalInvoiceLabel": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "wooSyncEventAttempt": "المحاولة {count} من {max}",
+  "@wooSyncEventAttempt": {
+    "placeholders": {
+      "count": {},
+      "max": {}
+    }
+  },
+  "wooSyncEventLastError": "آخر خطأ: {error}",
+  "@wooSyncEventLastError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "wooSyncEventReviewReason": "سبب المراجعة: {reason}",
+  "@wooSyncEventReviewReason": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "wooSyncSelectAll": "تحديد الكل",
+  "wooSyncClearSelection": "إلغاء التحديد",
+  "wooSyncSelectedCount": "{count, plural, =1{تم تحديد 1} other{تم تحديد {count}}}",
+  "@wooSyncSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncBulkRetry": "إعادة محاولة المحدد",
+  "wooSyncBulkSetReviewState": "تعيين حالة المراجعة",
+  "wooSyncBulkLimitExceeded": "تقتصر الإجراءات الجماعية على {limit} حدثًا في المرة الواحدة؛ تم تحديد {count}. قلّص التحديد وحاول مجددًا.",
+  "@wooSyncBulkLimitExceeded": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncRunWorker": "تشغيل العامل الآن",
+  "wooSyncRunWorkerConfirmTitle": "تشغيل عامل المزامنة الآن؟",
+  "wooSyncRunWorkerConfirmBody": "سيؤدي هذا إلى معالجة كل حدث مزامنة مستحق فورًا في كامل المتجر، وليس فقط ما هو معروض هنا.",
+  "wooSyncClearBreaker": "إزالة قاطع التوقف الصادر",
+  "wooSyncClearBreakerConfirmTitle": "إزالة قاطع الدائرة الصادر؟",
+  "wooSyncClearBreakerConfirmBody": "سيؤدي هذا إلى استئناف كل عملية دفع صادرة متوقفة فورًا. لا تفعل هذا إلا بعد التأكد من انتهاء انقطاع ووكومرس الذي تسبب في هذا التوقف.",
+  "wooSyncConfirm": "تأكيد",
+  "wooSyncCancel": "إلغاء",
+  "wooSyncRetryQueued": "تم جدولة إعادة المحاولة لـ {name}",
+  "@wooSyncRetryQueued": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "wooSyncProcessedNow": "تمت معالجة {name}",
+  "@wooSyncProcessedNow": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "wooSyncReviewStateSaved": "تم تحديث حالة المراجعة",
+  "wooSyncBulkRetryDone": "{count, plural, =1{تمت إعادة محاولة حدث واحد} other{تمت إعادة محاولة {count} حدث}}",
+  "@wooSyncBulkRetryDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncBulkReviewStateDone": "{count, plural, =1{تم تحديث حدث واحد} other{تم تحديث {count} حدث}}",
+  "@wooSyncBulkReviewStateDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncWorkerRunDone": "اكتمل تشغيل العامل",
+  "wooSyncBreakerCleared": "{count, plural, =0{تمت إزالة القاطع} =1{تمت إزالة القاطع، تم تحرير حدث واحد} other{تمت إزالة القاطع، تم تحرير {count} حدث}}",
+  "@wooSyncBreakerCleared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooSyncInvoicePushed": "تم دفع {name} إلى ووكومرس",
+  "@wooSyncInvoicePushed": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "wooSyncReviewStateDialogTitle": "تعيين حالة المراجعة",
+  "wooSyncReviewStateNotesLabel": "ملاحظات (اختياري)",
+  "wooSyncStatusPending": "قيد الانتظار",
+  "wooSyncStatusProcessing": "قيد المعالجة",
+  "wooSyncStatusSucceeded": "تم بنجاح",
+  "wooSyncStatusRetryScheduled": "مجدولة لإعادة المحاولة",
+  "wooSyncStatusSkipped": "تم التخطي",
+  "wooSyncStatusSuperseded": "تم الاستبدال",
+  "wooSyncStatusFailed": "فشل",
+  "wooSyncStatusNeedsReview": "بحاجة إلى مراجعة",
+  "wooSyncStatusDeadLetter": "رسالة ميتة",
+  "wooSyncDirectionInbound": "وارد",
+  "wooSyncDirectionOutbound": "صادر",
+  "wooSyncReviewStateOpen": "مفتوحة",
+  "wooSyncReviewStateInvestigating": "قيد التحقيق",
+  "wooSyncReviewStateResolved": "تم الحل",
+  "wooSyncReviewStateIgnored": "تم التجاهل",
+  "wooDuplicatesMenuTitle": "العملاء المكررون",
+  "wooDuplicatesIntro": "أرقام الهواتف هذه تطابقت مع أكثر من عميل، لكن لا شيء هنا كان واضحًا بما يكفي للدمج تلقائيًا.",
+  "wooDuplicatesReadOnlyBanner": "فرز للقراءة فقط. دمج العملاء المكررين مقتصر على المسؤول ويتم في نظام Desk، وليس هنا.",
+  "wooDuplicatesEmpty": "لا توجد مجموعات عملاء مكررة بحاجة إلى مراجعة الآن.",
+  "wooDuplicatesGroupSize": "{count, plural, =1{عميل واحد} other{{count} عملاء}}",
+  "@wooDuplicatesGroupSize": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooDuplicatesGroupReason": "سبب عدم الدمج التلقائي: {reason}",
+  "@wooDuplicatesGroupReason": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "wooDuplicatesCandidateInvoices": "{count, plural, =1{فاتورة واحدة} other{{count} فاتورة}}",
+  "@wooDuplicatesCandidateInvoices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooDuplicatesCandidateSubmitted": "{count} معتمدة",
+  "@wooDuplicatesCandidateSubmitted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wooDuplicatesCandidateRevenue": "الإيراد {amount}",
+  "@wooDuplicatesCandidateRevenue": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "wooDuplicatesCandidateCreated": "أُنشئ في {date}",
+  "@wooDuplicatesCandidateCreated": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "wooDuplicatesCandidateDisabled": "معطّل",
+  "wooDuplicatesCandidateActive": "نشط",
+  "wooDuplicatesCandidateWooId": "معرف ووكومرس {id}",
+  "@wooDuplicatesCandidateWooId": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "wooDuplicatesCandidateNoWooId": "لا يوجد معرف ووكومرس",
   "menuCashTransfer": "تحويل النقدية",
+  "unsettleAlreadyReversedLabel": "تم التراجع عنها بالفعل",
+  "unsettleReversalEntryLabel": "تم التراجع بواسطة {entry}",
+  "@unsettleReversalEntryLabel": {
+    "placeholders": {
+      "entry": {"type": "String"}
+    }
+  },
+  "unsettleEntryPointTooltip": "التراجع عن تسوية",
+  "unsettleHistoryTitle": "التراجع عن تسوية",
+  "unsettleHistorySearchHint": "ابحث بالمندوب أو الطرف أو رقم القيد",
+  "unsettleHistoryEmpty": "لا توجد تسويات لهذا الفرع.",
+  "unsettleRecordJournalEntry": "قيد اليومية: {entry}",
+  "@unsettleRecordJournalEntry": {
+    "placeholders": {
+      "entry": {}
+    }
+  },
+  "unsettleRecordInvoiceCount": "{count, plural, one{معاملة واحدة} other{{count} معاملات}}",
+  "@unsettleRecordInvoiceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unsettleModeCollect": "تحصيل من المندوب",
+  "unsettleModePay": "دفع للمندوب",
+  "unsettleModeBulk": "تسوية شاملة",
+  "unsettleModeSettleNow": "تمت التسوية فورًا",
+  "unsettleModeSettleLater": "تمت التسوية لاحقًا",
+  "unsettleModeGeneric": "تسوية",
+  "unsettleDialogTitle": "التراجع عن التسوية",
+  "unsettlePreviewLoading": "جارٍ تحميل معاينة التراجع…",
+  "unsettlePreviewErrorTitle": "تعذّر تحميل معاينة التراجع",
+  "unsettleRefreshAndRetry": "تحديث المعاينة والمحاولة مجددًا",
+  "unsettleOriginalEntryLabel": "التسوية الأصلية: {entry}",
+  "@unsettleOriginalEntryLabel": {
+    "placeholders": {
+      "entry": {}
+    }
+  },
+  "unsettlePartyLabel": "الطرف: {party}",
+  "@unsettlePartyLabel": {
+    "placeholders": {
+      "party": {}
+    }
+  },
+  "unsettleBranchLabel": "الفرع: {branch}",
+  "@unsettleBranchLabel": {
+    "placeholders": {
+      "branch": {}
+    }
+  },
+  "unsettlePostingDateLabel": "تاريخ الترحيل الأصلي: {date}",
+  "@unsettlePostingDateLabel": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "unsettleNetAmountLabel": "الصافي: {amount}",
+  "@unsettleNetAmountLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "unsettleWillReopenSectionTitle": "المعاملات التي ستعود غير مسوّاة",
+  "unsettleAccountLinesSectionTitle": "بنود الحسابات التي ستنعكس",
+  "unsettleTransactionLineSubtitle": "{city} • {amount}",
+  "@unsettleTransactionLineSubtitle": {
+    "placeholders": {
+      "city": {},
+      "amount": {}
+    }
+  },
+  "unsettleAccountLineSubtitle": "مدين {debit} / دائن {credit}",
+  "@unsettleAccountLineSubtitle": {
+    "placeholders": {
+      "debit": {},
+      "credit": {}
+    }
+  },
+  "unsettleNoBreakdownAvailable": "لم يُرجع الخادم تفصيلاً على مستوى البنود لهذه المعاينة. الإجماليات أعلاه لا تزال دقيقة.",
+  "unsettleAuditTrailNotice": "سيتم ترحيل قيد يومية جديد معاكس. التسوية الأصلية لا تُلغى أبدًا — يبقى القيدان معًا في سجل المراجعة.",
+  "unsettleAckCheckboxLabel": "أتفهّم أن هذا يعكس حركة مالية حقيقية ولا يمكن التراجع عنه من هنا.",
+  "unsettleReasonFieldLabel": "السبب (اختياري)",
+  "unsettleReasonFieldHint": "مثال: تمت التسوية من خزينة فرع خاطئ",
+  "unsettleConfirmButton": "التراجع عن التسوية",
+  "unsettleCommitting": "جارٍ ترحيل قيد التراجع…",
+  "unsettleSuccessTitle": "تم التراجع عن التسوية",
+  "unsettleSuccessBody": "تم ترحيل قيد اليومية المعاكس {entry}. عادت المعاملات المتأثرة إلى غير مسوّاة.",
+  "@unsettleSuccessBody": {
+    "placeholders": {
+      "entry": {}
+    }
+  },
+  "unsettleCommitErrorTitle": "تعذّر التراجع عن التسوية",
+  "unsettleAccessRestricted": "التراجع عن التسوية متاح للمديرين ومديري الخط فقط.",
+  "partnerSettlementMenuTitle": "تسويات الشركاء",
+  "partnerSettlementTabDelivery": "شركاء التوصيل",
+  "partnerSettlementTabSales": "شركاء المبيعات",
+  "partnerSettlementRefreshTooltip": "تحديث",
+  "partnerSettlementDeliveryEmptyBalances": "لا توجد رسوم غير مفوترة لشركاء التوصيل.",
+  "partnerSettlementTripCount": "{count, plural, =1{رحلة واحدة} other{{count} رحلة}}",
+  "@partnerSettlementTripCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerSettlementOldestSince": "الأقدم: {date}",
+  "@partnerSettlementOldestSince": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "partnerSettlementReviewAndSettle": "مراجعة وتسوية",
+  "partnerSettlementTripsTitle": "{partner} — الرحلات غير المسواة",
+  "@partnerSettlementTripsTitle": {
+    "placeholders": {
+      "partner": {}
+    }
+  },
+  "partnerSettlementTripsEmpty": "لا توجد رحلات غير مسواة لهذا الشريك.",
+  "partnerSettlementSelectAll": "تحديد الكل",
+  "partnerSettlementDeselectAll": "إلغاء تحديد الكل",
+  "partnerSettlementSelectedOfTotal": "تم تحديد {selected} من {total}",
+  "@partnerSettlementSelectedOfTotal": {
+    "placeholders": {
+      "selected": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerSettlementUnselectedWarning": "الرحلات غير المحددة تبقى غير مفوترة وتظهر مرة أخرى الأسبوع القادم.",
+  "partnerSettlementTripInvoiceLabel": "الفاتورة: {invoice}",
+  "@partnerSettlementTripInvoiceLabel": {
+    "placeholders": {
+      "invoice": {}
+    }
+  },
+  "partnerSettlementTripNoInvoice": "لا يوجد رقم فاتورة",
+  "partnerSettlementExtraChargesTitle": "رسوم إضافية",
+  "partnerSettlementExtraChargesHint": "رسوم ثابتة لم تُحتسب لكل طلب — اشتراك، وقت انتظار، أو رسوم رحلة مرتجعة.",
+  "partnerSettlementAddCharge": "إضافة رسوم",
+  "partnerSettlementChargeLabel": "الوصف",
+  "partnerSettlementChargeAmount": "المبلغ",
+  "partnerSettlementNoCharges": "لم تتم إضافة أي رسوم إضافية.",
+  "partnerSettlementRemoveCharge": "إزالة الرسوم",
+  "partnerSettlementFeesSubtotal": "رسوم الرحلات",
+  "partnerSettlementChargesSubtotal": "الرسوم الإضافية",
+  "partnerSettlementGrandTotal": "الإجمالي المراد تحويله",
+  "partnerSettlementBankAccountOptional": "الحساب البنكي (اختياري)",
+  "partnerSettlementSettleButton": "تسوية",
+  "partnerSettlementConfirmTitle": "تأكيد التحويل البنكي",
+  "partnerSettlementConfirmMessage": "سيتم نشر تحويل بنكي فعلي. راجع الإجماليات قبل المتابعة.",
+  "partnerSettlementConfirmTripsLine": "{count, plural, =0{لا توجد رحلات محددة} =1{رحلة واحدة متفق عليها} other{{count} رحلة متفق عليها}}",
+  "@partnerSettlementConfirmTripsLine": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerSettlementConfirmChargesLine": "{count, plural, =0{لا توجد رسوم إضافية} =1{رسم إضافي واحد} other{{count} رسوم إضافية}}",
+  "@partnerSettlementConfirmChargesLine": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerSettlementNothingToSettle": "لا يوجد شيء محدد — حدد رحلة واحدة على الأقل أو أضف رسومًا.",
+  "partnerSettlementSettledMessage": "تمت التسوية. القيد اليومي {journalEntry}.",
+  "@partnerSettlementSettledMessage": {
+    "placeholders": {
+      "journalEntry": {}
+    }
+  },
+  "partnerSettlementSalesEmptyBalances": "لا توجد عمولات غير مسواة لشركاء المبيعات.",
+  "partnerSettlementOrderCount": "{count, plural, =1{طلب واحد} other{{count} طلب}}",
+  "@partnerSettlementOrderCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerSettlementOnlineCashSplit": "أونلاين {online} • نقدي {cash}",
+  "@partnerSettlementOnlineCashSplit": {
+    "placeholders": {
+      "online": {},
+      "cash": {}
+    }
+  },
+  "partnerSettlementCommissionLabel": "العمولة",
+  "partnerSettlementVatLabel": "ضريبة القيمة المضافة",
+  "partnerSettlementFeeTotalLabel": "إجمالي الرسوم",
+  "partnerSettlementSettleCommissionButton": "تسوية العمولة",
+  "partnerSettlementSalesConfirmTitle": "تأكيد تسوية العمولة",
+  "partnerSettlementSalesConfirmMessage": "سيتم نشر قيد اعتراف بالعمولة وضريبة القيمة المضافة. راجع الإجماليات قبل المتابعة.",
+  "partnerSettlementSalesNothingToSettle": "لا توجد معاملات غير مسواة لهذا الشريك.",
   "cashTransferFromAccount": "من حساب",
   "cashTransferToAccount": "إلى حساب",
   "cashTransferPostingToday": "الترحيل: اليوم",
@@ -124,6 +585,114 @@
   },
   "postingDateConfirmationDates": "تواريخ الترحيل:",
   "menuInventoryCount": "جرد المخزون",
+  "addressPinTitle": "تصحيح موقع التوصيل",
+  "addressPinCurrentPin": "الموقع الحالي",
+  "addressPinNoPinYet": "لم يتم تحديد موقع بعد",
+  "addressPinProposeNew": "اقتراح موقع جديد",
+  "addressPinPickOnMap": "تحديد على الخريطة",
+  "addressPinUseThisPoint": "استخدام هذه النقطة",
+  "addressPinPreviewChanges": "معاينة التغيير",
+  "addressPinWillUpdate": "سيتم تحديث الموقع.",
+  "addressPinWillKeepExisting": "تم الاحتفاظ بالموقع الحالي — فهو يملك ثقة مساوية أو أعلى بالفعل.",
+  "addressPinMovedBy": "سينتقل الموقع حوالي {meters} م عن موضعه الحالي.",
+  "@addressPinMovedBy": {
+    "placeholders": {
+      "meters": {}
+    }
+  },
+  "addressPinPermissionNote": "فقط مدير الخط يمكنه اعتماد تصحيح الموقع.",
+  "addressPinCommit": "حفظ التصحيح",
+  "addressPinNoteLabel": "ما الخطأ؟ (اختياري)",
+  "addressPinSaveSuccessAccepted": "تم تحديث الموقع.",
+  "addressPinSaveSuccessRejected": "تم الاحتفاظ بالموقع الحالي — فهو يملك ثقة مساوية أو أعلى بالفعل.",
+  "addressPinFixTooltip": "تصحيح موقع التوصيل",
+  "addressPinDryRunFailed": "تعذرت معاينة هذا التغيير.",
+  "addressPinSourceLabel": "المصدر: {source}",
+  "@addressPinSourceLabel": {
+    "placeholders": {
+      "source": {}
+    }
+  },
+  "addressPinConfidenceLabel": "درجة الثقة: {rank}",
+  "@addressPinConfidenceLabel": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "addressPinAccuracyLabel": "الدقة حوالي {meters} م",
+  "@addressPinAccuracyLabel": {
+    "placeholders": {
+      "meters": {}
+    }
+  },
+  "addressPinAccuracyUnknown": "الدقة غير معروفة",
+  "addressPinVerifiedOn": "تم التحقق في {date}",
+  "@addressPinVerifiedOn": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "addressPinStoredLinkLabel": "الرابط الأصلي الملصق",
+  "addressPinSourceTerritoryCentroid": "مركز المنطقة (احتياطي)",
+  "addressPinSourcePosLink": "رابط ملصق عند إنشاء الطلب",
+  "addressPinSourceCustomerPin": "موقع مشارك من العميل",
+  "addressPinSourceCourierWeb": "تسجيل دخول المندوب (ويب)",
+  "addressPinSourceCourierVerified": "تسجيل دخول المندوب (موثّق)",
+  "addressPinSourceManualOverride": "تصحيح يدوي",
+  "addressPinSourceUnknown": "غير معروف",
+  "rosterBulkSelectHint": "اضغط مطولاً على يوم، ثم اضغط على المزيد من الأيام في نفس الصف لإضافتها للتحديد.",
+  "rosterBulkSelectionCount": "{count, plural, =1{تم تحديد يوم واحد لـ {name}} other{تم تحديد {count} أيام لـ {name}}}",
+  "@rosterBulkSelectionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {}
+    }
+  },
+  "rosterBulkAssignShift": "تعيين وردية للجميع",
+  "rosterBulkMarkOff": "تعليم الجميع إجازة",
+  "rosterBulkClearOff": "إلغاء الإجازة (الكل)",
+  "rosterBulkCancelSelection": "إلغاء التحديد",
+  "rosterBulkConfirmOffTitle": "تعليم {count} أيام كإجازة؟",
+  "@rosterBulkConfirmOffTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rosterBulkConfirmOffBody": "لن يتمكن {name} من تسجيل الحضور في هذه الأيام حتى تتم جدولته مرة أخرى.",
+  "@rosterBulkConfirmOffBody": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "rosterBulkApplying": "جارٍ التطبيق…",
+  "rosterBulkPartialFailureTitle": "تعذر تحديث بعض الأيام",
+  "rosterBulkPartialFailureBody": "تم تطبيق {applied} من {total}.",
+  "@rosterBulkPartialFailureBody": {
+    "placeholders": {
+      "applied": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "rosterBulkAllFailed": "تعذر تحديث أي من الأيام المحددة.",
+  "rosterBulkSuccess": "تم تحديث {count} يوم.",
+  "@rosterBulkSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rosterBulkViewFailures": "عرض التفاصيل",
   "inventoryCountOfflineUsingCache": "غير متصل: سيتم استخدام البيانات المخزنة",
   "inventoryCountConfirmAllBeforeSubmit": "يرجى تأكيد جميع الأصناف قبل الإرسال ({remaining} متبقي)",
   "@inventoryCountConfirmAllBeforeSubmit": {
@@ -1790,6 +2359,68 @@
   "authConnectionFailed": "فشل الاتصال. يرجى التحقق من الشبكة وتوفر الخادم.",
   "authLoginFailed": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
   "menuReports": "التقارير",
+  "velocityReportTileTitle": "تنبيهات إعادة الطلب والسرعة",
+  "velocityReportTileSubtitle": "تنبيهات إعادة التخزين من تتبع سرعة المبيعات الأسبوعي",
+  "velocityReportTitle": "تنبيهات إعادة الطلب والسرعة",
+  "velocityReportSummaryCritical": "حرج",
+  "velocityReportSummaryWatch": "قائمة المراقبة",
+  "velocityReportSummarySlow": "بطيئة الحركة",
+  "velocityReportSummaryOverstock": "فائض مخزون",
+  "velocityReportDetailTitle": "تفاصيل السرعة",
+  "velocityReportRecalculateAction": "إعادة الحساب الآن",
+  "velocityReportRecalculateConfirmTitle": "إعادة حساب السرعة الآن؟",
+  "velocityReportRecalculateConfirmBody": "سيؤدي هذا إلى إعادة حساب سرعة المبيعات لكل صنف مخزون، وقد يستغرق بعض الوقت. المهمة الأسبوعية تُحدّث هذه البيانات تلقائيًا بالفعل.",
+  "velocityReportRecalculateSuccess": "تم تحديث السرعة لـ {count} صنف",
+  "@velocityReportRecalculateSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "velocityReportRecalculateError": "تعذّرت إعادة حساب السرعة. حاول مرة أخرى.",
+  "segmentReportTileTitle": "شرائح العملاء (RFM)",
+  "segmentReportTileSubtitle": "تصنيف الحداثة والتكرار والقيمة من المهمة الليلية",
+  "segmentReportTitle": "شرائح العملاء",
+  "segmentReportColumnCount": "العملاء",
+  "segmentReportTotalCustomers": "إجمالي العملاء",
+  "segmentReportRecalculateAction": "إعادة الحساب الآن",
+  "segmentReportRecalculateConfirmTitle": "إعادة حساب الشرائح الآن؟",
+  "segmentReportRecalculateConfirmBody": "سيؤدي هذا إلى إعادة حساب شرائح RFM لكل عميل، مع تخطي العملاء المثبّتين. المهمة الليلية تُحدّث هذه البيانات تلقائيًا بالفعل.",
+  "segmentReportRecalculateSuccess": "تم تحديث الشرائح لـ {updated} عميل",
+  "@segmentReportRecalculateSuccess": {
+    "placeholders": {
+      "updated": {
+        "type": "int"
+      }
+    }
+  },
+  "segmentReportRecalculateError": "تعذّرت إعادة حساب الشرائح. حاول مرة أخرى.",
+  "segmentReportCustomersTitle": "عملاء شريحة {segment}",
+  "@segmentReportCustomersTitle": {
+    "placeholders": {
+      "segment": {}
+    }
+  },
+  "segmentReportCopyAll": "نسخ الكل",
+  "segmentReportCopied": "تم النسخ إلى الحافظة",
+  "segmentReportExportEmpty": "لا يوجد عملاء في هذه الشريحة",
+  "segmentReportPin": "تثبيت الشريحة",
+  "segmentReportUnpin": "إلغاء تثبيت الشريحة",
+  "segmentReportPinConfirmBody": "تثبيت شريحة {customer} حتى تتوقف عن التغيير في عملية إعادة الحساب القادمة؟",
+  "@segmentReportPinConfirmBody": {
+    "placeholders": {
+      "customer": {}
+    }
+  },
+  "segmentReportUnpinConfirmBody": "إلغاء تثبيت {customer} حتى تُحسب شريحته تلقائيًا مرة أخرى؟",
+  "@segmentReportUnpinConfirmBody": {
+    "placeholders": {
+      "customer": {}
+    }
+  },
+  "segmentReportOverrideSuccess": "تم تحديث الشريحة",
+  "segmentReportOverrideError": "تعذّر تحديث الشريحة. حاول مرة أخرى.",
   "reportsTitle": "التقارير",
   "reportsFinalProducts": "المنتجات النهائية",
   "reportsFinalProductsDesc": "جرد المخزون حسب المستودع للأصناف المتوسطة والكبيرة",
@@ -3873,5 +4504,107 @@
   "shiftHistoryMineOnly": "وردياتي فقط",
   "shiftHistoryStillOpen": "ما زالت مفتوحة",
   "shiftHistoryDuration": "من {start} إلى {end}",
-  "shiftHistoryOpenedBy": "فتحها {name}"
+  "shiftHistoryOpenedBy": "فتحها {name}",
+  "menuMonthlyExpenses": "المصروفات الشهرية",
+  "monthlyExpensesTitle": "المصروفات الشهرية",
+  "monthlyExpensesRefreshTooltip": "تحديث",
+  "monthlyExpensesMonthLabel": "الشهر",
+  "monthlyExpensesPreviousMonthTooltip": "الشهر السابق",
+  "monthlyExpensesNextMonthTooltip": "الشهر التالي",
+  "monthlyExpensesLoadFailed": "تعذر تحميل بيانات هذا الشهر.",
+  "monthlyExpensesRemaining": "المتبقي",
+  "monthlyExpensesDue": "المستحق",
+  "monthlyExpensesPaid": "المدفوع",
+  "monthlyExpensesRunRate": "المعدل الشهري",
+  "monthlyExpensesRemainingCaption": "تم دفع {paid} من إجمالي {due}",
+  "monthlyExpensesOverpaidNotice": "زيادة في الدفع بمقدار {amount}",
+  "monthlyExpensesItemsBreakdown": "{paid} مدفوع، {partial} جزئي، {unpaid} غير مدفوع",
+  "monthlyExpensesItemsTotal": "{count, plural, =0{لا توجد بنود مستحقة} =1{بند واحد مستحق} =2{بندان مستحقان} few{{count} بنود مستحقة} other{{count} بند مستحق}}",
+  "monthlyExpensesGapsTitle": "يحتاج انتباهك",
+  "monthlyExpensesRecurringTitle": "المصروفات المتكررة",
+  "monthlyExpensesRecurringEmpty": "لا توجد أي مصروفات متكررة مسجلة حتى الآن.",
+  "monthlyExpensesCategoryUncategorised": "بدون تصنيف",
+  "monthlyExpensesCategorySubtotal": "متبقي {remaining} من {due}",
+  "monthlyExpensesStatusPaid": "مدفوع",
+  "monthlyExpensesStatusPartial": "جزئي",
+  "monthlyExpensesStatusUnpaid": "غير مدفوع",
+  "monthlyExpensesStatusNotDue": "غير مستحق",
+  "monthlyExpensesStatusOverpaid": "مدفوع بالزيادة",
+  "monthlyExpensesLifecyclePaused": "موقوف مؤقتاً",
+  "monthlyExpensesLifecycleEnded": "منتهي",
+  "monthlyExpensesPayAction": "دفع",
+  "monthlyExpensesInferredBadge": "من دفتر الأستاذ",
+  "monthlyExpensesInferredExplain": "مبلغ {amount} من المدفوع مقروء من دفتر الأستاذ ولم يُدفع من خلال هذا التطبيق.",
+  "monthlyExpensesSharedAccountBadge": "حساب مشترك",
+  "monthlyExpensesSharedAccountExplain": "توجد مصروفات أخرى تُرحَّل إلى {account} هذا الشهر، لذلك لا يمكن نسب مدفوعات دفتر الأستاذ إلى هذا البند.",
+  "monthlyExpensesFrequencyLabel": "التكرار",
+  "monthlyExpensesDueDateLabel": "تاريخ الاستحقاق",
+  "monthlyExpensesAccountLabel": "حساب المصروف",
+  "monthlyExpensesCostCenterLabel": "مركز التكلفة",
+  "monthlyExpensesSupplierLabel": "المورد",
+  "monthlyExpensesNotesLabel": "ملاحظات",
+  "monthlyExpensesAmountLabel": "المبلغ",
+  "monthlyExpensesMonthlyEquivalentLabel": "ما يعادله شهرياً",
+  "monthlyExpensesPaymentsTitle": "المدفوعات",
+  "monthlyExpensesPaymentsEmpty": "لا توجد مدفوعات مسجلة لهذا الشهر.",
+  "monthlyExpensesPaymentCancelAction": "إلغاء الدفعة",
+  "monthlyExpensesPaymentCancelTitle": "إلغاء هذه الدفعة؟",
+  "monthlyExpensesPaymentCancelBody": "سيؤدي هذا إلى عكس القيد المحاسبي بمبلغ {amount} وإعادة المبلغ إلى {source}.",
+  "monthlyExpensesPaymentCancelHint": "لماذا يتم عكس هذه الدفعة؟",
+  "monthlyExpensesPaymentCancelConfirm": "إلغاء وعكس القيد",
+  "monthlyExpensesPaymentCancelled": "تم إلغاء الدفعة وعكس القيد المحاسبي",
+  "monthlyExpensesSalariesTitle": "المرتبات",
+  "monthlyExpensesSalariesEmpty": "لا يوجد موظف لديه هيكل رواتب لهذا الشهر.",
+  "monthlyExpensesPayrollNotConfigured": "لم يتم إعداد الرواتب، لذلك لا يمكن دفع المرتبات من هذه الشاشة.",
+  "monthlyExpensesPayrollAccountLabel": "حساب المرتبات",
+  "monthlyExpensesSalaryBaseLabel": "الأساسي",
+  "monthlyExpensesSalaryVariableLabel": "المتغير",
+  "monthlyExpensesSalarySlipExists": "توجد قسيمة راتب معتمدة تغطي هذا الشهر بالفعل، والدفع من هنا سيسجل الراتب مرتين.",
+  "monthlyExpensesMissingStructureTitle": "{count, plural, =1{موظف واحد بدون هيكل رواتب} =2{موظفان بدون هيكل رواتب} few{{count} موظفين بدون هيكل رواتب} other{{count} موظف بدون هيكل رواتب}}",
+  "monthlyExpensesMissingStructureBody": "رواتبهم غير محتسبة في الأرقام أعلاه. عيّن هيكل رواتب في الموارد البشرية لتضمينهم.",
+  "monthlyExpensesUnattributedGl": "مبلغ {amount} مُرحَّل إلى حساب المرتبات ولا يمكن نسبه إلى موظف بعينه، لذلك يُعرض هنا بدلاً من إضافته إلى أحد الصفوف.",
+  "monthlyExpensesPayTitle": "دفع {name}",
+  "monthlyExpensesPayPeriod": "عن شهر {month}",
+  "monthlyExpensesPayAmountLabel": "المبلغ المراد دفعه",
+  "monthlyExpensesPayAmountInvalid": "أدخل مبلغاً أكبر من صفر",
+  "monthlyExpensesPayFromLabel": "الدفع من",
+  "monthlyExpensesPayFromRequired": "اختر الحساب الذي سيتم الدفع منه",
+  "monthlyExpensesPayDateLabel": "تاريخ الدفع",
+  "monthlyExpensesPayRemarksLabel": "ملاحظات (اختياري)",
+  "monthlyExpensesPaySubmit": "دفع",
+  "monthlyExpensesPaySourceOption": "{label} — {balance}",
+  "monthlyExpensesPayNoSources": "لا يوجد حساب نقدي أو بنكي متاح للدفع منه.",
+  "monthlyExpensesPayRemainingHint": "المتبقي: {amount}",
+  "monthlyExpensesPaymentRecorded": "تم تسجيل الدفعة",
+  "monthlyExpensesOverpayTitle": "أكثر من المستحق",
+  "monthlyExpensesOverpayConfirm": "ادفع على أي حال",
+  "monthlyExpensesAddAction": "إضافة مصروف",
+  "monthlyExpensesNewTitle": "مصروف متكرر جديد",
+  "monthlyExpensesEditTitle": "تعديل المصروف المتكرر",
+  "monthlyExpensesNameLabel": "الاسم",
+  "monthlyExpensesNameRequired": "أدخل اسماً لهذا المصروف",
+  "monthlyExpensesAmountRequired": "أدخل مبلغاً أكبر من صفر",
+  "monthlyExpensesCategoryLabel": "التصنيف",
+  "monthlyExpensesCategoryRequired": "اختر تصنيفاً",
+  "monthlyExpensesFrequencyRequired": "اختر التكرار",
+  "monthlyExpensesAccountRequired": "اختر حساب المصروف",
+  "monthlyExpensesDayOfMonthLabel": "يوم من الشهر",
+  "monthlyExpensesDayOfMonthInvalid": "أدخل يوماً بين 1 و 28",
+  "monthlyExpensesStartDateLabel": "يبدأ",
+  "monthlyExpensesEndDateLabel": "ينتهي (اختياري)",
+  "monthlyExpensesDefaultPayingAccountLabel": "يُدفع عادة من (اختياري)",
+  "monthlyExpensesNoneOption": "بدون",
+  "monthlyExpensesSaved": "تم حفظ المصروف المتكرر",
+  "monthlyExpensesManageTooltip": "إدارة",
+  "monthlyExpensesEditAction": "تعديل",
+  "monthlyExpensesPauseAction": "إيقاف مؤقت",
+  "monthlyExpensesResumeAction": "استئناف",
+  "monthlyExpensesEndAction": "إنهاء",
+  "monthlyExpensesEndTitle": "إنهاء {name}؟",
+  "monthlyExpensesEndBody": "لن يصبح مستحقاً بعد الآن. تبقى المدفوعات السابقة مسجلة كما هي.",
+  "monthlyExpensesEndConfirm": "إنهاؤه",
+  "monthlyExpensesStatusUpdated": "تم تحديث الحالة",
+  "monthlyExpensesReadOnlyNotice": "يمكنك عرض هذا الشهر دون تعديل سجل المصروفات.",
+  "monthlyExpensesFormMissingOptions": "لم يرسل الخادم التصنيفات والتكرارات والحسابات التي يحتاجها هذا النموذج.",
+  "monthlyExpensesSalarySlipBadge": "قسيمة راتب"
 }

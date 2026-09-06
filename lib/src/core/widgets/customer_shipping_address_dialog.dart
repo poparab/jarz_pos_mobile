@@ -1,7 +1,9 @@
 import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../features/geo/presentation/widgets/location_link_field.dart';
+import '../constants/app_routes.dart';
 import '../localization/localization_extensions.dart';
 import 'paste_or_clear_button.dart';
 import '../repositories/customer_address_repository.dart';
@@ -722,6 +724,19 @@ class _CustomerShippingAddressDialogState
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Discreet correction entry point: couriers navigate off this pin,
+          // and until now nobody in the field could fix one that was wrong —
+          // it took a developer script. Pushed on top of this dialog rather
+          // than folded into edit, because a bad pin is discovered mid-delivery
+          // far more often than the address text is.
+          IconButton(
+            icon: const Icon(Icons.location_searching),
+            tooltip: context.l10n.addressPinFixTooltip,
+            onPressed: _isBusy
+                ? null
+                : () => context.push(AppRoutes.addressPin, extra: addressName),
+            iconSize: 20,
+          ),
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             tooltip: context.l10n.customerShippingAddressEditTab,

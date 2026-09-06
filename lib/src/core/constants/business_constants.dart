@@ -87,6 +87,16 @@ abstract final class RoleNames {
   static const jarzPosStaff = 'Jarz POS Staff';
   static const b2bSalesRep = 'B2B Sales Rep';
 
+  /// The operator who reconciles WooCommerce against ERPNext: retries failed
+  /// sync events, sets review states, clears the outbound circuit breaker.
+  ///
+  /// This role belongs to the SEPARATE `jarz_woocommerce_integration` app,
+  /// which creates the Role record on install but grants it to nobody — so a
+  /// user holding only this string sees the console and everyone else does
+  /// not. Mirrors that app's `ROLES.OPERATOR`, which also admits System
+  /// Manager; Administrator short-circuits it server-side.
+  static const wooSyncOperator = 'WooCommerce Sync Operator';
+
   // Stock/manufacturing roles. Mirror the backend `ROLES.MANUFACTURING` set so
   // the Production Board's client-side gate matches its server-side one — the
   // Manufacturing screen used to gate on a role the API did not accept, so a

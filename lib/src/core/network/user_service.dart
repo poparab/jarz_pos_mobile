@@ -119,6 +119,31 @@ class UserRoles {
   /// Mirrors `ROLES.MANAGER`, enforced by `cash_transfer._ensure_manager_access`.
   bool get canAccessCashTransfer => _isBackendManagerSet;
 
+  /// Whether this user may settle a delivery partner or a sales partner.
+  ///
+  /// Mirrors `ROLES.MANAGER`, enforced by
+  /// `delivery_partners._ensure_delivery_partner_access` and
+  /// `sales_partners._ensure_sales_partner_settlement_access`. Deliberately
+  /// the same tier as [canAccessCashTransfer] and NOT the manager-dashboard
+  /// gate: both of these post money out of the company, and neither a
+  /// delivery partner nor a sales partner has a branch dimension to devolve
+  /// to a floor supervisor. Gating this on the dashboard tier would show a
+  /// line manager a tile that 403s on every call.
+  bool get canAccessPartnerSettlements => _isBackendManagerSet;
+
+  /// Whether this user may open the WooCommerce sync console.
+  ///
+  /// Mirrors the OTHER app's `ROLES.OPERATOR`
+  /// (`jarz_woocommerce_integration/services/access.ensure_operator_access`),
+  /// which is `{System Manager, WooCommerce Sync Operator}` with Administrator
+  /// short-circuited. Deliberately NOT the JARZ manager set: a branch manager
+  /// has no business retrying sync events, and would get a 403 from every
+  /// call if this were widened to them.
+  bool get canAccessWooSync =>
+      roles.contains(RoleNames.wooSyncOperator) ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.administrator);
+
   /// Whether this user may move stock between warehouses.
   /// Mirrors `ROLES.STOCK_TRANSFER` (= `ROLES.MANAGER` | `LINE_MANAGER_TIER`),
   /// enforced by `transfer._ensure_transfer_access`.
@@ -244,6 +269,26 @@ class UserRoles {
   /// `approve_employee_advance` / `reject_employee_advance` accept: a line
   /// manager asks, it does not sign off on its own request.
   bool get canApproveEmployeeAdvance => isJarzManager || isAdminManager;
+
+  /// Whether this user may open Monthly Expenses — the recurring-expense
+  /// registry and payroll for one month, with the Pay actions on it.
+  ///
+  /// Mirrors `monthly_expenses._ensure_manager` EXACTLY, which is itself a
+  /// mirror of `recurring_expenses._ensure_manager`: JARZ Manager,
+  /// Administrator, System Manager, Accounts Manager — and nobody else.
+  ///
+  /// Written out here rather than reusing [_isBackendManagerSet] or
+  /// [canAccessManagerDashboard], both of which are WIDER: the former adds
+  /// Stock / Manufacturing / Purchase Manager, the latter adds the line-manager
+  /// tier and POS Manager. Every one of those would see the drawer tile and get
+  /// "Not permitted" from the first call — the recurring bug this app keeps
+  /// hitting (Manufacturing, Cash Transfer, the Reports hub). If the backend
+  /// gate ever moves, this getter is the single line that moves with it.
+  bool get canAccessMonthlyExpenses =>
+      isJarzManager ||
+      roles.contains(RoleNames.administrator) ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.accountsManager);
 
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
@@ -414,6 +459,36 @@ final canAccessCashTransferProvider = Provider<bool>((ref) {
   );
 });
 
+/// Whether the current user may open Partner Settlements.
+///
+/// Mirrors backend `ROLES.MANAGER` — the same tier as Cash Transfer, and
+/// deliberately NOT the manager-dashboard tier. Settling a delivery partner
+/// posts the weekly bank transfer and settling a sales partner posts a
+/// commission journal entry; a line manager passes the dashboard gate and
+/// would be refused by both endpoints.
+final canAccessPartnerSettlementsProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessPartnerSettlements,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user may open the WooCommerce sync console.
+///
+/// Mirrors `ROLES.OPERATOR` in the separate `jarz_woocommerce_integration`
+/// app, as enforced by its `services/access.ensure_operator_access`. Note the
+/// role record exists on both servers but is granted to nobody by default, so
+/// this correctly returns false for everyone until an administrator assigns
+/// it — the console is hidden rather than broken.
+final canAccessWooSyncProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessWooSync,
+    orElse: () => false,
+  );
+});
+
 /// Whether the current user may open Stock Transfer. Mirrors
 /// `ROLES.STOCK_TRANSFER` — the manager set plus the line-manager tier — as
 /// enforced by `api/transfer.py`.
@@ -500,6 +575,20 @@ final canApproveEmployeeAdvanceProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canApproveEmployeeAdvance,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user may open Monthly Expenses.
+///
+/// Mirrors `api/monthly_expenses.py`'s own gate (JARZ Manager, Administrator,
+/// System Manager, Accounts Manager) rather than any of the broader manager
+/// providers above. Client gate and server gate agree by construction; see
+/// [UserRoles.canAccessMonthlyExpenses].
+final canAccessMonthlyExpensesProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessMonthlyExpenses,
     orElse: () => false,
   );
 });

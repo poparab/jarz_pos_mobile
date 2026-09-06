@@ -188,6 +188,102 @@ abstract class AppLocalizations {
   /// **'Expenses'**
   String get menuExpenses;
 
+  /// No description provided for @escalationSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Escalated — Unconfirmed Past Threshold'**
+  String get escalationSectionTitle;
+
+  /// No description provided for @escalationBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'ESCALATED'**
+  String get escalationBadge;
+
+  /// No description provided for @escalationThresholdBreached.
+  ///
+  /// In en, this message translates to:
+  /// **'Breached {hours}h threshold'**
+  String escalationThresholdBreached(int hours);
+
+  /// No description provided for @escalationOutForDeliveryDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Out for delivery for {duration}'**
+  String escalationOutForDeliveryDuration(Object duration);
+
+  /// No description provided for @escalationBranchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get escalationBranchLabel;
+
+  /// No description provided for @escalationAlreadyNotified.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager already notified'**
+  String get escalationAlreadyNotified;
+
+  /// No description provided for @escalationNotYetNotified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet notified'**
+  String get escalationNotYetNotified;
+
+  /// No description provided for @escalationLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t load escalations'**
+  String get escalationLoadFailed;
+
+  /// No description provided for @warehouseAlignTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse Alignment'**
+  String get warehouseAlignTitle;
+
+  /// No description provided for @warehouseAlignSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices whose stock left the wrong branch'**
+  String get warehouseAlignSubtitle;
+
+  /// No description provided for @warehouseAlignWatchlistBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-only watchlist — fix mismatches in Desk, no repair action here'**
+  String get warehouseAlignWatchlistBanner;
+
+  /// No description provided for @warehouseAlignEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No warehouse mismatches found'**
+  String get warehouseAlignEmpty;
+
+  /// No description provided for @warehouseAlignExpectedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected'**
+  String get warehouseAlignExpectedLabel;
+
+  /// No description provided for @warehouseAlignActualLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get warehouseAlignActualLabel;
+
+  /// No description provided for @warehouseAlignBranchFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get warehouseAlignBranchFilterLabel;
+
+  /// No description provided for @warehouseAlignBranchFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All branches'**
+  String get warehouseAlignBranchFilterAll;
+
   /// No description provided for @menuCourierBalances.
   ///
   /// In en, this message translates to:
@@ -482,11 +578,1037 @@ abstract class AppLocalizations {
   /// **'Stock Transfer'**
   String get menuStockTransfer;
 
+  /// No description provided for @wooSyncMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'WooCommerce Sync'**
+  String get wooSyncMenuTitle;
+
+  /// No description provided for @wooSyncNotPermittedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not permitted'**
+  String get wooSyncNotPermittedTitle;
+
+  /// No description provided for @wooSyncNotPermittedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'WooCommerce Sync Operator access is required to open this screen.'**
+  String get wooSyncNotPermittedBody;
+
+  /// No description provided for @wooSyncRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get wooSyncRefresh;
+
+  /// No description provided for @wooSyncBreakerOpenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Outbound sync paused'**
+  String get wooSyncBreakerOpenTitle;
+
+  /// No description provided for @wooSyncBreakerOpenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The circuit breaker tripped after repeated failures pushing to WooCommerce. Every outbound push is paused until it clears.'**
+  String get wooSyncBreakerOpenBody;
+
+  /// No description provided for @wooSyncBreakerOpenUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused until {time}'**
+  String wooSyncBreakerOpenUntil(Object time);
+
+  /// No description provided for @wooSyncBreakerFailureCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 recent failure} other{{count} recent failures}}'**
+  String wooSyncBreakerFailureCount(int count);
+
+  /// No description provided for @wooSyncBreakerClosedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Outbound sync healthy'**
+  String get wooSyncBreakerClosedTitle;
+
+  /// No description provided for @wooSyncBreakerClosedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The outbound circuit breaker is closed. Pushes to WooCommerce are flowing normally.'**
+  String get wooSyncBreakerClosedBody;
+
+  /// No description provided for @wooSyncBacklogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backlog'**
+  String get wooSyncBacklogTitle;
+
+  /// No description provided for @wooSyncBacklogPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get wooSyncBacklogPending;
+
+  /// No description provided for @wooSyncBacklogRetryScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry scheduled'**
+  String get wooSyncBacklogRetryScheduled;
+
+  /// No description provided for @wooSyncBacklogProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get wooSyncBacklogProcessing;
+
+  /// No description provided for @wooSyncBacklogNeedsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get wooSyncBacklogNeedsAttention;
+
+  /// No description provided for @wooSyncBacklogDueNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Due now'**
+  String get wooSyncBacklogDueNow;
+
+  /// No description provided for @wooSyncBacklogOldestDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest due {time}'**
+  String wooSyncBacklogOldestDue(Object time);
+
+  /// No description provided for @wooSyncBacklogExpiredProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Stuck processing'**
+  String get wooSyncBacklogExpiredProcessing;
+
+  /// No description provided for @wooSyncSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search event id, source id, invoice, reason...'**
+  String get wooSyncSearchHint;
+
+  /// No description provided for @wooSyncFilterAttentionOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get wooSyncFilterAttentionOnly;
+
+  /// No description provided for @wooSyncFilterAllEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'All events'**
+  String get wooSyncFilterAllEvents;
+
+  /// No description provided for @wooSyncFilterStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get wooSyncFilterStatusLabel;
+
+  /// No description provided for @wooSyncFilterDirectionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction'**
+  String get wooSyncFilterDirectionLabel;
+
+  /// No description provided for @wooSyncFilterReviewStateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Review state'**
+  String get wooSyncFilterReviewStateLabel;
+
+  /// No description provided for @wooSyncFilterAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get wooSyncFilterAny;
+
+  /// No description provided for @wooSyncClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get wooSyncClearFilters;
+
+  /// No description provided for @wooSyncEventsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No sync events match these filters.'**
+  String get wooSyncEventsEmpty;
+
+  /// No description provided for @wooSyncEventCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 event} other{{count} events}}'**
+  String wooSyncEventCount(int count);
+
+  /// No description provided for @wooSyncEventRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get wooSyncEventRetry;
+
+  /// No description provided for @wooSyncEventProcessNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Process now'**
+  String get wooSyncEventProcessNow;
+
+  /// No description provided for @wooSyncEventSetReviewState.
+  ///
+  /// In en, this message translates to:
+  /// **'Review state'**
+  String get wooSyncEventSetReviewState;
+
+  /// No description provided for @wooSyncEventPushInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Push to WooCommerce'**
+  String get wooSyncEventPushInvoice;
+
+  /// No description provided for @wooSyncEventLocalInvoiceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice {name}'**
+  String wooSyncEventLocalInvoiceLabel(Object name);
+
+  /// No description provided for @wooSyncEventAttempt.
+  ///
+  /// In en, this message translates to:
+  /// **'Attempt {count} of {max}'**
+  String wooSyncEventAttempt(Object count, Object max);
+
+  /// No description provided for @wooSyncEventLastError.
+  ///
+  /// In en, this message translates to:
+  /// **'Last error: {error}'**
+  String wooSyncEventLastError(Object error);
+
+  /// No description provided for @wooSyncEventReviewReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Review: {reason}'**
+  String wooSyncEventReviewReason(Object reason);
+
+  /// No description provided for @wooSyncSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get wooSyncSelectAll;
+
+  /// No description provided for @wooSyncClearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get wooSyncClearSelection;
+
+  /// No description provided for @wooSyncSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 selected} other{{count} selected}}'**
+  String wooSyncSelectedCount(int count);
+
+  /// No description provided for @wooSyncBulkRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry selected'**
+  String get wooSyncBulkRetry;
+
+  /// No description provided for @wooSyncBulkSetReviewState.
+  ///
+  /// In en, this message translates to:
+  /// **'Set review state'**
+  String get wooSyncBulkSetReviewState;
+
+  /// No description provided for @wooSyncBulkLimitExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulk actions are limited to {limit} events at a time; {count} are selected. Narrow the selection and try again.'**
+  String wooSyncBulkLimitExceeded(int limit, int count);
+
+  /// No description provided for @wooSyncRunWorker.
+  ///
+  /// In en, this message translates to:
+  /// **'Run worker now'**
+  String get wooSyncRunWorker;
+
+  /// No description provided for @wooSyncRunWorkerConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Run the sync worker now?'**
+  String get wooSyncRunWorkerConfirmTitle;
+
+  /// No description provided for @wooSyncRunWorkerConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This immediately processes every sync event that is due across the whole store, not only what is shown here.'**
+  String get wooSyncRunWorkerConfirmBody;
+
+  /// No description provided for @wooSyncClearBreaker.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear outbound breaker'**
+  String get wooSyncClearBreaker;
+
+  /// No description provided for @wooSyncClearBreakerConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the outbound circuit breaker?'**
+  String get wooSyncClearBreakerConfirmTitle;
+
+  /// No description provided for @wooSyncClearBreakerConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This resumes every paused outbound push immediately. Only do this once the WooCommerce outage that tripped it is confirmed resolved.'**
+  String get wooSyncClearBreakerConfirmBody;
+
+  /// No description provided for @wooSyncConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get wooSyncConfirm;
+
+  /// No description provided for @wooSyncCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get wooSyncCancel;
+
+  /// No description provided for @wooSyncRetryQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry queued for {name}'**
+  String wooSyncRetryQueued(Object name);
+
+  /// No description provided for @wooSyncProcessedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Processed {name}'**
+  String wooSyncProcessedNow(Object name);
+
+  /// No description provided for @wooSyncReviewStateSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Review state updated'**
+  String get wooSyncReviewStateSaved;
+
+  /// No description provided for @wooSyncBulkRetryDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Retried 1 event} other{Retried {count} events}}'**
+  String wooSyncBulkRetryDone(int count);
+
+  /// No description provided for @wooSyncBulkReviewStateDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Updated 1 event} other{Updated {count} events}}'**
+  String wooSyncBulkReviewStateDone(int count);
+
+  /// No description provided for @wooSyncWorkerRunDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Worker run complete'**
+  String get wooSyncWorkerRunDone;
+
+  /// No description provided for @wooSyncBreakerCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Breaker cleared} =1{Breaker cleared, 1 event released} other{Breaker cleared, {count} events released}}'**
+  String wooSyncBreakerCleared(int count);
+
+  /// No description provided for @wooSyncInvoicePushed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushed {name} to WooCommerce'**
+  String wooSyncInvoicePushed(Object name);
+
+  /// No description provided for @wooSyncReviewStateDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set review state'**
+  String get wooSyncReviewStateDialogTitle;
+
+  /// No description provided for @wooSyncReviewStateNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get wooSyncReviewStateNotesLabel;
+
+  /// No description provided for @wooSyncStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get wooSyncStatusPending;
+
+  /// No description provided for @wooSyncStatusProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get wooSyncStatusProcessing;
+
+  /// No description provided for @wooSyncStatusSucceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Succeeded'**
+  String get wooSyncStatusSucceeded;
+
+  /// No description provided for @wooSyncStatusRetryScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry scheduled'**
+  String get wooSyncStatusRetryScheduled;
+
+  /// No description provided for @wooSyncStatusSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get wooSyncStatusSkipped;
+
+  /// No description provided for @wooSyncStatusSuperseded.
+  ///
+  /// In en, this message translates to:
+  /// **'Superseded'**
+  String get wooSyncStatusSuperseded;
+
+  /// No description provided for @wooSyncStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get wooSyncStatusFailed;
+
+  /// No description provided for @wooSyncStatusNeedsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs review'**
+  String get wooSyncStatusNeedsReview;
+
+  /// No description provided for @wooSyncStatusDeadLetter.
+  ///
+  /// In en, this message translates to:
+  /// **'Dead letter'**
+  String get wooSyncStatusDeadLetter;
+
+  /// No description provided for @wooSyncDirectionInbound.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbound'**
+  String get wooSyncDirectionInbound;
+
+  /// No description provided for @wooSyncDirectionOutbound.
+  ///
+  /// In en, this message translates to:
+  /// **'Outbound'**
+  String get wooSyncDirectionOutbound;
+
+  /// No description provided for @wooSyncReviewStateOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get wooSyncReviewStateOpen;
+
+  /// No description provided for @wooSyncReviewStateInvestigating.
+  ///
+  /// In en, this message translates to:
+  /// **'Investigating'**
+  String get wooSyncReviewStateInvestigating;
+
+  /// No description provided for @wooSyncReviewStateResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolved'**
+  String get wooSyncReviewStateResolved;
+
+  /// No description provided for @wooSyncReviewStateIgnored.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignored'**
+  String get wooSyncReviewStateIgnored;
+
+  /// No description provided for @wooDuplicatesMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate Customers'**
+  String get wooDuplicatesMenuTitle;
+
+  /// No description provided for @wooDuplicatesIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'These phone numbers match more than one customer, but nothing here was clear enough to merge automatically.'**
+  String get wooDuplicatesIntro;
+
+  /// No description provided for @wooDuplicatesReadOnlyBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-only triage. Merging duplicate customers is administrator-only and is done in Desk, not here.'**
+  String get wooDuplicatesReadOnlyBanner;
+
+  /// No description provided for @wooDuplicatesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No duplicate customer groups need review right now.'**
+  String get wooDuplicatesEmpty;
+
+  /// No description provided for @wooDuplicatesGroupSize.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 customer} other{{count} customers}}'**
+  String wooDuplicatesGroupSize(int count);
+
+  /// No description provided for @wooDuplicatesGroupReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Why not auto-merged: {reason}'**
+  String wooDuplicatesGroupReason(Object reason);
+
+  /// No description provided for @wooDuplicatesCandidateInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 invoice} other{{count} invoices}}'**
+  String wooDuplicatesCandidateInvoices(int count);
+
+  /// No description provided for @wooDuplicatesCandidateSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} submitted'**
+  String wooDuplicatesCandidateSubmitted(int count);
+
+  /// No description provided for @wooDuplicatesCandidateRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue {amount}'**
+  String wooDuplicatesCandidateRevenue(Object amount);
+
+  /// No description provided for @wooDuplicatesCandidateCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created {date}'**
+  String wooDuplicatesCandidateCreated(Object date);
+
+  /// No description provided for @wooDuplicatesCandidateDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get wooDuplicatesCandidateDisabled;
+
+  /// No description provided for @wooDuplicatesCandidateActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get wooDuplicatesCandidateActive;
+
+  /// No description provided for @wooDuplicatesCandidateWooId.
+  ///
+  /// In en, this message translates to:
+  /// **'Woo ID {id}'**
+  String wooDuplicatesCandidateWooId(Object id);
+
+  /// No description provided for @wooDuplicatesCandidateNoWooId.
+  ///
+  /// In en, this message translates to:
+  /// **'No WooCommerce ID'**
+  String get wooDuplicatesCandidateNoWooId;
+
   /// No description provided for @menuCashTransfer.
   ///
   /// In en, this message translates to:
   /// **'Cash Transfer'**
   String get menuCashTransfer;
+
+  /// No description provided for @unsettleAlreadyReversedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Already reversed'**
+  String get unsettleAlreadyReversedLabel;
+
+  /// No description provided for @unsettleReversalEntryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reversed by {entry}'**
+  String unsettleReversalEntryLabel(String entry);
+
+  /// No description provided for @unsettleEntryPointTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse a settlement'**
+  String get unsettleEntryPointTooltip;
+
+  /// No description provided for @unsettleHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse a Settlement'**
+  String get unsettleHistoryTitle;
+
+  /// No description provided for @unsettleHistorySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by courier, party or Journal Entry'**
+  String get unsettleHistorySearchHint;
+
+  /// No description provided for @unsettleHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No settlements found for this branch.'**
+  String get unsettleHistoryEmpty;
+
+  /// No description provided for @unsettleRecordJournalEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal Entry: {entry}'**
+  String unsettleRecordJournalEntry(Object entry);
+
+  /// No description provided for @unsettleRecordInvoiceCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 transaction} other{{count} transactions}}'**
+  String unsettleRecordInvoiceCount(int count);
+
+  /// No description provided for @unsettleModeCollect.
+  ///
+  /// In en, this message translates to:
+  /// **'Collected from courier'**
+  String get unsettleModeCollect;
+
+  /// No description provided for @unsettleModePay.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid to courier'**
+  String get unsettleModePay;
+
+  /// No description provided for @unsettleModeBulk.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle all'**
+  String get unsettleModeBulk;
+
+  /// No description provided for @unsettleModeSettleNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled now'**
+  String get unsettleModeSettleNow;
+
+  /// No description provided for @unsettleModeSettleLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled later'**
+  String get unsettleModeSettleLater;
+
+  /// No description provided for @unsettleModeGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement'**
+  String get unsettleModeGeneric;
+
+  /// No description provided for @unsettleDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse Settlement'**
+  String get unsettleDialogTitle;
+
+  /// No description provided for @unsettlePreviewLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading reversal preview…'**
+  String get unsettlePreviewLoading;
+
+  /// No description provided for @unsettlePreviewErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t load the reversal preview'**
+  String get unsettlePreviewErrorTitle;
+
+  /// No description provided for @unsettleRefreshAndRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh preview & retry'**
+  String get unsettleRefreshAndRetry;
+
+  /// No description provided for @unsettleOriginalEntryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Original settlement: {entry}'**
+  String unsettleOriginalEntryLabel(Object entry);
+
+  /// No description provided for @unsettlePartyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Party: {party}'**
+  String unsettlePartyLabel(Object party);
+
+  /// No description provided for @unsettleBranchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch: {branch}'**
+  String unsettleBranchLabel(Object branch);
+
+  /// No description provided for @unsettlePostingDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Originally posted: {date}'**
+  String unsettlePostingDateLabel(Object date);
+
+  /// No description provided for @unsettleNetAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Net amount: {amount}'**
+  String unsettleNetAmountLabel(Object amount);
+
+  /// No description provided for @unsettleWillReopenSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions that will reopen'**
+  String get unsettleWillReopenSectionTitle;
+
+  /// No description provided for @unsettleAccountLinesSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account lines that will flip'**
+  String get unsettleAccountLinesSectionTitle;
+
+  /// No description provided for @unsettleTransactionLineSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{city} • {amount}'**
+  String unsettleTransactionLineSubtitle(Object city, Object amount);
+
+  /// No description provided for @unsettleAccountLineSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debit {debit} / Credit {credit}'**
+  String unsettleAccountLineSubtitle(Object debit, Object credit);
+
+  /// No description provided for @unsettleNoBreakdownAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The server did not return a line-level breakdown for this preview. The totals above are still accurate.'**
+  String get unsettleNoBreakdownAvailable;
+
+  /// No description provided for @unsettleAuditTrailNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'This posts a new, opposite Journal Entry. The original settlement is never cancelled — both stay in the audit trail.'**
+  String get unsettleAuditTrailNotice;
+
+  /// No description provided for @unsettleAckCheckboxLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand this reverses real money movement and cannot be undone from here.'**
+  String get unsettleAckCheckboxLabel;
+
+  /// No description provided for @unsettleReasonFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get unsettleReasonFieldLabel;
+
+  /// No description provided for @unsettleReasonFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. settled from the wrong branch till'**
+  String get unsettleReasonFieldHint;
+
+  /// No description provided for @unsettleConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse Settlement'**
+  String get unsettleConfirmButton;
+
+  /// No description provided for @unsettleCommitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting the reversing entry…'**
+  String get unsettleCommitting;
+
+  /// No description provided for @unsettleSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement reversed'**
+  String get unsettleSuccessTitle;
+
+  /// No description provided for @unsettleSuccessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The reversing Journal Entry {entry} was posted. The affected transactions are back in Unsettled.'**
+  String unsettleSuccessBody(Object entry);
+
+  /// No description provided for @unsettleCommitErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t reverse the settlement'**
+  String get unsettleCommitErrorTitle;
+
+  /// No description provided for @unsettleAccessRestricted.
+  ///
+  /// In en, this message translates to:
+  /// **'Only admins and line managers can reverse a settlement.'**
+  String get unsettleAccessRestricted;
+
+  /// No description provided for @partnerSettlementMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner Settlements'**
+  String get partnerSettlementMenuTitle;
+
+  /// No description provided for @partnerSettlementTabDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Partners'**
+  String get partnerSettlementTabDelivery;
+
+  /// No description provided for @partnerSettlementTabSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales Partners'**
+  String get partnerSettlementTabSales;
+
+  /// No description provided for @partnerSettlementRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get partnerSettlementRefreshTooltip;
+
+  /// No description provided for @partnerSettlementDeliveryEmptyBalances.
+  ///
+  /// In en, this message translates to:
+  /// **'No unbilled delivery partner fees.'**
+  String get partnerSettlementDeliveryEmptyBalances;
+
+  /// No description provided for @partnerSettlementTripCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 trip} other{{count} trips}}'**
+  String partnerSettlementTripCount(int count);
+
+  /// No description provided for @partnerSettlementOldestSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest: {date}'**
+  String partnerSettlementOldestSince(Object date);
+
+  /// No description provided for @partnerSettlementReviewAndSettle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review & settle'**
+  String get partnerSettlementReviewAndSettle;
+
+  /// No description provided for @partnerSettlementTripsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{partner} — unsettled trips'**
+  String partnerSettlementTripsTitle(Object partner);
+
+  /// No description provided for @partnerSettlementTripsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No unsettled trips for this partner.'**
+  String get partnerSettlementTripsEmpty;
+
+  /// No description provided for @partnerSettlementSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get partnerSettlementSelectAll;
+
+  /// No description provided for @partnerSettlementDeselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect all'**
+  String get partnerSettlementDeselectAll;
+
+  /// No description provided for @partnerSettlementSelectedOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{selected} of {total} selected'**
+  String partnerSettlementSelectedOfTotal(int selected, int total);
+
+  /// No description provided for @partnerSettlementUnselectedWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Unticked trips stay unbilled and will reappear next week.'**
+  String get partnerSettlementUnselectedWarning;
+
+  /// No description provided for @partnerSettlementTripInvoiceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice: {invoice}'**
+  String partnerSettlementTripInvoiceLabel(Object invoice);
+
+  /// No description provided for @partnerSettlementTripNoInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'No invoice reference'**
+  String get partnerSettlementTripNoInvoice;
+
+  /// No description provided for @partnerSettlementExtraChargesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra charges'**
+  String get partnerSettlementExtraChargesTitle;
+
+  /// No description provided for @partnerSettlementExtraChargesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed charges that never accrued per order — subscription, waiting time, a returned-trip charge.'**
+  String get partnerSettlementExtraChargesHint;
+
+  /// No description provided for @partnerSettlementAddCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Add charge'**
+  String get partnerSettlementAddCharge;
+
+  /// No description provided for @partnerSettlementChargeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get partnerSettlementChargeLabel;
+
+  /// No description provided for @partnerSettlementChargeAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get partnerSettlementChargeAmount;
+
+  /// No description provided for @partnerSettlementNoCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'No extra charges added.'**
+  String get partnerSettlementNoCharges;
+
+  /// No description provided for @partnerSettlementRemoveCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove charge'**
+  String get partnerSettlementRemoveCharge;
+
+  /// No description provided for @partnerSettlementFeesSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip fees'**
+  String get partnerSettlementFeesSubtotal;
+
+  /// No description provided for @partnerSettlementChargesSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra charges'**
+  String get partnerSettlementChargesSubtotal;
+
+  /// No description provided for @partnerSettlementGrandTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total to transfer'**
+  String get partnerSettlementGrandTotal;
+
+  /// No description provided for @partnerSettlementBankAccountOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank account (optional)'**
+  String get partnerSettlementBankAccountOptional;
+
+  /// No description provided for @partnerSettlementSettleButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle'**
+  String get partnerSettlementSettleButton;
+
+  /// No description provided for @partnerSettlementConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm bank transfer'**
+  String get partnerSettlementConfirmTitle;
+
+  /// No description provided for @partnerSettlementConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This posts a real bank transfer. Review the totals before you continue.'**
+  String get partnerSettlementConfirmMessage;
+
+  /// No description provided for @partnerSettlementConfirmTripsLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No trips selected} =1{1 trip agreed} other{{count} trips agreed}}'**
+  String partnerSettlementConfirmTripsLine(int count);
+
+  /// No description provided for @partnerSettlementConfirmChargesLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No extra charges} =1{1 extra charge} other{{count} extra charges}}'**
+  String partnerSettlementConfirmChargesLine(int count);
+
+  /// No description provided for @partnerSettlementNothingToSettle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing selected — tick at least one trip or add a charge.'**
+  String get partnerSettlementNothingToSettle;
+
+  /// No description provided for @partnerSettlementSettledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled. Journal Entry {journalEntry}.'**
+  String partnerSettlementSettledMessage(Object journalEntry);
+
+  /// No description provided for @partnerSettlementSalesEmptyBalances.
+  ///
+  /// In en, this message translates to:
+  /// **'No unsettled sales partner commission.'**
+  String get partnerSettlementSalesEmptyBalances;
+
+  /// No description provided for @partnerSettlementOrderCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 order} other{{count} orders}}'**
+  String partnerSettlementOrderCount(int count);
+
+  /// No description provided for @partnerSettlementOnlineCashSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Online {online} • Cash {cash}'**
+  String partnerSettlementOnlineCashSplit(Object online, Object cash);
+
+  /// No description provided for @partnerSettlementCommissionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Commission'**
+  String get partnerSettlementCommissionLabel;
+
+  /// No description provided for @partnerSettlementVatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT'**
+  String get partnerSettlementVatLabel;
+
+  /// No description provided for @partnerSettlementFeeTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total fee'**
+  String get partnerSettlementFeeTotalLabel;
+
+  /// No description provided for @partnerSettlementSettleCommissionButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle commission'**
+  String get partnerSettlementSettleCommissionButton;
+
+  /// No description provided for @partnerSettlementSalesConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm commission settlement'**
+  String get partnerSettlementSalesConfirmTitle;
+
+  /// No description provided for @partnerSettlementSalesConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This posts the commission + VAT recognition journal entry. Review the totals before you continue.'**
+  String get partnerSettlementSalesConfirmMessage;
+
+  /// No description provided for @partnerSettlementSalesNothingToSettle.
+  ///
+  /// In en, this message translates to:
+  /// **'No unsettled transactions for this partner.'**
+  String get partnerSettlementSalesNothingToSettle;
 
   /// No description provided for @cashTransferFromAccount.
   ///
@@ -601,6 +1723,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Inventory Count'**
   String get menuInventoryCount;
+
+  /// No description provided for @addressPinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix delivery pin'**
+  String get addressPinTitle;
+
+  /// No description provided for @addressPinCurrentPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Current pin'**
+  String get addressPinCurrentPin;
+
+  /// No description provided for @addressPinNoPinYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No pin set yet'**
+  String get addressPinNoPinYet;
+
+  /// No description provided for @addressPinProposeNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Propose a new pin'**
+  String get addressPinProposeNew;
+
+  /// No description provided for @addressPinPickOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick on map'**
+  String get addressPinPickOnMap;
+
+  /// No description provided for @addressPinUseThisPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this point'**
+  String get addressPinUseThisPoint;
+
+  /// No description provided for @addressPinPreviewChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview change'**
+  String get addressPinPreviewChanges;
+
+  /// No description provided for @addressPinWillUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'This will update the pin.'**
+  String get addressPinWillUpdate;
+
+  /// No description provided for @addressPinWillKeepExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'The existing pin is kept — it already has equal or higher confidence.'**
+  String get addressPinWillKeepExisting;
+
+  /// No description provided for @addressPinMovedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves the pin about {meters} m from where it is now.'**
+  String addressPinMovedBy(Object meters);
+
+  /// No description provided for @addressPinPermissionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Only a line manager may commit a pin correction.'**
+  String get addressPinPermissionNote;
+
+  /// No description provided for @addressPinCommit.
+  ///
+  /// In en, this message translates to:
+  /// **'Save correction'**
+  String get addressPinCommit;
+
+  /// No description provided for @addressPinNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What was wrong? (optional)'**
+  String get addressPinNoteLabel;
+
+  /// No description provided for @addressPinSaveSuccessAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin updated.'**
+  String get addressPinSaveSuccessAccepted;
+
+  /// No description provided for @addressPinSaveSuccessRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Kept the existing pin — it already has equal or higher confidence.'**
+  String get addressPinSaveSuccessRejected;
+
+  /// No description provided for @addressPinFixTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix delivery pin'**
+  String get addressPinFixTooltip;
+
+  /// No description provided for @addressPinDryRunFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not preview this change.'**
+  String get addressPinDryRunFailed;
+
+  /// No description provided for @addressPinSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source: {source}'**
+  String addressPinSourceLabel(Object source);
+
+  /// No description provided for @addressPinConfidenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence rank: {rank}'**
+  String addressPinConfidenceLabel(int rank);
+
+  /// No description provided for @addressPinAccuracyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Accurate to about {meters} m'**
+  String addressPinAccuracyLabel(Object meters);
+
+  /// No description provided for @addressPinAccuracyUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Accuracy unknown'**
+  String get addressPinAccuracyUnknown;
+
+  /// No description provided for @addressPinVerifiedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified {date}'**
+  String addressPinVerifiedOn(Object date);
+
+  /// No description provided for @addressPinStoredLinkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Original pasted link'**
+  String get addressPinStoredLinkLabel;
+
+  /// No description provided for @addressPinSourceTerritoryCentroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Territory centre (fallback)'**
+  String get addressPinSourceTerritoryCentroid;
+
+  /// No description provided for @addressPinSourcePosLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted link at order creation'**
+  String get addressPinSourcePosLink;
+
+  /// No description provided for @addressPinSourceCustomerPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer-shared pin'**
+  String get addressPinSourceCustomerPin;
+
+  /// No description provided for @addressPinSourceCourierWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier check-in (web)'**
+  String get addressPinSourceCourierWeb;
+
+  /// No description provided for @addressPinSourceCourierVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier check-in (verified)'**
+  String get addressPinSourceCourierVerified;
+
+  /// No description provided for @addressPinSourceManualOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual correction'**
+  String get addressPinSourceManualOverride;
+
+  /// No description provided for @addressPinSourceUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get addressPinSourceUnknown;
+
+  /// No description provided for @rosterBulkSelectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press a day, then tap more days in the same row to add them to the selection.'**
+  String get rosterBulkSelectHint;
+
+  /// No description provided for @rosterBulkSelectionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day selected for {name}} other{{count} days selected for {name}}}'**
+  String rosterBulkSelectionCount(int count, Object name);
+
+  /// No description provided for @rosterBulkAssignShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign shift to all'**
+  String get rosterBulkAssignShift;
+
+  /// No description provided for @rosterBulkMarkOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all off'**
+  String get rosterBulkMarkOff;
+
+  /// No description provided for @rosterBulkClearOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear day off (all)'**
+  String get rosterBulkClearOff;
+
+  /// No description provided for @rosterBulkCancelSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel selection'**
+  String get rosterBulkCancelSelection;
+
+  /// No description provided for @rosterBulkConfirmOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark {count} days off?'**
+  String rosterBulkConfirmOffTitle(int count);
+
+  /// No description provided for @rosterBulkConfirmOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will not be able to clock in on these days until they are rostered again.'**
+  String rosterBulkConfirmOffBody(Object name);
+
+  /// No description provided for @rosterBulkApplying.
+  ///
+  /// In en, this message translates to:
+  /// **'Applying…'**
+  String get rosterBulkApplying;
+
+  /// No description provided for @rosterBulkPartialFailureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some days could not be updated'**
+  String get rosterBulkPartialFailureTitle;
+
+  /// No description provided for @rosterBulkPartialFailureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{applied} of {total} applied.'**
+  String rosterBulkPartialFailureBody(int applied, int total);
+
+  /// No description provided for @rosterBulkAllFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'None of the selected days could be updated.'**
+  String get rosterBulkAllFailed;
+
+  /// No description provided for @rosterBulkSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days updated.'**
+  String rosterBulkSuccess(int count);
+
+  /// No description provided for @rosterBulkViewFailures.
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get rosterBulkViewFailures;
 
   /// No description provided for @inventoryCountOfflineUsingCache.
   ///
@@ -7882,6 +9268,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reports'**
   String get menuReports;
+
+  /// No description provided for @velocityReportTileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder & Velocity Alerts'**
+  String get velocityReportTileTitle;
+
+  /// No description provided for @velocityReportTileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restock alerts from weekly sales-velocity tracking'**
+  String get velocityReportTileSubtitle;
+
+  /// No description provided for @velocityReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder & Velocity Alerts'**
+  String get velocityReportTitle;
+
+  /// No description provided for @velocityReportSummaryCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get velocityReportSummaryCritical;
+
+  /// No description provided for @velocityReportSummaryWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch List'**
+  String get velocityReportSummaryWatch;
+
+  /// No description provided for @velocityReportSummarySlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow Movers'**
+  String get velocityReportSummarySlow;
+
+  /// No description provided for @velocityReportSummaryOverstock.
+  ///
+  /// In en, this message translates to:
+  /// **'Overstocked'**
+  String get velocityReportSummaryOverstock;
+
+  /// No description provided for @velocityReportDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Velocity Detail'**
+  String get velocityReportDetailTitle;
+
+  /// No description provided for @velocityReportRecalculateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate Now'**
+  String get velocityReportRecalculateAction;
+
+  /// No description provided for @velocityReportRecalculateConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate velocity now?'**
+  String get velocityReportRecalculateConfirmTitle;
+
+  /// No description provided for @velocityReportRecalculateConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This recalculates sales velocity for every stock item and can take a while. The weekly job already keeps this up to date automatically.'**
+  String get velocityReportRecalculateConfirmBody;
+
+  /// No description provided for @velocityReportRecalculateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Velocity updated for {count} items'**
+  String velocityReportRecalculateSuccess(int count);
+
+  /// No description provided for @velocityReportRecalculateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t recalculate velocity. Please try again.'**
+  String get velocityReportRecalculateError;
+
+  /// No description provided for @segmentReportTileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Segments (RFM)'**
+  String get segmentReportTileTitle;
+
+  /// No description provided for @segmentReportTileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recency, frequency & value segmentation from the nightly job'**
+  String get segmentReportTileSubtitle;
+
+  /// No description provided for @segmentReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Segments'**
+  String get segmentReportTitle;
+
+  /// No description provided for @segmentReportColumnCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers'**
+  String get segmentReportColumnCount;
+
+  /// No description provided for @segmentReportTotalCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Customers'**
+  String get segmentReportTotalCustomers;
+
+  /// No description provided for @segmentReportRecalculateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate Now'**
+  String get segmentReportRecalculateAction;
+
+  /// No description provided for @segmentReportRecalculateConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate segments now?'**
+  String get segmentReportRecalculateConfirmTitle;
+
+  /// No description provided for @segmentReportRecalculateConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This recalculates RFM segments for every customer; pinned customers are skipped. The nightly job already keeps this up to date automatically.'**
+  String get segmentReportRecalculateConfirmBody;
+
+  /// No description provided for @segmentReportRecalculateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Segments updated for {updated} customers'**
+  String segmentReportRecalculateSuccess(int updated);
+
+  /// No description provided for @segmentReportRecalculateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t recalculate segments. Please try again.'**
+  String get segmentReportRecalculateError;
+
+  /// No description provided for @segmentReportCustomersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{segment} customers'**
+  String segmentReportCustomersTitle(Object segment);
+
+  /// No description provided for @segmentReportCopyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy All'**
+  String get segmentReportCopyAll;
+
+  /// No description provided for @segmentReportCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get segmentReportCopied;
+
+  /// No description provided for @segmentReportExportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers in this segment'**
+  String get segmentReportExportEmpty;
+
+  /// No description provided for @segmentReportPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin segment'**
+  String get segmentReportPin;
+
+  /// No description provided for @segmentReportUnpin.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin segment'**
+  String get segmentReportUnpin;
+
+  /// No description provided for @segmentReportPinConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin {customer}\'\'s segment so it stops changing on the next recalculation?'**
+  String segmentReportPinConfirmBody(Object customer);
+
+  /// No description provided for @segmentReportUnpinConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin {customer} so their segment recalculates automatically again?'**
+  String segmentReportUnpinConfirmBody(Object customer);
+
+  /// No description provided for @segmentReportOverrideSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Segment updated'**
+  String get segmentReportOverrideSuccess;
+
+  /// No description provided for @segmentReportOverrideError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t update segment. Please try again.'**
+  String get segmentReportOverrideError;
 
   /// No description provided for @reportsTitle.
   ///
@@ -16910,6 +18494,618 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Opened by {name}'**
   String shiftHistoryOpenedBy(Object name);
+
+  /// No description provided for @menuMonthlyExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Expenses'**
+  String get menuMonthlyExpenses;
+
+  /// No description provided for @monthlyExpensesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Expenses'**
+  String get monthlyExpensesTitle;
+
+  /// No description provided for @monthlyExpensesRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get monthlyExpensesRefreshTooltip;
+
+  /// No description provided for @monthlyExpensesMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get monthlyExpensesMonthLabel;
+
+  /// No description provided for @monthlyExpensesPreviousMonthTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get monthlyExpensesPreviousMonthTooltip;
+
+  /// No description provided for @monthlyExpensesNextMonthTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get monthlyExpensesNextMonthTooltip;
+
+  /// No description provided for @monthlyExpensesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this month.'**
+  String get monthlyExpensesLoadFailed;
+
+  /// No description provided for @monthlyExpensesRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get monthlyExpensesRemaining;
+
+  /// No description provided for @monthlyExpensesDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get monthlyExpensesDue;
+
+  /// No description provided for @monthlyExpensesPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get monthlyExpensesPaid;
+
+  /// No description provided for @monthlyExpensesRunRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly run-rate'**
+  String get monthlyExpensesRunRate;
+
+  /// No description provided for @monthlyExpensesRemainingCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'{paid} paid of {due} due'**
+  String monthlyExpensesRemainingCaption(Object paid, Object due);
+
+  /// No description provided for @monthlyExpensesOverpaidNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Overpaid by {amount}'**
+  String monthlyExpensesOverpaidNotice(Object amount);
+
+  /// No description provided for @monthlyExpensesItemsBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'{paid} paid, {partial} partial, {unpaid} unpaid'**
+  String monthlyExpensesItemsBreakdown(int paid, int partial, int unpaid);
+
+  /// No description provided for @monthlyExpensesItemsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No items due} =1{1 item due} other{{count} items due}}'**
+  String monthlyExpensesItemsTotal(int count);
+
+  /// No description provided for @monthlyExpensesGapsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get monthlyExpensesGapsTitle;
+
+  /// No description provided for @monthlyExpensesRecurringTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring expenses'**
+  String get monthlyExpensesRecurringTitle;
+
+  /// No description provided for @monthlyExpensesRecurringEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is in the recurring expense registry yet.'**
+  String get monthlyExpensesRecurringEmpty;
+
+  /// No description provided for @monthlyExpensesCategoryUncategorised.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorised'**
+  String get monthlyExpensesCategoryUncategorised;
+
+  /// No description provided for @monthlyExpensesCategorySubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} left of {due}'**
+  String monthlyExpensesCategorySubtotal(Object remaining, Object due);
+
+  /// No description provided for @monthlyExpensesStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get monthlyExpensesStatusPaid;
+
+  /// No description provided for @monthlyExpensesStatusPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial'**
+  String get monthlyExpensesStatusPartial;
+
+  /// No description provided for @monthlyExpensesStatusUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get monthlyExpensesStatusUnpaid;
+
+  /// No description provided for @monthlyExpensesStatusNotDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Not due'**
+  String get monthlyExpensesStatusNotDue;
+
+  /// No description provided for @monthlyExpensesStatusOverpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Overpaid'**
+  String get monthlyExpensesStatusOverpaid;
+
+  /// No description provided for @monthlyExpensesLifecyclePaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get monthlyExpensesLifecyclePaused;
+
+  /// No description provided for @monthlyExpensesLifecycleEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get monthlyExpensesLifecycleEnded;
+
+  /// No description provided for @monthlyExpensesPayAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get monthlyExpensesPayAction;
+
+  /// No description provided for @monthlyExpensesInferredBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'From the ledger'**
+  String get monthlyExpensesInferredBadge;
+
+  /// No description provided for @monthlyExpensesInferredExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} of the paid figure was read from the ledger, not paid through this app.'**
+  String monthlyExpensesInferredExplain(Object amount);
+
+  /// No description provided for @monthlyExpensesSharedAccountBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared account'**
+  String get monthlyExpensesSharedAccountBadge;
+
+  /// No description provided for @monthlyExpensesSharedAccountExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Other expenses post to {account} this month, so ledger payments cannot be matched to this one.'**
+  String monthlyExpensesSharedAccountExplain(Object account);
+
+  /// No description provided for @monthlyExpensesFrequencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get monthlyExpensesFrequencyLabel;
+
+  /// No description provided for @monthlyExpensesDueDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get monthlyExpensesDueDateLabel;
+
+  /// No description provided for @monthlyExpensesAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense account'**
+  String get monthlyExpensesAccountLabel;
+
+  /// No description provided for @monthlyExpensesCostCenterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost center'**
+  String get monthlyExpensesCostCenterLabel;
+
+  /// No description provided for @monthlyExpensesSupplierLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier'**
+  String get monthlyExpensesSupplierLabel;
+
+  /// No description provided for @monthlyExpensesNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get monthlyExpensesNotesLabel;
+
+  /// No description provided for @monthlyExpensesAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get monthlyExpensesAmountLabel;
+
+  /// No description provided for @monthlyExpensesMonthlyEquivalentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly equivalent'**
+  String get monthlyExpensesMonthlyEquivalentLabel;
+
+  /// No description provided for @monthlyExpensesPaymentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get monthlyExpensesPaymentsTitle;
+
+  /// No description provided for @monthlyExpensesPaymentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No payments recorded for this month.'**
+  String get monthlyExpensesPaymentsEmpty;
+
+  /// No description provided for @monthlyExpensesPaymentCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel payment'**
+  String get monthlyExpensesPaymentCancelAction;
+
+  /// No description provided for @monthlyExpensesPaymentCancelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this payment?'**
+  String get monthlyExpensesPaymentCancelTitle;
+
+  /// No description provided for @monthlyExpensesPaymentCancelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This reverses the journal entry for {amount} and puts the money back in {source}.'**
+  String monthlyExpensesPaymentCancelBody(Object amount, Object source);
+
+  /// No description provided for @monthlyExpensesPaymentCancelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is this being reversed?'**
+  String get monthlyExpensesPaymentCancelHint;
+
+  /// No description provided for @monthlyExpensesPaymentCancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel and reverse'**
+  String get monthlyExpensesPaymentCancelConfirm;
+
+  /// No description provided for @monthlyExpensesPaymentCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment cancelled and journal entry reversed'**
+  String get monthlyExpensesPaymentCancelled;
+
+  /// No description provided for @monthlyExpensesSalariesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Salaries'**
+  String get monthlyExpensesSalariesTitle;
+
+  /// No description provided for @monthlyExpensesSalariesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No employee has a salary structure for this month.'**
+  String get monthlyExpensesSalariesEmpty;
+
+  /// No description provided for @monthlyExpensesPayrollNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll is not set up, so salaries cannot be paid from this screen.'**
+  String get monthlyExpensesPayrollNotConfigured;
+
+  /// No description provided for @monthlyExpensesPayrollAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary account'**
+  String get monthlyExpensesPayrollAccountLabel;
+
+  /// No description provided for @monthlyExpensesSalaryBaseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Base'**
+  String get monthlyExpensesSalaryBaseLabel;
+
+  /// No description provided for @monthlyExpensesSalaryVariableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Variable'**
+  String get monthlyExpensesSalaryVariableLabel;
+
+  /// No description provided for @monthlyExpensesSalarySlipExists.
+  ///
+  /// In en, this message translates to:
+  /// **'A submitted salary slip already covers this month, so paying here would post the salary twice.'**
+  String get monthlyExpensesSalarySlipExists;
+
+  /// No description provided for @monthlyExpensesMissingStructureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 employee has no salary structure} other{{count} employees have no salary structure}}'**
+  String monthlyExpensesMissingStructureTitle(int count);
+
+  /// No description provided for @monthlyExpensesMissingStructureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Their pay is not in the figures above. Assign a salary structure in HR to include them.'**
+  String get monthlyExpensesMissingStructureBody;
+
+  /// No description provided for @monthlyExpensesUnattributedGl.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} posted to the salary account cannot be matched to any employee, so it is reported here instead of being added to a row.'**
+  String monthlyExpensesUnattributedGl(Object amount);
+
+  /// No description provided for @monthlyExpensesPayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {name}'**
+  String monthlyExpensesPayTitle(Object name);
+
+  /// No description provided for @monthlyExpensesPayPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'For {month}'**
+  String monthlyExpensesPayPeriod(Object month);
+
+  /// No description provided for @monthlyExpensesPayAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to pay'**
+  String get monthlyExpensesPayAmountLabel;
+
+  /// No description provided for @monthlyExpensesPayAmountInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount greater than zero'**
+  String get monthlyExpensesPayAmountInvalid;
+
+  /// No description provided for @monthlyExpensesPayFromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay from'**
+  String get monthlyExpensesPayFromLabel;
+
+  /// No description provided for @monthlyExpensesPayFromRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an account to pay from'**
+  String get monthlyExpensesPayFromRequired;
+
+  /// No description provided for @monthlyExpensesPayDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment date'**
+  String get monthlyExpensesPayDateLabel;
+
+  /// No description provided for @monthlyExpensesPayRemarksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remarks (optional)'**
+  String get monthlyExpensesPayRemarksLabel;
+
+  /// No description provided for @monthlyExpensesPaySubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get monthlyExpensesPaySubmit;
+
+  /// No description provided for @monthlyExpensesPaySourceOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} — {balance}'**
+  String monthlyExpensesPaySourceOption(Object label, Object balance);
+
+  /// No description provided for @monthlyExpensesPayNoSources.
+  ///
+  /// In en, this message translates to:
+  /// **'No cash or bank account is available to pay from.'**
+  String get monthlyExpensesPayNoSources;
+
+  /// No description provided for @monthlyExpensesPayRemainingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining: {amount}'**
+  String monthlyExpensesPayRemainingHint(Object amount);
+
+  /// No description provided for @monthlyExpensesPaymentRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment recorded'**
+  String get monthlyExpensesPaymentRecorded;
+
+  /// No description provided for @monthlyExpensesOverpayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More than what is due'**
+  String get monthlyExpensesOverpayTitle;
+
+  /// No description provided for @monthlyExpensesOverpayConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay anyway'**
+  String get monthlyExpensesOverpayConfirm;
+
+  /// No description provided for @monthlyExpensesAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add expense'**
+  String get monthlyExpensesAddAction;
+
+  /// No description provided for @monthlyExpensesNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New recurring expense'**
+  String get monthlyExpensesNewTitle;
+
+  /// No description provided for @monthlyExpensesEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit recurring expense'**
+  String get monthlyExpensesEditTitle;
+
+  /// No description provided for @monthlyExpensesNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get monthlyExpensesNameLabel;
+
+  /// No description provided for @monthlyExpensesNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Give this expense a name'**
+  String get monthlyExpensesNameRequired;
+
+  /// No description provided for @monthlyExpensesAmountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount greater than zero'**
+  String get monthlyExpensesAmountRequired;
+
+  /// No description provided for @monthlyExpensesCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get monthlyExpensesCategoryLabel;
+
+  /// No description provided for @monthlyExpensesCategoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a category'**
+  String get monthlyExpensesCategoryRequired;
+
+  /// No description provided for @monthlyExpensesFrequencyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a frequency'**
+  String get monthlyExpensesFrequencyRequired;
+
+  /// No description provided for @monthlyExpensesAccountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an expense account'**
+  String get monthlyExpensesAccountRequired;
+
+  /// No description provided for @monthlyExpensesDayOfMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Day of month'**
+  String get monthlyExpensesDayOfMonthLabel;
+
+  /// No description provided for @monthlyExpensesDayOfMonthInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a day between 1 and 28'**
+  String get monthlyExpensesDayOfMonthInvalid;
+
+  /// No description provided for @monthlyExpensesStartDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts'**
+  String get monthlyExpensesStartDateLabel;
+
+  /// No description provided for @monthlyExpensesEndDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends (optional)'**
+  String get monthlyExpensesEndDateLabel;
+
+  /// No description provided for @monthlyExpensesDefaultPayingAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Usually paid from (optional)'**
+  String get monthlyExpensesDefaultPayingAccountLabel;
+
+  /// No description provided for @monthlyExpensesNoneOption.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get monthlyExpensesNoneOption;
+
+  /// No description provided for @monthlyExpensesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring expense saved'**
+  String get monthlyExpensesSaved;
+
+  /// No description provided for @monthlyExpensesManageTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get monthlyExpensesManageTooltip;
+
+  /// No description provided for @monthlyExpensesEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get monthlyExpensesEditAction;
+
+  /// No description provided for @monthlyExpensesPauseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get monthlyExpensesPauseAction;
+
+  /// No description provided for @monthlyExpensesResumeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get monthlyExpensesResumeAction;
+
+  /// No description provided for @monthlyExpensesEndAction.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get monthlyExpensesEndAction;
+
+  /// No description provided for @monthlyExpensesEndTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End {name}?'**
+  String monthlyExpensesEndTitle(Object name);
+
+  /// No description provided for @monthlyExpensesEndBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It stops being due from now on. Payments already made stay on the record.'**
+  String get monthlyExpensesEndBody;
+
+  /// No description provided for @monthlyExpensesEndConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'End it'**
+  String get monthlyExpensesEndConfirm;
+
+  /// No description provided for @monthlyExpensesStatusUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Status updated'**
+  String get monthlyExpensesStatusUpdated;
+
+  /// No description provided for @monthlyExpensesReadOnlyNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'You can see this month but not change the registry.'**
+  String get monthlyExpensesReadOnlyNotice;
+
+  /// No description provided for @monthlyExpensesFormMissingOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'The server did not send the categories, frequencies and accounts this form needs.'**
+  String get monthlyExpensesFormMissingOptions;
+
+  /// No description provided for @monthlyExpensesSalarySlipBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary slip'**
+  String get monthlyExpensesSalarySlipBadge;
 }
 
 class _AppLocalizationsDelegate

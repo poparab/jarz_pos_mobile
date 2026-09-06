@@ -1,4 +1,5 @@
 import '../../../../core/utils/order_display_id.dart';
+import 'escalated_payment_order.dart';
 
 /// An unpaid online (InstaPay / Mobile Wallet) order that is already Out for
 /// Delivery and awaiting the manager's bank-transfer confirmation.
@@ -70,6 +71,30 @@ class UnconfirmedOnlineOrder {
       receiptStatus: toStr(json['receipt_status']),
       receiptImageUrl: toStr(json['receipt_image_url']),
       canConfirm: [1, true, '1', 'true', 'True'].contains(json['can_confirm']),
+    );
+  }
+
+  /// Adapts an [EscalatedPaymentOrder] into the shape the reconciliation
+  /// screen's confirm / convert-to-cash actions already understand, so an
+  /// escalated row gets the exact same actions as a plain unconfirmed one
+  /// without duplicating that logic.
+  ///
+  /// Courier fields are unknown at this point (the escalation feed does not
+  /// carry them) — `canConfirm: true` is safe because the escalation is a
+  /// stricter superset of "unconfirmed", so if the plain list would allow
+  /// confirming it, so does this one; a courier is asked for on demand when
+  /// converting to cash, same as any unconfirmed order with none assigned.
+  factory UnconfirmedOnlineOrder.forEscalation(EscalatedPaymentOrder order) {
+    return UnconfirmedOnlineOrder(
+      invoice: order.invoice,
+      wooOrderId: order.wooOrderId,
+      customer: order.customer,
+      customerName: order.customerName,
+      amount: order.amount,
+      paymentMethod: order.paymentMethod,
+      unconfirmedSince: order.outForDeliverySince,
+      ageSeconds: order.outForDeliverySeconds,
+      canConfirm: true,
     );
   }
 

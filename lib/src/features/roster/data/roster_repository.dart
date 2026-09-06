@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -131,5 +133,28 @@ class RosterRepository {
       ApiEndpoints.rosterClearDayOff,
       data: {'employee': employee, 'date': date},
     );
+  }
+
+  /// Apply many single-day changes in one request.
+  ///
+  /// [changes] is a list of `{employee, date, action, ...}` rows, one per
+  /// existing single-cell write (`action: 'assign' | 'day_off' |
+  /// 'clear_day_off'`) — see `jarz_pos.api.roster.bulk_assign`. This is the
+  /// whole win of the endpoint: building or clearing a stretch of days becomes
+  /// ONE round trip instead of one per day.
+  ///
+  /// Encoded to a JSON string rather than sent as a raw list: Frappe binds a
+  /// list argument delivered as form data into a JSON string anyway, and
+  /// `bulk_assign`'s own `payload` parameter explicitly `json.loads`s a string
+  /// first — the same reason the visits/leads/materials repositories encode
+  /// their list arguments before sending.
+  Future<RosterBulkResult> bulkAssign(
+    List<Map<String, dynamic>> changes,
+  ) async {
+    final response = await _dio.post(
+      ApiEndpoints.rosterBulkAssign,
+      data: {'payload': jsonEncode(changes)},
+    );
+    return RosterBulkResult.fromJson(_asMap(_unwrap(response)));
   }
 }

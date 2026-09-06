@@ -56,11 +56,23 @@ class AppDrawer extends ConsumerWidget {
     // line-manager tier — so gating these five on it showed a line manager tiles
     // that answered "Not permitted" on every call.
     final canAccessCashTransfer = ref.watch(canAccessCashTransferProvider);
+    final canAccessPartnerSettlements =
+        ref.watch(canAccessPartnerSettlementsProvider);
+    final canAccessWooSync = ref.watch(canAccessWooSyncProvider);
     final canAccessStockTransfer = ref.watch(canAccessStockTransferProvider);
     final canAccessInventoryCount = ref.watch(canAccessInventoryCountProvider);
     final canAccessPurchaseInvoice =
         ref.watch(canAccessPurchaseInvoiceProvider);
     final canAccessReportsHub = ref.watch(canAccessReportsHubProvider);
+    // Mirrors `api/monthly_expenses.py`'s own gate (JARZ Manager,
+    // Administrator, System Manager, Accounts Manager) — NOT the wider
+    // manager-dashboard gate, and not the `ROLES.MANAGER` set behind Cash
+    // Transfer either, which also admits Stock / Manufacturing / Purchase
+    // Manager. A drawer gate wider than the server gate is the recurring bug in
+    // this app: the tile appears and every call on the screen answers "Not
+    // permitted".
+    final canAccessMonthlyExpenses =
+        ref.watch(canAccessMonthlyExpensesProvider);
     final locale = ref.watch(localeNotifierProvider);
     final englishLocale = const Locale('en');
     final arabicLocale = const Locale('ar');
@@ -212,11 +224,27 @@ class AppDrawer extends ConsumerWidget {
         title: l10n.menuExpenses,
         onTap: () => navigate(AppRoutes.expenses),
       ),
+      if (canAccessMonthlyExpenses)
+        navTile(
+          icon: Icons.calendar_month_outlined,
+          title: l10n.menuMonthlyExpenses,
+          onTap: () => navigate(AppRoutes.monthlyExpenses),
+        ),
       if (canAccessCashTransfer)
         navTile(
           icon: Icons.account_balance_wallet,
           title: l10n.menuCashTransfer,
           onTap: () => navigate(AppRoutes.cashTransfer),
+        ),
+      // Same tier as Cash Transfer, and for the same reason: settling a
+      // delivery partner posts the weekly bank transfer and settling a sales
+      // partner posts a commission entry. Gating this on manager-dashboard
+      // access instead would offer a line manager a tile that 403s.
+      if (canAccessPartnerSettlements)
+        navTile(
+          icon: Icons.request_quote_outlined,
+          title: l10n.partnerSettlementMenuTitle,
+          onTap: () => navigate(AppRoutes.partnerSettlements),
         ),
     ];
 
@@ -272,6 +300,16 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuMasterOrders,
           onTap: () => navigate(AppRoutes.masterOrders),
         ),
+      // Gated on the OTHER app's operator role, which is granted to nobody by
+      // default — so this tile is correctly invisible until an administrator
+      // assigns `WooCommerce Sync Operator`. Deliberately not the JARZ manager
+      // set: a branch manager would be refused by every call behind it.
+      if (canAccessWooSync)
+        navTile(
+          icon: Icons.sync_outlined,
+          title: l10n.wooSyncMenuTitle,
+          onTap: () => navigate(AppRoutes.wooSync),
+        ),
       if (hasManagerAccess)
         navTile(
           icon: Icons.dashboard,
@@ -315,7 +353,11 @@ class AppDrawer extends ConsumerWidget {
     const crmRoutes = [AppRoutes.b2b, AppRoutes.leads, AppRoutes.labels];
     const pricingRoutes = [AppRoutes.pricing];
     const deliveryRoutes = [AppRoutes.trips, AppRoutes.fleetMap];
-    const financeRoutes = [AppRoutes.expenses, AppRoutes.cashTransfer];
+    const financeRoutes = [
+      AppRoutes.expenses,
+      AppRoutes.monthlyExpenses,
+      AppRoutes.cashTransfer,
+    ];
     const purchasingRoutes = [
       AppRoutes.purchase,
       AppRoutes.itemRequests,

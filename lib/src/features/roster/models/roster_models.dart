@@ -417,6 +417,66 @@ class RosterBootstrap {
       );
 }
 
+/// One row's outcome from `roster.bulk_assign`.
+///
+/// The index is preserved so a failure can be matched back to the day the
+/// manager actually tapped, even though the request body itself never leaves
+/// this repository.
+class RosterBulkFailure {
+  const RosterBulkFailure({
+    required this.index,
+    this.employee,
+    this.date,
+    required this.error,
+  });
+
+  final int index;
+  final String? employee;
+  final String? date;
+  final String error;
+
+  factory RosterBulkFailure.fromJson(Map<String, dynamic> json) =>
+      RosterBulkFailure(
+        index: _toInt(json['index']),
+        employee: _nullIfBlank(json['employee']),
+        date: _nullIfBlank(json['date']),
+        error: (json['error'] ?? '').toString(),
+      );
+}
+
+/// Outcome of one `bulk_assign` request.
+///
+/// Every row is applied independently server-side, so a batch of N days can
+/// partially succeed — this model carries that explicitly rather than
+/// collapsing it to a single pass/fail flag, which is what would let a partial
+/// failure read as a silent success.
+class RosterBulkResult {
+  const RosterBulkResult({
+    required this.appliedCount,
+    required this.failedCount,
+    required this.failures,
+  });
+
+  final int appliedCount;
+  final int failedCount;
+  final List<RosterBulkFailure> failures;
+
+  bool get isFullSuccess => failedCount == 0;
+  bool get isFullFailure => appliedCount == 0 && failedCount > 0;
+
+  factory RosterBulkResult.fromJson(Map<String, dynamic> json) =>
+      RosterBulkResult(
+        appliedCount: _toInt(json['applied_count']),
+        failedCount: _toInt(json['failed_count']),
+        failures: (json['failed'] as List<dynamic>? ?? const [])
+            .whereType<Map>()
+            .map(
+              (e) => RosterBulkFailure.fromJson(Map<String, dynamic>.from(e)),
+            )
+            .toList(),
+      );
+}
+
 double _toDouble(dynamic value) {
   if (value is num) return value.toDouble();
   return double.tryParse(value?.toString() ?? '') ?? 0;

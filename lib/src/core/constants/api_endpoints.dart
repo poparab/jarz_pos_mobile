@@ -366,6 +366,28 @@ abstract final class ApiEndpoints {
   static const cancelExpense =
       '/api/method/jarz_pos.api.expenses.cancel_expense';
 
+  // ── Monthly Expenses ──────────────────────────────────────────────────
+  // The company's monthly bill: the Jarz Recurring Expense registry plus HRMS
+  // payroll, for one `YYYY-MM` period, with what is due, what has been paid and
+  // what REMAINS. Distinct from the ad-hoc `expenses.*` endpoints above, which
+  // record one-off spending; these pay a *period* of a standing commitment.
+  // Every one of them is gated server-side on the same manager set as
+  // `recurring_expenses._ensure_manager`.
+  static const getMonthlyExpenses =
+      '/api/method/jarz_pos.api.monthly_expenses.get_monthly_expenses';
+  static const payRecurringExpense =
+      '/api/method/jarz_pos.api.monthly_expenses.pay_recurring_expense';
+  static const paySalary =
+      '/api/method/jarz_pos.api.monthly_expenses.pay_salary';
+  static const saveRecurringExpense =
+      '/api/method/jarz_pos.api.monthly_expenses.save_recurring_expense';
+  static const setRecurringExpenseStatus =
+      '/api/method/jarz_pos.api.monthly_expenses.set_recurring_expense_status';
+  // Delegates to `expenses.cancel_expense`, so cancelling a monthly payment
+  // reverses the very same journal entry the payment posted.
+  static const cancelExpensePayment =
+      '/api/method/jarz_pos.api.monthly_expenses.cancel_expense_payment';
+
   // ── Employee Advances ─────────────────────────────────────────────────
   // Cash advances a line manager requests for an employee and a JARZ Manager
   // approves. Approval submits the HRMS Employee Advance AND posts the Payment
@@ -646,4 +668,126 @@ abstract final class ApiEndpoints {
   static const rosterSetDayOff = '/api/method/jarz_pos.api.roster.set_day_off';
   static const rosterClearDayOff =
       '/api/method/jarz_pos.api.roster.clear_day_off';
+  // Applies many single-day changes in one request. Building a month one cell
+  // at a time is one round trip per cell; this is the whole month in one.
+  static const rosterBulkAssign =
+      '/api/method/jarz_pos.api.roster.bulk_assign';
+
+  // ── Delivery partner settlement (the weekly bank transfer) ────────────
+  // A delivery partner is a courier COMPANY. Its per-trip fees accrued at
+  // dispatch; this clears the payable. Settling takes an explicit trip list
+  // because the partner's own invoice does not always agree with ours, and
+  // extra charges (subscription, waiting time) never accrued per order.
+  static const deliveryPartnerBalances =
+      '/api/method/jarz_pos.api.delivery_partners.get_delivery_partner_balances';
+  static const deliveryPartnerUnsettledDetails =
+      '/api/method/jarz_pos.api.delivery_partners.get_delivery_partner_unsettled_details';
+  static const deliveryPartnerSettle =
+      '/api/method/jarz_pos.api.delivery_partners.settle_delivery_partner';
+
+  // ── Sales partner commission settlement ───────────────────────────────
+  // Posts the batch commission + VAT recognition journal entry.
+  static const salesPartnerBalances =
+      '/api/method/jarz_pos.api.sales_partners.get_sales_partner_balances';
+  static const salesPartnerSettle =
+      '/api/method/jarz_pos.api.sales_partners.settle_sales_partner';
+
+  // ── Address pin correction ────────────────────────────────────────────
+  // preview_maps_link only helps while an address is being created. These
+  // three are how a wrong pin on an EXISTING address gets fixed in the field.
+  static const getAddressPin = '/api/method/jarz_pos.api.geo.get_address_pin';
+  static const setAddressPin = '/api/method/jarz_pos.api.geo.set_address_pin';
+  static const dryRunAddressPin =
+      '/api/method/jarz_pos.api.geo.dry_run_address_pin';
+
+  // ── Forecasting (velocity + reorder alerts) ───────────────────────────
+  // A weekly job already computes velocity; these read what it produced.
+  static const forecastAlertSummary =
+      '/api/method/jarz_pos.api.forecasting.get_alert_summary';
+  static const forecastItemVelocity =
+      '/api/method/jarz_pos.api.forecasting.get_item_velocity';
+  static const forecastRunVelocityNow =
+      '/api/method/jarz_pos.api.forecasting.run_velocity_update_now';
+
+  // ── Customer segmentation (RFM) ───────────────────────────────────────
+  // A nightly job recalculates these; the output was Desk-only until now.
+  static const segmentSummary =
+      '/api/method/jarz_pos.api.segmentation.get_segment_summary';
+  static const segmentExport =
+      '/api/method/jarz_pos.api.segmentation.export_segment';
+  static const segmentSetOverride =
+      '/api/method/jarz_pos.api.segmentation.set_segment_override';
+  static const segmentRunNow =
+      '/api/method/jarz_pos.api.segmentation.run_segmentation_now';
+
+  // ── Warehouse alignment watchlist (read-only) ─────────────────────────
+  // Submitted invoices whose item warehouses disagree with their branch —
+  // the drift that is upstream of the recurring negative-bin recounts.
+  // The REPAIR endpoint is deliberately not exposed here.
+  static const warehouseAlignmentReport =
+      '/api/method/jarz_pos.api.manager.get_invoice_warehouse_alignment_report';
+
+  // ── Unconfirmed online payment escalations ────────────────────────────
+  // The hourly job flags unpaid InstaPay/wallet orders sitting Out For
+  // Delivery past the configured threshold and writes a Notification Log
+  // nobody reads. This reads the same set, against the same threshold.
+  static const unconfirmedPaymentEscalations =
+      '/api/method/jarz_pos.api.escalations.list_unconfirmed_online_payment_escalations';
+
+  // ── WooCommerce sync operations ───────────────────────────────────────
+  // These belong to the SEPARATE jarz_woocommerce_integration app. Calling
+  // them over HTTP is fine — domain isolation forbids Python cross-imports
+  // between the two apps, not network calls from the client.
+  //
+  // All of these require the `WooCommerce Sync Operator` role (or System
+  // Manager). Deliberately NOT exposed here, and must never be: run_dedupe,
+  // start_historical_migration, ensure_order_webhooks and test_connection —
+  // they are System-Manager-only because they merge customer records,
+  // rewrite live store webhooks, or make server-side calls to a caller
+  // supplied URL.
+  static const wooSyncDashboard =
+      '/api/method/jarz_woocommerce_integration.api.sync_events.get_dashboard';
+  static const wooSyncEvents =
+      '/api/method/jarz_woocommerce_integration.api.sync_events.get_events';
+  static const wooSyncRetryEvent =
+      '/api/method/jarz_woocommerce_integration.api.sync_events.retry_event';
+  static const wooSyncRetryEvents =
+      '/api/method/jarz_woocommerce_integration.api.sync_events.retry_events';
+  static const wooSyncProcessNow =
+      '/api/method/jarz_woocommerce_integration.api.sync_events.process_event_now';
+  static const wooSyncSetReviewState =
+      '/api/method/jarz_woocommerce_integration.api.sync_events.set_review_state';
+  static const wooSyncSetReviewStateBulk =
+      '/api/method/jarz_woocommerce_integration.api.sync_events.set_review_state_bulk';
+  static const wooSyncRunWorker =
+      '/api/method/jarz_woocommerce_integration.api.sync_events.run_worker';
+  static const wooSyncClearBreaker =
+      '/api/method/jarz_woocommerce_integration.api.sync_events.clear_outbound_breaker';
+  static const wooPushSalesInvoice =
+      '/api/method/jarz_woocommerce_integration.api.manual_sync.push_sales_invoice';
+
+  // Read-only: the duplicate groups the dedupe tool REFUSES to auto-merge,
+  // for a human to decide on. The merge itself stays System-Manager-only and
+  // is not callable from the app.
+  static const wooDuplicateReview =
+      '/api/method/jarz_woocommerce_integration.services.customer_dedupe.review_report';
+
+  // ── Reversing a courier settlement ────────────────────────────────────
+  // Until now every reversal was a hand-written script piped into a
+  // production bench console. The reversal posts an OPPOSITE journal entry
+  // and reopens the Courier Transactions — the original settlement entry is
+  // never cancelled, so both it and its correction stay in the audit trail.
+  //
+  // Preview mints a 3-minute token that commit must present, the same
+  // pattern as generate_settlement_preview / confirm_settlement.
+  // How a manager FINDS the settlement to reverse. Nothing else in the app
+  // surfaces a Journal Entry name: get_courier_balances only describes
+  // UNSETTLED positions, and every settle call site discards the
+  // `journal_entry` its own response carries. Branch-scoped server-side.
+  static const recentSettlements =
+      '/api/method/jarz_pos.api.couriers.list_recent_settlements';
+  static const unsettlePreview =
+      '/api/method/jarz_pos.api.couriers.get_unsettle_preview';
+  static const unsettleCommit =
+      '/api/method/jarz_pos.api.couriers.unsettle_courier_settlement';
 }

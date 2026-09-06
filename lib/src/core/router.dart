@@ -24,8 +24,16 @@ import '../features/manufacturing/presentation/manufacturing_screen.dart';
 import '../features/manufacturing/presentation/screens/sop_execute_screen.dart';
 import '../features/stock_transfer/presentation/stock_transfer_screen.dart';
 import '../features/cash_transfer/presentation/cash_transfer_screen.dart';
+import '../features/geo/presentation/screens/address_pin_screen.dart';
 import '../features/inventory_count/presentation/inventory_count_screen.dart';
+import '../features/partner_settlements/presentation/partner_settlements_screen.dart';
+import '../features/reports/presentation/screens/customer_segments_screen.dart';
+import '../features/reports/presentation/screens/velocity_alerts_screen.dart';
+import '../features/reports/presentation/screens/warehouse_alignment_screen.dart';
+import '../features/woo_sync/presentation/screens/woo_duplicates_screen.dart';
+import '../features/woo_sync/presentation/screens/woo_sync_screen.dart';
 import '../features/expenses/presentation/expenses_screen.dart';
+import '../features/monthly_expenses/presentation/monthly_expenses_screen.dart';
 import '../features/settings/presentation/user_profile_screen.dart';
 import '../features/shift/presentation/shift_start_screen.dart';
 import '../features/shift/presentation/shift_end_screen.dart';
@@ -414,6 +422,32 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const CashTransferScreen(),
       ),
       GoRoute(
+        path: AppRoutes.partnerSettlements,
+        name: 'partner-settlements',
+        builder: (context, state) => const PartnerSettlementsScreen(),
+      ),
+      // The duplicates screen is a drill-down from the console's app bar, but
+      // it keeps its own route so a deep link can reach it directly.
+      GoRoute(
+        path: AppRoutes.wooSync,
+        name: 'woo-sync',
+        builder: (context, state) => const WooSyncScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.wooDuplicates,
+        name: 'woo-duplicates',
+        builder: (context, state) => const WooDuplicatesScreen(),
+      ),
+      // Pushed from the shipping-address dialog with the Address name as
+      // `extra`, never navigated to cold — there is nothing to show without
+      // an address to correct.
+      GoRoute(
+        path: AppRoutes.addressPin,
+        name: 'address-pin',
+        builder: (context, state) =>
+            AddressPinScreen(address: (state.extra ?? '').toString()),
+      ),
+      GoRoute(
         path: AppRoutes.inventoryCount,
         name: 'inventory-count',
         builder: (context, state) => const InventoryCountScreen(),
@@ -422,6 +456,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.expenses,
         name: 'expenses',
         builder: (context, state) => const ExpensesScreen(),
+      ),
+      // Ungated in the router, like every other manager screen here: the
+      // drawer decides who is offered the entry (see
+      // `canAccessMonthlyExpensesProvider`, which mirrors the backend gate),
+      // and the API refuses anyone who arrives by URL anyway.
+      GoRoute(
+        path: AppRoutes.monthlyExpenses,
+        name: 'monthly-expenses',
+        builder: (context, state) => const MonthlyExpensesScreen(),
       ),
       GoRoute(
         path: AppRoutes.trips,
@@ -450,6 +493,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'reports-inventory',
         builder: (context, state) =>
             const PhoneLandscapeScope(child: InventoryIntelligenceScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsVelocity,
+        name: 'reports-velocity',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: VelocityAlertsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsSegments,
+        name: 'reports-segments',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: CustomerSegmentsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsWarehouseAlignment,
+        name: 'reports-warehouse-alignment',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: WarehouseAlignmentScreen()),
       ),
       GoRoute(
         path: AppRoutes.reportsProduct,

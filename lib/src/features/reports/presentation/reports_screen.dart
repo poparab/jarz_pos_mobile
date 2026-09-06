@@ -29,6 +29,12 @@ class ReportsScreen extends ConsumerWidget {
     // a tile ends up answering "Not permitted" on every tap.
     final canViewAllReports = roles?.canViewAllReports ?? false;
     final canViewMaterials = roles?.canViewMaterialsReport ?? false;
+    // Wider than the analytics tiles: `get_invoice_warehouse_alignment_report`
+    // was widened to `_ensure_manager_dashboard_access`, so a branch manager
+    // can watch their own drift. The repair endpoint stayed admin-only and is
+    // not reachable from this screen.
+    final canAccessWarehouseAlignment =
+        roles?.canAccessManagerDashboard ?? false;
 
     void openStock(int tab) => Navigator.of(context).push(
           MaterialPageRoute<void>(
@@ -100,6 +106,34 @@ class ReportsScreen extends ConsumerWidget {
         subtitle: l10n.reportsMaterialsDesc,
         onTap: () => openStock(1),
         visible: canViewMaterials,
+      ),
+      _ReportDestination(
+        icon: Icons.notifications_active_outlined,
+        color: Colors.deepOrange,
+        title: l10n.velocityReportTileTitle,
+        subtitle: l10n.velocityReportTileSubtitle,
+        onTap: () => context.push(AppRoutes.reportsVelocity),
+        visible: canViewAllReports,
+      ),
+      _ReportDestination(
+        icon: Icons.pie_chart_outline,
+        color: Colors.pink,
+        title: l10n.segmentReportTileTitle,
+        subtitle: l10n.segmentReportTileSubtitle,
+        onTap: () => context.push(AppRoutes.reportsSegments),
+        visible: canViewAllReports,
+      ),
+      // Wider than the other tiles on purpose: the backend widened this
+      // report to the manager-dashboard tier so branch managers can watch
+      // their own drift, while the six analytics dashboards stay JARZ
+      // Manager only. The repair action is deliberately not on this screen.
+      _ReportDestination(
+        icon: Icons.warehouse_outlined,
+        color: Colors.teal,
+        title: l10n.warehouseAlignTitle,
+        subtitle: l10n.warehouseAlignSubtitle,
+        onTap: () => context.push(AppRoutes.reportsWarehouseAlignment),
+        visible: canAccessWarehouseAlignment,
       ),
     ];
 

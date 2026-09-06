@@ -54,6 +54,60 @@ class AppLocalizationsAr extends AppLocalizations {
   String get menuExpenses => 'المصروفات';
 
   @override
+  String get escalationSectionTitle =>
+      'متأخرة — غير مؤكدة بعد تجاوز الحد المسموح';
+
+  @override
+  String get escalationBadge => 'متأخرة';
+
+  @override
+  String escalationThresholdBreached(int hours) {
+    return 'تجاوز حد $hours ساعة';
+  }
+
+  @override
+  String escalationOutForDeliveryDuration(Object duration) {
+    return 'خارج للتوصيل منذ $duration';
+  }
+
+  @override
+  String get escalationBranchLabel => 'الفرع';
+
+  @override
+  String get escalationAlreadyNotified => 'تم إشعار المدير بالفعل';
+
+  @override
+  String get escalationNotYetNotified => 'لم يتم الإشعار بعد';
+
+  @override
+  String get escalationLoadFailed => 'تعذر تحميل الطلبات المتأخرة';
+
+  @override
+  String get warehouseAlignTitle => 'مطابقة المخازن';
+
+  @override
+  String get warehouseAlignSubtitle => 'فواتير خرج مخزونها من الفرع الخطأ';
+
+  @override
+  String get warehouseAlignWatchlistBanner =>
+      'قائمة مراقبة للقراءة فقط — عالج الفروقات من سطح المكتب، لا يوجد إجراء إصلاح هنا';
+
+  @override
+  String get warehouseAlignEmpty => 'لا توجد فروقات في المخازن';
+
+  @override
+  String get warehouseAlignExpectedLabel => 'المتوقع';
+
+  @override
+  String get warehouseAlignActualLabel => 'الفعلي';
+
+  @override
+  String get warehouseAlignBranchFilterLabel => 'الفرع';
+
+  @override
+  String get warehouseAlignBranchFilterAll => 'كل الفروع';
+
+  @override
   String get menuCourierBalances => 'أرصدة المندوبين';
 
   @override
@@ -206,7 +260,712 @@ class AppLocalizationsAr extends AppLocalizations {
   String get menuStockTransfer => 'تحويل المخزون';
 
   @override
+  String get wooSyncMenuTitle => 'مزامنة ووكومرس';
+
+  @override
+  String get wooSyncNotPermittedTitle => 'غير مصرح به';
+
+  @override
+  String get wooSyncNotPermittedBody =>
+      'يلزم دور مشغّل مزامنة ووكومرس لفتح هذه الشاشة.';
+
+  @override
+  String get wooSyncRefresh => 'تحديث';
+
+  @override
+  String get wooSyncBreakerOpenTitle => 'المزامنة الصادرة متوقفة';
+
+  @override
+  String get wooSyncBreakerOpenBody =>
+      'توقف قاطع الدائرة بعد فشل متكرر في الدفع إلى ووكومرس. كل عملية دفع صادرة متوقفة حتى يُزال هذا التوقف.';
+
+  @override
+  String wooSyncBreakerOpenUntil(Object time) {
+    return 'متوقف حتى $time';
+  }
+
+  @override
+  String wooSyncBreakerFailureCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count حالات فشل مؤخرًا',
+      one: 'فشل واحد مؤخرًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get wooSyncBreakerClosedTitle => 'المزامنة الصادرة سليمة';
+
+  @override
+  String get wooSyncBreakerClosedBody =>
+      'قاطع الدائرة الصادر مغلق. عمليات الدفع إلى ووكومرس تسير بشكل طبيعي.';
+
+  @override
+  String get wooSyncBacklogTitle => 'الأعمال المتراكمة';
+
+  @override
+  String get wooSyncBacklogPending => 'قيد الانتظار';
+
+  @override
+  String get wooSyncBacklogRetryScheduled => 'مجدولة لإعادة المحاولة';
+
+  @override
+  String get wooSyncBacklogProcessing => 'قيد المعالجة';
+
+  @override
+  String get wooSyncBacklogNeedsAttention => 'بحاجة إلى انتباه';
+
+  @override
+  String get wooSyncBacklogDueNow => 'مستحقة الآن';
+
+  @override
+  String wooSyncBacklogOldestDue(Object time) {
+    return 'أقدم استحقاق $time';
+  }
+
+  @override
+  String get wooSyncBacklogExpiredProcessing => 'عالقة في المعالجة';
+
+  @override
+  String get wooSyncSearchHint =>
+      'ابحث بمعرف الحدث أو المصدر أو الفاتورة أو السبب...';
+
+  @override
+  String get wooSyncFilterAttentionOnly => 'بحاجة إلى انتباه';
+
+  @override
+  String get wooSyncFilterAllEvents => 'كل الأحداث';
+
+  @override
+  String get wooSyncFilterStatusLabel => 'الحالة';
+
+  @override
+  String get wooSyncFilterDirectionLabel => 'الاتجاه';
+
+  @override
+  String get wooSyncFilterReviewStateLabel => 'حالة المراجعة';
+
+  @override
+  String get wooSyncFilterAny => 'أي';
+
+  @override
+  String get wooSyncClearFilters => 'مسح الفلاتر';
+
+  @override
+  String get wooSyncEventsEmpty => 'لا توجد أحداث مزامنة مطابقة لهذه الفلاتر.';
+
+  @override
+  String wooSyncEventCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count حدث',
+      one: 'حدث واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get wooSyncEventRetry => 'إعادة المحاولة';
+
+  @override
+  String get wooSyncEventProcessNow => 'معالجة الآن';
+
+  @override
+  String get wooSyncEventSetReviewState => 'حالة المراجعة';
+
+  @override
+  String get wooSyncEventPushInvoice => 'دفع إلى ووكومرس';
+
+  @override
+  String wooSyncEventLocalInvoiceLabel(Object name) {
+    return 'الفاتورة $name';
+  }
+
+  @override
+  String wooSyncEventAttempt(Object count, Object max) {
+    return 'المحاولة $count من $max';
+  }
+
+  @override
+  String wooSyncEventLastError(Object error) {
+    return 'آخر خطأ: $error';
+  }
+
+  @override
+  String wooSyncEventReviewReason(Object reason) {
+    return 'سبب المراجعة: $reason';
+  }
+
+  @override
+  String get wooSyncSelectAll => 'تحديد الكل';
+
+  @override
+  String get wooSyncClearSelection => 'إلغاء التحديد';
+
+  @override
+  String wooSyncSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديد $count',
+      one: 'تم تحديد 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get wooSyncBulkRetry => 'إعادة محاولة المحدد';
+
+  @override
+  String get wooSyncBulkSetReviewState => 'تعيين حالة المراجعة';
+
+  @override
+  String wooSyncBulkLimitExceeded(int limit, int count) {
+    return 'تقتصر الإجراءات الجماعية على $limit حدثًا في المرة الواحدة؛ تم تحديد $count. قلّص التحديد وحاول مجددًا.';
+  }
+
+  @override
+  String get wooSyncRunWorker => 'تشغيل العامل الآن';
+
+  @override
+  String get wooSyncRunWorkerConfirmTitle => 'تشغيل عامل المزامنة الآن؟';
+
+  @override
+  String get wooSyncRunWorkerConfirmBody =>
+      'سيؤدي هذا إلى معالجة كل حدث مزامنة مستحق فورًا في كامل المتجر، وليس فقط ما هو معروض هنا.';
+
+  @override
+  String get wooSyncClearBreaker => 'إزالة قاطع التوقف الصادر';
+
+  @override
+  String get wooSyncClearBreakerConfirmTitle => 'إزالة قاطع الدائرة الصادر؟';
+
+  @override
+  String get wooSyncClearBreakerConfirmBody =>
+      'سيؤدي هذا إلى استئناف كل عملية دفع صادرة متوقفة فورًا. لا تفعل هذا إلا بعد التأكد من انتهاء انقطاع ووكومرس الذي تسبب في هذا التوقف.';
+
+  @override
+  String get wooSyncConfirm => 'تأكيد';
+
+  @override
+  String get wooSyncCancel => 'إلغاء';
+
+  @override
+  String wooSyncRetryQueued(Object name) {
+    return 'تم جدولة إعادة المحاولة لـ $name';
+  }
+
+  @override
+  String wooSyncProcessedNow(Object name) {
+    return 'تمت معالجة $name';
+  }
+
+  @override
+  String get wooSyncReviewStateSaved => 'تم تحديث حالة المراجعة';
+
+  @override
+  String wooSyncBulkRetryDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إعادة محاولة $count حدث',
+      one: 'تمت إعادة محاولة حدث واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String wooSyncBulkReviewStateDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث $count حدث',
+      one: 'تم تحديث حدث واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get wooSyncWorkerRunDone => 'اكتمل تشغيل العامل';
+
+  @override
+  String wooSyncBreakerCleared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إزالة القاطع، تم تحرير $count حدث',
+      one: 'تمت إزالة القاطع، تم تحرير حدث واحد',
+      zero: 'تمت إزالة القاطع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String wooSyncInvoicePushed(Object name) {
+    return 'تم دفع $name إلى ووكومرس';
+  }
+
+  @override
+  String get wooSyncReviewStateDialogTitle => 'تعيين حالة المراجعة';
+
+  @override
+  String get wooSyncReviewStateNotesLabel => 'ملاحظات (اختياري)';
+
+  @override
+  String get wooSyncStatusPending => 'قيد الانتظار';
+
+  @override
+  String get wooSyncStatusProcessing => 'قيد المعالجة';
+
+  @override
+  String get wooSyncStatusSucceeded => 'تم بنجاح';
+
+  @override
+  String get wooSyncStatusRetryScheduled => 'مجدولة لإعادة المحاولة';
+
+  @override
+  String get wooSyncStatusSkipped => 'تم التخطي';
+
+  @override
+  String get wooSyncStatusSuperseded => 'تم الاستبدال';
+
+  @override
+  String get wooSyncStatusFailed => 'فشل';
+
+  @override
+  String get wooSyncStatusNeedsReview => 'بحاجة إلى مراجعة';
+
+  @override
+  String get wooSyncStatusDeadLetter => 'رسالة ميتة';
+
+  @override
+  String get wooSyncDirectionInbound => 'وارد';
+
+  @override
+  String get wooSyncDirectionOutbound => 'صادر';
+
+  @override
+  String get wooSyncReviewStateOpen => 'مفتوحة';
+
+  @override
+  String get wooSyncReviewStateInvestigating => 'قيد التحقيق';
+
+  @override
+  String get wooSyncReviewStateResolved => 'تم الحل';
+
+  @override
+  String get wooSyncReviewStateIgnored => 'تم التجاهل';
+
+  @override
+  String get wooDuplicatesMenuTitle => 'العملاء المكررون';
+
+  @override
+  String get wooDuplicatesIntro =>
+      'أرقام الهواتف هذه تطابقت مع أكثر من عميل، لكن لا شيء هنا كان واضحًا بما يكفي للدمج تلقائيًا.';
+
+  @override
+  String get wooDuplicatesReadOnlyBanner =>
+      'فرز للقراءة فقط. دمج العملاء المكررين مقتصر على المسؤول ويتم في نظام Desk، وليس هنا.';
+
+  @override
+  String get wooDuplicatesEmpty =>
+      'لا توجد مجموعات عملاء مكررة بحاجة إلى مراجعة الآن.';
+
+  @override
+  String wooDuplicatesGroupSize(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عملاء',
+      one: 'عميل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String wooDuplicatesGroupReason(Object reason) {
+    return 'سبب عدم الدمج التلقائي: $reason';
+  }
+
+  @override
+  String wooDuplicatesCandidateInvoices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فاتورة',
+      one: 'فاتورة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String wooDuplicatesCandidateSubmitted(int count) {
+    return '$count معتمدة';
+  }
+
+  @override
+  String wooDuplicatesCandidateRevenue(Object amount) {
+    return 'الإيراد $amount';
+  }
+
+  @override
+  String wooDuplicatesCandidateCreated(Object date) {
+    return 'أُنشئ في $date';
+  }
+
+  @override
+  String get wooDuplicatesCandidateDisabled => 'معطّل';
+
+  @override
+  String get wooDuplicatesCandidateActive => 'نشط';
+
+  @override
+  String wooDuplicatesCandidateWooId(Object id) {
+    return 'معرف ووكومرس $id';
+  }
+
+  @override
+  String get wooDuplicatesCandidateNoWooId => 'لا يوجد معرف ووكومرس';
+
+  @override
   String get menuCashTransfer => 'تحويل النقدية';
+
+  @override
+  String get unsettleAlreadyReversedLabel => 'تم التراجع عنها بالفعل';
+
+  @override
+  String unsettleReversalEntryLabel(String entry) {
+    return 'تم التراجع بواسطة $entry';
+  }
+
+  @override
+  String get unsettleEntryPointTooltip => 'التراجع عن تسوية';
+
+  @override
+  String get unsettleHistoryTitle => 'التراجع عن تسوية';
+
+  @override
+  String get unsettleHistorySearchHint => 'ابحث بالمندوب أو الطرف أو رقم القيد';
+
+  @override
+  String get unsettleHistoryEmpty => 'لا توجد تسويات لهذا الفرع.';
+
+  @override
+  String unsettleRecordJournalEntry(Object entry) {
+    return 'قيد اليومية: $entry';
+  }
+
+  @override
+  String unsettleRecordInvoiceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count معاملات',
+      one: 'معاملة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get unsettleModeCollect => 'تحصيل من المندوب';
+
+  @override
+  String get unsettleModePay => 'دفع للمندوب';
+
+  @override
+  String get unsettleModeBulk => 'تسوية شاملة';
+
+  @override
+  String get unsettleModeSettleNow => 'تمت التسوية فورًا';
+
+  @override
+  String get unsettleModeSettleLater => 'تمت التسوية لاحقًا';
+
+  @override
+  String get unsettleModeGeneric => 'تسوية';
+
+  @override
+  String get unsettleDialogTitle => 'التراجع عن التسوية';
+
+  @override
+  String get unsettlePreviewLoading => 'جارٍ تحميل معاينة التراجع…';
+
+  @override
+  String get unsettlePreviewErrorTitle => 'تعذّر تحميل معاينة التراجع';
+
+  @override
+  String get unsettleRefreshAndRetry => 'تحديث المعاينة والمحاولة مجددًا';
+
+  @override
+  String unsettleOriginalEntryLabel(Object entry) {
+    return 'التسوية الأصلية: $entry';
+  }
+
+  @override
+  String unsettlePartyLabel(Object party) {
+    return 'الطرف: $party';
+  }
+
+  @override
+  String unsettleBranchLabel(Object branch) {
+    return 'الفرع: $branch';
+  }
+
+  @override
+  String unsettlePostingDateLabel(Object date) {
+    return 'تاريخ الترحيل الأصلي: $date';
+  }
+
+  @override
+  String unsettleNetAmountLabel(Object amount) {
+    return 'الصافي: $amount';
+  }
+
+  @override
+  String get unsettleWillReopenSectionTitle =>
+      'المعاملات التي ستعود غير مسوّاة';
+
+  @override
+  String get unsettleAccountLinesSectionTitle => 'بنود الحسابات التي ستنعكس';
+
+  @override
+  String unsettleTransactionLineSubtitle(Object city, Object amount) {
+    return '$city • $amount';
+  }
+
+  @override
+  String unsettleAccountLineSubtitle(Object debit, Object credit) {
+    return 'مدين $debit / دائن $credit';
+  }
+
+  @override
+  String get unsettleNoBreakdownAvailable =>
+      'لم يُرجع الخادم تفصيلاً على مستوى البنود لهذه المعاينة. الإجماليات أعلاه لا تزال دقيقة.';
+
+  @override
+  String get unsettleAuditTrailNotice =>
+      'سيتم ترحيل قيد يومية جديد معاكس. التسوية الأصلية لا تُلغى أبدًا — يبقى القيدان معًا في سجل المراجعة.';
+
+  @override
+  String get unsettleAckCheckboxLabel =>
+      'أتفهّم أن هذا يعكس حركة مالية حقيقية ولا يمكن التراجع عنه من هنا.';
+
+  @override
+  String get unsettleReasonFieldLabel => 'السبب (اختياري)';
+
+  @override
+  String get unsettleReasonFieldHint => 'مثال: تمت التسوية من خزينة فرع خاطئ';
+
+  @override
+  String get unsettleConfirmButton => 'التراجع عن التسوية';
+
+  @override
+  String get unsettleCommitting => 'جارٍ ترحيل قيد التراجع…';
+
+  @override
+  String get unsettleSuccessTitle => 'تم التراجع عن التسوية';
+
+  @override
+  String unsettleSuccessBody(Object entry) {
+    return 'تم ترحيل قيد اليومية المعاكس $entry. عادت المعاملات المتأثرة إلى غير مسوّاة.';
+  }
+
+  @override
+  String get unsettleCommitErrorTitle => 'تعذّر التراجع عن التسوية';
+
+  @override
+  String get unsettleAccessRestricted =>
+      'التراجع عن التسوية متاح للمديرين ومديري الخط فقط.';
+
+  @override
+  String get partnerSettlementMenuTitle => 'تسويات الشركاء';
+
+  @override
+  String get partnerSettlementTabDelivery => 'شركاء التوصيل';
+
+  @override
+  String get partnerSettlementTabSales => 'شركاء المبيعات';
+
+  @override
+  String get partnerSettlementRefreshTooltip => 'تحديث';
+
+  @override
+  String get partnerSettlementDeliveryEmptyBalances =>
+      'لا توجد رسوم غير مفوترة لشركاء التوصيل.';
+
+  @override
+  String partnerSettlementTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رحلة',
+      one: 'رحلة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String partnerSettlementOldestSince(Object date) {
+    return 'الأقدم: $date';
+  }
+
+  @override
+  String get partnerSettlementReviewAndSettle => 'مراجعة وتسوية';
+
+  @override
+  String partnerSettlementTripsTitle(Object partner) {
+    return '$partner — الرحلات غير المسواة';
+  }
+
+  @override
+  String get partnerSettlementTripsEmpty =>
+      'لا توجد رحلات غير مسواة لهذا الشريك.';
+
+  @override
+  String get partnerSettlementSelectAll => 'تحديد الكل';
+
+  @override
+  String get partnerSettlementDeselectAll => 'إلغاء تحديد الكل';
+
+  @override
+  String partnerSettlementSelectedOfTotal(int selected, int total) {
+    return 'تم تحديد $selected من $total';
+  }
+
+  @override
+  String get partnerSettlementUnselectedWarning =>
+      'الرحلات غير المحددة تبقى غير مفوترة وتظهر مرة أخرى الأسبوع القادم.';
+
+  @override
+  String partnerSettlementTripInvoiceLabel(Object invoice) {
+    return 'الفاتورة: $invoice';
+  }
+
+  @override
+  String get partnerSettlementTripNoInvoice => 'لا يوجد رقم فاتورة';
+
+  @override
+  String get partnerSettlementExtraChargesTitle => 'رسوم إضافية';
+
+  @override
+  String get partnerSettlementExtraChargesHint =>
+      'رسوم ثابتة لم تُحتسب لكل طلب — اشتراك، وقت انتظار، أو رسوم رحلة مرتجعة.';
+
+  @override
+  String get partnerSettlementAddCharge => 'إضافة رسوم';
+
+  @override
+  String get partnerSettlementChargeLabel => 'الوصف';
+
+  @override
+  String get partnerSettlementChargeAmount => 'المبلغ';
+
+  @override
+  String get partnerSettlementNoCharges => 'لم تتم إضافة أي رسوم إضافية.';
+
+  @override
+  String get partnerSettlementRemoveCharge => 'إزالة الرسوم';
+
+  @override
+  String get partnerSettlementFeesSubtotal => 'رسوم الرحلات';
+
+  @override
+  String get partnerSettlementChargesSubtotal => 'الرسوم الإضافية';
+
+  @override
+  String get partnerSettlementGrandTotal => 'الإجمالي المراد تحويله';
+
+  @override
+  String get partnerSettlementBankAccountOptional => 'الحساب البنكي (اختياري)';
+
+  @override
+  String get partnerSettlementSettleButton => 'تسوية';
+
+  @override
+  String get partnerSettlementConfirmTitle => 'تأكيد التحويل البنكي';
+
+  @override
+  String get partnerSettlementConfirmMessage =>
+      'سيتم نشر تحويل بنكي فعلي. راجع الإجماليات قبل المتابعة.';
+
+  @override
+  String partnerSettlementConfirmTripsLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رحلة متفق عليها',
+      one: 'رحلة واحدة متفق عليها',
+      zero: 'لا توجد رحلات محددة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String partnerSettlementConfirmChargesLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رسوم إضافية',
+      one: 'رسم إضافي واحد',
+      zero: 'لا توجد رسوم إضافية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get partnerSettlementNothingToSettle =>
+      'لا يوجد شيء محدد — حدد رحلة واحدة على الأقل أو أضف رسومًا.';
+
+  @override
+  String partnerSettlementSettledMessage(Object journalEntry) {
+    return 'تمت التسوية. القيد اليومي $journalEntry.';
+  }
+
+  @override
+  String get partnerSettlementSalesEmptyBalances =>
+      'لا توجد عمولات غير مسواة لشركاء المبيعات.';
+
+  @override
+  String partnerSettlementOrderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count طلب',
+      one: 'طلب واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String partnerSettlementOnlineCashSplit(Object online, Object cash) {
+    return 'أونلاين $online • نقدي $cash';
+  }
+
+  @override
+  String get partnerSettlementCommissionLabel => 'العمولة';
+
+  @override
+  String get partnerSettlementVatLabel => 'ضريبة القيمة المضافة';
+
+  @override
+  String get partnerSettlementFeeTotalLabel => 'إجمالي الرسوم';
+
+  @override
+  String get partnerSettlementSettleCommissionButton => 'تسوية العمولة';
+
+  @override
+  String get partnerSettlementSalesConfirmTitle => 'تأكيد تسوية العمولة';
+
+  @override
+  String get partnerSettlementSalesConfirmMessage =>
+      'سيتم نشر قيد اعتراف بالعمولة وضريبة القيمة المضافة. راجع الإجماليات قبل المتابعة.';
+
+  @override
+  String get partnerSettlementSalesNothingToSettle =>
+      'لا توجد معاملات غير مسواة لهذا الشريك.';
 
   @override
   String get cashTransferFromAccount => 'من حساب';
@@ -277,6 +1036,168 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get menuInventoryCount => 'جرد المخزون';
+
+  @override
+  String get addressPinTitle => 'تصحيح موقع التوصيل';
+
+  @override
+  String get addressPinCurrentPin => 'الموقع الحالي';
+
+  @override
+  String get addressPinNoPinYet => 'لم يتم تحديد موقع بعد';
+
+  @override
+  String get addressPinProposeNew => 'اقتراح موقع جديد';
+
+  @override
+  String get addressPinPickOnMap => 'تحديد على الخريطة';
+
+  @override
+  String get addressPinUseThisPoint => 'استخدام هذه النقطة';
+
+  @override
+  String get addressPinPreviewChanges => 'معاينة التغيير';
+
+  @override
+  String get addressPinWillUpdate => 'سيتم تحديث الموقع.';
+
+  @override
+  String get addressPinWillKeepExisting =>
+      'تم الاحتفاظ بالموقع الحالي — فهو يملك ثقة مساوية أو أعلى بالفعل.';
+
+  @override
+  String addressPinMovedBy(Object meters) {
+    return 'سينتقل الموقع حوالي $meters م عن موضعه الحالي.';
+  }
+
+  @override
+  String get addressPinPermissionNote =>
+      'فقط مدير الخط يمكنه اعتماد تصحيح الموقع.';
+
+  @override
+  String get addressPinCommit => 'حفظ التصحيح';
+
+  @override
+  String get addressPinNoteLabel => 'ما الخطأ؟ (اختياري)';
+
+  @override
+  String get addressPinSaveSuccessAccepted => 'تم تحديث الموقع.';
+
+  @override
+  String get addressPinSaveSuccessRejected =>
+      'تم الاحتفاظ بالموقع الحالي — فهو يملك ثقة مساوية أو أعلى بالفعل.';
+
+  @override
+  String get addressPinFixTooltip => 'تصحيح موقع التوصيل';
+
+  @override
+  String get addressPinDryRunFailed => 'تعذرت معاينة هذا التغيير.';
+
+  @override
+  String addressPinSourceLabel(Object source) {
+    return 'المصدر: $source';
+  }
+
+  @override
+  String addressPinConfidenceLabel(int rank) {
+    return 'درجة الثقة: $rank';
+  }
+
+  @override
+  String addressPinAccuracyLabel(Object meters) {
+    return 'الدقة حوالي $meters م';
+  }
+
+  @override
+  String get addressPinAccuracyUnknown => 'الدقة غير معروفة';
+
+  @override
+  String addressPinVerifiedOn(Object date) {
+    return 'تم التحقق في $date';
+  }
+
+  @override
+  String get addressPinStoredLinkLabel => 'الرابط الأصلي الملصق';
+
+  @override
+  String get addressPinSourceTerritoryCentroid => 'مركز المنطقة (احتياطي)';
+
+  @override
+  String get addressPinSourcePosLink => 'رابط ملصق عند إنشاء الطلب';
+
+  @override
+  String get addressPinSourceCustomerPin => 'موقع مشارك من العميل';
+
+  @override
+  String get addressPinSourceCourierWeb => 'تسجيل دخول المندوب (ويب)';
+
+  @override
+  String get addressPinSourceCourierVerified => 'تسجيل دخول المندوب (موثّق)';
+
+  @override
+  String get addressPinSourceManualOverride => 'تصحيح يدوي';
+
+  @override
+  String get addressPinSourceUnknown => 'غير معروف';
+
+  @override
+  String get rosterBulkSelectHint =>
+      'اضغط مطولاً على يوم، ثم اضغط على المزيد من الأيام في نفس الصف لإضافتها للتحديد.';
+
+  @override
+  String rosterBulkSelectionCount(int count, Object name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديد $count أيام لـ $name',
+      one: 'تم تحديد يوم واحد لـ $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rosterBulkAssignShift => 'تعيين وردية للجميع';
+
+  @override
+  String get rosterBulkMarkOff => 'تعليم الجميع إجازة';
+
+  @override
+  String get rosterBulkClearOff => 'إلغاء الإجازة (الكل)';
+
+  @override
+  String get rosterBulkCancelSelection => 'إلغاء التحديد';
+
+  @override
+  String rosterBulkConfirmOffTitle(int count) {
+    return 'تعليم $count أيام كإجازة؟';
+  }
+
+  @override
+  String rosterBulkConfirmOffBody(Object name) {
+    return 'لن يتمكن $name من تسجيل الحضور في هذه الأيام حتى تتم جدولته مرة أخرى.';
+  }
+
+  @override
+  String get rosterBulkApplying => 'جارٍ التطبيق…';
+
+  @override
+  String get rosterBulkPartialFailureTitle => 'تعذر تحديث بعض الأيام';
+
+  @override
+  String rosterBulkPartialFailureBody(int applied, int total) {
+    return 'تم تطبيق $applied من $total.';
+  }
+
+  @override
+  String get rosterBulkAllFailed => 'تعذر تحديث أي من الأيام المحددة.';
+
+  @override
+  String rosterBulkSuccess(int count) {
+    return 'تم تحديث $count يوم.';
+  }
+
+  @override
+  String get rosterBulkViewFailures => 'عرض التفاصيل';
 
   @override
   String get inventoryCountOfflineUsingCache =>
@@ -4563,6 +5484,122 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get menuReports => 'التقارير';
+
+  @override
+  String get velocityReportTileTitle => 'تنبيهات إعادة الطلب والسرعة';
+
+  @override
+  String get velocityReportTileSubtitle =>
+      'تنبيهات إعادة التخزين من تتبع سرعة المبيعات الأسبوعي';
+
+  @override
+  String get velocityReportTitle => 'تنبيهات إعادة الطلب والسرعة';
+
+  @override
+  String get velocityReportSummaryCritical => 'حرج';
+
+  @override
+  String get velocityReportSummaryWatch => 'قائمة المراقبة';
+
+  @override
+  String get velocityReportSummarySlow => 'بطيئة الحركة';
+
+  @override
+  String get velocityReportSummaryOverstock => 'فائض مخزون';
+
+  @override
+  String get velocityReportDetailTitle => 'تفاصيل السرعة';
+
+  @override
+  String get velocityReportRecalculateAction => 'إعادة الحساب الآن';
+
+  @override
+  String get velocityReportRecalculateConfirmTitle => 'إعادة حساب السرعة الآن؟';
+
+  @override
+  String get velocityReportRecalculateConfirmBody =>
+      'سيؤدي هذا إلى إعادة حساب سرعة المبيعات لكل صنف مخزون، وقد يستغرق بعض الوقت. المهمة الأسبوعية تُحدّث هذه البيانات تلقائيًا بالفعل.';
+
+  @override
+  String velocityReportRecalculateSuccess(int count) {
+    return 'تم تحديث السرعة لـ $count صنف';
+  }
+
+  @override
+  String get velocityReportRecalculateError =>
+      'تعذّرت إعادة حساب السرعة. حاول مرة أخرى.';
+
+  @override
+  String get segmentReportTileTitle => 'شرائح العملاء (RFM)';
+
+  @override
+  String get segmentReportTileSubtitle =>
+      'تصنيف الحداثة والتكرار والقيمة من المهمة الليلية';
+
+  @override
+  String get segmentReportTitle => 'شرائح العملاء';
+
+  @override
+  String get segmentReportColumnCount => 'العملاء';
+
+  @override
+  String get segmentReportTotalCustomers => 'إجمالي العملاء';
+
+  @override
+  String get segmentReportRecalculateAction => 'إعادة الحساب الآن';
+
+  @override
+  String get segmentReportRecalculateConfirmTitle => 'إعادة حساب الشرائح الآن؟';
+
+  @override
+  String get segmentReportRecalculateConfirmBody =>
+      'سيؤدي هذا إلى إعادة حساب شرائح RFM لكل عميل، مع تخطي العملاء المثبّتين. المهمة الليلية تُحدّث هذه البيانات تلقائيًا بالفعل.';
+
+  @override
+  String segmentReportRecalculateSuccess(int updated) {
+    return 'تم تحديث الشرائح لـ $updated عميل';
+  }
+
+  @override
+  String get segmentReportRecalculateError =>
+      'تعذّرت إعادة حساب الشرائح. حاول مرة أخرى.';
+
+  @override
+  String segmentReportCustomersTitle(Object segment) {
+    return 'عملاء شريحة $segment';
+  }
+
+  @override
+  String get segmentReportCopyAll => 'نسخ الكل';
+
+  @override
+  String get segmentReportCopied => 'تم النسخ إلى الحافظة';
+
+  @override
+  String get segmentReportExportEmpty => 'لا يوجد عملاء في هذه الشريحة';
+
+  @override
+  String get segmentReportPin => 'تثبيت الشريحة';
+
+  @override
+  String get segmentReportUnpin => 'إلغاء تثبيت الشريحة';
+
+  @override
+  String segmentReportPinConfirmBody(Object customer) {
+    return 'تثبيت شريحة $customer حتى تتوقف عن التغيير في عملية إعادة الحساب القادمة؟';
+  }
+
+  @override
+  String segmentReportUnpinConfirmBody(Object customer) {
+    return 'إلغاء تثبيت $customer حتى تُحسب شريحته تلقائيًا مرة أخرى؟';
+  }
+
+  @override
+  String get segmentReportOverrideSuccess => 'تم تحديث الشريحة';
+
+  @override
+  String get segmentReportOverrideError =>
+      'تعذّر تحديث الشريحة. حاول مرة أخرى.';
 
   @override
   String get reportsTitle => 'التقارير';
@@ -10038,4 +11075,370 @@ class AppLocalizationsAr extends AppLocalizations {
   String shiftHistoryOpenedBy(Object name) {
     return 'فتحها $name';
   }
+
+  @override
+  String get menuMonthlyExpenses => 'المصروفات الشهرية';
+
+  @override
+  String get monthlyExpensesTitle => 'المصروفات الشهرية';
+
+  @override
+  String get monthlyExpensesRefreshTooltip => 'تحديث';
+
+  @override
+  String get monthlyExpensesMonthLabel => 'الشهر';
+
+  @override
+  String get monthlyExpensesPreviousMonthTooltip => 'الشهر السابق';
+
+  @override
+  String get monthlyExpensesNextMonthTooltip => 'الشهر التالي';
+
+  @override
+  String get monthlyExpensesLoadFailed => 'تعذر تحميل بيانات هذا الشهر.';
+
+  @override
+  String get monthlyExpensesRemaining => 'المتبقي';
+
+  @override
+  String get monthlyExpensesDue => 'المستحق';
+
+  @override
+  String get monthlyExpensesPaid => 'المدفوع';
+
+  @override
+  String get monthlyExpensesRunRate => 'المعدل الشهري';
+
+  @override
+  String monthlyExpensesRemainingCaption(Object paid, Object due) {
+    return 'تم دفع $paid من إجمالي $due';
+  }
+
+  @override
+  String monthlyExpensesOverpaidNotice(Object amount) {
+    return 'زيادة في الدفع بمقدار $amount';
+  }
+
+  @override
+  String monthlyExpensesItemsBreakdown(int paid, int partial, int unpaid) {
+    return '$paid مدفوع، $partial جزئي، $unpaid غير مدفوع';
+  }
+
+  @override
+  String monthlyExpensesItemsTotal(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count بند مستحق',
+      few: '$count بنود مستحقة',
+      two: 'بندان مستحقان',
+      one: 'بند واحد مستحق',
+      zero: 'لا توجد بنود مستحقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get monthlyExpensesGapsTitle => 'يحتاج انتباهك';
+
+  @override
+  String get monthlyExpensesRecurringTitle => 'المصروفات المتكررة';
+
+  @override
+  String get monthlyExpensesRecurringEmpty =>
+      'لا توجد أي مصروفات متكررة مسجلة حتى الآن.';
+
+  @override
+  String get monthlyExpensesCategoryUncategorised => 'بدون تصنيف';
+
+  @override
+  String monthlyExpensesCategorySubtotal(Object remaining, Object due) {
+    return 'متبقي $remaining من $due';
+  }
+
+  @override
+  String get monthlyExpensesStatusPaid => 'مدفوع';
+
+  @override
+  String get monthlyExpensesStatusPartial => 'جزئي';
+
+  @override
+  String get monthlyExpensesStatusUnpaid => 'غير مدفوع';
+
+  @override
+  String get monthlyExpensesStatusNotDue => 'غير مستحق';
+
+  @override
+  String get monthlyExpensesStatusOverpaid => 'مدفوع بالزيادة';
+
+  @override
+  String get monthlyExpensesLifecyclePaused => 'موقوف مؤقتاً';
+
+  @override
+  String get monthlyExpensesLifecycleEnded => 'منتهي';
+
+  @override
+  String get monthlyExpensesPayAction => 'دفع';
+
+  @override
+  String get monthlyExpensesInferredBadge => 'من دفتر الأستاذ';
+
+  @override
+  String monthlyExpensesInferredExplain(Object amount) {
+    return 'مبلغ $amount من المدفوع مقروء من دفتر الأستاذ ولم يُدفع من خلال هذا التطبيق.';
+  }
+
+  @override
+  String get monthlyExpensesSharedAccountBadge => 'حساب مشترك';
+
+  @override
+  String monthlyExpensesSharedAccountExplain(Object account) {
+    return 'توجد مصروفات أخرى تُرحَّل إلى $account هذا الشهر، لذلك لا يمكن نسب مدفوعات دفتر الأستاذ إلى هذا البند.';
+  }
+
+  @override
+  String get monthlyExpensesFrequencyLabel => 'التكرار';
+
+  @override
+  String get monthlyExpensesDueDateLabel => 'تاريخ الاستحقاق';
+
+  @override
+  String get monthlyExpensesAccountLabel => 'حساب المصروف';
+
+  @override
+  String get monthlyExpensesCostCenterLabel => 'مركز التكلفة';
+
+  @override
+  String get monthlyExpensesSupplierLabel => 'المورد';
+
+  @override
+  String get monthlyExpensesNotesLabel => 'ملاحظات';
+
+  @override
+  String get monthlyExpensesAmountLabel => 'المبلغ';
+
+  @override
+  String get monthlyExpensesMonthlyEquivalentLabel => 'ما يعادله شهرياً';
+
+  @override
+  String get monthlyExpensesPaymentsTitle => 'المدفوعات';
+
+  @override
+  String get monthlyExpensesPaymentsEmpty =>
+      'لا توجد مدفوعات مسجلة لهذا الشهر.';
+
+  @override
+  String get monthlyExpensesPaymentCancelAction => 'إلغاء الدفعة';
+
+  @override
+  String get monthlyExpensesPaymentCancelTitle => 'إلغاء هذه الدفعة؟';
+
+  @override
+  String monthlyExpensesPaymentCancelBody(Object amount, Object source) {
+    return 'سيؤدي هذا إلى عكس القيد المحاسبي بمبلغ $amount وإعادة المبلغ إلى $source.';
+  }
+
+  @override
+  String get monthlyExpensesPaymentCancelHint => 'لماذا يتم عكس هذه الدفعة؟';
+
+  @override
+  String get monthlyExpensesPaymentCancelConfirm => 'إلغاء وعكس القيد';
+
+  @override
+  String get monthlyExpensesPaymentCancelled =>
+      'تم إلغاء الدفعة وعكس القيد المحاسبي';
+
+  @override
+  String get monthlyExpensesSalariesTitle => 'المرتبات';
+
+  @override
+  String get monthlyExpensesSalariesEmpty =>
+      'لا يوجد موظف لديه هيكل رواتب لهذا الشهر.';
+
+  @override
+  String get monthlyExpensesPayrollNotConfigured =>
+      'لم يتم إعداد الرواتب، لذلك لا يمكن دفع المرتبات من هذه الشاشة.';
+
+  @override
+  String get monthlyExpensesPayrollAccountLabel => 'حساب المرتبات';
+
+  @override
+  String get monthlyExpensesSalaryBaseLabel => 'الأساسي';
+
+  @override
+  String get monthlyExpensesSalaryVariableLabel => 'المتغير';
+
+  @override
+  String get monthlyExpensesSalarySlipExists =>
+      'توجد قسيمة راتب معتمدة تغطي هذا الشهر بالفعل، والدفع من هنا سيسجل الراتب مرتين.';
+
+  @override
+  String monthlyExpensesMissingStructureTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count موظف بدون هيكل رواتب',
+      few: '$count موظفين بدون هيكل رواتب',
+      two: 'موظفان بدون هيكل رواتب',
+      one: 'موظف واحد بدون هيكل رواتب',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get monthlyExpensesMissingStructureBody =>
+      'رواتبهم غير محتسبة في الأرقام أعلاه. عيّن هيكل رواتب في الموارد البشرية لتضمينهم.';
+
+  @override
+  String monthlyExpensesUnattributedGl(Object amount) {
+    return 'مبلغ $amount مُرحَّل إلى حساب المرتبات ولا يمكن نسبه إلى موظف بعينه، لذلك يُعرض هنا بدلاً من إضافته إلى أحد الصفوف.';
+  }
+
+  @override
+  String monthlyExpensesPayTitle(Object name) {
+    return 'دفع $name';
+  }
+
+  @override
+  String monthlyExpensesPayPeriod(Object month) {
+    return 'عن شهر $month';
+  }
+
+  @override
+  String get monthlyExpensesPayAmountLabel => 'المبلغ المراد دفعه';
+
+  @override
+  String get monthlyExpensesPayAmountInvalid => 'أدخل مبلغاً أكبر من صفر';
+
+  @override
+  String get monthlyExpensesPayFromLabel => 'الدفع من';
+
+  @override
+  String get monthlyExpensesPayFromRequired =>
+      'اختر الحساب الذي سيتم الدفع منه';
+
+  @override
+  String get monthlyExpensesPayDateLabel => 'تاريخ الدفع';
+
+  @override
+  String get monthlyExpensesPayRemarksLabel => 'ملاحظات (اختياري)';
+
+  @override
+  String get monthlyExpensesPaySubmit => 'دفع';
+
+  @override
+  String monthlyExpensesPaySourceOption(Object label, Object balance) {
+    return '$label — $balance';
+  }
+
+  @override
+  String get monthlyExpensesPayNoSources =>
+      'لا يوجد حساب نقدي أو بنكي متاح للدفع منه.';
+
+  @override
+  String monthlyExpensesPayRemainingHint(Object amount) {
+    return 'المتبقي: $amount';
+  }
+
+  @override
+  String get monthlyExpensesPaymentRecorded => 'تم تسجيل الدفعة';
+
+  @override
+  String get monthlyExpensesOverpayTitle => 'أكثر من المستحق';
+
+  @override
+  String get monthlyExpensesOverpayConfirm => 'ادفع على أي حال';
+
+  @override
+  String get monthlyExpensesAddAction => 'إضافة مصروف';
+
+  @override
+  String get monthlyExpensesNewTitle => 'مصروف متكرر جديد';
+
+  @override
+  String get monthlyExpensesEditTitle => 'تعديل المصروف المتكرر';
+
+  @override
+  String get monthlyExpensesNameLabel => 'الاسم';
+
+  @override
+  String get monthlyExpensesNameRequired => 'أدخل اسماً لهذا المصروف';
+
+  @override
+  String get monthlyExpensesAmountRequired => 'أدخل مبلغاً أكبر من صفر';
+
+  @override
+  String get monthlyExpensesCategoryLabel => 'التصنيف';
+
+  @override
+  String get monthlyExpensesCategoryRequired => 'اختر تصنيفاً';
+
+  @override
+  String get monthlyExpensesFrequencyRequired => 'اختر التكرار';
+
+  @override
+  String get monthlyExpensesAccountRequired => 'اختر حساب المصروف';
+
+  @override
+  String get monthlyExpensesDayOfMonthLabel => 'يوم من الشهر';
+
+  @override
+  String get monthlyExpensesDayOfMonthInvalid => 'أدخل يوماً بين 1 و 28';
+
+  @override
+  String get monthlyExpensesStartDateLabel => 'يبدأ';
+
+  @override
+  String get monthlyExpensesEndDateLabel => 'ينتهي (اختياري)';
+
+  @override
+  String get monthlyExpensesDefaultPayingAccountLabel =>
+      'يُدفع عادة من (اختياري)';
+
+  @override
+  String get monthlyExpensesNoneOption => 'بدون';
+
+  @override
+  String get monthlyExpensesSaved => 'تم حفظ المصروف المتكرر';
+
+  @override
+  String get monthlyExpensesManageTooltip => 'إدارة';
+
+  @override
+  String get monthlyExpensesEditAction => 'تعديل';
+
+  @override
+  String get monthlyExpensesPauseAction => 'إيقاف مؤقت';
+
+  @override
+  String get monthlyExpensesResumeAction => 'استئناف';
+
+  @override
+  String get monthlyExpensesEndAction => 'إنهاء';
+
+  @override
+  String monthlyExpensesEndTitle(Object name) {
+    return 'إنهاء $name؟';
+  }
+
+  @override
+  String get monthlyExpensesEndBody =>
+      'لن يصبح مستحقاً بعد الآن. تبقى المدفوعات السابقة مسجلة كما هي.';
+
+  @override
+  String get monthlyExpensesEndConfirm => 'إنهاؤه';
+
+  @override
+  String get monthlyExpensesStatusUpdated => 'تم تحديث الحالة';
+
+  @override
+  String get monthlyExpensesReadOnlyNotice =>
+      'يمكنك عرض هذا الشهر دون تعديل سجل المصروفات.';
+
+  @override
+  String get monthlyExpensesFormMissingOptions =>
+      'لم يرسل الخادم التصنيفات والتكرارات والحسابات التي يحتاجها هذا النموذج.';
+
+  @override
+  String get monthlyExpensesSalarySlipBadge => 'قسيمة راتب';
 }
