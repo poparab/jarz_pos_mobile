@@ -27,13 +27,17 @@ class BatchLine with _$BatchLine {
     /// weight-based and half a batch is a real thing to make.
     @Default(1.0) double batches,
     @Default(<BomComponent>[]) List<BomComponent> components,
+    @JsonKey(name: 'material_selections')
+    @Default(<String, String>{})
+    Map<String, String> materialSelections,
   }) = _BatchLine;
 
   factory BatchLine.fromJson(Map<String, dynamic> json) =>
       _$BatchLineFromJson(json);
 
   /// Builds a line from a fetched BOM, defaulting to a single batch.
-  factory BatchLine.fromBom(BomDetails bom, {double batches = 1.0}) => BatchLine(
+  factory BatchLine.fromBom(BomDetails bom, {double batches = 1.0}) =>
+      BatchLine(
         itemCode: bom.itemCode,
         itemName: bom.itemName,
         bomName: bom.defaultBom,
@@ -86,8 +90,7 @@ class ProductionBasket with _$ProductionBasket {
   List<BatchLine> get positiveLines =>
       lines.where((l) => l.units > 0).toList(growable: false);
 
-  double get totalUnits =>
-      positiveLines.fold(0.0, (sum, l) => sum + l.units);
+  double get totalUnits => positiveLines.fold(0.0, (sum, l) => sum + l.units);
 
   double get totalBatches =>
       positiveLines.fold(0.0, (sum, l) => sum + l.batches);
@@ -98,14 +101,16 @@ class ProductionBasket with _$ProductionBasket {
   /// Payload shape shared by `submit_work_orders` and
   /// `get_basket_material_rollup`.
   List<Map<String, dynamic>> toApiLines({String? scheduledAt}) => [
-        for (final line in positiveLines)
-          {
-            'item_code': line.itemCode,
-            'bom_name': line.bomName,
-            'item_qty': line.units,
-            if (scheduledAt != null) 'scheduled_at': scheduledAt,
-          }
-      ];
+    for (final line in positiveLines)
+      {
+        'item_code': line.itemCode,
+        'bom_name': line.bomName,
+        'item_qty': line.units,
+        if (line.materialSelections.isNotEmpty)
+          'material_selections': line.materialSelections,
+        if (scheduledAt != null) 'scheduled_at': scheduledAt,
+      },
+  ];
 }
 
 /// Outcome of a "Fill the day" bulk add, so the UI can say what it skipped

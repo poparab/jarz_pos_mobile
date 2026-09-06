@@ -12,9 +12,11 @@ import '../../data/models/base_batch_preview.dart';
 import '../../data/models/base_item.dart';
 import '../../domain/base_batch_math.dart';
 import '../../state/base_production_providers.dart';
+import '../../state/production_providers.dart';
 import '../../state/running_batches_notifier.dart';
 import 'batch_line_card.dart' show DecimalTextInputFormatter;
 import 'production_format.dart';
+import 'material_options_panel.dart';
 import 'stock_elsewhere_note.dart';
 import 'status_chip.dart';
 import 'view_sop_button.dart';
@@ -51,6 +53,22 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
   }
 
   @override
+  void didUpdateWidget(covariant BaseItemCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final itemChanged = oldWidget.item.itemCode != widget.item.itemCode;
+    final bomChanged = oldWidget.item.defaultBom != widget.item.defaultBom;
+    if (!itemChanged && !bomChanged) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final notifier = ref.read(
+        baseBatchDraftProvider(widget.item.itemCode).notifier,
+      );
+      if (bomChanged) notifier.resetMaterialSelections();
+      notifier.ensurePreview();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -59,20 +77,37 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
 
     final draft = ref.watch(baseBatchDraftProvider(item.itemCode));
     final notifier = ref.read(baseBatchDraftProvider(item.itemCode).notifier);
+    final materialBomName = draft.preview?.bomName ?? item.defaultBom;
+    final materialQty =
+        draft.preview?.itemQty ??
+        itemQtyForBatches(draft.batches, item.batchYield);
+    final materialOptions = ref.watch(
+      materialOptionsProvider(
+        MaterialOptionsRequest(bomName: materialBomName, qty: materialQty),
+      ),
+    );
+    final materialSelectionsValid = materialOptions.maybeWhen(
+      data: (options) =>
+          materialSelectionsAreValid(options, draft.materialSelections),
+      orElse: () => false,
+    );
 
     // Only a preview that describes the batch count currently on screen may
     // drive the Start button. A stale one is still rendered — greyed — but it
     // must not be read as an answer about this run.
     final preview = draft.previewIsCurrent ? draft.preview : null;
 
-    final blocked =
-        preview != null ? preview.hasShortage : item.isBlockedByMaterials;
-    final canStart = !blocked && !draft.loading && !_starting;
+    final blocked = preview != null
+        ? preview.hasShortage
+        : item.isBlockedByMaterials;
+    final canStart =
+        !blocked && !draft.loading && !_starting && materialSelectionsValid;
 
     final runSizes = preview?.runSizes ?? item.runSizes;
     // Server verdict first: the client grid check is only a stand-in for the
     // window before the first preview lands.
-    final runSizeOk = preview?.runSizeOk ?? isRunSizeOk(draft.batches, runSizes);
+    final runSizeOk =
+        preview?.runSizeOk ?? isRunSizeOk(draft.batches, runSizes);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -131,6 +166,12 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
               ),
             ],
             const SizedBox(height: 10),
+            MaterialOptionsPanel(
+              bomName: materialBomName,
+              qty: materialQty,
+              selections: draft.materialSelections,
+              onSelectionChanged: notifier.setMaterialSelection,
+            ),
             _PreviewPanel(
               item: item,
               draft: draft,
@@ -183,22 +224,25 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
       children: [
         Text(
           item.displayName,
-          style:
-              theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
         ),
         // Most bases are named by their code, so printing both renders the
         // same string twice.
         if (item.itemCode != item.itemName && item.itemName.isNotEmpty)
           Text(
             item.itemCode,
-            style: theme.textTheme.labelSmall
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         const SizedBox(height: 2),
         Text(
           l10n.basesBatchYield(trimQty(item.safeBatchYield), item.stockUom),
-          style: theme.textTheme.labelMedium
-              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -250,8 +294,10 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
         Expanded(
           child: Text(
             text,
-            style: theme.textTheme.labelSmall
-                ?.copyWith(color: color, fontWeight: FontWeight.w600),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -299,13 +345,15 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
     String? workOrder;
     Object? failure;
     try {
-      final result =
-          await ref.read(manufacturingServiceProvider).startProductionBatch(
-                itemCode: item.itemCode,
-                bomName: bomName,
-                itemQty: itemQty,
-                scheduledAt: _nowTimestamp(),
-              );
+      final result = await ref
+          .read(manufacturingServiceProvider)
+          .startProductionBatch(
+            itemCode: item.itemCode,
+            bomName: bomName,
+            itemQty: itemQty,
+            scheduledAt: _nowTimestamp(),
+            materialSelections: draft.materialSelections,
+          );
       workOrder = result.workOrder;
     } catch (error) {
       failure = error;
@@ -314,6 +362,7 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
       if (mounted) setState(() => _starting = false);
     }
 
+    if (!context.mounted) return;
     if (failure != null) {
       messenger.showSnackBar(
         SnackBar(
@@ -328,7 +377,9 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
     // Stock has physically moved, so every figure the card was showing is now
     // wrong: the list is re-read and the cached preview dropped.
     ref.invalidate(baseItemsProvider);
-    ref.read(baseBatchDraftProvider(item.itemCode).notifier).invalidatePreview();
+    ref
+        .read(baseBatchDraftProvider(item.itemCode).notifier)
+        .invalidatePreview();
     await ref.read(runningBatchesProvider.notifier).refresh();
 
     // The batch has left this tab, so leaving the operator staring at the card
@@ -405,14 +456,16 @@ class _DemandHint extends StatelessWidget {
                   trimQty(demand.batchesRequired),
                   trimQty(item.batchesOnHand),
                 ),
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               if (demand.driver.isNotEmpty)
                 Text(
                   l10n.basesDemandDriver(demand.driver),
-                  style: theme.textTheme.labelSmall
-                      ?.copyWith(color: scheme.onSurfaceVariant),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
             ],
           ),
@@ -508,13 +561,15 @@ class _BatchStepperState extends State<_BatchStepper> {
                 controller: _controller,
                 focusNode: _focus,
                 textAlign: TextAlign.center,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 inputFormatters: const [DecimalTextInputFormatter()],
                 decoration: const InputDecoration(isDense: true),
                 onChanged: (raw) {
-                  final parsed =
-                      double.tryParse(raw.trim().replaceAll(',', '.'));
+                  final parsed = double.tryParse(
+                    raw.trim().replaceAll(',', '.'),
+                  );
                   if (parsed == null) return;
                   // Typed input lands on the same half grid as the arrows: a
                   // 1.2-batch mix is not a thing the mixer can do, and the
@@ -581,8 +636,9 @@ class _RunSizeChips extends StatelessWidget {
       children: [
         Text(
           l10n.basesRunSizes,
-          style: theme.textTheme.labelSmall
-              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 4),
         // Wrap, not a Row: five chips with Arabic labels do not fit a 360 dp
@@ -662,8 +718,9 @@ class _PreviewPanel extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             l10n.basesChecking,
-            style: theme.textTheme.labelSmall
-                ?.copyWith(color: scheme.onSurfaceVariant),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
           ),
         ],
       );
@@ -687,8 +744,9 @@ class _PreviewPanel extends StatelessWidget {
                     trimQty(preview.itemQty, decimals: 3),
                     preview.stockUom.isEmpty ? item.stockUom : preview.stockUom,
                   ),
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               if (preview.estimatedCost != null)
@@ -696,8 +754,9 @@ class _PreviewPanel extends StatelessWidget {
                   l10n.basesEstimatedCost(
                     formatCurrency(context, preview.estimatedCost!),
                   ),
-                  style: theme.textTheme.labelSmall
-                      ?.copyWith(color: scheme.onSurfaceVariant),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
             ],
           ),
@@ -706,8 +765,10 @@ class _PreviewPanel extends StatelessWidget {
               tilePadding: EdgeInsets.zero,
               childrenPadding: EdgeInsets.zero,
               initiallyExpanded: preview.hasShortage,
-              title: Text(l10n.basesConsumes,
-                  style: theme.textTheme.bodyMedium),
+              title: Text(
+                l10n.basesConsumes,
+                style: theme.textTheme.bodyMedium,
+              ),
               children: [
                 for (final component in preview.components)
                   _ComponentRow(component: component),
@@ -737,10 +798,7 @@ class _ComponentRow extends StatelessWidget {
       leading: component.isShort
           ? Icon(Icons.warning_amber_rounded, size: 18, color: scheme.error)
           : null,
-      title: Text(
-        component.displayName,
-        style: theme.textTheme.bodySmall,
-      ),
+      title: Text(component.displayName, style: theme.textTheme.bodySmall),
       subtitle: component.isShort
           ? Text(
               l10n.productionPickListShort(
@@ -789,10 +847,12 @@ class _ShortageBanner extends StatelessWidget {
     // another store" answer. Read from one source only: mixing the preview
     // component's quantity with the list endpoint's warehouses would name a
     // store for the wrong item.
-    final elsewhereQty =
-        worst != null ? worst.availableElsewhere : limiter?.availableElsewhere;
-    final elsewhereList =
-        worst != null ? worst.alternatives : limiter?.alternatives;
+    final elsewhereQty = worst != null
+        ? worst.availableElsewhere
+        : limiter?.availableElsewhere;
+    final elsewhereList = worst != null
+        ? worst.alternatives
+        : limiter?.alternatives;
 
     final String headline;
     if (worst != null) {
@@ -812,8 +872,8 @@ class _ShortageBanner extends StatelessWidget {
     // Preferred over the list endpoint's whole-batch `can_make_now_batches`:
     // this tab trades in halves, and offering "2" when 2.5 is possible sends
     // the operator back for a second run they did not need.
-    final achievable = preview?.achievableBatches ??
-        (item.canMakeNowBatches?.toDouble() ?? 0);
+    final achievable =
+        preview?.achievableBatches ?? (item.canMakeNowBatches?.toDouble() ?? 0);
     final canReduce =
         achievable >= kMinBatches && achievable < (preview?.batches ?? 0);
 
@@ -845,8 +905,9 @@ class _ShortageBanner extends StatelessWidget {
               if (!canReduce)
                 Text(
                   l10n.basesNothingPossible,
-                  style: theme.textTheme.labelSmall
-                      ?.copyWith(color: scheme.onErrorContainer),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onErrorContainer,
+                  ),
                 ),
               // Says where the material is; changes nothing about the block.
               // The Start button above stays disabled exactly as before —

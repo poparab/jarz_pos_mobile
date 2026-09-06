@@ -18,8 +18,8 @@ final includeBaseDemandProvider = StateProvider<bool>((ref) => true);
 /// The list of bases. Loads once and is refreshed explicitly.
 final baseItemsProvider =
     AsyncNotifierProvider<BaseItemsNotifier, BaseItemsPage>(
-  BaseItemsNotifier.new,
-);
+      BaseItemsNotifier.new,
+    );
 
 class BaseItemsNotifier extends AsyncNotifier<BaseItemsPage> {
   ManufacturingService get _service => ref.read(manufacturingServiceProvider);
@@ -51,6 +51,7 @@ class BaseBatchDraft {
     this.preview,
     this.loading = false,
     this.error,
+    this.materialSelections = const <String, String>{},
   });
 
   /// Always the operator's control. Nothing ever writes a demand figure in
@@ -65,6 +66,7 @@ class BaseBatchDraft {
   /// The raw error object, not a message: the string has to be built with the
   /// widget's `l10n` and this class has no `BuildContext`.
   final Object? error;
+  final Map<String, String> materialSelections;
 
   bool get hasPreview => preview != null;
 
@@ -82,12 +84,14 @@ class BaseBatchDraft {
     Object? error,
     bool clearPreview = false,
     bool clearError = false,
+    Map<String, String>? materialSelections,
   }) {
     return BaseBatchDraft(
       batches: batches ?? this.batches,
       preview: clearPreview ? null : (preview ?? this.preview),
       loading: loading ?? this.loading,
       error: clearError ? null : (error ?? this.error),
+      materialSelections: materialSelections ?? this.materialSelections,
     );
   }
 }
@@ -99,8 +103,8 @@ class BaseBatchDraft {
 /// the number of bases (a handful), so nothing accumulates.
 final baseBatchDraftProvider =
     NotifierProvider.family<BaseBatchDraftNotifier, BaseBatchDraft, String>(
-  BaseBatchDraftNotifier.new,
-);
+      BaseBatchDraftNotifier.new,
+    );
 
 class BaseBatchDraftNotifier extends FamilyNotifier<BaseBatchDraft, String> {
   Timer? _debounce;
@@ -129,6 +133,27 @@ class BaseBatchDraftNotifier extends FamilyNotifier<BaseBatchDraft, String> {
 
   /// Moves the stepper by [delta] half-batches.
   void step(double delta) => setBatches(state.batches + delta);
+
+  void setMaterialSelection(String originalItemCode, String selectedItemCode) {
+    final selections = Map<String, String>.from(state.materialSelections);
+    if (selectedItemCode == originalItemCode) {
+      selections.remove(originalItemCode);
+    } else {
+      selections[originalItemCode] = selectedItemCode;
+    }
+    state = state.copyWith(materialSelections: selections, clearError: true);
+    _schedulePreview();
+  }
+
+  void resetMaterialSelections() {
+    if (state.materialSelections.isEmpty) return;
+    state = state.copyWith(
+      materialSelections: const <String, String>{},
+      clearPreview: true,
+      clearError: true,
+    );
+    _schedulePreview();
+  }
 
   /// Fetches the first preview for a card that has just appeared. Idempotent,
   /// so a rebuild does not re-request.
@@ -161,35 +186,45 @@ class BaseBatchDraftNotifier extends FamilyNotifier<BaseBatchDraft, String> {
     }
 
     final requested = state.batches;
+    final requestedSelections = Map<String, String>.from(
+      state.materialSelections,
+    );
     try {
-      final preview =
-          await ref.read(manufacturingServiceProvider).previewBaseBatch(
-                itemCode: item.itemCode,
-                batches: requested,
-                bomName: item.defaultBom,
-              );
+      final preview = await ref
+          .read(manufacturingServiceProvider)
+          .previewBaseBatch(
+            itemCode: item.itemCode,
+            batches: requested,
+            bomName: item.defaultBom,
+            materialSelections: requestedSelections,
+          );
       // A slower earlier request must not overwrite a newer entry.
-      if (!_stillWanted(requested)) return;
+      if (!_stillWanted(requested, requestedSelections)) return;
       state = state.copyWith(
         preview: preview,
         loading: false,
         clearError: true,
       );
     } catch (error) {
-      if (!_stillWanted(requested)) return;
+      if (!_stillWanted(requested, requestedSelections)) return;
       // The stale component list is dropped with the failure: leaving numbers
       // on screen that describe a different batch count is worse than an
       // honest blank.
-      state = state.copyWith(
-        loading: false,
-        error: error,
-        clearPreview: true,
-      );
+      state = state.copyWith(loading: false, error: error, clearPreview: true);
     }
   }
 
-  bool _stillWanted(double requested) =>
-      (state.batches - requested).abs() <= kBatchEpsilon;
+  bool _stillWanted(
+    double requested,
+    Map<String, String> requestedSelections,
+  ) =>
+      (state.batches - requested).abs() <= kBatchEpsilon &&
+      _sameSelections(state.materialSelections, requestedSelections);
+
+  bool _sameSelections(Map<String, String> left, Map<String, String> right) {
+    if (left.length != right.length) return false;
+    return left.entries.every((entry) => right[entry.key] == entry.value);
+  }
 
   BaseItem? _item() {
     final page = ref.read(baseItemsProvider).valueOrNull;

@@ -38,6 +38,9 @@ mixin _$BatchLine {
   /// weight-based and half a batch is a real thing to make.
   double get batches => throw _privateConstructorUsedError;
   List<BomComponent> get components => throw _privateConstructorUsedError;
+  @JsonKey(name: 'material_selections')
+  Map<String, String> get materialSelections =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this BatchLine to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -62,6 +65,8 @@ abstract class $BatchLineCopyWith<$Res> {
     @JsonKey(name: 'bom_qty_yield') double bomQtyYield,
     double batches,
     List<BomComponent> components,
+    @JsonKey(name: 'material_selections')
+    Map<String, String> materialSelections,
   });
 }
 
@@ -87,6 +92,7 @@ class _$BatchLineCopyWithImpl<$Res, $Val extends BatchLine>
     Object? bomQtyYield = null,
     Object? batches = null,
     Object? components = null,
+    Object? materialSelections = null,
   }) {
     return _then(
       _value.copyWith(
@@ -118,6 +124,10 @@ class _$BatchLineCopyWithImpl<$Res, $Val extends BatchLine>
                 ? _value.components
                 : components // ignore: cast_nullable_to_non_nullable
                       as List<BomComponent>,
+            materialSelections: null == materialSelections
+                ? _value.materialSelections
+                : materialSelections // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>,
           )
           as $Val,
     );
@@ -141,6 +151,8 @@ abstract class _$$BatchLineImplCopyWith<$Res>
     @JsonKey(name: 'bom_qty_yield') double bomQtyYield,
     double batches,
     List<BomComponent> components,
+    @JsonKey(name: 'material_selections')
+    Map<String, String> materialSelections,
   });
 }
 
@@ -165,6 +177,7 @@ class __$$BatchLineImplCopyWithImpl<$Res>
     Object? bomQtyYield = null,
     Object? batches = null,
     Object? components = null,
+    Object? materialSelections = null,
   }) {
     return _then(
       _$BatchLineImpl(
@@ -196,6 +209,10 @@ class __$$BatchLineImplCopyWithImpl<$Res>
             ? _value._components
             : components // ignore: cast_nullable_to_non_nullable
                   as List<BomComponent>,
+        materialSelections: null == materialSelections
+            ? _value._materialSelections
+            : materialSelections // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>,
       ),
     );
   }
@@ -212,7 +229,10 @@ class _$BatchLineImpl extends _BatchLine {
     @JsonKey(name: 'bom_qty_yield') this.bomQtyYield = 1.0,
     this.batches = 1.0,
     final List<BomComponent> components = const <BomComponent>[],
+    @JsonKey(name: 'material_selections')
+    final Map<String, String> materialSelections = const <String, String>{},
   }) : _components = components,
+       _materialSelections = materialSelections,
        super._();
 
   factory _$BatchLineImpl.fromJson(Map<String, dynamic> json) =>
@@ -250,9 +270,19 @@ class _$BatchLineImpl extends _BatchLine {
     return EqualUnmodifiableListView(_components);
   }
 
+  final Map<String, String> _materialSelections;
+  @override
+  @JsonKey(name: 'material_selections')
+  Map<String, String> get materialSelections {
+    if (_materialSelections is EqualUnmodifiableMapView)
+      return _materialSelections;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_materialSelections);
+  }
+
   @override
   String toString() {
-    return 'BatchLine(itemCode: $itemCode, itemName: $itemName, bomName: $bomName, stockUom: $stockUom, bomQtyYield: $bomQtyYield, batches: $batches, components: $components)';
+    return 'BatchLine(itemCode: $itemCode, itemName: $itemName, bomName: $bomName, stockUom: $stockUom, bomQtyYield: $bomQtyYield, batches: $batches, components: $components, materialSelections: $materialSelections)';
   }
 
   @override
@@ -273,6 +303,10 @@ class _$BatchLineImpl extends _BatchLine {
             const DeepCollectionEquality().equals(
               other._components,
               _components,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._materialSelections,
+              _materialSelections,
             ));
   }
 
@@ -287,6 +321,7 @@ class _$BatchLineImpl extends _BatchLine {
     bomQtyYield,
     batches,
     const DeepCollectionEquality().hash(_components),
+    const DeepCollectionEquality().hash(_materialSelections),
   );
 
   /// Create a copy of BatchLine
@@ -312,6 +347,8 @@ abstract class _BatchLine extends BatchLine {
     @JsonKey(name: 'bom_qty_yield') final double bomQtyYield,
     final double batches,
     final List<BomComponent> components,
+    @JsonKey(name: 'material_selections')
+    final Map<String, String> materialSelections,
   }) = _$BatchLineImpl;
   const _BatchLine._() : super._();
 
@@ -342,6 +379,9 @@ abstract class _BatchLine extends BatchLine {
   double get batches;
   @override
   List<BomComponent> get components;
+  @override
+  @JsonKey(name: 'material_selections')
+  Map<String, String> get materialSelections;
 
   /// Create a copy of BatchLine
   /// with the given fields replaced by the non-null parameter values.

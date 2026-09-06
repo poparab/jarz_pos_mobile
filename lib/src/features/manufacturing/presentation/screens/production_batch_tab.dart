@@ -17,6 +17,7 @@ import '../widgets/basket_shortage_banner.dart';
 import '../widgets/batch_date_bar.dart';
 import '../widgets/batch_line_card.dart';
 import '../widgets/production_format.dart';
+import '../widgets/material_options_panel.dart';
 
 /// The queued batch: one date, one consolidated pick list, one submit.
 class ProductionBatchTab extends ConsumerWidget {
@@ -35,6 +36,18 @@ class ProductionBatchTab extends ConsumerWidget {
     final rollupAsync = ref.watch(basketRollupProvider);
     final rollup = rollupAsync.valueOrNull;
     final shortages = shortageItemCodes(rollup);
+    final materialSelectionsValid = basket.positiveLines.every((line) {
+      final options = ref.watch(
+        materialOptionsProvider(
+          MaterialOptionsRequest(bomName: line.bomName, qty: line.units),
+        ),
+      );
+      return options.maybeWhen(
+        data: (value) =>
+            materialSelectionsAreValid(value, line.materialSelections),
+        orElse: () => false,
+      );
+    });
     final today = DateTime.now();
 
     return Column(
@@ -58,6 +71,22 @@ class ProductionBatchTab extends ConsumerWidget {
                   padding: EdgeInsets.symmetric(vertical: 12),
                   child: Center(child: LinearProgressIndicator()),
                 )
+              else if (rollupAsync.hasError)
+                Card(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  child: ListTile(
+                    title: Text(
+                      context.userErrorMessage(
+                        rollupAsync.error!,
+                        fallback: l10n.commonError,
+                      ),
+                    ),
+                    trailing: TextButton(
+                      onPressed: () => ref.invalidate(basketRollupProvider),
+                      child: Text(l10n.commonRetry),
+                    ),
+                  ),
+                )
               else if (rollup != null) ...[
                 BasketPickList(rollup: rollup),
                 const SizedBox(height: 12),
@@ -65,29 +94,54 @@ class ProductionBatchTab extends ConsumerWidget {
               for (var index = 0; index < basket.lines.length; index++)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: BatchLineCard(
-                    line: basket.lines[index],
-                    shortages: shortages,
-                    onBatchesChanged: (value) =>
-                        notifier.setBatches(index, value),
-                    onUnitsChanged: (value) => notifier.setUnits(index, value),
-                    onRemove: () => notifier.remove(index),
+                  child: Column(
+                    children: [
+                      BatchLineCard(
+                        line: basket.lines[index],
+                        shortages: shortages,
+                        onBatchesChanged: (value) =>
+                            notifier.setBatches(index, value),
+                        onUnitsChanged: (value) =>
+                            notifier.setUnits(index, value),
+                        onRemove: () => notifier.remove(index),
+                      ),
+                      MaterialOptionsPanel(
+                        bomName: basket.lines[index].bomName,
+                        qty: basket.lines[index].units,
+                        selections: basket.lines[index].materialSelections,
+                        onSelectionChanged: (original, selected) => notifier
+                            .setMaterialSelection(index, original, selected),
+                      ),
+                    ],
                   ),
                 ),
               const SizedBox(height: 80),
             ],
           ),
         ),
-        _BatchFooter(rollup: rollup),
+        _BatchFooter(
+          rollup: rollup,
+          rollupLoading: rollupAsync.isLoading,
+          rollupFailed: rollupAsync.hasError,
+          materialSelectionsValid: materialSelectionsValid,
+        ),
       ],
     );
   }
 }
 
 class _BatchFooter extends ConsumerWidget {
-  const _BatchFooter({required this.rollup});
+  const _BatchFooter({
+    required this.rollup,
+    required this.rollupLoading,
+    required this.rollupFailed,
+    required this.materialSelectionsValid,
+  });
 
   final BasketRollup? rollup;
+  final bool rollupLoading;
+  final bool rollupFailed;
+  final bool materialSelectionsValid;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -98,7 +152,12 @@ class _BatchFooter extends ConsumerWidget {
     final blocked = rollup?.hasShortages ?? false;
     final nothingToSubmit = basket.positiveLines.isEmpty;
 
-    final disabled = blocked || nothingToSubmit;
+    final disabled =
+        blocked ||
+        nothingToSubmit ||
+        rollupLoading ||
+        rollupFailed ||
+        !materialSelectionsValid;
 
     return Material(
       elevation: 8,
@@ -113,8 +172,9 @@ class _BatchFooter extends ConsumerWidget {
             children: [
               Text(
                 l10n.productionBasketTitle(basket.positiveLines.length),
-                style: theme.textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               Text(
                 l10n.productionBatchTotals(
@@ -133,7 +193,9 @@ class _BatchFooter extends ConsumerWidget {
               Row(
                 children: [
                   TextButton(
-                    onPressed: ref.read(productionBasketProvider.notifier).clear,
+                    onPressed: ref
+                        .read(productionBasketProvider.notifier)
+                        .clear,
                     child: Text(l10n.productionClearBasket),
                   ),
                   Expanded(
@@ -146,13 +208,15 @@ class _BatchFooter extends ConsumerWidget {
                         // in one call, for items where the method genuinely
                         // does not matter.
                         OutlinedButton(
-                          onPressed:
-                              disabled ? null : () => _submit(context, ref),
+                          onPressed: disabled
+                              ? null
+                              : () => _submit(context, ref),
                           child: Text(l10n.productionQuickProduce),
                         ),
                         FilledButton(
-                          onPressed:
-                              disabled ? null : () => _startBatch(context, ref),
+                          onPressed: disabled
+                              ? null
+                              : () => _startBatch(context, ref),
                           child: Text(l10n.productionStart),
                         ),
                       ],
@@ -181,8 +245,7 @@ class _BatchFooter extends ConsumerWidget {
 
     // Checked before the confirmation dialog so the refusal names the actual
     // reason instead of arriving as a server error after two more taps.
-    if (_isBackDated(postingDate) &&
-        !ref.read(canBackDateProductionProvider)) {
+    if (_isBackDated(postingDate) && !ref.read(canBackDateProductionProvider)) {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.productionBackDateNotAllowed)),
       );
@@ -217,9 +280,11 @@ class _BatchFooter extends ConsumerWidget {
           bomName: line.bomName,
           itemQty: line.units,
           scheduledAt: scheduledAt,
+          materialSelections: line.materialSelections,
         );
         started[line] = result.workOrder;
       } catch (error) {
+        if (!context.mounted) break;
         issues.add(
           '${line.itemCode}: '
           '${context.userErrorMessage(error, fallback: l10n.commonError)}',
@@ -232,7 +297,9 @@ class _BatchFooter extends ConsumerWidget {
     // and retryable instead of vanishing into a snackbar.
     final notifier = ref.read(productionBasketProvider.notifier);
     for (final line in started.keys) {
-      final index = ref.read(productionBasketProvider).indexOfItem(line.itemCode);
+      final index = ref
+          .read(productionBasketProvider)
+          .indexOfItem(line.itemCode);
       if (index >= 0) notifier.remove(index);
     }
 
@@ -263,8 +330,11 @@ class _BatchFooter extends ConsumerWidget {
   /// True when [date] falls on an earlier calendar day than today.
   static bool _isBackDated(DateTime date) {
     final now = DateTime.now();
-    return DateTime(date.year, date.month, date.day)
-        .isBefore(DateTime(now.year, now.month, now.day));
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+    ).isBefore(DateTime(now.year, now.month, now.day));
   }
 
   Future<void> _submit(BuildContext context, WidgetRef ref) async {
@@ -295,6 +365,7 @@ class _BatchFooter extends ConsumerWidget {
           .submitWorkOrders(lines);
     } catch (error) {
       ref.read(loadingOverlayProvider.notifier).hide();
+      if (!context.mounted) return;
       messenger.showSnackBar(
         SnackBar(
           content: Text(

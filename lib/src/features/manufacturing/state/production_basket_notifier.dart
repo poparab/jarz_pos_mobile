@@ -16,8 +16,8 @@ const int kProductionBackDateDays = 3;
 
 final productionBasketProvider =
     NotifierProvider<ProductionBasketNotifier, ProductionBasket>(
-  ProductionBasketNotifier.new,
-);
+      ProductionBasketNotifier.new,
+    );
 
 class ProductionBasketNotifier extends Notifier<ProductionBasket> {
   Timer? _persistTimer;
@@ -56,6 +56,13 @@ class ProductionBasketNotifier extends Notifier<ProductionBasket> {
     }
 
     final existing = state.lines[index];
+    if (line.bomName != existing.bomName) {
+      final batches = line.batches > existing.batches
+          ? line.batches
+          : existing.batches;
+      _replaceAt(index, line.withBatches(batches));
+      return;
+    }
     if (line.batches <= existing.batches) return;
     _replaceAt(index, existing.withBatches(line.batches));
   }
@@ -71,6 +78,22 @@ class ProductionBasketNotifier extends Notifier<ProductionBasket> {
   void setUnits(int index, double units) {
     if (index < 0 || index >= state.lines.length) return;
     _replaceAt(index, state.lines[index].withUnits(units));
+  }
+
+  void setMaterialSelection(
+    int index,
+    String originalItemCode,
+    String selectedItemCode,
+  ) {
+    if (index < 0 || index >= state.lines.length) return;
+    final line = state.lines[index];
+    final selections = Map<String, String>.from(line.materialSelections);
+    if (selectedItemCode == originalItemCode) {
+      selections.remove(originalItemCode);
+    } else {
+      selections[originalItemCode] = selectedItemCode;
+    }
+    _replaceAt(index, line.copyWith(materialSelections: selections));
   }
 
   void remove(int index) {

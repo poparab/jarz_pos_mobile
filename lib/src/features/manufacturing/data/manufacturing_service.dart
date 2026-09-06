@@ -7,6 +7,7 @@ import 'models/base_batch_preview.dart';
 import 'models/base_item.dart';
 import 'models/basket_rollup.dart';
 import 'models/bom_details.dart';
+import 'models/material_options.dart';
 import 'models/production_suggestion.dart';
 import 'models/running_batch.dart';
 import 'models/sop.dart';
@@ -17,6 +18,8 @@ final manufacturingServiceProvider = Provider<ManufacturingService>((ref) {
 });
 
 class ManufacturingService {
+  static const _getMaterialOptionsEndpoint =
+      '/api/method/jarz_pos.api.manufacturing.get_material_options';
   final Dio _dio;
   ManufacturingService(this._dio);
 
@@ -37,7 +40,10 @@ class ManufacturingService {
       if (payload is List) return payload.cast<Map<String, dynamic>>();
       return [];
     } catch (error) {
-      throw _friendlyError(error, fallback: 'Failed to load manufacturing items');
+      throw _friendlyError(
+        error,
+        fallback: 'Failed to load manufacturing items',
+      );
     }
   }
 
@@ -58,7 +64,9 @@ class ManufacturingService {
     }
   }
 
-  Future<Map<String, dynamic>> submitWorkOrders(List<Map<String, dynamic>> lines) async {
+  Future<Map<String, dynamic>> submitWorkOrders(
+    List<Map<String, dynamic>> lines,
+  ) async {
     try {
       final resp = await _dio.post(
         ApiEndpoints.submitWorkOrders,
@@ -71,7 +79,28 @@ class ManufacturingService {
       if (payload is Map) return Map<String, dynamic>.from(payload);
       throw Exception('Unexpected submit response');
     } catch (error) {
-      throw _friendlyError(error, fallback: 'Failed to submit manufacturing work orders');
+      throw _friendlyError(
+        error,
+        fallback: 'Failed to submit manufacturing work orders',
+      );
+    }
+  }
+
+  Future<MaterialOptions> getMaterialOptions({
+    required String bomName,
+    required double qty,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        _getMaterialOptionsEndpoint,
+        data: {'bom_name': bomName, 'qty': qty},
+      );
+      return MaterialOptions.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(
+        error,
+        fallback: 'Failed to load ingredient choices',
+      );
     }
   }
 
@@ -98,7 +127,10 @@ class ManufacturingService {
       if (payload is Map) return Map<String, dynamic>.from(payload);
       throw Exception('Unexpected single submit response');
     } catch (error) {
-      throw _friendlyError(error, fallback: 'Failed to submit manufacturing work order');
+      throw _friendlyError(
+        error,
+        fallback: 'Failed to submit manufacturing work order',
+      );
     }
   }
 
@@ -126,7 +158,10 @@ class ManufacturingService {
       );
       return ProductionSuggestionsPage.fromJson(_unwrapMap(resp.data));
     } catch (error) {
-      throw _friendlyError(error, fallback: 'Failed to load production suggestions');
+      throw _friendlyError(
+        error,
+        fallback: 'Failed to load production suggestions',
+      );
     }
   }
 
@@ -140,10 +175,7 @@ class ManufacturingService {
     try {
       final resp = await _dio.post(
         ApiEndpoints.getBasketMaterialRollup,
-        data: {
-          'lines': lines,
-          if (company != null) 'company': company,
-        },
+        data: {'lines': lines, if (company != null) 'company': company},
       );
       return BasketRollup.fromJson(_unwrapMap(resp.data));
     } catch (error) {
@@ -163,7 +195,10 @@ class ManufacturingService {
       );
       return _unwrapMap(resp.data);
     } catch (error) {
-      throw _friendlyError(error, fallback: 'Failed to update target days of cover');
+      throw _friendlyError(
+        error,
+        fallback: 'Failed to update target days of cover',
+      );
     }
   }
 
@@ -222,6 +257,7 @@ class ManufacturingService {
     required double batches,
     String? bomName,
     String? company,
+    Map<String, String> materialSelections = const {},
   }) async {
     try {
       final resp = await _dio.post(
@@ -231,6 +267,8 @@ class ManufacturingService {
           'batches': batches,
           if (bomName != null && bomName.isNotEmpty) 'bom_name': bomName,
           if (company != null) 'company': company,
+          if (materialSelections.isNotEmpty)
+            'material_selections': materialSelections,
         },
       );
       return BaseBatchPreview.fromJson(_unwrapMap(resp.data));
@@ -248,6 +286,7 @@ class ManufacturingService {
     required String bomName,
     required double itemQty,
     String? scheduledAt,
+    Map<String, String> materialSelections = const {},
   }) async {
     try {
       final resp = await _dio.post(
@@ -257,6 +296,8 @@ class ManufacturingService {
           'bom_name': bomName,
           'item_qty': itemQty,
           if (scheduledAt != null) 'scheduled_at': scheduledAt,
+          if (materialSelections.isNotEmpty)
+            'material_selections': materialSelections,
         },
       );
       return StartBatchResult.fromJson(_unwrapMap(resp.data));
@@ -437,7 +478,9 @@ class ManufacturingService {
     throw Exception('Unexpected response shape');
   }
 
-  Future<List<Map<String, dynamic>>> listRecentWorkOrders({int limit = 50}) async {
+  Future<List<Map<String, dynamic>>> listRecentWorkOrders({
+    int limit = 50,
+  }) async {
     try {
       final resp = await _dio.post(
         ApiEndpoints.listRecentWorkOrders,
@@ -450,7 +493,10 @@ class ManufacturingService {
       if (payload is List) return payload.cast<Map<String, dynamic>>();
       return [];
     } catch (error) {
-      throw _friendlyError(error, fallback: 'Failed to load recent work orders');
+      throw _friendlyError(
+        error,
+        fallback: 'Failed to load recent work orders',
+      );
     }
   }
 }

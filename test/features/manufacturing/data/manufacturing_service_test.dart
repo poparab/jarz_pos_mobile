@@ -18,7 +18,7 @@ void main() {
           {'item_code': 'ITEM-001', 'item_name': 'Product A', 'has_bom': true},
           {'item_code': 'ITEM-002', 'item_name': 'Product B', 'has_bom': true},
         ];
-        
+
         mockDio.setResponse(
           '/api/method/jarz_pos.api.manufacturing.list_default_bom_items',
           {'message': items},
@@ -43,8 +43,10 @@ void main() {
       });
 
       test('returns list when response is directly a list', () async {
-        final items = [{'item_code': 'ITEM-001'}];
-        
+        final items = [
+          {'item_code': 'ITEM-001'},
+        ];
+
         mockDio.setResponse(
           '/api/method/jarz_pos.api.manufacturing.list_default_bom_items',
           items,
@@ -75,7 +77,7 @@ void main() {
             {'item_code': 'RM-001', 'qty': 2},
           ],
         };
-        
+
         mockDio.setResponse(
           '/api/method/jarz_pos.api.manufacturing.get_bom_details',
           {'message': bomDetails},
@@ -101,7 +103,7 @@ void main() {
 
       test('handles direct map response', () async {
         final bomDetails = {'bom_name': 'BOM-001'};
-        
+
         mockDio.setResponse(
           '/api/method/jarz_pos.api.manufacturing.get_bom_details',
           bomDetails,
@@ -118,10 +120,7 @@ void main() {
           'unexpected',
         );
 
-        expect(
-          () => service.getBomDetails('ITEM-001'),
-          throwsException,
-        );
+        expect(() => service.getBomDetails('ITEM-001'), throwsException);
       });
 
       test('maps frappe error message from dio response', () async {
@@ -149,8 +148,11 @@ void main() {
 
     group('submitWorkOrders', () {
       test('submits multiple work orders successfully', () async {
-        final response = {'created': 2, 'work_orders': ['WO-001', 'WO-002']};
-        
+        final response = {
+          'created': 2,
+          'work_orders': ['WO-001', 'WO-002'],
+        };
+
         mockDio.setResponse(
           '/api/method/jarz_pos.api.manufacturing.submit_work_orders',
           {'message': response},
@@ -173,7 +175,9 @@ void main() {
           {'message': {}},
         );
 
-        final lines = [{'item_code': 'ITEM-001', 'qty': 5}];
+        final lines = [
+          {'item_code': 'ITEM-001', 'qty': 5},
+        ];
         await service.submitWorkOrders(lines);
 
         final requests = mockDio.requestLog;
@@ -186,10 +190,7 @@ void main() {
           'unexpected',
         );
 
-        expect(
-          () => service.submitWorkOrders([]),
-          throwsException,
-        );
+        expect(() => service.submitWorkOrders([]), throwsException);
       });
 
       test('maps frappe error message from submit response', () async {
@@ -198,7 +199,9 @@ void main() {
           createMockDioException(
             statusCode: 417,
             type: DioExceptionType.badResponse,
-            data: {'message': 'Manufacturing pre-check failed for Blueberry Medium'},
+            data: {
+              'message': 'Manufacturing pre-check failed for Blueberry Medium',
+            },
           ),
         );
 
@@ -217,10 +220,83 @@ void main() {
       });
     });
 
+    group('material alternatives', () {
+      test('parses linked choices and sends BOM quantity', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manufacturing.get_material_options',
+          {
+            'message': {
+              'bom_name': 'BOM-BLUEBERRY',
+              'qty': 10,
+              'components': [
+                {
+                  'original_item_code': 'ALDIA-BLUEBERRY',
+                  'original_item_name': 'Aldia Blueberry',
+                  'required_qty': 10,
+                  'stock_uom': 'Kg',
+                  'combined_available_qty': 25,
+                  'options': [
+                    {
+                      'item_code': 'ALDIA-BLUEBERRY',
+                      'item_name': 'Aldia Blueberry',
+                      'stock_uom': 'Kg',
+                      'available_qty': 5,
+                      'valuation_rate': 2,
+                      'is_recipe_item': 1,
+                    },
+                    {
+                      'item_code': 'PURATOS-BLUEBERRY',
+                      'item_name': 'Puratos Blueberry',
+                      'stock_uom': 'Kg',
+                      'available_qty': 20,
+                      'valuation_rate': 3,
+                      'is_recipe_item': 0,
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        );
+
+        final result = await service.getMaterialOptions(
+          bomName: 'BOM-BLUEBERRY',
+          qty: 10,
+        );
+
+        expect(result.components.single.options, hasLength(2));
+        expect(result.components.single.combinedAvailableQty, 25);
+        expect(mockDio.requestLog.single['data'], {
+          'bom_name': 'BOM-BLUEBERRY',
+          'qty': 10.0,
+        });
+      });
+
+      test('start payload carries the chosen actual item', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manufacturing.start_production_batch',
+          {
+            'message': {'work_order': 'WO-1', 'stock_entry': 'STE-1'},
+          },
+        );
+
+        await service.startProductionBatch(
+          itemCode: 'BLUEBERRY-JAR',
+          bomName: 'BOM-BLUEBERRY',
+          itemQty: 10,
+          materialSelections: const {'ALDIA-BLUEBERRY': 'PURATOS-BLUEBERRY'},
+        );
+
+        expect(mockDio.requestLog.single['data']['material_selections'], {
+          'ALDIA-BLUEBERRY': 'PURATOS-BLUEBERRY',
+        });
+      });
+    });
+
     group('submitSingleWorkOrder', () {
       test('submits single work order with required parameters', () async {
         final response = {'name': 'WO-001', 'status': 'Draft'};
-        
+
         mockDio.setResponse(
           '/api/method/jarz_pos.api.manufacturing.submit_single_work_order',
           {'message': response},
@@ -296,7 +372,7 @@ void main() {
           {'name': 'WO-001', 'status': 'Submitted'},
           {'name': 'WO-002', 'status': 'In Progress'},
         ];
-        
+
         mockDio.setResponse(
           '/api/method/jarz_pos.api.manufacturing.list_recent_work_orders',
           {'message': orders},

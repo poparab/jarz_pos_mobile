@@ -19,6 +19,11 @@ _$BatchLineImpl _$$BatchLineImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => BomComponent.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const <BomComponent>[],
+      materialSelections:
+          (json['material_selections'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const <String, String>{},
     );
 
 Map<String, dynamic> _$$BatchLineImplToJson(_$BatchLineImpl instance) =>
@@ -30,6 +35,7 @@ Map<String, dynamic> _$$BatchLineImplToJson(_$BatchLineImpl instance) =>
       'bom_qty_yield': instance.bomQtyYield,
       'batches': instance.batches,
       'components': instance.components,
+      'material_selections': instance.materialSelections,
     };
 
 _$ProductionBasketImpl _$$ProductionBasketImplFromJson(

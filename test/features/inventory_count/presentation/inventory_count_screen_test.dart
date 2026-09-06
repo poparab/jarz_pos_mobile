@@ -538,6 +538,116 @@ void main() {
     );
 
     testWidgets(
+      'groups linked brands while keeping actual-item counts separate',
+      (tester) async {
+        const groupKey = 'ALDIA-BLUEBERRY|PURATOS-BLUEBERRY';
+        final service = _FakeInventoryCountService(
+          warehouses: const [
+            {'name': 'Main Warehouse', 'company': 'Jarz'},
+          ],
+          items: const [
+            {
+              'item_code': 'ALDIA-BLUEBERRY',
+              'item_name': 'Aldia Blueberry',
+              'current_qty': 1.7,
+              'stock_uom': 'Kg',
+              'has_batch_no': 1,
+              'alternative_group_key': groupKey,
+              'linked_items_display': 'Aldia Blueberry + Puratos Blueberry',
+              'combined_net_current_qty': 7.7,
+              'uoms': [
+                {'uom': 'Box', 'conversion_factor': 2.7},
+              ],
+            },
+            {
+              'item_code': 'PURATOS-BLUEBERRY',
+              'item_name': 'Puratos Blueberry',
+              'current_qty': 6,
+              'stock_uom': 'Kg',
+              'has_serial_no': 1,
+              'alternative_group_key': groupKey,
+              'linked_items_display': 'Aldia Blueberry + Puratos Blueberry',
+              'combined_net_current_qty': 7.7,
+              'uoms': [
+                {'uom': 'Box', 'conversion_factor': 5},
+              ],
+            },
+          ],
+        );
+
+        await _pumpInventoryCountScreen(tester, service);
+        await _selectWarehouse(tester, 'Main Warehouse');
+        await _startCount(tester);
+
+        expect(
+          find.byKey(const ValueKey('alternative-group:$groupKey')),
+          findsOneWidget,
+        );
+        expect(find.text('Current: 7.7 Kg'), findsNothing);
+
+        await _selectItemComponentUom(
+          tester,
+          itemCode: 'ALDIA-BLUEBERRY',
+          currentUom: 'Kg',
+          nextUom: 'Box',
+        );
+        await _enterItemComponentCount(
+          tester,
+          itemCode: 'ALDIA-BLUEBERRY',
+          uom: 'Box',
+          quantity: '1',
+        );
+        await _submitItemComponentCount(
+          tester,
+          itemCode: 'ALDIA-BLUEBERRY',
+          uom: 'Box',
+        );
+
+        await _openReview(tester);
+        expect(find.text('Stock equivalent: 2.7 Kg'), findsNothing);
+        expect(_buttonForIcon(tester, Icons.save_outlined).onPressed, isNull);
+        await tester.tap(find.text('Back to counting'));
+        await tester.pumpAndSettle();
+
+        await _selectItemComponentUom(
+          tester,
+          itemCode: 'PURATOS-BLUEBERRY',
+          currentUom: 'Kg',
+          nextUom: 'Box',
+        );
+        await _enterItemComponentCount(
+          tester,
+          itemCode: 'PURATOS-BLUEBERRY',
+          uom: 'Box',
+          quantity: '1',
+        );
+        await _submitItemComponentCount(
+          tester,
+          itemCode: 'PURATOS-BLUEBERRY',
+          uom: 'Box',
+        );
+
+        await _openReview(tester);
+
+        expect(
+          find.byKey(const ValueKey('review-group:$groupKey')),
+          findsOneWidget,
+        );
+        expect(find.text('Stock equivalent: 7.7 Kg'), findsOneWidget);
+        expect(find.text('Current: 7.7 Kg'), findsOneWidget);
+        expect(find.text('Delta: +1 Kg'), findsOneWidget);
+        expect(find.text('Delta: -1 Kg'), findsOneWidget);
+        expect(find.text('Batch tracked'), findsOneWidget);
+        expect(find.text('Serial tracked'), findsOneWidget);
+        expect(find.text('Aldia Blueberry · ALDIA-BLUEBERRY'), findsOneWidget);
+        expect(
+          find.text('Puratos Blueberry · PURATOS-BLUEBERRY'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
       'restores mixed-UOM drafts without treating edited quantities as confirmed',
       (tester) async {
         final cacheBox = _MemoryBox();

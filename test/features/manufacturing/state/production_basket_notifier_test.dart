@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/batch_line.dart';
@@ -50,9 +52,7 @@ void main() {
   setUp(() {
     repo = _FakeBasketRepository();
     container = ProviderContainer(
-      overrides: [
-        productionBasketRepositoryProvider.overrideWithValue(repo),
-      ],
+      overrides: [productionBasketRepositoryProvider.overrideWithValue(repo)],
     );
   });
 
@@ -64,13 +64,15 @@ void main() {
 
   group('addOrRaise', () {
     test('adds a new line', () {
-      notifier().addOrRaise(const BatchLine(
-        itemCode: 'CAKE-A',
-        itemName: 'Cake A',
-        bomName: 'BOM-A',
-        bomQtyYield: 10,
-        batches: 3,
-      ));
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'CAKE-A',
+          itemName: 'Cake A',
+          bomName: 'BOM-A',
+          bomQtyYield: 10,
+          batches: 3,
+        ),
+      );
 
       expect(basket().lines, hasLength(1));
       expect(basket().lines.first.batches, 3);
@@ -94,20 +96,24 @@ void main() {
     });
 
     test('never lowers an existing line', () {
-      notifier().addOrRaise(const BatchLine(
-        itemCode: 'CAKE-A',
-        itemName: 'Cake A',
-        bomName: 'BOM-A',
-        bomQtyYield: 10,
-        batches: 8,
-      ));
-      notifier().addOrRaise(const BatchLine(
-        itemCode: 'CAKE-A',
-        itemName: 'Cake A',
-        bomName: 'BOM-A',
-        bomQtyYield: 10,
-        batches: 2,
-      ));
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'CAKE-A',
+          itemName: 'Cake A',
+          bomName: 'BOM-A',
+          bomQtyYield: 10,
+          batches: 8,
+        ),
+      );
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'CAKE-A',
+          itemName: 'Cake A',
+          bomName: 'BOM-A',
+          bomQtyYield: 10,
+          batches: 2,
+        ),
+      );
 
       expect(basket().lines.first.batches, 8);
     });
@@ -115,13 +121,15 @@ void main() {
 
   group('quantity linkage', () {
     setUp(() {
-      notifier().addOrRaise(const BatchLine(
-        itemCode: 'CAKE-A',
-        itemName: 'Cake A',
-        bomName: 'BOM-A',
-        bomQtyYield: 8,
-        batches: 1,
-      ));
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'CAKE-A',
+          itemName: 'Cake A',
+          bomName: 'BOM-A',
+          bomQtyYield: 8,
+          batches: 1,
+        ),
+      );
     });
 
     test('setting batches derives units', () {
@@ -141,13 +149,15 @@ void main() {
     });
 
     test('a zero-yield BOM does not divide by zero', () {
-      notifier().addOrRaise(const BatchLine(
-        itemCode: 'ODD',
-        itemName: 'Odd',
-        bomName: 'BOM-ODD',
-        bomQtyYield: 0,
-        batches: 1,
-      ));
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'ODD',
+          itemName: 'Odd',
+          bomName: 'BOM-ODD',
+          bomQtyYield: 0,
+          batches: 1,
+        ),
+      );
       notifier().setUnits(1, 10);
       expect(basket().lines[1].batches, 0);
     });
@@ -194,32 +204,32 @@ void main() {
       expect(result.itemsAdded, 1);
     });
 
-    test('reports items it could not start at all instead of dropping them', () {
-      // A silent skip reads as "covered everything" when it wasn't.
-      final result = notifier().fillTheDay([
-        _suggestion(
-          itemCode: 'BLOCKED',
-          suggestedBatches: 5,
-          canMakeNowBatches: 0,
-        ),
-      ]);
+    test(
+      'reports items it could not start at all instead of dropping them',
+      () {
+        // A silent skip reads as "covered everything" when it wasn't.
+        final result = notifier().fillTheDay([
+          _suggestion(
+            itemCode: 'BLOCKED',
+            suggestedBatches: 5,
+            canMakeNowBatches: 0,
+          ),
+        ]);
 
-      expect(basket().lines, isEmpty);
-      expect(result.skippedNoMaterials, 1);
-      expect(result.addedNothing, isTrue);
-    });
+        expect(basket().lines, isEmpty);
+        expect(result.skippedNoMaterials, 1);
+        expect(result.addedNothing, isTrue);
+      },
+    );
 
     test('capByCapacity false ignores material limits', () {
-      notifier().fillTheDay(
-        [
-          _suggestion(
-            itemCode: 'CAPPED',
-            suggestedBatches: 5,
-            canMakeNowBatches: 3,
-          ),
-        ],
-        capByCapacity: false,
-      );
+      notifier().fillTheDay([
+        _suggestion(
+          itemCode: 'CAPPED',
+          suggestedBatches: 5,
+          canMakeNowBatches: 3,
+        ),
+      ], capByCapacity: false);
 
       expect(basket().lines.first.batches, 5);
     });
@@ -242,13 +252,15 @@ void main() {
     });
 
     test('raises a line the user had already queued lower', () {
-      notifier().addOrRaise(const BatchLine(
-        itemCode: 'CRIT',
-        itemName: 'Crit',
-        bomName: 'BOM-CRIT',
-        bomQtyYield: 10,
-        batches: 2,
-      ));
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'CRIT',
+          itemName: 'Crit',
+          bomName: 'BOM-CRIT',
+          bomQtyYield: 10,
+          batches: 2,
+        ),
+      );
 
       final result = notifier().fillTheDay([
         _suggestion(itemCode: 'CRIT', suggestedBatches: 5),
@@ -262,20 +274,24 @@ void main() {
 
   group('basket bookkeeping', () {
     test('positiveLines excludes zeroed lines but keeps them visible', () {
-      notifier().addOrRaise(const BatchLine(
-        itemCode: 'A',
-        itemName: 'A',
-        bomName: 'BOM-A',
-        bomQtyYield: 10,
-        batches: 1,
-      ));
-      notifier().addOrRaise(const BatchLine(
-        itemCode: 'B',
-        itemName: 'B',
-        bomName: 'BOM-B',
-        bomQtyYield: 10,
-        batches: 1,
-      ));
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'A',
+          itemName: 'A',
+          bomName: 'BOM-A',
+          bomQtyYield: 10,
+          batches: 1,
+        ),
+      );
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'B',
+          itemName: 'B',
+          bomName: 'BOM-B',
+          bomQtyYield: 10,
+          batches: 1,
+        ),
+      );
       notifier().setBatches(1, 0);
 
       expect(basket().lines, hasLength(2));
@@ -284,13 +300,15 @@ void main() {
     });
 
     test('toApiLines emits the backend payload shape', () {
-      notifier().addOrRaise(const BatchLine(
-        itemCode: 'CAKE-A',
-        itemName: 'Cake A',
-        bomName: 'BOM-A',
-        bomQtyYield: 10,
-        batches: 2.5,
-      ));
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'CAKE-A',
+          itemName: 'Cake A',
+          bomName: 'BOM-A',
+          bomQtyYield: 10,
+          batches: 2.5,
+        ),
+      );
 
       final lines = basket().toApiLines(scheduledAt: '2026-08-01 09:00:00');
 
@@ -302,38 +320,96 @@ void main() {
     });
 
     test('toApiLines omits scheduled_at when not given', () {
-      notifier().addOrRaise(const BatchLine(
-        itemCode: 'CAKE-A',
-        itemName: 'Cake A',
-        bomName: 'BOM-A',
-        bomQtyYield: 10,
-        batches: 1,
-      ));
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'CAKE-A',
+          itemName: 'Cake A',
+          bomName: 'BOM-A',
+          bomQtyYield: 10,
+          batches: 1,
+        ),
+      );
       expect(basket().toApiLines().first.containsKey('scheduled_at'), isFalse);
+    });
+
+    test('persists material selections and emits them in the API line', () {
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'BLUEBERRY-JAR',
+          itemName: 'Blueberry Jar',
+          bomName: 'BOM-BLUEBERRY',
+          batches: 1,
+        ),
+      );
+
+      notifier().setMaterialSelection(
+        0,
+        'ALDIA-BLUEBERRY',
+        'PURATOS-BLUEBERRY',
+      );
+
+      final restored = ProductionBasket.fromJson(
+        jsonDecode(jsonEncode(basket().toJson())) as Map<String, dynamic>,
+      );
+      expect(restored.lines.single.materialSelections, {
+        'ALDIA-BLUEBERRY': 'PURATOS-BLUEBERRY',
+      });
+      expect(restored.toApiLines().single['material_selections'], {
+        'ALDIA-BLUEBERRY': 'PURATOS-BLUEBERRY',
+      });
+    });
+
+    test('a replacement BOM drops selections from the old recipe', () {
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'BLUEBERRY-JAR',
+          itemName: 'Blueberry Jar',
+          bomName: 'BOM-OLD',
+          batches: 3,
+          materialSelections: {'ALDIA-BLUEBERRY': 'PURATOS-BLUEBERRY'},
+        ),
+      );
+
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'BLUEBERRY-JAR',
+          itemName: 'Blueberry Jar',
+          bomName: 'BOM-NEW',
+          batches: 1,
+        ),
+      );
+
+      expect(basket().lines.single.bomName, 'BOM-NEW');
+      expect(basket().lines.single.batches, 3);
+      expect(basket().lines.single.materialSelections, isEmpty);
     });
 
     test('remove drops the right line', () {
       for (final code in ['A', 'B', 'C']) {
-        notifier().addOrRaise(BatchLine(
-          itemCode: code,
-          itemName: code,
-          bomName: 'BOM-$code',
-          bomQtyYield: 10,
-          batches: 1,
-        ));
+        notifier().addOrRaise(
+          BatchLine(
+            itemCode: code,
+            itemName: code,
+            bomName: 'BOM-$code',
+            bomQtyYield: 10,
+            batches: 1,
+          ),
+        );
       }
       notifier().remove(1);
       expect(basket().lines.map((l) => l.itemCode), ['A', 'C']);
     });
 
     test('clear empties the basket and the stored copy', () async {
-      notifier().addOrRaise(const BatchLine(
-        itemCode: 'A',
-        itemName: 'A',
-        bomName: 'BOM-A',
-        bomQtyYield: 10,
-        batches: 1,
-      ));
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'A',
+          itemName: 'A',
+          bomName: 'BOM-A',
+          bomQtyYield: 10,
+          batches: 1,
+        ),
+      );
       notifier().clear();
       await Future<void>.delayed(Duration.zero);
 
@@ -344,15 +420,17 @@ void main() {
 
   group('restore', () {
     test('hydrates a basket saved by a previous session', () async {
-      repo.stored = const ProductionBasket(lines: [
-        BatchLine(
-          itemCode: 'CAKE-A',
-          itemName: 'Cake A',
-          bomName: 'BOM-A',
-          bomQtyYield: 10,
-          batches: 4,
-        ),
-      ]);
+      repo.stored = const ProductionBasket(
+        lines: [
+          BatchLine(
+            itemCode: 'CAKE-A',
+            itemName: 'Cake A',
+            bomName: 'BOM-A',
+            bomQtyYield: 10,
+            batches: 4,
+          ),
+        ],
+      );
 
       await notifier().restore();
 
@@ -362,22 +440,26 @@ void main() {
 
     test('never clobbers work the user has already started', () async {
       // A restore arriving late must not overwrite a live basket.
-      repo.stored = const ProductionBasket(lines: [
-        BatchLine(
-          itemCode: 'OLD',
-          itemName: 'Old',
-          bomName: 'BOM-OLD',
+      repo.stored = const ProductionBasket(
+        lines: [
+          BatchLine(
+            itemCode: 'OLD',
+            itemName: 'Old',
+            bomName: 'BOM-OLD',
+            bomQtyYield: 10,
+            batches: 9,
+          ),
+        ],
+      );
+      notifier().addOrRaise(
+        const BatchLine(
+          itemCode: 'NEW',
+          itemName: 'New',
+          bomName: 'BOM-NEW',
           bomQtyYield: 10,
-          batches: 9,
+          batches: 1,
         ),
-      ]);
-      notifier().addOrRaise(const BatchLine(
-        itemCode: 'NEW',
-        itemName: 'New',
-        bomName: 'BOM-NEW',
-        bomQtyYield: 10,
-        batches: 1,
-      ));
+      );
 
       await notifier().restore();
 

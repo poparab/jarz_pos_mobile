@@ -6,6 +6,7 @@ import '../data/manufacturing_service.dart';
 import '../data/models/basket_rollup.dart';
 import '../data/models/bom_details.dart';
 import '../data/models/production_suggestion.dart';
+import '../data/models/material_options.dart';
 import 'production_basket_notifier.dart';
 
 /// Which status buckets the Plan tab is showing.
@@ -36,8 +37,9 @@ class ProductionFilter {
   int get hashCode => Object.hashAllUnordered(statuses);
 }
 
-final productionFilterProvider =
-    StateProvider<ProductionFilter>((ref) => const ProductionFilter());
+final productionFilterProvider = StateProvider<ProductionFilter>(
+  (ref) => const ProductionFilter(),
+);
 
 /// Whether to ask the backend for per-item capacity.
 ///
@@ -46,10 +48,11 @@ final productionFilterProvider =
 final includeCapacityProvider = StateProvider<bool>((ref) => true);
 
 /// The ranked board. Loads once and is refreshed explicitly.
-final productionSuggestionsProvider = AsyncNotifierProvider<
-    ProductionSuggestionsNotifier, ProductionSuggestionsPage>(
-  ProductionSuggestionsNotifier.new,
-);
+final productionSuggestionsProvider =
+    AsyncNotifierProvider<
+      ProductionSuggestionsNotifier,
+      ProductionSuggestionsPage
+    >(ProductionSuggestionsNotifier.new);
 
 class ProductionSuggestionsNotifier
     extends AsyncNotifier<ProductionSuggestionsPage> {
@@ -76,7 +79,10 @@ class ProductionSuggestionsNotifier
   /// Sets an item's cover-target override, then refreshes so its suggestion
   /// reflects the new target immediately.
   Future<void> setTargetDays(String itemCode, int? targetDays) async {
-    await _service.setItemTargetDays(itemCode: itemCode, targetDays: targetDays);
+    await _service.setItemTargetDays(
+      itemCode: itemCode,
+      targetDays: targetDays,
+    );
     await refresh();
   }
 }
@@ -101,30 +107,54 @@ final bomSearchQueryProvider = StateProvider<String>((ref) => '');
 /// on every unrelated `setState` — including each tap of a quantity stepper.
 final bomSearchProvider = FutureProvider.autoDispose
     .family<List<BomItemSummary>, String>((ref, query) async {
-  final link = ref.keepAlive();
-  final timer = Timer(const Duration(seconds: 60), link.close);
-  ref.onDispose(timer.cancel);
+      final link = ref.keepAlive();
+      final timer = Timer(const Duration(seconds: 60), link.close);
+      ref.onDispose(timer.cancel);
 
-  return ref.read(manufacturingServiceProvider).searchBomItems(query);
-});
+      return ref.read(manufacturingServiceProvider).searchBomItems(query);
+    });
 
 /// One BOM's components, cached while the user is working with it.
-final bomDetailsProvider =
-    FutureProvider.autoDispose.family<BomDetails, String>((ref, itemCode) async {
-  final link = ref.keepAlive();
-  final timer = Timer(const Duration(minutes: 5), link.close);
-  ref.onDispose(timer.cancel);
+final bomDetailsProvider = FutureProvider.autoDispose
+    .family<BomDetails, String>((ref, itemCode) async {
+      final link = ref.keepAlive();
+      final timer = Timer(const Duration(minutes: 5), link.close);
+      ref.onDispose(timer.cancel);
 
-  return ref.read(manufacturingServiceProvider).fetchBomDetails(itemCode);
-});
+      return ref.read(manufacturingServiceProvider).fetchBomDetails(itemCode);
+    });
+
+class MaterialOptionsRequest {
+  const MaterialOptionsRequest({required this.bomName, required this.qty});
+
+  final String bomName;
+  final double qty;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MaterialOptionsRequest &&
+      other.bomName == bomName &&
+      other.qty == qty;
+
+  @override
+  int get hashCode => Object.hash(bomName, qty);
+}
+
+final materialOptionsProvider = FutureProvider.autoDispose
+    .family<MaterialOptions, MaterialOptionsRequest>((ref, request) {
+      return ref
+          .read(manufacturingServiceProvider)
+          .getMaterialOptions(bomName: request.bomName, qty: request.qty);
+    });
 
 /// Consolidated material check for the current basket.
 ///
 /// Recomputed whenever the basket changes, so the pick list and the shortage
 /// banner always describe what is actually queued. Returns null for an empty
 /// basket rather than calling the API with nothing.
-final basketRollupProvider =
-    FutureProvider.autoDispose<BasketRollup?>((ref) async {
+final basketRollupProvider = FutureProvider.autoDispose<BasketRollup?>((
+  ref,
+) async {
   final basket = ref.watch(productionBasketProvider);
   final lines = basket.toApiLines();
   if (lines.isEmpty) return null;
