@@ -620,6 +620,14 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
         (e) => e.toString(),
       ),
     );
+    _confirmed.removeWhere((itemCode) {
+      final components = _savedComponentsForItem(itemCode);
+      return components.isEmpty ||
+          components.any(
+            (component) =>
+                component['qty'] is! num || component.containsKey('draft'),
+          );
+    });
     final cachedDate = _box!.get(_dateKey());
     if (cachedDate is String) {
       _postingDate = DateFormat('yyyy-MM-dd').parse(cachedDate);

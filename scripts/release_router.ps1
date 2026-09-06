@@ -8,7 +8,11 @@ param(
     [switch]$IncludeFirebase,
     [ValidateSet('auto', 'full_apk', 'shorebird_patch', 'none')]
     [string]$MobileReleaseType = 'auto',
+    # Backward-compatible Flutter/Android commit alias. Backend and Flutter
+    # repositories have independent histories, so never reuse this for backend.
     [string]$CommitSha,
+    [string]$BackendCommitSha,
+    [string]$FlutterCommitSha,
     [string]$ReleaseNotes,
     [int]$FirebaseTimeoutMinutes = 45,
     [int]$FirebasePollSeconds = 10,
@@ -34,6 +38,21 @@ $backendScriptPath = Join-Path $PSScriptRoot 'deploy_backend.ps1'
 $webScriptPath = Join-Path $PSScriptRoot 'deploy_web.ps1'
 $androidReleaseScriptPath = Join-Path $PSScriptRoot 'watch_android_release.ps1'
 $mobileClassifierPath = Join-Path $PSScriptRoot 'classify_mobile_release.ps1'
+
+function Test-SameCommit([string]$Left, [string]$Right) {
+    if (-not $Left -or -not $Right) {
+        return $false
+    }
+
+    $leftValue = $Left.Trim().ToLowerInvariant()
+    $rightValue = $Right.Trim().ToLowerInvariant()
+    return $leftValue.StartsWith($rightValue) -or $rightValue.StartsWith($leftValue)
+}
+
+if ($CommitSha -and $FlutterCommitSha -and -not (Test-SameCommit $CommitSha $FlutterCommitSha)) {
+    throw "-CommitSha is the legacy Flutter/Android alias and conflicts with -FlutterCommitSha. Supply one Flutter commit value."
+}
+$effectiveFlutterCommitSha = if ($FlutterCommitSha) { $FlutterCommitSha } else { $CommitSha }
 
 function Write-Info([string]$Message) {
     Write-Host "[INFO] $Message" -ForegroundColor Green
@@ -324,11 +343,19 @@ if ($anyDirty -and -not $AllowDirtyWorkingTree) {
     throw 'Smart release router refused to execute because one or more repos have uncommitted changes. Commit and push first, or use -PlanOnly to inspect the plan safely.'
 }
 
-$backendPlanOutput = Invoke-PowerShellScript -ScriptPath $backendScriptPath -Arguments @('-Environment', $Environment, '-PlanOnly')
+$backendPlanArgs = @('-Environment', $Environment, '-PlanOnly')
+if ($BackendCommitSha) {
+    $backendPlanArgs += @('-Commit', $BackendCommitSha)
+}
+$backendPlanOutput = Invoke-PowerShellScript -ScriptPath $backendScriptPath -Arguments $backendPlanArgs
 $backendDeployRequired = (Get-KeyValueFromText -Text $backendPlanOutput -Key 'DEPLOY_REQUIRED') -eq 'true'
 $webDeployRequired = $false
 if (-not $SkipWeb) {
-    $webPlanOutput = Invoke-PowerShellScript -ScriptPath $webScriptPath -Arguments @('-Environment', $Environment, '-PlanOnly')
+    $webPlanArgs = @('-Environment', $Environment, '-PlanOnly')
+    if ($effectiveFlutterCommitSha) {
+        $webPlanArgs += @('-Commit', $effectiveFlutterCommitSha)
+    }
+    $webPlanOutput = Invoke-PowerShellScript -ScriptPath $webScriptPath -Arguments $webPlanArgs
     $webDeployRequired = (Get-KeyValueFromText -Text $webPlanOutput -Key 'WEB_DEPLOY_REQUIRED') -eq 'true'
 }
 
@@ -350,9 +377,13 @@ Write-Host ''
 $releaseJobs = @()
 if ($backendDeployRequired) {
     Write-Step 'Starting backend deploy in parallel...'
-    $releaseJobs += Start-Job -Name 'backend-release' -ArgumentList $backendScriptPath, $Environment -ScriptBlock {
-        param($scriptPath, $targetEnvironment)
-        & powershell -NoProfile -ExecutionPolicy Bypass -File $scriptPath -Environment $targetEnvironment 2>&1
+    $releaseJobs += Start-Job -Name 'backend-release' -ArgumentList $backendScriptPath, $Environment, $BackendCommitSha -ScriptBlock {
+        param($scriptPath, $targetEnvironment, $targetCommit)
+        $arguments = @('-Environment', $targetEnvironment)
+        if ($targetCommit) {
+            $arguments += @('-Commit', $targetCommit)
+        }
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $scriptPath @arguments 2>&1
         if ($LASTEXITCODE -ne 0) {
             throw "Backend deploy failed with exit code $LASTEXITCODE"
         }
@@ -364,9 +395,13 @@ else {
 
 if ($webDeployRequired) {
     Write-Step 'Starting Flutter web deploy in parallel...'
-    $releaseJobs += Start-Job -Name 'web-release' -ArgumentList $webScriptPath, $Environment -ScriptBlock {
-        param($scriptPath, $targetEnvironment)
-        & powershell -NoProfile -ExecutionPolicy Bypass -File $scriptPath -Environment $targetEnvironment 2>&1
+    $releaseJobs += Start-Job -Name 'web-release' -ArgumentList $webScriptPath, $Environment, $effectiveFlutterCommitSha -ScriptBlock {
+        param($scriptPath, $targetEnvironment, $targetCommit)
+        $arguments = @('-Environment', $targetEnvironment)
+        if ($targetCommit) {
+            $arguments += @('-Commit', $targetCommit)
+        }
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $scriptPath @arguments 2>&1
         if ($LASTEXITCODE -ne 0) {
             throw "Web deploy failed with exit code $LASTEXITCODE"
         }
@@ -394,8 +429,8 @@ if ($androidReleaseShouldRun) {
         '-PollSeconds', "$FirebasePollSeconds",
         '-RunDiscoveryGraceSeconds', "$FirebaseRunDiscoveryGraceSeconds"
     )
-    if ($CommitSha) {
-        $androidReleaseArgs += @('-CommitSha', $CommitSha)
+    if ($effectiveFlutterCommitSha) {
+        $androidReleaseArgs += @('-CommitSha', $effectiveFlutterCommitSha)
     }
     if ($ReleaseNotes) {
         $androidReleaseArgs += @('-ReleaseNotes', $ReleaseNotes)
