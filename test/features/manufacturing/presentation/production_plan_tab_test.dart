@@ -156,7 +156,8 @@ void main() {
     expect(addButton.onPressed, isNotNull);
   });
 
-  testWidgets('a row with no materials at all cannot be added', (tester) async {
+  testWidgets('a row with no original material can be queued as a draft',
+      (tester) async {
     await _pump(
       tester,
       ProductionSuggestionsPage(
@@ -177,15 +178,30 @@ void main() {
       ),
     );
 
+    expect(
+      find.text('Cannot start — Missing material is short'),
+      findsOneWidget,
+    );
     final addButton = tester.widget<OutlinedButton>(find.byType(OutlinedButton));
-    expect(addButton.onPressed, isNull);
+    expect(addButton.onPressed, isNotNull);
+
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(ProductionPlanTab)),
+    );
+    final line = container.read(productionBasketProvider).lines.single;
+    expect(line.itemCode, 'CAKE-BLOCKED');
+    expect(line.bomName, 'BOM-CAKE-BLOCKED');
+    expect(line.batches, 12);
   });
 
-  testWidgets('a blocked row whose material is in another store still blocks',
+  testWidgets('a blocked row whose material is in another store can be queued',
       (tester) async {
     // Naming the store is a hint, not an override: the material is not in the
-    // warehouse this recipe draws on, so the row stays unaddable. It only
-    // stops the operator raising a purchase for stock the company owns.
+    // warehouse this recipe draws on. The row can still become a draft so the
+    // operator can choose a stocked alternative on the Batch tab.
     await _pump(
       tester,
       ProductionSuggestionsPage(
@@ -222,7 +238,7 @@ void main() {
     );
 
     final addButton = tester.widget<OutlinedButton>(find.byType(OutlinedButton));
-    expect(addButton.onPressed, isNull, reason: 'the shortage still blocks');
+    expect(addButton.onPressed, isNotNull);
   });
 
   testWidgets('warns when velocity has never been calculated', (tester) async {

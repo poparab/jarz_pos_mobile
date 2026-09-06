@@ -138,6 +138,9 @@ class _SuggestionAction extends StatelessWidget {
     final achievable = suggestion.achievableBatches;
     final capped = suggestion.isCappedByMaterials;
     final blocked = achievable <= 0;
+    final canQueue = suggestion.defaultBom.trim().isNotEmpty &&
+        !(suggestion.limitingComponent?.isMissingWarehouse ?? false);
+    final batchesToQueue = blocked ? suggestion.suggestedBatches : achievable;
 
     // A shortage names the component that caused it and offers the achievable
     // number, rather than presenting a red wall with no way forward.
@@ -202,9 +205,9 @@ class _SuggestionAction extends StatelessWidget {
                         ?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                 // The backend only fills these for an item that cannot make a
-                // single batch, so this lands on the blocked row. It does not
-                // unblock anything: Add stays disabled, the operator just
-                // learns the stock is in another store.
+                // single batch, so this lands on the blocked row. Queuing the
+                // draft does not authorize production: the Batch tab checks
+                // the selected materials and consolidated stock before Start.
                 if (limiter != null)
                   StockElsewhereNote(
                     availableElsewhere: limiter.availableElsewhere,
@@ -216,7 +219,9 @@ class _SuggestionAction extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           OutlinedButton(
-            onPressed: blocked ? null : () => onAdd(achievable),
+            onPressed: !canQueue || batchesToQueue <= 0
+                ? null
+                : () => onAdd(batchesToQueue),
             child: Text(l10n.productionAddToBatch),
           ),
         ],

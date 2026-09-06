@@ -60,12 +60,13 @@ Future<MockDio> _pump(
   WidgetTester tester,
   BaseItemsPage page, {
   Map<String, dynamic>? preview,
+  Map<String, dynamic>? materialOptions,
   Locale? locale,
 }) async {
   final dio = MockDio();
   final base = page.items.isEmpty ? _base() : page.items.first;
   dio.setResponse(_materialOptionsEndpoint, {
-    'message': {
+    'message': materialOptions ?? {
       'bom_name': base.defaultBom,
       'qty': base.batchYield,
       'components': [
@@ -226,6 +227,69 @@ void main() {
       find.widgetWithText(FilledButton, 'Start batch'),
     );
     expect(start.onPressed, isNotNull);
+  });
+
+  testWidgets('a selected material hides the original capacity until reset',
+      (tester) async {
+    await _pump(
+      tester,
+      BaseItemsPage(items: [_base(canMakeNowBatches: 9)]),
+      preview: _preview(),
+      materialOptions: {
+        'bom_name': 'BOM-BASE-FUDGE-001',
+        'qty': 9.52,
+        'components': [
+          {
+            'original_item_code': 'RM-COCOA',
+            'original_item_name': 'Cocoa',
+            'required_qty': 1.0,
+            'stock_uom': 'Kg',
+            'combined_available_qty': 13.55,
+            'linked_items_display': 'Puratos Cocoa + Aldia Cocoa',
+            'alternative_selection_blocked_reason': null,
+            'options': [
+              {
+                'item_code': 'RM-COCOA',
+                'item_name': 'Puratos Cocoa',
+                'stock_uom': 'Kg',
+                'available_qty': 10.0,
+                'valuation_rate': 50.0,
+                'is_recipe_item': 1,
+              },
+              {
+                'item_code': 'RM-ALDIA',
+                'item_name': 'Aldia Cocoa',
+                'stock_uom': 'Kg',
+                'available_qty': 3.55,
+                'valuation_rate': 40.0,
+                'is_recipe_item': 0,
+              },
+            ],
+          },
+        ],
+      },
+    );
+
+    expect(find.text('Can make now'), findsOneWidget);
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Aldia Cocoa'), findsOneWidget);
+    await tester.tap(find.textContaining('Aldia Cocoa'));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Can make now'), findsNothing);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(BaseProductionTab)),
+    );
+    final notifier =
+        container.read(baseBatchDraftProvider('BASE-FUDGE').notifier);
+    notifier.setMaterialSelection('RM-COCOA', 'RM-COCOA');
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Can make now'), findsOneWidget);
   });
 
   testWidgets('negative freezer stock is called out', (tester) async {

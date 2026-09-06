@@ -122,7 +122,11 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
           children: [
             _header(context, item),
             const SizedBox(height: 10),
-            _freezerPosition(context, item),
+            _freezerPosition(
+              context,
+              item,
+              hideCapacity: draft.materialSelections.isNotEmpty,
+            ),
             if (item.stockIsNegative) ...[
               const SizedBox(height: 8),
               _warningRow(
@@ -248,7 +252,11 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
     );
   }
 
-  Widget _freezerPosition(BuildContext context, BaseItem item) {
+  Widget _freezerPosition(
+    BuildContext context,
+    BaseItem item, {
+    required bool hideCapacity,
+  }) {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     final capacity = item.canMakeNowBatches;
@@ -269,7 +277,7 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
         ),
         // Null means the server skipped the capacity check — deliberately
         // distinct from zero, which means "cannot make any".
-        if (capacity != null)
+        if (capacity != null && !hideCapacity)
           ProductionStat(
             label: l10n.basesCanMakeNow,
             value: l10n.basesBatchesValue(trimQty(capacity.toDouble())),
