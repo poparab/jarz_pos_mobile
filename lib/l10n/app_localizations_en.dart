@@ -10079,4 +10079,367 @@ class AppLocalizationsEn extends AppLocalizations {
   String shiftHistoryOpenedBy(Object name) {
     return 'Opened by $name';
   }
+
+  @override
+  String get menuMonthlyExpenses => 'Monthly Expenses';
+
+  @override
+  String get monthlyExpensesTitle => 'Monthly Expenses';
+
+  @override
+  String get monthlyExpensesRefreshTooltip => 'Refresh';
+
+  @override
+  String get monthlyExpensesMonthLabel => 'Month';
+
+  @override
+  String get monthlyExpensesPreviousMonthTooltip => 'Previous month';
+
+  @override
+  String get monthlyExpensesNextMonthTooltip => 'Next month';
+
+  @override
+  String get monthlyExpensesLoadFailed => 'Could not load this month.';
+
+  @override
+  String get monthlyExpensesRemaining => 'Remaining';
+
+  @override
+  String get monthlyExpensesDue => 'Due';
+
+  @override
+  String get monthlyExpensesPaid => 'Paid';
+
+  @override
+  String get monthlyExpensesRunRate => 'Monthly run-rate';
+
+  @override
+  String monthlyExpensesRemainingCaption(Object paid, Object due) {
+    return '$paid paid of $due due';
+  }
+
+  @override
+  String monthlyExpensesOverpaidNotice(Object amount) {
+    return 'Overpaid by $amount';
+  }
+
+  @override
+  String monthlyExpensesItemsBreakdown(int paid, int partial, int unpaid) {
+    return '$paid paid, $partial partial, $unpaid unpaid';
+  }
+
+  @override
+  String monthlyExpensesItemsTotal(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items due',
+      one: '1 item due',
+      zero: 'No items due',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get monthlyExpensesGapsTitle => 'Needs attention';
+
+  @override
+  String get monthlyExpensesRecurringTitle => 'Recurring expenses';
+
+  @override
+  String get monthlyExpensesRecurringEmpty =>
+      'Nothing is in the recurring expense registry yet.';
+
+  @override
+  String get monthlyExpensesCategoryUncategorised => 'Uncategorised';
+
+  @override
+  String monthlyExpensesCategorySubtotal(Object remaining, Object due) {
+    return '$remaining left of $due';
+  }
+
+  @override
+  String get monthlyExpensesStatusPaid => 'Paid';
+
+  @override
+  String get monthlyExpensesStatusPartial => 'Partial';
+
+  @override
+  String get monthlyExpensesStatusUnpaid => 'Unpaid';
+
+  @override
+  String get monthlyExpensesStatusNotDue => 'Not due';
+
+  @override
+  String get monthlyExpensesStatusOverpaid => 'Overpaid';
+
+  @override
+  String get monthlyExpensesLifecyclePaused => 'Paused';
+
+  @override
+  String get monthlyExpensesLifecycleEnded => 'Ended';
+
+  @override
+  String get monthlyExpensesPayAction => 'Pay';
+
+  @override
+  String get monthlyExpensesInferredBadge => 'From the ledger';
+
+  @override
+  String monthlyExpensesInferredExplain(Object amount) {
+    return '$amount of the paid figure was read from the ledger, not paid through this app.';
+  }
+
+  @override
+  String get monthlyExpensesSharedAccountBadge => 'Shared account';
+
+  @override
+  String monthlyExpensesSharedAccountExplain(Object account) {
+    return 'Other expenses post to $account this month, so ledger payments cannot be matched to this one.';
+  }
+
+  @override
+  String get monthlyExpensesFrequencyLabel => 'Frequency';
+
+  @override
+  String get monthlyExpensesDueDateLabel => 'Due date';
+
+  @override
+  String get monthlyExpensesAccountLabel => 'Expense account';
+
+  @override
+  String get monthlyExpensesCostCenterLabel => 'Cost center';
+
+  @override
+  String get monthlyExpensesSupplierLabel => 'Supplier';
+
+  @override
+  String get monthlyExpensesNotesLabel => 'Notes';
+
+  @override
+  String get monthlyExpensesAmountLabel => 'Amount';
+
+  @override
+  String get monthlyExpensesMonthlyEquivalentLabel => 'Monthly equivalent';
+
+  @override
+  String get monthlyExpensesPaymentsTitle => 'Payments';
+
+  @override
+  String get monthlyExpensesPaymentsEmpty =>
+      'No payments recorded for this month.';
+
+  @override
+  String get monthlyExpensesPaymentCancelAction => 'Cancel payment';
+
+  @override
+  String get monthlyExpensesPaymentCancelTitle => 'Cancel this payment?';
+
+  @override
+  String monthlyExpensesPaymentCancelBody(Object amount, Object source) {
+    return 'This reverses the journal entry for $amount and puts the money back in $source.';
+  }
+
+  @override
+  String get monthlyExpensesPaymentCancelHint => 'Why is this being reversed?';
+
+  @override
+  String get monthlyExpensesPaymentCancelConfirm => 'Cancel and reverse';
+
+  @override
+  String get monthlyExpensesPaymentCancelled =>
+      'Payment cancelled and journal entry reversed';
+
+  @override
+  String get monthlyExpensesSalariesTitle => 'Salaries';
+
+  @override
+  String get monthlyExpensesSalariesEmpty =>
+      'No employee has a salary structure for this month.';
+
+  @override
+  String get monthlyExpensesPayrollNotConfigured =>
+      'Payroll is not set up, so salaries cannot be paid from this screen.';
+
+  @override
+  String get monthlyExpensesPayrollAccountLabel => 'Salary account';
+
+  @override
+  String get monthlyExpensesSalaryBaseLabel => 'Base';
+
+  @override
+  String get monthlyExpensesSalaryVariableLabel => 'Variable';
+
+  @override
+  String get monthlyExpensesSalarySlipExists =>
+      'A submitted salary slip already covers this month, so paying here would post the salary twice.';
+
+  @override
+  String monthlyExpensesMissingStructureTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count employees have no salary structure',
+      one: '1 employee has no salary structure',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get monthlyExpensesMissingStructureBody =>
+      'Their pay is not in the figures above. Assign a salary structure in HR to include them.';
+
+  @override
+  String monthlyExpensesUnattributedGl(Object amount) {
+    return '$amount posted to the salary account cannot be matched to any employee, so it is reported here instead of being added to a row.';
+  }
+
+  @override
+  String monthlyExpensesPayTitle(Object name) {
+    return 'Pay $name';
+  }
+
+  @override
+  String monthlyExpensesPayPeriod(Object month) {
+    return 'For $month';
+  }
+
+  @override
+  String get monthlyExpensesPayAmountLabel => 'Amount to pay';
+
+  @override
+  String get monthlyExpensesPayAmountInvalid =>
+      'Enter an amount greater than zero';
+
+  @override
+  String get monthlyExpensesPayFromLabel => 'Pay from';
+
+  @override
+  String get monthlyExpensesPayFromRequired => 'Choose an account to pay from';
+
+  @override
+  String get monthlyExpensesPayDateLabel => 'Payment date';
+
+  @override
+  String get monthlyExpensesPayRemarksLabel => 'Remarks (optional)';
+
+  @override
+  String get monthlyExpensesPaySubmit => 'Pay';
+
+  @override
+  String monthlyExpensesPaySourceOption(Object label, Object balance) {
+    return '$label — $balance';
+  }
+
+  @override
+  String get monthlyExpensesPayNoSources =>
+      'No cash or bank account is available to pay from.';
+
+  @override
+  String monthlyExpensesPayRemainingHint(Object amount) {
+    return 'Remaining: $amount';
+  }
+
+  @override
+  String get monthlyExpensesPaymentRecorded => 'Payment recorded';
+
+  @override
+  String get monthlyExpensesOverpayTitle => 'More than what is due';
+
+  @override
+  String get monthlyExpensesOverpayConfirm => 'Pay anyway';
+
+  @override
+  String get monthlyExpensesAddAction => 'Add expense';
+
+  @override
+  String get monthlyExpensesNewTitle => 'New recurring expense';
+
+  @override
+  String get monthlyExpensesEditTitle => 'Edit recurring expense';
+
+  @override
+  String get monthlyExpensesNameLabel => 'Name';
+
+  @override
+  String get monthlyExpensesNameRequired => 'Give this expense a name';
+
+  @override
+  String get monthlyExpensesAmountRequired =>
+      'Enter an amount greater than zero';
+
+  @override
+  String get monthlyExpensesCategoryLabel => 'Category';
+
+  @override
+  String get monthlyExpensesCategoryRequired => 'Choose a category';
+
+  @override
+  String get monthlyExpensesFrequencyRequired => 'Choose a frequency';
+
+  @override
+  String get monthlyExpensesAccountRequired => 'Choose an expense account';
+
+  @override
+  String get monthlyExpensesDayOfMonthLabel => 'Day of month';
+
+  @override
+  String get monthlyExpensesDayOfMonthInvalid => 'Enter a day between 1 and 28';
+
+  @override
+  String get monthlyExpensesStartDateLabel => 'Starts';
+
+  @override
+  String get monthlyExpensesEndDateLabel => 'Ends (optional)';
+
+  @override
+  String get monthlyExpensesDefaultPayingAccountLabel =>
+      'Usually paid from (optional)';
+
+  @override
+  String get monthlyExpensesNoneOption => 'None';
+
+  @override
+  String get monthlyExpensesSaved => 'Recurring expense saved';
+
+  @override
+  String get monthlyExpensesManageTooltip => 'Manage';
+
+  @override
+  String get monthlyExpensesEditAction => 'Edit';
+
+  @override
+  String get monthlyExpensesPauseAction => 'Pause';
+
+  @override
+  String get monthlyExpensesResumeAction => 'Resume';
+
+  @override
+  String get monthlyExpensesEndAction => 'End';
+
+  @override
+  String monthlyExpensesEndTitle(Object name) {
+    return 'End $name?';
+  }
+
+  @override
+  String get monthlyExpensesEndBody =>
+      'It stops being due from now on. Payments already made stay on the record.';
+
+  @override
+  String get monthlyExpensesEndConfirm => 'End it';
+
+  @override
+  String get monthlyExpensesStatusUpdated => 'Status updated';
+
+  @override
+  String get monthlyExpensesReadOnlyNotice =>
+      'You can see this month but not change the registry.';
+
+  @override
+  String get monthlyExpensesFormMissingOptions =>
+      'The server did not send the categories, frequencies and accounts this form needs.';
+
+  @override
+  String get monthlyExpensesSalarySlipBadge => 'Salary slip';
 }

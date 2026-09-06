@@ -26,6 +26,7 @@ import '../features/stock_transfer/presentation/stock_transfer_screen.dart';
 import '../features/cash_transfer/presentation/cash_transfer_screen.dart';
 import '../features/inventory_count/presentation/inventory_count_screen.dart';
 import '../features/expenses/presentation/expenses_screen.dart';
+import '../features/monthly_expenses/presentation/monthly_expenses_screen.dart';
 import '../features/settings/presentation/user_profile_screen.dart';
 import '../features/shift/presentation/shift_start_screen.dart';
 import '../features/shift/presentation/shift_end_screen.dart';
@@ -422,6 +423,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.expenses,
         name: 'expenses',
         builder: (context, state) => const ExpensesScreen(),
+      ),
+      // Ungated in the router, like every other manager screen here: the
+      // drawer decides who is offered the entry (see
+      // `canAccessMonthlyExpensesProvider`, which mirrors the backend gate),
+      // and the API refuses anyone who arrives by URL anyway.
+      GoRoute(
+        path: AppRoutes.monthlyExpenses,
+        name: 'monthly-expenses',
+        builder: (context, state) => const MonthlyExpensesScreen(),
       ),
       GoRoute(
         path: AppRoutes.trips,

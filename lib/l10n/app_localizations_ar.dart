@@ -10038,4 +10038,370 @@ class AppLocalizationsAr extends AppLocalizations {
   String shiftHistoryOpenedBy(Object name) {
     return 'فتحها $name';
   }
+
+  @override
+  String get menuMonthlyExpenses => 'المصروفات الشهرية';
+
+  @override
+  String get monthlyExpensesTitle => 'المصروفات الشهرية';
+
+  @override
+  String get monthlyExpensesRefreshTooltip => 'تحديث';
+
+  @override
+  String get monthlyExpensesMonthLabel => 'الشهر';
+
+  @override
+  String get monthlyExpensesPreviousMonthTooltip => 'الشهر السابق';
+
+  @override
+  String get monthlyExpensesNextMonthTooltip => 'الشهر التالي';
+
+  @override
+  String get monthlyExpensesLoadFailed => 'تعذر تحميل بيانات هذا الشهر.';
+
+  @override
+  String get monthlyExpensesRemaining => 'المتبقي';
+
+  @override
+  String get monthlyExpensesDue => 'المستحق';
+
+  @override
+  String get monthlyExpensesPaid => 'المدفوع';
+
+  @override
+  String get monthlyExpensesRunRate => 'المعدل الشهري';
+
+  @override
+  String monthlyExpensesRemainingCaption(Object paid, Object due) {
+    return 'تم دفع $paid من إجمالي $due';
+  }
+
+  @override
+  String monthlyExpensesOverpaidNotice(Object amount) {
+    return 'زيادة في الدفع بمقدار $amount';
+  }
+
+  @override
+  String monthlyExpensesItemsBreakdown(int paid, int partial, int unpaid) {
+    return '$paid مدفوع، $partial جزئي، $unpaid غير مدفوع';
+  }
+
+  @override
+  String monthlyExpensesItemsTotal(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count بند مستحق',
+      few: '$count بنود مستحقة',
+      two: 'بندان مستحقان',
+      one: 'بند واحد مستحق',
+      zero: 'لا توجد بنود مستحقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get monthlyExpensesGapsTitle => 'يحتاج انتباهك';
+
+  @override
+  String get monthlyExpensesRecurringTitle => 'المصروفات المتكررة';
+
+  @override
+  String get monthlyExpensesRecurringEmpty =>
+      'لا توجد أي مصروفات متكررة مسجلة حتى الآن.';
+
+  @override
+  String get monthlyExpensesCategoryUncategorised => 'بدون تصنيف';
+
+  @override
+  String monthlyExpensesCategorySubtotal(Object remaining, Object due) {
+    return 'متبقي $remaining من $due';
+  }
+
+  @override
+  String get monthlyExpensesStatusPaid => 'مدفوع';
+
+  @override
+  String get monthlyExpensesStatusPartial => 'جزئي';
+
+  @override
+  String get monthlyExpensesStatusUnpaid => 'غير مدفوع';
+
+  @override
+  String get monthlyExpensesStatusNotDue => 'غير مستحق';
+
+  @override
+  String get monthlyExpensesStatusOverpaid => 'مدفوع بالزيادة';
+
+  @override
+  String get monthlyExpensesLifecyclePaused => 'موقوف مؤقتاً';
+
+  @override
+  String get monthlyExpensesLifecycleEnded => 'منتهي';
+
+  @override
+  String get monthlyExpensesPayAction => 'دفع';
+
+  @override
+  String get monthlyExpensesInferredBadge => 'من دفتر الأستاذ';
+
+  @override
+  String monthlyExpensesInferredExplain(Object amount) {
+    return 'مبلغ $amount من المدفوع مقروء من دفتر الأستاذ ولم يُدفع من خلال هذا التطبيق.';
+  }
+
+  @override
+  String get monthlyExpensesSharedAccountBadge => 'حساب مشترك';
+
+  @override
+  String monthlyExpensesSharedAccountExplain(Object account) {
+    return 'توجد مصروفات أخرى تُرحَّل إلى $account هذا الشهر، لذلك لا يمكن نسب مدفوعات دفتر الأستاذ إلى هذا البند.';
+  }
+
+  @override
+  String get monthlyExpensesFrequencyLabel => 'التكرار';
+
+  @override
+  String get monthlyExpensesDueDateLabel => 'تاريخ الاستحقاق';
+
+  @override
+  String get monthlyExpensesAccountLabel => 'حساب المصروف';
+
+  @override
+  String get monthlyExpensesCostCenterLabel => 'مركز التكلفة';
+
+  @override
+  String get monthlyExpensesSupplierLabel => 'المورد';
+
+  @override
+  String get monthlyExpensesNotesLabel => 'ملاحظات';
+
+  @override
+  String get monthlyExpensesAmountLabel => 'المبلغ';
+
+  @override
+  String get monthlyExpensesMonthlyEquivalentLabel => 'ما يعادله شهرياً';
+
+  @override
+  String get monthlyExpensesPaymentsTitle => 'المدفوعات';
+
+  @override
+  String get monthlyExpensesPaymentsEmpty =>
+      'لا توجد مدفوعات مسجلة لهذا الشهر.';
+
+  @override
+  String get monthlyExpensesPaymentCancelAction => 'إلغاء الدفعة';
+
+  @override
+  String get monthlyExpensesPaymentCancelTitle => 'إلغاء هذه الدفعة؟';
+
+  @override
+  String monthlyExpensesPaymentCancelBody(Object amount, Object source) {
+    return 'سيؤدي هذا إلى عكس القيد المحاسبي بمبلغ $amount وإعادة المبلغ إلى $source.';
+  }
+
+  @override
+  String get monthlyExpensesPaymentCancelHint => 'لماذا يتم عكس هذه الدفعة؟';
+
+  @override
+  String get monthlyExpensesPaymentCancelConfirm => 'إلغاء وعكس القيد';
+
+  @override
+  String get monthlyExpensesPaymentCancelled =>
+      'تم إلغاء الدفعة وعكس القيد المحاسبي';
+
+  @override
+  String get monthlyExpensesSalariesTitle => 'المرتبات';
+
+  @override
+  String get monthlyExpensesSalariesEmpty =>
+      'لا يوجد موظف لديه هيكل رواتب لهذا الشهر.';
+
+  @override
+  String get monthlyExpensesPayrollNotConfigured =>
+      'لم يتم إعداد الرواتب، لذلك لا يمكن دفع المرتبات من هذه الشاشة.';
+
+  @override
+  String get monthlyExpensesPayrollAccountLabel => 'حساب المرتبات';
+
+  @override
+  String get monthlyExpensesSalaryBaseLabel => 'الأساسي';
+
+  @override
+  String get monthlyExpensesSalaryVariableLabel => 'المتغير';
+
+  @override
+  String get monthlyExpensesSalarySlipExists =>
+      'توجد قسيمة راتب معتمدة تغطي هذا الشهر بالفعل، والدفع من هنا سيسجل الراتب مرتين.';
+
+  @override
+  String monthlyExpensesMissingStructureTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count موظف بدون هيكل رواتب',
+      few: '$count موظفين بدون هيكل رواتب',
+      two: 'موظفان بدون هيكل رواتب',
+      one: 'موظف واحد بدون هيكل رواتب',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get monthlyExpensesMissingStructureBody =>
+      'رواتبهم غير محتسبة في الأرقام أعلاه. عيّن هيكل رواتب في الموارد البشرية لتضمينهم.';
+
+  @override
+  String monthlyExpensesUnattributedGl(Object amount) {
+    return 'مبلغ $amount مُرحَّل إلى حساب المرتبات ولا يمكن نسبه إلى موظف بعينه، لذلك يُعرض هنا بدلاً من إضافته إلى أحد الصفوف.';
+  }
+
+  @override
+  String monthlyExpensesPayTitle(Object name) {
+    return 'دفع $name';
+  }
+
+  @override
+  String monthlyExpensesPayPeriod(Object month) {
+    return 'عن شهر $month';
+  }
+
+  @override
+  String get monthlyExpensesPayAmountLabel => 'المبلغ المراد دفعه';
+
+  @override
+  String get monthlyExpensesPayAmountInvalid => 'أدخل مبلغاً أكبر من صفر';
+
+  @override
+  String get monthlyExpensesPayFromLabel => 'الدفع من';
+
+  @override
+  String get monthlyExpensesPayFromRequired =>
+      'اختر الحساب الذي سيتم الدفع منه';
+
+  @override
+  String get monthlyExpensesPayDateLabel => 'تاريخ الدفع';
+
+  @override
+  String get monthlyExpensesPayRemarksLabel => 'ملاحظات (اختياري)';
+
+  @override
+  String get monthlyExpensesPaySubmit => 'دفع';
+
+  @override
+  String monthlyExpensesPaySourceOption(Object label, Object balance) {
+    return '$label — $balance';
+  }
+
+  @override
+  String get monthlyExpensesPayNoSources =>
+      'لا يوجد حساب نقدي أو بنكي متاح للدفع منه.';
+
+  @override
+  String monthlyExpensesPayRemainingHint(Object amount) {
+    return 'المتبقي: $amount';
+  }
+
+  @override
+  String get monthlyExpensesPaymentRecorded => 'تم تسجيل الدفعة';
+
+  @override
+  String get monthlyExpensesOverpayTitle => 'أكثر من المستحق';
+
+  @override
+  String get monthlyExpensesOverpayConfirm => 'ادفع على أي حال';
+
+  @override
+  String get monthlyExpensesAddAction => 'إضافة مصروف';
+
+  @override
+  String get monthlyExpensesNewTitle => 'مصروف متكرر جديد';
+
+  @override
+  String get monthlyExpensesEditTitle => 'تعديل المصروف المتكرر';
+
+  @override
+  String get monthlyExpensesNameLabel => 'الاسم';
+
+  @override
+  String get monthlyExpensesNameRequired => 'أدخل اسماً لهذا المصروف';
+
+  @override
+  String get monthlyExpensesAmountRequired => 'أدخل مبلغاً أكبر من صفر';
+
+  @override
+  String get monthlyExpensesCategoryLabel => 'التصنيف';
+
+  @override
+  String get monthlyExpensesCategoryRequired => 'اختر تصنيفاً';
+
+  @override
+  String get monthlyExpensesFrequencyRequired => 'اختر التكرار';
+
+  @override
+  String get monthlyExpensesAccountRequired => 'اختر حساب المصروف';
+
+  @override
+  String get monthlyExpensesDayOfMonthLabel => 'يوم من الشهر';
+
+  @override
+  String get monthlyExpensesDayOfMonthInvalid => 'أدخل يوماً بين 1 و 28';
+
+  @override
+  String get monthlyExpensesStartDateLabel => 'يبدأ';
+
+  @override
+  String get monthlyExpensesEndDateLabel => 'ينتهي (اختياري)';
+
+  @override
+  String get monthlyExpensesDefaultPayingAccountLabel =>
+      'يُدفع عادة من (اختياري)';
+
+  @override
+  String get monthlyExpensesNoneOption => 'بدون';
+
+  @override
+  String get monthlyExpensesSaved => 'تم حفظ المصروف المتكرر';
+
+  @override
+  String get monthlyExpensesManageTooltip => 'إدارة';
+
+  @override
+  String get monthlyExpensesEditAction => 'تعديل';
+
+  @override
+  String get monthlyExpensesPauseAction => 'إيقاف مؤقت';
+
+  @override
+  String get monthlyExpensesResumeAction => 'استئناف';
+
+  @override
+  String get monthlyExpensesEndAction => 'إنهاء';
+
+  @override
+  String monthlyExpensesEndTitle(Object name) {
+    return 'إنهاء $name؟';
+  }
+
+  @override
+  String get monthlyExpensesEndBody =>
+      'لن يصبح مستحقاً بعد الآن. تبقى المدفوعات السابقة مسجلة كما هي.';
+
+  @override
+  String get monthlyExpensesEndConfirm => 'إنهاؤه';
+
+  @override
+  String get monthlyExpensesStatusUpdated => 'تم تحديث الحالة';
+
+  @override
+  String get monthlyExpensesReadOnlyNotice =>
+      'يمكنك عرض هذا الشهر دون تعديل سجل المصروفات.';
+
+  @override
+  String get monthlyExpensesFormMissingOptions =>
+      'لم يرسل الخادم التصنيفات والتكرارات والحسابات التي يحتاجها هذا النموذج.';
+
+  @override
+  String get monthlyExpensesSalarySlipBadge => 'قسيمة راتب';
 }

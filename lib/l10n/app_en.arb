@@ -5951,5 +5951,198 @@
       "end": {}
     }
   },
-  "shiftHistoryOpenedBy": "Opened by {name}"
+  "shiftHistoryOpenedBy": "Opened by {name}",
+  "menuMonthlyExpenses": "Monthly Expenses",
+  "monthlyExpensesTitle": "Monthly Expenses",
+  "monthlyExpensesRefreshTooltip": "Refresh",
+  "monthlyExpensesMonthLabel": "Month",
+  "monthlyExpensesPreviousMonthTooltip": "Previous month",
+  "monthlyExpensesNextMonthTooltip": "Next month",
+  "monthlyExpensesLoadFailed": "Could not load this month.",
+  "monthlyExpensesRemaining": "Remaining",
+  "monthlyExpensesDue": "Due",
+  "monthlyExpensesPaid": "Paid",
+  "monthlyExpensesRunRate": "Monthly run-rate",
+  "monthlyExpensesRemainingCaption": "{paid} paid of {due} due",
+  "@monthlyExpensesRemainingCaption": {
+    "placeholders": {
+      "paid": {},
+      "due": {}
+    }
+  },
+  "monthlyExpensesOverpaidNotice": "Overpaid by {amount}",
+  "@monthlyExpensesOverpaidNotice": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "monthlyExpensesItemsBreakdown": "{paid} paid, {partial} partial, {unpaid} unpaid",
+  "@monthlyExpensesItemsBreakdown": {
+    "placeholders": {
+      "paid": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "unpaid": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyExpensesItemsTotal": "{count, plural, =0{No items due} =1{1 item due} other{{count} items due}}",
+  "@monthlyExpensesItemsTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyExpensesGapsTitle": "Needs attention",
+  "monthlyExpensesRecurringTitle": "Recurring expenses",
+  "monthlyExpensesRecurringEmpty": "Nothing is in the recurring expense registry yet.",
+  "monthlyExpensesCategoryUncategorised": "Uncategorised",
+  "monthlyExpensesCategorySubtotal": "{remaining} left of {due}",
+  "@monthlyExpensesCategorySubtotal": {
+    "placeholders": {
+      "remaining": {},
+      "due": {}
+    }
+  },
+  "monthlyExpensesStatusPaid": "Paid",
+  "monthlyExpensesStatusPartial": "Partial",
+  "monthlyExpensesStatusUnpaid": "Unpaid",
+  "monthlyExpensesStatusNotDue": "Not due",
+  "monthlyExpensesStatusOverpaid": "Overpaid",
+  "monthlyExpensesLifecyclePaused": "Paused",
+  "monthlyExpensesLifecycleEnded": "Ended",
+  "monthlyExpensesPayAction": "Pay",
+  "monthlyExpensesInferredBadge": "From the ledger",
+  "monthlyExpensesInferredExplain": "{amount} of the paid figure was read from the ledger, not paid through this app.",
+  "@monthlyExpensesInferredExplain": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "monthlyExpensesSharedAccountBadge": "Shared account",
+  "monthlyExpensesSharedAccountExplain": "Other expenses post to {account} this month, so ledger payments cannot be matched to this one.",
+  "@monthlyExpensesSharedAccountExplain": {
+    "placeholders": {
+      "account": {}
+    }
+  },
+  "monthlyExpensesFrequencyLabel": "Frequency",
+  "monthlyExpensesDueDateLabel": "Due date",
+  "monthlyExpensesAccountLabel": "Expense account",
+  "monthlyExpensesCostCenterLabel": "Cost center",
+  "monthlyExpensesSupplierLabel": "Supplier",
+  "monthlyExpensesNotesLabel": "Notes",
+  "monthlyExpensesAmountLabel": "Amount",
+  "monthlyExpensesMonthlyEquivalentLabel": "Monthly equivalent",
+  "monthlyExpensesPaymentsTitle": "Payments",
+  "monthlyExpensesPaymentsEmpty": "No payments recorded for this month.",
+  "monthlyExpensesPaymentCancelAction": "Cancel payment",
+  "monthlyExpensesPaymentCancelTitle": "Cancel this payment?",
+  "monthlyExpensesPaymentCancelBody": "This reverses the journal entry for {amount} and puts the money back in {source}.",
+  "@monthlyExpensesPaymentCancelBody": {
+    "placeholders": {
+      "amount": {},
+      "source": {}
+    }
+  },
+  "monthlyExpensesPaymentCancelHint": "Why is this being reversed?",
+  "monthlyExpensesPaymentCancelConfirm": "Cancel and reverse",
+  "monthlyExpensesPaymentCancelled": "Payment cancelled and journal entry reversed",
+  "monthlyExpensesSalariesTitle": "Salaries",
+  "monthlyExpensesSalariesEmpty": "No employee has a salary structure for this month.",
+  "monthlyExpensesPayrollNotConfigured": "Payroll is not set up, so salaries cannot be paid from this screen.",
+  "monthlyExpensesPayrollAccountLabel": "Salary account",
+  "monthlyExpensesSalaryBaseLabel": "Base",
+  "monthlyExpensesSalaryVariableLabel": "Variable",
+  "monthlyExpensesSalarySlipExists": "A submitted salary slip already covers this month, so paying here would post the salary twice.",
+  "monthlyExpensesMissingStructureTitle": "{count, plural, =1{1 employee has no salary structure} other{{count} employees have no salary structure}}",
+  "@monthlyExpensesMissingStructureTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyExpensesMissingStructureBody": "Their pay is not in the figures above. Assign a salary structure in HR to include them.",
+  "monthlyExpensesUnattributedGl": "{amount} posted to the salary account cannot be matched to any employee, so it is reported here instead of being added to a row.",
+  "@monthlyExpensesUnattributedGl": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "monthlyExpensesPayTitle": "Pay {name}",
+  "@monthlyExpensesPayTitle": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "monthlyExpensesPayPeriod": "For {month}",
+  "@monthlyExpensesPayPeriod": {
+    "placeholders": {
+      "month": {}
+    }
+  },
+  "monthlyExpensesPayAmountLabel": "Amount to pay",
+  "monthlyExpensesPayAmountInvalid": "Enter an amount greater than zero",
+  "monthlyExpensesPayFromLabel": "Pay from",
+  "monthlyExpensesPayFromRequired": "Choose an account to pay from",
+  "monthlyExpensesPayDateLabel": "Payment date",
+  "monthlyExpensesPayRemarksLabel": "Remarks (optional)",
+  "monthlyExpensesPaySubmit": "Pay",
+  "monthlyExpensesPaySourceOption": "{label} — {balance}",
+  "@monthlyExpensesPaySourceOption": {
+    "placeholders": {
+      "label": {},
+      "balance": {}
+    }
+  },
+  "monthlyExpensesPayNoSources": "No cash or bank account is available to pay from.",
+  "monthlyExpensesPayRemainingHint": "Remaining: {amount}",
+  "@monthlyExpensesPayRemainingHint": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "monthlyExpensesPaymentRecorded": "Payment recorded",
+  "monthlyExpensesOverpayTitle": "More than what is due",
+  "monthlyExpensesOverpayConfirm": "Pay anyway",
+  "monthlyExpensesAddAction": "Add expense",
+  "monthlyExpensesNewTitle": "New recurring expense",
+  "monthlyExpensesEditTitle": "Edit recurring expense",
+  "monthlyExpensesNameLabel": "Name",
+  "monthlyExpensesNameRequired": "Give this expense a name",
+  "monthlyExpensesAmountRequired": "Enter an amount greater than zero",
+  "monthlyExpensesCategoryLabel": "Category",
+  "monthlyExpensesCategoryRequired": "Choose a category",
+  "monthlyExpensesFrequencyRequired": "Choose a frequency",
+  "monthlyExpensesAccountRequired": "Choose an expense account",
+  "monthlyExpensesDayOfMonthLabel": "Day of month",
+  "monthlyExpensesDayOfMonthInvalid": "Enter a day between 1 and 28",
+  "monthlyExpensesStartDateLabel": "Starts",
+  "monthlyExpensesEndDateLabel": "Ends (optional)",
+  "monthlyExpensesDefaultPayingAccountLabel": "Usually paid from (optional)",
+  "monthlyExpensesNoneOption": "None",
+  "monthlyExpensesSaved": "Recurring expense saved",
+  "monthlyExpensesManageTooltip": "Manage",
+  "monthlyExpensesEditAction": "Edit",
+  "monthlyExpensesPauseAction": "Pause",
+  "monthlyExpensesResumeAction": "Resume",
+  "monthlyExpensesEndAction": "End",
+  "monthlyExpensesEndTitle": "End {name}?",
+  "@monthlyExpensesEndTitle": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "monthlyExpensesEndBody": "It stops being due from now on. Payments already made stay on the record.",
+  "monthlyExpensesEndConfirm": "End it",
+  "monthlyExpensesStatusUpdated": "Status updated",
+  "monthlyExpensesReadOnlyNotice": "You can see this month but not change the registry.",
+  "monthlyExpensesFormMissingOptions": "The server did not send the categories, frequencies and accounts this form needs.",
+  "monthlyExpensesSalarySlipBadge": "Salary slip"
 }

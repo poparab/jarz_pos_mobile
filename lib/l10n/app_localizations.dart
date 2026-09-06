@@ -16910,6 +16910,618 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Opened by {name}'**
   String shiftHistoryOpenedBy(Object name);
+
+  /// No description provided for @menuMonthlyExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Expenses'**
+  String get menuMonthlyExpenses;
+
+  /// No description provided for @monthlyExpensesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Expenses'**
+  String get monthlyExpensesTitle;
+
+  /// No description provided for @monthlyExpensesRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get monthlyExpensesRefreshTooltip;
+
+  /// No description provided for @monthlyExpensesMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get monthlyExpensesMonthLabel;
+
+  /// No description provided for @monthlyExpensesPreviousMonthTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get monthlyExpensesPreviousMonthTooltip;
+
+  /// No description provided for @monthlyExpensesNextMonthTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get monthlyExpensesNextMonthTooltip;
+
+  /// No description provided for @monthlyExpensesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this month.'**
+  String get monthlyExpensesLoadFailed;
+
+  /// No description provided for @monthlyExpensesRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get monthlyExpensesRemaining;
+
+  /// No description provided for @monthlyExpensesDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get monthlyExpensesDue;
+
+  /// No description provided for @monthlyExpensesPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get monthlyExpensesPaid;
+
+  /// No description provided for @monthlyExpensesRunRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly run-rate'**
+  String get monthlyExpensesRunRate;
+
+  /// No description provided for @monthlyExpensesRemainingCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'{paid} paid of {due} due'**
+  String monthlyExpensesRemainingCaption(Object paid, Object due);
+
+  /// No description provided for @monthlyExpensesOverpaidNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Overpaid by {amount}'**
+  String monthlyExpensesOverpaidNotice(Object amount);
+
+  /// No description provided for @monthlyExpensesItemsBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'{paid} paid, {partial} partial, {unpaid} unpaid'**
+  String monthlyExpensesItemsBreakdown(int paid, int partial, int unpaid);
+
+  /// No description provided for @monthlyExpensesItemsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No items due} =1{1 item due} other{{count} items due}}'**
+  String monthlyExpensesItemsTotal(int count);
+
+  /// No description provided for @monthlyExpensesGapsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get monthlyExpensesGapsTitle;
+
+  /// No description provided for @monthlyExpensesRecurringTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring expenses'**
+  String get monthlyExpensesRecurringTitle;
+
+  /// No description provided for @monthlyExpensesRecurringEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is in the recurring expense registry yet.'**
+  String get monthlyExpensesRecurringEmpty;
+
+  /// No description provided for @monthlyExpensesCategoryUncategorised.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorised'**
+  String get monthlyExpensesCategoryUncategorised;
+
+  /// No description provided for @monthlyExpensesCategorySubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} left of {due}'**
+  String monthlyExpensesCategorySubtotal(Object remaining, Object due);
+
+  /// No description provided for @monthlyExpensesStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get monthlyExpensesStatusPaid;
+
+  /// No description provided for @monthlyExpensesStatusPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial'**
+  String get monthlyExpensesStatusPartial;
+
+  /// No description provided for @monthlyExpensesStatusUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get monthlyExpensesStatusUnpaid;
+
+  /// No description provided for @monthlyExpensesStatusNotDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Not due'**
+  String get monthlyExpensesStatusNotDue;
+
+  /// No description provided for @monthlyExpensesStatusOverpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Overpaid'**
+  String get monthlyExpensesStatusOverpaid;
+
+  /// No description provided for @monthlyExpensesLifecyclePaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get monthlyExpensesLifecyclePaused;
+
+  /// No description provided for @monthlyExpensesLifecycleEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get monthlyExpensesLifecycleEnded;
+
+  /// No description provided for @monthlyExpensesPayAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get monthlyExpensesPayAction;
+
+  /// No description provided for @monthlyExpensesInferredBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'From the ledger'**
+  String get monthlyExpensesInferredBadge;
+
+  /// No description provided for @monthlyExpensesInferredExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} of the paid figure was read from the ledger, not paid through this app.'**
+  String monthlyExpensesInferredExplain(Object amount);
+
+  /// No description provided for @monthlyExpensesSharedAccountBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared account'**
+  String get monthlyExpensesSharedAccountBadge;
+
+  /// No description provided for @monthlyExpensesSharedAccountExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Other expenses post to {account} this month, so ledger payments cannot be matched to this one.'**
+  String monthlyExpensesSharedAccountExplain(Object account);
+
+  /// No description provided for @monthlyExpensesFrequencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get monthlyExpensesFrequencyLabel;
+
+  /// No description provided for @monthlyExpensesDueDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get monthlyExpensesDueDateLabel;
+
+  /// No description provided for @monthlyExpensesAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense account'**
+  String get monthlyExpensesAccountLabel;
+
+  /// No description provided for @monthlyExpensesCostCenterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost center'**
+  String get monthlyExpensesCostCenterLabel;
+
+  /// No description provided for @monthlyExpensesSupplierLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier'**
+  String get monthlyExpensesSupplierLabel;
+
+  /// No description provided for @monthlyExpensesNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get monthlyExpensesNotesLabel;
+
+  /// No description provided for @monthlyExpensesAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get monthlyExpensesAmountLabel;
+
+  /// No description provided for @monthlyExpensesMonthlyEquivalentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly equivalent'**
+  String get monthlyExpensesMonthlyEquivalentLabel;
+
+  /// No description provided for @monthlyExpensesPaymentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get monthlyExpensesPaymentsTitle;
+
+  /// No description provided for @monthlyExpensesPaymentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No payments recorded for this month.'**
+  String get monthlyExpensesPaymentsEmpty;
+
+  /// No description provided for @monthlyExpensesPaymentCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel payment'**
+  String get monthlyExpensesPaymentCancelAction;
+
+  /// No description provided for @monthlyExpensesPaymentCancelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this payment?'**
+  String get monthlyExpensesPaymentCancelTitle;
+
+  /// No description provided for @monthlyExpensesPaymentCancelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This reverses the journal entry for {amount} and puts the money back in {source}.'**
+  String monthlyExpensesPaymentCancelBody(Object amount, Object source);
+
+  /// No description provided for @monthlyExpensesPaymentCancelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is this being reversed?'**
+  String get monthlyExpensesPaymentCancelHint;
+
+  /// No description provided for @monthlyExpensesPaymentCancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel and reverse'**
+  String get monthlyExpensesPaymentCancelConfirm;
+
+  /// No description provided for @monthlyExpensesPaymentCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment cancelled and journal entry reversed'**
+  String get monthlyExpensesPaymentCancelled;
+
+  /// No description provided for @monthlyExpensesSalariesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Salaries'**
+  String get monthlyExpensesSalariesTitle;
+
+  /// No description provided for @monthlyExpensesSalariesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No employee has a salary structure for this month.'**
+  String get monthlyExpensesSalariesEmpty;
+
+  /// No description provided for @monthlyExpensesPayrollNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll is not set up, so salaries cannot be paid from this screen.'**
+  String get monthlyExpensesPayrollNotConfigured;
+
+  /// No description provided for @monthlyExpensesPayrollAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary account'**
+  String get monthlyExpensesPayrollAccountLabel;
+
+  /// No description provided for @monthlyExpensesSalaryBaseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Base'**
+  String get monthlyExpensesSalaryBaseLabel;
+
+  /// No description provided for @monthlyExpensesSalaryVariableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Variable'**
+  String get monthlyExpensesSalaryVariableLabel;
+
+  /// No description provided for @monthlyExpensesSalarySlipExists.
+  ///
+  /// In en, this message translates to:
+  /// **'A submitted salary slip already covers this month, so paying here would post the salary twice.'**
+  String get monthlyExpensesSalarySlipExists;
+
+  /// No description provided for @monthlyExpensesMissingStructureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 employee has no salary structure} other{{count} employees have no salary structure}}'**
+  String monthlyExpensesMissingStructureTitle(int count);
+
+  /// No description provided for @monthlyExpensesMissingStructureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Their pay is not in the figures above. Assign a salary structure in HR to include them.'**
+  String get monthlyExpensesMissingStructureBody;
+
+  /// No description provided for @monthlyExpensesUnattributedGl.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} posted to the salary account cannot be matched to any employee, so it is reported here instead of being added to a row.'**
+  String monthlyExpensesUnattributedGl(Object amount);
+
+  /// No description provided for @monthlyExpensesPayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {name}'**
+  String monthlyExpensesPayTitle(Object name);
+
+  /// No description provided for @monthlyExpensesPayPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'For {month}'**
+  String monthlyExpensesPayPeriod(Object month);
+
+  /// No description provided for @monthlyExpensesPayAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to pay'**
+  String get monthlyExpensesPayAmountLabel;
+
+  /// No description provided for @monthlyExpensesPayAmountInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount greater than zero'**
+  String get monthlyExpensesPayAmountInvalid;
+
+  /// No description provided for @monthlyExpensesPayFromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay from'**
+  String get monthlyExpensesPayFromLabel;
+
+  /// No description provided for @monthlyExpensesPayFromRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an account to pay from'**
+  String get monthlyExpensesPayFromRequired;
+
+  /// No description provided for @monthlyExpensesPayDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment date'**
+  String get monthlyExpensesPayDateLabel;
+
+  /// No description provided for @monthlyExpensesPayRemarksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remarks (optional)'**
+  String get monthlyExpensesPayRemarksLabel;
+
+  /// No description provided for @monthlyExpensesPaySubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get monthlyExpensesPaySubmit;
+
+  /// No description provided for @monthlyExpensesPaySourceOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} — {balance}'**
+  String monthlyExpensesPaySourceOption(Object label, Object balance);
+
+  /// No description provided for @monthlyExpensesPayNoSources.
+  ///
+  /// In en, this message translates to:
+  /// **'No cash or bank account is available to pay from.'**
+  String get monthlyExpensesPayNoSources;
+
+  /// No description provided for @monthlyExpensesPayRemainingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining: {amount}'**
+  String monthlyExpensesPayRemainingHint(Object amount);
+
+  /// No description provided for @monthlyExpensesPaymentRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment recorded'**
+  String get monthlyExpensesPaymentRecorded;
+
+  /// No description provided for @monthlyExpensesOverpayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More than what is due'**
+  String get monthlyExpensesOverpayTitle;
+
+  /// No description provided for @monthlyExpensesOverpayConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay anyway'**
+  String get monthlyExpensesOverpayConfirm;
+
+  /// No description provided for @monthlyExpensesAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add expense'**
+  String get monthlyExpensesAddAction;
+
+  /// No description provided for @monthlyExpensesNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New recurring expense'**
+  String get monthlyExpensesNewTitle;
+
+  /// No description provided for @monthlyExpensesEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit recurring expense'**
+  String get monthlyExpensesEditTitle;
+
+  /// No description provided for @monthlyExpensesNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get monthlyExpensesNameLabel;
+
+  /// No description provided for @monthlyExpensesNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Give this expense a name'**
+  String get monthlyExpensesNameRequired;
+
+  /// No description provided for @monthlyExpensesAmountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount greater than zero'**
+  String get monthlyExpensesAmountRequired;
+
+  /// No description provided for @monthlyExpensesCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get monthlyExpensesCategoryLabel;
+
+  /// No description provided for @monthlyExpensesCategoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a category'**
+  String get monthlyExpensesCategoryRequired;
+
+  /// No description provided for @monthlyExpensesFrequencyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a frequency'**
+  String get monthlyExpensesFrequencyRequired;
+
+  /// No description provided for @monthlyExpensesAccountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an expense account'**
+  String get monthlyExpensesAccountRequired;
+
+  /// No description provided for @monthlyExpensesDayOfMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Day of month'**
+  String get monthlyExpensesDayOfMonthLabel;
+
+  /// No description provided for @monthlyExpensesDayOfMonthInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a day between 1 and 28'**
+  String get monthlyExpensesDayOfMonthInvalid;
+
+  /// No description provided for @monthlyExpensesStartDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts'**
+  String get monthlyExpensesStartDateLabel;
+
+  /// No description provided for @monthlyExpensesEndDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends (optional)'**
+  String get monthlyExpensesEndDateLabel;
+
+  /// No description provided for @monthlyExpensesDefaultPayingAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Usually paid from (optional)'**
+  String get monthlyExpensesDefaultPayingAccountLabel;
+
+  /// No description provided for @monthlyExpensesNoneOption.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get monthlyExpensesNoneOption;
+
+  /// No description provided for @monthlyExpensesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring expense saved'**
+  String get monthlyExpensesSaved;
+
+  /// No description provided for @monthlyExpensesManageTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get monthlyExpensesManageTooltip;
+
+  /// No description provided for @monthlyExpensesEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get monthlyExpensesEditAction;
+
+  /// No description provided for @monthlyExpensesPauseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get monthlyExpensesPauseAction;
+
+  /// No description provided for @monthlyExpensesResumeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get monthlyExpensesResumeAction;
+
+  /// No description provided for @monthlyExpensesEndAction.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get monthlyExpensesEndAction;
+
+  /// No description provided for @monthlyExpensesEndTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End {name}?'**
+  String monthlyExpensesEndTitle(Object name);
+
+  /// No description provided for @monthlyExpensesEndBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It stops being due from now on. Payments already made stay on the record.'**
+  String get monthlyExpensesEndBody;
+
+  /// No description provided for @monthlyExpensesEndConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'End it'**
+  String get monthlyExpensesEndConfirm;
+
+  /// No description provided for @monthlyExpensesStatusUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Status updated'**
+  String get monthlyExpensesStatusUpdated;
+
+  /// No description provided for @monthlyExpensesReadOnlyNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'You can see this month but not change the registry.'**
+  String get monthlyExpensesReadOnlyNotice;
+
+  /// No description provided for @monthlyExpensesFormMissingOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'The server did not send the categories, frequencies and accounts this form needs.'**
+  String get monthlyExpensesFormMissingOptions;
+
+  /// No description provided for @monthlyExpensesSalarySlipBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary slip'**
+  String get monthlyExpensesSalarySlipBadge;
 }
 
 class _AppLocalizationsDelegate

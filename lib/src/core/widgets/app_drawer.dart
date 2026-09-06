@@ -61,6 +61,15 @@ class AppDrawer extends ConsumerWidget {
     final canAccessPurchaseInvoice =
         ref.watch(canAccessPurchaseInvoiceProvider);
     final canAccessReportsHub = ref.watch(canAccessReportsHubProvider);
+    // Mirrors `api/monthly_expenses.py`'s own gate (JARZ Manager,
+    // Administrator, System Manager, Accounts Manager) — NOT the wider
+    // manager-dashboard gate, and not the `ROLES.MANAGER` set behind Cash
+    // Transfer either, which also admits Stock / Manufacturing / Purchase
+    // Manager. A drawer gate wider than the server gate is the recurring bug in
+    // this app: the tile appears and every call on the screen answers "Not
+    // permitted".
+    final canAccessMonthlyExpenses =
+        ref.watch(canAccessMonthlyExpensesProvider);
     final locale = ref.watch(localeNotifierProvider);
     final englishLocale = const Locale('en');
     final arabicLocale = const Locale('ar');
@@ -212,6 +221,12 @@ class AppDrawer extends ConsumerWidget {
         title: l10n.menuExpenses,
         onTap: () => navigate(AppRoutes.expenses),
       ),
+      if (canAccessMonthlyExpenses)
+        navTile(
+          icon: Icons.calendar_month_outlined,
+          title: l10n.menuMonthlyExpenses,
+          onTap: () => navigate(AppRoutes.monthlyExpenses),
+        ),
       if (canAccessCashTransfer)
         navTile(
           icon: Icons.account_balance_wallet,
@@ -315,7 +330,11 @@ class AppDrawer extends ConsumerWidget {
     const crmRoutes = [AppRoutes.b2b, AppRoutes.leads, AppRoutes.labels];
     const pricingRoutes = [AppRoutes.pricing];
     const deliveryRoutes = [AppRoutes.trips, AppRoutes.fleetMap];
-    const financeRoutes = [AppRoutes.expenses, AppRoutes.cashTransfer];
+    const financeRoutes = [
+      AppRoutes.expenses,
+      AppRoutes.monthlyExpenses,
+      AppRoutes.cashTransfer,
+    ];
     const purchasingRoutes = [
       AppRoutes.purchase,
       AppRoutes.itemRequests,

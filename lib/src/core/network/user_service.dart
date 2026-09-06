@@ -245,6 +245,26 @@ class UserRoles {
   /// manager asks, it does not sign off on its own request.
   bool get canApproveEmployeeAdvance => isJarzManager || isAdminManager;
 
+  /// Whether this user may open Monthly Expenses — the recurring-expense
+  /// registry and payroll for one month, with the Pay actions on it.
+  ///
+  /// Mirrors `monthly_expenses._ensure_manager` EXACTLY, which is itself a
+  /// mirror of `recurring_expenses._ensure_manager`: JARZ Manager,
+  /// Administrator, System Manager, Accounts Manager — and nobody else.
+  ///
+  /// Written out here rather than reusing [_isBackendManagerSet] or
+  /// [canAccessManagerDashboard], both of which are WIDER: the former adds
+  /// Stock / Manufacturing / Purchase Manager, the latter adds the line-manager
+  /// tier and POS Manager. Every one of those would see the drawer tile and get
+  /// "Not permitted" from the first call — the recurring bug this app keeps
+  /// hitting (Manufacturing, Cash Transfer, the Reports hub). If the backend
+  /// gate ever moves, this getter is the single line that moves with it.
+  bool get canAccessMonthlyExpenses =>
+      isJarzManager ||
+      roles.contains(RoleNames.administrator) ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.accountsManager);
+
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
     final rolesList = rolesRaw is List
@@ -500,6 +520,20 @@ final canApproveEmployeeAdvanceProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canApproveEmployeeAdvance,
+    orElse: () => false,
+  );
+});
+
+/// Whether the current user may open Monthly Expenses.
+///
+/// Mirrors `api/monthly_expenses.py`'s own gate (JARZ Manager, Administrator,
+/// System Manager, Accounts Manager) rather than any of the broader manager
+/// providers above. Client gate and server gate agree by construction; see
+/// [UserRoles.canAccessMonthlyExpenses].
+final canAccessMonthlyExpensesProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessMonthlyExpenses,
     orElse: () => false,
   );
 });

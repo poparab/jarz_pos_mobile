@@ -366,6 +366,28 @@ abstract final class ApiEndpoints {
   static const cancelExpense =
       '/api/method/jarz_pos.api.expenses.cancel_expense';
 
+  // ── Monthly Expenses ──────────────────────────────────────────────────
+  // The company's monthly bill: the Jarz Recurring Expense registry plus HRMS
+  // payroll, for one `YYYY-MM` period, with what is due, what has been paid and
+  // what REMAINS. Distinct from the ad-hoc `expenses.*` endpoints above, which
+  // record one-off spending; these pay a *period* of a standing commitment.
+  // Every one of them is gated server-side on the same manager set as
+  // `recurring_expenses._ensure_manager`.
+  static const getMonthlyExpenses =
+      '/api/method/jarz_pos.api.monthly_expenses.get_monthly_expenses';
+  static const payRecurringExpense =
+      '/api/method/jarz_pos.api.monthly_expenses.pay_recurring_expense';
+  static const paySalary =
+      '/api/method/jarz_pos.api.monthly_expenses.pay_salary';
+  static const saveRecurringExpense =
+      '/api/method/jarz_pos.api.monthly_expenses.save_recurring_expense';
+  static const setRecurringExpenseStatus =
+      '/api/method/jarz_pos.api.monthly_expenses.set_recurring_expense_status';
+  // Delegates to `expenses.cancel_expense`, so cancelling a monthly payment
+  // reverses the very same journal entry the payment posted.
+  static const cancelExpensePayment =
+      '/api/method/jarz_pos.api.monthly_expenses.cancel_expense_payment';
+
   // ── Employee Advances ─────────────────────────────────────────────────
   // Cash advances a line manager requests for an employee and a JARZ Manager
   // approves. Approval submits the HRMS Employee Advance AND posts the Payment

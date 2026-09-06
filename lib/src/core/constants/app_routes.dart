@@ -31,6 +31,11 @@ abstract final class AppRoutes {
   static const cashTransfer = '/cash-transfer';
   static const inventoryCount = '/inventory-count';
   static const expenses = '/expenses';
+
+  /// The company's monthly bill — the recurring-expense registry plus payroll
+  /// for one month, with Pay actions. Distinct from [expenses], which records
+  /// one-off spending; this pays a *period* of a standing commitment.
+  static const monthlyExpenses = '/monthly-expenses';
   static const trips = '/trips';
 
   /// Live courier map. Supervisor-only: the tracking API deliberately refuses
