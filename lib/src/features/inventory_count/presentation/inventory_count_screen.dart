@@ -20,21 +20,25 @@ enum _InventoryCountStep { setup, blindEntry, review }
 
 final RegExp _inventoryCountQuantityPattern = RegExp(r'^\d*\.?\d*$');
 
-String _normalizeInventoryCountQuantity(String value) => value.replaceAll(',', '.');
+String _normalizeInventoryCountQuantity(String value) =>
+    value.replaceAll(',', '.');
 
-final TextInputFormatter _inventoryCountQuantityFormatter = TextInputFormatter.withFunction((oldValue, newValue) {
-  final normalizedText = _normalizeInventoryCountQuantity(newValue.text);
-  if (normalizedText.isEmpty || _inventoryCountQuantityPattern.hasMatch(normalizedText)) {
-    return newValue.copyWith(text: normalizedText);
-  }
-  return oldValue;
-});
+final TextInputFormatter _inventoryCountQuantityFormatter =
+    TextInputFormatter.withFunction((oldValue, newValue) {
+      final normalizedText = _normalizeInventoryCountQuantity(newValue.text);
+      if (normalizedText.isEmpty ||
+          _inventoryCountQuantityPattern.hasMatch(normalizedText)) {
+        return newValue.copyWith(text: normalizedText);
+      }
+      return oldValue;
+    });
 
 class InventoryCountScreen extends ConsumerStatefulWidget {
   const InventoryCountScreen({super.key});
 
   @override
-  ConsumerState<InventoryCountScreen> createState() => _InventoryCountScreenState();
+  ConsumerState<InventoryCountScreen> createState() =>
+      _InventoryCountScreenState();
 }
 
 class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
@@ -47,7 +51,9 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
   String? _selectedCategory;
   DateTime _postingDate = DateTime.now();
   final TextEditingController _searchCtrl = TextEditingController();
-  final Map<String, Map<String, dynamic>> _counts = {}; // item_code -> {qty,uom}
+  // item_code -> {components: [{qty, uom}, ...]}. Older cached {qty, uom}
+  // entries are migrated when read so an in-progress count survives rollout.
+  final Map<String, Map<String, dynamic>> _counts = {};
   final Set<String> _confirmed = <String>{};
   bool _enforceAll = true;
   bool _loading = false;
@@ -69,7 +75,9 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
   @override
   void initState() {
     super.initState();
-    _warehousesFuture = ref.read(inventoryCountServiceProvider).listWarehouses();
+    _warehousesFuture = ref
+        .read(inventoryCountServiceProvider)
+        .listWarehouses();
     _searchCtrl.addListener(_handleSearchChanged);
     _openBox();
   }
@@ -133,7 +141,9 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
       _saveCache();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.inventoryCountOfflineUsingCache)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.inventoryCountOfflineUsingCache)),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -192,9 +202,51 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     return false;
   }
 
-  double _qtyForItem(String itemCode) {
+  List<Map<String, dynamic>> _savedComponentsForItem(String itemCode) {
     final saved = _counts[itemCode];
-    return _sanitizeQty((saved?['qty'] as num?)?.toDouble() ?? 0.0);
+    if (saved == null) {
+      return [];
+    }
+    final rawComponents = saved['components'];
+    if (rawComponents is List) {
+      return rawComponents
+          .whereType<Map>()
+          .map((component) => Map<String, dynamic>.from(component))
+          .toList();
+    }
+    final legacyQty = saved['qty'];
+    if (legacyQty is num) {
+      return [
+        {
+          'qty': _sanitizeQty(legacyQty.toDouble()),
+          if (saved['uom'] is String) 'uom': saved['uom'],
+        },
+      ];
+    }
+    return [];
+  }
+
+  List<Map<String, dynamic>> _componentsForItem(Map<String, dynamic> item) {
+    final itemCode = item['item_code'] as String? ?? '';
+    final saved = _savedComponentsForItem(itemCode);
+    if (saved.isNotEmpty) {
+      return saved;
+    }
+    final options = _uomOptionsForItem(item);
+    return [
+      {if (options.isNotEmpty) 'uom': options.first},
+    ];
+  }
+
+  void _storeComponents(
+    String itemCode,
+    List<Map<String, dynamic>> components,
+  ) {
+    _counts[itemCode] = {
+      'components': components
+          .map((component) => Map<String, dynamic>.from(component))
+          .toList(),
+    };
   }
 
   List<String> _uomOptionsForItem(Map<String, dynamic> item) {
@@ -208,7 +260,11 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
       values.add(value);
     }
 
-    addOption(itemCode == null ? null : _counts[itemCode]?['uom'] as String?);
+    if (itemCode != null) {
+      for (final component in _savedComponentsForItem(itemCode)) {
+        addOption(component['uom'] as String?);
+      }
+    }
     addOption(item['stock_uom'] as String?);
     final rawUoms = item['uoms'] as List?;
     if (rawUoms != null) {
@@ -222,24 +278,11 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     return values;
   }
 
-  String? _selectedUomForItem(Map<String, dynamic> item) {
-    final itemCode = item['item_code'] as String?;
-    if (itemCode == null) {
-      return null;
-    }
-    final saved = _counts[itemCode]?['uom'] as String?;
-    if (saved != null && saved.isNotEmpty) {
-      return saved;
-    }
-    final stockUom = item['stock_uom'] as String?;
-    if (stockUom != null && stockUom.isNotEmpty) {
-      return stockUom;
-    }
-    final options = _uomOptionsForItem(item);
-    return options.isNotEmpty ? options.first : null;
-  }
-
-  void _submitItemCount(Map<String, dynamic> item, String rawValue) {
+  void _submitItemCount(
+    Map<String, dynamic> item,
+    int componentIndex,
+    String rawValue,
+  ) {
     final itemCode = item['item_code'] as String?;
     if (itemCode == null) {
       return;
@@ -250,36 +293,124 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
       return;
     }
     final parsed = double.tryParse(trimmed);
-    if (parsed == null) {
+    if (parsed == null || !parsed.isFinite || parsed < 0) {
       return;
     }
-    final selectedUom = _selectedUomForItem(item);
-    _counts[itemCode] = {
-      'qty': _sanitizeQty(parsed),
-      if (selectedUom != null) 'uom': selectedUom,
-    };
-    _confirmed.add(itemCode);
+    final components = _componentsForItem(item);
+    if (componentIndex < 0 || componentIndex >= components.length) {
+      return;
+    }
+    components[componentIndex]['qty'] = _sanitizeQty(parsed);
+    components[componentIndex].remove('draft');
+    _storeComponents(itemCode, components);
+    final allComponentsSubmitted = components.every(
+      (component) => component['qty'] is num && !component.containsKey('draft'),
+    );
+    if (allComponentsSubmitted) {
+      _confirmed.add(itemCode);
+    } else {
+      _confirmed.remove(itemCode);
+    }
     _saveCache();
     if (mounted && !wasCounted) {
       setState(() {});
     }
   }
 
-  void _updateItemUom(Map<String, dynamic> item, String? uom) {
+  void _updateItemDraft(
+    Map<String, dynamic> item,
+    int componentIndex,
+    String rawValue,
+  ) {
     final itemCode = item['item_code'] as String?;
     if (itemCode == null) {
       return;
     }
-    final updated = Map<String, dynamic>.from(_counts[itemCode] ?? const <String, dynamic>{});
+    final components = _componentsForItem(item);
+    if (componentIndex < 0 || componentIndex >= components.length) {
+      return;
+    }
+    components[componentIndex]['draft'] = _normalizeInventoryCountQuantity(
+      rawValue,
+    );
+    _storeComponents(itemCode, components);
+    _confirmed.remove(itemCode);
+    _saveCache();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _updateItemUom(
+    Map<String, dynamic> item,
+    int componentIndex,
+    String? uom,
+  ) {
+    final itemCode = item['item_code'] as String?;
+    if (itemCode == null) {
+      return;
+    }
+    final components = _componentsForItem(item);
+    if (componentIndex < 0 || componentIndex >= components.length) {
+      return;
+    }
+    final updated = components[componentIndex];
     if (uom == null || uom.isEmpty) {
       updated.remove('uom');
     } else {
       updated['uom'] = uom;
     }
-    if (updated.isEmpty) {
-      _counts.remove(itemCode);
+    _storeComponents(itemCode, components);
+    _saveCache();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _addItemUom(Map<String, dynamic> item) {
+    final itemCode = item['item_code'] as String?;
+    if (itemCode == null) {
+      return;
+    }
+    final components = _componentsForItem(item);
+    final usedUoms = components
+        .map((component) => component['uom'])
+        .whereType<String>()
+        .toSet();
+    final availableUoms = _uomOptionsForItem(
+      item,
+    ).where((uom) => !usedUoms.contains(uom));
+    if (availableUoms.isEmpty) {
+      return;
+    }
+    components.add({'uom': availableUoms.first});
+    _storeComponents(itemCode, components);
+    _confirmed.remove(itemCode);
+    _saveCache();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _removeItemUom(Map<String, dynamic> item, int componentIndex) {
+    final itemCode = item['item_code'] as String?;
+    if (itemCode == null) {
+      return;
+    }
+    final components = _componentsForItem(item);
+    if (components.length <= 1 ||
+        componentIndex < 0 ||
+        componentIndex >= components.length) {
+      return;
+    }
+    components.removeAt(componentIndex);
+    _storeComponents(itemCode, components);
+    if (components.every(
+      (component) => component['qty'] is num && !component.containsKey('draft'),
+    )) {
+      _confirmed.add(itemCode);
     } else {
-      _counts[itemCode] = updated;
+      _confirmed.remove(itemCode);
     }
     _saveCache();
     if (mounted) {
@@ -327,30 +458,39 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     final service = ref.read(inventoryCountServiceProvider);
     final reviewLines = _buildReviewLines();
     final missingItems = reviewLines.where((line) => line.isMissing).length;
-    if (_enforceAll && missingItems > 0) {
+    if (missingItems > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.inventoryCountConfirmAllBeforeSubmit(missingItems))),
+        SnackBar(
+          content: Text(
+            context.l10n.inventoryCountConfirmAllBeforeSubmit(missingItems),
+          ),
+        ),
       );
       return;
     }
-    final lines = reviewLines
-        .where((line) => line.isCounted)
-        .map((line) {
-          final vr = line.valuationRate;
-          return {
-            'item_code': line.itemCode,
-            'counted_qty': line.countedQty,
-            if (line.selectedUom != null) 'uom': line.selectedUom,
-            if (vr != null && vr > 0) 'valuation_rate': vr,
-          };
-        })
-        .toList();
+    final lines = reviewLines.where((line) => line.isCounted).expand((line) {
+      final vr = line.valuationRate;
+      return line.components.map(
+        (component) => {
+          'item_code': line.itemCode,
+          'counted_qty': component.qty,
+          'uom': component.uom,
+          if (vr != null && vr > 0) 'valuation_rate': vr,
+        },
+      );
+    }).toList();
     if (lines.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.inventoryCountConfirmAtLeastOne)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.inventoryCountConfirmAtLeastOne)),
+      );
       return;
     }
 
-    final postingDate = DateTime(_postingDate.year, _postingDate.month, _postingDate.day);
+    final postingDate = DateTime(
+      _postingDate.year,
+      _postingDate.month,
+      _postingDate.day,
+    );
     final confirmedPostingDate = await confirmPostingDatesBeforeSubmit(
       context,
       dates: [postingDate],
@@ -363,7 +503,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
 
     try {
       setState(() => _loading = true);
-      
+
       _debugLog('Submitting reconciliation', {
         'warehouse': _selectedWarehouse,
         'linesCount': lines.length,
@@ -371,7 +511,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
         'postingDate': postingDateStr,
         'enforceAll': _enforceAll,
       });
-      
+
       final res = await service.submitReconciliation(
         warehouse: _selectedWarehouse!,
         lines: lines,
@@ -399,9 +539,9 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     } catch (e) {
       if (!mounted) return;
       _debugLog('Submit reconciliation error', e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.userErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -424,7 +564,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     _currentStep = _stepFromCache(_box!.get(_stepCacheKey) as String?);
     if (_selectedWarehouse != null) {
       await _restoreCache(updateUi: false);
-      if (_items.isEmpty && _confirmed.isEmpty) {
+      if (_items.isEmpty && _confirmed.isEmpty && _counts.isEmpty) {
         _currentStep = _InventoryCountStep.setup;
       }
       if (_currentStep != _InventoryCountStep.setup) {
@@ -461,14 +601,25 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     _confirmed.clear();
     final cachedItems = _box!.get(_itemsKey());
     if (cachedItems is List) {
-      _items = cachedItems.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+      _items = cachedItems
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
     }
     final cachedCounts = _box!.get(_countsKey());
     if (cachedCounts is Map) {
-      _counts.addAll(cachedCounts.map((k, v) => MapEntry(k.toString(), Map<String, dynamic>.from(v as Map))));
+      _counts.addAll(
+        cachedCounts.map(
+          (k, v) => MapEntry(k.toString(), Map<String, dynamic>.from(v as Map)),
+        ),
+      );
     }
     final cachedConfirmed = _box!.get(_confirmedKey());
-    _confirmed.addAll((cachedConfirmed is List ? cachedConfirmed : const <dynamic>[]).map((e) => e.toString()));
+    _confirmed.addAll(
+      (cachedConfirmed is List ? cachedConfirmed : const <dynamic>[]).map(
+        (e) => e.toString(),
+      ),
+    );
     final cachedDate = _box!.get(_dateKey());
     if (cachedDate is String) {
       _postingDate = DateFormat('yyyy-MM-dd').parse(cachedDate);
@@ -497,7 +648,10 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     final rawUoms = item['uoms'] as List?;
     final uoms = rawUoms == null
         ? const <Map<String, dynamic>>[]
-        : rawUoms.whereType<Map>().map((entry) => Map<String, dynamic>.from(entry)).toList();
+        : rawUoms
+              .whereType<Map>()
+              .map((entry) => Map<String, dynamic>.from(entry))
+              .toList();
     final match = uoms.firstWhere(
       (e) => (e['uom'] as String?) == uom,
       orElse: () => const {'conversion_factor': 1},
@@ -522,7 +676,8 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     for (final item in _items) {
       final code = item['item_code'] as String? ?? '';
       final category = _categoryOf(item);
-      pending[category] = (pending[category] ?? 0) + (_confirmed.contains(code) ? 0 : 1);
+      pending[category] =
+          (pending[category] ?? 0) + (_confirmed.contains(code) ? 0 : 1);
     }
     return Map.fromEntries(
       pending.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
@@ -550,7 +705,8 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
           return leftPending ? -1 : 1;
         }
         final leftLabel = '${left['item_name'] ?? ''} $leftCode'.toLowerCase();
-        final rightLabel = '${right['item_name'] ?? ''} $rightCode'.toLowerCase();
+        final rightLabel = '${right['item_name'] ?? ''} $rightCode'
+            .toLowerCase();
         return leftLabel.compareTo(rightLabel);
       });
     if (query.isEmpty) {
@@ -574,13 +730,28 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
         continue;
       }
       final isCounted = _confirmed.contains(itemCode);
-      if (!isCounted && !_enforceAll) {
+      final hasDraftEntry = _counts.containsKey(itemCode);
+      if (!isCounted && !_enforceAll && !hasDraftEntry) {
         continue;
       }
       final stockUom = item['stock_uom'] as String? ?? '';
-      final selectedUom = _selectedUomForItem(item) ?? stockUom;
-      final countedQty = isCounted ? _qtyForItem(itemCode) : 0.0;
-      final countedStockQty = isCounted ? _toStockQty(item, countedQty, selectedUom) : 0.0;
+      final components = isCounted
+          ? _savedComponentsForItem(
+              itemCode,
+            ).where((component) => component['qty'] is num).map((component) {
+              final qty = _sanitizeQty((component['qty'] as num).toDouble());
+              final uom = component['uom'] as String? ?? stockUom;
+              return _ReviewCountComponent(
+                qty: qty,
+                uom: uom,
+                stockQty: _toStockQty(item, qty, uom),
+              );
+            }).toList()
+          : <_ReviewCountComponent>[];
+      final countedStockQty = components.fold<double>(
+        0,
+        (total, component) => total + component.stockQty,
+      );
       final currentQty = (item['current_qty'] as num?)?.toDouble() ?? 0.0;
       final delta = countedStockQty - currentQty;
       lines.add(
@@ -589,15 +760,14 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
           itemName: (item['item_name'] as String?)?.trim().isNotEmpty == true
               ? item['item_name'] as String
               : itemCode,
-          countedQty: countedQty,
+          components: components,
           countedStockQty: countedStockQty,
           currentQty: currentQty,
           delta: delta,
-          selectedUom: selectedUom,
           stockUom: stockUom,
           isCounted: isCounted,
           isChanged: isCounted && delta.abs() > 1e-9,
-          isMissing: _enforceAll && !isCounted,
+          isMissing: !isCounted,
           hasBatchNo: _asBool(item['has_batch_no']),
           hasSerialNo: _asBool(item['has_serial_no']),
           valuationRate: (item['valuation_rate'] as num?)?.toDouble(),
@@ -652,8 +822,8 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
             backgroundColor: isActive
                 ? colorScheme.primaryContainer
                 : isComplete
-                    ? colorScheme.secondaryContainer
-                    : colorScheme.surfaceContainerHighest,
+                ? colorScheme.secondaryContainer
+                : colorScheme.surfaceContainerHighest,
             side: BorderSide.none,
           );
         }).toList(),
@@ -706,7 +876,12 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                 value: _items.isEmpty ? 0.0 : _confirmed.length / _items.length,
               ),
               const SizedBox(height: 6),
-              Text(l10n.inventoryCountConfirmedProgress(_confirmed.length, _items.length)),
+              Text(
+                l10n.inventoryCountConfirmedProgress(
+                  _confirmed.length,
+                  _items.length,
+                ),
+              ),
             ],
           ],
         ),
@@ -734,12 +909,14 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                 FutureBuilder<List<Map<String, dynamic>>>(
                   future: _warehousesFuture,
                   builder: (context, snapshot) {
-                    final warehouses = snapshot.data ?? const <Map<String, dynamic>>[];
+                    final warehouses =
+                        snapshot.data ?? const <Map<String, dynamic>>[];
                     final warehouseNames = warehouses
                         .map((warehouse) => warehouse['name']?.toString())
                         .whereType<String>()
                         .toSet();
-                    final dropdownValue = warehouseNames.contains(_selectedWarehouse)
+                    final dropdownValue =
+                        warehouseNames.contains(_selectedWarehouse)
                         ? _selectedWarehouse
                         : null;
 
@@ -756,7 +933,8 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                             ),
                           )
                           .toList(),
-                      onChanged: snapshot.connectionState == ConnectionState.waiting
+                      onChanged:
+                          snapshot.connectionState == ConnectionState.waiting
                           ? null
                           : (value) async {
                               if (value == _selectedWarehouse) {
@@ -819,13 +997,16 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                 RadioListTile<bool>(
                   value: true,
                   title: Text(l10n.inventoryCountEnforceAll),
-                  subtitle: Text(l10n.inventoryCountFullWarehouseCountDescription),
+                  subtitle: Text(
+                    l10n.inventoryCountFullWarehouseCountDescription,
+                  ),
                 ),
               ],
             ),
           ),
         ),
-        if (_selectedWarehouse != null && (_confirmed.isNotEmpty || _items.isNotEmpty)) ...[
+        if (_selectedWarehouse != null &&
+            (_confirmed.isNotEmpty || _items.isNotEmpty)) ...[
           const SizedBox(height: 12),
           _buildSessionSummaryCard(context),
         ],
@@ -863,7 +1044,12 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(l10n.inventoryCountFilteredItems(visibleItems.length, _items.length)),
+                    child: Text(
+                      l10n.inventoryCountFilteredItems(
+                        visibleItems.length,
+                        _items.length,
+                      ),
+                    ),
                   ),
                   IconButton(
                     tooltip: l10n.inventoryCountClearAllEnteredData,
@@ -899,7 +1085,10 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     // One category is not a choice — the chips would only take up space.
     if (pending.length < 2) return const SizedBox.shrink();
 
-    final totalPending = pending.values.fold<int>(0, (sum, value) => sum + value);
+    final totalPending = pending.values.fold<int>(
+      0,
+      (sum, value) => sum + value,
+    );
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Wrap(
@@ -934,8 +1123,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     List<Map<String, dynamic>> visibleItems,
   ) {
     final theme = Theme.of(context);
-    final showHeaders =
-        visibleItems.map(_categoryOf).toSet().length > 1;
+    final showHeaders = visibleItems.map(_categoryOf).toSet().length > 1;
     final counts = <String, List<int>>{};
     for (final item in visibleItems) {
       final code = item['item_code'] as String? ?? '';
@@ -965,8 +1153,9 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                   // twice over rather than progress through one shelf.
                   child: Text(
                     '${bucket[0]}/${bucket[1]}',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: theme.hintColor),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.hintColor,
+                    ),
                   ),
                 ),
               ],
@@ -975,6 +1164,11 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
         );
       }
       final itemCode = item['item_code'] as String? ?? '';
+      final components = _componentsForItem(item);
+      final usedUoms = components
+          .map((component) => component['uom'])
+          .whereType<String>()
+          .toSet();
       widgets.add(
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -984,12 +1178,17 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
             itemName: (item['item_name'] as String?)?.trim().isNotEmpty == true
                 ? item['item_name'] as String
                 : itemCode,
-            quantity: _confirmed.contains(itemCode) ? _qtyForItem(itemCode) : null,
-            selectedUom: _selectedUomForItem(item),
+            components: components,
             uomOptions: _uomOptionsForItem(item),
             isCounted: _confirmed.contains(itemCode),
-            onSubmitQuantity: (value) => _submitItemCount(item, value),
-            onUomChanged: (value) => _updateItemUom(item, value),
+            canAddUom: usedUoms.length < _uomOptionsForItem(item).length,
+            onSubmitQuantity: (index, value) =>
+                _submitItemCount(item, index, value),
+            onDraftChanged: (index, value) =>
+                _updateItemDraft(item, index, value),
+            onUomChanged: (index, value) => _updateItemUom(item, index, value),
+            onAddUom: () => _addItemUom(item),
+            onRemoveUom: (index) => _removeItemUom(item, index),
             onClear: () => _clearItemEntry(itemCode),
           ),
         ),
@@ -1025,14 +1224,14 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
               title: l10n.inventoryCountSummaryChangedItems,
               value: discrepancyLines.length.toString(),
             ),
-            if (_enforceAll)
+            if (_enforceAll || missingLines.isNotEmpty)
               _InventoryCountSummaryCard(
                 title: l10n.inventoryCountSummaryMissingItems,
                 value: missingLines.length.toString(),
               ),
           ],
         ),
-        if (_enforceAll && missingLines.isNotEmpty) ...[
+        if (missingLines.isNotEmpty) ...[
           const SizedBox(height: 12),
           Card(
             color: Theme.of(context).colorScheme.errorContainer,
@@ -1040,7 +1239,9 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
               padding: const EdgeInsets.all(16),
               child: Text(
                 l10n.inventoryCountConfirmAllBeforeSubmit(missingLines.length),
-                style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
               ),
             ),
           ),
@@ -1069,7 +1270,6 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
               child: _ReviewLineCard(
                 line: line,
                 deltaText: _formatSignedQuantity(line.delta),
-                countedQtyText: _formatQuantity(line.countedQty),
                 countedStockQtyText: _formatQuantity(line.countedStockQty),
                 currentQtyText: _formatQuantity(line.currentQty),
               ),
@@ -1080,8 +1280,11 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
           Card(
             child: ExpansionTile(
               initiallyExpanded: _showUnchanged,
-              onExpansionChanged: (value) => setState(() => _showUnchanged = value),
-              title: Text('${l10n.inventoryCountReviewUnchanged} (${unchangedLines.length})'),
+              onExpansionChanged: (value) =>
+                  setState(() => _showUnchanged = value),
+              title: Text(
+                '${l10n.inventoryCountReviewUnchanged} (${unchangedLines.length})',
+              ),
               children: unchangedLines
                   .map(
                     (line) => Padding(
@@ -1089,8 +1292,9 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                       child: _ReviewLineCard(
                         line: line,
                         deltaText: _formatSignedQuantity(line.delta),
-                        countedQtyText: _formatQuantity(line.countedQty),
-                        countedStockQtyText: _formatQuantity(line.countedStockQty),
+                        countedStockQtyText: _formatQuantity(
+                          line.countedStockQty,
+                        ),
                         currentQtyText: _formatQuantity(line.currentQty),
                       ),
                     ),
@@ -1099,12 +1303,14 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
             ),
           ),
         ],
-        if (_enforceAll && missingLines.isNotEmpty) ...[
+        if (missingLines.isNotEmpty) ...[
           const SizedBox(height: 8),
           Card(
             child: ExpansionTile(
               initiallyExpanded: true,
-              title: Text('${l10n.inventoryCountReviewMissing} (${missingLines.length})'),
+              title: Text(
+                '${l10n.inventoryCountReviewMissing} (${missingLines.length})',
+              ),
               children: missingLines
                   .map(
                     (line) => Padding(
@@ -1112,8 +1318,9 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                       child: _ReviewLineCard(
                         line: line,
                         deltaText: _formatSignedQuantity(line.delta),
-                        countedQtyText: _formatQuantity(line.countedQty),
-                        countedStockQtyText: _formatQuantity(line.countedStockQty),
+                        countedStockQtyText: _formatQuantity(
+                          line.countedStockQty,
+                        ),
                         currentQtyText: _formatQuantity(line.currentQty),
                       ),
                     ),
@@ -1142,7 +1349,9 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _loading || _selectedWarehouse == null ? null : _startCounting,
+                onPressed: _loading || _selectedWarehouse == null
+                    ? null
+                    : _startCounting,
                 icon: _loading
                     ? const SizedBox(
                         width: 18,
@@ -1183,9 +1392,10 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
           ),
         );
       case _InventoryCountStep.review:
-        final canSubmit = !_loading &&
+        final canSubmit =
+            !_loading &&
             reviewLines.any((line) => line.isCounted) &&
-            (!_enforceAll || missingLines.isEmpty);
+            missingLines.isEmpty;
         return SafeArea(
           top: false,
           child: Padding(
@@ -1214,14 +1424,22 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final allowed = ref.watch(managerAccessProvider).maybeWhen(data: (v) => v, orElse: () => false);
+    final allowed = ref
+        .watch(managerAccessProvider)
+        .maybeWhen(data: (v) => v, orElse: () => false);
     if (!allowed) {
-      return Scaffold(body: Center(child: Text(l10n.inventoryCountManagerAccessRequired)));
+      return Scaffold(
+        body: Center(child: Text(l10n.inventoryCountManagerAccessRequired)),
+      );
     }
 
     final reviewLines = _buildReviewLines();
-    final discrepancyLines = reviewLines.where((line) => line.isChanged).toList();
-    final unchangedLines = reviewLines.where((line) => line.isCounted && !line.isChanged).toList();
+    final discrepancyLines = reviewLines
+        .where((line) => line.isChanged)
+        .toList();
+    final unchangedLines = reviewLines
+        .where((line) => line.isCounted && !line.isChanged)
+        .toList();
     final missingLines = reviewLines.where((line) => line.isMissing).toList();
 
     return PopScope(
@@ -1263,7 +1481,9 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
               ),
             IconButton(
               icon: const Icon(Icons.refresh),
-              onPressed: _loading || _selectedWarehouse == null ? null : _loadItems,
+              onPressed: _loading || _selectedWarehouse == null
+                  ? null
+                  : _loadItems,
             ),
           ],
         ),
@@ -1275,17 +1495,21 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                 _InventoryCountStep.setup => _buildSetupStep(context),
                 _InventoryCountStep.blindEntry => _buildBlindEntryStep(context),
                 _InventoryCountStep.review => _buildReviewStep(
-                    context,
-                    reviewLines,
-                    discrepancyLines,
-                    unchangedLines,
-                    missingLines,
-                  ),
+                  context,
+                  reviewLines,
+                  discrepancyLines,
+                  unchangedLines,
+                  missingLines,
+                ),
               },
             ),
           ],
         ),
-        bottomNavigationBar: _buildBottomBar(context, reviewLines, missingLines),
+        bottomNavigationBar: _buildBottomBar(
+          context,
+          reviewLines,
+          missingLines,
+        ),
       ),
     );
   }
@@ -1295,11 +1519,10 @@ class _ReviewLine {
   const _ReviewLine({
     required this.itemCode,
     required this.itemName,
-    required this.countedQty,
+    required this.components,
     required this.countedStockQty,
     required this.currentQty,
     required this.delta,
-    required this.selectedUom,
     required this.stockUom,
     required this.isCounted,
     required this.isChanged,
@@ -1311,11 +1534,10 @@ class _ReviewLine {
 
   final String itemCode;
   final String itemName;
-  final double countedQty;
+  final List<_ReviewCountComponent> components;
   final double countedStockQty;
   final double currentQty;
   final double delta;
-  final String? selectedUom;
   final String stockUom;
   final bool isCounted;
   final bool isChanged;
@@ -1323,6 +1545,18 @@ class _ReviewLine {
   final bool hasBatchNo;
   final bool hasSerialNo;
   final double? valuationRate;
+}
+
+class _ReviewCountComponent {
+  const _ReviewCountComponent({
+    required this.qty,
+    required this.uom,
+    required this.stockQty,
+  });
+
+  final double qty;
+  final String uom;
+  final double stockQty;
 }
 
 class _InventoryCountMetaTile extends StatelessWidget {
@@ -1364,10 +1598,7 @@ class _InventoryCountMetaTile extends StatelessWidget {
 }
 
 class _InventoryCountSummaryCard extends StatelessWidget {
-  const _InventoryCountSummaryCard({
-    required this.title,
-    required this.value,
-  });
+  const _InventoryCountSummaryCard({required this.title, required this.value});
 
   final String title;
   final String value;
@@ -1398,23 +1629,29 @@ class _BlindEntryRow extends StatefulWidget {
     super.key,
     required this.itemCode,
     required this.itemName,
-    required this.quantity,
-    required this.selectedUom,
+    required this.components,
     required this.uomOptions,
     required this.isCounted,
+    required this.canAddUom,
     required this.onSubmitQuantity,
+    required this.onDraftChanged,
     required this.onUomChanged,
+    required this.onAddUom,
+    required this.onRemoveUom,
     required this.onClear,
   });
 
   final String itemCode;
   final String itemName;
-  final double? quantity;
-  final String? selectedUom;
+  final List<Map<String, dynamic>> components;
   final List<String> uomOptions;
   final bool isCounted;
-  final ValueChanged<String> onSubmitQuantity;
-  final ValueChanged<String?> onUomChanged;
+  final bool canAddUom;
+  final void Function(int index, String value) onSubmitQuantity;
+  final void Function(int index, String value) onDraftChanged;
+  final void Function(int index, String? uom) onUomChanged;
+  final VoidCallback onAddUom;
+  final ValueChanged<int> onRemoveUom;
   final VoidCallback onClear;
 
   @override
@@ -1422,20 +1659,167 @@ class _BlindEntryRow extends StatefulWidget {
 }
 
 class _BlindEntryRowState extends State<_BlindEntryRow> {
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final isCommitted = widget.isCounted;
+    final statusColor = isCommitted
+        ? Theme.of(context).colorScheme.primaryContainer
+        : Theme.of(context).colorScheme.surfaceContainerHighest;
+    final statusText = isCommitted
+        ? l10n.inventoryCountCountedStatus
+        : l10n.inventoryCountPendingStatus;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.itemName,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.itemCode,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                Chip(
+                  backgroundColor: statusColor,
+                  side: BorderSide.none,
+                  label: Text(statusText),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...widget.components.asMap().entries.map((entry) {
+              final index = entry.key;
+              final component = entry.value;
+              final usedByOtherComponents = widget.components
+                  .asMap()
+                  .entries
+                  .where((other) => other.key != index)
+                  .map((other) => other.value['uom'])
+                  .whereType<String>()
+                  .toSet();
+              final options = widget.uomOptions
+                  .where((uom) => !usedByOtherComponents.contains(uom))
+                  .toList();
+              final componentKey =
+                  component['uom']?.toString() ?? index.toString();
+              final quantityText = component.containsKey('draft')
+                  ? component['draft']?.toString() ?? ''
+                  : _quantityText((component['qty'] as num?)?.toDouble());
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: index == widget.components.length - 1 ? 0 : 12,
+                ),
+                child: _BlindEntryComponentRow(
+                  key: ValueKey('${widget.itemCode}:component:$componentKey'),
+                  itemCode: widget.itemCode,
+                  componentIndex: index,
+                  quantityText: quantityText,
+                  selectedUom: component['uom'] as String?,
+                  uomOptions: options,
+                  canRemove: widget.components.length > 1,
+                  onSubmitQuantity: (value) =>
+                      widget.onSubmitQuantity(index, value),
+                  onDraftChanged: (value) =>
+                      widget.onDraftChanged(index, value),
+                  onUomChanged: (value) => widget.onUomChanged(index, value),
+                  onRemove: () => widget.onRemoveUom(index),
+                ),
+              );
+            }),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: widget.canAddUom ? widget.onAddUom : null,
+                  icon: const Icon(Icons.add),
+                  label: Text('${l10n.commonAdd} ${l10n.commonUomLabel}'),
+                ),
+                TextButton.icon(
+                  onPressed: widget.onClear,
+                  icon: const Icon(Icons.clear),
+                  label: Text(l10n.inventoryCountClearEntry),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _quantityText(double? value) {
+    if (value == null) {
+      return '';
+    }
+    final text = value.toStringAsFixed(3);
+    return text.replaceFirst(RegExp(r'\.?0+$'), '');
+  }
+}
+
+class _BlindEntryComponentRow extends StatefulWidget {
+  const _BlindEntryComponentRow({
+    super.key,
+    required this.itemCode,
+    required this.componentIndex,
+    required this.quantityText,
+    required this.selectedUom,
+    required this.uomOptions,
+    required this.canRemove,
+    required this.onSubmitQuantity,
+    required this.onDraftChanged,
+    required this.onUomChanged,
+    required this.onRemove,
+  });
+
+  final String itemCode;
+  final int componentIndex;
+  final String quantityText;
+  final String? selectedUom;
+  final List<String> uomOptions;
+  final bool canRemove;
+  final ValueChanged<String> onSubmitQuantity;
+  final ValueChanged<String> onDraftChanged;
+  final ValueChanged<String?> onUomChanged;
+  final VoidCallback onRemove;
+
+  @override
+  State<_BlindEntryComponentRow> createState() =>
+      _BlindEntryComponentRowState();
+}
+
+class _BlindEntryComponentRowState extends State<_BlindEntryComponentRow> {
   late final TextEditingController _controller;
   bool _hasLocalDraft = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: _textFor(widget.quantity));
+    _controller = TextEditingController(text: widget.quantityText);
   }
 
   @override
-  void didUpdateWidget(covariant _BlindEntryRow oldWidget) {
+  void didUpdateWidget(covariant _BlindEntryComponentRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final nextText = _textFor(widget.quantity);
-    final quantityChanged = widget.quantity != oldWidget.quantity;
+    final nextText = widget.quantityText;
+    final quantityChanged = widget.quantityText != oldWidget.quantityText;
     if (_hasLocalDraft && !quantityChanged) {
       return;
     }
@@ -1468,136 +1852,112 @@ class _BlindEntryRowState extends State<_BlindEntryRow> {
 
   bool get _canSubmit {
     final trimmed = _normalizeInventoryCountQuantity(_controller.text.trim());
-    return trimmed.isNotEmpty && double.tryParse(trimmed) != null;
+    final parsed = double.tryParse(trimmed);
+    return trimmed.isNotEmpty &&
+        parsed != null &&
+        parsed.isFinite &&
+        parsed >= 0;
   }
 
-  bool get _hasPendingChanges => _controller.text.trim() != _textFor(widget.quantity);
+  bool get _hasPendingChanges => _controller.text.trim() != widget.quantityText;
+
+  void _markDraft(bool value) {
+    if (_hasLocalDraft == value) {
+      return;
+    }
+    setState(() => _hasLocalDraft = value);
+  }
 
   void _setLocalText(String text) {
     _controller.value = TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
     );
-    setState(() => _hasLocalDraft = true);
+    _markDraft(true);
+    widget.onDraftChanged(text);
   }
 
   void _adjustLocalCount(double delta) {
-    final current = double.tryParse(_normalizeInventoryCountQuantity(_controller.text)) ?? 0.0;
+    final current =
+        double.tryParse(_normalizeInventoryCountQuantity(_controller.text)) ??
+        0.0;
     final next = (current + delta).clamp(0.0, double.infinity);
     _setLocalText(_textFor(next));
   }
 
   void _submitCurrentValue() {
     final trimmed = _normalizeInventoryCountQuantity(_controller.text.trim());
-    if (trimmed.isEmpty || double.tryParse(trimmed) == null) {
+    final parsed = double.tryParse(trimmed);
+    if (trimmed.isEmpty || parsed == null || !parsed.isFinite || parsed < 0) {
       return;
     }
     widget.onSubmitQuantity(trimmed);
-    setState(() => _hasLocalDraft = false);
-  }
-
-  void _clearCurrentValue() {
-    _controller.clear();
-    setState(() => _hasLocalDraft = false);
-    widget.onClear();
+    _markDraft(false);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final isCommitted = widget.isCounted && !_hasPendingChanges;
-    final statusColor = isCommitted
-        ? Theme.of(context).colorScheme.primaryContainer
-        : Theme.of(context).colorScheme.surfaceContainerHighest;
-    final statusText = isCommitted
-        ? l10n.inventoryCountCountedStatus
-        : l10n.inventoryCountPendingStatus;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(widget.itemName, style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 4),
-                      Text(widget.itemCode, style: Theme.of(context).textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-                Chip(
-                  backgroundColor: statusColor,
-                  side: BorderSide.none,
-                  label: Text(statusText),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                IconButton(
-                  tooltip: l10n.inventoryCountDecrease,
-                  icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: () => _adjustLocalCount(-1),
-                ),
-                SizedBox(
-                  width: 140,
-                  child: TextField(
-                    controller: _controller,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [_inventoryCountQuantityFormatter],
-                    decoration: InputDecoration(labelText: l10n.inventoryCountCount),
-                    onChanged: (_) => setState(() => _hasLocalDraft = true),
-                    onSubmitted: (_) => _submitCurrentValue(),
-                  ),
-                ),
-                IconButton(
-                  tooltip: l10n.inventoryCountIncrease,
-                  icon: const Icon(Icons.add_circle_outline),
-                  onPressed: () => _adjustLocalCount(1),
-                ),
-                SizedBox(
-                  width: 180,
-                  child: DropdownButtonFormField<String>(
-                    key: ValueKey('${widget.itemCode}:${widget.selectedUom ?? ''}'),
-                    initialValue: widget.selectedUom,
-                    decoration: InputDecoration(labelText: l10n.commonUomLabel),
-                    items: widget.uomOptions
-                        .map(
-                          (uom) => DropdownMenuItem<String>(
-                            value: uom,
-                            child: Text(uom),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: widget.uomOptions.length <= 1 ? null : widget.onUomChanged,
-                  ),
-                ),
-                FilledButton.icon(
-                  onPressed: _canSubmit ? _submitCurrentValue : null,
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: Text(l10n.commonSubmit),
-                ),
-                TextButton.icon(
-                  onPressed: _clearCurrentValue,
-                  icon: const Icon(Icons.clear),
-                  label: Text(l10n.inventoryCountClearEntry),
-                ),
-              ],
-            ),
-          ],
-        ),
+    return Wrap(
+      key: ValueKey(
+        '${widget.itemCode}:component:${widget.componentIndex}:controls',
       ),
+      spacing: 12,
+      runSpacing: 12,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        IconButton(
+          tooltip: l10n.inventoryCountDecrease,
+          icon: const Icon(Icons.remove_circle_outline),
+          onPressed: () => _adjustLocalCount(-1),
+        ),
+        SizedBox(
+          width: 140,
+          child: TextField(
+            controller: _controller,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [_inventoryCountQuantityFormatter],
+            decoration: InputDecoration(labelText: l10n.inventoryCountCount),
+            onChanged: (value) {
+              _markDraft(_hasPendingChanges);
+              widget.onDraftChanged(value);
+            },
+            onSubmitted: (_) => _submitCurrentValue(),
+          ),
+        ),
+        IconButton(
+          tooltip: l10n.inventoryCountIncrease,
+          icon: const Icon(Icons.add_circle_outline),
+          onPressed: () => _adjustLocalCount(1),
+        ),
+        SizedBox(
+          width: 180,
+          child: DropdownButtonFormField<String>(
+            initialValue: widget.selectedUom,
+            decoration: InputDecoration(labelText: l10n.commonUomLabel),
+            items: widget.uomOptions
+                .map(
+                  (uom) =>
+                      DropdownMenuItem<String>(value: uom, child: Text(uom)),
+                )
+                .toList(),
+            onChanged: widget.uomOptions.length <= 1
+                ? null
+                : widget.onUomChanged,
+          ),
+        ),
+        FilledButton.icon(
+          onPressed: _canSubmit ? _submitCurrentValue : null,
+          icon: const Icon(Icons.check_circle_outline),
+          label: Text(l10n.commonSubmit),
+        ),
+        if (widget.canRemove)
+          IconButton(
+            tooltip: l10n.inventoryCountClearEntry,
+            icon: const Icon(Icons.delete_outline),
+            onPressed: widget.onRemove,
+          ),
+      ],
     );
   }
 }
@@ -1606,14 +1966,12 @@ class _ReviewLineCard extends StatelessWidget {
   const _ReviewLineCard({
     required this.line,
     required this.deltaText,
-    required this.countedQtyText,
     required this.countedStockQtyText,
     required this.currentQtyText,
   });
 
   final _ReviewLine line;
   final String deltaText;
-  final String countedQtyText;
   final String countedStockQtyText;
   final String currentQtyText;
 
@@ -1624,10 +1982,10 @@ class _ReviewLineCard extends StatelessWidget {
     final deltaColor = line.isMissing
         ? colorScheme.tertiary
         : line.delta.abs() < 1e-9
-            ? colorScheme.onSurfaceVariant
-            : line.delta > 0
-                ? Colors.green.shade700
-                : colorScheme.error;
+        ? colorScheme.onSurfaceVariant
+        : line.delta > 0
+        ? Colors.green.shade700
+        : colorScheme.error;
 
     return Card(
       child: Padding(
@@ -1642,16 +2000,25 @@ class _ReviewLineCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(line.itemName, style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                        line.itemName,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       const SizedBox(height: 4),
-                      Text(line.itemCode, style: Theme.of(context).textTheme.bodySmall),
+                      Text(
+                        line.itemCode,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ],
                   ),
                 ),
                 if (!line.isMissing)
                   Text(
                     '$deltaText ${line.stockUom}'.trim(),
-                    style: TextStyle(color: deltaColor, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: deltaColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
               ],
             ),
@@ -1676,23 +2043,33 @@ class _ReviewLineCard extends StatelessWidget {
             if (line.isMissing)
               Text(l10n.inventoryCountMissingItemNote)
             else ...[
-              Text(
-                l10n.inventoryCountCountedAmount(
-                  countedQtyText,
-                  line.selectedUom ?? line.stockUom,
+              ...line.components.map(
+                (component) => Text(
+                  l10n.inventoryCountCountedAmount(
+                    _formatComponentQuantity(component.qty),
+                    component.uom,
+                  ),
                 ),
               ),
-              if ((line.selectedUom ?? line.stockUom) != line.stockUom)
+              if (line.components.length > 1 ||
+                  line.components.any(
+                    (component) => component.uom != line.stockUom,
+                  ))
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
-                    l10n.inventoryCountStockEquivalent(countedStockQtyText, line.stockUom),
+                    l10n.inventoryCountStockEquivalent(
+                      countedStockQtyText,
+                      line.stockUom,
+                    ),
                   ),
                 ),
             ],
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text(l10n.inventoryCountCurrentAmount(currentQtyText, line.stockUom)),
+              child: Text(
+                l10n.inventoryCountCurrentAmount(currentQtyText, line.stockUom),
+              ),
             ),
             if (!line.isMissing)
               Padding(
@@ -1702,7 +2079,10 @@ class _ReviewLineCard extends StatelessWidget {
                     Text(l10n.inventoryCountDeltaLabel),
                     Text(
                       '$deltaText ${line.stockUom}'.trim(),
-                      style: TextStyle(color: deltaColor, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: deltaColor,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -1711,5 +2091,10 @@ class _ReviewLineCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatComponentQuantity(double value) {
+    final text = value.toStringAsFixed(3);
+    return text.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 }

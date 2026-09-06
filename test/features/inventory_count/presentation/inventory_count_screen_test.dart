@@ -16,10 +16,8 @@ import 'package:jarz_pos/src/features/manager/state/manager_providers.dart';
 import 'package:jarz_pos/src/features/shift/state/shift_notifier.dart';
 
 class _FakeInventoryCountService extends InventoryCountService {
-  _FakeInventoryCountService({
-    required this.warehouses,
-    required this.items,
-  }) : super(Dio());
+  _FakeInventoryCountService({required this.warehouses, required this.items})
+    : super(Dio());
 
   final List<Map<String, dynamic>> warehouses;
   final List<Map<String, dynamic>> items;
@@ -102,10 +100,7 @@ Future<void> _pumpInventoryCountScreen(
   await tester.pumpAndSettle();
 }
 
-Future<void> _selectWarehouse(
-  WidgetTester tester,
-  String warehouseName,
-) async {
+Future<void> _selectWarehouse(WidgetTester tester, String warehouseName) async {
   await tester.tap(find.byType(DropdownButtonFormField<String>));
   await tester.pumpAndSettle();
   await tester.tap(find.text(warehouseName).last);
@@ -127,6 +122,68 @@ Future<void> _enterItemCount(
     matching: find.byType(TextField),
   );
   await tester.enterText(countField, quantity);
+  await tester.pumpAndSettle();
+}
+
+Future<void> _enterItemComponentCount(
+  WidgetTester tester, {
+  required String itemCode,
+  required String uom,
+  required String quantity,
+}) async {
+  final component = find.byKey(ValueKey('$itemCode:component:$uom'));
+  await tester.ensureVisible(component);
+  await tester.pumpAndSettle();
+  await tester.enterText(
+    find.descendant(of: component, matching: find.byType(TextField)),
+    quantity,
+  );
+  await tester.pumpAndSettle();
+}
+
+Future<void> _submitItemComponentCount(
+  WidgetTester tester, {
+  required String itemCode,
+  required String uom,
+}) async {
+  final component = find.byKey(ValueKey('$itemCode:component:$uom'));
+  await tester.ensureVisible(component);
+  await tester.pumpAndSettle();
+  await tester.tap(
+    find.descendant(
+      of: component,
+      matching: find.byIcon(Icons.check_circle_outline),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+Future<void> _selectItemComponentUom(
+  WidgetTester tester, {
+  required String itemCode,
+  required String currentUom,
+  required String nextUom,
+}) async {
+  final component = find.byKey(ValueKey('$itemCode:component:$currentUom'));
+  await tester.ensureVisible(component);
+  await tester.pumpAndSettle();
+  await tester.tap(
+    find.descendant(
+      of: component,
+      matching: find.byType(DropdownButtonFormField<String>),
+    ),
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(nextUom).last);
+  await tester.pumpAndSettle();
+}
+
+Future<void> _addItemUom(WidgetTester tester, String itemCode) async {
+  final item = find.byKey(ValueKey(itemCode));
+  final addButton = find.descendant(of: item, matching: find.byIcon(Icons.add));
+  await tester.ensureVisible(addButton);
+  await tester.pumpAndSettle();
+  await tester.tap(addButton);
   await tester.pumpAndSettle();
 }
 
@@ -171,10 +228,7 @@ Future<void> _openReview(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-ButtonStyleButton _buttonForIcon(
-  WidgetTester tester,
-  IconData icon,
-) {
+ButtonStyleButton _buttonForIcon(WidgetTester tester, IconData icon) {
   return tester.widget<ButtonStyleButton>(
     find.ancestor(
       of: find.byIcon(icon),
@@ -259,18 +313,11 @@ void main() {
         expect(find.text('2 of 2 items'), findsOneWidget);
         expect(find.text('Back to setup'), findsOneWidget);
 
-        await _enterItemCount(
-          tester,
-          itemCode: 'ITEM-001',
-          quantity: '9',
-        );
+        await _enterItemCount(tester, itemCode: 'ITEM-001', quantity: '9');
 
         expect(_progressText('0 / 2'), findsOneWidget);
 
-        await _submitItemCount(
-          tester,
-          itemCode: 'ITEM-001',
-        );
+        await _submitItemCount(tester, itemCode: 'ITEM-001');
 
         expect(_progressText('1 / 2'), findsOneWidget);
 
@@ -308,11 +355,7 @@ void main() {
         await _selectWarehouse(tester, 'Main Warehouse');
         await _startCount(tester);
 
-        await _enterItemCount(
-          tester,
-          itemCode: 'ITEM-001',
-          quantity: '0.5',
-        );
+        await _enterItemCount(tester, itemCode: 'ITEM-001', quantity: '0.5');
 
         expect(find.text('0.5'), findsOneWidget);
 
@@ -330,10 +373,7 @@ void main() {
         );
         expect(find.text('0.5'), findsOneWidget);
 
-        await _submitItemCount(
-          tester,
-          itemCode: 'ITEM-001',
-        );
+        await _submitItemCount(tester, itemCode: 'ITEM-001');
         await _openReview(tester);
 
         await tester.tap(find.byIcon(Icons.save_outlined));
@@ -343,6 +383,273 @@ void main() {
         expect(service.submitCalled, isTrue);
         expect(service.submittedLines, hasLength(1));
         expect(service.submittedLines!.single['counted_qty'], equals(0.5));
+      },
+    );
+
+    testWidgets(
+      'submits multiple UOM components and reviews their combined stock quantity',
+      (tester) async {
+        final service = _FakeInventoryCountService(
+          warehouses: const [
+            {'name': 'Main Warehouse', 'company': 'Jarz'},
+          ],
+          items: const [
+            {
+              'item_code': 'BLUEBERRY',
+              'item_name': 'Blueberry filling',
+              'current_qty': 10,
+              'stock_uom': 'Kg',
+              'valuation_rate': 12.5,
+              'uoms': [
+                {'uom': 'Box', 'conversion_factor': 2.7},
+              ],
+            },
+          ],
+        );
+
+        await _pumpInventoryCountScreen(tester, service);
+        await _selectWarehouse(tester, 'Main Warehouse');
+        await _startCount(tester);
+
+        await _selectItemComponentUom(
+          tester,
+          itemCode: 'BLUEBERRY',
+          currentUom: 'Kg',
+          nextUom: 'Box',
+        );
+        await _enterItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Box',
+          quantity: '4',
+        );
+        await _submitItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Box',
+        );
+        await _addItemUom(tester, 'BLUEBERRY');
+        await _enterItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Kg',
+          quantity: '1.5',
+        );
+        await _submitItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Kg',
+        );
+
+        await _openReview(tester);
+
+        expect(find.text('Counted: 4 Box'), findsOneWidget);
+        expect(find.text('Counted: 1.5 Kg'), findsOneWidget);
+        expect(find.text('Stock equivalent: 12.3 Kg'), findsOneWidget);
+
+        await tester.tap(find.byIcon(Icons.save_outlined));
+        await tester.pumpAndSettle();
+        await _confirmSubmitDialog(tester);
+
+        expect(service.submittedLines, hasLength(2));
+        expect(
+          service.submittedLines,
+          equals([
+            {
+              'item_code': 'BLUEBERRY',
+              'counted_qty': 4.0,
+              'uom': 'Box',
+              'valuation_rate': 12.5,
+            },
+            {
+              'item_code': 'BLUEBERRY',
+              'counted_qty': 1.5,
+              'uom': 'Kg',
+              'valuation_rate': 12.5,
+            },
+          ]),
+        );
+      },
+    );
+
+    testWidgets(
+      'blocks spot-count submission while an added UOM is incomplete',
+      (tester) async {
+        final service = _FakeInventoryCountService(
+          warehouses: const [
+            {'name': 'Main Warehouse', 'company': 'Jarz'},
+          ],
+          items: const [
+            {
+              'item_code': 'BLUEBERRY',
+              'item_name': 'Blueberry filling',
+              'current_qty': 10,
+              'stock_uom': 'Kg',
+              'uoms': [
+                {'uom': 'Box', 'conversion_factor': 2.7},
+              ],
+            },
+          ],
+        );
+
+        await _pumpInventoryCountScreen(tester, service);
+        await _selectWarehouse(tester, 'Main Warehouse');
+        await tester.tap(find.text('Spot count'));
+        await tester.pumpAndSettle();
+        await _startCount(tester);
+        await _enterItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Kg',
+          quantity: '1.5',
+        );
+        await _submitItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Kg',
+        );
+        await _addItemUom(tester, 'BLUEBERRY');
+
+        expect(find.text('Pending'), findsOneWidget);
+        await _openReview(tester);
+
+        expect(find.textContaining('Missing items'), findsWidgets);
+        expect(_buttonForIcon(tester, Icons.save_outlined).onPressed, isNull);
+        expect(service.submitCalled, isFalse);
+      },
+    );
+
+    testWidgets(
+      'keeps an edited confirmed quantity pending across cache restore',
+      (tester) async {
+        final service = _FakeInventoryCountService(
+          warehouses: const [
+            {'name': 'Main Warehouse', 'company': 'Jarz'},
+          ],
+          items: const [
+            {
+              'item_code': 'BLUEBERRY',
+              'item_name': 'Blueberry filling',
+              'current_qty': 10,
+              'stock_uom': 'Kg',
+            },
+          ],
+        );
+
+        await _pumpInventoryCountScreen(tester, service);
+        await _selectWarehouse(tester, 'Main Warehouse');
+        await _startCount(tester);
+        await _enterItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Kg',
+          quantity: '10',
+        );
+        await _submitItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Kg',
+        );
+
+        await _enterItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Kg',
+          quantity: '',
+        );
+        expect(find.text('Pending'), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpAndSettle();
+        await _pumpInventoryCountScreen(tester, service);
+
+        expect(find.text('Pending'), findsOneWidget);
+        final restoredField = find.descendant(
+          of: find.byKey(const ValueKey('BLUEBERRY:component:Kg')),
+          matching: find.byType(TextField),
+        );
+        expect(
+          tester.widget<TextField>(restoredField).controller?.text,
+          isEmpty,
+        );
+        await _openReview(tester);
+        expect(_buttonForIcon(tester, Icons.save_outlined).onPressed, isNull);
+      },
+    );
+
+    testWidgets(
+      'removing the first component keeps the second UOM quantity attached',
+      (tester) async {
+        final service = _FakeInventoryCountService(
+          warehouses: const [
+            {'name': 'Main Warehouse', 'company': 'Jarz'},
+          ],
+          items: const [
+            {
+              'item_code': 'BLUEBERRY',
+              'item_name': 'Blueberry filling',
+              'current_qty': 1,
+              'stock_uom': 'Kg',
+              'uoms': [
+                {'uom': 'Box', 'conversion_factor': 2.7},
+              ],
+            },
+          ],
+        );
+
+        await _pumpInventoryCountScreen(tester, service);
+        await _selectWarehouse(tester, 'Main Warehouse');
+        await _startCount(tester);
+        await _selectItemComponentUom(
+          tester,
+          itemCode: 'BLUEBERRY',
+          currentUom: 'Kg',
+          nextUom: 'Box',
+        );
+        await _enterItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Box',
+          quantity: '4',
+        );
+        await _submitItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Box',
+        );
+        await _addItemUom(tester, 'BLUEBERRY');
+        await _enterItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Kg',
+          quantity: '1.5',
+        );
+        await _submitItemComponentCount(
+          tester,
+          itemCode: 'BLUEBERRY',
+          uom: 'Kg',
+        );
+
+        await tester.tap(
+          find.descendant(
+            of: find.byKey(const ValueKey('BLUEBERRY:component:Box')),
+            matching: find.byIcon(Icons.delete_outline),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byKey(const ValueKey('BLUEBERRY:component:Box')),
+          findsNothing,
+        );
+        final remainingField = find.descendant(
+          of: find.byKey(const ValueKey('BLUEBERRY:component:Kg')),
+          matching: find.byType(TextField),
+        );
+        expect(
+          tester.widget<TextField>(remainingField).controller?.text,
+          '1.5',
+        );
       },
     );
 
@@ -378,15 +685,8 @@ void main() {
         await tester.pumpAndSettle();
 
         await _startCount(tester);
-        await _enterItemCount(
-          tester,
-          itemCode: 'ITEM-001',
-          quantity: '9',
-        );
-        await _submitItemCount(
-          tester,
-          itemCode: 'ITEM-001',
-        );
+        await _enterItemCount(tester, itemCode: 'ITEM-001', quantity: '9');
+        await _submitItemCount(tester, itemCode: 'ITEM-001');
         await _openReview(tester);
 
         expect(find.text('Missing items'), findsNothing);
@@ -443,24 +743,10 @@ void main() {
 
         await _selectWarehouse(tester, 'Main Warehouse');
         await _startCount(tester);
-        await _enterItemCount(
-          tester,
-          itemCode: 'ITEM-001',
-          quantity: '9',
-        );
-        await _submitItemCount(
-          tester,
-          itemCode: 'ITEM-001',
-        );
-        await _enterItemCount(
-          tester,
-          itemCode: 'ITEM-002',
-          quantity: '4',
-        );
-        await _submitItemCount(
-          tester,
-          itemCode: 'ITEM-002',
-        );
+        await _enterItemCount(tester, itemCode: 'ITEM-001', quantity: '9');
+        await _submitItemCount(tester, itemCode: 'ITEM-001');
+        await _enterItemCount(tester, itemCode: 'ITEM-002', quantity: '4');
+        await _submitItemCount(tester, itemCode: 'ITEM-002');
         await _openReview(tester);
 
         final submitButton = _buttonForIcon(tester, Icons.save_outlined);
@@ -533,10 +819,19 @@ void main() {
         await _startCount(tester);
 
         // One chip per category, plus All, each carrying its uncounted total.
-        expect(find.widgetWithText(FilterChip, 'All Groups (3)'), findsOneWidget);
-        expect(find.widgetWithText(FilterChip, 'Raw Material (1)'), findsOneWidget);
+        expect(
+          find.widgetWithText(FilterChip, 'All Groups (3)'),
+          findsOneWidget,
+        );
+        expect(
+          find.widgetWithText(FilterChip, 'Raw Material (1)'),
+          findsOneWidget,
+        );
         expect(find.widgetWithText(FilterChip, 'Labels (1)'), findsOneWidget);
-        expect(find.widgetWithText(FilterChip, 'Packaging (1)'), findsOneWidget);
+        expect(
+          find.widgetWithText(FilterChip, 'Packaging (1)'),
+          findsOneWidget,
+        );
 
         // Headers label each run. Assert only that they appear: the list is
         // lazily built, so entry rows below the test viewport are absent from
