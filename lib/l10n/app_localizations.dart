@@ -5090,6 +5090,12 @@ abstract class AppLocalizations {
   /// **'Clear'**
   String get commonClear;
 
+  /// No description provided for @commonPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get commonPaste;
+
   /// No description provided for @commonDismiss.
   ///
   /// In en, this message translates to:

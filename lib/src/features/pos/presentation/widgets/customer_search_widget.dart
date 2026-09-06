@@ -8,6 +8,7 @@ import '../../../../core/constants/timing_config.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/widgets/customer_shipping_address_dialog.dart';
+import '../../../../core/widgets/paste_or_clear_button.dart';
 import '../../../../core/widgets/customer_shipping_address_flow.dart';
 import '../../../../core/repositories/customer_address_repository.dart';
 import '../../../geo/presentation/widgets/location_link_field.dart';
@@ -783,173 +784,197 @@ class _QuickAddCustomerWidgetState
     final bool hasPartner = selectedSalesPartner != null;
     return Padding(
       padding: const EdgeInsets.all(24),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                Icon(
-                  Icons.person_add,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.quickAddCustomerTitle,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+      // Tapping anywhere off a field puts the keyboard away. Without it the
+      // keyboard, once raised, keeps two thirds of this dialog hidden for the
+      // rest of the entry.
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Icon(
+                    Icons.person_add,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Form fields
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // First row - Customer Name and Mobile Number
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _nameController,
-                            decoration: InputDecoration(
-                              labelText: context.l10n.customerNameLabel,
-                              border: const OutlineInputBorder(),
-                              prefixIcon: const Icon(Icons.person),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return context.l10n.customerNameRequired;
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _mobileController,
-                            keyboardType: TextInputType.phone,
-                            decoration: InputDecoration(
-                              labelText: context.l10n.mobileNumberLabel,
-                              border: const OutlineInputBorder(),
-                              prefixIcon: const Icon(Icons.phone),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return context.l10n.mobileNumberRequired;
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ],
+                  const SizedBox(width: 8),
+                  // Expanded, not bare: on a narrow phone the dialog is only
+                  // ~310 px wide and the untruncated title overflowed the row.
+                  Expanded(
+                    child: Text(
+                      context.l10n.quickAddCustomerTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 16),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
 
-                    // Second phone number (optional)
-                    TextFormField(
-                      controller: _secondaryMobileController,
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        labelText: context.l10n.secondaryPhoneLabel,
-                        border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.phone_android),
-                        hintText: context.l10n.secondaryPhoneHint,
+              // Form fields
+              Expanded(
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: Column(
+                    children: [
+                      // First row - Customer Name and Mobile Number
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _nameController,
+                              decoration: InputDecoration(
+                                labelText: context.l10n.customerNameLabel,
+                                border: const OutlineInputBorder(),
+                                prefixIcon: const Icon(Icons.person),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return context.l10n.customerNameRequired;
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _mobileController,
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
+                                labelText: context.l10n.mobileNumberLabel,
+                                border: const OutlineInputBorder(),
+                                prefixIcon: const Icon(Icons.phone),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return context.l10n.mobileNumberRequired;
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Customer type (Individual / Company) + group when Company
-                    _buildCustomerTypeSelector(),
-                    if (_customerType == _kCompany) ...[
                       const SizedBox(height: 16),
-                      _buildCustomerGroupSelector(),
-                    ],
-                    const SizedBox(height: 16),
 
-                    // Territory
-                    _buildTerritorySelector(),
-                    const SizedBox(height: 16),
-
-                    // Maps link → coordinates. Full width because it grows a
-                    // status line and a map preview once the link resolves.
-                    LocationLinkField(
-                      enabled: !_isLoading,
-                      // Assigned rather than setState-ed: nothing else in this
-                      // form reads it, so rebuilding the whole dialog on every
-                      // keystroke would be pure churn.
-                      onChanged: (value) => _location = value,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Third row - Detailed Address (full width)
-                    TextFormField(
-                      controller: _addressController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        labelText: hasPartner
-                            ? context.l10n.detailedAddressOptional
-                            : context.l10n.detailedAddressRequired,
-                        border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.location_on),
-                        alignLabelWithHint: true,
-                        helperText: hasPartner
-                            ? context.l10n.addressOptionalPartner
-                            : null,
+                      // Second phone number (optional)
+                      TextFormField(
+                        controller: _secondaryMobileController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          labelText: context.l10n.secondaryPhoneLabel,
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.phone_android),
+                          hintText: context.l10n.secondaryPhoneHint,
+                        ),
                       ),
-                      validator: (value) {
-                        if (!hasPartner) {
-                          if (value == null || value.trim().isEmpty) {
-                            return context.l10n.addressRequired;
+                      const SizedBox(height: 16),
+
+                      // Customer type (Individual / Company) + group when Company
+                      _buildCustomerTypeSelector(),
+                      if (_customerType == _kCompany) ...[
+                        const SizedBox(height: 16),
+                        _buildCustomerGroupSelector(),
+                      ],
+                      const SizedBox(height: 16),
+
+                      // Territory
+                      _buildTerritorySelector(),
+                      const SizedBox(height: 16),
+
+                      // Maps link → coordinates. Full width because it grows a
+                      // status line and a map preview once the link resolves.
+                      LocationLinkField(
+                        enabled: !_isLoading,
+                        // Assigned rather than setState-ed: nothing else in this
+                        // form reads it, so rebuilding the whole dialog on every
+                        // keystroke would be pure churn.
+                        onChanged: (value) => _location = value,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Third row - Detailed Address (full width).
+                      // Addresses arrive pasted from WhatsApp far more often than
+                      // they are typed, so the field carries its own paste button:
+                      // on a phone the native long-press toolbar is unreachable
+                      // once the keyboard has squeezed this dialog.
+                      TextFormField(
+                        controller: _addressController,
+                        maxLines: 3,
+                        minLines: 2,
+                        keyboardType: TextInputType.multiline,
+                        textCapitalization: TextCapitalization.sentences,
+                        decoration: InputDecoration(
+                          labelText: hasPartner
+                              ? context.l10n.detailedAddressOptional
+                              : context.l10n.detailedAddressRequired,
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.location_on),
+                          alignLabelWithHint: true,
+                          suffixIcon: PasteOrClearButton(
+                            controller: _addressController,
+                            enabled: !_isLoading,
+                          ),
+                          helperText: hasPartner
+                              ? context.l10n.addressOptionalPartner
+                              : null,
+                        ),
+                        validator: (value) {
+                          if (!hasPartner) {
+                            if (value == null || value.trim().isEmpty) {
+                              return context.l10n.addressRequired;
+                            }
                           }
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Action buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(context.l10n.commonCancel),
+              // Action buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(context.l10n.commonCancel),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _createCustomer,
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(context.l10n.posCreateCustomer),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _createCustomer,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(context.l10n.posCreateCustomer),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

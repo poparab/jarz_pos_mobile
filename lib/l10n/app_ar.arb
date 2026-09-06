@@ -1279,6 +1279,7 @@
   "stockTransferAddAll": "إضافة الكل",
   "stockTransferAddGroup": "إضافة المجموعة",
   "commonClear": "مسح",
+  "commonPaste": "لصق",
   "commonDismiss": "تجاهل",
   "commonSave": "حفظ",
   "paymentMethodSelectTitle": "اختر طريقة الدفع",

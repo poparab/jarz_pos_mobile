@@ -58,6 +58,23 @@ class _FakePosRepository extends PosRepository {
     String query, {
     String? customerType,
   }) async => _customers;
+
+  @override
+  Future<List<Map<String, dynamic>>> getTerritories({String? search}) async =>
+      const [
+        {
+          'name': 'EGNASRCITY',
+          'territory_name': 'Nasr City',
+          'territory_name_ar': 'مدينة نصر',
+          'delivery_income': 30,
+        },
+        {
+          'name': 'EGMAADI',
+          'territory_name': 'Maadi',
+          'territory_name_ar': 'المعادي',
+          'delivery_income': 45,
+        },
+      ];
 }
 
 class _FakeDraftCartRepository extends DraftCartRepository {
@@ -187,6 +204,32 @@ void main() {
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile('shots/customer_search_02_phone_results.png'),
+    );
+  });
+
+  // The paste-an-address case: a phone with the keyboard up, which is the
+  // state the dialog is actually filled in and the one that used to leave the
+  // long-press paste toolbar unreachable.
+  testWidgets('04 phone — quick add with the keyboard up', (tester) async {
+    await _pumpPos(tester, const Size(390, 844));
+    await tester.tap(find.byIcon(Icons.person_add));
+    await tester.pumpAndSettle();
+
+    // Stand in for the software keyboard: 336 logical pixels of it.
+    tester.view.viewInsets = const FakeViewPadding(bottom: 336);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpAndSettle();
+
+    // Scroll down to the address field the way staff do.
+    await tester.drag(
+      find.byType(SingleChildScrollView).last,
+      const Offset(0, -400),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('shots/customer_search_04_phone_quick_add.png'),
     );
   });
 

@@ -2986,6 +2986,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonClear => 'Clear';
 
   @override
+  String get commonPaste => 'Paste';
+
+  @override
   String get commonDismiss => 'Dismiss';
 
   @override

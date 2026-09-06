@@ -2975,6 +2975,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonClear => 'مسح';
 
   @override
+  String get commonPaste => 'لصق';
+
+  @override
   String get commonDismiss => 'تجاهل';
 
   @override

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -45,13 +46,13 @@ class LocationLinkValue {
   /// pass around. Coordinates are only emitted alongside a confirmed resolve,
   /// so a half-checked paste can never stamp a pin.
   Map<String, String> toRequestFields() => {
-        if (link.isNotEmpty) 'location_link': link,
-        if (isConfirmed) ...{
-          'latitude': latitude!.toString(),
-          'longitude': longitude!.toString(),
-          if (precision != null && precision!.isNotEmpty) 'geo_source': precision!,
-        },
-      };
+    if (link.isNotEmpty) 'location_link': link,
+    if (isConfirmed) ...{
+      'latitude': latitude!.toString(),
+      'longitude': longitude!.toString(),
+      if (precision != null && precision!.isNotEmpty) 'geo_source': precision!,
+    },
+  };
 
   @override
   bool operator ==(Object other) =>
@@ -71,10 +72,8 @@ class LocationLinkValue {
 ///
 /// Defaults to [LocationPreviewMap]. Hosts (and widget tests, which must never
 /// reach a tile server) can swap in their own.
-typedef LocationPreviewBuilder = Widget Function(
-  BuildContext context,
-  LatLng point,
-);
+typedef LocationPreviewBuilder =
+    Widget Function(BuildContext context, LatLng point);
 
 enum _FieldState { empty, pending, checking, confirmed, error }
 
@@ -116,6 +115,7 @@ class LocationLinkField extends ConsumerStatefulWidget {
 
   static const textFieldKey = ValueKey('location_link_input');
   static const clearButtonKey = ValueKey('location_link_clear');
+  static const pasteButtonKey = ValueKey('location_link_paste');
   static const retryButtonKey = ValueKey('location_link_retry');
   static const previewKey = ValueKey('location_link_preview');
 
@@ -177,13 +177,14 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
   // ── value plumbing ──────────────────────────────────────────────────────
 
   LocationLinkValue get _value => LocationLinkValue(
-        link: MapsLinkInput.normalize(_controller.text),
-        latitude: _state == _FieldState.confirmed ? _point?.latitude : null,
-        longitude: _state == _FieldState.confirmed ? _point?.longitude : null,
-        precision: _state == _FieldState.confirmed ? _precision : null,
-        distanceFromBranchM:
-            _state == _FieldState.confirmed ? _distanceFromBranchM : null,
-      );
+    link: MapsLinkInput.normalize(_controller.text),
+    latitude: _state == _FieldState.confirmed ? _point?.latitude : null,
+    longitude: _state == _FieldState.confirmed ? _point?.longitude : null,
+    precision: _state == _FieldState.confirmed ? _precision : null,
+    distanceFromBranchM: _state == _FieldState.confirmed
+        ? _distanceFromBranchM
+        : null,
+  );
 
   void _emit() => widget.onChanged?.call(_value);
 
@@ -225,6 +226,21 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
     if (_focusNode.hasFocus) return;
     _debounce?.cancel();
     if (_state == _FieldState.pending) _resolve();
+  }
+
+  /// One-tap paste, because the long-press toolbar is out of reach once the
+  /// keyboard has taken half of a dialog this field usually lives in.
+  Future<void> _paste() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text ?? '';
+    if (!mounted || text.trim().isEmpty) return;
+    _controller.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+    // The controller was written programmatically, so the field's own
+    // `onChanged` never ran: kick off the debounced resolve by hand.
+    _onTextChanged(text);
   }
 
   void _clear() {
@@ -385,7 +401,18 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
           key: LocationLinkField.clearButtonKey,
           icon: const Icon(Icons.close, size: 18),
           tooltip: context.l10n.locationLinkClear,
+          visualDensity: VisualDensity.compact,
           onPressed: widget.enabled ? _clear : null,
+        ),
+      );
+    } else {
+      children.add(
+        IconButton(
+          key: LocationLinkField.pasteButtonKey,
+          icon: const Icon(Icons.content_paste, size: 18),
+          tooltip: context.l10n.commonPaste,
+          visualDensity: VisualDensity.compact,
+          onPressed: widget.enabled ? _paste : null,
         ),
       );
     }
@@ -460,15 +487,13 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
             suffixIcon: _buildSuffix(),
           ),
         ),
-        if (statusLine != null) ...[
-          const SizedBox(height: 6),
-          statusLine,
-        ],
+        if (statusLine != null) ...[const SizedBox(height: 6), statusLine],
         if (widget.showPreview && point != null) ...[
           const SizedBox(height: 8),
           KeyedSubtree(
             key: LocationLinkField.previewKey,
-            child: widget.previewBuilder?.call(context, point) ??
+            child:
+                widget.previewBuilder?.call(context, point) ??
                 LocationPreviewMap(
                   point: point,
                   tileProvider: ref.watch(locationTileProviderProvider),
@@ -501,10 +526,10 @@ class _StatusLine extends StatelessWidget {
         Flexible(
           child: Text(
             text,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: color, fontWeight: FontWeight.w500),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ],

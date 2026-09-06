@@ -7,6 +7,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,9 +70,8 @@ Future<LocationLinkValue?> _pumpField(
               initialValue: initialValue,
               onChanged: onChanged,
               // Stub the map: the real one fetches OSM tiles.
-              previewBuilder: (context, point) => Text(
-                'MAP ${point.latitude},${point.longitude}',
-              ),
+              previewBuilder: (context, point) =>
+                  Text('MAP ${point.latitude},${point.longitude}'),
             ),
           ),
         ),
@@ -93,16 +93,60 @@ Future<void> _paste(WidgetTester tester, String text) async {
 }
 
 MapsLinkPreview _resolved({double distance = 4200}) => MapsLinkPreview(
-      success: true,
-      latitude: _cairo.latitude,
-      longitude: _cairo.longitude,
-      precision: 'pos_link',
-      distanceFromBranchM: distance,
-    );
+  success: true,
+  latitude: _cairo.latitude,
+  longitude: _cairo.longitude,
+  precision: 'pos_link',
+  distanceFromBranchM: distance,
+);
 
 void main() {
-  testWidgets('resolves a long Google Maps link and confirms the point',
-      (tester) async {
+  testWidgets('the paste button fills the field and resolves it', (
+    tester,
+  ) async {
+    // The keyboard-free path: on a phone the field sits in a dialog the
+    // keyboard shrinks, so the long-press paste toolbar is out of reach.
+    const link = 'https://www.google.com/maps/place/Cairo/@30.0444,31.2357,15z';
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async => call.method == 'Clipboard.getData'
+          ? <String, dynamic>{'text': link}
+          : null,
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+
+    final repo = _FakeGeoRepository((_) => _resolved());
+    LocationLinkValue? emitted;
+    await _pumpField(
+      tester,
+      repository: repo,
+      onChanged: (value) => emitted = value,
+    );
+
+    expect(find.byKey(LocationLinkField.pasteButtonKey), findsOneWidget);
+    await tester.tap(find.byKey(LocationLinkField.pasteButtonKey));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pump();
+    await tester.pump();
+
+    // Pasting must kick off the same resolve typing would have.
+    expect(repo.calls.single, link);
+    expect(emitted?.isConfirmed, isTrue);
+    // A filled field offers clear instead, so replacing the link is one tap.
+    expect(find.byKey(LocationLinkField.pasteButtonKey), findsNothing);
+    expect(find.byKey(LocationLinkField.clearButtonKey), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('resolves a long Google Maps link and confirms the point', (
+    tester,
+  ) async {
     final repo = _FakeGeoRepository((_) => _resolved());
     LocationLinkValue? emitted;
 
@@ -116,8 +160,10 @@ void main() {
       'https://www.google.com/maps/place/Cairo/@30.0444,31.2357,15z',
     );
 
-    expect(repo.calls.single,
-        'https://www.google.com/maps/place/Cairo/@30.0444,31.2357,15z');
+    expect(
+      repo.calls.single,
+      'https://www.google.com/maps/place/Cairo/@30.0444,31.2357,15z',
+    );
     expect(find.textContaining('Location confirmed'), findsOneWidget);
     // Distance is shown in the unit staff think in.
     expect(find.textContaining('4.2 km'), findsOneWidget);
@@ -170,27 +216,37 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('rejects text that is not a location without calling the server',
-      (tester) async {
-    final repo = _FakeGeoRepository((_) => _resolved());
-    LocationLinkValue? emitted;
+  testWidgets(
+    'rejects text that is not a location without calling the server',
+    (tester) async {
+      final repo = _FakeGeoRepository((_) => _resolved());
+      LocationLinkValue? emitted;
 
-    await _pumpField(
-      tester,
-      repository: repo,
-      onChanged: (value) => emitted = value,
-    );
-    await _paste(tester, 'behind the big pharmacy');
+      await _pumpField(
+        tester,
+        repository: repo,
+        onChanged: (value) => emitted = value,
+      );
+      await _paste(tester, 'behind the big pharmacy');
 
-    expect(repo.calls, isEmpty, reason: 'obvious non-links never hit the API');
-    expect(find.textContaining('does not look like a Maps link'), findsOneWidget);
-    expect(emitted!.isConfirmed, isFalse);
-    expect(emitted!.toRequestFields().containsKey('latitude'), isFalse);
-    expect(tester.takeException(), isNull);
-  });
+      expect(
+        repo.calls,
+        isEmpty,
+        reason: 'obvious non-links never hit the API',
+      );
+      expect(
+        find.textContaining('does not look like a Maps link'),
+        findsOneWidget,
+      );
+      expect(emitted!.isConfirmed, isFalse);
+      expect(emitted!.toRequestFields().containsKey('latitude'), isFalse);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
-  testWidgets('refuses a point that resolves implausibly far from the branch',
-      (tester) async {
+  testWidgets('refuses a point that resolves implausibly far from the branch', (
+    tester,
+  ) async {
     // 400 km out is someone else's city — stamping it would send a courier
     // nowhere, and it is far harder to spot later than a red line here.
     final repo = _FakeGeoRepository((_) => _resolved(distance: 400000));
@@ -261,8 +317,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('an existing pin opens already confirmed, with no API call',
-      (tester) async {
+  testWidgets('an existing pin opens already confirmed, with no API call', (
+    tester,
+  ) async {
     final repo = _FakeGeoRepository((_) => _resolved());
 
     await _pumpField(
@@ -282,8 +339,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('editing a resolved link drops the stale pin immediately',
-      (tester) async {
+  testWidgets('editing a resolved link drops the stale pin immediately', (
+    tester,
+  ) async {
     // The coordinates on screen must never belong to text the user has since
     // changed — that is exactly how a wrong pin gets saved.
     final repo = _FakeGeoRepository((_) => _resolved());

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../features/geo/presentation/widgets/location_link_field.dart';
 import '../localization/localization_extensions.dart';
+import 'paste_or_clear_button.dart';
 import '../repositories/customer_address_repository.dart';
 import '../utils/territory_label.dart';
 
@@ -618,6 +619,12 @@ class _CustomerShippingAddressDialogState
                     prefixIcon: const Icon(Icons.edit_location_alt),
                     border: const OutlineInputBorder(),
                     helperText: l10n.invoiceAddressHelper,
+                    // Same reason as Quick Add: with the keyboard up there is
+                    // no room left for the long-press paste toolbar.
+                    suffixIcon: PasteOrClearButton(
+                      controller: _newAddressController,
+                      enabled: !_isBusy,
+                    ),
                   ),
                   maxLines: 2,
                   textCapitalization: TextCapitalization.words,

@@ -1354,6 +1354,7 @@
   "stockTransferAddAll": "Add All",
   "stockTransferAddGroup": "Add Group",
   "commonClear": "Clear",
+  "commonPaste": "Paste",
   "commonDismiss": "Dismiss",
   "commonSave": "Save",
   "paymentMethodSelectTitle": "Select Payment Method",
