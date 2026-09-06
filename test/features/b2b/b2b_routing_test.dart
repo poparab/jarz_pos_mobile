@@ -8,13 +8,12 @@ UserRoles _roles(
   List<String> roles, {
   bool isB2bSalesRep = false,
   bool canAccessB2b = false,
-}) =>
-    UserRoles(
-      user: 'u@x.com',
-      roles: roles,
-      isB2bSalesRep: isB2bSalesRep,
-      canAccessB2b: canAccessB2b,
-    );
+}) => UserRoles(
+  user: 'u@x.com',
+  roles: roles,
+  isB2bSalesRep: isB2bSalesRep,
+  canAccessB2b: canAccessB2b,
+);
 
 void main() {
   group('UserRoles B2B flags', () {
@@ -70,6 +69,18 @@ void main() {
       );
     });
 
+    test('B2B rep can enter POS only through explicit B2B order mode', () {
+      final r = _roles([RoleNames.b2bSalesRep], isB2bSalesRep: true);
+      expect(
+        resolveB2bRedirect(
+          roles: r,
+          location: AppRoutes.pos,
+          isB2bOrderMode: true,
+        ),
+        isNull,
+      );
+    });
+
     test('B2B rep is redirected away from Kanban to B2B', () {
       final r = _roles([RoleNames.b2bSalesRep], isB2bSalesRep: true);
       expect(
@@ -96,10 +107,7 @@ void main() {
     });
 
     test('manager can reach both POS and B2B (no redirect)', () {
-      final r = _roles(
-        [RoleNames.jarzManager],
-        canAccessB2b: true,
-      );
+      final r = _roles([RoleNames.jarzManager], canAccessB2b: true);
       expect(resolveB2bRedirect(roles: r, location: AppRoutes.pos), isNull);
       expect(resolveB2bRedirect(roles: r, location: AppRoutes.b2b), isNull);
     });

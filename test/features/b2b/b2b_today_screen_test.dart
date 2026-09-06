@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
+import 'package:jarz_pos/src/core/constants/app_routes.dart';
 import 'package:jarz_pos/src/features/b2b/data/b2b_repository.dart';
 import 'package:jarz_pos/src/features/b2b/data/models/b2b_models.dart';
 import 'package:jarz_pos/src/features/b2b/presentation/screens/b2b_today_screen.dart';
@@ -24,17 +26,17 @@ class _FakeB2bRepository extends B2bRepository {
 }
 
 B2bFollowups _followups({required String date}) => B2bFollowups(
-      todos: [
-        FollowupItem(
-          name: 'TODO-1',
-          referenceType: 'Lead',
-          referenceName: 'LEAD-001',
-          description: 'Call Acme Co',
-          date: date,
-        ),
-      ],
-      reorderDue: const [],
-    );
+  todos: [
+    FollowupItem(
+      name: 'TODO-1',
+      referenceType: 'Lead',
+      referenceName: 'LEAD-001',
+      description: 'Call Acme Co',
+      date: date,
+    ),
+  ],
+  reorderDue: const [],
+);
 
 Widget _wrap({
   required B2bFollowups followups,
@@ -83,11 +85,15 @@ void main() {
   });
 
   group('B2bTodayScreen follow-ups', () {
-    testWidgets('tapping "Done" calls complete_followup with the reference',
-        (tester) async {
+    testWidgets('tapping "Done" calls complete_followup with the reference', (
+      tester,
+    ) async {
       final repo = _FakeB2bRepository();
       await tester.pumpWidget(
-        _wrap(followups: _followups(date: '2026-07-20'), repo: repo),
+        _wrap(
+          followups: _followups(date: '2026-07-20'),
+          repo: repo,
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -104,11 +110,70 @@ void main() {
       final repo = _FakeB2bRepository();
       // A clearly-past date relative to any realistic test run.
       await tester.pumpWidget(
-        _wrap(followups: _followups(date: '2000-01-01'), repo: repo),
+        _wrap(
+          followups: _followups(date: '2000-01-01'),
+          repo: repo,
+        ),
       );
       await tester.pumpAndSettle();
 
       expect(find.textContaining('overdue'), findsOneWidget);
+    });
+
+    testWidgets('reorder opens the shared Customer B2B account coordinator', (
+      tester,
+    ) async {
+      final repo = _FakeB2bRepository();
+      final followups = B2bFollowups(
+        reorderDue: const [
+          ReorderDueItem(
+            name: 'CUST-ILO',
+            customerName: 'ILO Specialty Coffee',
+          ),
+        ],
+      );
+      final router = GoRouter(
+        initialLocation: '/today',
+        routes: [
+          GoRoute(path: '/today', builder: (_, _) => const B2bTodayScreen()),
+          GoRoute(
+            path: AppRoutes.b2bAccount,
+            builder: (_, state) {
+              final extra = state.extra! as Map<String, dynamic>;
+              return Scaffold(
+                body: Text('${extra['doctype']}:${extra['name']}'),
+              );
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            b2bRepositoryProvider.overrideWithValue(repo),
+            b2bTodayProvider.overrideWith((ref) async => followups),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('ILO Specialty Coffee'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Customer:CUST-ILO'), findsOneWidget);
     });
   });
 }

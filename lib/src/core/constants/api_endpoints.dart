@@ -91,6 +91,7 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.shift.get_force_close_preview';
   static const forceCloseShift =
       '/api/method/jarz_pos.api.shift.force_close_shift';
+
   /// Past shifts, newest first. Amounts come back only for managers.
   static const listShifts = '/api/method/jarz_pos.api.shift.list_shifts';
 
@@ -314,7 +315,8 @@ abstract final class ApiEndpoints {
   static const dailyPlanPreview =
       '/api/method/jarz_pos.api.daily_plan.preview_plan';
   static const dailyPlanSave = '/api/method/jarz_pos.api.daily_plan.save_plan';
-  static const dailyPlanClose = '/api/method/jarz_pos.api.daily_plan.close_plan';
+  static const dailyPlanClose =
+      '/api/method/jarz_pos.api.daily_plan.close_plan';
   // Calling off a day that will not be produced. Distinct from closing it with
   // zero actuals, which reads as "we tried and made nothing".
   static const dailyPlanCancel =
@@ -438,19 +440,22 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.trips.mark_trip_as_delivered';
 
   // ── B2B CRM ───────────────────────────────────────────────────────────
-  static const getB2bPipeline =
-      '/api/method/jarz_pos.api.crm.get_b2b_pipeline';
+  static const getB2bPipeline = '/api/method/jarz_pos.api.crm.get_b2b_pipeline';
   static const getB2bAccount = '/api/method/jarz_pos.api.crm.get_account';
   static const b2bAdvanceStage = '/api/method/jarz_pos.api.crm.advance_stage';
   static const b2bCreateLead = '/api/method/jarz_pos.api.crm.create_lead';
   static const b2bLogActivity = '/api/method/jarz_pos.api.crm.log_activity';
   static const getB2bFollowups =
       '/api/method/jarz_pos.api.crm.get_my_followups';
-  static const getB2bReorderDue = '/api/method/jarz_pos.api.crm.get_reorder_due';
+  static const getB2bReorderDue =
+      '/api/method/jarz_pos.api.crm.get_reorder_due';
   static const b2bRequestSample = '/api/method/jarz_pos.api.crm.request_sample';
   static const b2bPlaceOrder = '/api/method/jarz_pos.api.crm.place_b2b_order';
-  static const getLeadSources =
-      '/api/method/jarz_pos.api.crm.get_lead_sources';
+  static const b2bSearchLinkableCustomers =
+      '/api/method/jarz_pos.api.crm.search_linkable_customers';
+  static const b2bLinkExistingCustomer =
+      '/api/method/jarz_pos.api.crm.link_existing_customer';
+  static const getLeadSources = '/api/method/jarz_pos.api.crm.get_lead_sources';
   static const completeFollowup =
       '/api/method/jarz_pos.api.crm.complete_followup';
 

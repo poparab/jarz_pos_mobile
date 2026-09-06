@@ -3689,6 +3689,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Address line 1 is required.';
 
   @override
+  String get customerShippingAddressBranchNameLabel => 'Delivery branch name';
+
+  @override
+  String get customerShippingAddressBranchNameRequired =>
+      'Enter a delivery branch name.';
+
+  @override
+  String get customerShippingAddressTerritoryMissing =>
+      'Edit this branch and choose its delivery territory before ordering.';
+
+  @override
   String get posAmendmentDraftTitle => 'Invoice amendment draft';
 
   @override
@@ -7253,6 +7264,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get b2bContinue => 'Continue';
 
   @override
+  String get b2bCustomerSetupTitle => 'Set up customer';
+
+  @override
+  String get b2bLinkExistingCustomer => 'Link existing customer';
+
+  @override
+  String get b2bCreateNewCustomer => 'Create new customer';
+
+  @override
+  String get b2bSearchExistingCustomer => 'Search existing customers';
+
+  @override
+  String get b2bNoMatchingCustomers => 'No matching customers found.';
+
+  @override
+  String get b2bLinkAndContinue => 'Link and continue';
+
+  @override
   String get b2bLoadingTerritories => 'Loading territories…';
 
   @override
@@ -7292,6 +7321,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get b2bPlaceOrder => 'Place order';
+
+  @override
+  String get b2bOpenAccount => 'Open B2B account';
+
+  @override
+  String get b2bOrderResumeTitle => 'B2B order';
+
+  @override
+  String get b2bOrderResumeMessage =>
+      'Choose a B2B account or resume a saved B2B order.';
+
+  @override
+  String get b2bOrderChooseAccount => 'Choose B2B account';
+
+  @override
+  String get b2bOrderChangeBranch => 'Change delivery branch';
+
+  @override
+  String get b2bOrderPolicyUnavailable =>
+      'The required B2B pricing policy is unavailable. Retry after pricing has loaded.';
+
+  @override
+  String get b2bOrderSetupFailedTitle => 'Couldn’t prepare the B2B order';
 
   @override
   String get b2bMarkLost => 'Mark lost';

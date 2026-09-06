@@ -25,6 +25,9 @@ class PosState {
   final List<CommercialPolicy> availableCommercialPolicies;
   // null = Standard (no policy applied).
   final CommercialPolicy? selectedCommercialPolicy;
+  final bool isB2bOrder;
+  final bool b2bSetupComplete;
+  final String? boundB2bOrderPurpose;
   // Optional free-text reason captured when a non-Standard purpose is selected.
   final String? policyReason;
   // True when a customer-group-driven policy (e.g. B2B Supply) is active and the
@@ -91,6 +94,9 @@ class PosState {
     this.selectedPriceList,
     this.availableCommercialPolicies = const [],
     this.selectedCommercialPolicy,
+    this.isB2bOrder = false,
+    this.b2bSetupComplete = false,
+    this.boundB2bOrderPurpose,
     this.policyReason,
     this.customerHasNoTierPriceList = false,
     this.cartItems = const [],
@@ -128,6 +134,10 @@ class PosState {
     List<CommercialPolicy>? availableCommercialPolicies,
     CommercialPolicy? selectedCommercialPolicy,
     bool clearSelectedCommercialPolicy = false,
+    bool? isB2bOrder,
+    bool? b2bSetupComplete,
+    String? boundB2bOrderPurpose,
+    bool clearBoundB2bOrderPurpose = false,
     String? policyReason,
     bool clearPolicyReason = false,
     bool? customerHasNoTierPriceList,
@@ -179,6 +189,11 @@ class PosState {
       selectedCommercialPolicy: clearSelectedCommercialPolicy
           ? null
           : (selectedCommercialPolicy ?? this.selectedCommercialPolicy),
+      isB2bOrder: isB2bOrder ?? this.isB2bOrder,
+      b2bSetupComplete: b2bSetupComplete ?? this.b2bSetupComplete,
+      boundB2bOrderPurpose: clearBoundB2bOrderPurpose
+          ? null
+          : (boundB2bOrderPurpose ?? this.boundB2bOrderPurpose),
       policyReason: clearPolicyReason
           ? null
           : (policyReason ?? this.policyReason),
@@ -229,9 +244,7 @@ class PosState {
       promoResults: clearPromos
           ? const []
           : (promoResults ?? this.promoResults),
-      promoLoading: clearPromos
-          ? false
-          : (promoLoading ?? this.promoLoading),
+      promoLoading: clearPromos ? false : (promoLoading ?? this.promoLoading),
     );
   }
 
@@ -331,6 +344,7 @@ class PosNotifier extends StateNotifier<PosState> {
   // Incremented on every customer/policy change so a stale async resolution
   // (slow network + rapid re-selection) can detect it is outdated and bail.
   int _priceListResolutionToken = 0;
+  int _orderContextToken = 0;
 
   // ── Draft auto-save debounce ──────────────────────────────────────────
   static const _kAutoSaveDebounce = Duration(milliseconds: 400);
@@ -431,6 +445,10 @@ class PosNotifier extends StateNotifier<PosState> {
       customer: state.selectedCustomer,
       salesPartner: state.selectedSalesPartner,
       selectedPriceList: state.selectedPriceList,
+      selectedCommercialPolicy: state.selectedCommercialPolicy,
+      isB2bOrder: state.isB2bOrder,
+      boundB2bOrderPurpose: state.boundB2bOrderPurpose,
+      policyReason: state.policyReason,
       zeroShippingOverride: state.zeroShippingOverride,
       isPickup: state.isPickup,
       createdAt: now,
@@ -464,6 +482,7 @@ class PosNotifier extends StateNotifier<PosState> {
   /// Switch the active cart to a new empty cart (unsaved).
   /// Auto-saves the current cart first if there are unsaved changes.
   void newDraft() {
+    _orderContextToken++;
     if (state.draftDirty) {
       _autoSaveTimer?.cancel();
       _persistCurrentCart();
@@ -479,6 +498,9 @@ class PosNotifier extends StateNotifier<PosState> {
       selectedPriceList: defaultPriceList,
       clearSelectedPriceList: defaultPriceList == null,
       clearSelectedCommercialPolicy: true,
+      isB2bOrder: false,
+      b2bSetupComplete: false,
+      clearBoundB2bOrderPurpose: true,
       clearPolicyReason: true,
       customerHasNoTierPriceList: false,
       zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
@@ -499,6 +521,7 @@ class PosNotifier extends StateNotifier<PosState> {
   /// Auto-saves the current cart first if there are unsaved changes.
   Future<void> switchDraft(String id) async {
     if (state.currentDraftId == id) return;
+    _orderContextToken++;
     // Persist current cart before switching away
     if (state.draftDirty) {
       _autoSaveTimer?.cancel();
@@ -551,6 +574,11 @@ class PosNotifier extends StateNotifier<PosState> {
 
       // Invalidate any in-flight tier resolution from the previous cart.
       _priceListResolutionToken++;
+      final restoredBoundPurpose = target.isB2bOrder
+          ? ((target.boundB2bOrderPurpose?.trim().isNotEmpty ?? false)
+                ? target.boundB2bOrderPurpose
+                : target.selectedCommercialPolicy?.orderPurpose)
+          : null;
       state = state.copyWith(
         cartItems: List<Map<String, dynamic>>.from(target.cartItems),
         selectedCustomer: target.customer,
@@ -559,8 +587,17 @@ class PosNotifier extends StateNotifier<PosState> {
         clearSelectedSalesPartner: target.salesPartner == null,
         selectedPriceList: target.selectedPriceList,
         clearSelectedPriceList: target.selectedPriceList == null,
-        clearSelectedCommercialPolicy: true,
-        clearPolicyReason: true,
+        selectedCommercialPolicy: target.selectedCommercialPolicy,
+        clearSelectedCommercialPolicy: target.selectedCommercialPolicy == null,
+        isB2bOrder: target.isB2bOrder,
+        b2bSetupComplete:
+            target.isB2bOrder &&
+            target.selectedCommercialPolicy != null &&
+            (restoredBoundPurpose?.trim().isNotEmpty ?? false),
+        boundB2bOrderPurpose: restoredBoundPurpose,
+        clearBoundB2bOrderPurpose: restoredBoundPurpose == null,
+        policyReason: target.policyReason,
+        clearPolicyReason: target.policyReason == null,
         customerHasNoTierPriceList: false,
         zeroShippingOverride: target.zeroShippingOverride,
         isPickup: target.isPickup,
@@ -615,6 +652,9 @@ class PosNotifier extends StateNotifier<PosState> {
           selectedPriceList: defaultPriceList,
           clearSelectedPriceList: defaultPriceList == null,
           clearSelectedCommercialPolicy: true,
+          isB2bOrder: false,
+          b2bSetupComplete: false,
+          clearBoundB2bOrderPurpose: true,
           clearPolicyReason: true,
           customerHasNoTierPriceList: false,
           zeroShippingOverride: _zeroShippingDefaultForPriceList(
@@ -721,6 +761,16 @@ class PosNotifier extends StateNotifier<PosState> {
       final repricedCart = state.cartItems.isEmpty
           ? state.cartItems
           : _repriceCartItemsForCatalog(state.cartItems, items, bundles);
+      final reconciledPolicy = _reconcileSelectedPolicy(commercialPolicies);
+      final b2bPolicyStillValid =
+          !state.isB2bOrder ||
+          (reconciledPolicy != null &&
+              _sameOrderPurpose(
+                reconciledPolicy.orderPurpose,
+                state.boundB2bOrderPurpose,
+              ) &&
+              (selectedPriceList?['name']?.toString().trim().isNotEmpty ??
+                  false));
 
       state = state.copyWith(
         items: items,
@@ -729,9 +779,9 @@ class PosNotifier extends StateNotifier<PosState> {
         selectedPriceList: selectedPriceList,
         clearSelectedPriceList: selectedPriceList == null,
         availableCommercialPolicies: commercialPolicies,
-        selectedCommercialPolicy: _reconcileSelectedPolicy(commercialPolicies),
-        clearSelectedCommercialPolicy:
-            _reconcileSelectedPolicy(commercialPolicies) == null,
+        selectedCommercialPolicy: reconciledPolicy,
+        clearSelectedCommercialPolicy: reconciledPolicy == null,
+        b2bSetupComplete: state.b2bSetupComplete && b2bPolicyStillValid,
         cartItems: repricedCart,
         isLoading: false,
       );
@@ -769,6 +819,27 @@ class PosNotifier extends StateNotifier<PosState> {
       }
     }
     return null;
+  }
+
+  bool _sameOrderPurpose(String? left, String? right) =>
+      (left?.trim().isNotEmpty ?? false) &&
+      left!.trim().toLowerCase() == (right?.trim().toLowerCase() ?? '');
+
+  bool _hasValidB2bCommercialContext() {
+    if (!state.isB2bOrder) return true;
+    final policy = state.selectedCommercialPolicy;
+    final purpose = state.boundB2bOrderPurpose;
+    if (policy == null ||
+        !_sameOrderPurpose(policy.orderPurpose, purpose) ||
+        state.selectedPriceListName == null ||
+        state.customerHasNoTierPriceList) {
+      return false;
+    }
+    return state.availableCommercialPolicies.any(
+      (candidate) =>
+          candidate.name == policy.name &&
+          _sameOrderPurpose(candidate.orderPurpose, purpose),
+    );
   }
 
   Future<void> loadProfiles() async {
@@ -1313,6 +1384,53 @@ class PosNotifier extends StateNotifier<PosState> {
     }
   }
 
+  /// Starts a B2B order without losing the operator's current cart. Any dirty
+  /// cart is persisted first, then the B2B customer becomes a clean order
+  /// context. The selected shipping Address lives inside [customer] and is
+  /// therefore saved with the draft and sent with the invoice.
+  Future<bool> startB2bOrder(Map<String, dynamic> customer) async {
+    final contextToken = ++_orderContextToken;
+    if (state.draftDirty) {
+      _autoSaveTimer?.cancel();
+      await _persistCurrentCart();
+    }
+    if (contextToken != _orderContextToken) return false;
+
+    _priceListResolutionToken++;
+    final defaultPriceList = _defaultPriceListSelection();
+    state = state.copyWith(
+      cartItems: const [],
+      clearSelectedCustomer: true,
+      clearSelectedDeliverySlot: true,
+      clearSelectedSalesPartner: true,
+      clearDeliverySlots: true,
+      isPickup: false,
+      selectedPriceList: defaultPriceList,
+      clearSelectedPriceList: defaultPriceList == null,
+      clearSelectedCommercialPolicy: true,
+      isB2bOrder: true,
+      b2bSetupComplete: false,
+      clearBoundB2bOrderPurpose: true,
+      clearPolicyReason: true,
+      customerHasNoTierPriceList: false,
+      zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
+      clearCurrentDraftId: true,
+      draftDirty: false,
+      isAmendmentDraft: false,
+      clearAmendmentSourceInvoiceId: true,
+      clearCustomDeliveryIncome: true,
+      clearPromos: true,
+    );
+    selectCustomer(customer);
+    return true;
+  }
+
+  void markB2bSetupComplete() {
+    if (!_hasValidB2bCommercialContext()) return;
+    state = state.copyWith(b2bSetupComplete: true, draftDirty: true);
+    _autoSaveDebounced();
+  }
+
   void setDeliverySlot(DeliverySlot? slot) {
     state = state.copyWith(selectedDeliverySlot: slot);
   }
@@ -1325,6 +1443,10 @@ class PosNotifier extends StateNotifier<PosState> {
               _defaultPriceListSelection());
     final currentName = state.selectedPriceListName ?? '';
     final nextName = selection?['name']?.toString().trim() ?? '';
+
+    if (state.isB2bOrder && state.b2bSetupComplete && currentName != nextName) {
+      return;
+    }
 
     if (currentName == nextName) {
       return;
@@ -1349,6 +1471,17 @@ class PosNotifier extends StateNotifier<PosState> {
   /// (Employee/Sample) and customer-group-driven policies (B2B Supply) both
   /// reprice the catalog correctly.
   Future<void> setCommercialPolicy(CommercialPolicy? policy) async {
+    final boundPurpose = state.boundB2bOrderPurpose;
+    if (state.isB2bOrder &&
+        (boundPurpose?.trim().isNotEmpty ?? false) &&
+        (policy == null ||
+            !_sameOrderPurpose(policy.orderPurpose, boundPurpose))) {
+      return;
+    }
+    final restoreCompletedB2bSetup = state.b2bSetupComplete;
+    if (state.isB2bOrder && restoreCompletedB2bSetup) {
+      state = state.copyWith(b2bSetupComplete: false);
+    }
     if (policy == null) {
       state = state.copyWith(
         clearSelectedCommercialPolicy: true,
@@ -1370,6 +1503,48 @@ class PosNotifier extends StateNotifier<PosState> {
     _autoSaveDebounced();
 
     await _applyEffectivePriceListForPolicy();
+    if (restoreCompletedB2bSetup && _hasValidB2bCommercialContext()) {
+      state = state.copyWith(b2bSetupComplete: true);
+    }
+  }
+
+  /// Applies the policy named by a B2B binding after ensuring the profile's
+  /// catalog has loaded. This avoids a first-entry race where the route arrived
+  /// before [availableCommercialPolicies] and silently left the order Standard.
+  Future<bool> setCommercialPolicyByOrderPurpose(String orderPurpose) async {
+    final contextToken = _orderContextToken;
+    final normalized = orderPurpose.trim().toLowerCase();
+    if (normalized.isEmpty) return false;
+
+    state = state.copyWith(
+      boundB2bOrderPurpose: orderPurpose.trim(),
+      b2bSetupComplete: false,
+      draftDirty: true,
+    );
+
+    if (state.availableCommercialPolicies.isEmpty &&
+        state.selectedProfile != null) {
+      await refreshCatalog(showLoading: false);
+    }
+    if (contextToken != _orderContextToken || !state.isB2bOrder) return false;
+
+    CommercialPolicy? match;
+    for (final policy in state.availableCommercialPolicies) {
+      if (policy.orderPurpose.trim().toLowerCase() == normalized) {
+        match = policy;
+        break;
+      }
+    }
+    if (match == null) return false;
+    await setCommercialPolicy(match);
+    return contextToken == _orderContextToken &&
+        state.isB2bOrder &&
+        _sameOrderPurpose(
+          state.selectedCommercialPolicy?.orderPurpose,
+          state.boundB2bOrderPurpose,
+        ) &&
+        state.selectedPriceListName != null &&
+        !state.customerHasNoTierPriceList;
   }
 
   /// Resolves and applies the effective price list for the currently selected
@@ -1532,8 +1707,8 @@ class PosNotifier extends StateNotifier<PosState> {
     _priceListResolutionToken++;
     state = state.copyWith(
       cartItems: [],
-      clearSelectedCommercialPolicy: true,
-      clearPolicyReason: true,
+      clearSelectedCommercialPolicy: !state.isB2bOrder,
+      clearPolicyReason: !state.isB2bOrder,
       customerHasNoTierPriceList: false,
       draftDirty: true,
     );
@@ -2476,6 +2651,7 @@ class PosNotifier extends StateNotifier<PosState> {
   }
 
   Future<void> startAmendmentDraft(Map<String, dynamic> invoiceData) async {
+    _orderContextToken++;
     // Cancel any pending autosave timer immediately so it cannot fire during
     // the async gap between state-clear and final state-set below.
     _autoSaveTimer?.cancel();
@@ -2511,6 +2687,9 @@ class PosNotifier extends StateNotifier<PosState> {
       clearSelectedSalesPartner: true,
       clearDeliverySlots: true,
       isPickup: false,
+      isB2bOrder: false,
+      b2bSetupComplete: false,
+      clearBoundB2bOrderPurpose: true,
       isAmendmentDraft: false,
       clearAmendmentSourceInvoiceId: true,
     );
@@ -2628,6 +2807,9 @@ class PosNotifier extends StateNotifier<PosState> {
         clearSelectedPriceList: selectedPriceList == null,
         availableCommercialPolicies: commercialPolicies,
         clearSelectedCommercialPolicy: true,
+        isB2bOrder: false,
+        b2bSetupComplete: false,
+        clearBoundB2bOrderPurpose: true,
         clearPolicyReason: true,
         cartItems: builtCartItems,
         selectedCustomer: customer,
@@ -2730,8 +2912,9 @@ class PosNotifier extends StateNotifier<PosState> {
   /// Remove a promo [code] and re-validate the remaining codes.
   Future<void> removePromoCode(String code) async {
     final normalized = code.trim().toUpperCase();
-    final remaining =
-        state.appliedPromoCodes.where((c) => c != normalized).toList();
+    final remaining = state.appliedPromoCodes
+        .where((c) => c != normalized)
+        .toList();
     if (remaining.length == state.appliedPromoCodes.length) return;
 
     if (remaining.isEmpty) {
@@ -2822,7 +3005,8 @@ class PosNotifier extends StateNotifier<PosState> {
         }
       }
     }
-    final totalDiscount = (preview['total_discount'] as num?)?.toDouble() ?? 0.0;
+    final totalDiscount =
+        (preview['total_discount'] as num?)?.toDouble() ?? 0.0;
     final freeDelivery = preview['free_delivery'] == true;
 
     state = state.copyWith(
@@ -2842,6 +3026,46 @@ class PosNotifier extends StateNotifier<PosState> {
   }) async {
     if (state.cartItems.isEmpty) {
       state = state.copyWith(error: 'Cart is empty', clearError: false);
+      return;
+    }
+
+    if (state.isB2bOrder &&
+        (!state.b2bSetupComplete || !_hasValidB2bCommercialContext())) {
+      state = state.copyWith(
+        b2bSetupComplete: false,
+        error: 'B2B order policy is not ready. Retry setup before checkout.',
+        clearError: false,
+      );
+      return;
+    }
+
+    if (state.isB2bOrder &&
+        (state.selectedCustomer?['selected_shipping_address_territory_missing'] ==
+                true ||
+            (state.selectedCustomer?['selected_shipping_address_territory']
+                    ?.toString()
+                    .trim()
+                    .isEmpty ??
+                true))) {
+      state = state.copyWith(
+        error:
+            'The selected B2B delivery branch needs a territory before checkout.',
+        clearError: false,
+      );
+      return;
+    }
+
+    if (state.isB2bOrder &&
+        (state.selectedCustomer?['selected_shipping_address_territory_pos_profile']
+                ?.toString()
+                .trim()
+                .isEmpty ??
+            true)) {
+      state = state.copyWith(
+        error:
+            'The selected B2B delivery branch has no POS profile. Edit its territory before checkout.',
+        clearError: false,
+      );
       return;
     }
 
@@ -3040,6 +3264,7 @@ class PosNotifier extends StateNotifier<PosState> {
       } catch (_) {}
 
       // Reset invoice context (cart, customer, delivery slot, sales partner) for a fresh start.
+      _orderContextToken++;
       final defaultPriceList = _defaultPriceListSelection();
       state = state.copyWith(
         cartItems: [],
@@ -3050,6 +3275,9 @@ class PosNotifier extends StateNotifier<PosState> {
         selectedPriceList: defaultPriceList,
         clearSelectedPriceList: defaultPriceList == null,
         clearSelectedCommercialPolicy: true,
+        isB2bOrder: false,
+        b2bSetupComplete: false,
+        clearBoundB2bOrderPurpose: true,
         clearPolicyReason: true,
         zeroShippingOverride: _zeroShippingDefaultForPriceList(
           defaultPriceList,
@@ -3110,6 +3338,7 @@ class PosNotifier extends StateNotifier<PosState> {
 
   // Explicit public method to start a new invoice manually (also clears sales partner)
   void startNewInvoice() {
+    _orderContextToken++;
     _priceListResolutionToken++;
     final defaultPriceList = _defaultPriceListSelection();
     state = state.copyWith(
@@ -3123,6 +3352,9 @@ class PosNotifier extends StateNotifier<PosState> {
       selectedPriceList: defaultPriceList,
       clearSelectedPriceList: defaultPriceList == null,
       clearSelectedCommercialPolicy: true,
+      isB2bOrder: false,
+      b2bSetupComplete: false,
+      clearBoundB2bOrderPurpose: true,
       clearPolicyReason: true,
       customerHasNoTierPriceList: false,
       zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),

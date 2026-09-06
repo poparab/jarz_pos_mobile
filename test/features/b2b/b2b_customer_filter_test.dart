@@ -36,30 +36,49 @@ class _FakeDio with DioMixin implements Dio {
 }
 
 void main() {
-  group('B2B search uses Company filter', () {
-    test('searchCompanyCustomers sends customer_type=Company (name)', () async {
+  group('B2B existing-customer linking', () {
+    test(
+      'searchLinkableCustomers searches every enabled customer type',
+      () async {
+        final dio = _FakeDio();
+        final repo = B2bRepository(dio);
+
+        await repo.searchLinkableCustomers('ilo specialty coffee');
+
+        final body = dio.calls.single.data as Map;
+        expect(dio.calls.single.path, ApiEndpoints.b2bSearchLinkableCustomers);
+        expect(body['query'], 'ilo specialty coffee');
+        expect(body['limit'], 20);
+        expect(body.containsKey('customer_type'), isFalse);
+        expect(body.containsKey('customer_group'), isFalse);
+      },
+    );
+
+    test('linkExistingCustomer sends optimistic link guard fields', () async {
       final dio = _FakeDio();
+      dio.nextMessage = {
+        'success': true,
+        'party_doctype': 'Lead',
+        'party_name': 'LEAD-1',
+        'customer': 'ilo specialty coffee',
+        'changed': true,
+        'linked_via': 'Lead',
+      };
       final repo = B2bRepository(dio);
 
-      await repo.searchCompanyCustomers('Acme');
+      final result = await repo.linkExistingCustomer(
+        partyDoctype: 'Lead',
+        partyName: 'LEAD-1',
+        customer: 'ilo specialty coffee',
+      );
 
       final body = dio.calls.single.data as Map;
-      expect(dio.calls.single.path, ApiEndpoints.searchCustomers);
-      expect(body['customer_type'], 'Company');
-      expect(body['name'], 'Acme');
-      expect(body.containsKey('phone'), isFalse);
-    });
-
-    test('searchCompanyCustomers uses phone key for numeric queries', () async {
-      final dio = _FakeDio();
-      final repo = B2bRepository(dio);
-
-      await repo.searchCompanyCustomers('0101234567');
-
-      final body = dio.calls.single.data as Map;
-      expect(body['customer_type'], 'Company');
-      expect(body['phone'], '0101234567');
-      expect(body.containsKey('name'), isFalse);
+      expect(dio.calls.single.path, ApiEndpoints.b2bLinkExistingCustomer);
+      expect(body['party_doctype'], 'Lead');
+      expect(body['party_name'], 'LEAD-1');
+      expect(body['customer'], 'ilo specialty coffee');
+      expect(body['allow_relink'], 0);
+      expect(result['changed'], isTrue);
     });
   });
 
@@ -75,16 +94,18 @@ void main() {
       expect(body['name'], 'Jane');
     });
 
-    test('searchCustomers omits customer_type by default (back-compat)',
-        () async {
-      final dio = _FakeDio();
-      final repo = PosRepository(dio);
+    test(
+      'searchCustomers omits customer_type by default (back-compat)',
+      () async {
+        final dio = _FakeDio();
+        final repo = PosRepository(dio);
 
-      await repo.searchCustomers('Jane');
+        await repo.searchCustomers('Jane');
 
-      final body = dio.calls.single.data as Map;
-      expect(body.containsKey('customer_type'), isFalse);
-      expect(body['name'], 'Jane');
-    });
+        final body = dio.calls.single.data as Map;
+        expect(body.containsKey('customer_type'), isFalse);
+        expect(body['name'], 'Jane');
+      },
+    );
   });
 }

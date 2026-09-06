@@ -47,12 +47,14 @@ class CustomerAddressRepository {
     required String phone,
     String? invoice,
     String? addressName,
+    String? branchName,
     String? address,
     String? territory,
     String? locationLink,
     double? latitude,
     double? longitude,
     String? geoSource,
+    bool setAsPrimary = true,
   }) async {
     try {
       final resp = await _dio.post(
@@ -63,6 +65,8 @@ class CustomerAddressRepository {
           if (invoice != null && invoice.isNotEmpty) 'invoice': invoice,
           if (addressName != null && addressName.isNotEmpty)
             'address_name': addressName,
+          if (branchName != null && branchName.isNotEmpty)
+            'branch_name': branchName,
           if (address != null && address.isNotEmpty) 'address': address,
           if (territory != null && territory.isNotEmpty) 'territory': territory,
           // Geo payload from the location-link field. Frappe drops form keys a
@@ -76,7 +80,7 @@ class CustomerAddressRepository {
             if (geoSource != null && geoSource.isNotEmpty)
               'geo_source': geoSource,
           },
-          'set_as_primary': 1,
+          'set_as_primary': setAsPrimary ? 1 : 0,
         },
       );
       final msg = resp.data['message'];
@@ -84,7 +88,8 @@ class CustomerAddressRepository {
         return Map<String, dynamic>.from(msg);
       }
       throw Exception(
-          extractFrappeErrorMessage(msg, fallback: 'Failed to save address'));
+        extractFrappeErrorMessage(msg, fallback: 'Failed to save address'),
+      );
     } catch (e) {
       throw _friendly(e, fallback: 'Failed to save address');
     }
@@ -96,6 +101,7 @@ class CustomerAddressRepository {
   Future<Map<String, dynamic>> updateAddress({
     required String customer,
     required String addressName,
+    String? branchName,
     String? addressLine1,
     String? addressLine2,
     String? city,
@@ -108,6 +114,8 @@ class CustomerAddressRepository {
         data: {
           'customer': customer,
           'address_name': addressName,
+          if (branchName != null && branchName.isNotEmpty)
+            'branch_name': branchName,
           if (addressLine1 != null && addressLine1.isNotEmpty)
             'address_line1': addressLine1,
           if (addressLine2 != null) 'address_line2': addressLine2,
@@ -119,7 +127,8 @@ class CustomerAddressRepository {
       final msg = resp.data['message'];
       if (msg is Map) return Map<String, dynamic>.from(msg);
       throw Exception(
-          extractFrappeErrorMessage(msg, fallback: 'Failed to update address'));
+        extractFrappeErrorMessage(msg, fallback: 'Failed to update address'),
+      );
     } catch (e) {
       throw _friendly(e, fallback: 'Failed to update address');
     }
@@ -137,22 +146,23 @@ class CustomerAddressRepository {
     try {
       final resp = await _dio.post(
         ApiEndpoints.deleteCustomerShippingAddress,
-        data: {
-          'customer': customer,
-          'address_name': addressName,
-        },
+        data: {'customer': customer, 'address_name': addressName},
       );
       final msg = resp.data['message'];
       if (msg is Map && msg['success'] == true) {
         return Map<String, dynamic>.from(msg);
       }
-      final errText = extractFrappeErrorMessage(msg,
-          fallback: 'Failed to delete address');
+      final errText = extractFrappeErrorMessage(
+        msg,
+        fallback: 'Failed to delete address',
+      );
       throw Exception(errText);
     } on DioException catch (e) {
       // Frappe throws HTTP 417 for frappe.throw(); extract the message.
-      final errText = extractFrappeErrorMessage(e.response?.data,
-          fallback: 'Failed to delete address');
+      final errText = extractFrappeErrorMessage(
+        e.response?.data,
+        fallback: 'Failed to delete address',
+      );
       throw Exception(errText);
     } catch (e) {
       throw _friendly(e, fallback: 'Failed to delete address');
@@ -190,21 +200,22 @@ class CustomerAddressRepository {
     try {
       final resp = await _dio.post(
         ApiEndpoints.changeInvoiceShippingAddress,
-        data: {
-          'invoice_name': invoiceName,
-          'address_name': addressName,
-        },
+        data: {'invoice_name': invoiceName, 'address_name': addressName},
       );
       final msg = resp.data['message'];
       if (msg is Map && msg['success'] == true) {
         return Map<String, dynamic>.from(msg);
       }
-      final errText = extractFrappeErrorMessage(msg,
-          fallback: 'Failed to change invoice address');
+      final errText = extractFrappeErrorMessage(
+        msg,
+        fallback: 'Failed to change invoice address',
+      );
       throw Exception(errText);
     } on DioException catch (e) {
-      final errText = extractFrappeErrorMessage(e.response?.data,
-          fallback: 'Failed to change invoice address');
+      final errText = extractFrappeErrorMessage(
+        e.response?.data,
+        fallback: 'Failed to change invoice address',
+      );
       throw Exception(errText);
     } catch (e) {
       throw _friendly(e, fallback: 'Failed to change invoice address');
@@ -212,8 +223,9 @@ class CustomerAddressRepository {
   }
 }
 
-final customerAddressRepositoryProvider =
-    Provider<CustomerAddressRepository>((ref) {
+final customerAddressRepositoryProvider = Provider<CustomerAddressRepository>((
+  ref,
+) {
   final dio = ref.watch(dioProvider);
   return CustomerAddressRepository(dio);
 });

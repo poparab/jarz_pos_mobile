@@ -8,18 +8,20 @@ import '../data/models/b2b_models.dart';
 /// the returned customer is preselected and the order purpose / price list are
 /// applied via the matching commercial policy. The order is then placed through
 /// the SAME invoice-creation path so it lands on the dispatch Kanban.
-void launchB2bOrderInPos(
+Future<void> launchB2bOrderInPos(
   BuildContext context, {
   required OrderBinding binding,
+  required Map<String, dynamic> selectedCustomer,
   String? customerName,
   String? mobileNo,
-}) {
-  context.push(
-    AppRoutes.pos,
+}) async {
+  await context.push<void>(
+    '${AppRoutes.pos}?mode=b2b_order',
     extra: <String, dynamic>{
       'mode': 'b2b_order',
       'customer': binding.customer,
       'order_purpose': binding.orderPurpose,
+      'selected_customer': selectedCustomer,
       if (binding.priceList != null) 'price_list': binding.priceList,
       if (customerName != null) 'customer_name': customerName,
       if (mobileNo != null) 'mobile_no': mobileNo,

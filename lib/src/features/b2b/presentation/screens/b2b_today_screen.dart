@@ -48,8 +48,10 @@ class B2bTodayScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(context.userErrorMessage(error),
-                    textAlign: TextAlign.center),
+                Text(
+                  context.userErrorMessage(error),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: () => ref.invalidate(b2bTodayProvider),
@@ -125,16 +127,17 @@ class _TodoTileState extends ConsumerState<_TodoTile> {
     final l10n = context.l10n;
     setState(() => _busy = true);
     try {
-      await ref.read(b2bRepositoryProvider).completeFollowup(
+      await ref
+          .read(b2bRepositoryProvider)
+          .completeFollowup(
             doctype: todo.referenceType!,
             name: todo.referenceName!,
           );
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.b2bFollowUpDone)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.b2bFollowUpDone)));
       ref.invalidate(b2bTodayProvider);
     } catch (e) {
-      if (mounted) setState(() => _busy = false);
+      if (!mounted) return;
+      setState(() => _busy = false);
       messenger.showSnackBar(
         SnackBar(content: Text(context.userErrorMessage(e))),
       );
@@ -155,9 +158,11 @@ class _TodoTileState extends ConsumerState<_TodoTile> {
         ),
         title: Text(todo.description ?? todo.name),
         subtitle: todo.date != null
-            ? Text(overdue
-                ? context.l10n.b2bOverdueSuffix(todo.date!)
-                : todo.date!)
+            ? Text(
+                overdue
+                    ? context.l10n.b2bOverdueSuffix(todo.date!)
+                    : todo.date!,
+              )
             : null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -179,12 +184,12 @@ class _TodoTileState extends ConsumerState<_TodoTile> {
         ),
         onTap: _canReference
             ? () => context.push(
-                  AppRoutes.b2bAccount,
-                  extra: <String, dynamic>{
-                    'doctype': todo.referenceType,
-                    'name': todo.referenceName,
-                  },
-                )
+                AppRoutes.b2bAccount,
+                extra: <String, dynamic>{
+                  'doctype': todo.referenceType,
+                  'name': todo.referenceName,
+                },
+              )
             : null,
       ),
     );
@@ -203,14 +208,20 @@ class _ReorderTile extends StatelessWidget {
       if (item.predictedNextOrder != null)
         context.l10n.b2bNextOrder('${item.predictedNextOrder}'),
       if (item.avgBasketValue != null)
-        context.l10n
-            .b2bAvgBasket(formatCurrency(context, item.avgBasketValue!)),
+        context.l10n.b2bAvgBasket(
+          formatCurrency(context, item.avgBasketValue!),
+        ),
     ].join(' · ');
     return Card(
       child: ListTile(
         leading: const Icon(Icons.replay),
         title: Text(item.customerName ?? item.name),
         subtitle: subtitle.isEmpty ? null : Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => context.push(
+          AppRoutes.b2bAccount,
+          extra: <String, dynamic>{'doctype': 'Customer', 'name': item.name},
+        ),
       ),
     );
   }

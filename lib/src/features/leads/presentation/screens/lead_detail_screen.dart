@@ -52,6 +52,14 @@ class LeadDetailScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
+            tooltip: context.l10n.b2bOpenAccount,
+            icon: const Icon(Icons.business_center_outlined),
+            onPressed: () => context.push(
+              AppRoutes.b2bAccount,
+              extra: <String, dynamic>{'doctype': 'Lead', 'name': leadName},
+            ),
+          ),
+          IconButton(
             tooltip: context.l10n.leadDetailEdit,
             icon: const Icon(Icons.edit_outlined),
             onPressed: async.valueOrNull == null

@@ -326,7 +326,7 @@ class _$B2bCardImpl extends _B2bCard {
     required this.doctype,
     required this.name,
     required this.title,
-    required this.stage,
+    this.stage = 'Lead',
     this.owner,
     @JsonKey(name: 'lead_score') this.leadScore,
     this.customer,
@@ -351,6 +351,7 @@ class _$B2bCardImpl extends _B2bCard {
   @override
   final String title;
   @override
+  @JsonKey()
   final String stage;
   @override
   final String? owner;
@@ -472,7 +473,7 @@ abstract class _B2bCard extends B2bCard {
     required final String doctype,
     required final String name,
     required final String title,
-    required final String stage,
+    final String stage,
     final String? owner,
     @JsonKey(name: 'lead_score') final int? leadScore,
     final String? customer,
@@ -1675,7 +1676,7 @@ class _$B2bAccountImpl implements _B2bAccount {
     required this.doctype,
     required this.name,
     required this.title,
-    required this.stage,
+    this.stage = 'Customer',
     this.owner,
     this.contact = const B2bContact(),
     this.customer,
@@ -1701,6 +1702,7 @@ class _$B2bAccountImpl implements _B2bAccount {
   @override
   final String title;
   @override
+  @JsonKey()
   final String stage;
   @override
   final String? owner;
@@ -1822,7 +1824,7 @@ abstract class _B2bAccount implements B2bAccount {
     required final String doctype,
     required final String name,
     required final String title,
-    required final String stage,
+    final String stage,
     final String? owner,
     final B2bContact contact,
     final String? customer,
@@ -2615,10 +2617,19 @@ OrderBinding _$OrderBindingFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$OrderBinding {
   String get customer => throw _privateConstructorUsedError;
+  @JsonKey(name: 'customer_name')
+  String? get customerName => throw _privateConstructorUsedError;
   @JsonKey(name: 'order_purpose')
   String get orderPurpose => throw _privateConstructorUsedError;
   @JsonKey(name: 'price_list')
   String? get priceList => throw _privateConstructorUsedError;
+  @JsonKey(name: 'address_book')
+  Map<String, dynamic> get addressBook => throw _privateConstructorUsedError;
+  @JsonKey(name: 'requires_shipping_address_selection')
+  bool get requiresShippingAddressSelection =>
+      throw _privateConstructorUsedError;
+  @JsonKey(name: 'shipping_address_name')
+  String? get shippingAddressName => throw _privateConstructorUsedError;
 
   /// Serializes this OrderBinding to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -2639,8 +2650,13 @@ abstract class $OrderBindingCopyWith<$Res> {
   @useResult
   $Res call({
     String customer,
+    @JsonKey(name: 'customer_name') String? customerName,
     @JsonKey(name: 'order_purpose') String orderPurpose,
     @JsonKey(name: 'price_list') String? priceList,
+    @JsonKey(name: 'address_book') Map<String, dynamic> addressBook,
+    @JsonKey(name: 'requires_shipping_address_selection')
+    bool requiresShippingAddressSelection,
+    @JsonKey(name: 'shipping_address_name') String? shippingAddressName,
   });
 }
 
@@ -2660,8 +2676,12 @@ class _$OrderBindingCopyWithImpl<$Res, $Val extends OrderBinding>
   @override
   $Res call({
     Object? customer = null,
+    Object? customerName = freezed,
     Object? orderPurpose = null,
     Object? priceList = freezed,
+    Object? addressBook = null,
+    Object? requiresShippingAddressSelection = null,
+    Object? shippingAddressName = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -2669,6 +2689,10 @@ class _$OrderBindingCopyWithImpl<$Res, $Val extends OrderBinding>
                 ? _value.customer
                 : customer // ignore: cast_nullable_to_non_nullable
                       as String,
+            customerName: freezed == customerName
+                ? _value.customerName
+                : customerName // ignore: cast_nullable_to_non_nullable
+                      as String?,
             orderPurpose: null == orderPurpose
                 ? _value.orderPurpose
                 : orderPurpose // ignore: cast_nullable_to_non_nullable
@@ -2676,6 +2700,19 @@ class _$OrderBindingCopyWithImpl<$Res, $Val extends OrderBinding>
             priceList: freezed == priceList
                 ? _value.priceList
                 : priceList // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            addressBook: null == addressBook
+                ? _value.addressBook
+                : addressBook // ignore: cast_nullable_to_non_nullable
+                      as Map<String, dynamic>,
+            requiresShippingAddressSelection:
+                null == requiresShippingAddressSelection
+                ? _value.requiresShippingAddressSelection
+                : requiresShippingAddressSelection // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            shippingAddressName: freezed == shippingAddressName
+                ? _value.shippingAddressName
+                : shippingAddressName // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -2694,8 +2731,13 @@ abstract class _$$OrderBindingImplCopyWith<$Res>
   @useResult
   $Res call({
     String customer,
+    @JsonKey(name: 'customer_name') String? customerName,
     @JsonKey(name: 'order_purpose') String orderPurpose,
     @JsonKey(name: 'price_list') String? priceList,
+    @JsonKey(name: 'address_book') Map<String, dynamic> addressBook,
+    @JsonKey(name: 'requires_shipping_address_selection')
+    bool requiresShippingAddressSelection,
+    @JsonKey(name: 'shipping_address_name') String? shippingAddressName,
   });
 }
 
@@ -2714,8 +2756,12 @@ class __$$OrderBindingImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? customer = null,
+    Object? customerName = freezed,
     Object? orderPurpose = null,
     Object? priceList = freezed,
+    Object? addressBook = null,
+    Object? requiresShippingAddressSelection = null,
+    Object? shippingAddressName = freezed,
   }) {
     return _then(
       _$OrderBindingImpl(
@@ -2723,6 +2769,10 @@ class __$$OrderBindingImplCopyWithImpl<$Res>
             ? _value.customer
             : customer // ignore: cast_nullable_to_non_nullable
                   as String,
+        customerName: freezed == customerName
+            ? _value.customerName
+            : customerName // ignore: cast_nullable_to_non_nullable
+                  as String?,
         orderPurpose: null == orderPurpose
             ? _value.orderPurpose
             : orderPurpose // ignore: cast_nullable_to_non_nullable
@@ -2730,6 +2780,19 @@ class __$$OrderBindingImplCopyWithImpl<$Res>
         priceList: freezed == priceList
             ? _value.priceList
             : priceList // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        addressBook: null == addressBook
+            ? _value._addressBook
+            : addressBook // ignore: cast_nullable_to_non_nullable
+                  as Map<String, dynamic>,
+        requiresShippingAddressSelection:
+            null == requiresShippingAddressSelection
+            ? _value.requiresShippingAddressSelection
+            : requiresShippingAddressSelection // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        shippingAddressName: freezed == shippingAddressName
+            ? _value.shippingAddressName
+            : shippingAddressName // ignore: cast_nullable_to_non_nullable
                   as String?,
       ),
     );
@@ -2741,9 +2804,15 @@ class __$$OrderBindingImplCopyWithImpl<$Res>
 class _$OrderBindingImpl implements _OrderBinding {
   const _$OrderBindingImpl({
     required this.customer,
+    @JsonKey(name: 'customer_name') this.customerName,
     @JsonKey(name: 'order_purpose') required this.orderPurpose,
     @JsonKey(name: 'price_list') this.priceList,
-  });
+    @JsonKey(name: 'address_book')
+    final Map<String, dynamic> addressBook = const <String, dynamic>{},
+    @JsonKey(name: 'requires_shipping_address_selection')
+    this.requiresShippingAddressSelection = false,
+    @JsonKey(name: 'shipping_address_name') this.shippingAddressName,
+  }) : _addressBook = addressBook;
 
   factory _$OrderBindingImpl.fromJson(Map<String, dynamic> json) =>
       _$$OrderBindingImplFromJson(json);
@@ -2751,15 +2820,33 @@ class _$OrderBindingImpl implements _OrderBinding {
   @override
   final String customer;
   @override
+  @JsonKey(name: 'customer_name')
+  final String? customerName;
+  @override
   @JsonKey(name: 'order_purpose')
   final String orderPurpose;
   @override
   @JsonKey(name: 'price_list')
   final String? priceList;
+  final Map<String, dynamic> _addressBook;
+  @override
+  @JsonKey(name: 'address_book')
+  Map<String, dynamic> get addressBook {
+    if (_addressBook is EqualUnmodifiableMapView) return _addressBook;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_addressBook);
+  }
+
+  @override
+  @JsonKey(name: 'requires_shipping_address_selection')
+  final bool requiresShippingAddressSelection;
+  @override
+  @JsonKey(name: 'shipping_address_name')
+  final String? shippingAddressName;
 
   @override
   String toString() {
-    return 'OrderBinding(customer: $customer, orderPurpose: $orderPurpose, priceList: $priceList)';
+    return 'OrderBinding(customer: $customer, customerName: $customerName, orderPurpose: $orderPurpose, priceList: $priceList, addressBook: $addressBook, requiresShippingAddressSelection: $requiresShippingAddressSelection, shippingAddressName: $shippingAddressName)';
   }
 
   @override
@@ -2769,16 +2856,38 @@ class _$OrderBindingImpl implements _OrderBinding {
             other is _$OrderBindingImpl &&
             (identical(other.customer, customer) ||
                 other.customer == customer) &&
+            (identical(other.customerName, customerName) ||
+                other.customerName == customerName) &&
             (identical(other.orderPurpose, orderPurpose) ||
                 other.orderPurpose == orderPurpose) &&
             (identical(other.priceList, priceList) ||
-                other.priceList == priceList));
+                other.priceList == priceList) &&
+            const DeepCollectionEquality().equals(
+              other._addressBook,
+              _addressBook,
+            ) &&
+            (identical(
+                  other.requiresShippingAddressSelection,
+                  requiresShippingAddressSelection,
+                ) ||
+                other.requiresShippingAddressSelection ==
+                    requiresShippingAddressSelection) &&
+            (identical(other.shippingAddressName, shippingAddressName) ||
+                other.shippingAddressName == shippingAddressName));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, customer, orderPurpose, priceList);
+  int get hashCode => Object.hash(
+    runtimeType,
+    customer,
+    customerName,
+    orderPurpose,
+    priceList,
+    const DeepCollectionEquality().hash(_addressBook),
+    requiresShippingAddressSelection,
+    shippingAddressName,
+  );
 
   /// Create a copy of OrderBinding
   /// with the given fields replaced by the non-null parameter values.
@@ -2797,8 +2906,13 @@ class _$OrderBindingImpl implements _OrderBinding {
 abstract class _OrderBinding implements OrderBinding {
   const factory _OrderBinding({
     required final String customer,
+    @JsonKey(name: 'customer_name') final String? customerName,
     @JsonKey(name: 'order_purpose') required final String orderPurpose,
     @JsonKey(name: 'price_list') final String? priceList,
+    @JsonKey(name: 'address_book') final Map<String, dynamic> addressBook,
+    @JsonKey(name: 'requires_shipping_address_selection')
+    final bool requiresShippingAddressSelection,
+    @JsonKey(name: 'shipping_address_name') final String? shippingAddressName,
   }) = _$OrderBindingImpl;
 
   factory _OrderBinding.fromJson(Map<String, dynamic> json) =
@@ -2807,11 +2921,23 @@ abstract class _OrderBinding implements OrderBinding {
   @override
   String get customer;
   @override
+  @JsonKey(name: 'customer_name')
+  String? get customerName;
+  @override
   @JsonKey(name: 'order_purpose')
   String get orderPurpose;
   @override
   @JsonKey(name: 'price_list')
   String? get priceList;
+  @override
+  @JsonKey(name: 'address_book')
+  Map<String, dynamic> get addressBook;
+  @override
+  @JsonKey(name: 'requires_shipping_address_selection')
+  bool get requiresShippingAddressSelection;
+  @override
+  @JsonKey(name: 'shipping_address_name')
+  String? get shippingAddressName;
 
   /// Create a copy of OrderBinding
   /// with the given fields replaced by the non-null parameter values.

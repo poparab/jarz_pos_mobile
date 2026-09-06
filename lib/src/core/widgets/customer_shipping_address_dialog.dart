@@ -29,6 +29,7 @@ class CustomerShippingAddressDialog extends StatefulWidget {
   final String initialSelectedAddressName;
   final String initialPhone;
   final String? title;
+  final bool requireBranchName;
   final CustomerAddressRepository repository;
 
   const CustomerShippingAddressDialog({
@@ -41,12 +42,14 @@ class CustomerShippingAddressDialog extends StatefulWidget {
     required this.initialPhone,
     required this.repository,
     this.title,
+    this.requireBranchName = false,
   });
 
   /// Stable handles for the two free-text fields. The dialog grew a third
   /// text field (the Maps link), which silently broke finders written as
   /// `find.byType(TextField).last`.
   static const newAddressFieldKey = ValueKey('shipping_address_new_line1');
+  static const branchNameFieldKey = ValueKey('shipping_address_branch_name');
   static const phoneFieldKey = ValueKey('shipping_address_phone');
 
   static Future<Map<String, String>?> show(
@@ -59,6 +62,7 @@ class CustomerShippingAddressDialog extends StatefulWidget {
     required String initialPhone,
     required CustomerAddressRepository repository,
     String? title,
+    bool requireBranchName = false,
   }) {
     return showDialog<Map<String, String>>(
       context: context,
@@ -71,6 +75,7 @@ class CustomerShippingAddressDialog extends StatefulWidget {
         initialPhone: initialPhone,
         repository: repository,
         title: title,
+        requireBranchName: requireBranchName,
       ),
     );
   }
@@ -92,6 +97,7 @@ class _EditState {
     required this.phoneController,
     required this.pincodeController,
     required this.selectedTerritory,
+    required this.branchNameController,
   });
 
   final String addressName;
@@ -99,6 +105,7 @@ class _EditState {
   final TextEditingController line2Controller;
   final TextEditingController phoneController;
   final TextEditingController pincodeController;
+  final TextEditingController branchNameController;
   String? selectedTerritory;
 
   void dispose() {
@@ -106,6 +113,7 @@ class _EditState {
     line2Controller.dispose();
     phoneController.dispose();
     pincodeController.dispose();
+    branchNameController.dispose();
   }
 }
 
@@ -113,6 +121,7 @@ class _CustomerShippingAddressDialogState
     extends State<CustomerShippingAddressDialog> {
   late final TextEditingController _phoneController;
   late final TextEditingController _newAddressController;
+  late final TextEditingController _branchNameController;
   late final TextEditingController _newLine2Controller;
   late final TextEditingController _newPincodeController;
 
@@ -152,6 +161,7 @@ class _CustomerShippingAddressDialogState
 
     _phoneController = TextEditingController(text: initialPhone);
     _newAddressController = TextEditingController();
+    _branchNameController = TextEditingController();
     _newLine2Controller = TextEditingController();
     _newPincodeController = TextEditingController();
     _location = _locationOf(selectedAddress);
@@ -176,8 +186,8 @@ class _CustomerShippingAddressDialogState
       link: link,
       latitude: lat,
       longitude: lng,
-      precision:
-          (address['custom_geo_source'] ?? address['geo_source'])?.toString(),
+      precision: (address['custom_geo_source'] ?? address['geo_source'])
+          ?.toString(),
     );
   }
 
@@ -191,6 +201,7 @@ class _CustomerShippingAddressDialogState
   void dispose() {
     _phoneController.dispose();
     _newAddressController.dispose();
+    _branchNameController.dispose();
     _newLine2Controller.dispose();
     _newPincodeController.dispose();
     _editState?.dispose();
@@ -204,6 +215,10 @@ class _CustomerShippingAddressDialogState
       (a) => a?['name']?.toString() == addressName,
       orElse: () => null,
     );
+    if (_territoryMissing(selected)) {
+      _showError(context.l10n.customerShippingAddressTerritoryMissing);
+      return;
+    }
     setState(() {
       _selectedAddressName = addressName;
       _editState = null;
@@ -228,8 +243,9 @@ class _CustomerShippingAddressDialogState
       _editState = null;
       // A brand-new address starts with no pin; the saved tab shows the pin of
       // whichever address is selected.
-      _location =
-          tab == _Tab.addNew ? LocationLinkValue.empty : _locationOf(selected);
+      _location = tab == _Tab.addNew
+          ? LocationLinkValue.empty
+          : _locationOf(selected);
       _locationDirty = false;
     });
   }
@@ -250,6 +266,12 @@ class _CustomerShippingAddressDialogState
         ),
         pincodeController: TextEditingController(
           text: address['pincode']?.toString() ?? '',
+        ),
+        branchNameController: TextEditingController(
+          text:
+              (address['branch_name'] ?? address['address_title'])
+                  ?.toString() ??
+              '',
         ),
         selectedTerritory: address['city']?.toString(),
       );
@@ -272,12 +294,22 @@ class _CustomerShippingAddressDialogState
       _showError(context.l10n.customerShippingAddressLine1Required);
       return;
     }
+    if (widget.requireBranchName &&
+        es.branchNameController.text.trim().isEmpty) {
+      _showError(context.l10n.customerShippingAddressBranchNameRequired);
+      return;
+    }
+    if (widget.requireBranchName && !_isKnownTerritory(es.selectedTerritory)) {
+      _showError(context.l10n.customerShippingAddressTerritoryRequired);
+      return;
+    }
 
     setState(() => _isBusy = true);
     try {
       final updated = await widget.repository.updateAddress(
         customer: widget.customer,
         addressName: es.addressName,
+        branchName: es.branchNameController.text.trim(),
         addressLine1: line1,
         addressLine2: es.line2Controller.text.trim(),
         city: es.selectedTerritory,
@@ -285,10 +317,7 @@ class _CustomerShippingAddressDialogState
         pincode: es.pincodeController.text.trim(),
       );
       // Refresh list from server response.
-      final newAddresses = (updated['addresses'] as List? ?? [])
-          .whereType<Map>()
-          .map((a) => Map<String, dynamic>.from(a))
-          .toList();
+      final newAddresses = _rowsFromAddressBook(updated);
       setState(() {
         _addresses = newAddresses;
         _editState?.dispose();
@@ -300,7 +329,12 @@ class _CustomerShippingAddressDialogState
         SnackBar(content: Text(l10n.customerShippingAddressUpdateSuccess)),
       );
     } catch (e) {
-      _showError(context.userErrorMessage(e, fallback: context.l10n.customerShippingAddressUpdateFailed));
+      _showError(
+        context.userErrorMessage(
+          e,
+          fallback: context.l10n.customerShippingAddressUpdateFailed,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
@@ -335,11 +369,10 @@ class _CustomerShippingAddressDialogState
         customer: widget.customer,
         addressName: addressName,
       );
-      final newAddresses =
-          ((result['address_book'] as Map?)?['addresses'] as List? ?? [])
-              .whereType<Map>()
-              .map((a) => Map<String, dynamic>.from(a))
-              .toList();
+      final addressBook = result['address_book'] is Map
+          ? Map<String, dynamic>.from(result['address_book'] as Map)
+          : <String, dynamic>{};
+      final newAddresses = _rowsFromAddressBook(addressBook);
       setState(() {
         _addresses = newAddresses;
         if (_selectedAddressName == addressName) {
@@ -355,7 +388,12 @@ class _CustomerShippingAddressDialogState
         SnackBar(content: Text(l10n.customerShippingAddressDeleteSuccess)),
       );
     } catch (e) {
-      _showError(context.userErrorMessage(e, fallback: context.l10n.customerShippingAddressDeleteFailed));
+      _showError(
+        context.userErrorMessage(
+          e,
+          fallback: context.l10n.customerShippingAddressDeleteFailed,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
@@ -371,6 +409,22 @@ class _CustomerShippingAddressDialogState
     );
   }
 
+  List<Map<String, dynamic>> _rowsFromAddressBook(
+    Map<String, dynamic> addressBook,
+  ) {
+    final raw = addressBook['branch_options'] is List
+        ? addressBook['branch_options'] as List
+        : addressBook['addresses'] as List? ?? const [];
+    return raw.whereType<Map>().map((row) {
+      final normalized = Map<String, dynamic>.from(row);
+      normalized.putIfAbsent(
+        'name',
+        () => normalized['address_name']?.toString() ?? '',
+      );
+      return normalized;
+    }).toList();
+  }
+
   /// Geo keys for the result map — empty unless staff touched the link field.
   Map<String, String> get _locationFields =>
       _locationDirty ? _location.toRequestFields() : const {};
@@ -382,8 +436,18 @@ class _CustomerShippingAddressDialogState
         _showError(context.l10n.invoiceAddressEmpty);
         return;
       }
+      final branchName = _branchNameController.text.trim();
+      if (widget.requireBranchName && branchName.isEmpty) {
+        _showError(context.l10n.customerShippingAddressBranchNameRequired);
+        return;
+      }
+      if (widget.requireBranchName && !_isKnownTerritory(_newTerritory)) {
+        _showError(context.l10n.customerShippingAddressTerritoryRequired);
+        return;
+      }
       Navigator.of(context).pop({
         'address': newAddress,
+        if (branchName.isNotEmpty) 'branch_name': branchName,
         'phone': _phoneController.text.trim(),
         if (_newTerritory != null && _newTerritory!.isNotEmpty)
           'territory': _newTerritory!,
@@ -398,7 +462,17 @@ class _CustomerShippingAddressDialogState
         (a) => a?['name']?.toString() == _selectedAddressName,
         orElse: () => null,
       );
-      final selectedTerritory = selected?['city']?.toString().trim() ?? '';
+      if (_territoryMissing(selected)) {
+        _showError(context.l10n.customerShippingAddressTerritoryMissing);
+        return;
+      }
+      final effectiveTerritory =
+          selected?['effective_territory']?.toString().trim() ?? '';
+      final selectedTerritory = effectiveTerritory.isNotEmpty
+          ? effectiveTerritory
+          : (widget.requireBranchName
+                ? ''
+                : selected?['city']?.toString().trim() ?? '');
       Navigator.of(context).pop({
         'address_name': _selectedAddressName!.trim(),
         'phone': _phoneController.text.trim(),
@@ -406,6 +480,19 @@ class _CustomerShippingAddressDialogState
         ..._locationFields,
       });
     }
+  }
+
+  bool _territoryMissing(Map<String, dynamic>? address) {
+    final value = address?['territory_missing'];
+    return value == true || value == 1 || value?.toString() == '1';
+  }
+
+  bool _isKnownTerritory(String? value) {
+    final normalized = value?.trim() ?? '';
+    return normalized.isNotEmpty &&
+        widget.territories.any(
+          (territory) => territory['name']?.toString().trim() == normalized,
+        );
   }
 
   // â”€â”€ build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -510,6 +597,19 @@ class _CustomerShippingAddressDialogState
                 ),
               // Add new form.
               if (_tab == _Tab.addNew) ...[
+                if (widget.requireBranchName) ...[
+                  TextField(
+                    key: CustomerShippingAddressDialog.branchNameFieldKey,
+                    controller: _branchNameController,
+                    decoration: InputDecoration(
+                      labelText: l10n.customerShippingAddressBranchNameLabel,
+                      prefixIcon: const Icon(Icons.store_outlined),
+                      border: const OutlineInputBorder(),
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 TextField(
                   key: CustomerShippingAddressDialog.newAddressFieldKey,
                   controller: _newAddressController,
@@ -588,6 +688,12 @@ class _CustomerShippingAddressDialogState
     final subtitleParts = <String>[];
     final phone = address['phone']?.toString().trim() ?? '';
     if (phone.isNotEmpty) subtitleParts.add(phone);
+    final territory =
+        (address['effective_territory'] ?? address['city'])
+            ?.toString()
+            .trim() ??
+        '';
+    if (territory.isNotEmpty) subtitleParts.add(territory);
     if (address['is_primary_address'] == true) subtitleParts.add('Primary');
 
     return ListTile(
@@ -598,10 +704,14 @@ class _CustomerShippingAddressDialogState
             ? Theme.of(context).colorScheme.primary
             : Theme.of(context).colorScheme.outline,
       ),
-      title: Text(address['full_address']?.toString() ?? ''),
-      subtitle: subtitleParts.isEmpty
-          ? null
-          : Text(subtitleParts.join(' â€¢ ')),
+      title: Text(_branchLabel(address)),
+      subtitle: Text(
+        <String>[
+          if ((address['full_address'] ?? '').toString().trim().isNotEmpty)
+            address['full_address'].toString().trim(),
+          ...subtitleParts,
+        ].join(' • '),
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -623,6 +733,19 @@ class _CustomerShippingAddressDialogState
     );
   }
 
+  String _branchLabel(Map<String, dynamic> address) {
+    for (final key in const [
+      'branch_name',
+      'address_title',
+      'address_line1',
+      'name',
+    ]) {
+      final value = address[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+    return context.l10n.customerShippingAddressTitle;
+  }
+
   Widget _buildEditForm(Map<String, dynamic> address) {
     final es = _editState!;
     final l10n = context.l10n;
@@ -638,6 +761,18 @@ class _CustomerShippingAddressDialogState
             ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
+          if (widget.requireBranchName) ...[
+            TextField(
+              controller: es.branchNameController,
+              decoration: InputDecoration(
+                labelText: l10n.customerShippingAddressBranchNameLabel,
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+              textCapitalization: TextCapitalization.words,
+            ),
+            const SizedBox(height: 8),
+          ],
           TextField(
             controller: es.line1Controller,
             decoration: InputDecoration(

@@ -19,7 +19,6 @@ import '../../state/courier_balances_provider.dart';
 // Merged system status: connectivity, realtime, sync, couriers, partner chip
 // Removed unused system status imports (connectivity, sync, websocket) to satisfy analyzer.
 import '../../state/pos_notifier.dart';
-import '../../data/models/pos_models.dart';
 import '../widgets/customer_search_widget.dart';
 import '../widgets/draft_tabs_bar.dart';
 import '../widgets/sales_partner_selector.dart';
@@ -47,17 +46,25 @@ class PosScreen extends ConsumerStatefulWidget {
 }
 
 class _PosScreenState extends ConsumerState<PosScreen>
-  with SingleTickerProviderStateMixin, RouteAware, WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin, RouteAware, WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isProfileDialogOpen = false;
   bool _amendmentCleanupScheduled = false;
+  bool _b2bBindingApplied = false;
+  bool _b2bBindingInProgress = false;
+  String? _b2bBindingError;
+
+  bool get _isB2bOrderRoute =>
+      widget.launchData?['mode']?.toString() == 'b2b_order';
 
   // ── Scroll-to-hide state (phones only) ──────────────────────────
   late final AnimationController _hideController;
+
   /// 1.0 → visible, 0.0 → hidden.  Used for SizeTransition + FAB.
   late final Animation<double> _hideAnim;
   bool _headerVisible = true;
   double _lastScrollOffset = 0;
+
   /// Accumulated scroll delta – works on 120 Hz+ displays where per-frame
   /// delta can be tiny.  Resets when scroll direction reverses.
   double _accumulatedDelta = 0;
@@ -67,7 +74,8 @@ class _PosScreenState extends ConsumerState<PosScreen>
   Map<String, dynamic>? _amendmentInvoiceData() {
     final launchData = widget.launchData;
     final invoiceData = launchData?['invoice'];
-    if (launchData?['mode']?.toString() != 'amendment_draft' || invoiceData is! Map) {
+    if (launchData?['mode']?.toString() != 'amendment_draft' ||
+        invoiceData is! Map) {
       return null;
     }
     return Map<String, dynamic>.from(invoiceData);
@@ -88,9 +96,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
     }
     _amendmentCleanupScheduled = true;
     unawaited(
-      ref.read(posNotifierProvider.notifier).abandonAmendmentDraft(
-        expectedInvoiceId: invoiceId,
-      ),
+      ref
+          .read(posNotifierProvider.notifier)
+          .abandonAmendmentDraft(expectedInvoiceId: invoiceId),
     );
   }
 
@@ -100,37 +108,86 @@ class _PosScreenState extends ConsumerState<PosScreen>
   /// commercial policy whose order purpose matches the binding, so the order is
   /// placed through the normal invoice-creation path (and lands on the dispatch
   /// Kanban automatically).
-  void _applyB2bBinding() {
+  Future<bool> _applyB2bBinding() async {
     final launchData = widget.launchData;
-    if (launchData?['mode']?.toString() != 'b2b_order') return;
+    if (launchData?['mode']?.toString() != 'b2b_order') return false;
 
     final customer = launchData?['customer']?.toString().trim() ?? '';
     final orderPurpose = launchData?['order_purpose']?.toString().trim() ?? '';
-    if (customer.isEmpty) return;
+    if (customer.isEmpty) return false;
 
     final notifier = ref.read(posNotifierProvider.notifier);
-
-    notifier.selectCustomer({
-      'name': customer,
-      'customer_name': launchData?['customer_name']?.toString() ?? customer,
-      if (launchData?['mobile_no'] != null)
-        'mobile_no': launchData!['mobile_no'].toString(),
-    });
-
-    if (orderPurpose.isNotEmpty) {
-      final policies = ref.read(posNotifierProvider).availableCommercialPolicies;
-      CommercialPolicy? match;
-      for (final policy in policies) {
-        if (policy.orderPurpose.trim().toLowerCase() ==
-            orderPurpose.toLowerCase()) {
-          match = policy;
-          break;
-        }
-      }
-      if (match != null) {
-        unawaited(notifier.setCommercialPolicy(match));
-      }
+    final selectedCustomer = launchData?['selected_customer'] is Map
+        ? Map<String, dynamic>.from(launchData!['selected_customer'] as Map)
+        : <String, dynamic>{
+            'name': customer,
+            'customer_name':
+                launchData?['customer_name']?.toString() ?? customer,
+            if (launchData?['mobile_no'] != null)
+              'mobile_no': launchData!['mobile_no'].toString(),
+          };
+    final current = ref.read(posNotifierProvider);
+    final samePendingContext =
+        current.isB2bOrder &&
+        !current.b2bSetupComplete &&
+        current.selectedCustomer?['name']?.toString().trim() == customer;
+    if (!samePendingContext &&
+        !await notifier.startB2bOrder(selectedCustomer)) {
+      return false;
     }
+
+    final policyApplied =
+        orderPurpose.isNotEmpty &&
+        await notifier.setCommercialPolicyByOrderPurpose(orderPurpose);
+    if (!policyApplied) return false;
+
+    final boundPriceList = launchData?['price_list']?.toString().trim() ?? '';
+    if (boundPriceList.isNotEmpty) {
+      final latest = ref.read(posNotifierProvider);
+      final hasBoundPriceList = latest.availablePriceLists.any(
+        (entry) => entry['name']?.toString().trim() == boundPriceList,
+      );
+      if (!hasBoundPriceList) return false;
+      await notifier.setSelectedPriceList(boundPriceList);
+    }
+    notifier.markB2bSetupComplete();
+    return ref.read(posNotifierProvider).b2bSetupComplete;
+  }
+
+  void _scheduleB2bBinding(PosState state) {
+    if (!_isB2bOrderRoute ||
+        _b2bBindingApplied ||
+        _b2bBindingInProgress ||
+        state.selectedProfile == null) {
+      return;
+    }
+    final hasBinding =
+        widget.launchData?['customer']?.toString().trim().isNotEmpty == true;
+    if (!hasBinding) return;
+    _b2bBindingInProgress = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(() async {
+        try {
+          final applied = await _applyB2bBinding();
+          if (!mounted) return;
+          setState(() {
+            _b2bBindingApplied = applied;
+            _b2bBindingError = applied
+                ? null
+                : context.l10n.b2bOrderPolicyUnavailable;
+          });
+        } catch (error) {
+          if (!mounted) return;
+          setState(() {
+            _b2bBindingApplied = false;
+            _b2bBindingError = context.userErrorMessage(error);
+          });
+        } finally {
+          if (mounted) setState(() => _b2bBindingInProgress = false);
+        }
+      }());
+    });
   }
 
   Widget _wrapWithAmendmentCleanupGuard(Widget child) {
@@ -182,7 +239,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
 
       final amendmentInvoiceData = _amendmentInvoiceData();
       if (amendmentInvoiceData != null) {
-        ref.read(posNotifierProvider.notifier).startAmendmentDraft(amendmentInvoiceData);
+        ref
+            .read(posNotifierProvider.notifier)
+            .startAmendmentDraft(amendmentInvoiceData);
         return;
       }
 
@@ -195,10 +254,6 @@ class _PosScreenState extends ConsumerState<PosScreen>
       } else {
         ref.read(posNotifierProvider.notifier).refreshCatalog();
       }
-
-      // B2B binding: a sample/order started from B2B mode preselects the
-      // customer and applies the matching commercial policy (order purpose).
-      _applyB2bBinding();
     });
   }
 
@@ -301,6 +356,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(posNotifierProvider);
+    _scheduleB2bBinding(state);
     final requirePosShift = ref.watch(requirePosShiftProvider);
     final activeShiftAsync = ref.watch(activeShiftProvider);
     // Enforce POS profile selection: show startup popup chooser on entry
@@ -319,7 +375,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
       if (state.profiles.length == 1) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          ref.read(posNotifierProvider.notifier).selectProfile(state.profiles.first);
+          ref
+              .read(posNotifierProvider.notifier)
+              .selectProfile(state.profiles.first);
         });
         return _wrapWithAmendmentCleanupGuard(
           const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -352,7 +410,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
                       itemBuilder: (ctx, index) {
                         final profile = state.profiles[index];
                         final name = (profile['name'] ?? '').toString();
-                        final title = (profile['title'] ?? profile['name'] ?? '').toString();
+                        final title =
+                            (profile['title'] ?? profile['name'] ?? '')
+                                .toString();
                         return ListTile(
                           leading: const Icon(Icons.store),
                           title: Text(title.isNotEmpty ? title : name),
@@ -369,7 +429,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
             _isProfileDialogOpen = false;
             if (!mounted) return;
             if (selected != null) {
-              await ref.read(posNotifierProvider.notifier).selectProfile(selected);
+              await ref
+                  .read(posNotifierProvider.notifier)
+                  .selectProfile(selected);
             }
           });
         }
@@ -388,7 +450,8 @@ class _PosScreenState extends ConsumerState<PosScreen>
     // `isLoading && !hasValue` was not enough — a refresh carries the previous
     // profile's value forward, so `hasValue` stayed true across a profile
     // switch and the POS UI rendered for a profile with no shift open.
-    final selectedProfileName = (state.selectedProfile?['name'] ?? '').toString();
+    final selectedProfileName = (state.selectedProfile?['name'] ?? '')
+        .toString();
     final shiftForThisProfile = activeShiftAsync.valueOrNull;
     final hasShiftForProfile =
         shiftForThisProfile != null &&
@@ -422,142 +485,159 @@ class _PosScreenState extends ConsumerState<PosScreen>
       final statusBarHeight = MediaQuery.of(context).viewPadding.top;
       return _wrapWithAmendmentCleanupGuard(
         AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
-        ),
-        child: Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          key: _scaffoldKey,
-          drawer: const AppDrawer(),
-          // FAB slides out when header hides
-          floatingActionButton: SlideTransition(
-            position: Tween<Offset>(
-              begin: Offset.zero,
-              end: const Offset(0, 2), // slide down off screen
-            ).animate(CurvedAnimation(
-              parent: _hideController,
-              curve: Curves.easeInOut,
-            )),
-            child: Consumer(builder: (c, ref2, _) {
-              final cartCount = ref2.watch(
-                posNotifierProvider.select((s) => s.cartItemCount),
-              );
-              return FloatingActionButton(
-                heroTag: 'pos_cart_fab',
-                onPressed: () => _showCartBottomSheet(context),
-                child: Badge(
-                  isLabelVisible: cartCount > 0,
-                  label: Text('$cartCount'),
-                  child: const Icon(Icons.shopping_cart),
-                ),
-              );
-            }),
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+            statusBarBrightness: Brightness.dark,
           ),
-          body: GestureDetector(
-            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: NotificationListener<ScrollNotification>(
-                    onNotification: _onScrollNotification,
-                    child: Column(
-                      children: [
-                        // Persistent primary-coloured status bar area
-                        Container(
-                          width: double.infinity,
-                          height: statusBarHeight,
-                          color: primary,
-                        ),
-                        // Header collapses smoothly when scrolling down
-                        ClipRect(
-                          child: SizeTransition(
-                            sizeFactor: _hideAnim,
-                            axisAlignment: -1.0, // collapse from top edge
-                            child: header,
-                          ),
-                        ),
-                        // Main content
-                        if (matchedActiveShift != null)
-                          ShiftStatusBanner(shift: matchedActiveShift),
-                        if (state.isAmendmentDraft)
-                          _buildAmendmentDraftBanner(context, state),
-                        Expanded(
-                          child: state.isLoading
-                              ? const Center(child: CircularProgressIndicator())
-                              : state.error != null
-                                  ? _buildError(context, state.error!)
-                                  : _buildResponsiveLayout(context),
-                        ),
-                      ],
+          child: Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            key: _scaffoldKey,
+            drawer: const AppDrawer(),
+            // FAB slides out when header hides
+            floatingActionButton: SlideTransition(
+              position:
+                  Tween<Offset>(
+                    begin: Offset.zero,
+                    end: const Offset(0, 2), // slide down off screen
+                  ).animate(
+                    CurvedAnimation(
+                      parent: _hideController,
+                      curve: Curves.easeInOut,
                     ),
                   ),
-                ),
+              child: Consumer(
+                builder: (c, ref2, _) {
+                  final cartCount = ref2.watch(
+                    posNotifierProvider.select((s) => s.cartItemCount),
+                  );
+                  return FloatingActionButton(
+                    heroTag: 'pos_cart_fab',
+                    onPressed: () => _showCartBottomSheet(context),
+                    child: Badge(
+                      isLabelVisible: cartCount > 0,
+                      label: Text('$cartCount'),
+                      child: const Icon(Icons.shopping_cart),
+                    ),
+                  );
+                },
+              ),
+            ),
+            body: GestureDetector(
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: _onScrollNotification,
+                      child: Column(
+                        children: [
+                          // Persistent primary-coloured status bar area
+                          Container(
+                            width: double.infinity,
+                            height: statusBarHeight,
+                            color: primary,
+                          ),
+                          // Header collapses smoothly when scrolling down
+                          ClipRect(
+                            child: SizeTransition(
+                              sizeFactor: _hideAnim,
+                              axisAlignment: -1.0, // collapse from top edge
+                              child: header,
+                            ),
+                          ),
+                          // Main content
+                          if (matchedActiveShift != null)
+                            ShiftStatusBanner(shift: matchedActiveShift),
+                          if (state.isAmendmentDraft)
+                            _buildAmendmentDraftBanner(context, state),
+                          Expanded(
+                            child: state.isLoading
+                                ? const Center(
+                                    child: CircularProgressIndicator(),
+                                  )
+                                : state.error != null
+                                ? _buildError(context, state.error!)
+                                : _buildResponsiveLayout(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
 
-                // Quick reveal button when header is hidden (phones only)
-                SafeArea(
-                  child: Align(
-                    alignment: AlignmentDirectional.topEnd,
-                    child: Padding(
-                      padding: const EdgeInsetsDirectional.only(top: 6, end: 8),
-                      child: AnimatedSlide(
-                        duration: const Duration(milliseconds: 200),
-                        offset: _headerVisible ? const Offset(0, -0.4) : Offset.zero,
-                        child: AnimatedOpacity(
+                  // Quick reveal button when header is hidden (phones only)
+                  SafeArea(
+                    child: Align(
+                      alignment: AlignmentDirectional.topEnd,
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.only(
+                          top: 6,
+                          end: 8,
+                        ),
+                        child: AnimatedSlide(
                           duration: const Duration(milliseconds: 200),
-                          opacity: _headerVisible ? 0.0 : 0.9,
-                          child: IgnorePointer(
-                            ignoring: _headerVisible,
-                            child: FloatingActionButton.small(
-                              heroTag: 'pos_header_reveal',
-                              tooltip: context.l10n.posShowHeaderTooltip,
-                              onPressed: () {
-                                _accumulatedDelta = 0;
-                                _showHeader();
-                              },
-                              backgroundColor: primary,
-                              foregroundColor: onPrimary,
-                              child: const Icon(Icons.keyboard_arrow_down),
+                          offset: _headerVisible
+                              ? const Offset(0, -0.4)
+                              : Offset.zero,
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 200),
+                            opacity: _headerVisible ? 0.0 : 0.9,
+                            child: IgnorePointer(
+                              ignoring: _headerVisible,
+                              child: FloatingActionButton.small(
+                                heroTag: 'pos_header_reveal',
+                                tooltip: context.l10n.posShowHeaderTooltip,
+                                onPressed: () {
+                                  _accumulatedDelta = 0;
+                                  _showHeader();
+                                },
+                                backgroundColor: primary,
+                                foregroundColor: onPrimary,
+                                child: const Icon(Icons.keyboard_arrow_down),
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ));
+      );
     }
 
     // ── Tablet: standard layout ─────────────────────────────────────
-    return _wrapWithAmendmentCleanupGuard(Scaffold(
-      key: _scaffoldKey,
-      drawer: const AppDrawer(),
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(headerHeight),
-        child: header,
-      ),
-      body: GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: Column(
-          children: [
-            if (matchedActiveShift != null) ShiftStatusBanner(shift: matchedActiveShift),
-            if (state.isAmendmentDraft) _buildAmendmentDraftBanner(context, state),
-            Expanded(
-              child: state.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : state.error != null
-                      ? _buildError(context, state.error!)
-                      : _buildResponsiveLayout(context),
-            ),
-          ],
+    return _wrapWithAmendmentCleanupGuard(
+      Scaffold(
+        key: _scaffoldKey,
+        drawer: const AppDrawer(),
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(headerHeight),
+          child: header,
+        ),
+        body: GestureDetector(
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: Column(
+            children: [
+              if (matchedActiveShift != null)
+                ShiftStatusBanner(shift: matchedActiveShift),
+              if (state.isAmendmentDraft)
+                _buildAmendmentDraftBanner(context, state),
+              Expanded(
+                child: state.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : state.error != null
+                    ? _buildError(context, state.error!)
+                    : _buildResponsiveLayout(context),
+              ),
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 
   Widget _buildAmendmentDraftBanner(BuildContext context, PosState state) {
@@ -578,10 +658,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.edit_note,
-            color: theme.colorScheme.onSecondaryContainer,
-          ),
+          Icon(Icons.edit_note, color: theme.colorScheme.onSecondaryContainer),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -599,7 +676,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
                   Text(
                     invoiceId,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSecondaryContainer.withValues(alpha: 0.8),
+                      color: theme.colorScheme.onSecondaryContainer.withValues(
+                        alpha: 0.8,
+                      ),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -631,6 +710,66 @@ class _PosScreenState extends ConsumerState<PosScreen>
       large: 16,
     );
     final isPhone = ResponsiveUtils.isPhone(context);
+    final state = ref.watch(posNotifierProvider);
+
+    if (_isB2bOrderRoute && (!state.isB2bOrder || !state.b2bSetupComplete)) {
+      final policyPending = state.isB2bOrder && !state.b2bSetupComplete;
+      return Column(
+        children: [
+          const DraftTabsBar(b2bOnly: true),
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.business_outlined, size: 48),
+                    const SizedBox(height: 12),
+                    Text(
+                      policyPending
+                          ? context.l10n.b2bOrderSetupFailedTitle
+                          : context.l10n.b2bOrderResumeTitle,
+                      style: Theme.of(context).textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      policyPending
+                          ? (_b2bBindingError ??
+                                context.l10n.b2bOrderPolicyUnavailable)
+                          : context.l10n.b2bOrderResumeMessage,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    if (policyPending) ...[
+                      FilledButton.icon(
+                        onPressed: _b2bBindingInProgress
+                            ? null
+                            : () {
+                                setState(() => _b2bBindingError = null);
+                                _scheduleB2bBinding(
+                                  ref.read(posNotifierProvider),
+                                );
+                              },
+                        icon: const Icon(Icons.refresh),
+                        label: Text(context.l10n.commonRetry),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    FilledButton.icon(
+                      onPressed: () => context.go(AppRoutes.b2b),
+                      icon: const Icon(Icons.arrow_back),
+                      label: Text(context.l10n.b2bOrderChooseAccount),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
     final customerSearch = Container(
       padding: padding,
@@ -644,7 +783,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
           ),
         ],
       ),
-      child: const CustomerSearchWidget(),
+      child: CustomerSearchWidget(lockCustomer: _isB2bOrderRoute),
     );
 
     // Phone: customer search collapses with header
@@ -659,7 +798,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
               child: customerSearch,
             ),
           ),
-          const DraftTabsBar(),
+          DraftTabsBar(b2bOnly: _isB2bOrderRoute),
           Expanded(child: ItemGridWidget(hideAnimation: _hideAnim)),
         ],
       );
@@ -667,7 +806,11 @@ class _PosScreenState extends ConsumerState<PosScreen>
 
     // Tablet: side-by-side
     final itemsPanel = Column(
-      children: [customerSearch, const DraftTabsBar(), const Expanded(child: ItemGridWidget())],
+      children: [
+        customerSearch,
+        DraftTabsBar(b2bOnly: _isB2bOrderRoute),
+        const Expanded(child: ItemGridWidget()),
+      ],
     );
     final flexRatio = ResponsiveUtils.getCartFlexRatio(context);
     return Row(
@@ -690,7 +833,10 @@ class _PosScreenState extends ConsumerState<PosScreen>
             color: Theme.of(context).colorScheme.error,
           ),
           const SizedBox(height: 16),
-          Text(l10n.commonError, style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            l10n.commonError,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 8),
           Text(
             context.userErrorMessage(error),
@@ -711,7 +857,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
   void _showCartBottomSheet(BuildContext context) {
     final l10n = context.l10n;
     final isPhone = ResponsiveUtils.isPhone(context);
-    final initialChildSize = ResponsiveUtils.getCartBottomSheetInitialSize(context);
+    final initialChildSize = ResponsiveUtils.getCartBottomSheetInitialSize(
+      context,
+    );
     final minChildSize = ResponsiveUtils.getCartBottomSheetMinSize(context);
     final maxChildSize = ResponsiveUtils.getCartBottomSheetMaxSize(context);
     showModalBottomSheet(
@@ -766,7 +914,6 @@ class _PosScreenState extends ConsumerState<PosScreen>
       ),
     );
   }
-
 }
 
 class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
@@ -776,7 +923,15 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
   final VoidCallback onOpenDrawer;
   final WidgetRef ref;
   final BuildContext context;
-  const _MergedHeader({required this.state, required this.onShowCart, required this.onOpenKanban, required this.onOpenDrawer, required this.ref, required this.context, double? headerHeight}) : _headerHeight = headerHeight;
+  const _MergedHeader({
+    required this.state,
+    required this.onShowCart,
+    required this.onOpenKanban,
+    required this.onOpenDrawer,
+    required this.ref,
+    required this.context,
+    double? headerHeight,
+  }) : _headerHeight = headerHeight;
 
   @override
   Size get preferredSize => Size.fromHeight(_headerHeight ?? 88);
@@ -790,7 +945,9 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
     final webSocketService = r.watch(webSocketServiceProvider);
     final offlineSyncService = r.watch(offlineSyncServiceProvider);
     final courierState = r.watch(courierBalancesProvider);
-    final partner = r.watch(posNotifierProvider.select((s) => s.selectedSalesPartner));
+    final partner = r.watch(
+      posNotifierProvider.select((s) => s.selectedSalesPartner),
+    );
     final printer = r.watch(posPrinterServiceProvider);
     final isPhone = ResponsiveUtils.isPhone(ctx);
 
@@ -798,7 +955,11 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
     final essentialChildren = <Widget>[
       // Hamburger menu
       IconButton(
-        icon: Icon(Icons.menu, color: theme.colorScheme.onPrimary, size: isPhone ? 20 : 24),
+        icon: Icon(
+          Icons.menu,
+          color: theme.colorScheme.onPrimary,
+          size: isPhone ? 20 : 24,
+        ),
         onPressed: onOpenDrawer,
         tooltip: MaterialLocalizations.of(ctx).openAppDrawerTooltip,
         visualDensity: isPhone ? VisualDensity.compact : VisualDensity.standard,
@@ -821,12 +982,15 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                 l10n.systemStatusPartnerChip,
             overflow: TextOverflow.ellipsis,
           ),
-          onDeleted: () => r.read(posNotifierProvider.notifier).setSalesPartner(null),
+          onDeleted: () =>
+              r.read(posNotifierProvider.notifier).setSalesPartner(null),
           deleteIcon: const Icon(Icons.close, size: 16),
         )
       else
         TextButton.icon(
-          style: TextButton.styleFrom(foregroundColor: theme.colorScheme.onPrimary),
+          style: TextButton.styleFrom(
+            foregroundColor: theme.colorScheme.onPrimary,
+          ),
           onPressed: () async {
             final sel = await showDialog<Map<String, dynamic>?>(
               context: ctx,
@@ -837,7 +1001,9 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
             }
           },
           icon: const Icon(Icons.handshake),
-          label: isPhone ? const SizedBox.shrink() : Text(l10n.systemStatusPartnerChip),
+          label: isPhone
+              ? const SizedBox.shrink()
+              : Text(l10n.systemStatusPartnerChip),
         ),
       if (!isPhone) ...[
         const SizedBox(width: 12),
@@ -846,85 +1012,96 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
       ] else
         const SizedBox(width: 4),
       // Section: POS Profile quick selector (dialog-based)
-      Builder(builder: (bCtx) {
-        final profiles = r.watch(posNotifierProvider).profiles;
-        final selected = r.watch(posNotifierProvider).selectedProfile;
-        final onPrimary = theme.colorScheme.onPrimary;
+      Builder(
+        builder: (bCtx) {
+          final profiles = r.watch(posNotifierProvider).profiles;
+          final selected = r.watch(posNotifierProvider).selectedProfile;
+          final onPrimary = theme.colorScheme.onPrimary;
 
-        if (profiles.isEmpty) {
-          return Text(
-            selected?['title'] ??
-                selected?['name'] ??
-                l10n.posProfileSelectionShortFallback,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: onPrimary,
-              fontWeight: FontWeight.w600,
-              fontSize: isPhone ? 11 : null,
-            ),
-          );
-        }
+          if (profiles.isEmpty) {
+            return Text(
+              selected?['title'] ??
+                  selected?['name'] ??
+                  l10n.posProfileSelectionShortFallback,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: onPrimary,
+                fontWeight: FontWeight.w600,
+                fontSize: isPhone ? 11 : null,
+              ),
+            );
+          }
 
-        final label = selected != null
-            ? (selected['title'] ??
-                    selected['name'] ??
-                    l10n.posProfileSelectionShortFallback)
-                .toString()
-            : (profiles.length == 1
-                ? (profiles.first['title'] ??
-                        profiles.first['name'] ??
+          final label = selected != null
+              ? (selected['title'] ??
+                        selected['name'] ??
                         l10n.posProfileSelectionShortFallback)
                     .toString()
-                : l10n.posProfileSelectionCycleHint);
+              : (profiles.length == 1
+                    ? (profiles.first['title'] ??
+                              profiles.first['name'] ??
+                              l10n.posProfileSelectionShortFallback)
+                          .toString()
+                    : l10n.posProfileSelectionCycleHint);
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-          child: InkWell(
-            onTap: () async {
-              if (profiles.length == 1) {
-                r.read(posNotifierProvider.notifier).selectProfile(profiles.first);
-                return;
-              }
-              // Cycle through profiles without modal dialog
-              final currentIndex = selected != null 
-                  ? profiles.indexWhere((p) => p['name'] == selected['name'])
-                  : -1;
-              final nextIndex = (currentIndex + 1) % profiles.length;
-              final nextProfile = profiles[nextIndex];
-              r.read(posNotifierProvider.notifier).selectProfile(nextProfile);
-            },
-            borderRadius: BorderRadius.circular(14),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: isPhone ? 6 : 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: onPrimary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: onPrimary.withValues(alpha: 0.25)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.store, size: isPhone ? 14 : 16, color: onPrimary),
-                  const SizedBox(width: 6),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: isPhone ? 80 : 200),
-                    child: Text(
-                      label,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: onPrimary,
-                        fontSize: isPhone ? 10 : 12,
-                        fontWeight: FontWeight.w600,
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+            child: InkWell(
+              onTap: () async {
+                if (profiles.length == 1) {
+                  r
+                      .read(posNotifierProvider.notifier)
+                      .selectProfile(profiles.first);
+                  return;
+                }
+                // Cycle through profiles without modal dialog
+                final currentIndex = selected != null
+                    ? profiles.indexWhere((p) => p['name'] == selected['name'])
+                    : -1;
+                final nextIndex = (currentIndex + 1) % profiles.length;
+                final nextProfile = profiles[nextIndex];
+                r.read(posNotifierProvider.notifier).selectProfile(nextProfile);
+              },
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isPhone ? 6 : 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: onPrimary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: onPrimary.withValues(alpha: 0.25)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.store,
+                      size: isPhone ? 14 : 16,
+                      color: onPrimary,
+                    ),
+                    const SizedBox(width: 6),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: isPhone ? 80 : 200),
+                      child: Text(
+                        label,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: onPrimary,
+                          fontSize: isPhone ? 10 : 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 2),
-                  Icon(Icons.arrow_drop_down, size: 18, color: onPrimary),
-                ],
+                    const SizedBox(width: 2),
+                    Icon(Icons.arrow_drop_down, size: 18, color: onPrimary),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      }),
+          );
+        },
+      ),
     ];
 
     // Status chips – shown inline on tablets, in trailing overflow on phones
@@ -936,10 +1113,18 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
           label: isOnline ? l10n.commonOnline : l10n.commonOffline,
           color: isOnline ? Colors.green : Colors.red,
         ),
-        loading: () =>
-            _statusChip(ctx, icon: Icons.wifi, label: l10n.systemStatusChecking, color: Colors.orange),
-        error: (e, st) =>
-            _statusChip(ctx, icon: Icons.wifi_off, label: l10n.commonError, color: Colors.red),
+        loading: () => _statusChip(
+          ctx,
+          icon: Icons.wifi,
+          label: l10n.systemStatusChecking,
+          color: Colors.orange,
+        ),
+        error: (e, st) => _statusChip(
+          ctx,
+          icon: Icons.wifi_off,
+          label: l10n.commonError,
+          color: Colors.red,
+        ),
       ),
       const SizedBox(width: 8),
       StreamBuilder<bool>(
@@ -950,7 +1135,9 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
           return _statusChip(
             ctx,
             icon: connected ? Icons.sync : Icons.sync_disabled,
-            label: connected ? l10n.systemStatusRealtime : l10n.systemStatusNoRealtime,
+            label: connected
+                ? l10n.systemStatusRealtime
+                : l10n.systemStatusNoRealtime,
             color: connected ? Colors.blue : Colors.grey,
           );
         },
@@ -975,7 +1162,9 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
         onTap: () => showCourierBalancesDialog(ctx),
         child: _statusChip(
           ctx,
-          icon: courierState.hasUnsettled ? Icons.delivery_dining : Icons.local_shipping,
+          icon: courierState.hasUnsettled
+              ? Icons.delivery_dining
+              : Icons.local_shipping,
           label: courierState.hasUnsettled
               ? l10n.systemStatusCourierCount(courierState.unsettledCount)
               : l10n.systemStatusCouriers,
@@ -1005,7 +1194,10 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
       onTap: () => context.push(AppRoutes.printers),
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: isPhone ? 6 : 10, vertical: 6),
+        padding: EdgeInsets.symmetric(
+          horizontal: isPhone ? 6 : 10,
+          vertical: 6,
+        ),
         decoration: BoxDecoration(
           color: () {
             switch (printer.unifiedStatus) {
@@ -1069,7 +1261,10 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
                     case PrinterUnifiedStatus.connecting:
                       return l10n.printerStatusConnecting;
                     case PrinterUnifiedStatus.error:
-                      return ctx.userErrorMessage(printer.lastErrorMessage, fallback: l10n.printerStatusError);
+                      return ctx.userErrorMessage(
+                        printer.lastErrorMessage,
+                        fallback: l10n.printerStatusError,
+                      );
                     case PrinterUnifiedStatus.disconnected:
                       return l10n.printerStatusDisconnected;
                   }
@@ -1103,57 +1298,80 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
       printerChip,
       SizedBox(width: isPhone ? 4 : 12),
       // Draft count badge
-      Consumer(builder: (c, ref2, _) {
-        final draftCount = ref2.watch(posNotifierProvider.select((s) => s.drafts.length));
-        if (draftCount == 0) return const SizedBox.shrink();
-        return Padding(
-          padding: EdgeInsetsDirectional.only(end: isPhone ? 4 : 8),
-          child: Badge(
-            label: Text('$draftCount'),
-            child: Icon(
-              Icons.layers,
-              size: isPhone ? 20 : 24,
-              color: theme.colorScheme.onPrimary,
+      Consumer(
+        builder: (c, ref2, _) {
+          final draftCount = ref2.watch(
+            posNotifierProvider.select((s) => s.drafts.length),
+          );
+          if (draftCount == 0) return const SizedBox.shrink();
+          return Padding(
+            padding: EdgeInsetsDirectional.only(end: isPhone ? 4 : 8),
+            child: Badge(
+              label: Text('$draftCount'),
+              child: Icon(
+                Icons.layers,
+                size: isPhone ? 20 : 24,
+                color: theme.colorScheme.onPrimary,
+              ),
             ),
-          ),
-        );
-      }),
+          );
+        },
+      ),
       IconButton(
-        icon: Icon(Icons.view_kanban, color: theme.colorScheme.onPrimary, size: isPhone ? 20 : 24),
+        icon: Icon(
+          Icons.view_kanban,
+          color: theme.colorScheme.onPrimary,
+          size: isPhone ? 20 : 24,
+        ),
         tooltip: l10n.menuSalesKanban,
         onPressed: onOpenKanban,
         visualDensity: isPhone ? VisualDensity.compact : VisualDensity.standard,
       ),
       // Cart icon only shown on tablets (phones use FAB)
       if (!isPhone)
-        Consumer(builder: (c, ref2, _) {
-          final cartCount = ref2.watch(posNotifierProvider.select((s) => s.cartItemCount));
-          return Stack(
-            children: [
-              IconButton(
-                icon: Icon(Icons.shopping_cart, color: theme.colorScheme.onPrimary),
-                onPressed: onShowCart,
-                tooltip: l10n.posCartTitle,
-              ),
-              if (cartCount > 0)
-                Positioned(
-                  right: 6,
-                  top: 6,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.error,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                    child: Text('$cartCount',
-                        style: TextStyle(color: theme.colorScheme.onError, fontSize: 11),
-                        textAlign: TextAlign.center),
+        Consumer(
+          builder: (c, ref2, _) {
+            final cartCount = ref2.watch(
+              posNotifierProvider.select((s) => s.cartItemCount),
+            );
+            return Stack(
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.shopping_cart,
+                    color: theme.colorScheme.onPrimary,
                   ),
+                  onPressed: onShowCart,
+                  tooltip: l10n.posCartTitle,
                 ),
-            ],
-          );
-        }),
+                if (cartCount > 0)
+                  Positioned(
+                    right: 6,
+                    top: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.error,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        '$cartCount',
+                        style: TextStyle(
+                          color: theme.colorScheme.onError,
+                          fontSize: 11,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
       SizedBox(width: isPhone ? 2 : 12),
       // Force sync
       IconButton(
@@ -1161,7 +1379,11 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),
         tooltip: l10n.systemStatusForceSyncTooltip,
-        icon: Icon(Icons.refresh, size: isPhone ? 18 : 20, color: theme.colorScheme.onPrimary),
+        icon: Icon(
+          Icons.refresh,
+          size: isPhone ? 18 : 20,
+          color: theme.colorScheme.onPrimary,
+        ),
         onPressed: () async {
           final messenger = ScaffoldMessenger.of(ctx);
           await offlineSyncService.forceSyncNow();
@@ -1184,7 +1406,10 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
         top: !isPhone, // phones handle status bar padding externally
         bottom: false,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: isPhone ? 4 : 12, vertical: isPhone ? 2 : 6),
+          padding: EdgeInsets.symmetric(
+            horizontal: isPhone ? 4 : 12,
+            vertical: isPhone ? 2 : 6,
+          ),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -1208,7 +1433,12 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
     );
   }
 
-  Widget _statusChip(BuildContext context, {required IconData icon, required String label, required Color color}) {
+  Widget _statusChip(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -1221,17 +1451,24 @@ class _MergedHeader extends ConsumerWidget implements PreferredSizeWidget {
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
-          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _vDivider(ThemeData theme) => Container(
-        width: 1,
-        height: 24,
-        color: theme.colorScheme.onPrimary.withValues(alpha: 0.12),
-      );
+    width: 1,
+    height: 24,
+    color: theme.colorScheme.onPrimary.withValues(alpha: 0.12),
+  );
 }
 
 // Footer removed: printer status now lives in header

@@ -7,6 +7,8 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/repositories/customer_address_repository.dart';
+import '../../../../core/widgets/customer_shipping_address_flow.dart';
 import '../../state/pos_notifier.dart';
 import '../dialogs/payment_method_dialog.dart';
 import '../dialogs/territory_profile_mismatch_dialog.dart';
@@ -14,6 +16,32 @@ import 'bundle_selection_widget.dart';
 import 'delivery_slot_selection.dart';
 import '../../../../core/constants/business_constants.dart';
 import '../../../../core/utils/territory_label.dart';
+
+/// Uses the delivery branch's authoritative profile for B2B checkout. The
+/// Customer-level territory may point at a different branch, so callers must
+/// not replace a missing branch profile with the Customer default.
+({String profileName, bool override})? b2bBranchProfileForCheckout(
+  PosState state,
+) {
+  if (!state.isB2bOrder) return null;
+  final branchProfile =
+      state.selectedCustomer?['selected_shipping_address_territory_pos_profile']
+          ?.toString()
+          .trim() ??
+      '';
+  if (branchProfile.isEmpty) return null;
+  return (profileName: branchProfile, override: false);
+}
+
+@visibleForTesting
+void showMissingB2bBranchProfileError(BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(context.l10n.customerShippingAddressTerritoryMissing),
+      backgroundColor: Theme.of(context).colorScheme.error,
+    ),
+  );
+}
 
 class CartWidget extends ConsumerWidget {
   final ScrollController? scrollController;
@@ -38,8 +66,9 @@ class CartWidget extends ConsumerWidget {
       display: state.selectedCustomer?['territory_name'],
       raw: state.selectedCustomer?['territory'],
     );
-    final customerTerritory =
-        customerTerritoryLabel.isEmpty ? null : customerTerritoryLabel;
+    final customerTerritory = customerTerritoryLabel.isEmpty
+        ? null
+        : customerTerritoryLabel;
     final isPhone = ResponsiveUtils.isPhone(context);
 
     // Responsive padding
@@ -267,18 +296,74 @@ class CartWidget extends ConsumerWidget {
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(
-                                state.selectedCustomer!['customer_name'] ??
-                                    l10n.posUnknownCustomer,
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimaryContainer,
-                                      fontWeight: FontWeight.bold,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    state.selectedCustomer!['customer_name'] ??
+                                        l10n.posUnknownCustomer,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimaryContainer,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  if (state.isB2bOrder &&
+                                      (state.selectedCustomer!['selected_shipping_branch_name'] ??
+                                              '')
+                                          .toString()
+                                          .trim()
+                                          .isNotEmpty)
+                                    Text(
+                                      state
+                                          .selectedCustomer!['selected_shipping_branch_name']
+                                          .toString(),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelLarge
+                                          ?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimaryContainer,
+                                          ),
                                     ),
+                                  if (state.isB2bOrder &&
+                                      (state.selectedCustomer!['selected_shipping_address'] ??
+                                              '')
+                                          .toString()
+                                          .trim()
+                                          .isNotEmpty)
+                                    Text(
+                                      state
+                                          .selectedCustomer!['selected_shipping_address']
+                                          .toString(),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimaryContainer,
+                                          ),
+                                    ),
+                                ],
                               ),
                             ),
+                            if (state.isB2bOrder)
+                              IconButton(
+                                onPressed: () => _changeB2bBranch(context, ref),
+                                tooltip: l10n.b2bOrderChangeBranch,
+                                icon: const Icon(Icons.edit_location_alt),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                              ),
                           ],
                         ),
                       ),
@@ -708,6 +793,29 @@ class CartWidget extends ConsumerWidget {
     );
   }
 
+  Future<void> _changeB2bBranch(BuildContext context, WidgetRef ref) async {
+    final customer = ref.read(posNotifierProvider).selectedCustomer;
+    final customerId = customer?['name']?.toString().trim() ?? '';
+    if (customer == null || customerId.isEmpty) return;
+
+    final selected = await chooseCustomerShippingAddress(
+      context,
+      customer: customer,
+      repository: ref.read(customerAddressRepositoryProvider),
+      forcePicker: true,
+      requireBranchName: true,
+      setAsPrimary: false,
+    );
+    if (selected == null || !context.mounted) return;
+    final activeCustomer = ref
+        .read(posNotifierProvider)
+        .selectedCustomer?['name']
+        ?.toString()
+        .trim();
+    if (activeCustomer != customerId) return;
+    ref.read(posNotifierProvider.notifier).selectCustomer(selected);
+  }
+
   Widget _buildEmptyCart(BuildContext context) {
     final l10n = context.l10n;
     return Column(
@@ -1130,7 +1238,8 @@ class CartWidget extends ConsumerWidget {
                     ),
                   )
                   .toList(),
-              onChanged: priceLists.isEmpty || state.isLoading
+              onChanged:
+                  priceLists.isEmpty || state.isLoading || state.isB2bOrder
                   ? null
                   : (value) {
                       ref
@@ -1175,16 +1284,31 @@ class CartWidget extends ConsumerWidget {
     final l10n = context.l10n;
     final policies = state.availableCommercialPolicies;
     final selected = state.selectedCommercialPolicy;
+    final boundPurpose = state.boundB2bOrderPurpose?.trim().toLowerCase() ?? '';
+    final selectablePolicies = state.isB2bOrder
+        ? policies
+              .where(
+                (policy) =>
+                    boundPurpose.isNotEmpty &&
+                    policy.orderPurpose.trim().toLowerCase() == boundPurpose,
+              )
+              .toList()
+        : policies;
     // Empty-string sentinel represents the "Standard" (no policy) option.
     const standardValue = '';
     final selectedValue = selected?.name ?? standardValue;
+    final validSelectedValue = state.isB2bOrder
+        ? (selectablePolicies.any((policy) => policy.name == selectedValue)
+              ? selectedValue
+              : null)
+        : selectedValue;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DropdownButtonFormField<String>(
           key: ValueKey('order-purpose-$selectedValue'),
-          initialValue: selectedValue,
+          initialValue: validSelectedValue,
           isExpanded: true,
           decoration: InputDecoration(
             labelText: l10n.posCartOrderPurposeLabel,
@@ -1192,21 +1316,24 @@ class CartWidget extends ConsumerWidget {
             border: const OutlineInputBorder(),
           ),
           items: [
-            DropdownMenuItem<String>(
-              value: standardValue,
-              child: Text(
-                l10n.posCartOrderPurposeStandard,
-                overflow: TextOverflow.ellipsis,
+            if (!state.isB2bOrder)
+              DropdownMenuItem<String>(
+                value: standardValue,
+                child: Text(
+                  l10n.posCartOrderPurposeStandard,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-            ...policies.map(
+            ...selectablePolicies.map(
               (policy) => DropdownMenuItem<String>(
                 value: policy.name,
                 child: Text(policy.policyName, overflow: TextOverflow.ellipsis),
               ),
             ),
           ],
-          onChanged: state.isLoading
+          onChanged:
+              state.isLoading ||
+                  (state.isB2bOrder && selectablePolicies.length <= 1)
               ? null
               : (value) {
                   final notifier = ref.read(posNotifierProvider.notifier);
@@ -1214,9 +1341,9 @@ class CartWidget extends ConsumerWidget {
                     notifier.setCommercialPolicy(null);
                     return;
                   }
-                  final policy = policies.firstWhere(
+                  final policy = selectablePolicies.firstWhere(
                     (p) => p.name == value,
-                    orElse: () => policies.first,
+                    orElse: () => selectablePolicies.first,
                   );
                   notifier.setCommercialPolicy(policy);
                 },
@@ -1570,9 +1697,7 @@ class CartWidget extends ConsumerWidget {
                 final parsed = double.tryParse(raw);
                 if (parsed == null || parsed < 0) {
                   messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(context.l10n.kanbanInvalidAmount),
-                    ),
+                    SnackBar(content: Text(context.l10n.kanbanInvalidAmount)),
                   );
                   return;
                 }
@@ -1619,17 +1744,24 @@ class CartWidget extends ConsumerWidget {
       await _checkoutWithPreflight(context, ref);
     } catch (error, stackTrace) {
       AppErrorReporter.instance.capture(
-        source: 'CheckoutPreflight', error: error, stackTrace: stackTrace,
+        source: 'CheckoutPreflight',
+        error: error,
+        stackTrace: stackTrace,
       );
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(userErrorMessageFor(l10n, error)),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(userErrorMessageFor(l10n, error)),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
-  Future<void> _checkoutWithPreflight(BuildContext context, WidgetRef ref) async {
+  Future<void> _checkoutWithPreflight(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final state = ref.read(posNotifierProvider);
     final l10n = context.l10n;
     // Checkout spans several dialogs and a network round-trip. This widget can
@@ -2026,6 +2158,14 @@ class CartWidget extends ConsumerWidget {
     PosNotifier posNotifier,
     PosState state,
   ) async {
+    if (state.isB2bOrder) {
+      final resolution = b2bBranchProfileForCheckout(state);
+      if (resolution == null && context.mounted) {
+        showMissingB2bBranchProfileError(context);
+      }
+      return resolution;
+    }
+
     final selectedProfileName =
         state.selectedProfile?['name']?.toString() ?? '';
     if (selectedProfileName.isEmpty) return null;
@@ -2275,9 +2415,7 @@ class _PromoCodeSectionState extends ConsumerState<_PromoCodeSection> {
             }).toList(),
           ),
           // Surface the reason for any rejected code as an inline subtitle.
-          ...state.promoResults
-              .where((r) => r['accepted'] != true)
-              .map((r) {
+          ...state.promoResults.where((r) => r['accepted'] != true).map((r) {
             final code = r['code']?.toString() ?? '';
             final reason =
                 r['reason']?.toString() ?? context.l10n.posCartPromoNotEligible;

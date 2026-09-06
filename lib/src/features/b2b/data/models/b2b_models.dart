@@ -16,7 +16,7 @@ class B2bCard with _$B2bCard {
     required String doctype,
     required String name,
     required String title,
-    required String stage,
+    @Default('Lead') String stage,
     String? owner,
     @JsonKey(name: 'lead_score') int? leadScore,
     String? customer,
@@ -131,7 +131,7 @@ class B2bAccount with _$B2bAccount {
     required String doctype,
     required String name,
     required String title,
-    required String stage,
+    @Default('Customer') String stage,
     String? owner,
     @Default(B2bContact()) B2bContact contact,
     String? customer,
@@ -141,6 +141,7 @@ class B2bAccount with _$B2bAccount {
     @Default(<B2bRecentInvoice>[])
     List<B2bRecentInvoice> recentInvoices,
     @JsonKey(name: 'open_todos') @Default(<B2bTodo>[]) List<B2bTodo> openTodos,
+
     /// The rep's dated field diary for this account, newest touch first. The
     /// account screen renders it through the shared journey timeline, which
     /// also owns the live (re-fetched) copy — this is the load-time snapshot.
@@ -203,8 +204,16 @@ class B2bFollowups with _$B2bFollowups {
 class OrderBinding with _$OrderBinding {
   const factory OrderBinding({
     required String customer,
+    @JsonKey(name: 'customer_name') String? customerName,
     @JsonKey(name: 'order_purpose') required String orderPurpose,
     @JsonKey(name: 'price_list') String? priceList,
+    @JsonKey(name: 'address_book')
+    @Default(<String, dynamic>{})
+    Map<String, dynamic> addressBook,
+    @JsonKey(name: 'requires_shipping_address_selection')
+    @Default(false)
+    bool requiresShippingAddressSelection,
+    @JsonKey(name: 'shipping_address_name') String? shippingAddressName,
   }) = _OrderBinding;
 
   factory OrderBinding.fromJson(Map<String, dynamic> json) =>

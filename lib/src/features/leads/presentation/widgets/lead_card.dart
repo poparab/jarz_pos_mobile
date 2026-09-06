@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../journey/presentation/widgets/journey_badge.dart';
 import '../../data/models/lead.dart';
 import '../../domain/lead_clustering.dart';
@@ -182,6 +184,19 @@ class LeadCard extends StatelessWidget {
                             referenceDoctype: 'Lead',
                             referenceName: lead.name,
                             title: lead.leadName,
+                          ),
+                        ),
+                        LeadActionButton(
+                          icon: Icons.business_center_outlined,
+                          enabled: true,
+                          tooltip: context.l10n.b2bOpenAccount,
+                          color: LeadsTheme.deepPlum,
+                          onTap: () => context.push(
+                            AppRoutes.b2bAccount,
+                            extra: <String, dynamic>{
+                              'doctype': 'Lead',
+                              'name': lead.name,
+                            },
                           ),
                         ),
                         const Spacer(),

@@ -9,13 +9,22 @@ import '../../state/pos_notifier.dart';
 /// Horizontal chip bar that shows [+ New] plus one chip per saved draft.
 /// Mounts above the item grid, below the customer search bar.
 class DraftTabsBar extends ConsumerWidget {
-  const DraftTabsBar({super.key});
+  final bool b2bOnly;
+
+  const DraftTabsBar({super.key, this.b2bOnly = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final drafts = ref.watch(posNotifierProvider.select((s) => s.drafts));
-    final currentDraftId = ref.watch(posNotifierProvider.select((s) => s.currentDraftId));
-    final draftDirty = ref.watch(posNotifierProvider.select((s) => s.draftDirty));
+    final allDrafts = ref.watch(posNotifierProvider.select((s) => s.drafts));
+    final drafts = b2bOnly
+        ? allDrafts.where((draft) => draft.isB2bOrder).toList()
+        : allDrafts;
+    final currentDraftId = ref.watch(
+      posNotifierProvider.select((s) => s.currentDraftId),
+    );
+    final draftDirty = ref.watch(
+      posNotifierProvider.select((s) => s.draftDirty),
+    );
     final l10n = context.l10n;
 
     if (drafts.isEmpty && currentDraftId == null) {
@@ -32,11 +41,11 @@ class DraftTabsBar extends ConsumerWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        itemCount: drafts.length + 1, // +1 for the [+ New] chip
+        itemCount: drafts.length + (b2bOnly ? 0 : 1),
         separatorBuilder: (context, i) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           // [+ New] chip
-          if (index == 0) {
+          if (!b2bOnly && index == 0) {
             return ActionChip(
               avatar: Icon(
                 Icons.add,
@@ -45,7 +54,7 @@ class DraftTabsBar extends ConsumerWidget {
                     ? colorScheme.onPrimaryContainer
                     : colorScheme.onSurface,
               ),
-                    label: Text(l10n.commonNew),
+              label: Text(l10n.commonNew),
               backgroundColor: currentDraftId == null
                   ? colorScheme.primaryContainer
                   : colorScheme.surface,
@@ -69,8 +78,7 @@ class DraftTabsBar extends ConsumerWidget {
             );
           }
 
-          // Draft chips (index - 1 maps to drafts list)
-          final draft = drafts[index - 1];
+          final draft = drafts[b2bOnly ? index : index - 1];
           final isActive = draft.id == currentDraftId;
           final showDot = isActive && draftDirty;
 
@@ -80,10 +88,7 @@ class DraftTabsBar extends ConsumerWidget {
               children: [
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 120),
-                  child: Text(
-                    draft.label,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(draft.label, overflow: TextOverflow.ellipsis),
                 ),
                 if (showDot) ...[
                   const SizedBox(width: 4),
@@ -156,9 +161,6 @@ class DraftCountBadge extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final count = ref.watch(posNotifierProvider.select((s) => s.drafts.length));
     if (count == 0) return child;
-    return Badge(
-      label: Text('$count'),
-      child: child,
-    );
+    return Badge(label: Text('$count'), child: child);
   }
 }

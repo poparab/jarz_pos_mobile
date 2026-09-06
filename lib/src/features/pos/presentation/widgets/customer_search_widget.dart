@@ -8,6 +8,7 @@ import '../../../../core/constants/timing_config.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/widgets/customer_shipping_address_dialog.dart';
+import '../../../../core/widgets/customer_shipping_address_flow.dart';
 import '../../../../core/repositories/customer_address_repository.dart';
 import '../../../geo/presentation/widgets/location_link_field.dart';
 import '../../data/repositories/pos_repository.dart';
@@ -52,7 +53,9 @@ final territoriesProvider =
     });
 
 class CustomerSearchWidget extends ConsumerStatefulWidget {
-  const CustomerSearchWidget({super.key});
+  final bool lockCustomer;
+
+  const CustomerSearchWidget({super.key, this.lockCustomer = false});
 
   @override
   ConsumerState<CustomerSearchWidget> createState() =>
@@ -195,6 +198,26 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
       return;
     }
 
+    if (widget.lockCustomer) {
+      final selected = await chooseCustomerShippingAddress(
+        context,
+        customer: customer,
+        repository: ref.read(customerAddressRepositoryProvider),
+        forcePicker: forcePicker,
+        requireBranchName: true,
+        setAsPrimary: false,
+      );
+      if (selected == null || !mounted) return;
+      final activeCustomer = ref
+          .read(posNotifierProvider)
+          .selectedCustomer?['name']
+          ?.toString()
+          .trim();
+      if (activeCustomer != customerName) return;
+      ref.read(posNotifierProvider.notifier).selectCustomer(selected);
+      return;
+    }
+
     final repository = ref.read(posRepositoryProvider);
     final addressRepo = ref.read(customerAddressRepositoryProvider);
     Map<String, dynamic> addressBook;
@@ -318,24 +341,26 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
                     padding: const EdgeInsets.all(8),
                   ),
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    if (kDebugMode) {
-                      debugPrint('Customer unselect button pressed'); // Debug
-                    }
-                    ref.read(posNotifierProvider.notifier).unselectCustomer();
-                  },
-                  tooltip: l10n.posCustomerUnselect,
-                  color: Theme.of(context).colorScheme.error,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.errorContainer,
-                    padding: const EdgeInsets.all(8),
+                if (!widget.lockCustomer) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      if (kDebugMode) {
+                        debugPrint('Customer unselect button pressed');
+                      }
+                      ref.read(posNotifierProvider.notifier).unselectCustomer();
+                    },
+                    tooltip: l10n.posCustomerUnselect,
+                    color: Theme.of(context).colorScheme.error,
+                    style: IconButton.styleFrom(
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.errorContainer,
+                      padding: const EdgeInsets.all(8),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ],
@@ -500,13 +525,12 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
   }
 
   Future<void> _openCustomerSearchPage() async {
-    final selection = await Navigator.of(context)
-        .push<Map<String, dynamic>>(
-          MaterialPageRoute(
-            fullscreenDialog: true,
-            builder: (_) => const _CustomerSearchPage(),
-          ),
-        );
+    final selection = await Navigator.of(context).push<Map<String, dynamic>>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => const _CustomerSearchPage(),
+      ),
+    );
     if (selection == null || !mounted) return;
 
     if (selection['_isQuickAdd'] == true) {
@@ -569,42 +593,45 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
               );
             }
           },
-          fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
-            _controller.text = controller.text;
-            return TextField(
-              controller: controller,
-              focusNode: focusNode,
-              onEditingComplete: onEditingComplete,
-              onChanged: _onSearchChanged,
-              keyboardType: isPhoneSearch
-                  ? TextInputType.phone
-                  : TextInputType.text,
-              decoration: InputDecoration(
-                hintText: isPhoneSearch
-                    ? context.l10n.customerSearchByPhone
-                    : context.l10n.customerSearchByName,
-                prefixIcon: Icon(isPhoneSearch ? Icons.phone : Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                suffixIcon: _currentQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          controller.clear();
-                          setState(() {
-                            _currentQuery = '';
-                          });
-                        },
-                      )
-                    : null,
-              ),
-            );
-          },
+          fieldViewBuilder:
+              (context, controller, focusNode, onEditingComplete) {
+                _controller.text = controller.text;
+                return TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  onEditingComplete: onEditingComplete,
+                  onChanged: _onSearchChanged,
+                  keyboardType: isPhoneSearch
+                      ? TextInputType.phone
+                      : TextInputType.text,
+                  decoration: InputDecoration(
+                    hintText: isPhoneSearch
+                        ? context.l10n.customerSearchByPhone
+                        : context.l10n.customerSearchByName,
+                    prefixIcon: Icon(
+                      isPhoneSearch ? Icons.phone : Icons.search,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    suffixIcon: _currentQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              controller.clear();
+                              setState(() {
+                                _currentQuery = '';
+                              });
+                            },
+                          )
+                        : null,
+                  ),
+                );
+              },
           optionsViewBuilder: (context, onSelected, options) {
             // Half the viewport, bounded — the field is pinned to the top of
             // the screen so there is always room below it.
@@ -1371,10 +1398,7 @@ class _CustomerSearchPageState extends ConsumerState<_CustomerSearchPage> {
                 : l10n.customerSearchHint,
             suffixIcon: _rawText.isEmpty
                 ? null
-                : IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: _clear,
-                  ),
+                : IconButton(icon: const Icon(Icons.clear), onPressed: _clear),
           ),
         ),
       ),
@@ -1396,8 +1420,10 @@ class _CustomerSearchPageState extends ConsumerState<_CustomerSearchPage> {
         .watch(dynamicCustomerSearchProvider(_query))
         .when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, _) =>
-              _placeholder(icon: Icons.error_outline, message: l10n.commonError),
+          error: (_, _) => _placeholder(
+            icon: Icons.error_outline,
+            message: l10n.commonError,
+          ),
           data: (customers) {
             // The quick-add row always trails the results — a partial match is
             // exactly when a new customer still has to be created.

@@ -172,6 +172,7 @@ class B2bRepository {
     String? customerPrimaryAddress,
     String? territoryId,
     String? customerGroup,
+    String? shippingAddressName,
   }) async {
     final response = await _dio.post(
       ApiEndpoints.b2bRequestSample,
@@ -183,6 +184,7 @@ class B2bRepository {
         customerPrimaryAddress: customerPrimaryAddress,
         territoryId: territoryId,
         customerGroup: customerGroup,
+        shippingAddressName: shippingAddressName,
       ),
     );
     return OrderBinding.fromJson(_asMap(_unwrap(response)));
@@ -198,6 +200,7 @@ class B2bRepository {
     String? customerPrimaryAddress,
     String? territoryId,
     String? customerGroup,
+    String? shippingAddressName,
   }) async {
     final response = await _dio.post(
       ApiEndpoints.b2bPlaceOrder,
@@ -209,6 +212,7 @@ class B2bRepository {
         customerPrimaryAddress: customerPrimaryAddress,
         territoryId: territoryId,
         customerGroup: customerGroup,
+        shippingAddressName: shippingAddressName,
       ),
     );
     return OrderBinding.fromJson(_asMap(_unwrap(response)));
@@ -222,6 +226,7 @@ class B2bRepository {
     String? customerPrimaryAddress,
     String? territoryId,
     String? customerGroup,
+    String? shippingAddressName,
   }) {
     return {
       'party_doctype': partyDoctype,
@@ -237,22 +242,43 @@ class B2bRepository {
         'territory_id': territoryId.trim(),
       if (customerGroup != null && customerGroup.trim().isNotEmpty)
         'customer_group': customerGroup.trim(),
+      if (shippingAddressName != null && shippingAddressName.trim().isNotEmpty)
+        'shipping_address_name': shippingAddressName.trim(),
     };
   }
 
-  /// Company-only customer search for B2B mode.
-  Future<List<Map<String, dynamic>>> searchCompanyCustomers(
-    String query,
-  ) async {
-    final isPhoneSearch = RegExp(r'^[0-9+\-\s()]+$').hasMatch(query.trim());
+  /// Searches every enabled Customer type/group that may legitimately back a
+  /// B2B account. Linking never mutates the Customer classification.
+  Future<List<Map<String, dynamic>>> searchLinkableCustomers(
+    String query, {
+    int limit = 20,
+  }) async {
     final response = await _dio.post(
-      ApiEndpoints.searchCustomers,
-      data: {
-        ...(isPhoneSearch ? {'phone': query} : {'name': query}),
-        'customer_type': 'Company',
-      },
+      ApiEndpoints.b2bSearchLinkableCustomers,
+      data: {'query': query.trim(), 'limit': limit},
     );
     final raw = _unwrap(response);
     return (raw as List? ?? const []).cast<Map<String, dynamic>>();
+  }
+
+  Future<Map<String, dynamic>> linkExistingCustomer({
+    required String partyDoctype,
+    required String partyName,
+    required String customer,
+    String? expectedCustomer,
+    bool allowRelink = false,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.b2bLinkExistingCustomer,
+      data: {
+        'party_doctype': partyDoctype,
+        'party_name': partyName,
+        'customer': customer,
+        if (expectedCustomer != null && expectedCustomer.trim().isNotEmpty)
+          'expected_customer': expectedCustomer.trim(),
+        'allow_relink': allowRelink ? 1 : 0,
+      },
+    );
+    return _asMap(_unwrap(response));
   }
 }

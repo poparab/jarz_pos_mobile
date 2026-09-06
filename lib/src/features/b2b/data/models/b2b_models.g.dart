@@ -11,7 +11,7 @@ _$B2bCardImpl _$$B2bCardImplFromJson(Map<String, dynamic> json) =>
       doctype: json['doctype'] as String,
       name: json['name'] as String,
       title: json['title'] as String,
-      stage: json['stage'] as String,
+      stage: json['stage'] as String? ?? 'Lead',
       owner: json['owner'] as String?,
       leadScore: (json['lead_score'] as num?)?.toInt(),
       customer: json['customer'] as String?,
@@ -101,7 +101,7 @@ _$B2bAccountImpl _$$B2bAccountImplFromJson(Map<String, dynamic> json) =>
       doctype: json['doctype'] as String,
       name: json['name'] as String,
       title: json['title'] as String,
-      stage: json['stage'] as String,
+      stage: json['stage'] as String? ?? 'Customer',
       owner: json['owner'] as String?,
       contact: json['contact'] == null
           ? const B2bContact()
@@ -202,13 +202,25 @@ Map<String, dynamic> _$$B2bFollowupsImplToJson(_$B2bFollowupsImpl instance) =>
 _$OrderBindingImpl _$$OrderBindingImplFromJson(Map<String, dynamic> json) =>
     _$OrderBindingImpl(
       customer: json['customer'] as String,
+      customerName: json['customer_name'] as String?,
       orderPurpose: json['order_purpose'] as String,
       priceList: json['price_list'] as String?,
+      addressBook:
+          json['address_book'] as Map<String, dynamic>? ??
+          const <String, dynamic>{},
+      requiresShippingAddressSelection:
+          json['requires_shipping_address_selection'] as bool? ?? false,
+      shippingAddressName: json['shipping_address_name'] as String?,
     );
 
 Map<String, dynamic> _$$OrderBindingImplToJson(_$OrderBindingImpl instance) =>
     <String, dynamic>{
       'customer': instance.customer,
+      'customer_name': instance.customerName,
       'order_purpose': instance.orderPurpose,
       'price_list': instance.priceList,
+      'address_book': instance.addressBook,
+      'requires_shipping_address_selection':
+          instance.requiresShippingAddressSelection,
+      'shipping_address_name': instance.shippingAddressName,
     };

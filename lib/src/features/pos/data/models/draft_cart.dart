@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../../../core/utils/order_display_id.dart';
+import 'pos_models.dart';
 
 /// A local-only draft (in-progress order) that lives in Hive until checkout.
 /// Never sent to the backend until [PosNotifier.checkout] is called.
@@ -11,6 +12,10 @@ class DraftCart {
   final Map<String, dynamic>? customer;
   final Map<String, dynamic>? salesPartner;
   final Map<String, dynamic>? selectedPriceList;
+  final CommercialPolicy? selectedCommercialPolicy;
+  final bool isB2bOrder;
+  final String? boundB2bOrderPurpose;
+  final String? policyReason;
   final bool zeroShippingOverride;
   final bool isPickup;
   final DateTime createdAt;
@@ -32,6 +37,10 @@ class DraftCart {
     this.customer,
     this.salesPartner,
     this.selectedPriceList,
+    this.selectedCommercialPolicy,
+    this.isB2bOrder = false,
+    this.boundB2bOrderPurpose,
+    this.policyReason,
     this.zeroShippingOverride = false,
     required this.isPickup,
     required this.createdAt,
@@ -51,6 +60,13 @@ class DraftCart {
     bool clearSalesPartner = false,
     Map<String, dynamic>? selectedPriceList,
     bool clearSelectedPriceList = false,
+    CommercialPolicy? selectedCommercialPolicy,
+    bool clearSelectedCommercialPolicy = false,
+    bool? isB2bOrder,
+    String? boundB2bOrderPurpose,
+    bool clearBoundB2bOrderPurpose = false,
+    String? policyReason,
+    bool clearPolicyReason = false,
     bool? zeroShippingOverride,
     bool? isPickup,
     DateTime? updatedAt,
@@ -66,12 +82,23 @@ class DraftCart {
       label: label ?? this.label,
       cartItems: cartItems ?? this.cartItems,
       customer: clearCustomer ? null : (customer ?? this.customer),
-      salesPartner: clearSalesPartner ? null : (salesPartner ?? this.salesPartner),
-        selectedPriceList: clearSelectedPriceList
+      salesPartner: clearSalesPartner
+          ? null
+          : (salesPartner ?? this.salesPartner),
+      selectedPriceList: clearSelectedPriceList
           ? null
           : (selectedPriceList ?? this.selectedPriceList),
-        zeroShippingOverride:
-          zeroShippingOverride ?? this.zeroShippingOverride,
+      selectedCommercialPolicy: clearSelectedCommercialPolicy
+          ? null
+          : (selectedCommercialPolicy ?? this.selectedCommercialPolicy),
+      isB2bOrder: isB2bOrder ?? this.isB2bOrder,
+      boundB2bOrderPurpose: clearBoundB2bOrderPurpose
+          ? null
+          : (boundB2bOrderPurpose ?? this.boundB2bOrderPurpose),
+      policyReason: clearPolicyReason
+          ? null
+          : (policyReason ?? this.policyReason),
+      zeroShippingOverride: zeroShippingOverride ?? this.zeroShippingOverride,
       isPickup: isPickup ?? this.isPickup,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -98,10 +125,16 @@ class DraftCart {
       'cart_items': jsonEncode(cartItems),
       'customer': customer != null ? jsonEncode(customer) : null,
       'sales_partner': salesPartner != null ? jsonEncode(salesPartner) : null,
-        'selected_price_list': selectedPriceList != null
+      'selected_price_list': selectedPriceList != null
           ? jsonEncode(selectedPriceList)
           : null,
-        'zero_shipping_override': zeroShippingOverride,
+      'selected_commercial_policy': selectedCommercialPolicy != null
+          ? jsonEncode(selectedCommercialPolicy!.toJson())
+          : null,
+      'is_b2b_order': isB2bOrder,
+      'bound_b2b_order_purpose': boundB2bOrderPurpose,
+      'policy_reason': policyReason,
+      'zero_shipping_override': zeroShippingOverride,
       'is_pickup': isPickup,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -147,17 +180,26 @@ class DraftCart {
       cartItems: decodeItems(map['cart_items']),
       customer: decodeMap(map['customer']),
       salesPartner: decodeMap(map['sales_partner']),
-        selectedPriceList: decodeMap(map['selected_price_list']),
-        zeroShippingOverride:
-          (map['zero_shipping_override'] as bool?) ?? false,
+      selectedPriceList: decodeMap(map['selected_price_list']),
+      selectedCommercialPolicy: switch (decodeMap(
+        map['selected_commercial_policy'],
+      )) {
+        final policy? => CommercialPolicy.fromJson(policy),
+        null => null,
+      },
+      isB2bOrder: (map['is_b2b_order'] as bool?) ?? false,
+      boundB2bOrderPurpose: map['bound_b2b_order_purpose']?.toString(),
+      policyReason: map['policy_reason']?.toString(),
+      zeroShippingOverride: (map['zero_shipping_override'] as bool?) ?? false,
       isPickup: (map['is_pickup'] as bool?) ?? false,
       createdAt: parseDate(map['created_at'], now),
       updatedAt: parseDate(map['updated_at'], now),
       amendmentSourceInvoiceId: map['amendment_source_invoice_id']?.toString(),
       // Absent on drafts saved before this field existed — falls back to the
       // ERPNext name in the banner, which is exactly the old behaviour.
-      amendmentSourceWooOrderId:
-          normalizeWooOrderId(map['amendment_source_woo_order_id']),
+      amendmentSourceWooOrderId: normalizeWooOrderId(
+        map['amendment_source_woo_order_id'],
+      ),
       amendmentSourceGrandTotal: map['amendment_source_grand_total'] != null
           ? double.tryParse(map['amendment_source_grand_total'].toString())
           : null,
@@ -193,12 +235,14 @@ class DraftCartSummary {
   final String label;
   final int itemCount;
   final DateTime updatedAt;
+  final bool isB2bOrder;
 
   const DraftCartSummary({
     required this.id,
     required this.label,
     required this.itemCount,
     required this.updatedAt,
+    this.isB2bOrder = false,
   });
 
   factory DraftCartSummary.from(DraftCart draft) {
@@ -210,6 +254,7 @@ class DraftCartSummary {
         return sum + (qty is int ? qty : (qty as num).toInt());
       }),
       updatedAt: draft.updatedAt,
+      isB2bOrder: draft.isB2bOrder,
     );
   }
 }

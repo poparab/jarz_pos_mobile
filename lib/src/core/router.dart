@@ -222,9 +222,11 @@ String homeRouteFor(UserRoles roles) {
 String? resolveB2bRedirect({
   required UserRoles roles,
   required String location,
+  bool isB2bOrderMode = false,
 }) {
   final isOnB2b = location.startsWith(AppRoutes.b2b);
-  final isOnB2c = location == AppRoutes.pos ||
+  final isOnB2c =
+      (location == AppRoutes.pos && !isB2bOrderMode) ||
       location == AppRoutes.kanban ||
       location == AppRoutes.selectProfile;
 
@@ -303,6 +305,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return resolveB2bRedirect(
             roles: roles,
             location: state.matchedLocation,
+            isB2bOrderMode: state.uri.queryParameters['mode'] == 'b2b_order',
           );
         }
       }
@@ -328,8 +331,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           final extra = state.extra;
           final launchData = extra is Map
               ? Map<String, dynamic>.from(extra)
-              : null;
-          return PosScreen(launchData: launchData);
+              : <String, dynamic>{};
+          if (state.uri.queryParameters['mode'] == 'b2b_order') {
+            launchData['mode'] = 'b2b_order';
+          }
+          return PosScreen(launchData: launchData.isEmpty ? null : launchData);
         },
       ),
       GoRoute(
@@ -384,7 +390,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         // app is portrait-locked on phones by default.
         builder: (context, state) => PhoneLandscapeScope(
           child: ManufacturingScreen(
-            initialTab: int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0,
+            initialTab:
+                int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0,
           ),
         ),
       ),
@@ -636,8 +643,6 @@ class _LandingGateScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

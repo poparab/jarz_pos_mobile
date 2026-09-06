@@ -6326,6 +6326,24 @@ abstract class AppLocalizations {
   /// **'Address line 1 is required.'**
   String get customerShippingAddressLine1Required;
 
+  /// No description provided for @customerShippingAddressBranchNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery branch name'**
+  String get customerShippingAddressBranchNameLabel;
+
+  /// No description provided for @customerShippingAddressBranchNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a delivery branch name.'**
+  String get customerShippingAddressBranchNameRequired;
+
+  /// No description provided for @customerShippingAddressTerritoryMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit this branch and choose its delivery territory before ordering.'**
+  String get customerShippingAddressTerritoryMissing;
+
   /// No description provided for @posAmendmentDraftTitle.
   ///
   /// In en, this message translates to:
@@ -12249,6 +12267,42 @@ abstract class AppLocalizations {
   /// **'Continue'**
   String get b2bContinue;
 
+  /// No description provided for @b2bCustomerSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up customer'**
+  String get b2bCustomerSetupTitle;
+
+  /// No description provided for @b2bLinkExistingCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Link existing customer'**
+  String get b2bLinkExistingCustomer;
+
+  /// No description provided for @b2bCreateNewCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new customer'**
+  String get b2bCreateNewCustomer;
+
+  /// No description provided for @b2bSearchExistingCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Search existing customers'**
+  String get b2bSearchExistingCustomer;
+
+  /// No description provided for @b2bNoMatchingCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching customers found.'**
+  String get b2bNoMatchingCustomers;
+
+  /// No description provided for @b2bLinkAndContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Link and continue'**
+  String get b2bLinkAndContinue;
+
   /// No description provided for @b2bLoadingTerritories.
   ///
   /// In en, this message translates to:
@@ -12326,6 +12380,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Place order'**
   String get b2bPlaceOrder;
+
+  /// No description provided for @b2bOpenAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Open B2B account'**
+  String get b2bOpenAccount;
+
+  /// No description provided for @b2bOrderResumeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B order'**
+  String get b2bOrderResumeTitle;
+
+  /// No description provided for @b2bOrderResumeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a B2B account or resume a saved B2B order.'**
+  String get b2bOrderResumeMessage;
+
+  /// No description provided for @b2bOrderChooseAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose B2B account'**
+  String get b2bOrderChooseAccount;
+
+  /// No description provided for @b2bOrderChangeBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Change delivery branch'**
+  String get b2bOrderChangeBranch;
+
+  /// No description provided for @b2bOrderPolicyUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The required B2B pricing policy is unavailable. Retry after pricing has loaded.'**
+  String get b2bOrderPolicyUnavailable;
+
+  /// No description provided for @b2bOrderSetupFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t prepare the B2B order'**
+  String get b2bOrderSetupFailedTitle;
 
   /// No description provided for @b2bMarkLost.
   ///

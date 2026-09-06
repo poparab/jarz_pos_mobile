@@ -624,12 +624,14 @@ class PosRepository {
     required String phone,
     String? invoice,
     String? addressName,
+    String? branchName,
     String? address,
     String? territory,
     String? locationLink,
     double? latitude,
     double? longitude,
     String? geoSource,
+    bool setAsPrimary = true,
   }) async {
     try {
       final response = await _dio.post(
@@ -640,6 +642,8 @@ class PosRepository {
           if (invoice != null && invoice.isNotEmpty) 'invoice': invoice,
           if (addressName != null && addressName.isNotEmpty)
             'address_name': addressName,
+          if (branchName != null && branchName.isNotEmpty)
+            'branch_name': branchName,
           if (address != null && address.isNotEmpty) 'address': address,
           if (territory != null && territory.isNotEmpty) 'territory': territory,
           // Geo payload. Frappe drops form keys a whitelisted method does not
@@ -653,7 +657,7 @@ class PosRepository {
             if (geoSource != null && geoSource.isNotEmpty)
               'geo_source': geoSource,
           },
-          'set_as_primary': 1,
+          'set_as_primary': setAsPrimary ? 1 : 0,
         },
       );
 
@@ -841,7 +845,10 @@ class PosRepository {
         debugPrint('❌ PROMO VALIDATION ERROR: $e');
       }
       throw Exception(
-        extractFrappeErrorMessage(e, fallback: 'Failed to validate promo codes'),
+        extractFrappeErrorMessage(
+          e,
+          fallback: 'Failed to validate promo codes',
+        ),
       );
     }
   }
@@ -998,7 +1005,10 @@ class PosRepository {
         debugPrint('❌ INVOICE AMENDMENT ERROR: $e');
       }
       throw Exception(
-        extractFrappeErrorMessage(e, fallback: 'Failed to submit invoice amendment'),
+        extractFrappeErrorMessage(
+          e,
+          fallback: 'Failed to submit invoice amendment',
+        ),
       );
     }
   }

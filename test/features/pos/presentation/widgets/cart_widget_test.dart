@@ -29,8 +29,9 @@ class _DummyPosRepository extends PosRepository {
   }) async => const [];
 
   @override
-  Future<List<Map<String, dynamic>>> getPosPriceLists(String posProfile) async =>
-      const [];
+  Future<List<Map<String, dynamic>>> getPosPriceLists(
+    String posProfile,
+  ) async => const [];
 }
 
 class _DummyDraftCartRepository extends DraftCartRepository {
@@ -49,7 +50,7 @@ class _DummyDraftCartRepository extends DraftCartRepository {
 
 class _PosNotifierStub extends PosNotifier {
   _PosNotifierStub(PosState initialState)
-      : super(_DummyPosRepository(), _DummyDraftCartRepository()) {
+    : super(_DummyPosRepository(), _DummyDraftCartRepository()) {
     state = initialState;
   }
 }
@@ -128,6 +129,75 @@ PosState _buildState({
 }
 
 void main() {
+  test('B2B checkout uses the selected branch profile without override', () {
+    final resolution = b2bBranchProfileForCheckout(
+      PosState(
+        isB2bOrder: true,
+        selectedProfile: {'name': 'Heliopolis POS'},
+        selectedCustomer: {
+          'name': 'ilo specialty coffee',
+          'territory': 'EGMASRJD',
+          'selected_shipping_address_territory': 'EGMADINATY',
+          'selected_shipping_address_territory_pos_profile': 'Madinaty POS',
+        },
+      ),
+    );
+
+    expect(resolution?.profileName, 'Madinaty POS');
+    expect(resolution?.override, isFalse);
+  });
+
+  test('B2B checkout never falls back when the branch profile is absent', () {
+    final resolution = b2bBranchProfileForCheckout(
+      PosState(
+        isB2bOrder: true,
+        selectedProfile: {'name': 'Heliopolis POS'},
+        selectedCustomer: {
+          'name': 'ilo specialty coffee',
+          'territory': 'EGMASRJD',
+          'selected_shipping_address_territory': 'EGMADINATY',
+        },
+      ),
+    );
+
+    expect(resolution, isNull);
+  });
+
+  testWidgets('missing B2B branch profile shows actionable recovery', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () => showMissingB2bBranchProfileError(context),
+              child: const Text('Checkout'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Checkout'));
+    await tester.pump();
+
+    expect(
+      find.text(
+        'Edit this branch and choose its delivery territory before ordering.',
+      ),
+      findsOneWidget,
+    );
+  });
+
   group('CartWidget amendment checkout', () {
     testWidgets(
       'shows submit amendment action when amendment draft has source invoice',
@@ -164,10 +234,7 @@ void main() {
     testWidgets(
       'disables amendment submit when draft is missing source invoice',
       (tester) async {
-        await _pumpCartWidget(
-          tester,
-          _buildState(isAmendmentDraft: true),
-        );
+        await _pumpCartWidget(tester, _buildState(isAmendmentDraft: true));
 
         expect(find.text('Submit Amendment'), findsOneWidget);
         expect(
@@ -191,71 +258,71 @@ void main() {
   });
 
   group('CartWidget bundle details rendering', () {
-    testWidgets(
-      'renders JSON-decoded bundle selections without a cast error',
-      (tester) async {
-        // Regression: a hard `as Map<String, List<Map<String, dynamic>>>?` cast
-        // threw "_Map<String, dynamic> is not a subtype of ..." during build.
-        await _pumpCartWidget(
-          tester,
-          _buildBundleState(
-            selectedItems: <String, dynamic>{
-              'g1': <dynamic>[
-                <String, dynamic>{'name': 'Blueberry'},
-                <String, dynamic>{'name': 'Blueberry'},
-                <String, dynamic>{'name': 'Mango'},
-              ],
-            },
-          ),
-        );
+    testWidgets('renders JSON-decoded bundle selections without a cast error', (
+      tester,
+    ) async {
+      // Regression: a hard `as Map<String, List<Map<String, dynamic>>>?` cast
+      // threw "_Map<String, dynamic> is not a subtype of ..." during build.
+      await _pumpCartWidget(
+        tester,
+        _buildBundleState(
+          selectedItems: <String, dynamic>{
+            'g1': <dynamic>[
+              <String, dynamic>{'name': 'Blueberry'},
+              <String, dynamic>{'name': 'Blueberry'},
+              <String, dynamic>{'name': 'Mango'},
+            ],
+          },
+        ),
+      );
 
-        expect(tester.takeException(), isNull);
-        // Identical items are collapsed into a count.
-        expect(find.text('Flavours: Blueberry x2, Mango'), findsOneWidget);
-      },
-    );
+      expect(tester.takeException(), isNull);
+      // Identical items are collapsed into a count.
+      expect(find.text('Flavours: Blueberry x2, Mango'), findsOneWidget);
+    });
 
-    testWidgets(
-      'renders the strongly typed in-memory bundle shape unchanged',
-      (tester) async {
-        await _pumpCartWidget(
-          tester,
-          _buildBundleState(
-            selectedItems: <String, List<Map<String, dynamic>>>{
-              'g1': <Map<String, dynamic>>[
-                <String, dynamic>{'name': 'Mango'},
-              ],
-            },
-          ),
-        );
+    testWidgets('renders the strongly typed in-memory bundle shape unchanged', (
+      tester,
+    ) async {
+      await _pumpCartWidget(
+        tester,
+        _buildBundleState(
+          selectedItems: <String, List<Map<String, dynamic>>>{
+            'g1': <Map<String, dynamic>>[
+              <String, dynamic>{'name': 'Mango'},
+            ],
+          },
+        ),
+      );
 
-        expect(tester.takeException(), isNull);
-        expect(find.text('Flavours: Mango'), findsOneWidget);
-      },
-    );
+      expect(tester.takeException(), isNull);
+      expect(find.text('Flavours: Mango'), findsOneWidget);
+    });
 
     for (final malformed in <(String, Object?)>[
       ('null selections', null),
       ('a string instead of a map', 'not-a-map'),
       ('a list instead of a map', <dynamic>[]),
-      ('non-map entries', <String, dynamic>{
-        'g1': <dynamic>['just a string', 42],
-      }),
+      (
+        'non-map entries',
+        <String, dynamic>{
+          'g1': <dynamic>['just a string', 42],
+        },
+      ),
       ('a non-list group value', <String, dynamic>{'g1': 'oops'}),
     ]) {
-      testWidgets(
-        'survives malformed bundle selections: ${malformed.$1}',
-        (tester) async {
-          // The cart must degrade to hiding the details, never throw at build.
-          await _pumpCartWidget(
-            tester,
-            _buildBundleState(selectedItems: malformed.$2),
-          );
+      testWidgets('survives malformed bundle selections: ${malformed.$1}', (
+        tester,
+      ) async {
+        // The cart must degrade to hiding the details, never throw at build.
+        await _pumpCartWidget(
+          tester,
+          _buildBundleState(selectedItems: malformed.$2),
+        );
 
-          expect(tester.takeException(), isNull);
-          expect(find.text('Family Box'), findsOneWidget);
-        },
-      );
+        expect(tester.takeException(), isNull);
+        expect(find.text('Family Box'), findsOneWidget);
+      });
     }
   });
 }

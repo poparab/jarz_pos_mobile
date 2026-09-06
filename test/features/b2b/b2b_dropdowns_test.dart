@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
+import 'package:jarz_pos/src/core/repositories/customer_address_repository.dart';
 import 'package:jarz_pos/src/features/b2b/data/b2b_repository.dart';
 import 'package:jarz_pos/src/features/b2b/data/models/b2b_account_labels.dart';
 import 'package:jarz_pos/src/features/b2b/data/models/b2b_models.dart';
@@ -22,7 +23,12 @@ const _territories = <Map<String, dynamic>>[
 const _leadSources = <String>['Walk In', 'Reference', 'Campaign'];
 
 class _FakeB2bRepository extends B2bRepository {
-  _FakeB2bRepository() : super(Dio());
+  _FakeB2bRepository({this.accountDoctype = 'Lead'}) : super(Dio());
+
+  final String accountDoctype;
+  String? linkedCustomer;
+  final List<String> linkCalls = [];
+  int accountLoads = 0;
 
   @override
   Future<List<String>> getLeadSources() async => _leadSources;
@@ -32,17 +38,92 @@ class _FakeB2bRepository extends B2bRepository {
     required String doctype,
     required String name,
   }) async {
-    return const B2bAccountDetail(
+    accountLoads += 1;
+    return B2bAccountDetail(
       account: B2bAccount(
-        doctype: 'Lead',
-        name: 'LEAD-001',
+        doctype: accountDoctype,
+        name: name,
         title: 'Acme Co',
         stage: 'Lead',
-        contact: B2bContact(mobileNo: '01000000000'),
+        contact: const B2bContact(mobileNo: '01000000000'),
+        customer: linkedCustomer,
       ),
       labels: null,
     );
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> searchLinkableCustomers(
+    String query, {
+    int limit = 20,
+  }) async => const [
+    {
+      'name': 'ilo specialty coffee',
+      'customer_name': 'ILO Specialty Coffee',
+      'customer_type': 'Individual',
+    },
+    {
+      'name': 'ILO-PRODUCTION',
+      'customer_name': 'ILO Production',
+      'customer_type': 'Company',
+      'customer_group': 'B2B',
+    },
+  ];
+
+  @override
+  Future<Map<String, dynamic>> linkExistingCustomer({
+    required String partyDoctype,
+    required String partyName,
+    required String customer,
+    String? expectedCustomer,
+    bool allowRelink = false,
+  }) async {
+    linkCalls.add('$partyDoctype:$partyName:$customer');
+    linkedCustomer = customer;
+    return {'success': true, 'customer': customer, 'changed': true};
+  }
+
+  @override
+  Future<OrderBinding> placeB2bOrder({
+    required String partyDoctype,
+    required String partyName,
+    String? customerName,
+    String? mobileNo,
+    String? customerPrimaryAddress,
+    String? territoryId,
+    String? customerGroup,
+    String? shippingAddressName,
+  }) async => OrderBinding(
+    customer: linkedCustomer!,
+    customerName: linkedCustomer,
+    orderPurpose: 'B2B Supply',
+    requiresShippingAddressSelection: true,
+    addressBook: const {
+      'branch_options': [
+        {
+          'address_name': 'ILO-HELIOPOLIS',
+          'branch_name': 'Heliopolis',
+          'full_address': '104 Omar Ibn El Khattab',
+          'effective_territory': 'EGMASRJD',
+        },
+        {
+          'address_name': 'ILO-MADINATY',
+          'branch_name': 'All Seasons Park',
+          'full_address': 'Madinaty All Seasons Park',
+          'effective_territory': 'EGMADINATY',
+          'duplicate_count': 3,
+        },
+      ],
+    },
+  );
+}
+
+class _FakeAddressRepository extends CustomerAddressRepository {
+  _FakeAddressRepository() : super(Dio());
+
+  @override
+  Future<List<Map<String, dynamic>>> getTerritories({String? search}) async =>
+      _territories;
 }
 
 /// Minimal leads repository so [LeadFormScreen]'s category dropdown resolves
@@ -75,8 +156,9 @@ void main() {
   // The Source/Territory dropdowns now live on the single shared add-lead form
   // (LeadFormScreen), which both the Leads list and the B2B pipeline open.
   group('LeadFormScreen B2B dropdowns', () {
-    testWidgets('Source dropdown renders options from get_lead_sources',
-        (tester) async {
+    testWidgets('Source dropdown renders options from get_lead_sources', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(
           const LeadFormScreen(),
@@ -101,8 +183,9 @@ void main() {
       expect(find.text('Campaign'), findsWidgets);
     });
 
-    testWidgets('Territory dropdown renders options from the territory list',
-        (tester) async {
+    testWidgets('Territory dropdown renders options from the territory list', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(
           const LeadFormScreen(),
@@ -148,5 +231,58 @@ void main() {
           .where((s) => s.top == false);
       expect(safeAreas, isNotEmpty);
     });
+
+    for (final scenario in const [
+      (doctype: 'Lead', name: 'LEAD-ILO', customer: 'ilo specialty coffee'),
+      (doctype: 'Opportunity', name: 'OPP-ILO', customer: 'ILO-PRODUCTION'),
+    ]) {
+      testWidgets(
+        '${scenario.doctype} links an existing customer and shows two branches',
+        (tester) async {
+          final repo = _FakeB2bRepository(accountDoctype: scenario.doctype);
+          await tester.pumpWidget(
+            _wrap(
+              B2bAccountScreen(doctype: scenario.doctype, name: scenario.name),
+              overrides: [
+                b2bRepositoryProvider.overrideWithValue(repo),
+                customerAddressRepositoryProvider.overrideWithValue(
+                  _FakeAddressRepository(),
+                ),
+                territoriesProvider(
+                  null,
+                ).overrideWith((ref) async => _territories),
+              ],
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.text('Place order'));
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.text(
+              scenario.customer == 'ilo specialty coffee'
+                  ? 'ILO Specialty Coffee'
+                  : 'ILO Production',
+            ),
+          );
+          await tester.pump();
+          await tester.tap(find.text('Link and continue'));
+          // The account deliberately keeps a busy spinner behind the branch
+          // dialog until selection finishes, so pumpAndSettle cannot quiesce.
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 500));
+
+          expect(find.text('Heliopolis'), findsOneWidget);
+          expect(find.text('All Seasons Park'), findsOneWidget);
+          expect(repo.linkCalls, [
+            '${scenario.doctype}:${scenario.name}:${scenario.customer}',
+          ]);
+
+          await tester.tap(find.text('Cancel').last);
+          await tester.pumpAndSettle();
+          expect(repo.accountLoads, greaterThan(1));
+        },
+      );
+    }
   });
 }

@@ -3674,6 +3674,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerShippingAddressLine1Required => 'سطر العنوان 1 مطلوب.';
 
   @override
+  String get customerShippingAddressBranchNameLabel => 'اسم فرع التوصيل';
+
+  @override
+  String get customerShippingAddressBranchNameRequired =>
+      'أدخل اسم فرع التوصيل.';
+
+  @override
+  String get customerShippingAddressTerritoryMissing =>
+      'عدّل الفرع واختار منطقة التوصيل قبل ما تعمل الطلب.';
+
+  @override
   String get posAmendmentDraftTitle => 'مسودة تعديل الفاتورة';
 
   @override
@@ -7218,6 +7229,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get b2bContinue => 'كمّل';
 
   @override
+  String get b2bCustomerSetupTitle => 'جهّز العميل';
+
+  @override
+  String get b2bLinkExistingCustomer => 'اربط بعميل موجود';
+
+  @override
+  String get b2bCreateNewCustomer => 'اعمل عميل جديد';
+
+  @override
+  String get b2bSearchExistingCustomer => 'دوّر في العملاء الموجودين';
+
+  @override
+  String get b2bNoMatchingCustomers => 'مفيش عملاء مطابقين.';
+
+  @override
+  String get b2bLinkAndContinue => 'اربط وكمّل';
+
+  @override
   String get b2bLoadingTerritories => 'بيحمّل المناطق…';
 
   @override
@@ -7257,6 +7286,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get b2bPlaceOrder => 'اعمل طلب';
+
+  @override
+  String get b2bOpenAccount => 'افتح حساب الجملة';
+
+  @override
+  String get b2bOrderResumeTitle => 'طلب جملة';
+
+  @override
+  String get b2bOrderResumeMessage => 'اختار حساب جملة أو كمّل طلب جملة محفوظ.';
+
+  @override
+  String get b2bOrderChooseAccount => 'اختار حساب جملة';
+
+  @override
+  String get b2bOrderChangeBranch => 'غيّر فرع التوصيل';
+
+  @override
+  String get b2bOrderPolicyUnavailable =>
+      'سياسة أسعار الجملة المطلوبة مش متاحة. حاول تاني بعد تحميل الأسعار.';
+
+  @override
+  String get b2bOrderSetupFailedTitle => 'مش قادر يجهّز طلب الجملة';
 
   @override
   String get b2bMarkLost => 'علّمه خسران';
