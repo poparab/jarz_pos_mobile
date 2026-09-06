@@ -6886,6 +6886,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leadDetailTitle => 'Lead';
 
   @override
+  String get leadDetailEdit => 'Edit lead';
+
+  @override
   String leadDetailBranchesCount(int count) {
     return 'Branches ($count)';
   }
@@ -7076,6 +7079,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leadFormCardBrand => 'Brand';
 
   @override
+  String get leadMapsCardTitle => 'Google Maps place';
+
+  @override
+  String get leadMapsCardDescription =>
+      'Paste the place link first. Any available details will fill in below for you to review.';
+
+  @override
+  String get leadMapsFieldLabel => 'Google Maps link';
+
+  @override
+  String get leadMapsPaste => 'Paste';
+
+  @override
+  String get leadMapsGetDetails => 'Get details';
+
+  @override
+  String get leadMapsOpen => 'Open map';
+
+  @override
+  String get leadMapsChecking => 'Reading place…';
+
+  @override
+  String get leadMapsStillWorking =>
+      'Details are taking longer. The link will still be saved; tap Retry to check again.';
+
+  @override
+  String get leadMapsDetailsImported =>
+      'We found some details. Review and complete the form below.';
+
+  @override
+  String get leadMapsLocationImported =>
+      'Location confirmed. Review and complete the form below.';
+
+  @override
+  String get leadMapsLookupFailed =>
+      'Couldn’t read details. The link will still be saved; enter the details below.';
+
+  @override
+  String get leadMapsUnrecognized =>
+      'This doesn’t look like a Google Maps link. You can still save it and enter the details below.';
+
+  @override
+  String get leadMapsLinkKept =>
+      'The link will be saved with the lead. Enter the remaining details below.';
+
+  @override
+  String get leadMapsFoundDetails => 'Details found';
+
+  @override
   String get leadFormCardClassification => 'Classification';
 
   @override
@@ -7101,6 +7153,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leadFormRequired => 'Required';
+
+  @override
+  String leadFormAddressRequired(String title) {
+    return '$title: address line 1, city, and country are required together.';
+  }
 
   @override
   String get leadFormScoreRangeError => '0–100';

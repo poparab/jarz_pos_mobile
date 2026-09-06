@@ -3898,6 +3898,7 @@
   "leadsFilterAll": "All",
   "leadsFilterDone": "Done",
   "leadDetailTitle": "Lead",
+  "leadDetailEdit": "Edit lead",
   "leadDetailBranchesCount": "Branches ({count})",
   "@leadDetailBranchesCount": {
     "placeholders": {
@@ -4017,6 +4018,20 @@
   "leadFormSaveChanges": "Save changes",
   "leadFormCreate": "Create lead",
   "leadFormCardBrand": "Brand",
+  "leadMapsCardTitle": "Google Maps place",
+  "leadMapsCardDescription": "Paste the place link first. Any available details will fill in below for you to review.",
+  "leadMapsFieldLabel": "Google Maps link",
+  "leadMapsPaste": "Paste",
+  "leadMapsGetDetails": "Get details",
+  "leadMapsOpen": "Open map",
+  "leadMapsChecking": "Reading place…",
+  "leadMapsStillWorking": "Details are taking longer. The link will still be saved; tap Retry to check again.",
+  "leadMapsDetailsImported": "We found some details. Review and complete the form below.",
+  "leadMapsLocationImported": "Location confirmed. Review and complete the form below.",
+  "leadMapsLookupFailed": "Couldn’t read details. The link will still be saved; enter the details below.",
+  "leadMapsUnrecognized": "This doesn’t look like a Google Maps link. You can still save it and enter the details below.",
+  "leadMapsLinkKept": "The link will be saved with the lead. Enter the remaining details below.",
+  "leadMapsFoundDetails": "Details found",
   "leadFormCardClassification": "Classification",
   "leadFormCardContact": "Contact",
   "leadFormTier": "Tier",
@@ -4026,6 +4041,12 @@
   "leadFieldInstagram": "Instagram",
   "leadFieldFacebook": "Facebook",
   "leadFormRequired": "Required",
+  "leadFormAddressRequired": "{title}: address line 1, city, and country are required together.",
+  "@leadFormAddressRequired": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
   "leadFormScoreRangeError": "0–100",
   "leadFormCategoryLabel": "Category",
   "leadsSortTooltip": "Sort",

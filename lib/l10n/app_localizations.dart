@@ -11589,6 +11589,12 @@ abstract class AppLocalizations {
   /// **'Lead'**
   String get leadDetailTitle;
 
+  /// No description provided for @leadDetailEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit lead'**
+  String get leadDetailEdit;
+
   /// No description provided for @leadDetailBranchesCount.
   ///
   /// In en, this message translates to:
@@ -11925,6 +11931,90 @@ abstract class AppLocalizations {
   /// **'Brand'**
   String get leadFormCardBrand;
 
+  /// No description provided for @leadMapsCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Maps place'**
+  String get leadMapsCardTitle;
+
+  /// No description provided for @leadMapsCardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the place link first. Any available details will fill in below for you to review.'**
+  String get leadMapsCardDescription;
+
+  /// No description provided for @leadMapsFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Maps link'**
+  String get leadMapsFieldLabel;
+
+  /// No description provided for @leadMapsPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get leadMapsPaste;
+
+  /// No description provided for @leadMapsGetDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Get details'**
+  String get leadMapsGetDetails;
+
+  /// No description provided for @leadMapsOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open map'**
+  String get leadMapsOpen;
+
+  /// No description provided for @leadMapsChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading place…'**
+  String get leadMapsChecking;
+
+  /// No description provided for @leadMapsStillWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Details are taking longer. The link will still be saved; tap Retry to check again.'**
+  String get leadMapsStillWorking;
+
+  /// No description provided for @leadMapsDetailsImported.
+  ///
+  /// In en, this message translates to:
+  /// **'We found some details. Review and complete the form below.'**
+  String get leadMapsDetailsImported;
+
+  /// No description provided for @leadMapsLocationImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Location confirmed. Review and complete the form below.'**
+  String get leadMapsLocationImported;
+
+  /// No description provided for @leadMapsLookupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t read details. The link will still be saved; enter the details below.'**
+  String get leadMapsLookupFailed;
+
+  /// No description provided for @leadMapsUnrecognized.
+  ///
+  /// In en, this message translates to:
+  /// **'This doesn’t look like a Google Maps link. You can still save it and enter the details below.'**
+  String get leadMapsUnrecognized;
+
+  /// No description provided for @leadMapsLinkKept.
+  ///
+  /// In en, this message translates to:
+  /// **'The link will be saved with the lead. Enter the remaining details below.'**
+  String get leadMapsLinkKept;
+
+  /// No description provided for @leadMapsFoundDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details found'**
+  String get leadMapsFoundDetails;
+
   /// No description provided for @leadFormCardClassification.
   ///
   /// In en, this message translates to:
@@ -11978,6 +12068,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Required'**
   String get leadFormRequired;
+
+  /// No description provided for @leadFormAddressRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'{title}: address line 1, city, and country are required together.'**
+  String leadFormAddressRequired(String title);
 
   /// No description provided for @leadFormScoreRangeError.
   ///

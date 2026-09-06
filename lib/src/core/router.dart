@@ -57,6 +57,7 @@ import '../features/leads/presentation/screens/leads_list_screen.dart';
 import '../features/leads/presentation/screens/leads_map_screen.dart';
 import '../features/leads/presentation/screens/lead_detail_screen.dart';
 import '../features/leads/presentation/screens/lead_form_screen.dart';
+import '../features/leads/data/models/lead.dart';
 
 import '../features/shift/state/shift_notifier.dart';
 import '../features/shift/models/shift_models.dart';
@@ -591,7 +592,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.leadForm,
         name: 'lead-form',
-        builder: (context, state) => const LeadFormScreen(),
+        builder: (context, state) => LeadFormScreen(
+          existing: state.extra is Lead ? state.extra! as Lead : null,
+        ),
       ),
       GoRoute(
         path: AppRoutes.leadDetail,

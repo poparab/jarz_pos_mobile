@@ -26,6 +26,8 @@ mixin _$Lead {
   String? get sourceBrandId => throw _privateConstructorUsedError;
   @JsonKey(name: 'lead_name')
   String get leadName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'company_name')
+  String get companyName => throw _privateConstructorUsedError;
   String? get category => throw _privateConstructorUsedError;
   int get score => throw _privateConstructorUsedError;
   String get tier => throw _privateConstructorUsedError;
@@ -81,6 +83,12 @@ mixin _$Lead {
   List<String> get governorates => throw _privateConstructorUsedError;
   List<String> get areas => throw _privateConstructorUsedError;
   String get phone => throw _privateConstructorUsedError;
+  @JsonKey(name: 'mobile_no')
+  String get mobileNo => throw _privateConstructorUsedError;
+  @JsonKey(name: 'email_id')
+  String get emailId => throw _privateConstructorUsedError;
+  String get source => throw _privateConstructorUsedError;
+  String get territory => throw _privateConstructorUsedError;
   String get website => throw _privateConstructorUsedError;
   String get instagram => throw _privateConstructorUsedError;
   String get facebook => throw _privateConstructorUsedError;
@@ -175,6 +183,7 @@ abstract class $LeadCopyWith<$Res> {
     String name,
     @JsonKey(name: 'source_brand_id') String? sourceBrandId,
     @JsonKey(name: 'lead_name') String leadName,
+    @JsonKey(name: 'company_name') String companyName,
     String? category,
     int score,
     String tier,
@@ -198,6 +207,10 @@ abstract class $LeadCopyWith<$Res> {
     List<String> governorates,
     List<String> areas,
     String phone,
+    @JsonKey(name: 'mobile_no') String mobileNo,
+    @JsonKey(name: 'email_id') String emailId,
+    String source,
+    String territory,
     String website,
     String instagram,
     String facebook,
@@ -254,6 +267,7 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
     Object? name = null,
     Object? sourceBrandId = freezed,
     Object? leadName = null,
+    Object? companyName = null,
     Object? category = freezed,
     Object? score = null,
     Object? tier = null,
@@ -277,6 +291,10 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
     Object? governorates = null,
     Object? areas = null,
     Object? phone = null,
+    Object? mobileNo = null,
+    Object? emailId = null,
+    Object? source = null,
+    Object? territory = null,
     Object? website = null,
     Object? instagram = null,
     Object? facebook = null,
@@ -323,6 +341,10 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
             leadName: null == leadName
                 ? _value.leadName
                 : leadName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            companyName: null == companyName
+                ? _value.companyName
+                : companyName // ignore: cast_nullable_to_non_nullable
                       as String,
             category: freezed == category
                 ? _value.category
@@ -415,6 +437,22 @@ class _$LeadCopyWithImpl<$Res, $Val extends Lead>
             phone: null == phone
                 ? _value.phone
                 : phone // ignore: cast_nullable_to_non_nullable
+                      as String,
+            mobileNo: null == mobileNo
+                ? _value.mobileNo
+                : mobileNo // ignore: cast_nullable_to_non_nullable
+                      as String,
+            emailId: null == emailId
+                ? _value.emailId
+                : emailId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            source: null == source
+                ? _value.source
+                : source // ignore: cast_nullable_to_non_nullable
+                      as String,
+            territory: null == territory
+                ? _value.territory
+                : territory // ignore: cast_nullable_to_non_nullable
                       as String,
             website: null == website
                 ? _value.website
@@ -590,6 +628,7 @@ abstract class _$$LeadImplCopyWith<$Res> implements $LeadCopyWith<$Res> {
     String name,
     @JsonKey(name: 'source_brand_id') String? sourceBrandId,
     @JsonKey(name: 'lead_name') String leadName,
+    @JsonKey(name: 'company_name') String companyName,
     String? category,
     int score,
     String tier,
@@ -613,6 +652,10 @@ abstract class _$$LeadImplCopyWith<$Res> implements $LeadCopyWith<$Res> {
     List<String> governorates,
     List<String> areas,
     String phone,
+    @JsonKey(name: 'mobile_no') String mobileNo,
+    @JsonKey(name: 'email_id') String emailId,
+    String source,
+    String territory,
     String website,
     String instagram,
     String facebook,
@@ -668,6 +711,7 @@ class __$$LeadImplCopyWithImpl<$Res>
     Object? name = null,
     Object? sourceBrandId = freezed,
     Object? leadName = null,
+    Object? companyName = null,
     Object? category = freezed,
     Object? score = null,
     Object? tier = null,
@@ -691,6 +735,10 @@ class __$$LeadImplCopyWithImpl<$Res>
     Object? governorates = null,
     Object? areas = null,
     Object? phone = null,
+    Object? mobileNo = null,
+    Object? emailId = null,
+    Object? source = null,
+    Object? territory = null,
     Object? website = null,
     Object? instagram = null,
     Object? facebook = null,
@@ -737,6 +785,10 @@ class __$$LeadImplCopyWithImpl<$Res>
         leadName: null == leadName
             ? _value.leadName
             : leadName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        companyName: null == companyName
+            ? _value.companyName
+            : companyName // ignore: cast_nullable_to_non_nullable
                   as String,
         category: freezed == category
             ? _value.category
@@ -829,6 +881,22 @@ class __$$LeadImplCopyWithImpl<$Res>
         phone: null == phone
             ? _value.phone
             : phone // ignore: cast_nullable_to_non_nullable
+                  as String,
+        mobileNo: null == mobileNo
+            ? _value.mobileNo
+            : mobileNo // ignore: cast_nullable_to_non_nullable
+                  as String,
+        emailId: null == emailId
+            ? _value.emailId
+            : emailId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        source: null == source
+            ? _value.source
+            : source // ignore: cast_nullable_to_non_nullable
+                  as String,
+        territory: null == territory
+            ? _value.territory
+            : territory // ignore: cast_nullable_to_non_nullable
                   as String,
         website: null == website
             ? _value.website
@@ -970,6 +1038,7 @@ class _$LeadImpl extends _Lead {
     required this.name,
     @JsonKey(name: 'source_brand_id') this.sourceBrandId,
     @JsonKey(name: 'lead_name') this.leadName = '',
+    @JsonKey(name: 'company_name') this.companyName = '',
     this.category,
     this.score = 0,
     this.tier = '',
@@ -994,6 +1063,10 @@ class _$LeadImpl extends _Lead {
     final List<String> governorates = const <String>[],
     final List<String> areas = const <String>[],
     this.phone = '',
+    @JsonKey(name: 'mobile_no') this.mobileNo = '',
+    @JsonKey(name: 'email_id') this.emailId = '',
+    this.source = '',
+    this.territory = '',
     this.website = '',
     this.instagram = '',
     this.facebook = '',
@@ -1049,6 +1122,9 @@ class _$LeadImpl extends _Lead {
   @override
   @JsonKey(name: 'lead_name')
   final String leadName;
+  @override
+  @JsonKey(name: 'company_name')
+  final String companyName;
   @override
   final String? category;
   @override
@@ -1158,6 +1234,18 @@ class _$LeadImpl extends _Lead {
   @override
   @JsonKey()
   final String phone;
+  @override
+  @JsonKey(name: 'mobile_no')
+  final String mobileNo;
+  @override
+  @JsonKey(name: 'email_id')
+  final String emailId;
+  @override
+  @JsonKey()
+  final String source;
+  @override
+  @JsonKey()
+  final String territory;
   @override
   @JsonKey()
   final String website;
@@ -1312,7 +1400,7 @@ class _$LeadImpl extends _Lead {
 
   @override
   String toString() {
-    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, takeout: $takeout, dineIn: $dineIn, servesDessert: $servesDessert, onTalabat: $onTalabat, talabatAreas: $talabatAreas, talabatRating: $talabatRating, talabatReviews: $talabatReviews, talabatRatingSource: $talabatRatingSource, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, contacts: $contacts, locations: $locations, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes, journeyCount: $journeyCount, lastJourneyDate: $lastJourneyDate, lastJourneyType: $lastJourneyType, lastJourneyNote: $lastJourneyNote, lastJourneyContact: $lastJourneyContact, nextActionDate: $nextActionDate, nextAction: $nextAction, journeyNotes: $journeyNotes)';
+    return 'Lead(name: $name, sourceBrandId: $sourceBrandId, leadName: $leadName, companyName: $companyName, category: $category, score: $score, tier: $tier, branchCount: $branchCount, priceBand: $priceBand, avgRating: $avgRating, totalReviews: $totalReviews, openStatus: $openStatus, sahelBranches: $sahelBranches, isSpecialty: $isSpecialty, takeout: $takeout, dineIn: $dineIn, servesDessert: $servesDessert, onTalabat: $onTalabat, talabatAreas: $talabatAreas, talabatRating: $talabatRating, talabatReviews: $talabatReviews, talabatRatingSource: $talabatRatingSource, primaryArea: $primaryArea, regions: $regions, governorates: $governorates, areas: $areas, phone: $phone, mobileNo: $mobileNo, emailId: $emailId, source: $source, territory: $territory, website: $website, instagram: $instagram, facebook: $facebook, mapsUrl: $mapsUrl, confidence: $confidence, status: $status, b2bStage: $b2bStage, lastVerified: $lastVerified, latitude: $latitude, longitude: $longitude, notSuitable: $notSuitable, notSuitableReason: $notSuitableReason, notSuitableNotes: $notSuitableNotes, notSuitableOn: $notSuitableOn, notSuitableBy: $notSuitableBy, mergedInto: $mergedInto, mergedOn: $mergedOn, mergedBy: $mergedBy, contacts: $contacts, locations: $locations, branches: $branches, primaryAddress: $primaryAddress, shippingAddress: $shippingAddress, notes: $notes, journeyCount: $journeyCount, lastJourneyDate: $lastJourneyDate, lastJourneyType: $lastJourneyType, lastJourneyNote: $lastJourneyNote, lastJourneyContact: $lastJourneyContact, nextActionDate: $nextActionDate, nextAction: $nextAction, journeyNotes: $journeyNotes)';
   }
 
   @override
@@ -1325,6 +1413,8 @@ class _$LeadImpl extends _Lead {
                 other.sourceBrandId == sourceBrandId) &&
             (identical(other.leadName, leadName) ||
                 other.leadName == leadName) &&
+            (identical(other.companyName, companyName) ||
+                other.companyName == companyName) &&
             (identical(other.category, category) ||
                 other.category == category) &&
             (identical(other.score, score) || other.score == score) &&
@@ -1368,6 +1458,12 @@ class _$LeadImpl extends _Lead {
             ) &&
             const DeepCollectionEquality().equals(other._areas, _areas) &&
             (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.mobileNo, mobileNo) ||
+                other.mobileNo == mobileNo) &&
+            (identical(other.emailId, emailId) || other.emailId == emailId) &&
+            (identical(other.source, source) || other.source == source) &&
+            (identical(other.territory, territory) ||
+                other.territory == territory) &&
             (identical(other.website, website) || other.website == website) &&
             (identical(other.instagram, instagram) ||
                 other.instagram == instagram) &&
@@ -1439,6 +1535,7 @@ class _$LeadImpl extends _Lead {
     name,
     sourceBrandId,
     leadName,
+    companyName,
     category,
     score,
     tier,
@@ -1462,6 +1559,10 @@ class _$LeadImpl extends _Lead {
     const DeepCollectionEquality().hash(_governorates),
     const DeepCollectionEquality().hash(_areas),
     phone,
+    mobileNo,
+    emailId,
+    source,
+    territory,
     website,
     instagram,
     facebook,
@@ -1515,6 +1616,7 @@ abstract class _Lead extends Lead {
     required final String name,
     @JsonKey(name: 'source_brand_id') final String? sourceBrandId,
     @JsonKey(name: 'lead_name') final String leadName,
+    @JsonKey(name: 'company_name') final String companyName,
     final String? category,
     final int score,
     final String tier,
@@ -1538,6 +1640,10 @@ abstract class _Lead extends Lead {
     final List<String> governorates,
     final List<String> areas,
     final String phone,
+    @JsonKey(name: 'mobile_no') final String mobileNo,
+    @JsonKey(name: 'email_id') final String emailId,
+    final String source,
+    final String territory,
     final String website,
     final String instagram,
     final String facebook,
@@ -1583,6 +1689,9 @@ abstract class _Lead extends Lead {
   @override
   @JsonKey(name: 'lead_name')
   String get leadName;
+  @override
+  @JsonKey(name: 'company_name')
+  String get companyName;
   @override
   String? get category;
   @override
@@ -1661,6 +1770,16 @@ abstract class _Lead extends Lead {
   List<String> get areas;
   @override
   String get phone;
+  @override
+  @JsonKey(name: 'mobile_no')
+  String get mobileNo;
+  @override
+  @JsonKey(name: 'email_id')
+  String get emailId;
+  @override
+  String get source;
+  @override
+  String get territory;
   @override
   String get website;
   @override

@@ -152,11 +152,11 @@ class LeadCard extends StatelessWidget {
                         LeadActionButton(
                           icon: Icons.map_outlined,
                           enabled:
-                              lead.mapsUrl.trim().isNotEmpty ||
+                              LeadActions.isSafeMapsUrl(lead.mapsUrl) ||
                               (lead.latitude != null && lead.longitude != null),
                           tooltip: context.l10n.leadActionMap,
                           onTap: () {
-                            if (lead.mapsUrl.trim().isNotEmpty) {
+                            if (LeadActions.isSafeMapsUrl(lead.mapsUrl)) {
                               LeadActions.maps(lead.mapsUrl);
                             } else if (lead.latitude != null &&
                                 lead.longitude != null) {
@@ -172,7 +172,8 @@ class LeadCard extends StatelessWidget {
                         // avoids offering the action on a lead that has none.
                         LeadActionButton(
                           icon: Icons.route,
-                          enabled: lead.locations.isNotEmpty ||
+                          enabled:
+                              lead.locations.isNotEmpty ||
                               (lead.latitude != null && lead.longitude != null),
                           tooltip: context.l10n.visitAddToRoute,
                           color: LeadsTheme.sahelBlue,

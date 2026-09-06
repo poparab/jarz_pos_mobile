@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/dio_provider.dart';
+import '../../../core/network/frappe_error_message.dart';
+import 'models/lead_maps_preview.dart';
 import 'models/lead.dart';
 
 final leadsRepositoryProvider = Provider<LeadsRepository>((ref) {
@@ -12,13 +14,31 @@ final leadsRepositoryProvider = Provider<LeadsRepository>((ref) {
   return LeadsRepository(dio);
 });
 
+typedef LeadMapsPollWait = Future<void> Function(Duration duration);
+
+Future<void> _defaultLeadMapsPollWait(Duration duration) =>
+    Future<void>.delayed(duration);
+
 /// HTTP repository for the Leads research feature (`jarz_pos.api.leads.*`).
 ///
 /// All endpoints are POST and return Frappe's `{ "message": ... }` envelope,
 /// unwrapped by [_unwrap] exactly like the B2B repository.
 class LeadsRepository {
   final Dio _dio;
-  LeadsRepository(this._dio);
+  final LeadMapsPollWait _leadMapsPollWait;
+
+  LeadsRepository(
+    this._dio, {
+    LeadMapsPollWait leadMapsPollWait = _defaultLeadMapsPollWait,
+  }) : _leadMapsPollWait = leadMapsPollWait;
+
+  static const _leadMapsPollIntervals = <Duration>[
+    Duration(milliseconds: 500),
+    Duration(seconds: 1),
+    Duration(seconds: 2),
+    Duration(seconds: 2),
+    Duration(seconds: 2),
+  ];
 
   /// Unwraps Frappe's `{ "message": ... }` envelope.
   dynamic _unwrap(Response response) {
@@ -52,16 +72,16 @@ class LeadsRepository {
 
   /// Fetches the full detail (branches + addresses + notes) for one lead.
   Future<Lead> getLead(String name) async {
-    final response = await _dio.post(ApiEndpoints.getLead, data: {'name': name});
+    final response = await _dio.post(
+      ApiEndpoints.getLead,
+      data: {'name': name},
+    );
     return Lead.fromJson(_asMap(_unwrap(response)));
   }
 
   /// Creates or updates a lead. Pass [name] to update an existing one.
   /// Returns the server-assigned `name`.
-  Future<String> saveLead(
-    Map<String, dynamic> payload, {
-    String? name,
-  }) async {
+  Future<String> saveLead(Map<String, dynamic> payload, {String? name}) async {
     final response = await _dio.post(
       ApiEndpoints.saveLead,
       data: {
@@ -71,6 +91,46 @@ class LeadsRepository {
     );
     final result = _asMap(_unwrap(response));
     return (result['name'] ?? '').toString();
+  }
+
+  /// Resolves a Maps share link and reads any place details the backend can
+  /// safely suggest. This endpoint is read-only; the form remains responsible
+  /// for showing the suggestions and deciding which blank fields to fill.
+  Future<LeadMapsPreview> previewMapsLink(
+    String link, {
+    bool Function()? keepPolling,
+  }) async {
+    try {
+      var response = await _dio.post(
+        ApiEndpoints.previewLeadMapsLink,
+        data: {'link': link},
+      );
+      var preview = LeadMapsPreview.fromJson(_asMap(_unwrap(response)));
+
+      // Short Maps links resolve in a background job so a web worker is never
+      // held open following redirects. Poll for about eight seconds, while the
+      // form remains editable and saveable throughout.
+      for (final interval in _leadMapsPollIntervals) {
+        final requestId = preview.requestId;
+        if (!preview.pending || requestId == null || requestId.isEmpty) {
+          return preview;
+        }
+        if (keepPolling?.call() == false) return preview;
+        await _leadMapsPollWait(interval);
+        if (keepPolling?.call() == false) return preview;
+
+        response = await _dio.post(
+          ApiEndpoints.previewLeadMapsLink,
+          data: {'request_id': requestId},
+        );
+        preview = LeadMapsPreview.fromJson(_asMap(_unwrap(response)));
+      }
+      return preview;
+    } on DioException catch (e) {
+      throw mapFrappeError(e, fallback: 'Failed to import Google Maps place');
+    } catch (e) {
+      throw mapFrappeError(e, fallback: 'Failed to import Google Maps place');
+    }
   }
 
   /// Replaces the people recorded against a lead (owner / manager / shift
@@ -105,11 +165,7 @@ class LeadsRepository {
   }) async {
     final response = await _dio.post(
       ApiEndpoints.setLeadAddress,
-      data: {
-        'name': name,
-        'kind': kind,
-        'address': address.toJson(),
-      },
+      data: {'name': name, 'kind': kind, 'address': address.toJson()},
     );
     final result = _asMap(_unwrap(response));
     return (result['address'] ?? '').toString();
@@ -119,8 +175,10 @@ class LeadsRepository {
   /// backend owns the list (it reads the live Select options), so the app never
   /// hard-codes its own copy.
   Future<List<String>> getNotSuitableReasons() async {
-    final response =
-        await _dio.post(ApiEndpoints.getNotSuitableReasons, data: {});
+    final response = await _dio.post(
+      ApiEndpoints.getNotSuitableReasons,
+      data: {},
+    );
     final payload = _asMap(_unwrap(response));
     final raw = (payload['reasons'] as List?) ?? const [];
     return raw.map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
@@ -189,8 +247,7 @@ class LeadsRepository {
 
   /// Fetches the list of lead categories.
   Future<List<LeadCategory>> getLeadCategories() async {
-    final response =
-        await _dio.post(ApiEndpoints.getLeadCategories, data: {});
+    final response = await _dio.post(ApiEndpoints.getLeadCategories, data: {});
     final payload = _asMap(_unwrap(response));
     final raw = (payload['categories'] as List?) ?? const [];
     return raw

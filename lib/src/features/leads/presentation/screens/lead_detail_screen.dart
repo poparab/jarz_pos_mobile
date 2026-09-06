@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../b2b/data/b2b_repository.dart' show b2bRepositoryProvider;
 import '../../../b2b/presentation/widgets/b2b_stage_chip.dart'
     show B2bStageChip, kB2bStages, kDefaultB2bStage;
@@ -50,6 +51,21 @@ class LeadDetailScreen extends ConsumerWidget {
           style: LeadsTheme.heading.copyWith(fontSize: 22),
         ),
         actions: [
+          IconButton(
+            tooltip: context.l10n.leadDetailEdit,
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: async.valueOrNull == null
+                ? null
+                : () async {
+                    await context.push(
+                      AppRoutes.leadForm,
+                      extra: async.valueOrNull,
+                    );
+                    await ref
+                        .read(leadDetailProvider(leadName).notifier)
+                        .refresh();
+                  },
+          ),
           // Deciding a prospect is worth a visit happens while looking at it,
           // not later on a separate planning screen.
           IconButton(
@@ -201,19 +217,23 @@ List<MaterialRecipient> _recipientsFor(Lead lead) {
     if (name.isEmpty) continue;
     final key = '$name|${contact.phone.trim()}';
     if (!seen.add(key)) continue;
-    recipients.add(MaterialRecipient(
-      name: name,
-      role: contact.role.trim(),
-      phone: contact.phone.trim(),
-    ));
+    recipients.add(
+      MaterialRecipient(
+        name: name,
+        role: contact.role.trim(),
+        phone: contact.phone.trim(),
+      ),
+    );
   }
 
   final venue = lead.phone.trim();
   if (venue.isNotEmpty && !recipients.any((r) => r.phone == venue)) {
-    recipients.add(MaterialRecipient(
-      name: lead.leadName.trim().isNotEmpty ? lead.leadName.trim() : venue,
-      phone: venue,
-    ));
+    recipients.add(
+      MaterialRecipient(
+        name: lead.leadName.trim().isNotEmpty ? lead.leadName.trim() : venue,
+        phone: venue,
+      ),
+    );
   }
   return recipients;
 }
@@ -328,10 +348,10 @@ class _ContactRow extends StatelessWidget {
           icon: Icons.map_outlined,
           label: context.l10n.leadActionMap,
           enabled:
-              lead.mapsUrl.trim().isNotEmpty ||
+              LeadActions.isSafeMapsUrl(lead.mapsUrl) ||
               (lead.latitude != null && lead.longitude != null),
           onTap: () {
-            if (lead.mapsUrl.trim().isNotEmpty) {
+            if (LeadActions.isSafeMapsUrl(lead.mapsUrl)) {
               LeadActions.maps(lead.mapsUrl);
             } else if (lead.latitude != null && lead.longitude != null) {
               LeadActions.mapsAt(lead.latitude!, lead.longitude!);
@@ -429,9 +449,9 @@ class _EditableSectionState extends ConsumerState<_EditableSection> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.userErrorMessage(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -562,9 +582,9 @@ class _FitScoreSectionState extends ConsumerState<_FitScoreSection> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.userErrorMessage(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -694,9 +714,9 @@ class _B2bStageSectionState extends ConsumerState<_B2bStageSection> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.userErrorMessage(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -929,9 +949,9 @@ class _SuitabilitySectionState extends ConsumerState<_SuitabilitySection> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.userErrorMessage(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -1309,9 +1329,9 @@ class _AddressEditorState extends ConsumerState<_AddressEditor> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.userErrorMessage(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -1455,11 +1475,11 @@ class _BranchTile extends StatelessWidget {
                     foregroundColor: LeadsTheme.deepPlum,
                   ),
                 ),
-              if (branch.mapsUrl.trim().isNotEmpty ||
+              if (LeadActions.isSafeMapsUrl(branch.mapsUrl) ||
                   (branch.latitude != null && branch.longitude != null))
                 TextButton.icon(
                   onPressed: () {
-                    if (branch.mapsUrl.trim().isNotEmpty) {
+                    if (LeadActions.isSafeMapsUrl(branch.mapsUrl)) {
                       LeadActions.maps(branch.mapsUrl);
                     } else {
                       LeadActions.mapsAt(branch.latitude!, branch.longitude!);

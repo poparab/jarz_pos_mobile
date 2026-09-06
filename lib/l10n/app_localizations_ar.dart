@@ -6851,6 +6851,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get leadDetailTitle => 'عميل محتمل';
 
   @override
+  String get leadDetailEdit => 'عدّل العميل المحتمل';
+
+  @override
   String leadDetailBranchesCount(int count) {
     return 'الفروع ($count)';
   }
@@ -7041,6 +7044,55 @@ class AppLocalizationsAr extends AppLocalizations {
   String get leadFormCardBrand => 'البراند';
 
   @override
+  String get leadMapsCardTitle => 'المكان على خرائط جوجل';
+
+  @override
+  String get leadMapsCardDescription =>
+      'الصق رابط المكان الأول. أي بيانات متاحة هتتملى تحت عشان تراجعها.';
+
+  @override
+  String get leadMapsFieldLabel => 'رابط خرائط جوجل';
+
+  @override
+  String get leadMapsPaste => 'الصق';
+
+  @override
+  String get leadMapsGetDetails => 'هات البيانات';
+
+  @override
+  String get leadMapsOpen => 'افتح الخريطة';
+
+  @override
+  String get leadMapsChecking => 'بنقرأ بيانات المكان…';
+
+  @override
+  String get leadMapsStillWorking =>
+      'التفاصيل بتاخد وقت أطول. الرابط هيتحفظ؛ اضغط حاول تاني عشان تراجعها.';
+
+  @override
+  String get leadMapsDetailsImported =>
+      'لقينا شوية بيانات. راجعها وكمّل النموذج تحت.';
+
+  @override
+  String get leadMapsLocationImported =>
+      'ثبتنا الموقع. راجعه وكمّل النموذج تحت.';
+
+  @override
+  String get leadMapsLookupFailed =>
+      'ماقدرناش نقرا التفاصيل. الرابط هيتحفظ مع العميل؛ كمّل البيانات تحت.';
+
+  @override
+  String get leadMapsUnrecognized =>
+      'ده مش باين رابط خرائط جوجل. تقدر تحفظه وتكمّل البيانات تحت.';
+
+  @override
+  String get leadMapsLinkKept =>
+      'الرابط هيتحفظ مع العميل. كمّل باقي البيانات تحت.';
+
+  @override
+  String get leadMapsFoundDetails => 'البيانات اللي لقيناها';
+
+  @override
   String get leadFormCardClassification => 'التصنيف';
 
   @override
@@ -7066,6 +7118,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get leadFormRequired => 'مطلوب';
+
+  @override
+  String leadFormAddressRequired(String title) {
+    return '$title: لازم تكتب سطر العنوان والمدينة والدولة مع بعض.';
+  }
 
   @override
   String get leadFormScoreRangeError => '0–100';

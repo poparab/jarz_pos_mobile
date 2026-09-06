@@ -21,6 +21,7 @@ class Lead with _$Lead {
     required String name,
     @JsonKey(name: 'source_brand_id') String? sourceBrandId,
     @JsonKey(name: 'lead_name') @Default('') String leadName,
+    @JsonKey(name: 'company_name') @Default('') String companyName,
     String? category,
     @Default(0) int score,
     @Default('') String tier,
@@ -44,22 +45,34 @@ class Lead with _$Lead {
     // this one really is two-state: `false` means "not listed in any area we
     // swept", not "unknown". `talabatAreas` names the delivery zones the
     // listing was actually seen in.
-    @JsonKey(name: 'on_talabat', fromJson: _flag) @Default(false) bool onTalabat,
-    @JsonKey(name: 'talabat_areas') @Default(<String>[]) List<String> talabatAreas,
+    @JsonKey(name: 'on_talabat', fromJson: _flag)
+    @Default(false)
+    bool onTalabat,
+    @JsonKey(name: 'talabat_areas')
+    @Default(<String>[])
+    List<String> talabatAreas,
+
     /// Rating on the Talabat listing. `null` means listed but UNRATED (the app
     /// showed "New") — which is not the same as absent from Talabat, so read
     /// [onTalabat] for that. [talabatReviews] is a LOWER BOUND: Talabat buckets
     /// large counts as "1k+"/"500+" and the corpus stores the bucket floor.
     @JsonKey(name: 'talabat_rating') double? talabatRating,
     @JsonKey(name: 'talabat_reviews') @Default(0) int talabatReviews,
+
     /// 'talabat' | 'google_maps' | ''. `google_maps` means Talabat is showing
     /// Google's score because the venue has earned none of its own yet.
-    @JsonKey(name: 'talabat_rating_source') @Default('') String talabatRatingSource,
+    @JsonKey(name: 'talabat_rating_source')
+    @Default('')
+    String talabatRatingSource,
     @JsonKey(name: 'primary_area') @Default('') String primaryArea,
     @Default(<String>[]) List<String> regions,
     @Default(<String>[]) List<String> governorates,
     @Default(<String>[]) List<String> areas,
     @Default('') String phone,
+    @JsonKey(name: 'mobile_no') @Default('') String mobileNo,
+    @JsonKey(name: 'email_id') @Default('') String emailId,
+    @Default('') String source,
+    @Default('') String territory,
     @Default('') String website,
     @Default('') String instagram,
     @Default('') String facebook,
@@ -99,7 +112,9 @@ class Lead with _$Lead {
     // entry here is plottable.
     @Default(<LeadLocation>[]) List<LeadLocation> locations,
     // ── Detail-only fields (present on get_lead, null on get_leads) ────────
-    @JsonKey(name: 'branches') @Default(<LeadBranch>[]) List<LeadBranch> branches,
+    @JsonKey(name: 'branches')
+    @Default(<LeadBranch>[])
+    List<LeadBranch> branches,
     @JsonKey(name: 'primary_address') LeadAddress? primaryAddress,
     @JsonKey(name: 'shipping_address') LeadAddress? shippingAddress,
     @Default('') String notes,
@@ -201,10 +216,14 @@ class LeadBranch with _$LeadBranch {
     @Default('') String address,
     double? latitude,
     double? longitude,
-    @JsonKey(name: 'on_talabat', fromJson: _flag) @Default(false) bool onTalabat,
+    @JsonKey(name: 'on_talabat', fromJson: _flag)
+    @Default(false)
+    bool onTalabat,
     @JsonKey(name: 'talabat_rating') double? talabatRating,
     @JsonKey(name: 'talabat_reviews') @Default(0) int talabatReviews,
-    @JsonKey(name: 'talabat_rating_source') @Default('') String talabatRatingSource,
+    @JsonKey(name: 'talabat_rating_source')
+    @Default('')
+    String talabatRatingSource,
   }) = _LeadBranch;
 
   factory LeadBranch.fromJson(Map<String, dynamic> json) =>

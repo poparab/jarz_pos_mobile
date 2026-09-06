@@ -12,7 +12,10 @@ abstract final class LeadActions {
     // silently blocks the launch. Prefer an external app, fall back to the
     // platform default handler.
     try {
-      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
       if (launched) return;
     } catch (_) {
       // externalApplication may be unavailable for this URI; fall through.
@@ -50,8 +53,17 @@ abstract final class LeadActions {
 
   static Future<void> maps(String mapsUrl) async {
     final value = mapsUrl.trim();
-    if (value.isEmpty) return;
+    if (!isSafeMapsUrl(value)) return;
     await _open(Uri.parse(value));
+  }
+
+  /// Maps links come from user input, so only open ordinary web URLs with a
+  /// real host. The value may still be saved for later correction.
+  static bool isSafeMapsUrl(String value) {
+    final uri = Uri.tryParse(value.trim());
+    return uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
   }
 
   static Future<void> mapsAt(double lat, double lng) async {
@@ -85,11 +97,7 @@ class LeadActionButton extends StatelessWidget {
       radius: 20,
       child: Padding(
         padding: const EdgeInsets.all(6),
-        child: Icon(
-          icon,
-          size: 20,
-          color: enabled ? color : LeadsTheme.line,
-        ),
+        child: Icon(icon, size: 20, color: enabled ? color : LeadsTheme.line),
       ),
     );
     if (tooltip == null) return button;
