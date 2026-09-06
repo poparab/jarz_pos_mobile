@@ -30,6 +30,7 @@ class PosRepository {
   PosRepository(this._dio);
 
   final Dio _dio;
+  static const _policyDiscountMarker = '_policy_discount_percentage';
 
   bool _asBool(dynamic value) {
     if (value is bool) {
@@ -1164,7 +1165,8 @@ class PosRepository {
       if (item.containsKey('discount_amount')) {
         base['discount_amount'] = item['discount_amount'];
       }
-      if (item.containsKey('discount_percentage')) {
+      if (item.containsKey('discount_percentage') &&
+          !item.containsKey(_policyDiscountMarker)) {
         base['discount_percentage'] = item['discount_percentage'];
       }
       if (item.containsKey('custom_rate_override')) {

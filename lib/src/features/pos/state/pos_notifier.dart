@@ -265,6 +265,7 @@ class PosState {
     // Hard suppressions always win, even over an explicit override.
     if (selectedSalesPartner != null) return 0.0;
     if (isPickup) return 0.0;
+    if (selectedCommercialPolicy?.waivesShippingIncome ?? false) return 0.0;
     if (zeroShippingOverride) return 0.0;
     // If any bundle in cart has free_shipping=true, waive delivery income client-side
     try {
@@ -876,7 +877,7 @@ class PosNotifier extends StateNotifier<PosState> {
             ? false
             : state.customerHasNoTierPriceList,
         zeroShippingOverride: isB2bCatalog
-            ? _zeroShippingForPolicy(selectedPriceList, reconciledPolicy)
+            ? _zeroShippingDefaultForPriceList(selectedPriceList)
             : state.zeroShippingOverride,
         cartItems: repricedCart,
         isLoading: false,
@@ -1582,10 +1583,7 @@ class PosNotifier extends StateNotifier<PosState> {
     state = state.copyWith(
       selectedPriceList: selection,
       clearSelectedPriceList: selection == null,
-      zeroShippingOverride: _zeroShippingForPolicy(
-        selection,
-        state.selectedCommercialPolicy,
-      ),
+      zeroShippingOverride: _zeroShippingDefaultForPriceList(selection),
       draftDirty: true,
     );
     _autoSaveDebounced();
@@ -1643,9 +1641,8 @@ class PosNotifier extends StateNotifier<PosState> {
     state = state.copyWith(
       selectedCommercialPolicy: policy,
       customerHasNoTierPriceList: false,
-      zeroShippingOverride: _zeroShippingForPolicy(
+      zeroShippingOverride: _zeroShippingDefaultForPriceList(
         state.selectedPriceList,
-        policy,
       ),
       cartItems: repricedCart,
       draftDirty: true,
@@ -1770,7 +1767,7 @@ class PosNotifier extends StateNotifier<PosState> {
       selectedCommercialPolicy: policy,
       boundB2bOrderPurpose: orderPurpose,
       customerHasNoTierPriceList: false,
-      zeroShippingOverride: _zeroShippingForPolicy(selectedPriceList, policy),
+      zeroShippingOverride: _zeroShippingDefaultForPriceList(selectedPriceList),
       cartItems: repricedCart,
       clearDeliverySlots: profileChanged,
       clearSelectedDeliverySlot: profileChanged,
@@ -2135,14 +2132,6 @@ class PosNotifier extends StateNotifier<PosState> {
 
   bool _zeroShippingDefaultForPriceList(Map<String, dynamic>? priceList) {
     return _coerceBool(priceList?['zero_shipping_default']);
-  }
-
-  bool _zeroShippingForPolicy(
-    Map<String, dynamic>? priceList,
-    CommercialPolicy? policy,
-  ) {
-    return (policy?.waivesShippingIncome ?? false) ||
-        _zeroShippingDefaultForPriceList(priceList);
   }
 
   double? _policyDefaultDiscount(CommercialPolicy? policy) {

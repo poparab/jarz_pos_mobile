@@ -208,6 +208,92 @@ void main() {
         expect(cartJson[0]['discount_percentage'], equals(20.0));
       });
 
+      test(
+        'policy-derived Sample discount and shipping stay server-owned',
+        () async {
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.invoices.create_pos_invoice',
+            createSuccessResponse(data: {'name': 'INV-SAMPLE-POLICY'}),
+          );
+
+          await repository.createInvoice(
+            posProfile: 'Nasr city',
+            items: [
+              {
+                'item_code': 'BLUEBERRY-MEDIUM',
+                'quantity': 1,
+                'rate': 0.0,
+                'price_list_rate': 120.0,
+                'discount_percentage': 100.0,
+                '_policy_discount_percentage': 100.0,
+              },
+            ],
+            customer: {
+              'name': 'B2B-CUSTOMER',
+              'selected_shipping_address_name': 'SAMPLE-BRANCH',
+              'selected_shipping_address_delivery_income': 50.0,
+              'selected_shipping_address_territory': 'EGMASRJD',
+            },
+            priceList: 'Sample Price List',
+            orderPurpose: 'Sample - Courier',
+            commercialPolicy: 'POL-SAMPLE',
+            policyReason: 'Disposable sample visit',
+          );
+
+          final request = mockDio.requestLog.last['data'];
+          final cartJson = jsonDecode(request['cart_json']) as List;
+          expect(cartJson.single['price_list_rate'], 120.0);
+          expect(cartJson.single['rate'], 0.0);
+          expect(cartJson.single.containsKey('discount_percentage'), isFalse);
+          expect(
+            cartJson.single.containsKey('_policy_discount_percentage'),
+            isFalse,
+          );
+          expect(request['order_purpose'], 'Sample - Courier');
+          expect(request['commercial_policy'], 'POL-SAMPLE');
+          expect(request['policy_reason'], 'Disposable sample visit');
+          expect(request.containsKey('zero_shipping_override'), isFalse);
+          expect(request.containsKey('suppress_shipping_income'), isFalse);
+          expect(
+            request.containsKey('suppress_legacy_delivery_charges'),
+            isFalse,
+          );
+          expect(request.containsKey('delivery_charges_json'), isTrue);
+        },
+      );
+
+      test(
+        'manual manager discount and shipping overrides are preserved',
+        () async {
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.invoices.create_pos_invoice',
+            createSuccessResponse(data: {'name': 'INV-MANUAL-OVERRIDES'}),
+          );
+
+          await repository.createInvoice(
+            posProfile: 'Main POS',
+            items: [
+              {
+                'item_code': 'ITEM-MANUAL',
+                'quantity': 1,
+                'rate': 80.0,
+                'price_list_rate': 100.0,
+                'discount_percentage': 20.0,
+              },
+            ],
+            customer: {'name': 'CUST-MANUAL', 'delivery_income': 25.0},
+            zeroShippingOverride: true,
+          );
+
+          final request = mockDio.requestLog.last['data'];
+          final cartJson = jsonDecode(request['cart_json']) as List;
+          expect(cartJson.single['discount_percentage'], 20.0);
+          expect(request['zero_shipping_override'], 1);
+          expect(request['suppress_shipping_income'], 1);
+          expect(request['suppress_legacy_delivery_charges'], 1);
+        },
+      );
+
       test('discount_amount preserved in cart_json', () async {
         mockDio.setResponse(
           '/api/method/jarz_pos.api.invoices.create_pos_invoice',

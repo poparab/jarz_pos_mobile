@@ -367,7 +367,9 @@ void main() {
     expect(applied, isTrue);
     expect(notifier.state.selectedCommercialPolicy?.name, 'POL-SAMPLE');
     expect(notifier.state.selectedPriceListName, contains('Sample - Courier'));
-    expect(notifier.state.zeroShippingOverride, isTrue);
+    // The UI reflects the policy waiver, while the request-level override stays
+    // false so the backend can apply the validated commercial policy itself.
+    expect(notifier.state.zeroShippingOverride, isFalse);
     expect(notifier.addToCart(notifier.state.items.single), isTrue);
     expect(notifier.state.cartItems.single['price_list_rate'], 80.0);
     expect(notifier.state.cartItems.single['discount_percentage'], 100.0);
@@ -434,6 +436,7 @@ void main() {
 
       expect(notifier.state.cartItems.single['discount_percentage'], 100.0);
       expect(notifier.state.cartItems.single['rate'], 0.0);
+      expect(notifier.state.zeroShippingOverride, isFalse);
       expect(notifier.state.totalWithShipping, 0.0);
       expect(notifier.state.policyReason, 'Disposable sample visit');
     },
