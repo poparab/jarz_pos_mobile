@@ -10,6 +10,22 @@ import '../../../../core/utils/territory_label.dart';
 import '../../domain/models/delivery_slot.dart';
 import '../models/pos_models.dart';
 
+class B2bPricingContext {
+  B2bPricingContext({
+    required this.profile,
+    required this.customer,
+    required this.orderPurpose,
+    required this.commercialPolicy,
+    required this.priceList,
+  });
+
+  final String profile;
+  final String customer;
+  final String orderPurpose;
+  final CommercialPolicy commercialPolicy;
+  final Map<String, dynamic> priceList;
+}
+
 class PosRepository {
   PosRepository(this._dio);
 
@@ -277,7 +293,18 @@ class PosRepository {
   Future<List<Map<String, dynamic>>> getBundles(
     String posProfile, {
     String? priceList,
+    String? customer,
+    String? orderPurpose,
   }) async {
+    final hasB2bContext = customer != null || orderPurpose != null;
+    final normalizedCustomer = _normalizedOptionalString(customer);
+    final normalizedPurpose = _normalizedOptionalString(orderPurpose);
+    if (hasB2bContext &&
+        (normalizedCustomer == null || normalizedPurpose == null)) {
+      throw ArgumentError(
+        'Both customer and orderPurpose are required for a B2B catalog.',
+      );
+    }
     try {
       final response = await _dio.post(
         ApiEndpoints.getProfileBundles,
@@ -285,6 +312,8 @@ class PosRepository {
           'profile': posProfile,
           if (_normalizedOptionalString(priceList) case final value?)
             'price_list': value,
+          if (hasB2bContext) 'customer': normalizedCustomer,
+          if (hasB2bContext) 'order_purpose': normalizedPurpose,
         },
       );
 
@@ -371,7 +400,18 @@ class PosRepository {
   Future<List<Map<String, dynamic>>> getItems(
     String posProfile, {
     String? priceList,
+    String? customer,
+    String? orderPurpose,
   }) async {
+    final hasB2bContext = customer != null || orderPurpose != null;
+    final normalizedCustomer = _normalizedOptionalString(customer);
+    final normalizedPurpose = _normalizedOptionalString(orderPurpose);
+    if (hasB2bContext &&
+        (normalizedCustomer == null || normalizedPurpose == null)) {
+      throw ArgumentError(
+        'Both customer and orderPurpose are required for a B2B catalog.',
+      );
+    }
     try {
       final response = await _dio.post(
         ApiEndpoints.getProfileProducts,
@@ -379,6 +419,8 @@ class PosRepository {
           'profile': posProfile,
           if (_normalizedOptionalString(priceList) case final value?)
             'price_list': value,
+          if (hasB2bContext) 'customer': normalizedCustomer,
+          if (hasB2bContext) 'order_purpose': normalizedPurpose,
         },
       );
 
@@ -495,6 +537,80 @@ class PosRepository {
       }
       return [];
     }
+  }
+
+  /// Resolves the only commercial policy and price list a B2B order may use.
+  ///
+  /// Unlike the manager catalog helpers, this endpoint is available to an
+  /// assigned B2B Sales Rep and validates the customer, purpose, and profile as
+  /// one server-owned pricing context.
+  Future<B2bPricingContext> getB2bPricingContext({
+    required String profile,
+    required String customer,
+    required String orderPurpose,
+  }) async {
+    final normalizedProfile = profile.trim();
+    final normalizedCustomer = customer.trim();
+    final normalizedPurpose = orderPurpose.trim();
+    final response = await _dio.post(
+      ApiEndpoints.getB2bPricingContext,
+      data: {
+        'profile': normalizedProfile,
+        'customer': normalizedCustomer,
+        'order_purpose': normalizedPurpose,
+      },
+    );
+    final rawMessage = response.data is Map
+        ? (response.data as Map)['message']
+        : null;
+    if (response.statusCode != 200 || rawMessage is! Map) {
+      throw Exception('The B2B pricing context could not be loaded.');
+    }
+
+    final message = Map<String, dynamic>.from(rawMessage);
+    final echoedProfile = _normalizedOptionalString(message['profile']);
+    final echoedCustomer = _normalizedOptionalString(message['customer']);
+    final echoedPurpose = _normalizedOptionalString(message['order_purpose']);
+    if (echoedProfile != normalizedProfile ||
+        echoedCustomer != normalizedCustomer ||
+        echoedPurpose != normalizedPurpose) {
+      throw Exception('The B2B pricing context did not match this order.');
+    }
+
+    final rawPolicy = message['commercial_policy'];
+    final rawPriceList = message['price_list'];
+    if (rawPolicy is! Map || rawPriceList is! Map) {
+      throw Exception('The B2B pricing policy is incomplete.');
+    }
+    final policy = CommercialPolicy.fromJson(
+      Map<String, dynamic>.from(rawPolicy),
+    );
+    if (policy.name.trim().isEmpty ||
+        policy.orderPurpose.trim() != normalizedPurpose) {
+      throw Exception('The B2B pricing policy did not match this order.');
+    }
+
+    final priceList = Map<String, dynamic>.from(rawPriceList);
+    final priceListName = _normalizedOptionalString(priceList['name']);
+    if (priceListName == null) {
+      throw Exception('The B2B price list is unavailable.');
+    }
+    priceList['name'] = priceListName;
+    priceList['display_label'] =
+        _normalizedOptionalString(priceList['display_label']) ?? priceListName;
+    priceList['currency'] = _normalizedOptionalString(priceList['currency']);
+    priceList['is_default'] = _asBool(priceList['is_default']);
+    priceList['zero_shipping_default'] = _asBool(
+      priceList['zero_shipping_default'],
+    );
+
+    return B2bPricingContext(
+      profile: normalizedProfile,
+      customer: normalizedCustomer,
+      orderPurpose: normalizedPurpose,
+      commercialPolicy: policy,
+      priceList: priceList,
+    );
   }
 
   /// Resolves the effective price list for [customer] (B2B tier).

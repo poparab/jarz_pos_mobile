@@ -63,10 +63,11 @@ class _RecordingPosNotifier extends PosNotifier {
   int refreshCatalogCalls = 0;
   int startB2bOrderCalls = 0;
   int policyCalls = 0;
+  int retryContextCalls = 0;
   bool bindingShouldSucceed = false;
 
   @override
-  Future<void> loadProfiles() async {
+  Future<void> loadProfiles({bool deferSingleProfileCatalog = false}) async {
     loadProfilesCalls++;
   }
 
@@ -89,16 +90,24 @@ class _RecordingPosNotifier extends PosNotifier {
   @override
   Future<bool> setCommercialPolicyByOrderPurpose(String orderPurpose) async {
     policyCalls++;
+    if (bindingShouldSucceed) {
+      state = state.copyWith(boundB2bOrderPurpose: orderPurpose);
+    }
+    return bindingShouldSucceed;
+  }
+
+  @override
+  Future<bool> retryB2bPricingContext() async {
+    retryContextCalls++;
+    if (bindingShouldSucceed) {
+      state = state.copyWith(b2bSetupComplete: true);
+    }
     return bindingShouldSucceed;
   }
 
   @override
   void markB2bSetupComplete() {
-    state = PosState(
-      isB2bOrder: true,
-      b2bSetupComplete: true,
-      selectedCustomer: state.selectedCustomer,
-    );
+    state = state.copyWith(isB2bOrder: true, b2bSetupComplete: true);
   }
 
   void triggerUnrelatedRebuild() {
@@ -136,6 +145,9 @@ Future<(_RecordingPosNotifier, GoRouter)> _pumpEmptyProfiles(
     ProviderScope(
       overrides: [
         posNotifierProvider.overrideWith((_) => notifier),
+        userRolesFutureProvider.overrideWith(
+          (_) async => const UserRoles(user: 'b2b-test', roles: []),
+        ),
         requirePosShiftProvider.overrideWith((_) => false),
         activeShiftProvider.overrideWith((_) async => null),
         webSocketServiceProvider.overrideWithValue(webSocketService),
@@ -163,15 +175,23 @@ Future<(_RecordingPosNotifier, GoRouter)> _pumpEmptyProfiles(
   return (notifier, router);
 }
 
-Future<_RecordingPosNotifier> _pumpB2bBinding(WidgetTester tester) async {
+Future<_RecordingPosNotifier> _pumpB2bBinding(
+  WidgetTester tester, {
+  bool bindingShouldSucceed = false,
+  bool includeLaunchCustomer = true,
+  Map<String, dynamic>? launchSelectedCustomer,
+  PosState? initialState,
+}) async {
   final notifier = _RecordingPosNotifier(
-    initialState: PosState(
-      profiles: const [
-        {'name': 'Nasr city'},
-      ],
-      selectedProfile: const {'name': 'Nasr city'},
-    ),
-  );
+    initialState:
+        initialState ??
+        PosState(
+          profiles: const [
+            {'name': 'Nasr city'},
+          ],
+          selectedProfile: const {'name': 'Nasr city'},
+        ),
+  )..bindingShouldSucceed = bindingShouldSucceed;
   final webSocketService = WebSocketService();
   final offlineSyncService = OfflineSyncService(OfflineQueue(), Dio());
   final printerService = PosPrinterService(autoInit: false);
@@ -182,16 +202,20 @@ Future<_RecordingPosNotifier> _pumpB2bBinding(WidgetTester tester) async {
     routes: [
       GoRoute(
         path: AppRoutes.pos,
-        builder: (_, _) => const PosScreen(
-          launchData: {
-            'mode': 'b2b_order',
-            'customer': 'B2B-CUSTOMER',
-            'order_purpose': 'B2B Supply',
-            'selected_customer': {
-              'name': 'B2B-CUSTOMER',
-              'customer_name': 'B2B Customer',
-            },
-          },
+        builder: (_, _) => PosScreen(
+          launchData: includeLaunchCustomer
+              ? {
+                  'mode': 'b2b_order',
+                  'customer': 'B2B-CUSTOMER',
+                  'order_purpose': 'B2B Supply',
+                  'selected_customer':
+                      launchSelectedCustomer ??
+                      const {
+                        'name': 'B2B-CUSTOMER',
+                        'customer_name': 'B2B Customer',
+                      },
+                }
+              : const {'mode': 'b2b_order'},
         ),
       ),
       GoRoute(
@@ -206,6 +230,9 @@ Future<_RecordingPosNotifier> _pumpB2bBinding(WidgetTester tester) async {
     ProviderScope(
       overrides: [
         posNotifierProvider.overrideWith((_) => notifier),
+        userRolesFutureProvider.overrideWith(
+          (_) async => const UserRoles(user: 'b2b-test', roles: []),
+        ),
         requirePosShiftProvider.overrideWith((_) => false),
         activeShiftProvider.overrideWith((_) async => null),
         webSocketServiceProvider.overrideWithValue(webSocketService),
@@ -300,5 +327,99 @@ void main() {
       expect(notifier.policyCalls, 2);
       expect(notifier.state.b2bSetupComplete, isTrue);
     });
+
+    testWidgets(
+      'retry after a successful launch uses the current B2B context',
+      (tester) async {
+        final notifier = await _pumpB2bBinding(
+          tester,
+          bindingShouldSucceed: true,
+        );
+        expect(notifier.state.b2bSetupComplete, isTrue);
+        expect(notifier.startB2bOrderCalls, 1);
+        expect(notifier.policyCalls, 1);
+
+        notifier.state = notifier.state.copyWith(b2bSetupComplete: false);
+        await tester.pumpAndSettle();
+        expect(find.widgetWithText(FilledButton, 'Retry'), findsOneWidget);
+
+        await tester.tap(find.widgetWithText(FilledButton, 'Retry'));
+        await tester.pumpAndSettle();
+
+        expect(notifier.retryContextCalls, 1);
+        expect(notifier.startB2bOrderCalls, 1);
+        expect(notifier.policyCalls, 1);
+        expect(notifier.state.b2bSetupComplete, isTrue);
+      },
+    );
+
+    testWidgets('hash-restored draft retries without launch customer data', (
+      tester,
+    ) async {
+      final notifier = await _pumpB2bBinding(
+        tester,
+        bindingShouldSucceed: true,
+        includeLaunchCustomer: false,
+        initialState: PosState(
+          profiles: const [
+            {'name': 'Nasr city'},
+          ],
+          selectedProfile: const {'name': 'Nasr city'},
+          selectedCustomer: const {
+            'name': 'B2B-CUSTOMER',
+            'selected_shipping_address_territory_pos_profile': 'Nasr city',
+          },
+          isB2bOrder: true,
+          b2bSetupComplete: false,
+          boundB2bOrderPurpose: 'B2B Supply',
+        ),
+      );
+
+      expect(find.widgetWithText(FilledButton, 'Retry'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, 'Retry'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.retryContextCalls, 1);
+      expect(notifier.startB2bOrderCalls, 0);
+      expect(notifier.policyCalls, 0);
+      expect(notifier.state.b2bSetupComplete, isTrue);
+    });
+
+    testWidgets(
+      'pending same-customer launch replaces a different delivery branch',
+      (tester) async {
+        final notifier = await _pumpB2bBinding(
+          tester,
+          launchSelectedCustomer: const {
+            'name': 'B2B-CUSTOMER',
+            'customer_name': 'B2B Customer',
+            'selected_shipping_address_name': 'DOKKI-ADDRESS',
+            'selected_shipping_address_territory_pos_profile': 'Dokki',
+          },
+          initialState: PosState(
+            profiles: const [
+              {'name': 'Nasr city'},
+              {'name': 'Dokki'},
+            ],
+            selectedProfile: const {'name': 'Nasr city'},
+            selectedCustomer: const {
+              'name': 'B2B-CUSTOMER',
+              'selected_shipping_address_name': 'NASR-ADDRESS',
+              'selected_shipping_address_territory_pos_profile': 'Nasr city',
+            },
+            isB2bOrder: true,
+            b2bSetupComplete: false,
+            boundB2bOrderPurpose: 'B2B Supply',
+          ),
+        );
+
+        expect(notifier.startB2bOrderCalls, 1);
+        expect(
+          notifier.state.selectedCustomer?['selected_shipping_address_name'],
+          'DOKKI-ADDRESS',
+        );
+        expect(notifier.policyCalls, 1);
+      },
+    );
   });
 }

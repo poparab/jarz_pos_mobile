@@ -37,6 +37,8 @@ class _FakePosRepository extends PosRepository {
   Future<List<Map<String, dynamic>>> getItems(
     String posProfile, {
     String? priceList,
+    String? customer,
+    String? orderPurpose,
   }) async {
     itemsCalls += 1;
     lastItemsProfile = posProfile;
@@ -48,6 +50,8 @@ class _FakePosRepository extends PosRepository {
   Future<List<Map<String, dynamic>>> getBundles(
     String posProfile, {
     String? priceList,
+    String? customer,
+    String? orderPurpose,
   }) async {
     bundlesCalls += 1;
     lastBundlesProfile = posProfile;

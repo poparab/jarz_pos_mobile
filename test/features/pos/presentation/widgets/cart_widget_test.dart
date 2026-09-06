@@ -20,12 +20,16 @@ class _DummyPosRepository extends PosRepository {
   Future<List<Map<String, dynamic>>> getItems(
     String posProfile, {
     String? priceList,
+    String? customer,
+    String? orderPurpose,
   }) async => const [];
 
   @override
   Future<List<Map<String, dynamic>>> getBundles(
     String posProfile, {
     String? priceList,
+    String? customer,
+    String? orderPurpose,
   }) async => const [];
 
   @override

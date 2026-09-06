@@ -813,7 +813,30 @@ class CartWidget extends ConsumerWidget {
         ?.toString()
         .trim();
     if (activeCustomer != customerId) return;
-    ref.read(posNotifierProvider.notifier).selectCustomer(selected);
+    try {
+      final applied = await ref
+          .read(posNotifierProvider.notifier)
+          .changeB2bBranch(selected);
+      if (!applied &&
+          context.mounted &&
+          !ref.read(posNotifierProvider).b2bSetupComplete) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.b2bOrderPolicyUnavailable)),
+        );
+      }
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.userErrorMessage(
+              error,
+              fallback: context.l10n.b2bOrderPolicyUnavailable,
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildEmptyCart(BuildContext context) {

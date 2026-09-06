@@ -620,7 +620,7 @@ void main() {
 
         expect(result[0]['rate'], equals(0.0));
         expect(result[0]['actual_qty'], equals(0.0));
-	      expect(result[0]['allow_negative_stock'], isFalse);
+        expect(result[0]['allow_negative_stock'], isFalse);
       });
 
       test(
@@ -669,6 +669,140 @@ void main() {
         );
 
         expect(() => repository.getItems('Main POS'), throwsException);
+      });
+    });
+
+    group('B2B pricing context', () {
+      test(
+        'parses the server-owned policy and sole price-list option',
+        () async {
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.pos.get_b2b_pricing_context',
+            createSuccessResponse(
+              data: {
+                'profile': 'Nasr city',
+                'customer': 'CUST-B2B',
+                'order_purpose': 'B2B Supply',
+                'commercial_policy': {
+                  'name': 'POL-B2B',
+                  'policy_name': 'B2B Supply',
+                  'order_purpose': 'B2B Supply',
+                  'price_list': null,
+                  'discount_percentage': 0.0,
+                  'waives_shipping_income': false,
+                  'no_courier': false,
+                },
+                'price_list': {
+                  'name': 'B2B Price',
+                  'display_label': 'B2B Price',
+                  'currency': 'EGP',
+                  'is_default': 1,
+                  'zero_shipping_default': 0,
+                },
+              },
+            ),
+          );
+
+          final context = await repository.getB2bPricingContext(
+            profile: ' Nasr city ',
+            customer: ' CUST-B2B ',
+            orderPurpose: ' B2B Supply ',
+          );
+
+          expect(context.profile, 'Nasr city');
+          expect(context.customer, 'CUST-B2B');
+          expect(context.commercialPolicy.name, 'POL-B2B');
+          expect(context.commercialPolicy.priceList, isNull);
+          expect(context.priceList, {
+            'name': 'B2B Price',
+            'display_label': 'B2B Price',
+            'currency': 'EGP',
+            'is_default': true,
+            'zero_shipping_default': false,
+          });
+          expect(mockDio.requestLog.single['data'], {
+            'profile': 'Nasr city',
+            'customer': 'CUST-B2B',
+            'order_purpose': 'B2B Supply',
+          });
+        },
+      );
+
+      test(
+        'catalog context is all-or-nothing and forwards every key',
+        () async {
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.pos.get_profile_products',
+            createSuccessResponse(data: []),
+          );
+          mockDio.setResponse(
+            '/api/method/jarz_pos.api.pos.get_profile_bundles',
+            createSuccessResponse(data: []),
+          );
+
+          await repository.getItems(
+            'Nasr city',
+            priceList: 'B2B Price',
+            customer: 'CUST-B2B',
+            orderPurpose: 'B2B Supply',
+          );
+          await repository.getBundles(
+            'Nasr city',
+            priceList: 'B2B Price',
+            customer: 'CUST-B2B',
+            orderPurpose: 'B2B Supply',
+          );
+
+          for (final request in mockDio.requestLog) {
+            expect(request['data'], {
+              'profile': 'Nasr city',
+              'price_list': 'B2B Price',
+              'customer': 'CUST-B2B',
+              'order_purpose': 'B2B Supply',
+            });
+          }
+          expect(
+            () => repository.getItems(
+              'Nasr city',
+              customer: '',
+              orderPurpose: '',
+            ),
+            throwsArgumentError,
+          );
+          expect(
+            () => repository.getBundles('Nasr city', customer: 'CUST-B2B'),
+            throwsArgumentError,
+          );
+        },
+      );
+
+      test('rejects a context echoed for another branch', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.pos.get_b2b_pricing_context',
+          createSuccessResponse(
+            data: {
+              'profile': 'Dokki',
+              'customer': 'CUST-B2B',
+              'order_purpose': 'B2B Supply',
+              'commercial_policy': {
+                'name': 'POL-B2B',
+                'policy_name': 'B2B Supply',
+                'order_purpose': 'B2B Supply',
+                'price_list': null,
+              },
+              'price_list': {'name': 'B2B Price'},
+            },
+          ),
+        );
+
+        expect(
+          () => repository.getB2bPricingContext(
+            profile: 'Nasr city',
+            customer: 'CUST-B2B',
+            orderPurpose: 'B2B Supply',
+          ),
+          throwsException,
+        );
       });
     });
   });

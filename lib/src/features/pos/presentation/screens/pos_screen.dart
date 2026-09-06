@@ -103,7 +103,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
   }
 
   /// Applies a B2B binding passed via [PosScreen.launchData]:
-  /// `{mode: 'b2b_order', customer, order_purpose, price_list}`.
+  /// `{mode: 'b2b_order', customer, order_purpose}`.
   /// Preselects the customer and selects the
   /// commercial policy whose order purpose matches the binding, so the order is
   /// placed through the normal invoice-creation path (and lands on the dispatch
@@ -127,10 +127,31 @@ class _PosScreenState extends ConsumerState<PosScreen>
               'mobile_no': launchData!['mobile_no'].toString(),
           };
     final current = ref.read(posNotifierProvider);
+    String normalizedCustomerField(Map<String, dynamic>? value, String key) =>
+        value?[key]?.toString().trim() ?? '';
+    final currentCustomer = current.selectedCustomer;
     final samePendingContext =
         current.isB2bOrder &&
         !current.b2bSetupComplete &&
-        current.selectedCustomer?['name']?.toString().trim() == customer;
+        normalizedCustomerField(currentCustomer, 'name') == customer &&
+        normalizedCustomerField(
+              currentCustomer,
+              'selected_shipping_address_name',
+            ) ==
+            normalizedCustomerField(
+              selectedCustomer,
+              'selected_shipping_address_name',
+            ) &&
+        normalizedCustomerField(
+              currentCustomer,
+              'selected_shipping_address_territory_pos_profile',
+            ) ==
+            normalizedCustomerField(
+              selectedCustomer,
+              'selected_shipping_address_territory_pos_profile',
+            ) &&
+        ((current.boundB2bOrderPurpose?.trim().isEmpty ?? true) ||
+            current.boundB2bOrderPurpose?.trim() == orderPurpose);
     if (!samePendingContext &&
         !await notifier.startB2bOrder(selectedCustomer)) {
       return false;
@@ -141,17 +162,19 @@ class _PosScreenState extends ConsumerState<PosScreen>
         await notifier.setCommercialPolicyByOrderPurpose(orderPurpose);
     if (!policyApplied) return false;
 
-    final boundPriceList = launchData?['price_list']?.toString().trim() ?? '';
-    if (boundPriceList.isNotEmpty) {
-      final latest = ref.read(posNotifierProvider);
-      final hasBoundPriceList = latest.availablePriceLists.any(
-        (entry) => entry['name']?.toString().trim() == boundPriceList,
-      );
-      if (!hasBoundPriceList) return false;
-      await notifier.setSelectedPriceList(boundPriceList);
-    }
     notifier.markB2bSetupComplete();
     return ref.read(posNotifierProvider).b2bSetupComplete;
+  }
+
+  bool _hasLaunchBranchProfile() {
+    final selectedCustomer = widget.launchData?['selected_customer'];
+    if (selectedCustomer is! Map) return false;
+    final requiredProfile =
+        selectedCustomer['selected_shipping_address_territory_pos_profile']
+            ?.toString()
+            .trim() ??
+        '';
+    return requiredProfile.isNotEmpty;
   }
 
   void _scheduleB2bBinding(PosState state) {
@@ -159,7 +182,8 @@ class _PosScreenState extends ConsumerState<PosScreen>
         _b2bBindingApplied ||
         _b2bBindingInProgress ||
         _b2bBindingError != null ||
-        state.selectedProfile == null) {
+        (state.selectedProfile == null &&
+            (!_hasLaunchBranchProfile() || state.profiles.isEmpty))) {
       return;
     }
     final hasBinding =
@@ -191,6 +215,40 @@ class _PosScreenState extends ConsumerState<PosScreen>
     });
   }
 
+  Future<void> _retryB2bSetup() async {
+    if (_b2bBindingInProgress) return;
+    setState(() {
+      _b2bBindingInProgress = true;
+      _b2bBindingError = null;
+    });
+    try {
+      final notifier = ref.read(posNotifierProvider.notifier);
+      final current = ref.read(posNotifierProvider);
+      final hasSavedContext =
+          current.isB2bOrder &&
+          current.selectedCustomer != null &&
+          (current.boundB2bOrderPurpose?.trim().isNotEmpty ?? false);
+      final applied = hasSavedContext
+          ? await notifier.retryB2bPricingContext()
+          : await _applyB2bBinding();
+      if (!mounted) return;
+      setState(() {
+        _b2bBindingApplied = applied;
+        _b2bBindingError = applied
+            ? null
+            : context.l10n.b2bOrderPolicyUnavailable;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _b2bBindingApplied = false;
+        _b2bBindingError = context.userErrorMessage(error);
+      });
+    } finally {
+      if (mounted) setState(() => _b2bBindingInProgress = false);
+    }
+  }
+
   Widget _wrapWithAmendmentCleanupGuard(Widget child) {
     if (_amendmentInvoiceId() == null) {
       return child;
@@ -218,6 +276,50 @@ class _PosScreenState extends ConsumerState<PosScreen>
     }
 
     context.push(AppRoutes.kanban);
+  }
+
+  Widget _buildB2bSetupRecovery(BuildContext context, PosState state) {
+    final policyPending = state.isB2bOrder && !state.b2bSetupComplete;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.business_outlined, size: 48),
+            const SizedBox(height: 12),
+            Text(
+              policyPending
+                  ? context.l10n.b2bOrderSetupFailedTitle
+                  : context.l10n.b2bOrderResumeTitle,
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              policyPending
+                  ? (_b2bBindingError ?? context.l10n.b2bOrderPolicyUnavailable)
+                  : context.l10n.b2bOrderResumeMessage,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            if (policyPending) ...[
+              FilledButton.icon(
+                onPressed: _b2bBindingInProgress ? null : _retryB2bSetup,
+                icon: const Icon(Icons.refresh),
+                label: Text(context.l10n.commonRetry),
+              ),
+              const SizedBox(height: 8),
+            ],
+            FilledButton.icon(
+              onPressed: () => context.go(AppRoutes.b2b),
+              icon: const Icon(Icons.arrow_back),
+              label: Text(context.l10n.b2bOrderChooseAccount),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -251,8 +353,10 @@ class _PosScreenState extends ConsumerState<PosScreen>
         ref.read(posNotifierProvider.notifier).startNewInvoice();
       }
       if (state.selectedProfile == null) {
-        ref.read(posNotifierProvider.notifier).loadProfiles();
-      } else {
+        ref
+            .read(posNotifierProvider.notifier)
+            .loadProfiles(deferSingleProfileCatalog: _isB2bOrderRoute);
+      } else if (!_isB2bOrderRoute) {
         ref.read(posNotifierProvider.notifier).refreshCatalog();
       }
     });
@@ -275,13 +379,19 @@ class _PosScreenState extends ConsumerState<PosScreen>
 
     final route = ModalRoute.of(context);
     if (route?.isCurrent ?? false) {
-      ref.read(posNotifierProvider.notifier).refreshCatalog();
+      final state = ref.read(posNotifierProvider);
+      if (!_isB2bOrderRoute || state.b2bSetupComplete) {
+        ref.read(posNotifierProvider.notifier).refreshCatalog();
+      }
     }
   }
 
   @override
   void didPopNext() {
-    ref.read(posNotifierProvider.notifier).refreshCatalog();
+    final state = ref.read(posNotifierProvider);
+    if (!_isB2bOrderRoute || state.b2bSetupComplete) {
+      ref.read(posNotifierProvider.notifier).refreshCatalog();
+    }
   }
 
   @override
@@ -375,6 +485,17 @@ class _PosScreenState extends ConsumerState<PosScreen>
       if (state.profiles.isEmpty) {
         return _wrapWithAmendmentCleanupGuard(
           Scaffold(body: _buildEmptyProfiles(context)),
+        );
+      }
+      if (_isB2bOrderRoute && _b2bBindingError != null) {
+        return _wrapWithAmendmentCleanupGuard(
+          Scaffold(body: _buildB2bSetupRecovery(context, state)),
+        );
+      }
+      if (_isB2bOrderRoute &&
+          (_b2bBindingInProgress || _hasLaunchBranchProfile())) {
+        return _wrapWithAmendmentCleanupGuard(
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
         );
       }
       // Auto-select if only one profile available
@@ -752,12 +873,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
                       FilledButton.icon(
                         onPressed: _b2bBindingInProgress
                             ? null
-                            : () {
-                                setState(() => _b2bBindingError = null);
-                                _scheduleB2bBinding(
-                                  ref.read(posNotifierProvider),
-                                );
-                              },
+                            : _retryB2bSetup,
                         icon: const Icon(Icons.refresh),
                         label: Text(context.l10n.commonRetry),
                       ),
@@ -851,8 +967,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () =>
-                ref.read(posNotifierProvider.notifier).loadProfiles(),
+            onPressed: () => ref
+                .read(posNotifierProvider.notifier)
+                .loadProfiles(deferSingleProfileCatalog: _isB2bOrderRoute),
             child: Text(l10n.commonRetry),
           ),
         ],
@@ -887,8 +1004,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
-              onPressed: () =>
-                  ref.read(posNotifierProvider.notifier).loadProfiles(),
+              onPressed: () => ref
+                  .read(posNotifierProvider.notifier)
+                  .loadProfiles(deferSingleProfileCatalog: _isB2bOrderRoute),
               icon: const Icon(Icons.refresh),
               label: Text(l10n.commonRetry),
             ),

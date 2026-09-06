@@ -345,6 +345,8 @@ class PosNotifier extends StateNotifier<PosState> {
   // (slow network + rapid re-selection) can detect it is outdated and bail.
   int _priceListResolutionToken = 0;
   int _orderContextToken = 0;
+  int _catalogRequestToken = 0;
+  static const _supportedB2bOrderPurposes = {'B2B Supply', 'Sample - Courier'};
 
   // ── Draft auto-save debounce ──────────────────────────────────────────
   static const _kAutoSaveDebounce = Duration(milliseconds: 400);
@@ -522,13 +524,16 @@ class PosNotifier extends StateNotifier<PosState> {
   Future<void> switchDraft(String id) async {
     if (state.currentDraftId == id) return;
     _orderContextToken++;
+    final switchContextToken = _orderContextToken;
     // Persist current cart before switching away
     if (state.draftDirty) {
       _autoSaveTimer?.cancel();
       await _persistCurrentCart();
+      if (switchContextToken != _orderContextToken) return;
     }
     try {
       final allDrafts = await _draftRepo.loadAll();
+      if (switchContextToken != _orderContextToken) return;
       final target = allDrafts.cast<DraftCart?>().firstWhere(
         (d) => d?.id == id,
         orElse: () => null,
@@ -563,6 +568,7 @@ class PosNotifier extends StateNotifier<PosState> {
               });
             },
           );
+          if (switchContextToken != _orderContextToken) return;
           state = state.copyWith(
             error:
                 'This amendment draft is outdated — please reopen the order from the kanban to start again.',
@@ -590,10 +596,9 @@ class PosNotifier extends StateNotifier<PosState> {
         selectedCommercialPolicy: target.selectedCommercialPolicy,
         clearSelectedCommercialPolicy: target.selectedCommercialPolicy == null,
         isB2bOrder: target.isB2bOrder,
-        b2bSetupComplete:
-            target.isB2bOrder &&
-            target.selectedCommercialPolicy != null &&
-            (restoredBoundPurpose?.trim().isNotEmpty ?? false),
+        // A restored B2B draft remains blocked until its saved customer,
+        // purpose, and delivery-branch profile are revalidated together.
+        b2bSetupComplete: false,
         boundB2bOrderPurpose: restoredBoundPurpose,
         clearBoundB2bOrderPurpose: restoredBoundPurpose == null,
         policyReason: target.policyReason,
@@ -615,12 +620,28 @@ class PosNotifier extends StateNotifier<PosState> {
         customDeliveryIncome: target.customDeliveryIncome,
         clearCustomDeliveryIncome: target.customDeliveryIncome == null,
       );
-      if (state.selectedProfile != null) {
+      if (target.isB2bOrder &&
+          target.customer != null &&
+          (restoredBoundPurpose?.trim().isNotEmpty ?? false)) {
+        final applied = await _loadAndApplyB2bCatalog(
+          customer: Map<String, dynamic>.from(target.customer!),
+          orderPurpose: restoredBoundPurpose!.trim(),
+          contextToken: switchContextToken,
+        );
+        if (applied) markB2bSetupComplete();
+      } else if (state.selectedProfile != null) {
         await refreshCatalog(showLoading: false);
       }
     } catch (e) {
       if (kDebugMode) {
         debugPrint('⚠️ PosNotifier: switchDraft failed: $e');
+      }
+      if (switchContextToken == _orderContextToken) {
+        state = state.copyWith(
+          b2bSetupComplete: false,
+          error: e.toString(),
+          clearError: false,
+        );
       }
     }
   }
@@ -729,11 +750,61 @@ class PosNotifier extends StateNotifier<PosState> {
   }
   // ─────────────────────────────────────────────────────────────────────
 
+  Map<String, dynamic>? _accessibleB2bBranchProfile(
+    Map<String, dynamic> customer,
+  ) {
+    final requiredProfile =
+        customer['selected_shipping_address_territory_pos_profile']
+            ?.toString()
+            .trim() ??
+        '';
+    if (requiredProfile.isEmpty) return null;
+    for (final profile in state.profiles) {
+      if (profile['name']?.toString().trim() == requiredProfile) {
+        return Map<String, dynamic>.from(profile);
+      }
+    }
+    return null;
+  }
+
+  String _requiredB2bBranchProfileName(Map<String, dynamic> customer) =>
+      customer['selected_shipping_address_territory_pos_profile']
+          ?.toString()
+          .trim() ??
+      '';
+
   Future<void> refreshCatalog({bool showLoading = false}) async {
-    final profileName = state.selectedProfile?['name']?.toString();
+    final isB2bCatalog =
+        state.isB2bOrder &&
+        (state.boundB2bOrderPurpose?.trim().isNotEmpty ?? false) &&
+        (state.selectedCustomer?['name']?.toString().trim().isNotEmpty ??
+            false);
+    final b2bProfile = isB2bCatalog
+        ? _accessibleB2bBranchProfile(state.selectedCustomer!)
+        : null;
+    if (isB2bCatalog && b2bProfile == null) {
+      state = state.copyWith(
+        b2bSetupComplete: false,
+        error:
+            'The selected B2B delivery branch is not assigned to an available POS profile.',
+        clearError: false,
+      );
+      return;
+    }
+    final profileName =
+        b2bProfile?['name']?.toString() ??
+        state.selectedProfile?['name']?.toString();
     if (profileName == null || profileName.isEmpty) {
       return;
     }
+    final contextToken = _orderContextToken;
+    final catalogRequestToken = ++_catalogRequestToken;
+    final b2bCustomer = isB2bCatalog
+        ? state.selectedCustomer!['name']!.toString().trim()
+        : null;
+    final b2bOrderPurpose = isB2bCatalog
+        ? state.boundB2bOrderPurpose!.trim()
+        : null;
 
     state = state.copyWith(
       isLoading: showLoading ? true : state.isLoading,
@@ -743,8 +814,14 @@ class PosNotifier extends StateNotifier<PosState> {
     try {
       final catalogData = await _loadCatalogData(
         profileName,
-        requestedPriceList: state.selectedPriceList,
+        requestedPriceList: isB2bCatalog ? null : state.selectedPriceList,
+        b2bCustomer: b2bCustomer,
+        b2bOrderPurpose: b2bOrderPurpose,
       );
+      if (contextToken != _orderContextToken ||
+          catalogRequestToken != _catalogRequestToken) {
+        return;
+      }
       final items = List<Map<String, dynamic>>.from(
         catalogData['items'] as List,
       );
@@ -761,7 +838,13 @@ class PosNotifier extends StateNotifier<PosState> {
       final repricedCart = state.cartItems.isEmpty
           ? state.cartItems
           : _repriceCartItemsForCatalog(state.cartItems, items, bundles);
-      final reconciledPolicy = _reconcileSelectedPolicy(commercialPolicies);
+      final reconciledPolicy = isB2bCatalog
+          ? commercialPolicies.cast<CommercialPolicy?>().firstWhere(
+              (policy) =>
+                  _sameOrderPurpose(policy?.orderPurpose, b2bOrderPurpose),
+              orElse: () => null,
+            )
+          : _reconcileSelectedPolicy(commercialPolicies);
       final b2bPolicyStillValid =
           !state.isB2bOrder ||
           (reconciledPolicy != null &&
@@ -775,6 +858,7 @@ class PosNotifier extends StateNotifier<PosState> {
       state = state.copyWith(
         items: items,
         bundles: bundles,
+        selectedProfile: b2bProfile ?? state.selectedProfile,
         availablePriceLists: priceLists,
         selectedPriceList: selectedPriceList,
         clearSelectedPriceList: selectedPriceList == null,
@@ -782,15 +866,25 @@ class PosNotifier extends StateNotifier<PosState> {
         selectedCommercialPolicy: reconciledPolicy,
         clearSelectedCommercialPolicy: reconciledPolicy == null,
         b2bSetupComplete: state.b2bSetupComplete && b2bPolicyStillValid,
+        customerHasNoTierPriceList: isB2bCatalog
+            ? false
+            : state.customerHasNoTierPriceList,
+        zeroShippingOverride: isB2bCatalog
+            ? _zeroShippingDefaultForPriceList(selectedPriceList)
+            : state.zeroShippingOverride,
         cartItems: repricedCart,
         isLoading: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        error: e.toString(),
-        isLoading: false,
-        clearError: false,
-      );
+      if (contextToken == _orderContextToken &&
+          catalogRequestToken == _catalogRequestToken) {
+        state = state.copyWith(
+          error: e.toString(),
+          isLoading: false,
+          b2bSetupComplete: isB2bCatalog ? false : state.b2bSetupComplete,
+          clearError: false,
+        );
+      }
     }
   }
 
@@ -842,13 +936,13 @@ class PosNotifier extends StateNotifier<PosState> {
     );
   }
 
-  Future<void> loadProfiles() async {
+  Future<void> loadProfiles({bool deferSingleProfileCatalog = false}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final profiles = await _repository.getPosProfiles();
 
       // If there's only one profile, automatically select it
-      if (profiles.length == 1) {
+      if (profiles.length == 1 && !deferSingleProfileCatalog) {
         final profile = profiles.first;
         final profileName = profile['name'] as String;
 
@@ -896,6 +990,12 @@ class PosNotifier extends StateNotifier<PosState> {
   }
 
   Future<void> selectProfile(Map<String, dynamic> profile) async {
+    if (state.isB2bOrder &&
+        state.selectedCustomer != null &&
+        (state.boundB2bOrderPurpose?.trim().isNotEmpty ?? false)) {
+      await refreshCatalog(showLoading: true);
+      return;
+    }
     // Optimistically set selected profile to prevent redirect loop
     state = state.copyWith(
       selectedProfile: profile,
@@ -1364,6 +1464,17 @@ class PosNotifier extends StateNotifier<PosState> {
   }
 
   void selectCustomer(Map<String, dynamic> customer) {
+    if (state.isB2bOrder) {
+      // A B2B customer includes the delivery branch that owns the effective
+      // profile and prices. Callers must await changeB2bBranch so validation,
+      // catalog replacement, and race invalidation happen together.
+      state = state.copyWith(
+        b2bSetupComplete: false,
+        error: 'Choose the B2B delivery branch again to refresh its pricing.',
+        clearError: false,
+      );
+      return;
+    }
     // Simply select the customer without adding shipping to cart
     // Shipping will be handled separately in the UI total calculation
     state = state.copyWith(
@@ -1375,9 +1486,12 @@ class PosNotifier extends StateNotifier<PosState> {
     _autoSaveDebounced();
     // Promo eligibility can depend on the customer; refresh the preview.
     unawaited(_revalidatePromosIfAny());
-    // Resolve the effective price list for the active policy now that we know
-    // which customer is selected (customer-group-driven tiers, e.g. B2B Supply).
-    unawaited(_applyEffectivePriceListForPolicy());
+    // B2B customers are priced only through the server-owned pricing context;
+    // branch changes use [changeB2bBranch] so they cannot fall back to the
+    // manager-only policy/list helpers or a stale retail profile.
+    if (!state.isB2bOrder) {
+      unawaited(_applyEffectivePriceListForPolicy());
+    }
     // Trigger background prefetch of delivery slots (only if profile selected & not already cached)
     if (state.selectedProfile != null && state.deliverySlots.isEmpty) {
       _prefetchDeliverySlots();
@@ -1400,7 +1514,7 @@ class PosNotifier extends StateNotifier<PosState> {
     final defaultPriceList = _defaultPriceListSelection();
     state = state.copyWith(
       cartItems: const [],
-      clearSelectedCustomer: true,
+      selectedCustomer: customer,
       clearSelectedDeliverySlot: true,
       clearSelectedSalesPartner: true,
       clearDeliverySlots: true,
@@ -1421,7 +1535,6 @@ class PosNotifier extends StateNotifier<PosState> {
       clearCustomDeliveryIncome: true,
       clearPromos: true,
     );
-    selectCustomer(customer);
     return true;
   }
 
@@ -1509,42 +1622,170 @@ class PosNotifier extends StateNotifier<PosState> {
   }
 
   /// Applies the policy named by a B2B binding after ensuring the profile's
-  /// catalog has loaded. This avoids a first-entry race where the route arrived
-  /// before [availableCommercialPolicies] and silently left the order Standard.
+  /// branch-specific pricing context and catalog have loaded. B2B setup never
+  /// reads the manager policy or price-list endpoints.
   Future<bool> setCommercialPolicyByOrderPurpose(String orderPurpose) async {
-    final contextToken = _orderContextToken;
-    final normalized = orderPurpose.trim().toLowerCase();
-    if (normalized.isEmpty) return false;
+    final normalizedPurpose = orderPurpose.trim();
+    if (!_supportedB2bOrderPurposes.contains(normalizedPurpose) ||
+        !state.isB2bOrder) {
+      state = state.copyWith(b2bSetupComplete: false);
+      return false;
+    }
+    final customer = state.selectedCustomer;
+    if (customer == null ||
+        (customer['name']?.toString().trim().isEmpty ?? true)) {
+      state = state.copyWith(b2bSetupComplete: false);
+      return false;
+    }
+
+    final contextToken = ++_orderContextToken;
+    state = state.copyWith(
+      boundB2bOrderPurpose: normalizedPurpose,
+      b2bSetupComplete: false,
+      clearError: true,
+    );
+    return _loadAndApplyB2bCatalog(
+      customer: Map<String, dynamic>.from(customer),
+      orderPurpose: normalizedPurpose,
+      contextToken: contextToken,
+    );
+  }
+
+  Future<bool> _loadAndApplyB2bCatalog({
+    required Map<String, dynamic> customer,
+    required String orderPurpose,
+    required int contextToken,
+  }) async {
+    final catalogRequestToken = ++_catalogRequestToken;
+    final customerName = customer['name']?.toString().trim() ?? '';
+    final requiredProfileName = _requiredB2bBranchProfileName(customer);
+    final branchProfile = _accessibleB2bBranchProfile(customer);
+    if (customerName.isEmpty || requiredProfileName.isEmpty) {
+      throw Exception(
+        'Edit this branch and choose its delivery territory before ordering.',
+      );
+    }
+    if (branchProfile == null) {
+      throw Exception(
+        'The selected branch POS profile is not assigned to this user.',
+      );
+    }
+
+    late final Map<String, dynamic> catalogData;
+    try {
+      catalogData = await _loadCatalogData(
+        requiredProfileName,
+        b2bCustomer: customerName,
+        b2bOrderPurpose: orderPurpose,
+      );
+    } catch (_) {
+      if (contextToken != _orderContextToken ||
+          catalogRequestToken != _catalogRequestToken) {
+        return false;
+      }
+      rethrow;
+    }
+    if (contextToken != _orderContextToken ||
+        catalogRequestToken != _catalogRequestToken ||
+        !state.isB2bOrder) {
+      return false;
+    }
+
+    final policies = _commercialPoliciesFromCatalog(catalogData);
+    final policy = policies.cast<CommercialPolicy?>().firstWhere(
+      (candidate) => _sameOrderPurpose(candidate?.orderPurpose, orderPurpose),
+      orElse: () => null,
+    );
+    final priceLists = List<Map<String, dynamic>>.from(
+      catalogData['price_lists'] as List,
+    );
+    final selectedPriceList = _clonePriceListOption(
+      catalogData['selected_price_list'] as Map<String, dynamic>?,
+    );
+    if (policy == null || selectedPriceList == null || priceLists.length != 1) {
+      throw Exception('The required B2B pricing policy is unavailable.');
+    }
+
+    final items = List<Map<String, dynamic>>.from(catalogData['items'] as List);
+    final bundles = List<Map<String, dynamic>>.from(
+      catalogData['bundles'] as List,
+    );
+    final repricedCart = state.cartItems.isEmpty
+        ? state.cartItems
+        : _repriceCartItemsForCatalog(state.cartItems, items, bundles);
+    final profileChanged =
+        state.selectedProfile?['name']?.toString().trim() !=
+        requiredProfileName;
 
     state = state.copyWith(
-      boundB2bOrderPurpose: orderPurpose.trim(),
+      selectedCustomer: customer,
+      selectedProfile: branchProfile,
+      items: items,
+      bundles: bundles,
+      availablePriceLists: priceLists,
+      selectedPriceList: selectedPriceList,
+      availableCommercialPolicies: policies,
+      selectedCommercialPolicy: policy,
+      boundB2bOrderPurpose: orderPurpose,
+      customerHasNoTierPriceList: false,
+      zeroShippingOverride: _zeroShippingDefaultForPriceList(selectedPriceList),
+      cartItems: repricedCart,
+      clearDeliverySlots: profileChanged,
+      clearSelectedDeliverySlot: profileChanged,
       b2bSetupComplete: false,
       draftDirty: true,
+      isLoading: false,
+      clearError: true,
     );
+    _autoSaveDebounced();
+    return _hasValidB2bCommercialContext();
+  }
 
-    if (state.availableCommercialPolicies.isEmpty &&
-        state.selectedProfile != null) {
-      await refreshCatalog(showLoading: false);
+  /// Rebinds an existing B2B draft to the selected delivery branch. The old
+  /// customer, profile, prices, and cart remain intact unless the complete new
+  /// context and catalog pass server validation.
+  Future<bool> changeB2bBranch(Map<String, dynamic> customer) async {
+    if (!state.isB2bOrder) {
+      selectCustomer(customer);
+      return true;
     }
-    if (contextToken != _orderContextToken || !state.isB2bOrder) return false;
+    final purpose = state.boundB2bOrderPurpose?.trim() ?? '';
+    if (!_supportedB2bOrderPurposes.contains(purpose)) {
+      state = state.copyWith(b2bSetupComplete: false);
+      return false;
+    }
+    final contextToken = ++_orderContextToken;
+    state = state.copyWith(b2bSetupComplete: false, clearError: true);
+    final applied = await _loadAndApplyB2bCatalog(
+      customer: Map<String, dynamic>.from(customer),
+      orderPurpose: purpose,
+      contextToken: contextToken,
+    );
+    if (applied) markB2bSetupComplete();
+    return applied;
+  }
 
-    CommercialPolicy? match;
-    for (final policy in state.availableCommercialPolicies) {
-      if (policy.orderPurpose.trim().toLowerCase() == normalized) {
-        match = policy;
-        break;
-      }
+  /// Explicitly retries the saved B2B customer/branch/purpose context. This is
+  /// used after a refresh failure and after restoring a draft from local cache,
+  /// so it must not depend on the original route payload.
+  Future<bool> retryB2bPricingContext() async {
+    final customer = state.selectedCustomer;
+    final purpose = state.boundB2bOrderPurpose?.trim() ?? '';
+    if (!state.isB2bOrder ||
+        customer == null ||
+        !_supportedB2bOrderPurposes.contains(purpose)) {
+      state = state.copyWith(b2bSetupComplete: false);
+      return false;
     }
-    if (match == null) return false;
-    await setCommercialPolicy(match);
-    return contextToken == _orderContextToken &&
-        state.isB2bOrder &&
-        _sameOrderPurpose(
-          state.selectedCommercialPolicy?.orderPurpose,
-          state.boundB2bOrderPurpose,
-        ) &&
-        state.selectedPriceListName != null &&
-        !state.customerHasNoTierPriceList;
+    final contextToken = ++_orderContextToken;
+    state = state.copyWith(b2bSetupComplete: false, clearError: true);
+    final applied = await _loadAndApplyB2bCatalog(
+      customer: Map<String, dynamic>.from(customer),
+      orderPurpose: purpose,
+      contextToken: contextToken,
+    );
+    if (applied) markB2bSetupComplete();
+    return applied;
   }
 
   /// Resolves and applies the effective price list for the currently selected
@@ -2023,7 +2264,53 @@ class PosNotifier extends StateNotifier<PosState> {
   Future<Map<String, dynamic>> _loadCatalogData(
     String profileName, {
     Map<String, dynamic>? requestedPriceList,
+    String? b2bCustomer,
+    String? b2bOrderPurpose,
   }) async {
+    final normalizedB2bCustomer = b2bCustomer?.trim() ?? '';
+    final normalizedB2bPurpose = b2bOrderPurpose?.trim() ?? '';
+    final isB2bCatalog =
+        normalizedB2bCustomer.isNotEmpty || normalizedB2bPurpose.isNotEmpty;
+    if (isB2bCatalog) {
+      if (normalizedB2bCustomer.isEmpty || normalizedB2bPurpose.isEmpty) {
+        throw Exception('The B2B pricing context is incomplete.');
+      }
+      final pricingContext = await _repository.getB2bPricingContext(
+        profile: profileName,
+        customer: normalizedB2bCustomer,
+        orderPurpose: normalizedB2bPurpose,
+      );
+      final derivedPriceList = Map<String, dynamic>.from(
+        pricingContext.priceList,
+      );
+      final derivedPriceListName =
+          derivedPriceList['name']?.toString().trim() ?? '';
+      if (derivedPriceListName.isEmpty) {
+        throw Exception('The B2B price list is unavailable.');
+      }
+      final catalogResults = await Future.wait<dynamic>([
+        _repository.getItems(
+          profileName,
+          priceList: derivedPriceListName,
+          customer: pricingContext.customer,
+          orderPurpose: pricingContext.orderPurpose,
+        ),
+        _repository.getBundles(
+          profileName,
+          priceList: derivedPriceListName,
+          customer: pricingContext.customer,
+          orderPurpose: pricingContext.orderPurpose,
+        ),
+      ]);
+      return {
+        'items': List<Map<String, dynamic>>.from(catalogResults[0] as List),
+        'bundles': List<Map<String, dynamic>>.from(catalogResults[1] as List),
+        'price_lists': [derivedPriceList],
+        'selected_price_list': derivedPriceList,
+        'commercial_policies': [pricingContext.commercialPolicy],
+      };
+    }
+
     final requestedPriceListName =
         requestedPriceList?['name']?.toString().trim() ?? '';
 
