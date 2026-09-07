@@ -13509,6 +13509,18 @@ abstract class AppLocalizations {
   /// **'Primary area'**
   String get leadFormPrimaryArea;
 
+  /// No description provided for @leadFormAreaEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **'Area estimated from the map pin — check it'**
+  String get leadFormAreaEstimated;
+
+  /// No description provided for @leadFormAreaEstimatedUnsure.
+  ///
+  /// In en, this message translates to:
+  /// **'Area estimated from the map pin, unsure — please check'**
+  String get leadFormAreaEstimatedUnsure;
+
   /// No description provided for @leadFormPriceBand.
   ///
   /// In en, this message translates to:

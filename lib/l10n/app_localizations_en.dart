@@ -8119,6 +8119,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leadFormPrimaryArea => 'Primary area';
 
   @override
+  String get leadFormAreaEstimated =>
+      'Area estimated from the map pin — check it';
+
+  @override
+  String get leadFormAreaEstimatedUnsure =>
+      'Area estimated from the map pin, unsure — please check';
+
+  @override
   String get leadFormPriceBand => 'Price band';
 
   @override

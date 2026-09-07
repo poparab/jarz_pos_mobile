@@ -8078,6 +8078,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get leadFormPrimaryArea => 'المنطقة الأساسية';
 
   @override
+  String get leadFormAreaEstimated =>
+      'تم تقدير المنطقة من موقع الخريطة — راجعها';
+
+  @override
+  String get leadFormAreaEstimatedUnsure =>
+      'تقدير غير مؤكد للمنطقة من موقع الخريطة — برجاء المراجعة';
+
+  @override
   String get leadFormPriceBand => 'شريحة السعر';
 
   @override

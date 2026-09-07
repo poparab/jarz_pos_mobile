@@ -12,6 +12,7 @@ import 'package:jarz_pos/src/features/b2b/presentation/screens/b2b_account_scree
 import 'package:jarz_pos/src/features/leads/data/leads_repository.dart';
 import 'package:jarz_pos/src/features/leads/data/models/lead.dart';
 import 'package:jarz_pos/src/features/leads/presentation/screens/lead_form_screen.dart';
+import 'package:jarz_pos/src/features/leads/state/leads_notifier.dart';
 import 'package:jarz_pos/src/features/pos/presentation/widgets/customer_search_widget.dart'
     show territoriesProvider;
 
@@ -135,6 +136,17 @@ class _FakeLeadsRepository extends LeadsRepository {
   Future<List<LeadCategory>> getLeadCategories() async => const [];
 }
 
+/// The lead form completes its area field against the cached catalog.
+/// Without this the real notifier runs and opens a Hive box that no widget
+/// test has initialised.
+class _FakeLeadsNotifier extends LeadsNotifier {
+  @override
+  Future<List<Lead>> build() async => const [];
+
+  @override
+  Future<void> refresh() async {}
+}
+
 Widget _wrap(Widget child, {required List<Override> overrides}) {
   return ProviderScope(
     overrides: overrides,
@@ -165,6 +177,7 @@ void main() {
           overrides: [
             leadsRepositoryProvider.overrideWithValue(_FakeLeadsRepository()),
             b2bRepositoryProvider.overrideWithValue(_FakeB2bRepository()),
+            leadsProvider.overrideWith(_FakeLeadsNotifier.new),
             b2bLeadSourcesProvider.overrideWith((ref) async => _leadSources),
             territoriesProvider(null).overrideWith((ref) async => _territories),
           ],
@@ -192,6 +205,7 @@ void main() {
           overrides: [
             leadsRepositoryProvider.overrideWithValue(_FakeLeadsRepository()),
             b2bRepositoryProvider.overrideWithValue(_FakeB2bRepository()),
+            leadsProvider.overrideWith(_FakeLeadsNotifier.new),
             b2bLeadSourcesProvider.overrideWith((ref) async => _leadSources),
             territoriesProvider(null).overrideWith((ref) async => _territories),
           ],

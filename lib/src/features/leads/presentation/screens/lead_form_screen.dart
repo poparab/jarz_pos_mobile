@@ -48,6 +48,11 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
   bool _isSpecialty = false;
   bool _saving = false;
   late LeadMapsValue _maps;
+  final FocusNode _areaFocus = FocusNode();
+  // What the Maps lookup inferred for the area, if anything. Kept so the
+  // field can say the value is an estimate and offer the runners-up.
+  String _areaConfidence = '';
+  List<String> _areaCandidates = const <String>[];
   String? _savedLeadName;
   final Map<TextEditingController, String> _mapsAutofilled = {};
 
@@ -110,6 +115,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
     for (final c in [..._c.values, ..._primary.values, ..._shipping.values]) {
       c.dispose();
     }
+    _areaFocus.dispose();
     super.dispose();
   }
 
@@ -163,6 +169,10 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
     fill(_c['phone']!, preview.phone);
     fill(_c['website']!, preview.website);
     fill(_c['primary_area']!, preview.primaryArea);
+    if (preview.primaryAreaIsEstimated) {
+      _areaConfidence = preview.primaryAreaConfidence;
+      _areaCandidates = preview.areaCandidates;
+    }
     fill(_primary['line1']!, preview.addressLine1 ?? preview.formattedAddress);
     fill(_primary['city']!, preview.city);
     fill(_primary['state']!, preview.state);
@@ -179,6 +189,8 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         if (entry.key.text.trim() == entry.value) entry.key.clear();
       }
       _mapsAutofilled.clear();
+      _areaConfidence = '';
+      _areaCandidates = const <String>[];
     }
     _maps = value;
     if (mounted) setState(() {});
@@ -391,9 +403,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
                 _Field.half(_priceBandField()),
                 _Field.half(_sourceField()),
                 _Field.half(_territoryField()),
-                _Field.half(
-                  _text('primary_area', context.l10n.leadFormPrimaryArea),
-                ),
+                _Field.half(_primaryAreaField()),
                 _Field.half(_scoreField()),
                 _Field.full(
                   // Inside a card that paints its own background: give the tile its own
@@ -589,6 +599,134 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
                 ? context.l10n.leadFormRequired
                 : null
           : null,
+    );
+  }
+
+  /// Area, the leads catalog's MAIN filter.
+  ///
+  /// It is free text on the server, and the filter chips are built from the
+  /// distinct values already in the catalog -- so a rep who types "new cairo"
+  /// creates a lead that no area filter will ever match. Completing against the
+  /// catalog's own vocabulary keeps new leads findable, while still accepting a
+  /// genuinely new area (typing one is how the vocabulary grows).
+  ///
+  /// When the value came from a pasted Maps link it is an INFERENCE from the
+  /// pin's neighbours, not Google's data, so it is labelled as an estimate and
+  /// the runners-up are offered as one-tap corrections. An estimate presented
+  /// as fact is one nobody checks.
+  Widget _primaryAreaField() {
+    final catalog = ref.watch(leadsProvider).valueOrNull ?? const <Lead>[];
+    final known =
+        <String>{
+          for (final lead in catalog)
+            if (lead.primaryArea.trim().isNotEmpty) lead.primaryArea.trim(),
+          ..._areaCandidates,
+        }.toList()
+          ..sort();
+
+    final current = _c['primary_area']!.text.trim();
+    final alternatives = _areaCandidates
+        .where((area) => area.isNotEmpty && area != current)
+        .toList(growable: false);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        RawAutocomplete<String>(
+          textEditingController: _c['primary_area']!,
+          focusNode: _areaFocus,
+          optionsBuilder: (value) {
+            final query = value.text.trim().toLowerCase();
+            if (query.isEmpty) return known;
+            return known.where(
+              (area) => area.toLowerCase().contains(query),
+            );
+          },
+          onSelected: (_) => setState(() {}),
+          fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
+            return TextFormField(
+              key: LeadFormScreen.fieldKey('primary_area'),
+              controller: controller,
+              focusNode: focusNode,
+              style: LeadsTheme.body,
+              decoration: _dec(context.l10n.leadFormPrimaryArea),
+              onFieldSubmitted: (_) => onSubmitted(),
+              onChanged: (_) => setState(() {}),
+            );
+          },
+          optionsViewBuilder: (context, onSelected, options) {
+            final items = options.toList(growable: false);
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(10),
+                child: ConstrainedBox(
+                  // The overlay is unconstrained by default and a 60-value
+                  // vocabulary would run off the bottom of a phone.
+                  constraints: const BoxConstraints(maxHeight: 240),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    itemCount: items.length,
+                    itemBuilder: (context, index) => InkWell(
+                      onTap: () => onSelected(items[index]),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        child: Text(items[index], style: LeadsTheme.body),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        if (_areaConfidence.isNotEmpty && current.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Icon(
+                Icons.auto_awesome_outlined,
+                size: 14,
+                color: LeadsTheme.muted,
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  _areaConfidence == 'high'
+                      ? context.l10n.leadFormAreaEstimated
+                      : context.l10n.leadFormAreaEstimatedUnsure,
+                  style: LeadsTheme.bodyMuted,
+                ),
+              ),
+            ],
+          ),
+        ],
+        if (alternatives.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final area in alternatives)
+                ActionChip(
+                  key: ValueKey('lead_form_area_candidate_$area'),
+                  label: Text(area, style: LeadsTheme.bodyMuted),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () {
+                    _c['primary_area']!.text = area;
+                    setState(() {});
+                  },
+                ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 

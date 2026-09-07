@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/core/constants/api_endpoints.dart';
 import 'package:jarz_pos/src/features/leads/data/leads_repository.dart';
+import 'package:jarz_pos/src/features/leads/data/models/lead_maps_preview.dart';
 
 class _ScriptedDio with DioMixin implements Dio {
   _ScriptedDio(this.messages);
@@ -101,5 +102,41 @@ void main() {
     expect(preview.pending, isTrue);
     expect(dio.calls, hasLength(1));
     expect(waited, isFalse);
+  });
+
+  test('an inferred area and its runners-up survive the payload', () {
+    final preview = LeadMapsPreview.fromJson(const {
+      'success': true,
+      'resolved': true,
+      'url': 'https://maps.example/pin',
+      'canonical_url': 'https://maps.example/pin',
+      'primary_area': 'Zamalek',
+      'primary_area_source': 'nearby_leads',
+      'primary_area_confidence': 'medium',
+      'area_candidates': ['Zamalek', 'Dokki', ''],
+      'suggestions': {'city': 'Cairo'},
+    });
+
+    expect(preview.primaryArea, 'Zamalek');
+    expect(preview.primaryAreaIsEstimated, isTrue);
+    expect(preview.primaryAreaConfidence, 'medium');
+    expect(preview.areaCandidates, ['Zamalek', 'Dokki']);
+    expect(preview.city, 'Cairo');
+  });
+
+  test('a backend without the area fields degrades instead of throwing', () {
+    // Old server, new client: the form must still work, just without an
+    // estimate to label or correct.
+    final preview = LeadMapsPreview.fromJson(const {
+      'success': true,
+      'resolved': true,
+      'url': 'https://maps.example/pin',
+      'suggestions': {'primary_area': 'Maadi'},
+    });
+
+    expect(preview.primaryArea, 'Maadi');
+    expect(preview.primaryAreaIsEstimated, isFalse);
+    expect(preview.primaryAreaConfidence, '');
+    expect(preview.areaCandidates, isEmpty);
   });
 }

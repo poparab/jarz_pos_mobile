@@ -32,6 +32,9 @@ class LeadMapsPreview {
     this.country,
     this.pincode,
     this.primaryArea,
+    this.primaryAreaConfidence = '',
+    this.primaryAreaSource = '',
+    this.areaCandidates = const <String>[],
   });
 
   final bool success;
@@ -59,6 +62,24 @@ class LeadMapsPreview {
   final String? country;
   final String? pincode;
   final String? primaryArea;
+
+  /// ``high`` | ``medium`` | ``low`` | ``''``. Only meaningful when
+  /// [primaryAreaIsEstimated]: Google's own answer carries no confidence
+  /// because it is not a guess.
+  final String primaryAreaConfidence;
+
+  /// ``nearby_leads`` when the area was inferred from the pin's neighbours
+  /// rather than returned by Google.
+  final String primaryAreaSource;
+
+  /// Runner-up areas for the same pin, best first. Lets the form offer a
+  /// one-tap correction instead of making the rep retype a 60-value
+  /// vocabulary they cannot see.
+  final List<String> areaCandidates;
+
+  /// True when the area is our inference, not Google's data. The form says
+  /// so, because an estimate presented as fact is one a rep stops checking.
+  bool get primaryAreaIsEstimated => primaryAreaSource == 'nearby_leads';
 
   bool get hasCoordinates {
     final lat = latitude;
@@ -121,6 +142,12 @@ class LeadMapsPreview {
       country: _text(pick('country')),
       pincode: _text(pick('pincode')),
       primaryArea: _text(pick('primary_area')),
+      primaryAreaConfidence: _text(json['primary_area_confidence']) ?? '',
+      primaryAreaSource: _text(json['primary_area_source']) ?? '',
+      areaCandidates: (json['area_candidates'] as List? ?? const <dynamic>[])
+          .map((value) => value.toString().trim())
+          .where((value) => value.isNotEmpty)
+          .toList(growable: false),
     );
   }
 

@@ -4641,6 +4641,8 @@
   "leadFormLeadName": "Lead name *",
   "leadFormCompanyName": "Company name",
   "leadFormPrimaryArea": "Primary area",
+  "leadFormAreaEstimated": "Area estimated from the map pin — check it",
+  "leadFormAreaEstimatedUnsure": "Area estimated from the map pin, unsure — please check",
   "leadFormPriceBand": "Price band",
   "leadFormFitScoreRange": "{label} (0–100)",
   "@leadFormFitScoreRange": {

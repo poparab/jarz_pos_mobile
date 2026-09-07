@@ -3440,6 +3440,8 @@
   "leadFormLeadName": "اسم العميل المحتمل *",
   "leadFormCompanyName": "اسم الشركة",
   "leadFormPrimaryArea": "المنطقة الأساسية",
+  "leadFormAreaEstimated": "تم تقدير المنطقة من موقع الخريطة — راجعها",
+  "leadFormAreaEstimatedUnsure": "تقدير غير مؤكد للمنطقة من موقع الخريطة — برجاء المراجعة",
   "leadFormPriceBand": "شريحة السعر",
   "leadFormFitScoreRange": "{label} (0–100)",
   "leadFormSaveChanges": "احفظ التعديلات",

@@ -358,4 +358,137 @@ void main() {
 
     expect(repository.savedNames, [null, 'LEAD-NEW-1']);
   });
+
+  // ---------------------------------------------------------------------
+  // Area suggestion. The area is the leads catalog's MAIN filter, and with no
+  // Google Places key the backend infers it from the pin's neighbours. That
+  // inference must arrive in the field, must be labelled as an inference, and
+  // must be correctable without retyping.
+  // ---------------------------------------------------------------------
+
+  LeadMapsPreview estimated({
+    String area = 'Zamalek',
+    String confidence = 'high',
+    List<String> candidates = const ['Zamalek', 'Dokki'],
+    String source = 'nearby_leads',
+  }) => LeadMapsPreview(
+    success: true,
+    resolved: true,
+    url: 'https://maps.example/pin',
+    canonicalUrl: 'https://maps.example/pin',
+    placeName: 'Corner Cafe',
+    latitude: 30.06,
+    longitude: 31.22,
+    primaryArea: area,
+    primaryAreaConfidence: confidence,
+    primaryAreaSource: source,
+    areaCandidates: candidates,
+  );
+
+  Future<void> revealArea(WidgetTester tester) => tester.scrollUntilVisible(
+    find.byKey(LeadFormScreen.fieldKey('primary_area')),
+    300,
+    scrollable: find.byType(Scrollable).first,
+  );
+
+  testWidgets('an inferred area is filled in and flagged as an estimate', (
+    tester,
+  ) async {
+    final repository = _FakeLeadsRepository();
+    await _pumpForm(
+      tester,
+      repository: repository,
+      resolver: (link, {keepPolling}) async => estimated(),
+    );
+    await _enterMapsLink(tester, 'https://maps.example/pin');
+    await revealArea(tester);
+
+    expect(
+      tester
+          .widget<TextFormField>(
+            find.byKey(LeadFormScreen.fieldKey('primary_area')),
+          )
+          .controller
+          ?.text,
+      'Zamalek',
+    );
+    expect(find.textContaining('estimated from the map pin'), findsOneWidget);
+
+    await _pressSave(tester);
+    expect(repository.savedPayloads.single['primary_area'], 'Zamalek');
+  });
+
+  testWidgets('a runner-up area is one tap, not a retype', (tester) async {
+    final repository = _FakeLeadsRepository();
+    await _pumpForm(
+      tester,
+      repository: repository,
+      resolver: (link, {keepPolling}) async => estimated(confidence: 'low'),
+    );
+    await _enterMapsLink(tester, 'https://maps.example/pin');
+    await revealArea(tester);
+
+    // The chosen area is not offered back to itself; the alternative is.
+    expect(
+      find.byKey(const ValueKey('lead_form_area_candidate_Zamalek')),
+      findsNothing,
+    );
+    final chip = find.byKey(
+      const ValueKey('lead_form_area_candidate_Dokki'),
+    );
+    // ensureVisible, not scrollUntilVisible: the form is one non-lazy
+    // Column, so the chip is already in the tree and scrollUntilVisible
+    // returns without scrolling it into the viewport.
+    await tester.ensureVisible(chip);
+    await tester.pumpAndSettle();
+    await tester.tap(chip);
+    await tester.pumpAndSettle();
+
+    await _pressSave(tester);
+    expect(repository.savedPayloads.single['primary_area'], 'Dokki');
+  });
+
+  testWidgets('an area Google supplied is not labelled as a guess', (
+    tester,
+  ) async {
+    await _pumpForm(
+      tester,
+      repository: _FakeLeadsRepository(),
+      resolver: (link, {keepPolling}) async =>
+          estimated(source: 'google_places', candidates: const []),
+    );
+    await _enterMapsLink(tester, 'https://maps.example/pin');
+    await revealArea(tester);
+
+    expect(find.textContaining('estimated from the map pin'), findsNothing);
+  });
+
+  testWidgets('replacing the link drops the estimate it came with', (
+    tester,
+  ) async {
+    await _pumpForm(
+      tester,
+      repository: _FakeLeadsRepository(),
+      resolver: (link, {keepPolling}) async => link.contains('pin')
+          ? estimated()
+          : LeadMapsPreview(
+              success: false,
+              resolved: false,
+              url: link,
+              canonicalUrl: link,
+            ),
+    );
+    await _enterMapsLink(tester, 'https://maps.example/pin');
+    await revealArea(tester);
+    expect(find.textContaining('estimated from the map pin'), findsOneWidget);
+
+    await _enterMapsLink(tester, 'https://maps.example/other');
+    await revealArea(tester);
+
+    expect(find.textContaining('estimated from the map pin'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('lead_form_area_candidate_Dokki')),
+      findsNothing,
+    );
+  });
 }
