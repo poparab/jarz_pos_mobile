@@ -52,6 +52,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
   // What the Maps lookup inferred for the area, if anything. Kept so the
   // field can say the value is an estimate and offer the runners-up.
   String _areaConfidence = '';
+  LeadMapsDuplicate? _duplicate;
   List<String> _areaCandidates = const <String>[];
   String? _savedLeadName;
   final Map<TextEditingController, String> _mapsAutofilled = {};
@@ -178,6 +179,19 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
     fill(_primary['state']!, preview.state);
     fill(_primary['country']!, preview.country);
     fill(_primary['pincode']!, preview.pincode);
+    fill(_primary['line2']!, preview.addressLine2);
+    fill(_c['instagram']!, preview.instagram);
+    // Dropdown-backed values: only ever fill an unset one, and only with a
+    // value that is actually on offer -- a category the master does not have
+    // would render as a blank selection the rep cannot fix.
+    final category = preview.category?.trim() ?? '';
+    if (_category == null && category.isNotEmpty) {
+      final known = ref.read(leadCategoriesProvider).valueOrNull ?? const [];
+      if (known.any((c) => c.name == category)) _category = category;
+    }
+    final band = preview.priceBand?.trim() ?? '';
+    if (_priceBand.isEmpty && band.isNotEmpty) _priceBand = band;
+    _duplicate = preview.duplicate;
     if (mounted) setState(() {});
   }
 
@@ -191,6 +205,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
       _mapsAutofilled.clear();
       _areaConfidence = '';
       _areaCandidates = const <String>[];
+      _duplicate = null;
     }
     _maps = value;
     if (mounted) setState(() {});
@@ -356,6 +371,10 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
+            if (_duplicate != null) ...[
+              _duplicateBanner(_duplicate!),
+              const SizedBox(height: 12),
+            ],
             _card(context.l10n.leadMapsCardTitle, [
               LeadMapsImportCard(
                 initialValue: _maps,
@@ -614,6 +633,55 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
   /// pin's neighbours, not Google's data, so it is labelled as an estimate and
   /// the runners-up are offered as one-tap corrections. An estimate presented
   /// as fact is one nobody checks.
+  /// Warn, in place, that this link is a place the catalog already holds.
+  ///
+  /// Deliberately a warning and not a block. A brand's second door genuinely is
+  /// a new branch on the existing lead rather than a new lead, and a rep adding
+  /// one on purpose must not be stopped -- but neither should they find out
+  /// after saving.
+  Widget _duplicateBanner(LeadMapsDuplicate duplicate) {
+    final label = duplicate.branchName.isNotEmpty
+        ? duplicate.branchName
+        : duplicate.lead;
+    return Container(
+      key: const ValueKey('lead_form_duplicate_banner'),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: LeadsTheme.rejectedBg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: LeadsTheme.rejected.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.info_outline, size: 18, color: LeadsTheme.rejected),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  duplicate.isExact
+                      ? context.l10n.leadFormDuplicateExact(label)
+                      : context.l10n.leadFormDuplicateLikely(label),
+                  style: LeadsTheme.body.copyWith(
+                    color: LeadsTheme.rejected,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  context.l10n.leadFormDuplicateHint,
+                  style: LeadsTheme.bodyMuted,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _primaryAreaField() {
     final catalog = ref.watch(leadsProvider).valueOrNull ?? const <Lead>[];
     final known =

@@ -35,6 +35,17 @@ class LeadMapsPreview {
     this.primaryAreaConfidence = '',
     this.primaryAreaSource = '',
     this.areaCandidates = const <String>[],
+    this.addressLine2,
+    this.region,
+    this.governorate,
+    this.openingHours,
+    this.cuisine,
+    this.instagram,
+    this.rating,
+    this.reviews,
+    this.priceBand,
+    this.category,
+    this.duplicate,
   });
 
   final bool success;
@@ -76,6 +87,23 @@ class LeadMapsPreview {
   /// one-tap correction instead of making the rep retype a 60-value
   /// vocabulary they cannot see.
   final List<String> areaCandidates;
+
+  /// Neighbourhood/district line from OpenStreetMap. Address detail in OSM's
+  /// vocabulary, deliberately NOT the catalog filter area.
+  final String? addressLine2;
+  final String? region;
+  final String? governorate;
+  final String? openingHours;
+  final String? cuisine;
+  final String? instagram;
+  final double? rating;
+  final int? reviews;
+  final String? priceBand;
+  final String? category;
+
+  /// Set when this link is a place the catalog already holds, so the form can
+  /// warn before a second lead is created for it.
+  final LeadMapsDuplicate? duplicate;
 
   /// True when the area is our inference, not Google's data. The form says
   /// so, because an estimate presented as fact is one a rep stops checking.
@@ -148,6 +176,17 @@ class LeadMapsPreview {
           .map((value) => value.toString().trim())
           .where((value) => value.isNotEmpty)
           .toList(growable: false),
+      addressLine2: _text(pick('address_line2')),
+      region: _text(pick('region')),
+      governorate: _text(pick('governorate')),
+      openingHours: _text(pick('opening_hours')),
+      cuisine: _text(pick('cuisine')),
+      instagram: _text(pick('instagram')),
+      rating: _number(pick('rating')),
+      reviews: _number(pick('reviews'))?.round(),
+      priceBand: _text(pick('price_band')),
+      category: _text(pick('category')),
+      duplicate: LeadMapsDuplicate.fromJson(json['duplicate']),
     );
   }
 
@@ -170,5 +209,50 @@ class LeadMapsPreview {
   static String? _text(dynamic raw) {
     final value = raw?.toString().trim();
     return value == null || value.isEmpty ? null : value;
+  }
+}
+
+/// A place the catalog already holds, recognised from the pasted link.
+///
+/// The backend matches on the Google CID the link carries -- exact, not a name
+/// guess -- and falls back to the same name within 120m. Reported so the rep can
+/// decide: a second door of a brand is a new branch on the existing lead, not a
+/// second lead, and only they know which case this is.
+class LeadMapsDuplicate {
+  const LeadMapsDuplicate({
+    required this.lead,
+    this.branchName = '',
+    this.how = '',
+    this.confidence = '',
+    this.distanceM,
+  });
+
+  final String lead;
+  final String branchName;
+
+  /// ``cid`` (exact identifier) or ``proximity`` (same name, same doorway).
+  final String how;
+
+  /// ``exact`` or ``likely``.
+  final String confidence;
+  final int? distanceM;
+
+  bool get isExact => confidence == 'exact' || how == 'cid';
+
+  static LeadMapsDuplicate? fromJson(dynamic raw) {
+    if (raw is! Map) return null;
+    final map = Map<String, dynamic>.from(raw);
+    final lead = map['lead']?.toString().trim() ?? '';
+    if (lead.isEmpty) return null;
+    final distance = map['distance_m'];
+    return LeadMapsDuplicate(
+      lead: lead,
+      branchName: map['branch_name']?.toString().trim() ?? '',
+      how: map['how']?.toString().trim() ?? '',
+      confidence: map['confidence']?.toString().trim() ?? '',
+      distanceM: distance is num
+          ? distance.round()
+          : int.tryParse(distance?.toString().trim() ?? ''),
+    );
   }
 }

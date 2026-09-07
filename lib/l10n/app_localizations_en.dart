@@ -8119,6 +8119,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leadFormPrimaryArea => 'Primary area';
 
   @override
+  String leadFormDuplicateExact(String place) {
+    return 'Already in your catalog: $place';
+  }
+
+  @override
+  String leadFormDuplicateLikely(String place) {
+    return 'This looks like a place you already have: $place';
+  }
+
+  @override
+  String get leadFormDuplicateHint =>
+      'Saving creates a second lead. If this is another branch, add it to the existing lead instead.';
+
+  @override
   String get leadFormAreaEstimated =>
       'Area estimated from the map pin — check it';
 

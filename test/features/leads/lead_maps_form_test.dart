@@ -22,6 +22,7 @@ class _FakeLeadsRepository extends LeadsRepository {
 
   final List<Map<String, dynamic>> savedPayloads = [];
   final List<String?> savedNames = [];
+  final List<({String kind, LeadAddress address})> savedAddresses = [];
   var failNextAddress = false;
 
   @override
@@ -48,6 +49,7 @@ class _FakeLeadsRepository extends LeadsRepository {
       failNextAddress = false;
       throw Exception('address unavailable');
     }
+    savedAddresses.add((kind: kind, address: address));
     return 'ADDRESS-1';
   }
 }
@@ -490,5 +492,142 @@ void main() {
       find.byKey(const ValueKey('lead_form_area_candidate_Dokki')),
       findsNothing,
     );
+  });
+
+  // ------------------------------------------------------------------
+  // Catalog recognition. With no Places key the catalog is the richest
+  // source a pasted link has, and it is the only one that can tell a rep
+  // they are about to create a lead that already exists.
+  // ------------------------------------------------------------------
+
+  LeadMapsPreview known({
+    String how = 'cid',
+    String confidence = 'exact',
+    int? distance = 0,
+  }) => LeadMapsPreview(
+    success: true,
+    resolved: true,
+    url: 'https://maps.example/known',
+    canonicalUrl: 'https://maps.example/known',
+    placeName: 'Cilantro',
+    latitude: 30.0538,
+    longitude: 31.2013,
+    phone: '+20 2 87654321',
+    primaryArea: 'Mohandessin',
+    addressLine1: '12 Gameat El Dewal',
+    addressLine2: 'Mohandessin',
+    city: 'Giza',
+    country: 'Egypt',
+    pincode: '12411',
+    instagram: 'cilantro.eg',
+    openingHours: '07:00-01:00',
+    duplicate: LeadMapsDuplicate(
+      lead: 'LEAD-0007',
+      branchName: 'Cilantro Gameat El Dewal',
+      how: how,
+      confidence: confidence,
+      distanceM: distance,
+    ),
+  );
+
+  testWidgets('a link to a place already in the catalog is flagged', (
+    tester,
+  ) async {
+    await _pumpForm(
+      tester,
+      repository: _FakeLeadsRepository(),
+      resolver: (link, {keepPolling}) async => known(),
+    );
+    await _enterMapsLink(tester, 'https://maps.example/known');
+
+    expect(
+      find.byKey(const ValueKey('lead_form_duplicate_banner')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Cilantro Gameat El Dewal'), findsWidgets);
+  });
+
+  testWidgets('the warning does not block saving another branch', (
+    tester,
+  ) async {
+    // A brand's second door is a new branch, and the rep is the one who knows.
+    final repository = _FakeLeadsRepository();
+    await _pumpForm(
+      tester,
+      repository: repository,
+      resolver: (link, {keepPolling}) async =>
+          known(how: 'proximity', confidence: 'likely', distance: 40),
+    );
+    await _enterMapsLink(tester, 'https://maps.example/known');
+    await _pressSave(tester);
+
+    expect(repository.savedPayloads, hasLength(1));
+  });
+
+  testWidgets('an unrecognised place shows no warning', (tester) async {
+    await _pumpForm(
+      tester,
+      repository: _FakeLeadsRepository(),
+      resolver: (link, {keepPolling}) async => _details(
+        'https://maps.example/new',
+        name: 'Brand New Cafe',
+        phone: '',
+      ),
+    );
+    await _enterMapsLink(tester, 'https://maps.example/new');
+
+    expect(
+      find.byKey(const ValueKey('lead_form_duplicate_banner')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('replacing the link clears the warning it came with', (
+    tester,
+  ) async {
+    await _pumpForm(
+      tester,
+      repository: _FakeLeadsRepository(),
+      resolver: (link, {keepPolling}) async => link.contains('known')
+          ? known()
+          : _details(link, name: 'Somewhere Else', phone: ''),
+    );
+    await _enterMapsLink(tester, 'https://maps.example/known');
+    expect(
+      find.byKey(const ValueKey('lead_form_duplicate_banner')),
+      findsOneWidget,
+    );
+
+    await _enterMapsLink(tester, 'https://maps.example/other');
+
+    expect(
+      find.byKey(const ValueKey('lead_form_duplicate_banner')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('every enriched field reaches the saved lead', (tester) async {
+    final repository = _FakeLeadsRepository();
+    await _pumpForm(
+      tester,
+      repository: repository,
+      resolver: (link, {keepPolling}) async => known(),
+    );
+    await _enterMapsLink(tester, 'https://maps.example/known');
+    await _pressSave(tester);
+
+    final payload = repository.savedPayloads.single;
+    expect(payload['lead_name'], 'Cilantro');
+    expect(payload['phone'], '+20 2 87654321');
+    expect(payload['primary_area'], 'Mohandessin');
+    expect(payload['instagram'], 'cilantro.eg');
+    final address = repository.savedAddresses
+        .firstWhere((entry) => entry.kind == 'primary')
+        .address;
+    expect(address.addressLine1, '12 Gameat El Dewal');
+    expect(address.addressLine2, 'Mohandessin');
+    expect(address.city, 'Giza');
+    expect(address.country, 'Egypt');
+    expect(address.pincode, '12411');
   });
 }

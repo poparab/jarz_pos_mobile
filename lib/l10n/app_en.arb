@@ -4641,6 +4641,19 @@
   "leadFormLeadName": "Lead name *",
   "leadFormCompanyName": "Company name",
   "leadFormPrimaryArea": "Primary area",
+  "leadFormDuplicateExact": "Already in your catalog: {place}",
+  "@leadFormDuplicateExact": {
+    "placeholders": {
+      "place": {"type": "String"}
+    }
+  },
+  "leadFormDuplicateLikely": "This looks like a place you already have: {place}",
+  "@leadFormDuplicateLikely": {
+    "placeholders": {
+      "place": {"type": "String"}
+    }
+  },
+  "leadFormDuplicateHint": "Saving creates a second lead. If this is another branch, add it to the existing lead instead.",
   "leadFormAreaEstimated": "Area estimated from the map pin — check it",
   "leadFormAreaEstimatedUnsure": "Area estimated from the map pin, unsure — please check",
   "leadFormPriceBand": "Price band",

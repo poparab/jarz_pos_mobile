@@ -8078,6 +8078,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get leadFormPrimaryArea => 'المنطقة الأساسية';
 
   @override
+  String leadFormDuplicateExact(String place) {
+    return 'موجود بالفعل في قائمتك: $place';
+  }
+
+  @override
+  String leadFormDuplicateLikely(String place) {
+    return 'يبدو أن هذا مكان لديك بالفعل: $place';
+  }
+
+  @override
+  String get leadFormDuplicateHint =>
+      'الحفظ سينشئ عميلًا محتملًا ثانيًا. إذا كان فرعًا آخر، أضفه إلى العميل الموجود.';
+
+  @override
   String get leadFormAreaEstimated =>
       'تم تقدير المنطقة من موقع الخريطة — راجعها';
 

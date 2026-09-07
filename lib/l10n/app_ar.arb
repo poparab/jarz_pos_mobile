@@ -3440,6 +3440,19 @@
   "leadFormLeadName": "اسم العميل المحتمل *",
   "leadFormCompanyName": "اسم الشركة",
   "leadFormPrimaryArea": "المنطقة الأساسية",
+  "leadFormDuplicateExact": "موجود بالفعل في قائمتك: {place}",
+  "@leadFormDuplicateExact": {
+    "placeholders": {
+      "place": {"type": "String"}
+    }
+  },
+  "leadFormDuplicateLikely": "يبدو أن هذا مكان لديك بالفعل: {place}",
+  "@leadFormDuplicateLikely": {
+    "placeholders": {
+      "place": {"type": "String"}
+    }
+  },
+  "leadFormDuplicateHint": "الحفظ سينشئ عميلًا محتملًا ثانيًا. إذا كان فرعًا آخر، أضفه إلى العميل الموجود.",
   "leadFormAreaEstimated": "تم تقدير المنطقة من موقع الخريطة — راجعها",
   "leadFormAreaEstimatedUnsure": "تقدير غير مؤكد للمنطقة من موقع الخريطة — برجاء المراجعة",
   "leadFormPriceBand": "شريحة السعر",

@@ -13509,6 +13509,24 @@ abstract class AppLocalizations {
   /// **'Primary area'**
   String get leadFormPrimaryArea;
 
+  /// No description provided for @leadFormDuplicateExact.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in your catalog: {place}'**
+  String leadFormDuplicateExact(String place);
+
+  /// No description provided for @leadFormDuplicateLikely.
+  ///
+  /// In en, this message translates to:
+  /// **'This looks like a place you already have: {place}'**
+  String leadFormDuplicateLikely(String place);
+
+  /// No description provided for @leadFormDuplicateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving creates a second lead. If this is another branch, add it to the existing lead instead.'**
+  String get leadFormDuplicateHint;
+
   /// No description provided for @leadFormAreaEstimated.
   ///
   /// In en, this message translates to:
