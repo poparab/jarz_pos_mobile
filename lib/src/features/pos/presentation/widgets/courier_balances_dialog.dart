@@ -15,6 +15,21 @@ import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../settlement_reversal/presentation/widgets/reverse_settlement_sheet.dart';
 
+/// Whether settlement reversal is released to users.
+///
+/// Deliberately `false`, and deliberately not `const` — a `const false` folds
+/// at compile time and the analyzer then reports the entry point as dead code.
+///
+/// Two review rounds found money-affecting defects in the reversal: a
+/// settlement-discovery query that returns nothing on a real database, and a
+/// non-settlement journal entry that could be reversed, erasing the record of
+/// a customer's online payment. Both are invisible to a mocked harness, which
+/// is how they survived a green suite. The server refuses these endpoints for
+/// the same reason (`UNSETTLE_RELEASED` in `jarz_pos/api/couriers.py`) — the
+/// button is hidden here, but hiding a button is not a control, so the real
+/// hold is server-side. Flip BOTH to release.
+final bool _settlementReversalReleased = false;
+
 String _courierPartyKey(String partyType, String party) => '$partyType::$party';
 
 Future<void> showCourierBalancesDialog(
@@ -98,10 +113,21 @@ class _DialogHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    // Reversing a settlement is gated the same way server-side
-    // (Admin | Line Manager tier); hiding the entry point for everyone else
-    // avoids a round trip just to be told no.
-    final canReverse = ref.watch(canActAsLineManagerProvider);
+    // HELD BACK FROM RELEASE, deliberately — see `_ensure_unsettle_released`
+    // in jarz_pos/api/couriers.py, which refuses the endpoints server-side for
+    // the same reason. Two review rounds found money-affecting defects in the
+    // reversal: a settlement-discovery query that returns nothing on a real
+    // database, and a non-settlement journal entry that could be reversed,
+    // erasing the record of a customer's online payment. Both are invisible to
+    // a mocked test harness, so this ships dark until it has been verified
+    // against a real database and real concurrency.
+    //
+    // The provider below is the role check this will use when it returns
+    // (Admin | Line Manager tier, mirroring the server). To release, flip
+    // `_settlementReversalReleased` here AND `UNSETTLE_RELEASED` there —
+    // flipping only this one gives the user a button that the server refuses.
+    final canReverse =
+        _settlementReversalReleased && ref.watch(canActAsLineManagerProvider);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       color: Theme.of(context).colorScheme.primary,
