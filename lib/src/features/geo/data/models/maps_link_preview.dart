@@ -16,6 +16,8 @@ class MapsLinkPreview {
     this.precision,
     this.distanceFromBranchM,
     this.error,
+    this.pending = false,
+    this.requestId,
   });
 
   /// A local failure that never reached (or never parsed from) the server.
@@ -24,7 +26,9 @@ class MapsLinkPreview {
         latitude = null,
         longitude = null,
         precision = null,
-        distanceFromBranchM = null;
+        distanceFromBranchM = null,
+        pending = false,
+        requestId = null;
 
   final bool success;
   final double? latitude;
@@ -42,6 +46,19 @@ class MapsLinkPreview {
   /// Server-supplied failure text. Present only when [success] is false.
   final String? error;
 
+  /// True while a short link is still being expanded in a background job.
+  ///
+  /// A short link — which is all the Android share sheet ever produces — has no
+  /// coordinates in it, and following its redirects inside the request would
+  /// let any paste hold a web worker. So the server answers with a ticket and
+  /// the repository polls; this flag plus [requestId] is that ticket. Neither
+  /// resolved nor failed: a caller that treats it as either shows the wrong
+  /// thing for the most common input the field receives.
+  final bool pending;
+
+  /// Ticket to poll while [pending]. Null on any terminal answer.
+  final String? requestId;
+
   factory MapsLinkPreview.fromJson(Map<String, dynamic> json) {
     return MapsLinkPreview(
       success: _parseBool(json['success']),
@@ -52,6 +69,8 @@ class MapsLinkPreview {
         json['distance_from_branch_m'] ?? json['distance_from_branch'],
       ),
       error: _nonEmpty(json['error'] ?? json['message']),
+      pending: _parseBool(json['pending']),
+      requestId: _nonEmpty(json['request_id']),
     );
   }
 
@@ -62,6 +81,8 @@ class MapsLinkPreview {
         'precision': precision,
         'distance_from_branch_m': distanceFromBranchM,
         'error': error,
+        'pending': pending,
+        'request_id': requestId,
       };
 
   /// True only when the server both reported success and handed back a usable

@@ -689,68 +689,126 @@ class _CustomerShippingAddressDialogState
     );
   }
 
+  /// One saved address, laid out so the address itself gets the full width.
+  ///
+  /// This used to be a [ListTile] with the three actions in `trailing`. Three
+  /// 48dp targets plus the leading radio leave roughly 50dp for the text inside
+  /// a dialog on a phone, which wrapped a real address to two characters a line
+  /// ("Sheikh Zayed" arriving as h / Z / ay / ed) — unreadable exactly where it
+  /// matters, since choosing the right address is the whole job of this list.
+  /// The actions get their own row underneath instead: the buttons cost one
+  /// line of height, the address gets every pixel of width.
   Widget _buildAddressRow({
     required Map<String, dynamic> address,
     required String addressName,
     required bool isSelected,
   }) {
-    final subtitleParts = <String>[];
+    final theme = Theme.of(context);
+    final fullAddress = (address['full_address'] ?? '').toString().trim();
+
+    // Phone, territory and the primary flag are metadata, not the address. On
+    // one joined line they pushed the address itself further down the wrap.
+    final metaParts = <String>[];
     final phone = address['phone']?.toString().trim() ?? '';
-    if (phone.isNotEmpty) subtitleParts.add(phone);
+    if (phone.isNotEmpty) metaParts.add(phone);
     final territory =
         (address['effective_territory'] ?? address['city'])
             ?.toString()
             .trim() ??
         '';
-    if (territory.isNotEmpty) subtitleParts.add(territory);
-    if (address['is_primary_address'] == true) subtitleParts.add('Primary');
+    if (territory.isNotEmpty) metaParts.add(territory);
+    if (address['is_primary_address'] == true) metaParts.add('Primary');
 
-    return ListTile(
+    // Aligns the wrapped text under the title rather than under the radio.
+    const textIndent = EdgeInsetsDirectional.only(start: 34, end: 4, top: 4);
+
+    return InkWell(
       onTap: () => _selectSavedAddress(addressName),
-      leading: Icon(
-        isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-        color: isSelected
-            ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).colorScheme.outline,
-      ),
-      title: Text(_branchLabel(address)),
-      subtitle: Text(
-        <String>[
-          if ((address['full_address'] ?? '').toString().trim().isNotEmpty)
-            address['full_address'].toString().trim(),
-          ...subtitleParts,
-        ].join(' • '),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Discreet correction entry point: couriers navigate off this pin,
-          // and until now nobody in the field could fix one that was wrong —
-          // it took a developer script. Pushed on top of this dialog rather
-          // than folded into edit, because a bad pin is discovered mid-delivery
-          // far more often than the address text is.
-          IconButton(
-            icon: const Icon(Icons.location_searching),
-            tooltip: context.l10n.addressPinFixTooltip,
-            onPressed: _isBusy
-                ? null
-                : () => context.push(AppRoutes.addressPin, extra: addressName),
-            iconSize: 20,
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            tooltip: context.l10n.customerShippingAddressEditTab,
-            onPressed: _isBusy ? null : () => _startEdit(address),
-            iconSize: 20,
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: context.l10n.customerShippingAddressDeleteConfirm,
-            color: Theme.of(context).colorScheme.error,
-            onPressed: _isBusy ? null : () => _confirmDelete(address),
-            iconSize: 20,
-          ),
-        ],
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 8, 2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  isSelected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  size: 22,
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.outline,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _branchLabel(address),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (fullAddress.isNotEmpty)
+              Padding(
+                padding: textIndent,
+                child: Text(fullAddress, style: theme.textTheme.bodyMedium),
+              ),
+            if (metaParts.isNotEmpty)
+              Padding(
+                padding: textIndent,
+                child: Text(
+                  metaParts.join(' • '),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Discreet correction entry point: couriers navigate off this
+                  // pin, and until now nobody in the field could fix one that
+                  // was wrong — it took a developer script. Pushed on top of
+                  // this dialog rather than folded into edit, because a bad pin
+                  // is discovered mid-delivery far more often than the address
+                  // text is.
+                  IconButton(
+                    icon: const Icon(Icons.location_searching),
+                    tooltip: context.l10n.addressPinFixTooltip,
+                    onPressed: _isBusy
+                        ? null
+                        : () =>
+                              context.push(AppRoutes.addressPin, extra: addressName),
+                    iconSize: 20,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined),
+                    tooltip: context.l10n.customerShippingAddressEditTab,
+                    onPressed: _isBusy ? null : () => _startEdit(address),
+                    iconSize: 20,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: context.l10n.customerShippingAddressDeleteConfirm,
+                    color: theme.colorScheme.error,
+                    onPressed: _isBusy ? null : () => _confirmDelete(address),
+                    iconSize: 20,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

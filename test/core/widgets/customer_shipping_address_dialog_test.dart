@@ -257,5 +257,62 @@ void main() {
 
       expect(find.text('Please select a territory.'), findsOneWidget);
     });
+
+    testWidgets('gives the address text the full row width on a phone', (
+      tester,
+    ) async {
+      // A real phone, not the 800x600 test default: the bug only appears once
+      // the dialog is narrow. Three 48dp action buttons in a ListTile trailing
+      // left the address roughly two characters wide here — "Sheikh Zayed"
+      // rendered as h / Z / ay / ed, which is unreadable exactly where the
+      // whole point is telling two addresses apart.
+      tester.view.physicalSize = const Size(1080, 2280);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await _pumpHost(tester, () {
+        return CustomerShippingAddressDialog.show(
+          tester.element(find.text('open')),
+          customerName: 'Walk-in',
+          customer: 'walk-in',
+          territories: const [],
+          repository: CustomerAddressRepository(Dio()),
+          addresses: const [
+            {
+              'name': 'ADDR-1',
+              'full_address': '12 Street 270, Sheikh Zayed, Giza',
+              'phone': '01001',
+              'is_primary_address': true,
+            },
+          ],
+          initialSelectedAddressName: 'ADDR-1',
+          initialPhone: '01001',
+        );
+      });
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      final address = find.text('12 Street 270, Sheikh Zayed, Giza');
+      expect(address, findsOneWidget);
+
+      final dialogWidth = tester.getSize(find.byType(AlertDialog)).width;
+      final textWidth = tester.getSize(address).width;
+
+      // `getSize` on a wrapped Text reports its longest line, so this is the
+      // width the address actually gets to use. The old layout left the ListTile
+      // title about 64px — four characters — after the leading radio and three
+      // 48dp trailing buttons; the stacked layout leaves it the whole row. 40%
+      // of the dialog sits comfortably between the two, so the guard fails on a
+      // regression without being brittle about font metrics.
+      expect(
+        textWidth,
+        greaterThan(dialogWidth * 0.4),
+        reason:
+            'address text is $textWidth wide inside a $dialogWidth dialog; '
+            'the action buttons have taken the row again',
+      );
+    });
   });
 }
