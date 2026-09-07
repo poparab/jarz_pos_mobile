@@ -917,15 +917,30 @@ class _ShortageBanner extends StatelessWidget {
                     color: scheme.onErrorContainer,
                   ),
                 ),
-              // Says where the material is; changes nothing about the block.
-              // The Start button above stays disabled exactly as before —
-              // moving stock between stores is somebody's job in ERPNext, not
-              // this screen's.
+              // Says where the material is, and offers to fetch it. The Start
+              // button above stays disabled exactly as before: the move puts
+              // the stock in the warehouse the check measures, and then the
+              // same check decides on the same rules.
+              //
+              // Item identity comes from whichever payload produced the
+              // headline, for the reason `elsewhereQty` does: naming the
+              // preview's shortfall next to the list endpoint's item would
+              // offer to move the wrong thing.
               StockElsewhereNote(
                 availableElsewhere: elsewhereQty,
                 alternatives: elsewhereList,
+                // The list endpoint's limiting component carries neither a
+                // unit nor a source warehouse, so those come from the preview
+                // or not at all. Both degrade cleanly: the sheet prints a bare
+                // quantity, and the server resolves the destination itself and
+                // refuses any other.
                 uom: worst?.uom ?? '',
                 color: scheme.onErrorContainer,
+                itemCode: worst?.itemCode ?? limiter?.itemCode ?? '',
+                itemName: worst?.itemName ?? limiter?.itemName ?? '',
+                neededQty: worst?.shortfall ??
+                    ((limiter?.requiredQty ?? 0) - (limiter?.availableQty ?? 0)),
+                destinationWarehouse: worst?.sourceWarehouse,
               ),
             ],
           ),

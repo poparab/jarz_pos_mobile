@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/manufacturing_service.dart';
 import '../data/models/basket_rollup.dart';
 import '../data/models/bom_details.dart';
+import '../data/models/production_policy.dart';
 import '../data/models/production_suggestion.dart';
 import '../data/models/material_options.dart';
 import 'production_basket_notifier.dart';
@@ -146,6 +147,30 @@ final materialOptionsProvider = FutureProvider.autoDispose
           .read(manufacturingServiceProvider)
           .getMaterialOptions(bomName: request.bomName, qty: request.qty);
     });
+
+/// The posting window and permissions the server enforces, for this user.
+///
+/// Loaded once per board session and kept: it changes only when somebody edits
+/// Jarz POS Settings or this user's roles, neither of which happens while a
+/// batch is being queued.
+///
+/// Every consumer must degrade gracefully while this is loading or failed —
+/// see [productionPolicyOrFallbackProvider]. A date picker that refuses to
+/// render because a permissions probe is in flight is worse than one built
+/// from a conservative guess.
+final productionPolicyProvider = FutureProvider<ProductionPolicy>((ref) {
+  return ref.read(manufacturingServiceProvider).getProductionPolicy();
+});
+
+/// The policy, or the safest assumption while it is unknown.
+///
+/// "Safest" is today-only: a picker that offers a date the server will refuse
+/// teaches the floor that the screen lies, while one that offers too few dates
+/// is merely inconvenient for the few seconds the probe takes.
+final productionPolicyOrFallbackProvider = Provider<ProductionPolicy>((ref) {
+  return ref.watch(productionPolicyProvider).valueOrNull ??
+      const ProductionPolicy();
+});
 
 /// Consolidated material check for the current basket.
 ///

@@ -7,7 +7,9 @@ import 'models/base_batch_preview.dart';
 import 'models/base_item.dart';
 import 'models/basket_rollup.dart';
 import 'models/bom_details.dart';
+import 'models/material_move_result.dart';
 import 'models/material_options.dart';
+import 'models/production_policy.dart';
 import 'models/production_suggestion.dart';
 import 'models/running_batch.dart';
 import 'models/sop.dart';
@@ -274,6 +276,55 @@ class ManufacturingService {
       return BaseBatchPreview.fromJson(_unwrapMap(resp.data));
     } catch (error) {
       throw _friendlyError(error, fallback: 'Failed to check batch materials');
+    }
+  }
+
+  /// The posting window and permissions the server will actually enforce.
+  ///
+  /// Read rather than assumed: the app's own constant and the server's setting
+  /// disagreed silently, which showed up on the floor as a date picker that
+  /// offered yesterday and a submit that refused it.
+  Future<ProductionPolicy> getProductionPolicy() async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.getProductionPolicy,
+        data: const <String, dynamic>{},
+      );
+      return ProductionPolicy.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(
+        error,
+        fallback: 'Failed to load production settings',
+      );
+    }
+  }
+
+  /// Moves [qty] of [itemCode] out of [fromWarehouse] and into the warehouse
+  /// its recipe draws from.
+  ///
+  /// [toWarehouse] is only needed when the component is drawn from more than
+  /// one warehouse; the server picks the single one otherwise, and refuses any
+  /// destination the component is not actually demanded from.
+  Future<MaterialMoveResult> transferMaterialForProduction({
+    required String itemCode,
+    required String fromWarehouse,
+    required double qty,
+    String? toWarehouse,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.transferMaterialForProduction,
+        data: {
+          'item_code': itemCode,
+          'from_warehouse': fromWarehouse,
+          'qty': qty,
+          if (toWarehouse != null && toWarehouse.isNotEmpty)
+            'to_warehouse': toWarehouse,
+        },
+      );
+      return MaterialMoveResult.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to move the stock');
     }
   }
 

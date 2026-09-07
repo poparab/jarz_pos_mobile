@@ -301,6 +301,17 @@ abstract final class ApiEndpoints {
   // actually made.
   static const cancelProductionBatch =
       '/api/method/jarz_pos.api.manufacturing.cancel_production_batch';
+  // What the server will actually accept from THIS user: the backdating window
+  // it enforces and whether this account may use it. The app used to hardcode
+  // its own window, which disagreed with the server's silently -- the picker
+  // offered yesterday and the post was refused.
+  static const getProductionPolicy =
+      '/api/method/jarz_pos.api.manufacturing.get_production_policy';
+  // Moves a short component into the warehouse its recipe draws from. Not a
+  // general stock transfer: the server only accepts a BOM component, and only
+  // into a warehouse that component is actually demanded from.
+  static const transferMaterialForProduction =
+      '/api/method/jarz_pos.api.manufacturing.transfer_material_for_production';
 
   // ── Sub-assemblies (bases) ────────────────────────────────────────────
   // Bases are never sold, so the sales-driven board computes zero for them.

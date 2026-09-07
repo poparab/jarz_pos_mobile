@@ -3451,6 +3451,70 @@ class AppLocalizationsAr extends AppLocalizations {
       'مفيش منها في أي مخزن تاني — لازم تتشترى';
 
   @override
+  String get productionMoveStock => 'حوّل المخزون';
+
+  @override
+  String productionMoveTitle(Object item) {
+    return 'تحويل $item';
+  }
+
+  @override
+  String get productionMoveFromLabel => 'من';
+
+  @override
+  String get productionMoveToLabel => 'إلى';
+
+  @override
+  String get productionMoveQtyLabel => 'الكمية اللي هتتحوّل';
+
+  @override
+  String productionMoveNeededChip(Object quantity) {
+    return 'المطلوب ($quantity)';
+  }
+
+  @override
+  String productionMoveAllChip(Object quantity) {
+    return 'الكل ($quantity)';
+  }
+
+  @override
+  String productionMoveAvailable(Object quantity) {
+    return '$quantity هنا';
+  }
+
+  @override
+  String get productionMoveConfirm => 'حوّل';
+
+  @override
+  String productionMoved(Object quantity, Object warehouse) {
+    return 'اتحوّل $quantity إلى $warehouse';
+  }
+
+  @override
+  String productionMoveTooMuch(Object quantity) {
+    return 'مفيش غير $quantity في المخزن ده';
+  }
+
+  @override
+  String get productionMoveHint =>
+      'بيحرّك المخزون بين مخازنك انت. مفيش حاجة بتتشترى ولا بتتصرف.';
+
+  @override
+  String get productionMoveNoDestination =>
+      'مفيش مخزن متظبّط للصنف ده، فمفيش مكان نحوّله ليه';
+
+  @override
+  String productionBackDateWindow(Object days) {
+    return 'لحد $days يوم ورا';
+  }
+
+  @override
+  String get productionBackDateTodayOnly => 'النهارده بس';
+
+  @override
+  String get productionRecordingPastDate => 'بتسجّل إنتاج بتاريخ قديم';
+
+  @override
   String get productionNegativeStock => 'الرصيد بالسالب — اعمل جرد للصنف ده';
 
   @override

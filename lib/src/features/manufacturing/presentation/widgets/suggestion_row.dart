@@ -213,6 +213,13 @@ class _SuggestionAction extends StatelessWidget {
                     availableElsewhere: limiter.availableElsewhere,
                     alternatives: limiter.alternatives,
                     uom: limiter.uom,
+                    itemCode: limiter.itemCode,
+                    itemName: limiter.itemName,
+                    // One batch's worth of shortfall: what it takes to stop
+                    // this row saying "Cannot start". The sheet offers "move
+                    // all" beside it for the operator who wants the lot.
+                    neededQty: limiter.requiredQty - limiter.availableQty,
+                    destinationWarehouse: limiter.sourceWarehouse,
                   ),
               ],
             ),

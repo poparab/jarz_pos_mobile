@@ -149,13 +149,21 @@ class _PickListRow extends StatelessWidget {
             ],
           ),
           // Only ever under a line that is already short, and only when the
-          // backend looked: the shortage above still blocks Start, this just
-          // says whether the fix is a transfer or a purchase.
+          // backend looked: the shortage above still blocks Start, this says
+          // whether the fix is a transfer or a purchase — and, when it is a
+          // transfer, makes it.
           if (component.isShort)
             StockElsewhereNote(
               availableElsewhere: component.availableElsewhere,
               alternatives: component.alternatives,
               uom: component.uom,
+              itemCode: component.itemCode,
+              itemName: component.itemName,
+              // The consolidated shortfall for the whole basket, not one line's
+              // — this banner rolls the lines up, and moving one line's share
+              // would leave the basket blocked on the same component.
+              neededQty: component.missingQty,
+              destinationWarehouse: component.sourceWarehouse,
             ),
         ],
       ),

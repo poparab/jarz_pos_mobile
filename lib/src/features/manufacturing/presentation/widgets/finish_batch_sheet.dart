@@ -5,9 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/ui/loading_overlay.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../data/models/production_policy.dart';
 import '../../data/models/running_batch.dart';
+import '../../state/production_providers.dart';
 import '../../state/running_batches_notifier.dart';
 import 'batch_cost_panel.dart';
+import 'batch_date_bar.dart';
 import 'batch_line_card.dart' show DecimalTextInputFormatter;
 import 'production_format.dart';
 
@@ -48,6 +51,14 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
   late final TextEditingController _notesCtrl;
   String? _submitError;
 
+  /// When the batch actually came out.
+  ///
+  /// This sheet used to post the Manufacture entry at "now", full stop, which
+  /// is the whole reason a run made yesterday could not be entered: the Batch
+  /// tab could backdate the material transfer and this could not backdate the
+  /// output, so the two halves of one batch landed on different days.
+  DateTime? _postingDate;
+
   /// The ceiling the sheet enforces.
   ///
   /// The outstanding quantity, not the ordered one: a batch part-finished
@@ -81,6 +92,40 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
   static double _parse(String raw) =>
       double.tryParse(raw.trim().replaceAll(',', '.')) ?? 0;
 
+  /// The date the Manufacture entry will carry.
+  ///
+  /// Defaults to the day the batch was STARTED, not today. A batch started
+  /// yesterday and finished this morning otherwise books its material out on
+  /// one day and its output on the next, leaving a day of phantom WIP that
+  /// nobody can explain later; and somebody entering last week's run has
+  /// already said when it happened once, on the Batch tab.
+  ///
+  /// Falls back to today when the start is unknown, in the future, or outside
+  /// what [policy] permits — never to a date the server would refuse.
+  DateTime _resolvedDate(ProductionPolicy policy) {
+    final chosen = _postingDate;
+    if (chosen != null) return chosen;
+
+    final today = policy.today();
+    final started = _startedOn;
+    if (started == null || !started.isBefore(today)) return today;
+    if (!policy.canBackDate) return today;
+    if (!policy.unlimitedBackDate &&
+        today.difference(started).inDays > policy.maxBackDateDays) {
+      return today;
+    }
+    return started;
+  }
+
+  /// The calendar day the batch was started, or null when unparseable.
+  DateTime? get _startedOn {
+    final raw = widget.batch.startedAt;
+    if (raw == null || raw.trim().isEmpty) return null;
+    final parsed = DateTime.tryParse(raw.trim().replaceFirst(' ', 'T'));
+    if (parsed == null) return null;
+    return DateTime(parsed.year, parsed.month, parsed.day);
+  }
+
   /// Why the batch cannot be finished as typed, or null when it can.
   String? _validationError(BuildContext context) {
     final l10n = context.l10n;
@@ -102,6 +147,7 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final batch = widget.batch;
+    final policy = ref.watch(productionPolicyOrFallbackProvider);
     final error = _validationError(context);
 
     return SingleChildScrollView(
@@ -149,7 +195,15 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
                 style: theme.textTheme.labelSmall
                     ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+              // Same bar as the Batch tab, same server-supplied window: the two
+              // halves of a batch are dated by one rule, not two.
+              BatchDateBar(
+                date: _resolvedDate(policy),
+                policy: policy,
+                onChanged: (value) => setState(() => _postingDate = value),
+              ),
+              const SizedBox(height: 8),
               _QtyField(
                 key: const Key('finishActualQty'),
                 label: l10n.productionActualQty,
@@ -223,6 +277,7 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
     final l10n = context.l10n;
     final navigator = Navigator.of(context);
     final notes = _notesCtrl.text.trim();
+    final policy = ref.read(productionPolicyOrFallbackProvider);
 
     ref.loading.show(l10n.productionSubmitting);
     FinishBatchResult result;
@@ -231,6 +286,7 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
             workOrder: widget.batch.workOrder,
             actualQty: _actual,
             scrapQty: _scrap,
+            scheduledAt: _timestamp(_resolvedDate(policy), policy.today()),
             notes: notes.isEmpty ? null : notes,
           );
     } catch (error) {
@@ -247,6 +303,27 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
     if (!mounted) return;
     navigator.pop(result);
   }
+}
+
+/// A chosen day as the server's ``scheduled_at``.
+///
+/// Today keeps the wall clock, matching how the Batch tab stamps a start, so a
+/// same-day batch reads as the time it was actually submitted.
+///
+/// A PAST day is stamped at 23:59 rather than at the current time, and that is
+/// the load-bearing half. Stock valuation is ordered by posting datetime, so a
+/// Manufacture entry timed before the Material Transfer that fed it consumes
+/// from a WIP warehouse ERPNext has not yet seen filled — and refuses the
+/// entry for negative stock. Somebody entering last night's run at 09:00 this
+/// morning would hit exactly that. End of day is after any transfer posted on
+/// the same date, whenever it was.
+String _timestamp(DateTime day, DateTime today) {
+  String two(int v) => v.toString().padLeft(2, '0');
+  final date = '${day.year}-${two(day.month)}-${two(day.day)}';
+  if (day.isBefore(today)) return '$date 23:59:00';
+
+  final now = DateTime.now();
+  return '$date ${two(now.hour)}:${two(now.minute)}:00';
 }
 
 class _QtyField extends StatelessWidget {

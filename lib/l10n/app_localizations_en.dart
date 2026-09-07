@@ -3464,6 +3464,71 @@ class AppLocalizationsEn extends AppLocalizations {
       'None of it in any other store — this one has to be bought';
 
   @override
+  String get productionMoveStock => 'Move stock';
+
+  @override
+  String productionMoveTitle(Object item) {
+    return 'Move $item';
+  }
+
+  @override
+  String get productionMoveFromLabel => 'From';
+
+  @override
+  String get productionMoveToLabel => 'Into';
+
+  @override
+  String get productionMoveQtyLabel => 'Quantity to move';
+
+  @override
+  String productionMoveNeededChip(Object quantity) {
+    return 'Needed ($quantity)';
+  }
+
+  @override
+  String productionMoveAllChip(Object quantity) {
+    return 'All ($quantity)';
+  }
+
+  @override
+  String productionMoveAvailable(Object quantity) {
+    return '$quantity here';
+  }
+
+  @override
+  String get productionMoveConfirm => 'Move';
+
+  @override
+  String productionMoved(Object quantity, Object warehouse) {
+    return 'Moved $quantity into $warehouse';
+  }
+
+  @override
+  String productionMoveTooMuch(Object quantity) {
+    return 'Only $quantity is in that store';
+  }
+
+  @override
+  String get productionMoveHint =>
+      'Moves stock between your own stores. Nothing is bought and nothing is used up.';
+
+  @override
+  String get productionMoveNoDestination =>
+      'No store is set for this item, so there is nowhere to move it to';
+
+  @override
+  String productionBackDateWindow(Object days) {
+    return 'Up to $days days back';
+  }
+
+  @override
+  String get productionBackDateTodayOnly => 'Today only';
+
+  @override
+  String get productionRecordingPastDate =>
+      'Recording production for a past date';
+
+  @override
   String get productionNegativeStock => 'Stock is negative — count this item';
 
   @override

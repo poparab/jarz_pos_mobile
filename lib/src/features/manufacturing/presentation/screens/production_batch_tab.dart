@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
-import '../../../../core/network/user_service.dart';
 import '../../../../core/ui/loading_overlay.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/widgets/posting_date_confirmation_dialog.dart';
@@ -64,6 +63,7 @@ class ProductionBatchTab extends ConsumerWidget {
               BatchDateBar(
                 date: basket.postingDate ?? today,
                 onChanged: notifier.setPostingDate,
+                policy: ref.watch(productionPolicyOrFallbackProvider),
               ),
               const SizedBox(height: 8),
               if (rollupAsync.isLoading && rollup == null)
@@ -245,10 +245,13 @@ class _BatchFooter extends ConsumerWidget {
 
     // Checked before the confirmation dialog so the refusal names the actual
     // reason instead of arriving as a server error after two more taps.
-    if (_isBackDated(postingDate) && !ref.read(canBackDateProductionProvider)) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.productionBackDateNotAllowed)),
-      );
+    //
+    // Against the SERVER's policy, not this app's own idea of one: the two used
+    // to be separate numbers and they disagreed, so a date this check waved
+    // through was refused three taps later by `_assert_posting_date_allowed`.
+    final backDateError = _backDateRefusal(context, ref, postingDate);
+    if (backDateError != null) {
+      messenger.showSnackBar(SnackBar(content: Text(backDateError)));
       return;
     }
 
@@ -327,14 +330,31 @@ class _BatchFooter extends ConsumerWidget {
     );
   }
 
-  /// True when [date] falls on an earlier calendar day than today.
-  static bool _isBackDated(DateTime date) {
-    final now = DateTime.now();
-    return DateTime(
-      date.year,
-      date.month,
-      date.day,
-    ).isBefore(DateTime(now.year, now.month, now.day));
+  /// Why the server would refuse [date], or null when it would accept it.
+  ///
+  /// Mirrors `_assert_posting_date_allowed` deliberately: the role gate first,
+  /// then the day ceiling, which a System Manager is not bound by. Comparison
+  /// is against the server's today, so a tablet with a wrong clock is refused
+  /// here with a reason rather than by the server with a stack of jargon.
+  static String? _backDateRefusal(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime date,
+  ) {
+    final policy = ref.read(productionPolicyOrFallbackProvider);
+    if (!policy.isBackDated(date)) return null;
+
+    final l10n = context.l10n;
+    if (!policy.canBackDate) return l10n.productionBackDateNotAllowed;
+    if (policy.unlimitedBackDate) return null;
+
+    final daysBack = policy.today().difference(
+      DateTime(date.year, date.month, date.day),
+    ).inDays;
+    if (daysBack > policy.maxBackDateDays) {
+      return l10n.productionBackDateWindow(policy.maxBackDateDays);
+    }
+    return null;
   }
 
   Future<void> _submit(BuildContext context, WidgetRef ref) async {
@@ -342,6 +362,15 @@ class _BatchFooter extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     final basket = ref.read(productionBasketProvider);
     final postingDate = basket.postingDate ?? DateTime.now();
+
+    // Quick produce posts BOTH stock entries at this date, so it needs the same
+    // gate as Start — it was the one path with none, which made it the way
+    // around the ceiling rather than a convenience.
+    final backDateError = _backDateRefusal(context, ref, postingDate);
+    if (backDateError != null) {
+      messenger.showSnackBar(SnackBar(content: Text(backDateError)));
+      return;
+    }
 
     final confirmed = await confirmPostingDatesBeforeSubmit(
       context,

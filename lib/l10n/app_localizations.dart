@@ -5780,6 +5780,102 @@ abstract class AppLocalizations {
   /// **'None of it in any other store — this one has to be bought'**
   String get productionStockNowhere;
 
+  /// No description provided for @productionMoveStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Move stock'**
+  String get productionMoveStock;
+
+  /// No description provided for @productionMoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {item}'**
+  String productionMoveTitle(Object item);
+
+  /// No description provided for @productionMoveFromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get productionMoveFromLabel;
+
+  /// No description provided for @productionMoveToLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Into'**
+  String get productionMoveToLabel;
+
+  /// No description provided for @productionMoveQtyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity to move'**
+  String get productionMoveQtyLabel;
+
+  /// No description provided for @productionMoveNeededChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed ({quantity})'**
+  String productionMoveNeededChip(Object quantity);
+
+  /// No description provided for @productionMoveAllChip.
+  ///
+  /// In en, this message translates to:
+  /// **'All ({quantity})'**
+  String productionMoveAllChip(Object quantity);
+
+  /// No description provided for @productionMoveAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{quantity} here'**
+  String productionMoveAvailable(Object quantity);
+
+  /// No description provided for @productionMoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get productionMoveConfirm;
+
+  /// No description provided for @productionMoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved {quantity} into {warehouse}'**
+  String productionMoved(Object quantity, Object warehouse);
+
+  /// No description provided for @productionMoveTooMuch.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {quantity} is in that store'**
+  String productionMoveTooMuch(Object quantity);
+
+  /// No description provided for @productionMoveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves stock between your own stores. Nothing is bought and nothing is used up.'**
+  String get productionMoveHint;
+
+  /// No description provided for @productionMoveNoDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'No store is set for this item, so there is nowhere to move it to'**
+  String get productionMoveNoDestination;
+
+  /// No description provided for @productionBackDateWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {days} days back'**
+  String productionBackDateWindow(Object days);
+
+  /// No description provided for @productionBackDateTodayOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Today only'**
+  String get productionBackDateTodayOnly;
+
+  /// No description provided for @productionRecordingPastDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording production for a past date'**
+  String get productionRecordingPastDate;
+
   /// No description provided for @productionNegativeStock.
   ///
   /// In en, this message translates to:
