@@ -124,7 +124,10 @@ class _MoveStockSheetState extends ConsumerState<MoveStockSheet> {
 
   String? _validationError(BuildContext context) {
     final l10n = context.l10n;
-    if (_qty <= 0) return l10n.productionMoveQtyLabel;
+    // Only ever used to disable the button, so it does not render today — but
+    // a field label is not a reason, and the next person to surface this text
+    // would be showing "Quantity to move" where an explanation belongs.
+    if (_qty <= 0) return l10n.productionQtyMustBePositive;
     if (_qty > _source.availableQty + 1e-9) {
       return l10n.productionMoveTooMuch(
         trimQty(_source.availableQty, decimals: 3),
@@ -343,8 +346,8 @@ class _MoveStockSheetState extends ConsumerState<MoveStockSheet> {
         toWarehouse: widget.destinationWarehouse,
       );
     } catch (error) {
-      ref.read(loadingOverlayProvider.notifier).hide();
       if (!mounted) return;
+      ref.read(loadingOverlayProvider.notifier).hide();
       // Kept in the sheet rather than thrown at a snackbar behind it: the
       // server's refusal is the only thing that says which number to change.
       setState(() {
@@ -355,6 +358,9 @@ class _MoveStockSheetState extends ConsumerState<MoveStockSheet> {
       });
       return;
     }
+    // Guarded before touching ref: the sheet can be dismissed mid-request, and
+    // reading a disposed WidgetRef throws.
+    if (!mounted) return;
     ref.read(loadingOverlayProvider.notifier).hide();
 
     // The stock the board is measured against just moved, so every view built
@@ -362,7 +368,6 @@ class _MoveStockSheetState extends ConsumerState<MoveStockSheet> {
     ref.invalidate(productionSuggestionsProvider);
     ref.invalidate(basketRollupProvider);
 
-    if (!mounted) return;
     navigator.pop(result);
   }
 }

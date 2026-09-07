@@ -154,6 +154,11 @@ final materialOptionsProvider = FutureProvider.autoDispose
 /// Jarz POS Settings or this user's roles, neither of which happens while a
 /// batch is being queued.
 ///
+/// **Invalidated on a user switch** by `login_notifier._resetUserScopedState`.
+/// It holds per-user permissions and lives for the app process, so on a shared
+/// floor tablet a manager's window would otherwise survive into the operator's
+/// session.
+///
 /// Every consumer must degrade gracefully while this is loading or failed —
 /// see [productionPolicyOrFallbackProvider]. A date picker that refuses to
 /// render because a permissions probe is in flight is worse than one built
@@ -161,6 +166,20 @@ final materialOptionsProvider = FutureProvider.autoDispose
 final productionPolicyProvider = FutureProvider<ProductionPolicy>((ref) {
   return ref.read(manufacturingServiceProvider).getProductionPolicy();
 });
+
+/// The policy, refetched if the last attempt failed.
+///
+/// A plain `FutureProvider` that has errored stays errored for the life of the
+/// app process, so one dropped connection at board open would pin every user on
+/// that tablet to today-only — silently, because
+/// [productionPolicyOrFallbackProvider] swallows the error by design. Screens
+/// that open the board call this so a failure costs one retry rather than a
+/// restart.
+Future<void> refreshProductionPolicy(WidgetRef ref) async {
+  if (ref.read(productionPolicyProvider).hasError) {
+    ref.invalidate(productionPolicyProvider);
+  }
+}
 
 /// The policy, or the safest assumption while it is unknown.
 ///

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/ui/loading_overlay.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../data/models/production_policy.dart';
 import '../../data/models/running_batch.dart';
 import '../../state/production_providers.dart';
@@ -201,6 +202,10 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
               BatchDateBar(
                 date: _resolvedDate(policy),
                 policy: policy,
+                // A batch cannot be finished before its material went in. The
+                // server refuses that outright; clamping here means the date is
+                // never offered rather than refused after three taps.
+                earliest: _startedOn,
                 onChanged: (value) => setState(() => _postingDate = value),
               ),
               const SizedBox(height: 8),
@@ -278,6 +283,20 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
     final navigator = Navigator.of(context);
     final notes = _notesCtrl.text.trim();
     final policy = ref.read(productionPolicyOrFallbackProvider);
+    final postingDate = _resolvedDate(policy);
+
+    // The default here is the batch's START day, so this sheet can post a
+    // backdated Manufacture entry — with its COGS and its finished-goods
+    // availability — without the operator having chosen a date at all. Both
+    // Batch-tab paths confirm before posting; this one has more reason to,
+    // not less.
+    if (policy.isBackDated(postingDate)) {
+      final confirmed = await confirmPostingDatesBeforeSubmit(
+        context,
+        dates: [postingDate],
+      );
+      if (!confirmed || !mounted) return;
+    }
 
     ref.loading.show(l10n.productionSubmitting);
     FinishBatchResult result;
@@ -286,7 +305,7 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
             workOrder: widget.batch.workOrder,
             actualQty: _actual,
             scrapQty: _scrap,
-            scheduledAt: _timestamp(_resolvedDate(policy), policy.today()),
+            scheduledAt: _timestamp(postingDate, policy.today()),
             notes: notes.isEmpty ? null : notes,
           );
     } catch (error) {
@@ -305,25 +324,28 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
   }
 }
 
-/// A chosen day as the server's ``scheduled_at``.
+/// A chosen day as the server's ``scheduled_at``, or null to let the server
+/// stamp it.
 ///
-/// Today keeps the wall clock, matching how the Batch tab stamps a start, so a
-/// same-day batch reads as the time it was actually submitted.
+/// **Today returns null, deliberately.** Before this sheet had a date at all it
+/// sent nothing, and the server stamped `now_datetime()` — its own clock, to
+/// the microsecond. Sending a device-derived time instead would be a
+/// regression in two ways, and both end with the Manufacture entry landing
+/// before the Material Transfer that fed it:
+///   * the device clock is not the server's. Two tablets finish each other's
+///     batches here — `_resolve_work_order_doc` calls that "an ordinary
+///     Tuesday" — so one set to another timezone stamps hours earlier.
+///   * truncating to the minute throws away up to 59 s. The server keeps
+///     microseconds precisely because two stock movements in one wall-clock
+///     second can otherwise be reordered, and start-then-finish inside one
+///     minute is the normal shape of recording a run that already happened.
 ///
-/// A PAST day is stamped at 23:59 rather than at the current time, and that is
-/// the load-bearing half. Stock valuation is ordered by posting datetime, so a
-/// Manufacture entry timed before the Material Transfer that fed it consumes
-/// from a WIP warehouse ERPNext has not yet seen filled — and refuses the
-/// entry for negative stock. Somebody entering last night's run at 09:00 this
-/// morning would hit exactly that. End of day is after any transfer posted on
-/// the same date, whenever it was.
-String _timestamp(DateTime day, DateTime today) {
+/// A PAST day still needs an explicit stamp, and 23:59 is the safe end of it:
+/// after any transfer posted that day, whenever it was.
+String? _timestamp(DateTime day, DateTime today) {
+  if (!day.isBefore(today)) return null;
   String two(int v) => v.toString().padLeft(2, '0');
-  final date = '${day.year}-${two(day.month)}-${two(day.day)}';
-  if (day.isBefore(today)) return '$date 23:59:00';
-
-  final now = DateTime.now();
-  return '$date ${two(now.hour)}:${two(now.minute)}:00';
+  return '${day.year}-${two(day.month)}-${two(day.day)} 23:59:00';
 }
 
 class _QtyField extends StatelessWidget {

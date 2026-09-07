@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -148,6 +150,14 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
   /// so firing it while the user is looking at running batches is a slow answer
   /// to a question nobody asked.
   void _refreshVisibleTab() {
+    // The policy is keep-alive, so a single failed probe would otherwise pin
+    // this tablet to today-only for the rest of the app process — silently,
+    // since every consumer falls back rather than showing the error. Refresh
+    // is the one gesture a user already makes when a screen looks wrong, so a
+    // failure costs one tap instead of a restart. A successful policy is left
+    // alone: it does not change while a batch is being queued.
+    unawaited(refreshProductionPolicy(ref));
+
     switch (_tabController.index) {
       case kProductionRunningTabIndex:
         ref.read(runningBatchesProvider.notifier).refresh();

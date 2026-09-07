@@ -11,6 +11,7 @@ import '../../../core/network/session_expired_signal.dart';
 import '../../../core/network/user_service.dart';
 import '../../b2b/state/b2b_pipeline_notifier.dart';
 import '../../manager/state/manager_providers.dart';
+import '../../manufacturing/state/production_providers.dart';
 import '../../shift/state/shift_notifier.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../pos/data/repositories/draft_cart_repository.dart';
@@ -145,6 +146,13 @@ class LoginNotifier extends AsyncNotifier<bool> {
     // runs once per app process, so without this the previous rep's columns
     // survived a user switch — exactly the leak this method exists to stop.
     ref.invalidate(b2bPipelineProvider);
+    // The Production Board's server-side policy: can_backdate / can_execute /
+    // the day ceiling, all per user. Same keep-alive shape as b2bPipelineProvider
+    // above, and the same leak — on a shared floor tablet a manager's window
+    // survived into the operator's session, so the picker offered dates the
+    // server then refused. Exactly the "the screen lies" symptom the policy
+    // endpoint exists to remove, one login later.
+    ref.invalidate(productionPolicyProvider);
     // Manager dashboard access + filter selections.
     ref.invalidate(managerAccessProvider);
     ref.invalidate(selectedBranchProvider);

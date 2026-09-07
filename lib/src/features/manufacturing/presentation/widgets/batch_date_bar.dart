@@ -24,10 +24,21 @@ class BatchDateBar extends StatelessWidget {
     required this.date,
     required this.onChanged,
     required this.policy,
+    this.earliest,
   });
 
   final DateTime date;
   final ValueChanged<DateTime> onChanged;
+
+  /// A floor tighter than the policy window, when the caller has one.
+  ///
+  /// The finish sheet passes the batch's start day: a batch cannot be finished
+  /// before its material went in, and the server refuses that outright. Offering
+  /// the date and refusing it three taps later is the failure this widget was
+  /// rewritten to stop, so the clamp belongs in the picker too.
+  ///
+  /// Never widens the window — only ever narrows it.
+  final DateTime? earliest;
 
   /// What the server will accept from this user. While it is still loading the
   /// fallback is today-only — a picker that offers a date the server refuses is
@@ -44,7 +55,10 @@ class BatchDateBar extends StatelessWidget {
     // picker just as firmly as the role check does. A System Manager is bound
     // by neither.
     final canPick = policy.canBackDate &&
-        (policy.unlimitedBackDate || policy.maxBackDateDays > 0);
+        (policy.unlimitedBackDate || policy.maxBackDateDays > 0) &&
+        // A floor at today leaves one selectable day, so there is nothing to
+        // pick — show it locked rather than opening a one-cell calendar.
+        _firstDate.isBefore(policy.today());
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,15 +117,31 @@ class BatchDateBar extends StatelessWidget {
     return l10n.productionBackDateWindow(policy.maxBackDateDays);
   }
 
+  /// The oldest selectable day: the policy window, narrowed by [earliest].
+  DateTime get _firstDate {
+    final windowStart = policy.earliestPostable();
+    final floor = earliest;
+    if (floor == null) return windowStart;
+    final clamped = floor.isAfter(windowStart) ? floor : windowStart;
+    // A floor later than today would invert the range and assert inside
+    // showDatePicker; today always stays selectable.
+    final today = policy.today();
+    return clamped.isAfter(today) ? today : clamped;
+  }
+
   Future<void> _pick(BuildContext context) async {
     // The server's today, not the device's: the gate is evaluated against the
     // server clock, so a tablet a day fast would otherwise be offered as its
     // last selectable day a date the server calls the future.
     final today = policy.today();
+    final first = _firstDate;
+    var initial = date.isAfter(today) ? today : date;
+    if (initial.isBefore(first)) initial = first;
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: date.isAfter(today) ? today : date,
-      firstDate: policy.earliestPostable(),
+      initialDate: initial,
+      firstDate: first,
       lastDate: today,
     );
     if (picked != null) onChanged(picked);
