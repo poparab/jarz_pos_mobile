@@ -17,18 +17,23 @@ import '../../../settlement_reversal/presentation/widgets/reverse_settlement_she
 
 /// Whether settlement reversal is released to users.
 ///
-/// Deliberately `false`, and deliberately not `const` — a `const false` folds
-/// at compile time and the analyzer then reports the entry point as dead code.
+/// Released on 2026-09-07, together with `UNSETTLE_RELEASED` in
+/// `jarz_pos/api/couriers.py`. The server-side flag is the real control: these
+/// endpoints take an arbitrary Journal Entry name, so hiding this button was
+/// never more than a convenience.
 ///
-/// Two review rounds found money-affecting defects in the reversal: a
-/// settlement-discovery query that returns nothing on a real database, and a
-/// non-settlement journal entry that could be reversed, erasing the record of
-/// a customer's online payment. Both are invisible to a mocked harness, which
-/// is how they survived a green suite. The server refuses these endpoints for
-/// the same reason (`UNSETTLE_RELEASED` in `jarz_pos/api/couriers.py`) — the
-/// button is hidden here, but hiding a button is not a control, so the real
-/// hold is server-side. Flip BOTH to release.
-final bool _settlementReversalReleased = false;
+/// Held back since 944bf02 while three money-affecting defects were fixed — a
+/// settlement-discovery query that returned nothing on any real database, a
+/// deny-list that let a collection-change entry be reversed (erasing the record
+/// of a customer's online payment; 14 such entries existed in production), and
+/// a double-reversal guard that a row lock did not actually isolate. All three
+/// were invisible to the mocked suites on both sides, which is how they
+/// survived a green run, so all three were verified against a real database,
+/// real Redis and real concurrency before this was flipped.
+///
+/// Deliberately not `const` — a `const` bool folds at compile time and the
+/// analyzer then reports the other branch as dead code.
+final bool _settlementReversalReleased = true;
 
 String _courierPartyKey(String partyType, String party) => '$partyType::$party';
 
@@ -113,19 +118,12 @@ class _DialogHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    // HELD BACK FROM RELEASE, deliberately — see `_ensure_unsettle_released`
-    // in jarz_pos/api/couriers.py, which refuses the endpoints server-side for
-    // the same reason. Two review rounds found money-affecting defects in the
-    // reversal: a settlement-discovery query that returns nothing on a real
-    // database, and a non-settlement journal entry that could be reversed,
-    // erasing the record of a customer's online payment. Both are invisible to
-    // a mocked test harness, so this ships dark until it has been verified
-    // against a real database and real concurrency.
-    //
-    // The provider below is the role check this will use when it returns
-    // (Admin | Line Manager tier, mirroring the server). To release, flip
-    // `_settlementReversalReleased` here AND `UNSETTLE_RELEASED` there —
-    // flipping only this one gives the user a button that the server refuses.
+    // Released 2026-09-07 (see `_settlementReversalReleased` above). The role
+    // check mirrors the server's: Admin | Line Manager tier, the same tier
+    // `_ensure_unsettle_access` enforces in jarz_pos/api/couriers.py. This gate
+    // decides what is SHOWN; the server decides what is allowed, and it is
+    // gated independently because these endpoints take an arbitrary Journal
+    // Entry name.
     final canReverse =
         _settlementReversalReleased && ref.watch(canActAsLineManagerProvider);
     return Container(
