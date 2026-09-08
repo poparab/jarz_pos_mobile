@@ -49,7 +49,20 @@ class ProductionBatchTab extends ConsumerWidget {
         orElse: () => false,
       );
     });
-    final today = DateTime.now();
+    // The server's today, never the device's. Every verdict about this date —
+    // `isBackDated`, the caption under the bar, `_backDateRefusal` — is taken
+    // against `policy.today()`, so defaulting it from the device clock put the
+    // two on different calendars: a tablet a day fast defaulted to the server's
+    // TOMORROW, which `isBackDated` calls "not backdated" and every gate here
+    // waves through, leaving the server to refuse a future-dated entry; a day
+    // slow defaulted to the server's yesterday and blocked Start with
+    // "backdating not allowed" for a date the operator never picked.
+    //
+    // While the policy is still loading its `serverDate` is null and this is
+    // the device clock again — there is no other clock to use yet — but it is
+    // then the SAME clock both sides read, so the default can no longer be
+    // refused by a gate on this screen.
+    final policy = ref.watch(productionPolicyOrFallbackProvider);
 
     return Column(
       children: [
@@ -63,9 +76,9 @@ class ProductionBatchTab extends ConsumerWidget {
             ),
             children: [
               BatchDateBar(
-                date: basket.postingDate ?? today,
+                date: basket.postingDate ?? policy.today(),
                 onChanged: notifier.setPostingDate,
-                policy: ref.watch(productionPolicyOrFallbackProvider),
+                policy: policy,
                 timeChosen: hasExplicitPostingTime(basket.postingDate),
               ),
               const SizedBox(height: 8),
@@ -244,7 +257,10 @@ class _BatchFooter extends ConsumerWidget {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final basket = ref.read(productionBasketProvider);
-    final postingDate = basket.postingDate ?? DateTime.now();
+    // The server's today when nothing was picked — the same default the bar
+    // showed, and on the same calendar as the gate below.
+    final postingDate = basket.postingDate ??
+        ref.read(productionPolicyOrFallbackProvider).today();
 
     // Checked before the confirmation dialog so the refusal names the actual
     // reason instead of arriving as a server error after two more taps.
@@ -368,7 +384,10 @@ class _BatchFooter extends ConsumerWidget {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final basket = ref.read(productionBasketProvider);
-    final postingDate = basket.postingDate ?? DateTime.now();
+    // The server's today when nothing was picked — the same default the bar
+    // showed, and on the same calendar as the gate below.
+    final postingDate = basket.postingDate ??
+        ref.read(productionPolicyOrFallbackProvider).today();
 
     // Quick produce posts BOTH stock entries at this date, so it needs the same
     // gate as Start — it was the one path with none, which made it the way
