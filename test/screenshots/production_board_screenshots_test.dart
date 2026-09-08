@@ -54,16 +54,24 @@ late final ProductionSuggestionsPage realPage;
 
 /// The day these shots are taken "on".
 ///
-/// Every date this harness renders is measured against it, so nothing here
-/// reads the machine's clock: a golden that depends on `DateTime.now()` stops
-/// matching the morning after it is generated, whatever the code does.
+/// Every date this harness renders is measured against it, and `_shoot` pins
+/// the production policy to it for every shot, so nothing here reads the
+/// machine's clock. A golden that depends on `DateTime.now()` stops matching
+/// the morning after it is generated, whatever the code does: shot 06 pinned
+/// its basket to this day, left the policy reading the device clock, and duly
+/// broke on 2026-08-03 when `isBackDated` flipped and the date bar grew its
+/// "recording a past date" caption.
+///
+/// Fixtures date themselves from this rather than spelling out a literal, so
+/// a shot cannot drift away from the day the harness thinks it is.
 final _boardToday = DateTime(2026, 8, 2);
 
-/// An operator's policy, with the server's today pinned to [_boardToday].
+/// An operator's policy — today-only, like the shipped fallback — but with the
+/// server's today pinned to [_boardToday] instead of left null.
 ///
-/// `ProductionPolicy.today()` falls back to the DEVICE clock when `serverDate`
-/// is null — which is exactly what the production fallback policy does, and is
-/// what made this harness time-dependent.
+/// Null is the whole bug: [ProductionPolicy.today] falls back to the device
+/// clock when `serverDate` is unset, and the fallback policy every screen gets
+/// while the real one loads leaves it unset.
 final _boardPolicy = ProductionPolicy(serverDate: _boardToday);
 
 /// Derived from FLUTTER_ROOT (set by `flutter test`) rather than hardcoded, so
@@ -159,6 +167,16 @@ Future<void> _shoot(
             components: const [],
           ),
         ),
+        // The clock, pinned, for EVERY shot — not just the ones that render a
+        // date today. `ProductionPolicy.today()` falls back to the device
+        // clock whenever `serverDate` is null, which is exactly the shape of
+        // the shipped fallback policy, so any shot reaching a widget that
+        // asks the policy what day it is becomes a golden that expires. Both
+        // seams are pinned: consumers read the fallback provider, but a
+        // screen that reads the FutureProvider directly would otherwise slip
+        // past the override and reach the real service.
+        productionPolicyOrFallbackProvider.overrideWithValue(_boardPolicy),
+        productionPolicyProvider.overrideWith((ref) async => _boardPolicy),
         ...overrides,
       ],
       child: MaterialApp(
@@ -346,13 +364,6 @@ void main() {
       overrides: [
         productionBasketProvider.overrideWith(() => _SeededBasket(basket)),
         basketRollupProvider.overrideWith((ref) async => rollup),
-        // Pin the policy's today to the basket's own posting date. Without it
-        // the fallback policy carries no `serverDate`, so `today()` reads the
-        // device clock: the fixture date receded into the past the day after
-        // this shot was taken, `isBackDated` flipped, the date bar grew its
-        // "recording a past date" caption, and the golden began failing on a
-        // wall-clock boundary rather than on a code change.
-        productionPolicyOrFallbackProvider.overrideWithValue(_boardPolicy),
       ],
     );
   });
