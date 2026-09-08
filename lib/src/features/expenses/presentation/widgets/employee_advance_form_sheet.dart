@@ -226,7 +226,13 @@ class _EmployeeAdvanceFormSheetState
                     context,
                     initial: _selectedDate ?? now,
                     firstDate: now.subtract(const Duration(days: 365)),
-                    lastDate: now.add(const Duration(days: 30)),
+                    // Today is the ceiling, where the other expense pickers
+                    // still allow +30 days. An advance is not a plan: approving
+                    // one posts a Payment Entry dated from this value, moving
+                    // real cash on a cash account, and the backend now refuses
+                    // a future advance outright. Offering a day it will reject
+                    // would just be an error message with extra steps.
+                    lastDate: now,
                   );
                   if (picked != null) {
                     setState(() => _selectedDate = picked);

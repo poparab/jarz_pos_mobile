@@ -1,5 +1,7 @@
 import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
+
+import '../production_timestamp.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
@@ -307,7 +309,7 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
             workOrder: widget.batch.workOrder,
             actualQty: _actual,
             scrapQty: _scrap,
-            scheduledAt: _timestamp(
+            scheduledAt: finishScheduledAt(
               postingDate,
               policy.today(),
               // Read from the value, not from "a date was picked": this sheet
@@ -333,43 +335,6 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
     if (!mounted) return;
     navigator.pop(result);
   }
-}
-
-/// A chosen moment as the server's ``scheduled_at``, or null to let the server
-/// stamp it.
-///
-/// [explicitTime] is the operator having picked a clock time on the date bar,
-/// not merely a date being present. Only then is a time sent as typed — asked
-/// for, so honoured, on today's date as much as on any other. Everything below
-/// is what happens when they did NOT pick one, and it is unchanged.
-///
-/// **Today with no chosen time returns null, deliberately.** Before this sheet
-/// had a date at all it sent nothing, and the server stamped `now_datetime()` —
-/// its own clock, to the microsecond. Inventing a device-derived time instead
-/// would be a regression in two ways, and both end with the Manufacture entry
-/// landing before the Material Transfer that fed it:
-///   * the device clock is not the server's. Two tablets finish each other's
-///     batches here — `_resolve_work_order_doc` calls that "an ordinary
-///     Tuesday" — so one set to another timezone stamps hours earlier.
-///   * truncating to the minute throws away up to 59 s. The server keeps
-///     microseconds precisely because two stock movements in one wall-clock
-///     second can otherwise be reordered, and start-then-finish inside one
-///     minute is the normal shape of recording a run that already happened.
-///
-/// A PAST day with no chosen time still needs an explicit stamp, and 23:59 is
-/// the safe end of it: after any transfer posted that day, whenever it was.
-String? _timestamp(
-  DateTime day,
-  DateTime today, {
-  required bool explicitTime,
-}) {
-  String two(int v) => v.toString().padLeft(2, '0');
-  final date = '${day.year}-${two(day.month)}-${two(day.day)}';
-  if (explicitTime) return '$date ${two(day.hour)}:${two(day.minute)}:00';
-  // Day-granular on purpose: [day] may carry a clock component from a default,
-  // and comparing that against midnight would read today as a past day.
-  if (!DateTime(day.year, day.month, day.day).isBefore(today)) return null;
-  return '$date 23:59:00';
 }
 
 class _QtyField extends StatelessWidget {

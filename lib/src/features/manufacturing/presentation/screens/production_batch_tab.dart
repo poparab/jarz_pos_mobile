@@ -1,5 +1,7 @@
 import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
+
+import '../production_timestamp.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
@@ -271,7 +273,7 @@ class _BatchFooter extends ConsumerWidget {
       return;
     }
 
-    final scheduledAt = _timestamp(
+    final scheduledAt = startScheduledAt(
       postingDate,
       explicitTime: hasExplicitPostingTime(basket.postingDate),
     );
@@ -385,7 +387,7 @@ class _BatchFooter extends ConsumerWidget {
     if (!confirmed || !context.mounted) return;
 
     final lines = basket.toApiLines(
-      scheduledAt: _timestamp(
+      scheduledAt: startScheduledAt(
         postingDate,
         explicitTime: hasExplicitPostingTime(basket.postingDate),
       ),
@@ -486,18 +488,4 @@ class _BatchFooter extends ConsumerWidget {
     );
   }
 
-  /// [explicitTime] is read from the basket's own value rather than from "a
-  /// date is set", because the basket is persisted: one saved before this
-  /// picker existed restores at midnight, and treating that as a chosen 00:00
-  /// would post the whole batch at the start of the day.
-  static String _timestamp(DateTime date, {required bool explicitTime}) {
-    String two(int v) => v.toString().padLeft(2, '0');
-    // The time the operator picked when there is one. Otherwise the clock
-    // component of "now", as before: a same-day batch posts at the time it was
-    // actually submitted, and a back-dated one lands mid-morning rather than at
-    // midnight.
-    final clock = explicitTime ? date : DateTime.now();
-    return '${date.year}-${two(date.month)}-${two(date.day)} '
-        '${two(clock.hour)}:${two(clock.minute)}:00';
-  }
 }
