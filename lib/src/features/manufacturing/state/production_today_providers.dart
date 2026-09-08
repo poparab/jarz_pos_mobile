@@ -38,6 +38,7 @@ class ProduceReport {
     this.jarsSkipped = false,
     this.planSaveFailed = false,
     this.nothingToDo = false,
+    this.unresolvedBases = const <String>[],
   });
 
   final List<ProduceLineOutcome> outcomes;
@@ -65,6 +66,16 @@ class ProduceReport {
   /// guards a race.
   final bool nothingToDo;
 
+  /// Base rows that were typed but could not be matched to a loaded item, so
+  /// NOTHING was sent at all.
+  ///
+  /// The base catalogue can be absent for reasons that have nothing to do with
+  /// what is on screen — the provider errored, or is refetching after a pull to
+  /// refresh. Silently dropping those lines would shrink the bases stage to
+  /// whatever happened to resolve and let the jars post against mix nobody
+  /// made, which is precisely the ordering this notifier exists to protect.
+  final List<String> unresolvedBases;
+
   List<ProduceLineOutcome> get failures =>
       outcomes.where((o) => !o.ok).toList(growable: false);
 
@@ -88,6 +99,7 @@ class ProduceReport {
     bool? jarsSkipped,
     bool? planSaveFailed,
     bool? nothingToDo,
+    List<String>? unresolvedBases,
   }) {
     return ProduceReport(
       outcomes: outcomes ?? this.outcomes,
@@ -98,6 +110,7 @@ class ProduceReport {
       jarsSkipped: jarsSkipped ?? this.jarsSkipped,
       planSaveFailed: planSaveFailed ?? this.planSaveFailed,
       nothingToDo: nothingToDo ?? this.nothingToDo,
+      unresolvedBases: unresolvedBases ?? this.unresolvedBases,
     );
   }
 }
@@ -135,6 +148,18 @@ class ProductionTodayDraft {
   }
 }
 
+/// What the typed base rows turned into: the lines to send, and the rows that
+/// could not be converted at all.
+@immutable
+class BaseLineResolution {
+  const BaseLineResolution({required this.lines, required this.unresolved});
+
+  final List<Map<String, dynamic>> lines;
+
+  /// Item codes typed on screen that the loaded base catalogue does not know.
+  final List<String> unresolved;
+}
+
 final productionTodayProvider =
     NotifierProvider<ProductionTodayNotifier, ProductionTodayDraft>(
       ProductionTodayNotifier.new,
@@ -167,16 +192,28 @@ class ProductionTodayNotifier extends Notifier<ProductionTodayDraft> {
   Future<ProduceReport> produce({required String scheduledAt}) async {
     if (state.submitting) return const ProduceReport(nothingToDo: true);
 
-    final baseLines = _baseLines(scheduledAt);
+    final bases = _resolveBaseLines(scheduledAt);
     final jarQuantities = Map<String, int>.from(
       ref.read(dailyPlanDraftProvider).quantities,
     )..removeWhere((_, qty) => qty <= 0);
     final jarLines = _jarLines(jarQuantities, scheduledAt);
 
-    if (baseLines.isEmpty && jarLines.isEmpty) {
+    if (bases.lines.isEmpty && bases.unresolved.isEmpty && jarLines.isEmpty) {
       return const ProduceReport(nothingToDo: true);
     }
 
+    // A typed base the catalogue cannot name aborts the whole Make. It is
+    // never quietly dropped: a shrunken bases stage still reports "1 of 1
+    // recorded", and the jars behind it would then be filled with mix that was
+    // never made. Nothing is sent, and every number stays where it was typed.
+    if (bases.unresolved.isNotEmpty) {
+      return ProduceReport(
+        unresolvedBases: bases.unresolved,
+        jarsSkipped: jarLines.isNotEmpty,
+      );
+    }
+
+    final baseLines = bases.lines;
     state = state.copyWith(submitting: true);
     final service = ref.read(manufacturingServiceProvider);
     var report = const ProduceReport();
@@ -204,7 +241,8 @@ class ProductionTodayNotifier extends Notifier<ProductionTodayDraft> {
             report.failures.isEmpty &&
             basesProduced == baseLines.length;
         if (!basesClean) {
-          return report.copyWith(jarsSkipped: jarLines.isNotEmpty);
+          report = report.copyWith(jarsSkipped: jarLines.isNotEmpty);
+          return report;
         }
       }
 
@@ -235,9 +273,15 @@ class ProductionTodayNotifier extends Notifier<ProductionTodayDraft> {
         }
       }
 
-      _clearSucceeded(report.succeededItemCodes, jarQuantities);
       return report;
     } finally {
+      // Derived from the merged outcomes, and run on EVERY exit path — a
+      // partial bases stage returns early, and the batches that DID post have
+      // to leave the draft with the rest. Leaving them behind is how a second
+      // Make silently re-posts a run that already reached the ledger: the field
+      // on screen is emptied from this state, and an untouched field never
+      // tells the notifier anything.
+      _clearSucceeded(report.succeededItemCodes, jarQuantities);
       state = state.copyWith(submitting: false);
     }
   }
@@ -252,7 +296,12 @@ class ProductionTodayNotifier extends Notifier<ProductionTodayDraft> {
 
   /// Base rows are typed in batches; the endpoint takes a quantity. This is the
   /// one place the two are converted, exactly as `BaseItemCard` does it.
-  List<Map<String, dynamic>> _baseLines(String scheduledAt) {
+  ///
+  /// A typed row whose item is not in the loaded catalogue comes back as
+  /// [BaseLineResolution.unresolved] rather than being skipped: `batch_yield`
+  /// lives on that item, so without it there is no honest quantity to send, and
+  /// dropping the line would turn an unconvertible number into a smaller day.
+  BaseLineResolution _resolveBaseLines(String scheduledAt) {
     final page = ref.read(baseItemsProvider).valueOrNull;
     final byCode = <String, BaseItem>{
       for (final item in page?.items ?? const <BaseItem>[])
@@ -260,10 +309,14 @@ class ProductionTodayNotifier extends Notifier<ProductionTodayDraft> {
     };
 
     final lines = <Map<String, dynamic>>[];
+    final unresolved = <String>[];
     for (final entry in state.baseBatches.entries) {
       if (entry.value <= 0) continue;
       final item = byCode[entry.key];
-      if (item == null) continue;
+      if (item == null) {
+        unresolved.add(entry.key);
+        continue;
+      }
       lines.add({
         'item_code': item.itemCode,
         if (item.defaultBom.isNotEmpty) 'bom_name': item.defaultBom,
@@ -271,7 +324,7 @@ class ProductionTodayNotifier extends Notifier<ProductionTodayDraft> {
         'scheduled_at': scheduledAt,
       });
     }
-    return lines;
+    return BaseLineResolution(lines: lines, unresolved: unresolved);
   }
 
   List<Map<String, dynamic>> _jarLines(

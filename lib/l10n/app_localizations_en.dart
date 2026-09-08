@@ -3706,6 +3706,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String productionReturnLeftover(String qty, String uom) {
+    return 'Send the $qty $uom left over back to the store';
+  }
+
+  @override
+  String get productionReturnLeftoverHint =>
+      'Leave this off if more is still coming out of this batch.';
+
+  @override
+  String get productionWipReturnFailed =>
+      'The batch was recorded, but the leftover material could not be returned. It is still in WIP.';
+
+  @override
+  String get productionWipWentHome =>
+      'Leftover material returned to the store.';
+
+  @override
   String productionTodayTotalJars(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -3772,6 +3789,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get productionTodayNothingProduced => 'Nothing was recorded';
+
+  @override
+  String productionTodayPlannedTarget(String jars) {
+    return 'Today\'s target: $jars';
+  }
+
+  @override
+  String productionTodayBasesNotLoaded(String items) {
+    return 'Nothing was recorded. The base list is not loaded, so $items could not be matched to an item. Refresh and enter it again.';
+  }
 
   @override
   String get productionTodayJarsSkipped =>

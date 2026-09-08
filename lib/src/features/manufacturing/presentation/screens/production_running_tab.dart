@@ -142,7 +142,27 @@ class ProductionRunningTab extends ConsumerWidget {
     // The finished Work Order drops off this list, and with it the only place
     // leftover WIP was visible. Said once, loudly, while somebody is still
     // holding the phone.
-    if (result.hasWipLeftover && context.mounted) {
+    //
+    // Three different endings now, and they must not be collapsed into one.
+    // The leftover went home; the leftover is still out; or a return was asked
+    // for, material was there, and it FAILED -- the only one of the three that
+    // means stock is stranded in a warehouse nobody counts, and the reason the
+    // server bothers to distinguish `wip_return_error` from `wip_return_skipped`.
+    if (!context.mounted) return;
+
+    if (result.wipReturnError != null) {
+      await _warnAboutLeftover(
+        context,
+        ref,
+        batch,
+        result.wipLeftoverQty,
+        detail: l10n.productionWipReturnFailed,
+      );
+    } else if (result.wipWentHome) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.productionWipWentHome)),
+      );
+    } else if (result.wipStillOut) {
       await _warnAboutLeftover(context, ref, batch, result.wipLeftoverQty);
     }
   }
@@ -151,8 +171,9 @@ class ProductionRunningTab extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     RunningBatch batch,
-    double leftover,
-  ) {
+    double leftover, {
+    String? detail,
+  }) {
     final canManageWip = ref.read(canManageProductionWipProvider);
 
     return showDialog<void>(
@@ -168,6 +189,7 @@ class ProductionRunningTab extends ConsumerWidget {
             batch.stockUom,
           ),
         ),
+        content: detail == null ? null : Text(detail),
         actions: [
           if (canManageWip)
             TextButton(

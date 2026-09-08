@@ -76,6 +76,18 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
   double get _actual => _parse(_actualCtrl.text);
   double get _scrap => _parse(_scrapCtrl.text);
 
+  /// Ticked by default: a finish is usually the end of the batch, and the
+  /// stranded-WIP problem this closes came from nobody ever being asked. The
+  /// operator unticks it for the case only they can see -- more still to come
+  /// out of the same transfer.
+  bool _returnLeftover = true;
+
+  /// What this finish will leave in WIP, in the finished item's own units.
+  double get _leftoverAfterThisFinish {
+    final left = widget.batch.wipLeftoverQty - _actual;
+    return left > 0 ? left : 0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -227,6 +239,29 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
                 suffix: batch.stockUom,
                 onChanged: () => setState(() => _submitError = null),
               ),
+              // Only when this finish will actually leave something behind.
+              // The server cannot tell a short yield from a batch still in the
+              // mixer -- both are a finish under the planned quantity -- so
+              // the one person who can is asked, and only when it matters.
+              if (_leftoverAfterThisFinish > 0) ...[
+                const SizedBox(height: 4),
+                CheckboxListTile(
+                  key: const Key('finishReturnLeftover'),
+                  value: _returnLeftover,
+                  onChanged: (value) =>
+                      setState(() => _returnLeftover = value ?? false),
+                  title: Text(
+                    l10n.productionReturnLeftover(
+                      trimQty(_leftoverAfterThisFinish),
+                      batch.stockUom,
+                    ),
+                  ),
+                  subtitle: Text(l10n.productionReturnLeftoverHint),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+              ],
               const SizedBox(height: 12),
               TextField(
                 key: const Key('finishNotes'),
@@ -320,6 +355,7 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
               explicitTime: hasExplicitPostingTime(_postingDate),
             ),
             notes: notes.isEmpty ? null : notes,
+            returnLeftover: _returnLeftover && _leftoverAfterThisFinish > 0,
           );
     } catch (error) {
       ref.loading.hide();

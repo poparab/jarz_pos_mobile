@@ -3692,6 +3692,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String productionReturnLeftover(String qty, String uom) {
+    return 'رجّع $qty $uom الفاضلين للمخزن';
+  }
+
+  @override
+  String get productionReturnLeftoverHint =>
+      'سيبها فاضية لو لسه في كمية جاية من نفس التشغيلة.';
+
+  @override
+  String get productionWipReturnFailed =>
+      'التشغيلة اتسجلت، بس الخامات الفاضلة مرجعتش. لسه في التشغيل.';
+
+  @override
+  String get productionWipWentHome => 'الخامات الفاضلة رجعت للمخزن.';
+
+  @override
   String productionTodayTotalJars(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -3759,6 +3775,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get productionTodayNothingProduced => 'مفيش حاجة اتسجّلت';
+
+  @override
+  String productionTodayPlannedTarget(String jars) {
+    return 'هدف النهاردة: $jars';
+  }
+
+  @override
+  String productionTodayBasesNotLoaded(String items) {
+    return 'مفيش حاجة اتسجّلت. قايمة الأساسات مش محمّلة، فـ $items ماعرفناش نطابقه على صنف. حدّث واكتبه تاني.';
+  }
 
   @override
   String get productionTodayJarsSkipped =>

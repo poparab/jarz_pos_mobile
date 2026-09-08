@@ -111,6 +111,20 @@ class FinishBatchResult with _$FinishBatchResult {
     @JsonKey(name: 'scrap_qty') @Default(0.0) double scrapQty,
     @Default('') String status,
     @JsonKey(name: 'wip_leftover_qty') @Default(0.0) double wipLeftoverQty,
+
+    /// What the return's Stock Entry actually moved. Null when no return was
+    /// asked for; `0` when one was and the bins held nothing.
+    @JsonKey(name: 'wip_leftover_returned_qty') double? wipLeftoverReturnedQty,
+
+    /// Set when a return was asked for, material was there, and it failed.
+    /// This is the one message that means stock is stranded in a warehouse
+    /// nobody counts, so it is carried all the way to the operator rather than
+    /// left in the response for nothing to read.
+    @JsonKey(name: 'wip_return_error') String? wipReturnError,
+
+    /// A return was asked for and there was nothing in the bins — a manager
+    /// had already cleared it. Benign, and deliberately not an error.
+    @JsonKey(name: 'wip_return_skipped') String? wipReturnSkipped,
     BatchCost? cost,
   }) = _FinishBatchResult;
 
@@ -120,4 +134,12 @@ class FinishBatchResult with _$FinishBatchResult {
   const FinishBatchResult._();
 
   bool get hasWipLeftover => wipLeftoverQty > 0;
+
+  /// The leftover really did go back on the shelf.
+  bool get wipWentHome => (wipLeftoverReturnedQty ?? 0) > 0;
+
+  /// Leftover was left behind — either because nobody asked for it back, or
+  /// because the return failed. Both mean material is still in WIP.
+  bool get wipStillOut =>
+      hasWipLeftover && !wipWentHome && wipReturnSkipped == null;
 }

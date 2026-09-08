@@ -167,6 +167,81 @@ void main() {
     expect(payload['notes'], 'second tray under-baked');
   });
 
+  group('returning the leftover', () {
+    // The server cannot tell a short yield from a batch still in the mixer --
+    // both are a finish under the planned quantity -- so this checkbox is the
+    // only thing that can, and it must not appear when there is nothing to
+    // decide.
+    RunningBatch withWip(double inWip) =>
+        _batch.copyWith(qty: 30, wipLeftoverQty: inWip);
+
+    Map<String, dynamic> payloadOf(MockDio dio) => dio.requestLog
+        .firstWhere(
+          (r) => r['path'] == ApiEndpoints.finishProductionBatch,
+        )['data'] as Map<String, dynamic>;
+
+    Future<MockDio> finishWith(
+      WidgetTester tester, {
+      required double inWip,
+      required String actual,
+      bool untick = false,
+    }) async {
+      final dio = _dio();
+      dio.setResponse(ApiEndpoints.finishProductionBatch, {
+        'message': {'work_order': 'MFG-WO-0001', 'actual_qty': 20.0},
+      });
+      await _pumpSheet(tester, dio, batch: withWip(inWip));
+
+      await tester.enterText(
+        find.byKey(const Key('finishActualQty')),
+        actual,
+      );
+      await tester.pumpAndSettle();
+
+      if (untick) {
+        await tester.tap(find.byKey(const Key('finishReturnLeftover')));
+        await tester.pumpAndSettle();
+      }
+
+      // The checkbox makes the sheet taller than the 800x600 test viewport.
+      // The sheet itself scrolls, so this is the harness catching up, not a
+      // layout defect.
+      await tester.ensureVisible(find.byKey(const Key('finishSubmit')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('finishSubmit')));
+      await tester.pumpAndSettle();
+      return dio;
+    }
+
+    testWidgets('is not offered when this finish leaves nothing behind',
+        (tester) async {
+      final dio = await finishWith(tester, inWip: 30, actual: '30');
+
+      expect(find.byKey(const Key('finishReturnLeftover')), findsNothing);
+      expect(payloadOf(dio)['return_leftover'], 0);
+    });
+
+    testWidgets('is ticked by default, because a finish usually ends the batch',
+        (tester) async {
+      final dio = await finishWith(tester, inWip: 30, actual: '20');
+
+      expect(payloadOf(dio)['return_leftover'], 1);
+    });
+
+    testWidgets('unticked leaves the material where it is', (tester) async {
+      // The partial-finish case: more is still coming out of this transfer, so
+      // emptying WIP now would strand the next Manufacture entry.
+      final dio = await finishWith(
+        tester,
+        inWip: 30,
+        actual: '20',
+        untick: true,
+      );
+
+      expect(payloadOf(dio)['return_leftover'], 0);
+    });
+  });
+
   testWidgets('an empty note is left out of the payload entirely',
       (tester) async {
     final dio = _dio();

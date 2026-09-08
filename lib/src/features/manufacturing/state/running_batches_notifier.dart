@@ -72,6 +72,7 @@ class RunningBatchesNotifier extends AsyncNotifier<List<RunningBatch>> {
     double scrapQty = 0,
     String? scheduledAt,
     String? notes,
+    bool returnLeftover = false,
   }) async {
     final result = await _service.finishProductionBatch(
       workOrder: workOrder,
@@ -79,6 +80,7 @@ class RunningBatchesNotifier extends AsyncNotifier<List<RunningBatch>> {
       scrapQty: scrapQty,
       scheduledAt: scheduledAt,
       notes: notes,
+      returnLeftover: returnLeftover,
     );
 
     // The cost of a finished batch is a different number from the cost of a

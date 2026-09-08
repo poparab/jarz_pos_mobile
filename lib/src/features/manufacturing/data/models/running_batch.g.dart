@@ -111,6 +111,10 @@ _$FinishBatchResultImpl _$$FinishBatchResultImplFromJson(
   scrapQty: (json['scrap_qty'] as num?)?.toDouble() ?? 0.0,
   status: json['status'] as String? ?? '',
   wipLeftoverQty: (json['wip_leftover_qty'] as num?)?.toDouble() ?? 0.0,
+  wipLeftoverReturnedQty: (json['wip_leftover_returned_qty'] as num?)
+      ?.toDouble(),
+  wipReturnError: json['wip_return_error'] as String?,
+  wipReturnSkipped: json['wip_return_skipped'] as String?,
   cost: json['cost'] == null
       ? null
       : BatchCost.fromJson(json['cost'] as Map<String, dynamic>),
@@ -125,5 +129,8 @@ Map<String, dynamic> _$$FinishBatchResultImplToJson(
   'scrap_qty': instance.scrapQty,
   'status': instance.status,
   'wip_leftover_qty': instance.wipLeftoverQty,
+  'wip_leftover_returned_qty': instance.wipLeftoverReturnedQty,
+  'wip_return_error': instance.wipReturnError,
+  'wip_return_skipped': instance.wipReturnSkipped,
   'cost': instance.cost,
 };

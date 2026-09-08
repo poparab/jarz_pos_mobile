@@ -1881,6 +1881,20 @@
       }
     }
   },
+  "productionReturnLeftover": "Send the {qty} {uom} left over back to the store",
+  "@productionReturnLeftover": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "uom": {
+        "type": "String"
+      }
+    }
+  },
+  "productionReturnLeftoverHint": "Leave this off if more is still coming out of this batch.",
+  "productionWipReturnFailed": "The batch was recorded, but the leftover material could not be returned. It is still in WIP.",
+  "productionWipWentHome": "Leftover material returned to the store.",
   "productionTodayTotalJars": "{count, plural, =1{1 jar recorded} other{{count} jars recorded}}",
   "@productionTodayTotalJars": {
     "placeholders": {
@@ -1936,6 +1950,22 @@
     }
   },
   "productionTodayNothingProduced": "Nothing was recorded",
+  "productionTodayPlannedTarget": "Today''s target: {jars}",
+  "@productionTodayPlannedTarget": {
+    "placeholders": {
+      "jars": {
+        "type": "String"
+      }
+    }
+  },
+  "productionTodayBasesNotLoaded": "Nothing was recorded. The base list is not loaded, so {items} could not be matched to an item. Refresh and enter it again.",
+  "@productionTodayBasesNotLoaded": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
   "productionTodayJarsSkipped": "Jars were not recorded — the bases have to come out first.",
   "productionTodayPlanSaveFailed": "Production is recorded. The day''s plan did not save.",
   "basesSummaryShort": "{count} below what the jars need",

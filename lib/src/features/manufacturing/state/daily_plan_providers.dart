@@ -100,6 +100,18 @@ class DailyPlanDraftNotifier extends Notifier<DailyPlanDraft> {
     _schedulePreview();
   }
 
+  /// Points the draft at a plan document that already exists, WITHOUT adopting
+  /// its numbers.
+  ///
+  /// For a screen that shows today's saved plan as a target rather than as an
+  /// entry: a later `save()` has to update that same document instead of filing
+  /// a second plan for the same day, but the planned quantities must not become
+  /// something a single tap can post as produced stock.
+  void attachSavedPlan(String name) {
+    if (name.isEmpty || state.savedPlanName == name) return;
+    state = state.copyWith(savedPlanName: name);
+  }
+
   void clear() {
     _debounce?.cancel();
     state = const DailyPlanDraft();

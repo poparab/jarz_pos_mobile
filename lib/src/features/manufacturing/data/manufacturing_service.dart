@@ -402,6 +402,7 @@ class ManufacturingService {
     double scrapQty = 0,
     String? scheduledAt,
     String? notes,
+    bool returnLeftover = false,
   }) async {
     try {
       final resp = await _dio.post(
@@ -412,6 +413,11 @@ class ManufacturingService {
           'scrap_qty': scrapQty,
           if (scheduledAt != null) 'scheduled_at': scheduledAt,
           if (notes != null && notes.isNotEmpty) 'notes': notes,
+          // Off unless the operator said the batch is done. The server cannot
+          // tell a short yield from a batch still in the mixer -- both are a
+          // finish for less than the planned quantity -- so returning by
+          // default would empty WIP under work that is still running.
+          'return_leftover': returnLeftover ? 1 : 0,
         },
       );
       return FinishBatchResult.fromJson(_unwrapMap(resp.data));

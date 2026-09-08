@@ -15,6 +15,7 @@ import '../../data/daily_plan_service.dart';
 import '../../data/models/base_item.dart';
 import '../../data/models/basket_rollup.dart';
 import '../../data/models/daily_plan.dart';
+import '../../domain/base_batch_math.dart';
 import '../../state/base_production_providers.dart';
 import '../../state/daily_plan_providers.dart';
 import '../../state/production_providers.dart';
@@ -55,9 +56,15 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
   final Map<String, TextEditingController> _baseControllers = {};
   final Map<String, TextEditingController> _jarControllers = {};
 
-  /// Today's saved plan is pulled in once. Re-seeding on every rebuild would
-  /// overwrite what is being typed right now.
-  bool _seeded = false;
+  /// Today's saved plan is pulled in once. Re-reading it on every rebuild would
+  /// fire a request per frame.
+  bool _planLoaded = false;
+
+  /// What the morning planned, per jar, shown as a target on the row.
+  ///
+  /// Deliberately NOT the draft: nothing in here is ever sent. See
+  /// [_maybeLoadSavedPlan].
+  Map<String, int> _plannedTarget = const {};
 
   @override
   void dispose() {
@@ -70,14 +77,47 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
     super.dispose();
   }
 
-  TextEditingController _baseController(String itemCode) =>
-      _baseControllers.putIfAbsent(itemCode, TextEditingController.new);
+  /// Seeded from the notifier, exactly as the jar field is.
+  ///
+  /// `productionTodayProvider` outlives this State — it is a plain
+  /// `NotifierProvider` on the root scope, so walking to the full board and
+  /// back rebuilds the fields against a draft that still holds what was typed.
+  /// A field that starts empty over a non-empty draft is a number the operator
+  /// cannot see and Make will still post.
+  TextEditingController _baseController(String itemCode, double batches) =>
+      _baseControllers.putIfAbsent(
+        itemCode,
+        () => TextEditingController(text: batches > 0 ? trimQty(batches) : ''),
+      );
 
   TextEditingController _jarController(String itemCode, int value) =>
       _jarControllers.putIfAbsent(
         itemCode,
         () => TextEditingController(text: value > 0 ? '$value' : ''),
       );
+
+  /// Re-reads every field from the notifiers.
+  ///
+  /// The state is the single source of truth for what is still typed, and this
+  /// is the only thing that writes a field after a Make. Clearing controllers
+  /// row by row cannot work: `TextEditingController.clear()` does not fire
+  /// `onChanged`, so an emptied field leaves the number sitting in the draft,
+  /// and the next Make posts a run that already reached the ledger.
+  void _syncFieldsFromState() {
+    final bases = ref.read(productionTodayProvider).baseBatches;
+    for (final entry in _baseControllers.entries) {
+      final batches = bases[entry.key] ?? 0;
+      final text = batches > 0 ? trimQty(batches) : '';
+      if (entry.value.text != text) entry.value.text = text;
+    }
+
+    final jars = ref.read(dailyPlanDraftProvider).quantities;
+    for (final entry in _jarControllers.entries) {
+      final qty = jars[entry.key] ?? 0;
+      final text = qty > 0 ? '$qty' : '';
+      if (entry.value.text != text) entry.value.text = text;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +142,7 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
     final canExecute = ref.watch(canExecuteProductionProvider);
 
     final template = templateAsync.valueOrNull;
-    _maybeSeedFromSavedPlan(template);
+    _maybeLoadSavedPlan(template);
 
     final anythingTyped = today.hasBases || !draft.isEmpty;
 
@@ -159,13 +199,13 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
                               _BaseRow(
                                 item: item,
                                 hasDemand: page.hasDemand,
-                                controller: _baseController(item.itemCode),
+                                controller: _baseController(
+                                  item.itemCode,
+                                  today.baseBatches[item.itemCode] ?? 0,
+                                ),
                                 onChanged: (batches) => ref
                                     .read(productionTodayProvider.notifier)
-                                    .setBaseBatches(
-                                      item.itemCode,
-                                      batches.toDouble(),
-                                    ),
+                                    .setBaseBatches(item.itemCode, batches),
                               ),
                           ],
                   ),
@@ -191,13 +231,15 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
                             for (final item in data.items)
                               _JarRow(
                                 item: item,
+                                plannedTarget:
+                                    _plannedTarget[item.itemCode] ?? 0,
                                 controller: _jarController(
                                   item.itemCode,
                                   draft.quantities[item.itemCode] ?? 0,
                                 ),
                                 onChanged: (qty) => ref
                                     .read(dailyPlanDraftProvider.notifier)
-                                    .setQuantity(item.itemCode, qty),
+                                    .setQuantity(item.itemCode, qty.round()),
                               ),
                           ],
                   ),
@@ -242,14 +284,17 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
     );
   }
 
-  /// Pre-fills the jar rows from today's saved plan, when there is one.
+  /// Reads today's saved plan, when there is one, and shows it as a TARGET.
   ///
-  /// From the PLAN, never from the sales suggestions: the number on the row is
-  /// what came out of the kitchen, and seeding it from a forecast would put a
-  /// figure nobody produced one tap away from being posted as stock.
-  void _maybeSeedFromSavedPlan(DailyPlanTemplate? template) {
-    if (_seeded || template == null) return;
-    _seeded = true;
+  /// It is never written into the field. On this screen the saved plan IS the
+  /// morning target — "Save for later" is what writes it — so pre-filling the
+  /// number Make reads puts a figure nobody produced one un-edited tap away
+  /// from becoming finished-goods stock. Fifty planned, forty-two baked, one
+  /// tap, fifty booked. The plan document is still attached to the draft so a
+  /// later save updates it rather than filing a second plan for the day.
+  void _maybeLoadSavedPlan(DailyPlanTemplate? template) {
+    if (_planLoaded || template == null) return;
+    _planLoaded = true;
 
     final existing = template.existingPlan;
     if (existing == null || existing.isEmpty) return;
@@ -260,12 +305,13 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
     try {
       final plan = await ref.read(dailyPlanServiceProvider).getPlan(name);
       if (!mounted) return;
-      ref.read(dailyPlanDraftProvider.notifier).loadFrom(plan);
-      for (final line in plan.lines) {
-        _jarController(line.itemCode, line.plannedQty).text = line.plannedQty > 0
-            ? '${line.plannedQty}'
-            : '';
-      }
+      ref.read(dailyPlanDraftProvider.notifier).attachSavedPlan(plan.name);
+      setState(() {
+        _plannedTarget = {
+          for (final line in plan.lines)
+            if (line.plannedQty > 0) line.itemCode: line.plannedQty,
+        };
+      });
     } catch (_) {
       // A plan that will not load is not worth blocking a fresh entry on; the
       // save path surfaces the conflict if one exists.
@@ -351,11 +397,11 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
     // Only the rows that posted are emptied. A failed row keeps its number,
     // because the one thing to do with it is fix the cause and press Make
     // again — retyping the count from memory is how the second attempt ends up
-    // recording a different day.
-    for (final itemCode in report.succeededItemCodes) {
-      _baseControllers[itemCode]?.clear();
-      _jarControllers[itemCode]?.clear();
-    }
+    // recording a different day. Which rows those are is read back off the
+    // notifiers rather than off this report: the notifier drops the succeeded
+    // rows on every exit path, including the partial bases stage that returns
+    // before the jars, and the fields have to say the same thing it does.
+    _syncFieldsFromState();
 
     if (report.producedCount > 0) {
       // Freezer stock has physically moved. Invalidated rather than refreshed
@@ -371,6 +417,12 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
     final messenger = ScaffoldMessenger.of(context);
 
     final issues = <String>[
+      // Leads the dialog: nothing was sent at all, which is a different act
+      // from a line the server refused.
+      if (report.unresolvedBases.isNotEmpty)
+        l10n.productionTodayBasesNotLoaded(
+          report.unresolvedBases.map(isolateLtr).join(', '),
+        ),
       for (final failure in report.failures)
         failure.itemCode.isEmpty
             ? (failure.error?.isNotEmpty == true
@@ -615,7 +667,7 @@ class _BaseRow extends StatelessWidget {
   final BaseItem item;
   final bool hasDemand;
   final TextEditingController controller;
-  final ValueChanged<int> onChanged;
+  final ValueChanged<double> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -667,9 +719,14 @@ class _BaseRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
+              // Halves, because the mixer's unit of work is half a batch and
+              // 1.5 is a normal run. Rounding it to 1 or 2 puts a figure in the
+              // ledger that nobody made.
               _QtyField(
                 controller: controller,
                 suffix: l10n.productionTodayFieldBatches,
+                allowHalves: true,
+                maxValue: kMaxBatches,
                 onChanged: onChanged,
               ),
             ],
@@ -706,18 +763,25 @@ class _BaseRow extends StatelessWidget {
   }
 }
 
-/// One jar flavour. Name and number, nothing else — the per-batch yield, the
-/// cover and the sales hint all live on the full board.
+/// One jar flavour: the name, today's target if one was planned, and the
+/// number that came out.
+///
+/// The target is a fact ON the row and never a value IN the field — the per-
+/// batch yield, the cover and the sales hint all still live on the full board.
 class _JarRow extends StatelessWidget {
   const _JarRow({
     required this.item,
+    required this.plannedTarget,
     required this.controller,
     required this.onChanged,
   });
 
   final DailyPlanItem item;
+
+  /// What the morning plan asked for, or 0. Shown, never typed in.
+  final int plannedTarget;
   final TextEditingController controller;
-  final ValueChanged<int> onChanged;
+  final ValueChanged<double> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -728,8 +792,26 @@ class _JarRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Expanded(child: Text(name, style: theme.textTheme.bodyMedium)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(name, style: theme.textTheme.bodyMedium),
+                if (plannedTarget > 0) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    context.l10n.productionTodayPlannedTarget('$plannedTarget'),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
           const SizedBox(width: 8),
+          // Jars are counted one by one; a half jar is not a thing.
           _QtyField(
             controller: controller,
             suffix: context.l10n.productionTodayFieldJars,
@@ -741,21 +823,52 @@ class _JarRow extends StatelessWidget {
   }
 }
 
-/// A plain whole-number field.
+/// The one number field both sections use.
 ///
 /// One field per row on purpose. The board's cards carry two coupled ones —
 /// batches AND quantity — which have to be kept consistent by hand, and the
 /// unit of each is only obvious to somebody who already knows the BOM.
+///
+/// Parameterised rather than forked: bases accept [allowHalves] because the
+/// mixer runs in halves, jars do not, and [maxValue] applies the same ceiling
+/// the batch stepper enforces so a typed figure cannot reach further than a
+/// tapped one.
 class _QtyField extends StatelessWidget {
   const _QtyField({
     required this.controller,
     required this.suffix,
     required this.onChanged,
+    this.allowHalves = false,
+    this.maxValue,
   });
 
   final TextEditingController controller;
   final String suffix;
-  final ValueChanged<int> onChanged;
+  final ValueChanged<double> onChanged;
+  final bool allowHalves;
+  final double? maxValue;
+
+  /// Digits with at most one decimal point and one decimal place, applied to
+  /// the whole candidate string. A character filter cannot do this: it would
+  /// wave through "1.2.5".
+  static final _fractionalPattern = RegExp(r'^\d*\.?\d?$');
+
+  void _handle(String text) {
+    var value = double.tryParse(text) ?? 0;
+    final max = maxValue;
+    if (max != null && value > max) {
+      // Clamped in the field as well as in the callback, so what is on screen
+      // is what will be posted. Writing through the controller does not
+      // re-enter `onChanged` — that only fires for user input.
+      value = max;
+      final clamped = trimQty(value);
+      controller.value = TextEditingValue(
+        text: clamped,
+        selection: TextSelection.collapsed(offset: clamped.length),
+      );
+    }
+    onChanged(value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -763,8 +876,18 @@ class _QtyField extends StatelessWidget {
       width: 112,
       child: TextField(
         controller: controller,
-        keyboardType: TextInputType.number,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        keyboardType: allowHalves
+            ? const TextInputType.numberWithOptions(decimal: true)
+            : TextInputType.number,
+        inputFormatters: [
+          if (allowHalves)
+            TextInputFormatter.withFunction(
+              (previous, next) =>
+                  _fractionalPattern.hasMatch(next.text) ? next : previous,
+            )
+          else
+            FilteringTextInputFormatter.digitsOnly,
+        ],
         textAlign: TextAlign.end,
         decoration: InputDecoration(
           isDense: true,
@@ -775,7 +898,7 @@ class _QtyField extends StatelessWidget {
             vertical: 10,
           ),
         ),
-        onChanged: (text) => onChanged(int.tryParse(text) ?? 0),
+        onChanged: _handle,
       ),
     );
   }

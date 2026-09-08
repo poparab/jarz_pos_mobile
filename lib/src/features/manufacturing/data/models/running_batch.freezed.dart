@@ -1313,6 +1313,23 @@ mixin _$FinishBatchResult {
   String get status => throw _privateConstructorUsedError;
   @JsonKey(name: 'wip_leftover_qty')
   double get wipLeftoverQty => throw _privateConstructorUsedError;
+
+  /// What the return's Stock Entry actually moved. Null when no return was
+  /// asked for; `0` when one was and the bins held nothing.
+  @JsonKey(name: 'wip_leftover_returned_qty')
+  double? get wipLeftoverReturnedQty => throw _privateConstructorUsedError;
+
+  /// Set when a return was asked for, material was there, and it failed.
+  /// This is the one message that means stock is stranded in a warehouse
+  /// nobody counts, so it is carried all the way to the operator rather than
+  /// left in the response for nothing to read.
+  @JsonKey(name: 'wip_return_error')
+  String? get wipReturnError => throw _privateConstructorUsedError;
+
+  /// A return was asked for and there was nothing in the bins — a manager
+  /// had already cleared it. Benign, and deliberately not an error.
+  @JsonKey(name: 'wip_return_skipped')
+  String? get wipReturnSkipped => throw _privateConstructorUsedError;
   BatchCost? get cost => throw _privateConstructorUsedError;
 
   /// Serializes this FinishBatchResult to a JSON map.
@@ -1339,6 +1356,9 @@ abstract class $FinishBatchResultCopyWith<$Res> {
     @JsonKey(name: 'scrap_qty') double scrapQty,
     String status,
     @JsonKey(name: 'wip_leftover_qty') double wipLeftoverQty,
+    @JsonKey(name: 'wip_leftover_returned_qty') double? wipLeftoverReturnedQty,
+    @JsonKey(name: 'wip_return_error') String? wipReturnError,
+    @JsonKey(name: 'wip_return_skipped') String? wipReturnSkipped,
     BatchCost? cost,
   });
 
@@ -1366,6 +1386,9 @@ class _$FinishBatchResultCopyWithImpl<$Res, $Val extends FinishBatchResult>
     Object? scrapQty = null,
     Object? status = null,
     Object? wipLeftoverQty = null,
+    Object? wipLeftoverReturnedQty = freezed,
+    Object? wipReturnError = freezed,
+    Object? wipReturnSkipped = freezed,
     Object? cost = freezed,
   }) {
     return _then(
@@ -1394,6 +1417,18 @@ class _$FinishBatchResultCopyWithImpl<$Res, $Val extends FinishBatchResult>
                 ? _value.wipLeftoverQty
                 : wipLeftoverQty // ignore: cast_nullable_to_non_nullable
                       as double,
+            wipLeftoverReturnedQty: freezed == wipLeftoverReturnedQty
+                ? _value.wipLeftoverReturnedQty
+                : wipLeftoverReturnedQty // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            wipReturnError: freezed == wipReturnError
+                ? _value.wipReturnError
+                : wipReturnError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            wipReturnSkipped: freezed == wipReturnSkipped
+                ? _value.wipReturnSkipped
+                : wipReturnSkipped // ignore: cast_nullable_to_non_nullable
+                      as String?,
             cost: freezed == cost
                 ? _value.cost
                 : cost // ignore: cast_nullable_to_non_nullable
@@ -1434,6 +1469,9 @@ abstract class _$$FinishBatchResultImplCopyWith<$Res>
     @JsonKey(name: 'scrap_qty') double scrapQty,
     String status,
     @JsonKey(name: 'wip_leftover_qty') double wipLeftoverQty,
+    @JsonKey(name: 'wip_leftover_returned_qty') double? wipLeftoverReturnedQty,
+    @JsonKey(name: 'wip_return_error') String? wipReturnError,
+    @JsonKey(name: 'wip_return_skipped') String? wipReturnSkipped,
     BatchCost? cost,
   });
 
@@ -1461,6 +1499,9 @@ class __$$FinishBatchResultImplCopyWithImpl<$Res>
     Object? scrapQty = null,
     Object? status = null,
     Object? wipLeftoverQty = null,
+    Object? wipLeftoverReturnedQty = freezed,
+    Object? wipReturnError = freezed,
+    Object? wipReturnSkipped = freezed,
     Object? cost = freezed,
   }) {
     return _then(
@@ -1489,6 +1530,18 @@ class __$$FinishBatchResultImplCopyWithImpl<$Res>
             ? _value.wipLeftoverQty
             : wipLeftoverQty // ignore: cast_nullable_to_non_nullable
                   as double,
+        wipLeftoverReturnedQty: freezed == wipLeftoverReturnedQty
+            ? _value.wipLeftoverReturnedQty
+            : wipLeftoverReturnedQty // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        wipReturnError: freezed == wipReturnError
+            ? _value.wipReturnError
+            : wipReturnError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        wipReturnSkipped: freezed == wipReturnSkipped
+            ? _value.wipReturnSkipped
+            : wipReturnSkipped // ignore: cast_nullable_to_non_nullable
+                  as String?,
         cost: freezed == cost
             ? _value.cost
             : cost // ignore: cast_nullable_to_non_nullable
@@ -1508,6 +1561,9 @@ class _$FinishBatchResultImpl extends _FinishBatchResult {
     @JsonKey(name: 'scrap_qty') this.scrapQty = 0.0,
     this.status = '',
     @JsonKey(name: 'wip_leftover_qty') this.wipLeftoverQty = 0.0,
+    @JsonKey(name: 'wip_leftover_returned_qty') this.wipLeftoverReturnedQty,
+    @JsonKey(name: 'wip_return_error') this.wipReturnError,
+    @JsonKey(name: 'wip_return_skipped') this.wipReturnSkipped,
     this.cost,
   }) : super._();
 
@@ -1532,12 +1588,32 @@ class _$FinishBatchResultImpl extends _FinishBatchResult {
   @override
   @JsonKey(name: 'wip_leftover_qty')
   final double wipLeftoverQty;
+
+  /// What the return's Stock Entry actually moved. Null when no return was
+  /// asked for; `0` when one was and the bins held nothing.
+  @override
+  @JsonKey(name: 'wip_leftover_returned_qty')
+  final double? wipLeftoverReturnedQty;
+
+  /// Set when a return was asked for, material was there, and it failed.
+  /// This is the one message that means stock is stranded in a warehouse
+  /// nobody counts, so it is carried all the way to the operator rather than
+  /// left in the response for nothing to read.
+  @override
+  @JsonKey(name: 'wip_return_error')
+  final String? wipReturnError;
+
+  /// A return was asked for and there was nothing in the bins — a manager
+  /// had already cleared it. Benign, and deliberately not an error.
+  @override
+  @JsonKey(name: 'wip_return_skipped')
+  final String? wipReturnSkipped;
   @override
   final BatchCost? cost;
 
   @override
   String toString() {
-    return 'FinishBatchResult(workOrder: $workOrder, manufactureEntry: $manufactureEntry, actualQty: $actualQty, scrapQty: $scrapQty, status: $status, wipLeftoverQty: $wipLeftoverQty, cost: $cost)';
+    return 'FinishBatchResult(workOrder: $workOrder, manufactureEntry: $manufactureEntry, actualQty: $actualQty, scrapQty: $scrapQty, status: $status, wipLeftoverQty: $wipLeftoverQty, wipLeftoverReturnedQty: $wipLeftoverReturnedQty, wipReturnError: $wipReturnError, wipReturnSkipped: $wipReturnSkipped, cost: $cost)';
   }
 
   @override
@@ -1556,6 +1632,12 @@ class _$FinishBatchResultImpl extends _FinishBatchResult {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.wipLeftoverQty, wipLeftoverQty) ||
                 other.wipLeftoverQty == wipLeftoverQty) &&
+            (identical(other.wipLeftoverReturnedQty, wipLeftoverReturnedQty) ||
+                other.wipLeftoverReturnedQty == wipLeftoverReturnedQty) &&
+            (identical(other.wipReturnError, wipReturnError) ||
+                other.wipReturnError == wipReturnError) &&
+            (identical(other.wipReturnSkipped, wipReturnSkipped) ||
+                other.wipReturnSkipped == wipReturnSkipped) &&
             (identical(other.cost, cost) || other.cost == cost));
   }
 
@@ -1569,6 +1651,9 @@ class _$FinishBatchResultImpl extends _FinishBatchResult {
     scrapQty,
     status,
     wipLeftoverQty,
+    wipLeftoverReturnedQty,
+    wipReturnError,
+    wipReturnSkipped,
     cost,
   );
 
@@ -1597,6 +1682,10 @@ abstract class _FinishBatchResult extends FinishBatchResult {
     @JsonKey(name: 'scrap_qty') final double scrapQty,
     final String status,
     @JsonKey(name: 'wip_leftover_qty') final double wipLeftoverQty,
+    @JsonKey(name: 'wip_leftover_returned_qty')
+    final double? wipLeftoverReturnedQty,
+    @JsonKey(name: 'wip_return_error') final String? wipReturnError,
+    @JsonKey(name: 'wip_return_skipped') final String? wipReturnSkipped,
     final BatchCost? cost,
   }) = _$FinishBatchResultImpl;
   const _FinishBatchResult._() : super._();
@@ -1621,6 +1710,26 @@ abstract class _FinishBatchResult extends FinishBatchResult {
   @override
   @JsonKey(name: 'wip_leftover_qty')
   double get wipLeftoverQty;
+
+  /// What the return's Stock Entry actually moved. Null when no return was
+  /// asked for; `0` when one was and the bins held nothing.
+  @override
+  @JsonKey(name: 'wip_leftover_returned_qty')
+  double? get wipLeftoverReturnedQty;
+
+  /// Set when a return was asked for, material was there, and it failed.
+  /// This is the one message that means stock is stranded in a warehouse
+  /// nobody counts, so it is carried all the way to the operator rather than
+  /// left in the response for nothing to read.
+  @override
+  @JsonKey(name: 'wip_return_error')
+  String? get wipReturnError;
+
+  /// A return was asked for and there was nothing in the bins — a manager
+  /// had already cleared it. Benign, and deliberately not an error.
+  @override
+  @JsonKey(name: 'wip_return_skipped')
+  String? get wipReturnSkipped;
   @override
   BatchCost? get cost;
 

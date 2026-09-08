@@ -6152,6 +6152,30 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 batch still open} other{{count} batches still open}}'**
   String productionTodayOpenBatches(int count);
 
+  /// No description provided for @productionReturnLeftover.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the {qty} {uom} left over back to the store'**
+  String productionReturnLeftover(String qty, String uom);
+
+  /// No description provided for @productionReturnLeftoverHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave this off if more is still coming out of this batch.'**
+  String get productionReturnLeftoverHint;
+
+  /// No description provided for @productionWipReturnFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The batch was recorded, but the leftover material could not be returned. It is still in WIP.'**
+  String get productionWipReturnFailed;
+
+  /// No description provided for @productionWipWentHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Leftover material returned to the store.'**
+  String get productionWipWentHome;
+
   /// No description provided for @productionTodayTotalJars.
   ///
   /// In en, this message translates to:
@@ -6253,6 +6277,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing was recorded'**
   String get productionTodayNothingProduced;
+
+  /// No description provided for @productionTodayPlannedTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'\'s target: {jars}'**
+  String productionTodayPlannedTarget(String jars);
+
+  /// No description provided for @productionTodayBasesNotLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was recorded. The base list is not loaded, so {items} could not be matched to an item. Refresh and enter it again.'**
+  String productionTodayBasesNotLoaded(String items);
 
   /// No description provided for @productionTodayJarsSkipped.
   ///
