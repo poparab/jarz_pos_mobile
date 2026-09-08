@@ -1,7 +1,6 @@
 import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
@@ -18,6 +17,8 @@ class CashTransferScreen extends ConsumerStatefulWidget {
 class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
   String? fromAccount;
   String? toAccount;
+  // null => today with no explicit clock time. Non-null always carries the
+  // time the operator picked: the picker returns both halves or nothing.
   DateTime? postingDate;
   final amountCtrl = TextEditingController(text: '0.00');
   final remarkCtrl = TextEditingController();
@@ -69,7 +70,10 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
     setState(() => loading = true);
     try {
       final service = ref.read(cashTransferServiceProvider);
-      final asOf = postingDate == null ? null : DateFormat('yyyy-MM-dd').format(postingDate!);
+      // Still date-only on purpose: this asks for a day's closing balance, not
+      // for a posting moment.
+      final asOf =
+          postingDate == null ? null : formatPostingDateForApi(postingDate!);
       accounts = await service.listAccounts(asOf: asOf);
     } finally {
       if (mounted) setState(() => loading = false);
@@ -160,14 +164,16 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
                 onPressed: () async {
                   final now = DateTime.now();
                   final initial = postingDate ?? now;
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: initial,
+                  final picked = await pickPostingDateTime(
+                    context,
+                    initial: initial,
                     firstDate: DateTime(now.year - 5),
                     lastDate: DateTime(now.year + 5),
                   );
+                  // Kept whole: truncating to the day here threw away the time
+                  // the operator had just been asked for.
                   if (picked != null) {
-                    setState(() => postingDate = DateTime(picked.year, picked.month, picked.day));
+                    setState(() => postingDate = picked);
                     await _loadAccounts();
                   }
                 },
@@ -175,7 +181,9 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
                 label: Text(
                   postingDate == null
                       ? l10n.cashTransferPostingToday
-                      : l10n.cashTransferPostingDate(DateFormat('yyyy-MM-dd').format(postingDate!)),
+                      : l10n.cashTransferPostingDate(
+                          formatPostingDateTimeForDisplay(
+                              context, postingDate!)),
                 ),
               ),
               if (postingDate != null) ...[
@@ -343,16 +351,20 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
     final l10n = context.l10n;
     try {
       final amt = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
-      final resolvedPostingDate = resolvePostingDateOrToday(postingDate);
+      final chosen = postingDate;
+      final resolvedPostingDate = resolvePostingDateOrToday(chosen);
       final confirmedPostingDate = await confirmPostingDatesBeforeSubmit(
         context,
-        dates: [resolvedPostingDate],
+        dates: [chosen ?? resolvedPostingDate],
+        includeTime: chosen != null,
       );
       if (!confirmedPostingDate || !mounted) {
         return;
       }
 
-      final dateStr = formatPostingDateForApi(resolvedPostingDate);
+      final dateStr = chosen == null
+          ? formatPostingDateForApi(resolvedPostingDate)
+          : formatPostingDateTimeForApi(chosen);
       final res = await service.submitCashTransfer(
         fromAccount: fromAccount!,
         toAccount: toAccount!,

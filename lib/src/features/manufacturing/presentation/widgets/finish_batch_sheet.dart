@@ -202,6 +202,7 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
               BatchDateBar(
                 date: _resolvedDate(policy),
                 policy: policy,
+                timeChosen: hasExplicitPostingTime(_postingDate),
                 // A batch cannot be finished before its material went in. The
                 // server refuses that outright; clamping here means the date is
                 // never offered rather than refused after three taps.
@@ -294,6 +295,7 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
       final confirmed = await confirmPostingDatesBeforeSubmit(
         context,
         dates: [postingDate],
+        includeTime: hasExplicitPostingTime(_postingDate),
       );
       if (!confirmed || !mounted) return;
     }
@@ -305,7 +307,16 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
             workOrder: widget.batch.workOrder,
             actualQty: _actual,
             scrapQty: _scrap,
-            scheduledAt: _timestamp(postingDate, policy.today()),
+            scheduledAt: _timestamp(
+              postingDate,
+              policy.today(),
+              // Read from the value, not from "a date was picked": this sheet
+              // seeds the time picker from a bare day, so tapping straight
+              // through it yields 00:00 — a default, not a choice, and posting
+              // the output at the start of the day is what puts a Manufacture
+              // entry before the transfer that fed it.
+              explicitTime: hasExplicitPostingTime(_postingDate),
+            ),
             notes: notes.isEmpty ? null : notes,
           );
     } catch (error) {
@@ -324,14 +335,19 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
   }
 }
 
-/// A chosen day as the server's ``scheduled_at``, or null to let the server
+/// A chosen moment as the server's ``scheduled_at``, or null to let the server
 /// stamp it.
 ///
-/// **Today returns null, deliberately.** Before this sheet had a date at all it
-/// sent nothing, and the server stamped `now_datetime()` — its own clock, to
-/// the microsecond. Sending a device-derived time instead would be a
-/// regression in two ways, and both end with the Manufacture entry landing
-/// before the Material Transfer that fed it:
+/// [explicitTime] is the operator having picked a clock time on the date bar,
+/// not merely a date being present. Only then is a time sent as typed — asked
+/// for, so honoured, on today's date as much as on any other. Everything below
+/// is what happens when they did NOT pick one, and it is unchanged.
+///
+/// **Today with no chosen time returns null, deliberately.** Before this sheet
+/// had a date at all it sent nothing, and the server stamped `now_datetime()` —
+/// its own clock, to the microsecond. Inventing a device-derived time instead
+/// would be a regression in two ways, and both end with the Manufacture entry
+/// landing before the Material Transfer that fed it:
 ///   * the device clock is not the server's. Two tablets finish each other's
 ///     batches here — `_resolve_work_order_doc` calls that "an ordinary
 ///     Tuesday" — so one set to another timezone stamps hours earlier.
@@ -340,12 +356,20 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
 ///     second can otherwise be reordered, and start-then-finish inside one
 ///     minute is the normal shape of recording a run that already happened.
 ///
-/// A PAST day still needs an explicit stamp, and 23:59 is the safe end of it:
-/// after any transfer posted that day, whenever it was.
-String? _timestamp(DateTime day, DateTime today) {
-  if (!day.isBefore(today)) return null;
+/// A PAST day with no chosen time still needs an explicit stamp, and 23:59 is
+/// the safe end of it: after any transfer posted that day, whenever it was.
+String? _timestamp(
+  DateTime day,
+  DateTime today, {
+  required bool explicitTime,
+}) {
   String two(int v) => v.toString().padLeft(2, '0');
-  return '${day.year}-${two(day.month)}-${two(day.day)} 23:59:00';
+  final date = '${day.year}-${two(day.month)}-${two(day.day)}';
+  if (explicitTime) return '$date ${two(day.hour)}:${two(day.minute)}:00';
+  // Day-granular on purpose: [day] may carry a clock component from a default,
+  // and comparing that against midnight would read today as a past day.
+  if (!DateTime(day.year, day.month, day.day).isBefore(today)) return null;
+  return '$date 23:59:00';
 }
 
 class _QtyField extends StatelessWidget {

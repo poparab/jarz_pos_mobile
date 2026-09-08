@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../data/models/production_policy.dart';
 
 /// One production date for the whole batch.
@@ -25,10 +26,22 @@ class BatchDateBar extends StatelessWidget {
     required this.onChanged,
     required this.policy,
     this.earliest,
+    this.timeChosen = false,
   });
 
   final DateTime date;
+
+  /// Reports the day AND the clock time, as one choice. The picker asks for
+  /// both or returns nothing, so every value this emits carries a time the
+  /// operator actually chose — which is what lets the callers tell an explicit
+  /// production time apart from a default they should let the server stamp.
   final ValueChanged<DateTime> onChanged;
+
+  /// Whether [date] carries a time the operator picked, rather than a default.
+  ///
+  /// Only the label depends on it: showing "00:00" on a date nobody timed is
+  /// exactly the midnight-that-was-never-chosen this feature exists to stop.
+  final bool timeChosen;
 
   /// A floor tighter than the policy window, when the caller has one.
   ///
@@ -83,7 +96,11 @@ class BatchDateBar extends StatelessWidget {
             ),
             TextButton(
               onPressed: canPick ? () => _pick(context) : null,
-              child: Text(_format(date)),
+              child: Text(
+                timeChosen
+                    ? formatPostingDateTimeForDisplay(context, date)
+                    : _format(date),
+              ),
             ),
           ],
         ),
@@ -135,12 +152,23 @@ class BatchDateBar extends StatelessWidget {
     // last selectable day a date the server calls the future.
     final today = policy.today();
     final first = _firstDate;
-    var initial = date.isAfter(today) ? today : date;
+    // Clamped on the DAY, then given its clock component back: comparing a
+    // dated-and-timed value against midnight would read today 14:30 as "after
+    // today" and silently reset the time on every re-open.
+    final day = DateTime(date.year, date.month, date.day);
+    var initial = day.isAfter(today) ? today : day;
     if (initial.isBefore(first)) initial = first;
+    initial = DateTime(
+      initial.year,
+      initial.month,
+      initial.day,
+      date.hour,
+      date.minute,
+    );
 
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
+    final picked = await pickPostingDateTime(
+      context,
+      initial: initial,
       firstDate: first,
       lastDate: today,
     );

@@ -64,6 +64,7 @@ class ProductionBatchTab extends ConsumerWidget {
                 date: basket.postingDate ?? today,
                 onChanged: notifier.setPostingDate,
                 policy: ref.watch(productionPolicyOrFallbackProvider),
+                timeChosen: hasExplicitPostingTime(basket.postingDate),
               ),
               const SizedBox(height: 8),
               if (rollupAsync.isLoading && rollup == null)
@@ -258,6 +259,7 @@ class _BatchFooter extends ConsumerWidget {
     final confirmed = await confirmPostingDatesBeforeSubmit(
       context,
       dates: [postingDate],
+      includeTime: hasExplicitPostingTime(basket.postingDate),
     );
     if (!confirmed || !context.mounted) return;
 
@@ -269,7 +271,10 @@ class _BatchFooter extends ConsumerWidget {
       return;
     }
 
-    final scheduledAt = _timestamp(postingDate);
+    final scheduledAt = _timestamp(
+      postingDate,
+      explicitTime: hasExplicitPostingTime(basket.postingDate),
+    );
     final service = ref.read(manufacturingServiceProvider);
 
     ref.read(loadingOverlayProvider.notifier).show(l10n.productionSubmitting);
@@ -375,10 +380,16 @@ class _BatchFooter extends ConsumerWidget {
     final confirmed = await confirmPostingDatesBeforeSubmit(
       context,
       dates: [postingDate],
+      includeTime: hasExplicitPostingTime(basket.postingDate),
     );
     if (!confirmed || !context.mounted) return;
 
-    final lines = basket.toApiLines(scheduledAt: _timestamp(postingDate));
+    final lines = basket.toApiLines(
+      scheduledAt: _timestamp(
+        postingDate,
+        explicitTime: hasExplicitPostingTime(basket.postingDate),
+      ),
+    );
     if (lines.isEmpty) {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.manufacturingNothingToSubmit)),
@@ -475,13 +486,18 @@ class _BatchFooter extends ConsumerWidget {
     );
   }
 
-  static String _timestamp(DateTime date) {
+  /// [explicitTime] is read from the basket's own value rather than from "a
+  /// date is set", because the basket is persisted: one saved before this
+  /// picker existed restores at midnight, and treating that as a chosen 00:00
+  /// would post the whole batch at the start of the day.
+  static String _timestamp(DateTime date, {required bool explicitTime}) {
     String two(int v) => v.toString().padLeft(2, '0');
-    final now = DateTime.now();
-    // Keeps the clock component of "now" so a same-day batch posts at the time
-    // it was actually submitted, while a back-dated one lands mid-morning
-    // rather than at midnight.
+    // The time the operator picked when there is one. Otherwise the clock
+    // component of "now", as before: a same-day batch posts at the time it was
+    // actually submitted, and a back-dated one lands mid-morning rather than at
+    // midnight.
+    final clock = explicitTime ? date : DateTime.now();
     return '${date.year}-${two(date.month)}-${two(date.day)} '
-        '${two(now.hour)}:${two(now.minute)}:00';
+        '${two(clock.hour)}:${two(clock.minute)}:00';
   }
 }

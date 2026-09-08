@@ -584,6 +584,15 @@
     }
   },
   "postingDateConfirmationDates": "Posting dates:",
+  "postingDateTimeConfirmationDate": "Posting date and time: {dateTime}",
+  "@postingDateTimeConfirmationDate": {
+    "placeholders": {
+      "dateTime": {}
+    }
+  },
+  "postingDateTimeConfirmationDates": "Posting dates and times:",
+  "postingDatePickerHelp": "Select posting date",
+  "postingTimePickerHelp": "Select posting time",
   "menuInventoryCount": "Inventory Count",
   "addressPinTitle": "Fix delivery pin",
   "addressPinCurrentPin": "Current pin",

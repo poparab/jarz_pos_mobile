@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
+import '../../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../models/employee_advance_models.dart';
 import '../../models/expense_models.dart';
 import '../../state/employee_advances_notifier.dart';
@@ -44,6 +44,9 @@ class _EmployeeAdvanceFormSheetState
 
   /// Null means "let the backend use today" — `posting_date` is optional in the
   /// contract, so an untouched picker must not force a date onto the request.
+  ///
+  /// Non-null always carries the clock time the operator picked: the picker
+  /// asks for a day and a time, and returns nothing if either is cancelled.
   DateTime? _selectedDate;
   bool _submitting = false;
 
@@ -74,7 +77,8 @@ class _EmployeeAdvanceFormSheetState
         widget.employees.isNotEmpty && widget.paymentSources.isNotEmpty;
     final dateLabel = _selectedDate == null
         ? l10n.expensesAdvanceDateNotSet
-        : formatDate(context, _selectedDate!, pattern: 'MMMM d, yyyy');
+        : formatDateTime(context, _selectedDate!,
+            pattern: 'MMMM d, yyyy • h:mm a');
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
@@ -218,9 +222,9 @@ class _EmployeeAdvanceFormSheetState
               InkWell(
                 onTap: () async {
                   final now = DateTime.now();
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate ?? now,
+                  final picked = await pickPostingDateTime(
+                    context,
+                    initial: _selectedDate ?? now,
                     firstDate: now.subtract(const Duration(days: 365)),
                     lastDate: now.add(const Duration(days: 30)),
                   );
@@ -286,7 +290,7 @@ class _EmployeeAdvanceFormSheetState
     final amount = double.tryParse(_amountController.text.trim()) ?? 0;
     final postingDate = _selectedDate == null
         ? null
-        : DateFormat('yyyy-MM-dd').format(_selectedDate!);
+        : formatPostingDateTimeForApi(_selectedDate!);
 
     setState(() => _submitting = true);
     final advance = await notifier.createRequest(

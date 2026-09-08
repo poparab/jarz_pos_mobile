@@ -9,6 +9,7 @@ import '../../../core/localization/user_error_message.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
+import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../purchase/data/purchase_service.dart';
 import '../domain/request_allocation.dart';
@@ -27,6 +28,12 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   String supplierQuery = '';
   String itemQuery = '';
   DateTime postingDate = DateTime.now();
+
+  /// Whether the buyer picked a clock time for the posting date.
+  ///
+  /// False keeps the legacy date-only request, so an untouched picker still
+  /// lets the server stamp the time from its own clock.
+  bool postingTimeExplicit = false;
   double shippingAmount = 0.0;
 
   /// Supplier's own invoice number. ERPNext rejects a duplicate for the same
@@ -303,15 +310,20 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                   TextButton(
                     onPressed: () async {
                       final now = DateTime.now();
-                      final d = await showDatePicker(
-                        context: context,
+                      final d = await pickPostingDateTime(
+                        context,
                         firstDate: DateTime(now.year - 1),
                         lastDate: DateTime(now.year + 1),
-                        initialDate: postingDate,
+                        initial: postingDate,
                       );
-                      if (d != null) setState(() => postingDate = d);
+                      if (d != null) {
+                        setState(() {
+                          postingDate = d;
+                          postingTimeExplicit = true;
+                        });
+                      }
                     },
-                    child: Text(_fmtDate(postingDate)),
+                    child: Text(_postingLabel(context)),
                   ),
                   const Spacer(),
                 ]),
@@ -417,18 +429,21 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                             TextButton(
                               onPressed: () async {
                                 final now = DateTime.now();
-                                final d = await showDatePicker(
-                                  context: context,
+                                final d = await pickPostingDateTime(
+                                  context,
                                   firstDate: DateTime(now.year - 1),
                                   lastDate: DateTime(now.year + 1),
-                                  initialDate: postingDate,
+                                  initial: postingDate,
                                 );
                                 if (d != null) {
-                                  setState(() => postingDate = d);
+                                  setState(() {
+                                    postingDate = d;
+                                    postingTimeExplicit = true;
+                                  });
                                   setSheetState(() {});
                                 }
                               },
-                              child: Text(_fmtDate(postingDate)),
+                              child: Text(_postingLabel(context)),
                             ),
                             const Spacer(),
                             if (supplier != null)
@@ -1472,7 +1487,9 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       final items = cart.expand(_expandLineForSubmit).toList();
       final res = await service.createPurchaseInvoice(
         supplier: supplier!,
-        postingDate: _fmtDate(postingDate),
+        postingDate: postingTimeExplicit
+            ? formatPostingDateTimeForApi(postingDate)
+            : _fmtDate(postingDate),
         isPaid: isPaid,
         items: items,
         paymentOption: isPaid ? paymentOption : null,
@@ -1498,6 +1515,12 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       }
     }
   }
+
+  /// The posting moment as the two date buttons show it. `billDate` keeps
+  /// [_fmtDate]: a supplier's own bill date is a day in ERPNext, not a moment.
+  String _postingLabel(BuildContext context) => postingTimeExplicit
+      ? formatPostingDateTimeForDisplay(context, postingDate)
+      : _fmtDate(postingDate);
 
   String _fmtDate(DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}' ;
 
@@ -1593,6 +1616,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       supplierQuery = '';
       itemQuery = '';
       postingDate = DateTime.now();
+      postingTimeExplicit = false;
       shippingAmount = 0.0;
       billNo = '';
       billDate = null;

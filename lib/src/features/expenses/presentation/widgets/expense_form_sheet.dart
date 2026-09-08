@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
+import '../../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../models/expense_models.dart';
 import '../../state/expenses_notifier.dart';
 
@@ -28,6 +28,13 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
   final _amountController = TextEditingController();
   final _remarksController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
+
+  /// Whether the operator picked a clock time.
+  ///
+  /// False keeps the legacy date-only request, so an untouched picker still
+  /// lets the server stamp the time from its own clock rather than from a
+  /// tablet's.
+  bool _timeExplicit = false;
   ExpenseReason? _selectedReason;
   ExpensePaymentSource? _selectedSource;
   bool _submitting = false;
@@ -55,7 +62,10 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final l10n = context.l10n;
     final languageCode = Localizations.localeOf(context).languageCode;
-    final dateLabel = formatDate(context, _selectedDate, pattern: 'MMMM d, yyyy');
+    final dateLabel = _timeExplicit
+        ? formatDateTime(context, _selectedDate,
+            pattern: 'MMMM d, yyyy • h:mm a')
+        : formatDate(context, _selectedDate, pattern: 'MMMM d, yyyy');
     final submitLabel = widget.isManager ? l10n.expensesSubmitManager : l10n.expensesSubmitStaff;
     final hasOptions = widget.reasons.isNotEmpty && widget.paymentSources.isNotEmpty;
 
@@ -102,14 +112,17 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
               const SizedBox(height: 16),
               InkWell(
                 onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate,
+                  final picked = await pickPostingDateTime(
+                    context,
+                    initial: _selectedDate,
                     firstDate: DateTime.now().subtract(const Duration(days: 365)),
                     lastDate: DateTime.now().add(const Duration(days: 30)),
                   );
                   if (picked != null) {
-                    setState(() => _selectedDate = picked);
+                    setState(() {
+                      _selectedDate = picked;
+                      _timeExplicit = true;
+                    });
                   }
                 },
                 child: InputDecorator(
@@ -198,7 +211,9 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
     final amount = double.tryParse(_amountController.text.trim()) ?? 0;
     final reason = _selectedReason!;
     final source = _selectedSource!;
-    final isoDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    final isoDate = _timeExplicit
+        ? formatPostingDateTimeForApi(_selectedDate)
+        : formatPostingDateForApi(_selectedDate);
 
     setState(() => _submitting = true);
     final record = await notifier.createExpense(

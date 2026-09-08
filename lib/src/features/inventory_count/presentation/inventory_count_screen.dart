@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/storage_keys.dart';
 import '../../../core/localization/localization_extensions.dart';
@@ -53,6 +52,22 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
   String? _selectedWarehouse;
   String? _selectedCategory;
   DateTime _postingDate = DateTime.now();
+
+  /// Whether the operator picked a clock time, or only inherited one.
+  ///
+  /// Until they do, the reconciliation is submitted date-only and the server
+  /// stamps its own clock — the device's is not authoritative for stock moves.
+  bool _postingTimeExplicit = false;
+
+  /// The posting moment as the API wants it: date-only until a time is chosen.
+  String get _postingDateForApi => _postingTimeExplicit
+      ? formatPostingDateTimeForApi(_postingDate)
+      : formatPostingDateForApi(_postingDate);
+
+  /// The posting moment as the screen shows it.
+  String _postingLabel(BuildContext context) => _postingTimeExplicit
+      ? formatPostingDateTimeForDisplay(context, _postingDate)
+      : formatPostingDateForApi(_postingDate);
   final TextEditingController _searchCtrl = TextEditingController();
   // item_code -> {components: [{qty, uom}, ...]}. Older cached {qty, uom}
   // entries are migrated when read so an in-progress count survives rollout.
@@ -489,20 +504,19 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
       return;
     }
 
-    final postingDate = DateTime(
-      _postingDate.year,
-      _postingDate.month,
-      _postingDate.day,
-    );
+    final postingDate = _postingTimeExplicit
+        ? _postingDate
+        : DateTime(_postingDate.year, _postingDate.month, _postingDate.day);
     final confirmedPostingDate = await confirmPostingDatesBeforeSubmit(
       context,
       dates: [postingDate],
+      includeTime: _postingTimeExplicit,
     );
     if (!confirmedPostingDate || !mounted) {
       return;
     }
 
-    final postingDateStr = formatPostingDateForApi(postingDate);
+    final postingDateStr = _postingDateForApi;
 
     try {
       setState(() => _loading = true);
@@ -611,7 +625,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     if (_selectedWarehouse == null) return;
     _box!.put(_itemsKey(), cachedItems);
     _box!.put(_countsKey(), cachedCounts);
-    _box!.put(_dateKey(), DateFormat('yyyy-MM-dd').format(_postingDate));
+    _box!.put(_dateKey(), _postingDateForApi);
     _box!.put(_confirmedKey(), _confirmed.toList());
   }
 
@@ -651,7 +665,13 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     });
     final cachedDate = _box!.get(_dateKey());
     if (cachedDate is String) {
-      _postingDate = DateFormat('yyyy-MM-dd').parse(cachedDate);
+      // Both wire shapes round-trip through this box: a cache written before
+      // the time picker existed holds 'yyyy-MM-dd' and must still restore.
+      final parsed = DateTime.tryParse(cachedDate);
+      if (parsed != null) {
+        _postingDate = parsed;
+        _postingTimeExplicit = cachedDate.trim().length > 10;
+      }
     }
     _pruneDraftToLoadedItems();
     if (updateUi && mounted) {
@@ -926,7 +946,7 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                 _InventoryCountMetaTile(
                   icon: Icons.event_outlined,
                   label: l10n.inventoryCountPostingDateLabel,
-                  value: DateFormat('yyyy-MM-dd').format(_postingDate),
+                  value: _postingLabel(context),
                 ),
                 _InventoryCountMetaTile(
                   icon: Icons.fact_check_outlined,
@@ -1021,18 +1041,21 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.event_outlined),
                   title: Text(l10n.inventoryCountPostingDateLabel),
-                  subtitle: Text(DateFormat('yyyy-MM-dd').format(_postingDate)),
+                  subtitle: Text(_postingLabel(context)),
                   onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: _postingDate,
+                    final picked = await pickPostingDateTime(
+                      context,
+                      initial: _postingDate,
                       firstDate: DateTime(2023),
                       lastDate: DateTime(2100),
                     );
                     if (picked == null) {
                       return;
                     }
-                    setState(() => _postingDate = picked);
+                    setState(() {
+                      _postingDate = picked;
+                      _postingTimeExplicit = true;
+                    });
                     _saveCache();
                   },
                 ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/user_error_message.dart';
@@ -25,7 +24,10 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
   String? targetWarehouse;
   String? itemGroup;
   String search = '';
-  DateTime? postingDate; // null => today
+  // null => today, and no explicit clock time: the server stamps its own.
+  // Non-null always carries a time the operator picked, because the picker
+  // asks for both halves or returns nothing.
+  DateTime? postingDate;
 
   // Keep the latest search results to enable bulk-add/select-all actions
   List<Map<String, dynamic>> currentItems = [];
@@ -140,7 +142,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
                   if (postingDate != null)
                     Padding(
                       padding: const EdgeInsetsDirectional.only(end: 8.0),
-                      child: Chip(label: Text(l10n.stockTransferPostingChip(DateFormat('yyyy-MM-dd').format(postingDate!)))),
+                      child: Chip(label: Text(l10n.stockTransferPostingChip(formatPostingDateTimeForDisplay(context, postingDate!)))),
                     ),
                   ElevatedButton.icon(
                     onPressed: _canSubmit() ? _submit : null,
@@ -210,7 +212,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
                             if (postingDate != null)
                               Padding(
                                 padding: const EdgeInsetsDirectional.only(end: 8.0),
-                                child: Chip(label: Text(l10n.stockTransferPostingChip(DateFormat('yyyy-MM-dd').format(postingDate!)))),
+                                child: Chip(label: Text(l10n.stockTransferPostingChip(formatPostingDateTimeForDisplay(context, postingDate!)))),
                               ),
                             ElevatedButton.icon(
                               onPressed: _canSubmit()
@@ -486,21 +488,24 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
     final l10n = context.l10n;
     final label = postingDate == null
         ? l10n.stockTransferPostingToday
-        : l10n.stockTransferPostingDate(DateFormat('yyyy-MM-dd').format(postingDate!));
+        : l10n.stockTransferPostingDate(
+            formatPostingDateTimeForDisplay(context, postingDate!));
     return Row(
       children: [
         OutlinedButton.icon(
           onPressed: () async {
             final now = DateTime.now();
             final initial = postingDate ?? now;
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: initial,
+            final picked = await pickPostingDateTime(
+              context,
+              initial: initial,
               firstDate: DateTime(now.year - 5),
               lastDate: DateTime(now.year + 5),
             );
+            // Kept whole: truncating to the day here is what put a backdated
+            // transfer at midnight regardless of the time just chosen.
             if (picked != null) {
-              setState(() => postingDate = DateTime(picked.year, picked.month, picked.day));
+              setState(() => postingDate = picked);
             }
           },
           icon: const Icon(Icons.calendar_today_outlined),
@@ -627,16 +632,20 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
     final l10n = context.l10n;
     try {
       final payload = [for (final l in lines) if (((l['qty'] as num?)?.toDouble() ?? 0) > 0) {'item_code': l['item_code'], 'qty': (l['qty'] as num).toDouble()}];
-      final resolvedPostingDate = resolvePostingDateOrToday(postingDate);
+      final chosen = postingDate;
+      final resolvedPostingDate = resolvePostingDateOrToday(chosen);
       final confirmedPostingDate = await confirmPostingDatesBeforeSubmit(
         context,
-        dates: [resolvedPostingDate],
+        dates: [chosen ?? resolvedPostingDate],
+        includeTime: chosen != null,
       );
       if (!confirmedPostingDate || !mounted) {
         return;
       }
 
-      final postingDateStr = formatPostingDateForApi(resolvedPostingDate);
+      final postingDateStr = chosen == null
+          ? formatPostingDateForApi(resolvedPostingDate)
+          : formatPostingDateTimeForApi(chosen);
       final res = await service.submitTransfer(
         sourceWarehouse: sourceWarehouse!,
         targetWarehouse: targetWarehouse!,

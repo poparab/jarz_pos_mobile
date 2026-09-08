@@ -1035,6 +1035,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postingDateConfirmationDates => 'تواريخ الترحيل:';
 
   @override
+  String postingDateTimeConfirmationDate(Object dateTime) {
+    return 'تاريخ ووقت الترحيل: $dateTime';
+  }
+
+  @override
+  String get postingDateTimeConfirmationDates => 'تواريخ وأوقات الترحيل:';
+
+  @override
+  String get postingDatePickerHelp => 'اختر تاريخ الترحيل';
+
+  @override
+  String get postingTimePickerHelp => 'اختر وقت الترحيل';
+
+  @override
   String get menuInventoryCount => 'جرد المخزون';
 
   @override

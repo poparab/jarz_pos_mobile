@@ -584,6 +584,15 @@
     }
   },
   "postingDateConfirmationDates": "تواريخ الترحيل:",
+  "postingDateTimeConfirmationDate": "تاريخ ووقت الترحيل: {dateTime}",
+  "@postingDateTimeConfirmationDate": {
+    "placeholders": {
+      "dateTime": {}
+    }
+  },
+  "postingDateTimeConfirmationDates": "تواريخ وأوقات الترحيل:",
+  "postingDatePickerHelp": "اختر تاريخ الترحيل",
+  "postingTimePickerHelp": "اختر وقت الترحيل",
   "menuInventoryCount": "جرد المخزون",
   "addressPinTitle": "تصحيح موقع التوصيل",
   "addressPinCurrentPin": "الموقع الحالي",

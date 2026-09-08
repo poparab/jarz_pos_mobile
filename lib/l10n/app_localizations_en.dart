@@ -1038,6 +1038,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postingDateConfirmationDates => 'Posting dates:';
 
   @override
+  String postingDateTimeConfirmationDate(Object dateTime) {
+    return 'Posting date and time: $dateTime';
+  }
+
+  @override
+  String get postingDateTimeConfirmationDates => 'Posting dates and times:';
+
+  @override
+  String get postingDatePickerHelp => 'Select posting date';
+
+  @override
+  String get postingTimePickerHelp => 'Select posting time';
+
+  @override
   String get menuInventoryCount => 'Inventory Count';
 
   @override

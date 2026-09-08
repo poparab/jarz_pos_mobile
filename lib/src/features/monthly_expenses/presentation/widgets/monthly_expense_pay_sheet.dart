@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
+import '../../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../models/monthly_expense_models.dart';
 import '../../state/monthly_expenses_notifier.dart';
 
@@ -62,6 +62,10 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
   final _remarksController = TextEditingController();
 
   DateTime _paymentDate = DateTime.now();
+
+  /// Whether the operator picked a clock time. Until they do the request stays
+  /// date-only and the server stamps the time itself.
+  bool _timeExplicit = false;
   MonthlyExpensePaymentSource? _source;
   bool _submitting = false;
 
@@ -191,14 +195,19 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
               const SizedBox(height: 16),
               InkWell(
                 onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: _paymentDate,
+                  final picked = await pickPostingDateTime(
+                    context,
+                    initial: _paymentDate,
                     firstDate:
                         DateTime.now().subtract(const Duration(days: 400)),
                     lastDate: DateTime.now().add(const Duration(days: 30)),
                   );
-                  if (picked != null) setState(() => _paymentDate = picked);
+                  if (picked != null) {
+                    setState(() {
+                      _paymentDate = picked;
+                      _timeExplicit = true;
+                    });
+                  }
                 },
                 child: InputDecorator(
                   decoration: InputDecoration(
@@ -206,7 +215,11 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
                     border: const OutlineInputBorder(),
                     suffixIcon: const Icon(Icons.calendar_today),
                   ),
-                  child: Text(formatDate(context, _paymentDate)),
+                  child: Text(
+                    _timeExplicit
+                        ? formatDateTime(context, _paymentDate)
+                        : formatDate(context, _paymentDate),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -261,7 +274,9 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
     final result = await widget.onSubmit(
       amount: amount,
       payingAccount: source.account.isNotEmpty ? source.account : source.id,
-      paymentDate: DateFormat('yyyy-MM-dd').format(_paymentDate),
+      paymentDate: _timeExplicit
+          ? formatPostingDateTimeForApi(_paymentDate)
+          : formatPostingDateForApi(_paymentDate),
       remarks: remarks.isEmpty ? null : remarks,
       allowOverpay: allowOverpay,
     );

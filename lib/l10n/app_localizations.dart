@@ -1718,6 +1718,30 @@ abstract class AppLocalizations {
   /// **'Posting dates:'**
   String get postingDateConfirmationDates;
 
+  /// No description provided for @postingDateTimeConfirmationDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting date and time: {dateTime}'**
+  String postingDateTimeConfirmationDate(Object dateTime);
+
+  /// No description provided for @postingDateTimeConfirmationDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting dates and times:'**
+  String get postingDateTimeConfirmationDates;
+
+  /// No description provided for @postingDatePickerHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Select posting date'**
+  String get postingDatePickerHelp;
+
+  /// No description provided for @postingTimePickerHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Select posting time'**
+  String get postingTimePickerHelp;
+
   /// No description provided for @menuInventoryCount.
   ///
   /// In en, this message translates to:
