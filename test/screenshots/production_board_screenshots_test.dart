@@ -19,6 +19,7 @@ import 'package:jarz_pos/src/features/manufacturing/data/models/basket_rollup.da
 import 'package:jarz_pos/src/features/manufacturing/data/models/batch_line.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/bom_details.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/material_options.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/production_policy.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/production_suggestion.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/repositories/production_basket_repository.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_batch_tab.dart';
@@ -50,6 +51,20 @@ class _StubSuggestions extends ProductionSuggestionsNotifier {
 }
 
 late final ProductionSuggestionsPage realPage;
+
+/// The day these shots are taken "on".
+///
+/// Every date this harness renders is measured against it, so nothing here
+/// reads the machine's clock: a golden that depends on `DateTime.now()` stops
+/// matching the morning after it is generated, whatever the code does.
+final _boardToday = DateTime(2026, 8, 2);
+
+/// An operator's policy, with the server's today pinned to [_boardToday].
+///
+/// `ProductionPolicy.today()` falls back to the DEVICE clock when `serverDate`
+/// is null — which is exactly what the production fallback policy does, and is
+/// what made this harness time-dependent.
+final _boardPolicy = ProductionPolicy(serverDate: _boardToday);
 
 /// Derived from FLUTTER_ROOT (set by `flutter test`) rather than hardcoded, so
 /// this renders the same on any machine. Falls back to boxes if unresolved.
@@ -256,7 +271,7 @@ void main() {
     );
 
     final basket = ProductionBasket(
-      postingDate: DateTime(2026, 8, 2),
+      postingDate: _boardToday,
       lines: const [
         BatchLine(
           itemCode: 'FG-RED-M',
@@ -331,6 +346,13 @@ void main() {
       overrides: [
         productionBasketProvider.overrideWith(() => _SeededBasket(basket)),
         basketRollupProvider.overrideWith((ref) async => rollup),
+        // Pin the policy's today to the basket's own posting date. Without it
+        // the fallback policy carries no `serverDate`, so `today()` reads the
+        // device clock: the fixture date receded into the past the day after
+        // this shot was taken, `isBackDated` flipped, the date bar grew its
+        // "recording a past date" caption, and the golden began failing on a
+        // wall-clock boundary rather than on a code change.
+        productionPolicyOrFallbackProvider.overrideWithValue(_boardPolicy),
       ],
     );
   });
