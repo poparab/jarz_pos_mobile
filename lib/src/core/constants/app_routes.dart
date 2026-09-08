@@ -24,6 +24,12 @@ abstract final class AppRoutes {
   static const itemRequests = '/item-requests';
   static const manufacturing = '/manufacturing';
 
+  /// The collapsed front screen of the Production Board: one list of what is
+  /// coming out of the kitchen today, one Make button. [manufacturing] stays
+  /// registered behind it as the advanced board, so every `?tab=N` deep link
+  /// and the SOP screen's own navigation keep working.
+  static const productionToday = '/manufacturing/today';
+
   /// Full-screen SOP execution. A real destination rather than a sheet: the
   /// operator stays in it for the length of a batch.
   static const productionSop = '/manufacturing/sop';

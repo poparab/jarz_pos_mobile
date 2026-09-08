@@ -1,6 +1,7 @@
 import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 
+import '../back_date_gate.dart';
 import '../production_timestamp.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -355,29 +356,19 @@ class _BatchFooter extends ConsumerWidget {
 
   /// Why the server would refuse [date], or null when it would accept it.
   ///
-  /// Mirrors `_assert_posting_date_allowed` deliberately: the role gate first,
-  /// then the day ceiling, which a System Manager is not bound by. Comparison
-  /// is against the server's today, so a tablet with a wrong clock is refused
-  /// here with a reason rather than by the server with a stack of jargon.
+  /// The rule itself lives in `backDateRefusal` so the Today screen gates on
+  /// exactly the same one; this stays as the `(context, ref)` shape both call
+  /// sites here already read.
   static String? _backDateRefusal(
     BuildContext context,
     WidgetRef ref,
     DateTime date,
   ) {
-    final policy = ref.read(productionPolicyOrFallbackProvider);
-    if (!policy.isBackDated(date)) return null;
-
-    final l10n = context.l10n;
-    if (!policy.canBackDate) return l10n.productionBackDateNotAllowed;
-    if (policy.unlimitedBackDate) return null;
-
-    final daysBack = policy.today().difference(
-      DateTime(date.year, date.month, date.day),
-    ).inDays;
-    if (daysBack > policy.maxBackDateDays) {
-      return l10n.productionBackDateWindow(policy.maxBackDateDays);
-    }
-    return null;
+    return backDateRefusal(
+      context.l10n,
+      ref.read(productionPolicyOrFallbackProvider),
+      date,
+    );
   }
 
   Future<void> _submit(BuildContext context, WidgetRef ref) async {

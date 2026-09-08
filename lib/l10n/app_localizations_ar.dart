@@ -3670,6 +3670,105 @@ class AppLocalizationsAr extends AppLocalizations {
   String get basesEmpty => 'مفيش أساسات متظبّطة';
 
   @override
+  String get productionTodayTitle => 'النهاردة';
+
+  @override
+  String get productionTodaySubtitle => 'اللي طالع من المطبخ النهاردة';
+
+  @override
+  String get productionTodayAdvancedBoard => 'اللوحة الكاملة';
+
+  @override
+  String productionTodayOpenBatches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تشغيلة لسة مفتوحة',
+      few: '$count تشغيلات لسة مفتوحة',
+      two: 'تشغيلتين لسة مفتوحين',
+      one: 'تشغيلة واحدة لسة مفتوحة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionTodayTotalJars(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count برطمان اتسجّل',
+      few: '$count برطمانات اتسجّلوا',
+      two: 'برطمانين اتسجّلوا',
+      one: 'برطمان واحد اتسجّل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get productionTodayEnterQuantities => 'اكتب كام طلع من الفرن.';
+
+  @override
+  String get productionTodayBasesSection => 'الأساسات';
+
+  @override
+  String get productionTodayBasesHint => 'كام تشغيلة طلعت';
+
+  @override
+  String get productionTodayJarsSection => 'البرطمانات';
+
+  @override
+  String get productionTodayJarsHint => 'كام برطمان طلع';
+
+  @override
+  String productionTodayNeededToday(String batches) {
+    return 'محتاجين النهاردة: $batches';
+  }
+
+  @override
+  String productionTodayInFreezer(String batches) {
+    return 'في الفريزر: $batches';
+  }
+
+  @override
+  String productionTodayBlockedBy(String item) {
+    return '$item مش مكفّي لتشغيلة';
+  }
+
+  @override
+  String get productionTodayBlocked => 'الخامات مش هتكفّي تشغيلة';
+
+  @override
+  String get productionTodayFieldBatches => 'تشغيلة';
+
+  @override
+  String get productionTodayFieldJars => 'برطمان';
+
+  @override
+  String get productionTodayMake => 'سجّل الإنتاج';
+
+  @override
+  String get productionTodaySaveForLater => 'احفظ لبعدين';
+
+  @override
+  String get productionTodayPlanSavedShort => 'اتحفظ لبعدين';
+
+  @override
+  String productionTodayProduced(int produced, int total) {
+    return 'اتسجّل $produced من $total';
+  }
+
+  @override
+  String get productionTodayNothingProduced => 'مفيش حاجة اتسجّلت';
+
+  @override
+  String get productionTodayJarsSkipped =>
+      'البرطمانات ماتسجلتش — الأساسات لازم تطلع الأول.';
+
+  @override
+  String get productionTodayPlanSaveFailed =>
+      'الإنتاج اتسجّل. خطة اليوم هي اللي ما اتحفظتش.';
+
+  @override
   String basesSummaryShort(Object count) {
     return '$count أقل من اللي البرطمانات محتاجاه';
   }

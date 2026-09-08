@@ -272,7 +272,12 @@ class AppDrawer extends ConsumerWidget {
         navTile(
           icon: Icons.factory,
           title: l10n.menuProductionBoard,
-          onTap: () => navigate(AppRoutes.manufacturing),
+          // The collapsed Today screen, not the five-tab board: the board is
+          // complete and correct and went unused for three months because it
+          // asks the person holding the tablet to hold the whole document
+          // lifecycle in their head. The full board is still one tap away,
+          // from Today's own app bar.
+          onTap: () => navigate(AppRoutes.productionToday),
         ),
       // Split rather than sharing one gate: Stock Transfer answers to
       // `ROLES.STOCK_TRANSFER` (the manager set PLUS the line-manager tier —
@@ -363,6 +368,11 @@ class AppDrawer extends ConsumerWidget {
       AppRoutes.purchase,
       AppRoutes.itemRequests,
       AppRoutes.manufacturing,
+      // Both spellings of the same destination. `/manufacturing/today` is
+      // already caught by the prefix rule above it, but the tile points here
+      // now, and a list that only names the route nobody navigates to is one
+      // rename away from silently losing the highlight.
+      AppRoutes.productionToday,
       AppRoutes.stockTransfer,
       AppRoutes.inventoryCount,
     ];

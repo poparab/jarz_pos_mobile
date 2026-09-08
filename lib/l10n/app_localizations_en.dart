@@ -3685,6 +3685,103 @@ class AppLocalizationsEn extends AppLocalizations {
   String get basesEmpty => 'No bases configured';
 
   @override
+  String get productionTodayTitle => 'Today';
+
+  @override
+  String get productionTodaySubtitle =>
+      'What is coming out of the kitchen today';
+
+  @override
+  String get productionTodayAdvancedBoard => 'Full board';
+
+  @override
+  String productionTodayOpenBatches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count batches still open',
+      one: '1 batch still open',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionTodayTotalJars(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jars recorded',
+      one: '1 jar recorded',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get productionTodayEnterQuantities =>
+      'Enter how many came out of the oven.';
+
+  @override
+  String get productionTodayBasesSection => 'Bases';
+
+  @override
+  String get productionTodayBasesHint => 'How many batches came out';
+
+  @override
+  String get productionTodayJarsSection => 'Jars';
+
+  @override
+  String get productionTodayJarsHint => 'How many jars came out';
+
+  @override
+  String productionTodayNeededToday(String batches) {
+    return 'Needed today: $batches';
+  }
+
+  @override
+  String productionTodayInFreezer(String batches) {
+    return 'In freezer: $batches';
+  }
+
+  @override
+  String productionTodayBlockedBy(String item) {
+    return 'Not enough $item for a run';
+  }
+
+  @override
+  String get productionTodayBlocked => 'Materials will not cover a run';
+
+  @override
+  String get productionTodayFieldBatches => 'batches';
+
+  @override
+  String get productionTodayFieldJars => 'jars';
+
+  @override
+  String get productionTodayMake => 'Make';
+
+  @override
+  String get productionTodaySaveForLater => 'Save for later';
+
+  @override
+  String get productionTodayPlanSavedShort => 'Saved for later';
+
+  @override
+  String productionTodayProduced(int produced, int total) {
+    return '$produced of $total recorded';
+  }
+
+  @override
+  String get productionTodayNothingProduced => 'Nothing was recorded';
+
+  @override
+  String get productionTodayJarsSkipped =>
+      'Jars were not recorded — the bases have to come out first.';
+
+  @override
+  String get productionTodayPlanSaveFailed =>
+      'Production is recorded. The day\'s plan did not save.';
+
+  @override
   String basesSummaryShort(Object count) {
     return '$count below what the jars need';
   }

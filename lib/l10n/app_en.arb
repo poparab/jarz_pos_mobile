@@ -1870,6 +1870,74 @@
   "productionTabBases": "Bases",
   "basesHeaderHint": "Bases never sell, so the plan cannot suggest them. Pick one and set how many batches to mix.",
   "basesEmpty": "No bases configured",
+  "productionTodayTitle": "Today",
+  "productionTodaySubtitle": "What is coming out of the kitchen today",
+  "productionTodayAdvancedBoard": "Full board",
+  "productionTodayOpenBatches": "{count, plural, =1{1 batch still open} other{{count} batches still open}}",
+  "@productionTodayOpenBatches": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "productionTodayTotalJars": "{count, plural, =1{1 jar recorded} other{{count} jars recorded}}",
+  "@productionTodayTotalJars": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "productionTodayEnterQuantities": "Enter how many came out of the oven.",
+  "productionTodayBasesSection": "Bases",
+  "productionTodayBasesHint": "How many batches came out",
+  "productionTodayJarsSection": "Jars",
+  "productionTodayJarsHint": "How many jars came out",
+  "productionTodayNeededToday": "Needed today: {batches}",
+  "@productionTodayNeededToday": {
+    "placeholders": {
+      "batches": {
+        "type": "String"
+      }
+    }
+  },
+  "productionTodayInFreezer": "In freezer: {batches}",
+  "@productionTodayInFreezer": {
+    "placeholders": {
+      "batches": {
+        "type": "String"
+      }
+    }
+  },
+  "productionTodayBlockedBy": "Not enough {item} for a run",
+  "@productionTodayBlockedBy": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "productionTodayBlocked": "Materials will not cover a run",
+  "productionTodayFieldBatches": "batches",
+  "productionTodayFieldJars": "jars",
+  "productionTodayMake": "Make",
+  "productionTodaySaveForLater": "Save for later",
+  "productionTodayPlanSavedShort": "Saved for later",
+  "productionTodayProduced": "{produced} of {total} recorded",
+  "@productionTodayProduced": {
+    "placeholders": {
+      "produced": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "productionTodayNothingProduced": "Nothing was recorded",
+  "productionTodayJarsSkipped": "Jars were not recorded — the bases have to come out first.",
+  "productionTodayPlanSaveFailed": "Production is recorded. The day''s plan did not save.",
   "basesSummaryShort": "{count} below what the jars need",
   "basesSummaryBlocked": "{count} blocked — no materials",
   "basesBatchYield": "1 batch = {quantity} {uom}",

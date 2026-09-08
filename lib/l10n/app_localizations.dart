@@ -6128,6 +6128,144 @@ abstract class AppLocalizations {
   /// **'No bases configured'**
   String get basesEmpty;
 
+  /// No description provided for @productionTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get productionTodayTitle;
+
+  /// No description provided for @productionTodaySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is coming out of the kitchen today'**
+  String get productionTodaySubtitle;
+
+  /// No description provided for @productionTodayAdvancedBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Full board'**
+  String get productionTodayAdvancedBoard;
+
+  /// No description provided for @productionTodayOpenBatches.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 batch still open} other{{count} batches still open}}'**
+  String productionTodayOpenBatches(int count);
+
+  /// No description provided for @productionTodayTotalJars.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 jar recorded} other{{count} jars recorded}}'**
+  String productionTodayTotalJars(int count);
+
+  /// No description provided for @productionTodayEnterQuantities.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter how many came out of the oven.'**
+  String get productionTodayEnterQuantities;
+
+  /// No description provided for @productionTodayBasesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Bases'**
+  String get productionTodayBasesSection;
+
+  /// No description provided for @productionTodayBasesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How many batches came out'**
+  String get productionTodayBasesHint;
+
+  /// No description provided for @productionTodayJarsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Jars'**
+  String get productionTodayJarsSection;
+
+  /// No description provided for @productionTodayJarsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How many jars came out'**
+  String get productionTodayJarsHint;
+
+  /// No description provided for @productionTodayNeededToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed today: {batches}'**
+  String productionTodayNeededToday(String batches);
+
+  /// No description provided for @productionTodayInFreezer.
+  ///
+  /// In en, this message translates to:
+  /// **'In freezer: {batches}'**
+  String productionTodayInFreezer(String batches);
+
+  /// No description provided for @productionTodayBlockedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough {item} for a run'**
+  String productionTodayBlockedBy(String item);
+
+  /// No description provided for @productionTodayBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Materials will not cover a run'**
+  String get productionTodayBlocked;
+
+  /// No description provided for @productionTodayFieldBatches.
+  ///
+  /// In en, this message translates to:
+  /// **'batches'**
+  String get productionTodayFieldBatches;
+
+  /// No description provided for @productionTodayFieldJars.
+  ///
+  /// In en, this message translates to:
+  /// **'jars'**
+  String get productionTodayFieldJars;
+
+  /// No description provided for @productionTodayMake.
+  ///
+  /// In en, this message translates to:
+  /// **'Make'**
+  String get productionTodayMake;
+
+  /// No description provided for @productionTodaySaveForLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Save for later'**
+  String get productionTodaySaveForLater;
+
+  /// No description provided for @productionTodayPlanSavedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved for later'**
+  String get productionTodayPlanSavedShort;
+
+  /// No description provided for @productionTodayProduced.
+  ///
+  /// In en, this message translates to:
+  /// **'{produced} of {total} recorded'**
+  String productionTodayProduced(int produced, int total);
+
+  /// No description provided for @productionTodayNothingProduced.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was recorded'**
+  String get productionTodayNothingProduced;
+
+  /// No description provided for @productionTodayJarsSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Jars were not recorded — the bases have to come out first.'**
+  String get productionTodayJarsSkipped;
+
+  /// No description provided for @productionTodayPlanSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Production is recorded. The day\'\'s plan did not save.'**
+  String get productionTodayPlanSaveFailed;
+
   /// No description provided for @basesSummaryShort.
   ///
   /// In en, this message translates to:

@@ -88,6 +88,41 @@ class ManufacturingService {
     }
   }
 
+  /// Books what ACTUALLY came out of the kitchen, line by line.
+  ///
+  /// Same line objects and same response shape as [submitWorkOrders]
+  /// (`{"results": [...], "basket_shortages": [...]}`), so both share the one
+  /// result parser. The difference is intent, not payload: this is the Today
+  /// screen recording a finished run, not the Batch tab queueing one.
+  ///
+  /// [strictBasket] asks the server to refuse the whole call when the
+  /// consolidated material check comes up short, instead of posting the lines
+  /// it can and leaving the day half-recorded. It is why bases and jars must
+  /// go as two calls — jars eat the mix the bases have just made, and a single
+  /// basket would be refused for material that is about to exist.
+  Future<Map<String, dynamic>> produceNow(
+    List<Map<String, dynamic>> lines, {
+    bool strictBasket = true,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.produceNow,
+        data: {'lines': lines, 'strict_basket': strictBasket ? 1 : 0},
+      );
+      final payload = resp.data;
+      if (payload is Map && payload['message'] is Map) {
+        return Map<String, dynamic>.from(payload['message'] as Map);
+      }
+      if (payload is Map) return Map<String, dynamic>.from(payload);
+      throw Exception('Unexpected produce response');
+    } catch (error) {
+      throw _friendlyError(
+        error,
+        fallback: 'Failed to record what was produced',
+      );
+    }
+  }
+
   Future<MaterialOptions> getMaterialOptions({
     required String bomName,
     required double qty,

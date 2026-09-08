@@ -281,6 +281,12 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.manufacturing.get_bom_details';
   static const submitWorkOrders =
       '/api/method/jarz_pos.api.manufacturing.submit_work_orders';
+  // Books what actually came out, in one call per stage: Work Order, material
+  // transfer and Manufacture entry together. Same line shape and same response
+  // shape as `submit_work_orders`; `strict_basket` makes the basket-wide
+  // material precheck refuse the whole call rather than post a partial day.
+  static const produceNow =
+      '/api/method/jarz_pos.api.manufacturing.produce_now';
   static const submitSingleWorkOrder =
       '/api/method/jarz_pos.api.manufacturing.submit_single_work_order';
   static const listRecentWorkOrders =

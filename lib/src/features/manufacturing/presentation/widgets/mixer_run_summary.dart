@@ -20,6 +20,9 @@ class MixerRunSummary extends StatelessWidget {
     this.onSave,
     this.onCheckMaterials,
     this.onCancelPlan,
+    this.showActions = true,
+    this.totalLabel,
+    this.emptyHint,
   });
 
   final DailyPlanPreview? preview;
@@ -32,6 +35,24 @@ class MixerRunSummary extends StatelessWidget {
   /// Calls off a plan that was already saved for this day. Null when there is
   /// nothing saved yet -- there is no plan to call off before one exists.
   final VoidCallback? onCancelPlan;
+
+  /// Whether this bar carries its own buttons.
+  ///
+  /// False on the Today screen, which owns one primary action for the whole
+  /// day and must not sit above three greyed-out buttons for actions it does
+  /// not offer. The split itself -- the only reason this widget exists -- is
+  /// identical either way, which is why it is reused rather than re-drawn.
+  final bool showActions;
+
+  /// The two lines whose tense differs between the screens sharing this bar.
+  ///
+  /// The Daily tab is a morning intention, so "jars planned" and "how many jars
+  /// you plan to fill" are right there. The Today screen books what came out of
+  /// the oven, and a bar reading "plan to fill" under a field labelled "how many
+  /// jars came out" is exactly the kind of contradiction that made the old board
+  /// hard to trust. Null keeps the morning wording.
+  final String? totalLabel;
+  final String? emptyHint;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +75,7 @@ class MixerRunSummary extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      l10n.dailyPlanTotalJars(totalJars),
+                      totalLabel ?? l10n.dailyPlanTotalJars(totalJars),
                       style: theme.textTheme.labelLarge,
                     ),
                   ),
@@ -69,7 +90,7 @@ class MixerRunSummary extends StatelessWidget {
               const SizedBox(height: 8),
               if (data == null)
                 Text(
-                  l10n.dailyPlanEnterQuantities,
+                  emptyHint ?? l10n.dailyPlanEnterQuantities,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -122,27 +143,29 @@ class MixerRunSummary extends StatelessWidget {
                   _ShortageList(shortages: data.materials!.shortages),
                 ],
               ],
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: onCheckMaterials,
-                      icon: const Icon(Icons.inventory_2_outlined, size: 18),
-                      label: Text(l10n.dailyPlanCheckMaterials),
+              if (showActions) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: onCheckMaterials,
+                        icon: const Icon(Icons.inventory_2_outlined, size: 18),
+                        label: Text(l10n.dailyPlanCheckMaterials),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: onSave,
-                      icon: const Icon(Icons.save_outlined, size: 18),
-                      label: Text(l10n.dailyPlanSave),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: onSave,
+                        icon: const Icon(Icons.save_outlined, size: 18),
+                        label: Text(l10n.dailyPlanSave),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              if (onCancelPlan != null)
+                  ],
+                ),
+              ],
+              if (showActions && onCancelPlan != null)
                 Align(
                   alignment: AlignmentDirectional.centerEnd,
                   child: TextButton.icon(
