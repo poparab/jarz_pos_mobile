@@ -60,9 +60,17 @@ class MixerRunSummary extends StatelessWidget {
     final theme = Theme.of(context);
     final data = preview;
 
+    // A hairline, not an elevation. This bar is pinned at the bottom of a
+    // column rather than floating over the list, so `elevation: 8` had nothing
+    // to cast onto and the shadow rendered as a hard black strip the full
+    // width of the screen — visible on both the Plan tab and Today, in the
+    // goldens and on a device. A top border says "different surface" without
+    // pretending the bar is lifted off anything.
     return Material(
-      elevation: 8,
       color: theme.colorScheme.surfaceContainerHigh,
+      shape: Border(
+        top: BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
       child: SafeArea(
         top: false,
         child: Padding(

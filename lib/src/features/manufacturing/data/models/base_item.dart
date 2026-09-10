@@ -1,6 +1,10 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+// Imported whole rather than with a `show`: the generated `copyWith` for the
+// season and threshold blocks below reaches for their `$…CopyWith` mixins, and
+// a show clause hides those.
+import 'production_suggestion.dart';
 import 'stock_alternative.dart';
 
 part 'base_item.freezed.dart';
@@ -29,6 +33,19 @@ class BaseItemsPage with _$BaseItemsPage {
     String demandSource,
     @Default(<BaseItem>[]) List<BaseItem> items,
     @Default(BaseItemsSummary()) BaseItemsSummary summary,
+
+    /// Whether this server worked out how fast the freezer empties.
+    ///
+    /// False on an older backend, and false when the roll-up was skipped: every
+    /// per-item cover field is then absent rather than zero, and the card shows
+    /// none of them instead of printing a confident nought.
+    @JsonKey(name: 'cover_included') @Default(false) bool coverIncluded,
+
+    /// The same season and thresholds the jar board applies, so a base and a
+    /// jar are ranked by one rule rather than two.
+    @Default(ProductionSeason()) ProductionSeason season,
+    @JsonKey(name: 'default_target_days') @Default(7) int defaultTargetDays,
+    @Default(ProductionThresholds()) ProductionThresholds thresholds,
   }) = _BaseItemsPage;
 
   factory BaseItemsPage.fromJson(Map<String, dynamic> json) =>
@@ -40,6 +57,11 @@ class BaseItemsPage with _$BaseItemsPage {
 
   /// True when no row carries a demand block, so the hint line is pointless.
   bool get hasDemand => demandSource != BaseDemandSource.none;
+
+  /// Bases the freezer will run out of first. Counted here rather than taken
+  /// from [summary], which predates the cover figures and counts a different
+  /// thing — what today's plan needs, not how long the freezer lasts.
+  int get belowCoverCount => items.where((i) => i.isBelowCover).length;
 }
 
 @freezed
@@ -87,6 +109,31 @@ class BaseItem with _$BaseItem {
     @JsonKey(name: 'has_sop') @Default(false) bool hasSop,
     @JsonKey(name: 'sop_total_duration_mins') double? sopTotalDurationMins,
     BaseDemand? demand,
+
+    /// How much of this base the jars downstream actually eat per day, in
+    /// [stockUom].
+    ///
+    /// **Null is NO SIGNAL** — nothing consumed it in the window, or the server
+    /// did not look. Deliberately not `0.0`, which is a claim ("it never
+    /// moves") and would make every cover figure derived from it infinite.
+    @JsonKey(name: 'consumption_per_day') double? consumptionPerDay,
+
+    /// Days the freezer lasts at [consumptionPerDay]. Null for the same reason.
+    @JsonKey(name: 'days_of_cover') double? daysOfCover,
+    @JsonKey(name: 'target_days') @Default(7) int targetDays,
+    @JsonKey(name: 'target_days_source')
+    @Default('default')
+    String targetDaysSource,
+
+    /// `critical|low|ok|overstocked|no_velocity`, the same vocabulary the jar
+    /// board uses — so [ProductionStatusChip] can render a base and a jar
+    /// identically.
+    ///
+    /// Null means this server does not compute cover for bases at all, which is
+    /// distinct from `no_velocity` (it looked, and nothing consumes this base).
+    String? status,
+    @JsonKey(name: 'suggested_qty') @Default(0.0) double suggestedQty,
+    @JsonKey(name: 'suggested_batches') @Default(0) int suggestedBatches,
   }) = _BaseItem;
 
   factory BaseItem.fromJson(Map<String, dynamic> json) =>
@@ -105,6 +152,19 @@ class BaseItem with _$BaseItem {
   /// Materials cannot cover even the smallest run the tab will submit.
   bool get isBlockedByMaterials =>
       canMakeNowBatches != null && canMakeNowBatches! <= 0;
+
+  /// The server worked out a cover verdict for this base.
+  bool get hasCoverSignal => status != null;
+
+  /// Something actually consumes this base, so days-of-cover means something.
+  ///
+  /// The card must say "no signal" rather than print a zero when this is false:
+  /// a base nothing has drawn on is not a base with nought days left.
+  bool get hasConsumptionSignal => consumptionPerDay != null;
+
+  /// The freezer runs out inside the target window.
+  bool get isBelowCover =>
+      status == ProductionStatus.critical || status == ProductionStatus.low;
 }
 
 /// What the jars downstream will draw off this base.

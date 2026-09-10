@@ -3213,9 +3213,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productionTabPlan => 'الخطة';
 
   @override
-  String get productionTabDaily => 'اليوم';
-
-  @override
   String get dailyPlanNoItems =>
       'لا توجد أصناف قابلة للتعبئة لها قائمة مكونات افتراضية.';
 
@@ -3297,9 +3294,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'مشاكل قوائم المكونات المؤثرة على الخطة';
 
   @override
-  String get productionTabBatch => 'التشغيلة';
-
-  @override
   String get productionAccessDenied => 'مطلوب صلاحية الإنتاج';
 
   @override
@@ -3364,23 +3358,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get productionAddToBatch => 'أضف';
-
-  @override
   String get productionFillTheDay => 'املأ اليوم';
-
-  @override
-  String productionAddedToBatch(String item) {
-    return '$item اتضاف للتشغيلة';
-  }
-
-  @override
-  String get productionViewBatch => 'افتح التشغيلة';
-
-  @override
-  String productionFillTheDayResult(Object added, Object batches) {
-    return 'اتضاف $added صنف · $batches تشغيلة';
-  }
 
   @override
   String productionFillTheDaySkipped(Object skipped) {
@@ -3396,6 +3374,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String productionUseSuggestion(Object units) {
     return 'خُد $units';
+  }
+
+  @override
+  String productionPlannedToday(Object count) {
+    return 'المخطط $count';
   }
 
   @override
@@ -3432,14 +3415,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String productionBelowCover(Object count) {
     return '$count صنف تحت التغطية';
-  }
-
-  @override
-  String get productionBasketEmpty => 'مفيش حاجة في التشغيلة';
-
-  @override
-  String productionBasketTitle(Object count) {
-    return 'التشغيلة ($count)';
   }
 
   @override
@@ -3828,6 +3803,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get productionTodayPlanSaveFailed =>
       'الإنتاج اتسجّل. خطة اليوم هي اللي ما اتحفظتش.';
+
+  @override
+  String get productionPlanNotSaved => 'خطة اليوم ما اتحفظتش.';
 
   @override
   String basesSummaryShort(Object count) {

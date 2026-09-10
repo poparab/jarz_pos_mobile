@@ -9,23 +9,24 @@ import '../../../core/localization/localization_extensions.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../state/base_production_providers.dart';
+import '../state/daily_plan_providers.dart';
 import '../state/production_basket_notifier.dart';
 import '../state/production_providers.dart';
 import '../state/running_batches_notifier.dart';
 import 'screens/base_production_tab.dart';
-import 'screens/daily_plan_tab.dart';
-import 'screens/production_batch_tab.dart';
 import 'screens/production_plan_tab.dart';
 import 'screens/production_running_tab.dart';
 import 'widgets/recent_work_orders_sheet.dart';
 
 /// The Production Board.
 ///
-/// A thin five-tab host: Daily is the morning jar plan, Plan answers "what
-/// should we make", Batch holds what has been queued, Bases makes the
-/// sub-assemblies the jars are built from, and Running holds what is on the
-/// floor right now. All the state lives in providers, so every tab stays
-/// independently loadable and the basket survives navigation.
+/// A thin three-tab host: Plan is the day — the jar list, what is running low,
+/// and both of the day's actions — Bases makes the sub-assemblies the jars are
+/// built from, and Running holds what is on the floor right now. It was five
+/// tabs until Daily, Plan and Batch merged: they were one thought split three
+/// ways, with the target on one, the ranking on the next and the queue on the
+/// third. All the state lives in providers, so every tab stays independently
+/// loadable and the basket survives navigation.
 class ManufacturingScreen extends ConsumerStatefulWidget {
   const ManufacturingScreen({super.key, this.initialTab = 0});
 
@@ -46,9 +47,10 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
     _tabController = TabController(
       length: kProductionTabCount,
       vsync: this,
-      // Deep-linked (`/manufacturing?tab=N`), so an index from an older link
-      // is clamped rather than thrown.
-      initialIndex: widget.initialTab.clamp(0, kProductionTabCount - 1),
+      // Deep-linked (`/manufacturing?tab=N`), and the board has had five tabs
+      // and now has three, so an index from an older link is mapped into range
+      // rather than thrown.
+      initialIndex: productionTabForDeepLink(widget.initialTab),
     );
     // Hive opens asynchronously, so the basket is hydrated after first frame
     // rather than in the notifier's build().
@@ -92,9 +94,10 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
     final runningCount =
         ref.watch(runningBatchesProvider).valueOrNull?.length ?? 0;
 
-    // The Batch tab asks to be moved here once a start succeeds — the batch has
-    // physically left the queue at that point, so leaving the user staring at
-    // the list it just emptied reads as "nothing happened".
+    // The Plan tab and the Bases card ask to be moved to Running once a start
+    // succeeds — the batch has physically left the queue at that point, so
+    // leaving the user staring at the list it just emptied reads as "nothing
+    // happened".
     ref.listen<int?>(productionTabRequestProvider, (_, next) {
       if (next == null) return;
       if (next >= 0 && next < _tabController.length) {
@@ -148,20 +151,16 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          // Five fixed tabs divide a 360 dp phone into 72 dp each, and
-          // "Running" plus its count badge needs 79 — so the two tabs that
-          // carry a badge were the two whose labels got clipped, on the
-          // narrowest screen the floor actually holds. Scrolling the bar
-          // below that width keeps every label whole; a tablet still gets
-          // the full five across.
-          isScrollable: isNarrow,
-          tabAlignment: isNarrow ? TabAlignment.start : null,
+          // Fixed, not scrollable. Five tabs divided a 360 dp phone into 72 dp
+          // each and "Running" plus its count badge needed 79, so the two
+          // badged labels were the ones that got clipped and the bar had to
+          // scroll below 420 dp. Three tabs get 120 dp each on the same phone,
+          // which fits every label and both badges — and a bar that does not
+          // scroll is one where every tab is visible without a swipe.
           tabs: [
-            Tab(text: l10n.productionTabDaily),
-            Tab(text: l10n.productionTabPlan),
             Tab(
               child: _TabLabel(
-                text: l10n.productionTabBatch,
+                text: l10n.productionTabPlan,
                 count: basket.isNotEmpty ? basket.lines.length : 0,
               ),
             ),
@@ -179,9 +178,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
       body: TabBarView(
         controller: _tabController,
         children: const [
-          DailyPlanTab(),
           ProductionPlanTab(),
-          ProductionBatchTab(),
           BaseProductionTab(),
           ProductionRunningTab(),
         ],
@@ -209,12 +206,23 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
       case kProductionBasesTabIndex:
         ref.read(baseItemsProvider.notifier).refresh();
       default:
+        // Both halves of the Plan tab, because it now asks both questions: the
+        // ranked board for the cover figures and the plan template for the
+        // flavour list and the mixer.
+        ref.invalidate(dailyPlanTemplateProvider);
         ref.read(productionSuggestionsProvider.notifier).refresh();
     }
   }
 }
 
 /// A tab label with an optional count badge.
+///
+/// The label is [Flexible] rather than a bare `Text`: three fixed tabs give a
+/// 360 dp phone about 88 dp each, and "Running" plus a two-digit badge lands
+/// within a few pixels of that in the widest of the two languages. An ellipsis
+/// on the rare overflow is worth more than making the whole bar scroll — a
+/// scrolling bar hides a tab behind a swipe on every screen, to protect against
+/// a case that only arises when a badge is showing.
 class _TabLabel extends StatelessWidget {
   const _TabLabel({required this.text, required this.count});
 
@@ -226,7 +234,9 @@ class _TabLabel extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(text),
+        Flexible(
+          child: Text(text, softWrap: false, overflow: TextOverflow.ellipsis),
+        ),
         if (count > 0) ...[
           const SizedBox(width: 6),
           Badge(label: Text('$count')),

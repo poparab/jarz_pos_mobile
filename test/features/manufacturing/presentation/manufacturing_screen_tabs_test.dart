@@ -8,11 +8,16 @@ import 'package:jarz_pos/src/core/constants/app_routes.dart';
 import 'package:jarz_pos/src/core/network/user_service.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/manufacturing_service.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/batch_line.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/daily_plan.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/production_policy.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/production_suggestion.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/repositories/production_basket_repository.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/manufacturing_screen.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/base_production_tab.dart';
-import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_batch_tab.dart';
+import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_plan_tab.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_running_tab.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/daily_plan_providers.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/production_providers.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/running_batches_notifier.dart';
 
 import '../../../helpers/mock_services.dart';
@@ -26,16 +31,37 @@ class _FakeBasketRepository implements ProductionBasketRepository {
   Future<void> clear() async {}
 }
 
+class _StubSuggestions extends ProductionSuggestionsNotifier {
+  _StubSuggestions(this._page);
+  final ProductionSuggestionsPage _page;
+  @override
+  Future<ProductionSuggestionsPage> build() async => _page;
+}
+
+/// Everything the three tabs would otherwise fetch, stubbed.
+///
+/// The Plan tab asks TWO endpoints now — the ranked board and the plan template
+/// — so a host test that stubs only one still renders a spinner.
+List<Override> _overrides() => [
+  canAccessProductionBoardProvider.overrideWithValue(true),
+  productionBasketRepositoryProvider.overrideWithValue(_FakeBasketRepository()),
+  manufacturingServiceProvider.overrideWithValue(ManufacturingService(MockDio())),
+  productionSuggestionsProvider.overrideWith(
+    () => _StubSuggestions(
+      const ProductionSuggestionsPage(velocityUpdatedOn: '2026-08-01 00:00:00'),
+    ),
+  ),
+  dailyPlanTemplateProvider.overrideWith((ref) async => const DailyPlanTemplate()),
+  bomReadinessProvider.overrideWith((ref) async => const BomReadiness(ok: true)),
+  productionPolicyProvider.overrideWith(
+    (ref) async => ProductionPolicy(serverDate: DateTime(2026, 8, 2)),
+  ),
+];
+
 Future<void> _pump(WidgetTester tester, {int initialTab = 0}) async {
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [
-        canAccessProductionBoardProvider.overrideWithValue(true),
-        productionBasketRepositoryProvider
-            .overrideWithValue(_FakeBasketRepository()),
-        manufacturingServiceProvider
-            .overrideWithValue(ManufacturingService(MockDio())),
-      ],
+      overrides: _overrides(),
       child: MaterialApp(
         localizationsDelegates: const [
           AppLocalizations.delegate,
@@ -54,10 +80,9 @@ Future<void> _pump(WidgetTester tester, {int initialTab = 0}) async {
 
 /// The board inside a router that also knows the Today route.
 ///
-/// The five-tab board and the Today screen are two destinations of one
-/// feature, so "can I get from here to there" is a routing question and has
-/// to be pumped as one. Today itself is stubbed: this asserts the link, not
-/// that screen's own content.
+/// The board and the Today screen are two destinations of one feature, so "can
+/// I get from here to there" is a routing question and has to be pumped as one.
+/// Today itself is stubbed: this asserts the link, not that screen's content.
 Future<void> _pumpRouted(WidgetTester tester) async {
   final router = GoRouter(
     initialLocation: AppRoutes.manufacturing,
@@ -75,13 +100,7 @@ Future<void> _pumpRouted(WidgetTester tester) async {
 
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [
-        canAccessProductionBoardProvider.overrideWithValue(true),
-        productionBasketRepositoryProvider
-            .overrideWithValue(_FakeBasketRepository()),
-        manufacturingServiceProvider
-            .overrideWithValue(ManufacturingService(MockDio())),
-      ],
+      overrides: _overrides(),
       child: MaterialApp.router(
         localizationsDelegates: const [
           AppLocalizations.delegate,
@@ -100,39 +119,52 @@ Future<void> _pumpRouted(WidgetTester tester) async {
 
 void main() {
   group('tab index constants', () {
-    // Not a tautology: these three are agreed on by the host, the Batch tab and
-    // the Bases card, and inserting a tab without moving all of them is exactly
-    // how the Running tab ends up unreachable.
-    test('Batch, Bases and Running keep their order inside the tab count', () {
-      expect(kProductionBatchTabIndex, lessThan(kProductionBasesTabIndex));
+    // Not a tautology: these are agreed on by the host, the Plan tab and the
+    // Bases card, and moving a tab without moving all of them is exactly how
+    // the Running tab ends up unreachable.
+    test('Plan, Bases and Running keep their order inside the tab count', () {
+      expect(kProductionPlanTabIndex, 0);
+      expect(kProductionPlanTabIndex, lessThan(kProductionBasesTabIndex));
       expect(kProductionBasesTabIndex, lessThan(kProductionRunningTabIndex));
       expect(kProductionRunningTabIndex, lessThan(kProductionTabCount));
-      expect(kProductionBatchTabIndex, greaterThanOrEqualTo(0));
+    });
+
+    test('a deep link is mapped into range instead of throwing', () {
+      // The board had five tabs. A link somebody saved can still name 4.
+      expect(productionTabForDeepLink(4), kProductionRunningTabIndex);
+      expect(productionTabForDeepLink(kProductionTabCount), kProductionTabCount - 1);
+      expect(productionTabForDeepLink(-1), kProductionPlanTabIndex);
+      for (var i = 0; i < kProductionTabCount; i++) {
+        expect(productionTabForDeepLink(i), i);
+      }
     });
   });
 
-  testWidgets('the board reads Daily · Plan · Batch · Bases · Running',
-      (tester) async {
+  testWidgets('the board reads Plan · Bases · Running', (tester) async {
     await _pump(tester);
 
     final tabBar = tester.widget<TabBar>(find.byType(TabBar));
     expect(tabBar.tabs, hasLength(kProductionTabCount));
 
-    expect(find.text('Daily'), findsOneWidget);
     expect(find.text('Plan'), findsOneWidget);
-    expect(find.text('Batch'), findsOneWidget);
     expect(find.text('Bases'), findsOneWidget);
     expect(find.text('Running'), findsOneWidget);
+    // The three that merged into Plan are gone from the bar.
+    expect(find.text('Daily'), findsNothing);
+    expect(find.text('Batch'), findsNothing);
 
     // Left-to-right order, which is what the index constants encode.
     final xs = <String, double>{
-      for (final label in ['Daily', 'Plan', 'Batch', 'Bases', 'Running'])
+      for (final label in ['Plan', 'Bases', 'Running'])
         label: tester.getCenter(find.text(label)).dx,
     };
-    expect(xs['Daily']!, lessThan(xs['Plan']!));
-    expect(xs['Plan']!, lessThan(xs['Batch']!));
-    expect(xs['Batch']!, lessThan(xs['Bases']!));
+    expect(xs['Plan']!, lessThan(xs['Bases']!));
     expect(xs['Bases']!, lessThan(xs['Running']!));
+  });
+
+  testWidgets('the board opens on the merged Plan tab', (tester) async {
+    await _pump(tester);
+    expect(find.byType(ProductionPlanTab), findsOneWidget);
   });
 
   testWidgets('kProductionBasesTabIndex opens the Bases tab', (tester) async {
@@ -140,16 +172,18 @@ void main() {
     expect(find.byType(BaseProductionTab), findsOneWidget);
   });
 
-  testWidgets('kProductionRunningTabIndex still opens the Running tab',
-      (tester) async {
-    // The index moved 3 → 4 when Bases was inserted. A stale value here means
-    // starting a batch drops the operator on the wrong tab.
+  testWidgets('kProductionRunningTabIndex still opens the Running tab', (
+    tester,
+  ) async {
+    // The index moved 4 → 2 when Daily, Plan and Batch merged. A stale value
+    // here means starting a batch drops the operator on the wrong tab.
     await _pump(tester, initialTab: kProductionRunningTabIndex);
     expect(find.byType(ProductionRunningTab), findsOneWidget);
   });
 
-  testWidgets('a deep link past the last tab is clamped, not thrown',
-      (tester) async {
+  testWidgets('a deep link past the last tab is clamped, not thrown', (
+    tester,
+  ) async {
     await _pump(tester, initialTab: 99);
     expect(find.byType(ProductionRunningTab), findsOneWidget);
   });
@@ -167,9 +201,13 @@ void main() {
     expect(find.text('today screen'), findsOneWidget);
   });
 
-  testWidgets('the app bar still fits a 360 dp phone', (tester) async {
+  testWidgets('the app bar and all three tabs fit a 360 dp phone', (
+    tester,
+  ) async {
     // Title plus a labelled Today button plus two icons is the tightest the
-    // bar gets, and the narrowest tablet on the floor is a phone.
+    // bar gets, and the narrowest tablet on the floor is a phone. Five tabs
+    // needed a scrolling bar below 420 dp; three do not, so every label has to
+    // be laid out and legible without a swipe.
     tester.view.physicalSize = const Size(360, 780);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -181,11 +219,12 @@ void main() {
     // ellipsis — but still reachable, and still announced.
     expect(find.byTooltip('Today'), findsOneWidget);
     expect(find.text('Production Board'), findsOneWidget);
-  });
 
-  testWidgets('kProductionBatchTabIndex opens the Batch tab', (tester) async {
-    // What the Plan tab's "View batch" asks the host for.
-    await _pump(tester, initialTab: kProductionBatchTabIndex);
-    expect(find.byType(ProductionBatchTab), findsOneWidget);
+    final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+    expect(tabBar.isScrollable, isFalse);
+    for (final label in ['Plan', 'Bases', 'Running']) {
+      final size = tester.getSize(find.text(label));
+      expect(size.width, greaterThan(0), reason: '$label is not laid out');
+    }
   });
 }

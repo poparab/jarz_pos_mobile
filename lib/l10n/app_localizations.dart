@@ -5410,12 +5410,6 @@ abstract class AppLocalizations {
   /// **'Plan'**
   String get productionTabPlan;
 
-  /// No description provided for @productionTabDaily.
-  ///
-  /// In en, this message translates to:
-  /// **'Daily'**
-  String get productionTabDaily;
-
   /// No description provided for @dailyPlanNoItems.
   ///
   /// In en, this message translates to:
@@ -5536,12 +5530,6 @@ abstract class AppLocalizations {
   /// **'BOM issues affecting the plan'**
   String get dailyPlanBomIssuesTitle;
 
-  /// No description provided for @productionTabBatch.
-  ///
-  /// In en, this message translates to:
-  /// **'Batch'**
-  String get productionTabBatch;
-
   /// No description provided for @productionAccessDenied.
   ///
   /// In en, this message translates to:
@@ -5650,35 +5638,11 @@ abstract class AppLocalizations {
   /// **'Season {name}: ×{value}'**
   String productionSeasonApplied(Object name, Object value);
 
-  /// No description provided for @productionAddToBatch.
-  ///
-  /// In en, this message translates to:
-  /// **'Add'**
-  String get productionAddToBatch;
-
   /// No description provided for @productionFillTheDay.
   ///
   /// In en, this message translates to:
   /// **'Fill the day'**
   String get productionFillTheDay;
-
-  /// No description provided for @productionAddedToBatch.
-  ///
-  /// In en, this message translates to:
-  /// **'{item} added to the batch'**
-  String productionAddedToBatch(String item);
-
-  /// No description provided for @productionViewBatch.
-  ///
-  /// In en, this message translates to:
-  /// **'View batch'**
-  String get productionViewBatch;
-
-  /// No description provided for @productionFillTheDayResult.
-  ///
-  /// In en, this message translates to:
-  /// **'Added {added} items · {batches} batches'**
-  String productionFillTheDayResult(Object added, Object batches);
 
   /// No description provided for @productionFillTheDaySkipped.
   ///
@@ -5703,6 +5667,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use {units}'**
   String productionUseSuggestion(Object units);
+
+  /// No description provided for @productionPlannedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned {count}'**
+  String productionPlannedToday(Object count);
 
   /// No description provided for @productionStartBatches.
   ///
@@ -5757,18 +5727,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} items below cover'**
   String productionBelowCover(Object count);
-
-  /// No description provided for @productionBasketEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing queued yet'**
-  String get productionBasketEmpty;
-
-  /// No description provided for @productionBasketTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Batch ({count})'**
-  String productionBasketTitle(Object count);
 
   /// No description provided for @productionPostingDate.
   ///
@@ -6355,6 +6313,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Production is recorded. The day\'\'s plan did not save.'**
   String get productionTodayPlanSaveFailed;
+
+  /// No description provided for @productionPlanNotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'The days plan did not save.'**
+  String get productionPlanNotSaved;
 
   /// No description provided for @basesSummaryShort.
   ///

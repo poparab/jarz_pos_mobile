@@ -22,8 +22,10 @@ import 'package:jarz_pos/src/features/manufacturing/data/models/material_options
 import 'package:jarz_pos/src/features/manufacturing/data/models/production_policy.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/production_suggestion.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/repositories/production_basket_repository.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/daily_plan_service.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/daily_plan.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/manufacturing_screen.dart';
-import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_batch_tab.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/daily_plan_providers.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/running_batch.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/sop.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_plan_tab.dart';
@@ -34,6 +36,8 @@ import 'package:jarz_pos/src/features/manufacturing/state/sop_providers.dart';
 import 'package:jarz_pos/src/core/network/user_service.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/production_basket_notifier.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/production_providers.dart';
+
+import '../helpers/mock_services.dart';
 
 class _FakeBasketRepository implements ProductionBasketRepository {
   @override
@@ -52,6 +56,55 @@ class _StubSuggestions extends ProductionSuggestionsNotifier {
 }
 
 late final ProductionSuggestionsPage realPage;
+
+/// The plan template that goes with [realPage].
+///
+/// The merged Plan tab asks two endpoints — the ranked board for the cover
+/// figures and the plan template for the flavour list and the mixer — so a shot
+/// that stubs only the first renders half a screen. Derived from the same
+/// payload, so the two halves cannot disagree about which flavours exist.
+DailyPlanTemplate _templateFor(ProductionSuggestionsPage page) {
+  return DailyPlanTemplate(
+    planDate: '2026-08-02',
+    mix: const DailyPlanMix(
+      itemCode: 'BASE-CHEESECAKE-MIX',
+      batchQty: 12,
+      uom: 'Kg',
+    ),
+    items: [
+      for (final item in page.items)
+        DailyPlanItem(
+          itemCode: item.itemCode,
+          itemName: item.itemName,
+          itemGroup: item.itemGroup ?? '',
+          defaultBom: item.defaultBom,
+          mixQtyPerUnit: 0.1,
+          jarsPerBatch: 120,
+          usesMix: true,
+        ),
+    ],
+  );
+}
+
+/// A plan service that answers without a network: the mixer split the draft
+/// recomputes after every edit would otherwise reach Dio and paint an error
+/// into the shot.
+DailyPlanService _planService() {
+  final dio = MockDio();
+  dio.setResponse('/api/method/jarz_pos.api.daily_plan.preview_plan', {
+    'message': {
+      'mix': {'item_code': 'BASE-CHEESECAKE-MIX', 'batch_qty': 12, 'uom': 'Kg'},
+      'total_mix_qty': 18.0,
+      'required_batches': 1.5,
+      'run_detail': [
+        {'size': 1.5, 'quality': 'preferred'},
+      ],
+      'run_count': 1,
+      'overproduction_batches': 0.0,
+    },
+  });
+  return DailyPlanService(dio);
+}
 
 /// The day these shots are taken "on".
 ///
@@ -144,6 +197,7 @@ Future<void> _shoot(
   Brightness brightness = Brightness.light,
   Locale locale = const Locale('en'),
   List<Override> overrides = const [],
+  Duration? warmUp,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -178,6 +232,15 @@ Future<void> _shoot(
         // past the override and reach the real service.
         productionPolicyOrFallbackProvider.overrideWithValue(_boardPolicy),
         productionPolicyProvider.overrideWith((ref) async => _boardPolicy),
+        // The merged Plan tab's other half, stubbed for every shot for the
+        // same reason the policy is: left real, it reaches Dio.
+        dailyPlanServiceProvider.overrideWithValue(_planService()),
+        bomReadinessProvider.overrideWith(
+          (ref) async => const BomReadiness(ok: true),
+        ),
+        dailyPlanTemplateProvider.overrideWith(
+          (ref) async => _templateFor(realPage),
+        ),
         ...overrides,
       ],
       child: MaterialApp(
@@ -199,6 +262,14 @@ Future<void> _shoot(
     ),
   );
   await tester.pumpAndSettle();
+  // Some shots need the debounced halves of the tab to land: the mixer split is
+  // recomputed 350 ms after the last edit, and the roll-up 400 ms after the
+  // queue stops changing. Neither schedules a frame, so `pumpAndSettle` alone
+  // returns before either has run.
+  if (warmUp != null) {
+    await tester.pump(warmUp);
+    await tester.pumpAndSettle();
+  }
   await expectLater(find.byType(MaterialApp), matchesGoldenFile('shots/$name.png'));
 }
 
@@ -226,6 +297,20 @@ Future<void> _shootScreen(
             .overrideWithValue(_FakeBasketRepository()),
         productionPolicyOrFallbackProvider.overrideWithValue(_boardPolicy),
         productionPolicyProvider.overrideWith((ref) async => _boardPolicy),
+        dailyPlanServiceProvider.overrideWithValue(_planService()),
+        bomReadinessProvider.overrideWith(
+          (ref) async => const BomReadiness(ok: true),
+        ),
+        dailyPlanTemplateProvider.overrideWith(
+          (ref) async => _templateFor(realPage),
+        ),
+        materialOptionsProvider.overrideWith(
+          (ref, request) async => MaterialOptions(
+            bomName: request.bomName,
+            qty: request.qty,
+            components: const [],
+          ),
+        ),
         ...overrides,
       ],
       child: MaterialApp(
@@ -311,11 +396,16 @@ void main() {
         productionSuggestionsProvider.overrideWith(
           () => _StubSuggestions(const ProductionSuggestionsPage()),
         ),
+        // Empty means empty on both halves: a template still full of flavours
+        // would render a form under a board that says there is nothing to do.
+        dailyPlanTemplateProvider.overrideWith(
+          (ref) async => const DailyPlanTemplate(),
+        ),
       ],
     );
   });
 
-  testWidgets('06 batch tab — two lines sharing a short material',
+  testWidgets('06 plan tab — two flavours sharing a short material',
       (tester) async {
     // The exact case the old per-line check could not see.
     const flourA = BomComponent(
@@ -404,17 +494,69 @@ void main() {
 
     await _shoot(
       tester,
-      '06_batch_shared_shortage',
-      const ProductionBatchTab(),
+      '06_plan_shared_shortage',
+      const ProductionPlanTab(),
+      // Long enough for the mixer split and the roll-up to land.
+      warmUp: const Duration(seconds: 1),
       overrides: [
+        // The queue as it comes back from Hive. The tab fills the jar fields
+        // from it, so this shot is the restore path as well as the shortage.
         productionBasketProvider.overrideWith(() => _SeededBasket(basket)),
         basketRollupProvider.overrideWith((ref) async => rollup),
+        productionSuggestionsProvider.overrideWith(
+          () => _StubSuggestions(
+            ProductionSuggestionsPage(
+              items: realPage.items.take(2).toList(),
+              summary: realPage.summary,
+              velocityUpdatedOn: realPage.velocityUpdatedOn,
+            ),
+          ),
+        ),
+        dailyPlanTemplateProvider.overrideWith(
+          (ref) async => const DailyPlanTemplate(
+            planDate: '2026-08-02',
+            mix: DailyPlanMix(
+              itemCode: 'BASE-CHEESECAKE-MIX',
+              batchQty: 12,
+              uom: 'Kg',
+            ),
+            items: [
+              DailyPlanItem(
+                itemCode: 'FG-RED-M',
+                itemName: 'Redvelvet Medium',
+                itemGroup: 'Products',
+                defaultBom: 'BOM-RED-M',
+                jarsPerBatch: 120,
+                usesMix: true,
+              ),
+              DailyPlanItem(
+                itemCode: 'FG-LOTUS-L',
+                itemName: 'Lotus Large',
+                itemGroup: 'Products',
+                defaultBom: 'BOM-LOTUS-L',
+                jarsPerBatch: 77,
+                usesMix: true,
+              ),
+            ],
+          ),
+        ),
       ],
     );
   });
 
-  testWidgets('07 batch tab — empty', (tester) async {
-    await _shoot(tester, '07_batch_empty', const ProductionBatchTab());
+  testWidgets('07 plan tab — nothing queued yet', (tester) async {
+    // The state the board opens in every morning: figures on every row, both
+    // actions in reach, and not a single quantity the operator did not type.
+    await _shoot(
+      tester,
+      '07_plan_nothing_queued',
+      const ProductionPlanTab(),
+      overrides: [
+        productionSuggestionsProvider.overrideWith(
+          () => _StubSuggestions(realPage),
+        ),
+      ],
+    );
   });
 
   testWidgets('08 running tab — a batch with stranded WIP', (tester) async {
@@ -495,11 +637,12 @@ void main() {
 
   testWidgets('14 board — phone app bar and tabs', (tester) async {
     // The two links that make the board and Today one feature rather than two
-    // screens: "Today" in the bar, and five legible tabs on a phone.
+    // screens: "Today" in the bar, and three legible tabs on a phone — the
+    // fixed bar that replaced the scrolling five.
     await _shootScreen(
       tester,
       '14_board_phone_nav',
-      const ManufacturingScreen(initialTab: 1),
+      const ManufacturingScreen(initialTab: kProductionPlanTabIndex),
       overrides: [
         canAccessProductionBoardProvider.overrideWithValue(true),
         productionSuggestionsProvider.overrideWith(() => _StubSuggestions(realPage)),

@@ -1678,7 +1678,6 @@
   "menuProductionBoard": "Production Board",
   "productionBoardTitle": "Production Board",
   "productionTabPlan": "Plan",
-  "productionTabDaily": "Daily",
   "dailyPlanNoItems": "No fillable items have a default BOM yet.",
   "dailyPlanNoMix": "No cheesecake mix",
   "dailyPlanPerBatch": "{count} per batch",
@@ -1774,7 +1773,6 @@
     }
   },
   "dailyPlanBomIssuesTitle": "BOM issues affecting the plan",
-  "productionTabBatch": "Batch",
   "productionAccessDenied": "Production access required",
   "productionSearchHint": "Search items with a BOM",
   "productionFilterAll": "All",
@@ -1793,22 +1791,12 @@
   "productionReachCover": "to reach {days} days cover",
   "productionCappedBy": "capped at {capped} — {limiter} is short (wanted {wanted})",
   "productionSeasonApplied": "Season {name}: ×{value}",
-  "productionAddToBatch": "Add",
   "productionFillTheDay": "Fill the day",
-  "productionAddedToBatch": "{item} added to the batch",
-  "@productionAddedToBatch": {
-    "placeholders": {
-      "item": {
-        "type": "String"
-      }
-    }
-  },
-  "productionViewBatch": "View batch",
-  "productionFillTheDayResult": "Added {added} items · {batches} batches",
   "productionFillTheDaySkipped": "{skipped} skipped — no materials",
   "productionFillTheDayNothing": "Nothing to add",
   "productionPlanQty": "Jars",
   "productionUseSuggestion": "Use {units}",
+  "productionPlannedToday": "Planned {count}",
   "productionStartBatches": "Start batches",
   "productionPlanVsStart": "Save plan records the target. Start batches moves stock.",
   "productionOtherItems": "Other items",
@@ -1818,8 +1806,6 @@
   "productionVelocityNever": "Sales velocity has never been calculated — suggestions will stay empty until it runs",
   "productionVelocityUpdated": "Velocity updated {when}",
   "productionBelowCover": "{count} items below cover",
-  "productionBasketEmpty": "Nothing queued yet",
-  "productionBasketTitle": "Batch ({count})",
   "productionPostingDate": "Production date",
   "productionClearBasket": "Clear",
   "productionBatchesLabel": "Batches",
@@ -1986,6 +1972,7 @@
   },
   "productionTodayJarsSkipped": "Jars were not recorded — the bases have to come out first.",
   "productionTodayPlanSaveFailed": "Production is recorded. The day''s plan did not save.",
+  "productionPlanNotSaved": "The days plan did not save.",
   "basesSummaryShort": "{count} below what the jars need",
   "basesSummaryBlocked": "{count} blocked — no materials",
   "basesBatchYield": "1 batch = {quantity} {uom}",

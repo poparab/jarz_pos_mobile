@@ -124,6 +124,76 @@ void main() {
       expect(zero.safeBatchYield, 1.0);
     });
 
+    test('the cover block is read off the same vocabulary as the jar board', () {
+      final page = BaseItemsPage.fromJson(const {
+        'cover_included': true,
+        'default_target_days': 21,
+        'season': {'name': 'Ramadan', 'multiplier': 1.4},
+        'thresholds': {'critical_days': 5, 'watch_days': 14, 'overstock_days': 90},
+        'items': [
+          {
+            'item_code': 'BASE-FUDGE',
+            'stock_uom': 'Kg',
+            'consumption_per_day': 4.5,
+            'days_of_cover': 3.8,
+            'target_days': 21,
+            'target_days_source': 'item',
+            'status': 'critical',
+            'suggested_qty': 77.5,
+            'suggested_batches': 8,
+          },
+        ],
+      });
+
+      expect(page.coverIncluded, isTrue);
+      expect(page.defaultTargetDays, 21);
+      expect(page.season.name, 'Ramadan');
+      expect(page.thresholds.criticalDays, 5);
+      expect(page.belowCoverCount, 1);
+
+      final item = page.items.single;
+      expect(item.consumptionPerDay, 4.5);
+      expect(item.daysOfCover, 3.8);
+      expect(item.targetDays, 21);
+      expect(item.targetDaysSource, 'item');
+      expect(item.status, 'critical');
+      expect(item.suggestedQty, 77.5);
+      expect(item.suggestedBatches, 8);
+      expect(item.hasCoverSignal, isTrue);
+      expect(item.hasConsumptionSignal, isTrue);
+      expect(item.isBelowCover, isTrue);
+    });
+
+    test('a null consumption is NO SIGNAL, never a zero', () {
+      // A base nothing has drawn on is not a base with nought days left, and
+      // every cover figure derived from a zero would be infinite.
+      final quiet = BaseItem.fromJson(const {
+        'item_code': 'BASE-QUIET',
+        'status': 'no_velocity',
+      });
+
+      expect(quiet.consumptionPerDay, isNull);
+      expect(quiet.daysOfCover, isNull);
+      expect(quiet.hasConsumptionSignal, isFalse);
+      // The server still gave a verdict, so the chip is shown — it just says
+      // there is no signal.
+      expect(quiet.hasCoverSignal, isTrue);
+      expect(quiet.isBelowCover, isFalse);
+    });
+
+    test('a server that does not compute cover says nothing, not "ok"', () {
+      final old = BaseItemsPage.fromJson(const {
+        'items': [
+          {'item_code': 'BASE-OLD'},
+        ],
+      });
+
+      expect(old.coverIncluded, isFalse);
+      expect(old.items.single.status, isNull);
+      expect(old.items.single.hasCoverSignal, isFalse);
+      expect(old.belowCoverCount, 0);
+    });
+
     test('is_missing_warehouse is read as its own flag', () {
       // The reason this model is not the sales board's `LimitingComponent`:
       // that one carries a `reason` string, and reusing it here would read

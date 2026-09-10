@@ -71,6 +71,10 @@ class _BasesHeader extends StatelessWidget {
 
     final short = page.summary.shortOfDemand;
     final blocked = page.summary.blockedByMaterials;
+    // Distinct from [short] on purpose: that one counts bases today's plan will
+    // empty, this one counts bases the freezer runs out of inside their target
+    // window whatever today's plan says.
+    final belowCover = page.coverIncluded ? page.belowCoverCount : 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +84,16 @@ class _BasesHeader extends StatelessWidget {
           style: theme.textTheme.labelMedium
               ?.copyWith(color: scheme.onSurfaceVariant),
         ),
-        if (short > 0 || blocked > 0) ...[
+        if (page.coverIncluded && page.season.name != null)
+          Text(
+            l10n.productionSeasonApplied(
+              page.season.name!,
+              page.season.multiplier,
+            ),
+            style: theme.textTheme.labelSmall
+                ?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+        if (short > 0 || blocked > 0 || belowCover > 0) ...[
           const SizedBox(height: 8),
           // Wrap, not Row: both Arabic summary lines on one row overflow a
           // 360 dp screen.
@@ -88,6 +101,12 @@ class _BasesHeader extends StatelessWidget {
             spacing: 8,
             runSpacing: 6,
             children: [
+              if (belowCover > 0)
+                _SummaryPill(
+                  text: l10n.productionBelowCover(belowCover),
+                  background: scheme.secondaryContainer,
+                  foreground: scheme.onSecondaryContainer,
+                ),
               if (short > 0)
                 _SummaryPill(
                   text: l10n.basesSummaryShort(short),

@@ -8,6 +8,7 @@ import '../data/models/bom_details.dart';
 import '../data/models/production_policy.dart';
 import '../data/models/production_suggestion.dart';
 import '../data/models/material_options.dart';
+import '../data/models/batch_line.dart';
 import 'production_basket_notifier.dart';
 
 /// Which status buckets the Plan tab is showing.
@@ -191,15 +192,45 @@ final productionPolicyOrFallbackProvider = Provider<ProductionPolicy>((ref) {
       const ProductionPolicy();
 });
 
+/// The queue, once it has stopped changing.
+///
+/// Every heavy question about the queue — the consolidated roll-up, a line's
+/// material options — costs a BOM explosion per line server-side. That was
+/// affordable while the quantity moved in stepper taps; on the merged Plan tab
+/// it is TYPED, so "50" is three states and would be three roll-ups, two of
+/// them describing a basket that existed for eighty milliseconds.
+///
+/// Deliberately only the heavy consumers read this. The buttons and the totals
+/// read the live basket, so what the operator sees and what Start batches
+/// submits is never a stale copy — a settled basket is a cheaper QUESTION, not
+/// a second source of truth.
+final settledBasketProvider = FutureProvider.autoDispose<ProductionBasket>((
+  ref,
+) async {
+  final basket = ref.watch(productionBasketProvider);
+  // Nothing to wait for: an emptied basket should clear the pick list at once
+  // rather than leave yesterday's shortage on screen for another half second.
+  if (basket.isEmpty) return basket;
+
+  var cancelled = false;
+  ref.onDispose(() => cancelled = true);
+  await Future<void>.delayed(const Duration(milliseconds: 400));
+  // A newer keystroke has already replaced this provider. Never completing
+  // leaves the disposed instance's consumers untouched instead of firing a
+  // request for a basket that no longer exists.
+  if (cancelled) return Completer<ProductionBasket>().future;
+  return basket;
+});
+
 /// Consolidated material check for the current basket.
 ///
-/// Recomputed whenever the basket changes, so the pick list and the shortage
+/// Recomputed whenever the basket settles, so the pick list and the shortage
 /// banner always describe what is actually queued. Returns null for an empty
 /// basket rather than calling the API with nothing.
 final basketRollupProvider = FutureProvider.autoDispose<BasketRollup?>((
   ref,
 ) async {
-  final basket = ref.watch(productionBasketProvider);
+  final basket = await ref.watch(settledBasketProvider.future);
   final lines = basket.toApiLines();
   if (lines.isEmpty) return null;
 

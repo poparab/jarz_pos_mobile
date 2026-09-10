@@ -26,6 +26,11 @@ BaseItem _base({
   List<double>? runSizes,
   BaseDemand? demand,
   bool hasSop = false,
+  double? consumptionPerDay,
+  double? daysOfCover,
+  String? status,
+  int targetDays = 21,
+  int suggestedBatches = 0,
 }) {
   return BaseItem(
     itemCode: itemCode,
@@ -40,6 +45,12 @@ BaseItem _base({
     runSizes: runSizes,
     demand: demand,
     hasSop: hasSop,
+    consumptionPerDay: consumptionPerDay,
+    daysOfCover: daysOfCover,
+    status: status,
+    targetDays: targetDays,
+    suggestedBatches: suggestedBatches,
+    suggestedQty: suggestedBatches * batchYield,
   );
 }
 
@@ -178,6 +189,83 @@ void main() {
     // Read back as batches, which is what the mixer operator counts in.
     expect(find.text('1.8 batches'), findsOneWidget);
     expect(find.text('17.14 Kg'), findsOneWidget);
+  });
+
+  testWidgets("the card says how long the freezer lasts, in the board's own "
+      'words', (tester) async {
+    await _pump(
+      tester,
+      BaseItemsPage(
+        coverIncluded: true,
+        items: [
+          _base(
+            consumptionPerDay: 4.5,
+            daysOfCover: 3.8,
+            status: 'critical',
+            suggestedBatches: 8,
+            demand: const BaseDemand(
+              qtyRequired: 30.464,
+              batchesRequired: 3.2,
+              shortfallBatches: 1.4,
+              driver: "today's plan",
+            ),
+          ),
+        ],
+      ),
+      preview: _preview(),
+    );
+
+    // The same chip a jar row carries, off the same vocabulary: "critical"
+    // cannot mean two things on one board.
+    expect(find.text('Critical'), findsOneWidget);
+    expect(find.text('Used / day'), findsOneWidget);
+    expect(find.text('4.5 Kg/day'), findsOneWidget);
+    expect(find.text('Cover'), findsOneWidget);
+    expect(find.text('3.8 d'), findsOneWidget);
+    expect(
+      find.text('Make 8 batches to reach 21 days cover'),
+      findsOneWidget,
+    );
+    // Both numbers, and they are different questions: the freezer's runway
+    // against what today's plan will take out of it.
+    expect(find.textContaining('The plan needs 3.2 batches'), findsOneWidget);
+    // The suggestion is an offer here too — the stepper is untouched.
+    expect(_stepperText(tester), '1');
+
+    await tester.tap(find.text('Use 8'));
+    await tester.pumpAndSettle();
+    expect(_stepperText(tester), '8');
+  });
+
+  testWidgets('a base nothing consumes reads as no signal, not as zero',
+      (tester) async {
+    await _pump(
+      tester,
+      BaseItemsPage(
+        coverIncluded: true,
+        items: [_base(status: 'no_velocity')],
+      ),
+      preview: _preview(),
+    );
+
+    expect(find.text('No sales data'), findsOneWidget);
+    expect(
+      find.text('Nothing has drawn on this base yet — cover cannot be worked out'),
+      findsOneWidget,
+    );
+    // A dash, never a nought: the dash is the honest answer and a zero would
+    // be a claim.
+    expect(find.text('—'), findsNWidgets(2));
+    expect(find.text('0 d'), findsNothing);
+  });
+
+  testWidgets('a server without cover figures shows none of them',
+      (tester) async {
+    await _pump(tester, BaseItemsPage(items: [_base()]), preview: _preview());
+
+    expect(find.text('Used / day'), findsNothing);
+    expect(find.text('Cover'), findsNothing);
+    expect(find.text('Covered'), findsNothing);
   });
 
   testWidgets('a base with no demand still gets an action panel',

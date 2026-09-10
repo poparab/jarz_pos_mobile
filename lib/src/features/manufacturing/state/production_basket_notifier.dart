@@ -70,6 +70,52 @@ class ProductionBasketNotifier extends Notifier<ProductionBasket> {
   void addFromBom(BomDetails bom, {double batches = 1.0}) =>
       addOrRaise(BatchLine.fromBom(bom, batches: batches));
 
+  /// Sets one item's queued quantity to exactly [units], adding or dropping the
+  /// line as needed.
+  ///
+  /// The merged Plan tab types a jar count into a field, so it needs a setter
+  /// and not [addOrRaise]: that one takes the LARGER of the two values, which
+  /// is right for a row-by-row "Add" and wrong for a number somebody has just
+  /// corrected downwards — 50 typed over 60 would have stayed 60.
+  ///
+  /// Zero removes the line rather than parking it at nought. A zeroed line is a
+  /// leftover, and one sitting in the basket keeps the roll-up recomputing and
+  /// the persisted basket growing for an item nobody is making.
+  ///
+  /// [prototype] carries the item's current BOM. When it names a different BOM
+  /// than the queued line, the line is rebuilt from it: the material selections
+  /// on the old line belong to a recipe that is no longer the default, and
+  /// carrying them over would submit a substitution against the wrong BOM.
+  void setUnitsForItem(BatchLine prototype, double units) {
+    final index = state.indexOfItem(prototype.itemCode);
+    if (units <= 0) {
+      if (index >= 0) remove(index);
+      return;
+    }
+    if (index < 0) {
+      _update(state.copyWith(lines: [...state.lines, prototype.withUnits(units)]));
+      return;
+    }
+    final existing = state.lines[index];
+    if (existing.bomName != prototype.bomName ||
+        existing.bomQtyYield != prototype.bomQtyYield) {
+      _replaceAt(index, prototype.withUnits(units));
+      return;
+    }
+    _replaceAt(index, existing.withUnits(units));
+  }
+
+  /// Drops the lines for [itemCodes] — what a successful start leaves behind.
+  void removeItems(Iterable<String> itemCodes) {
+    final drop = itemCodes.toSet();
+    if (drop.isEmpty) return;
+    final next = state.lines
+        .where((l) => !drop.contains(l.itemCode))
+        .toList(growable: false);
+    if (next.length == state.lines.length) return;
+    _update(state.copyWith(lines: next));
+  }
+
   void setBatches(int index, double batches) {
     if (index < 0 || index >= state.lines.length) return;
     _replaceAt(index, state.lines[index].withBatches(batches));

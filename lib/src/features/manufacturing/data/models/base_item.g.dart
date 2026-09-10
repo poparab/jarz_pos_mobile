@@ -19,6 +19,16 @@ _$BaseItemsPageImpl _$$BaseItemsPageImplFromJson(Map<String, dynamic> json) =>
       summary: json['summary'] == null
           ? const BaseItemsSummary()
           : BaseItemsSummary.fromJson(json['summary'] as Map<String, dynamic>),
+      coverIncluded: json['cover_included'] as bool? ?? false,
+      season: json['season'] == null
+          ? const ProductionSeason()
+          : ProductionSeason.fromJson(json['season'] as Map<String, dynamic>),
+      defaultTargetDays: (json['default_target_days'] as num?)?.toInt() ?? 7,
+      thresholds: json['thresholds'] == null
+          ? const ProductionThresholds()
+          : ProductionThresholds.fromJson(
+              json['thresholds'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$$BaseItemsPageImplToJson(_$BaseItemsPageImpl instance) =>
@@ -28,6 +38,10 @@ Map<String, dynamic> _$$BaseItemsPageImplToJson(_$BaseItemsPageImpl instance) =>
       'demand_source': instance.demandSource,
       'items': instance.items,
       'summary': instance.summary,
+      'cover_included': instance.coverIncluded,
+      'season': instance.season,
+      'default_target_days': instance.defaultTargetDays,
+      'thresholds': instance.thresholds,
     };
 
 _$BaseItemsSummaryImpl _$$BaseItemsSummaryImplFromJson(
@@ -72,6 +86,13 @@ _$BaseItemImpl _$$BaseItemImplFromJson(Map<String, dynamic> json) =>
       demand: json['demand'] == null
           ? null
           : BaseDemand.fromJson(json['demand'] as Map<String, dynamic>),
+      consumptionPerDay: (json['consumption_per_day'] as num?)?.toDouble(),
+      daysOfCover: (json['days_of_cover'] as num?)?.toDouble(),
+      targetDays: (json['target_days'] as num?)?.toInt() ?? 7,
+      targetDaysSource: json['target_days_source'] as String? ?? 'default',
+      status: json['status'] as String?,
+      suggestedQty: (json['suggested_qty'] as num?)?.toDouble() ?? 0.0,
+      suggestedBatches: (json['suggested_batches'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$$BaseItemImplToJson(_$BaseItemImpl instance) =>
@@ -91,6 +112,13 @@ Map<String, dynamic> _$$BaseItemImplToJson(_$BaseItemImpl instance) =>
       'has_sop': instance.hasSop,
       'sop_total_duration_mins': instance.sopTotalDurationMins,
       'demand': instance.demand,
+      'consumption_per_day': instance.consumptionPerDay,
+      'days_of_cover': instance.daysOfCover,
+      'target_days': instance.targetDays,
+      'target_days_source': instance.targetDaysSource,
+      'status': instance.status,
+      'suggested_qty': instance.suggestedQty,
+      'suggested_batches': instance.suggestedBatches,
     };
 
 _$BaseDemandImpl _$$BaseDemandImplFromJson(Map<String, dynamic> json) =>

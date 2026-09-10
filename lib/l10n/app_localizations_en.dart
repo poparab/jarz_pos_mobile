@@ -3226,9 +3226,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productionTabPlan => 'Plan';
 
   @override
-  String get productionTabDaily => 'Daily';
-
-  @override
   String get dailyPlanNoItems => 'No fillable items have a default BOM yet.';
 
   @override
@@ -3310,9 +3307,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dailyPlanBomIssuesTitle => 'BOM issues affecting the plan';
 
   @override
-  String get productionTabBatch => 'Batch';
-
-  @override
   String get productionAccessDenied => 'Production access required';
 
   @override
@@ -3377,23 +3371,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get productionAddToBatch => 'Add';
-
-  @override
   String get productionFillTheDay => 'Fill the day';
-
-  @override
-  String productionAddedToBatch(String item) {
-    return '$item added to the batch';
-  }
-
-  @override
-  String get productionViewBatch => 'View batch';
-
-  @override
-  String productionFillTheDayResult(Object added, Object batches) {
-    return 'Added $added items · $batches batches';
-  }
 
   @override
   String productionFillTheDaySkipped(Object skipped) {
@@ -3409,6 +3387,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String productionUseSuggestion(Object units) {
     return 'Use $units';
+  }
+
+  @override
+  String productionPlannedToday(Object count) {
+    return 'Planned $count';
   }
 
   @override
@@ -3445,14 +3428,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String productionBelowCover(Object count) {
     return '$count items below cover';
-  }
-
-  @override
-  String get productionBasketEmpty => 'Nothing queued yet';
-
-  @override
-  String productionBasketTitle(Object count) {
-    return 'Batch ($count)';
   }
 
   @override
@@ -3842,6 +3817,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get productionTodayPlanSaveFailed =>
       'Production is recorded. The day\'s plan did not save.';
+
+  @override
+  String get productionPlanNotSaved => 'The days plan did not save.';
 
   @override
   String basesSummaryShort(Object count) {

@@ -10,6 +10,7 @@ import '../../../../core/ui/loading_overlay.dart';
 import '../../data/manufacturing_service.dart';
 import '../../data/models/base_batch_preview.dart';
 import '../../data/models/base_item.dart';
+import '../../data/models/production_suggestion.dart' show ProductionStatus;
 import '../../domain/base_batch_math.dart';
 import '../../state/base_production_providers.dart';
 import '../../state/production_providers.dart';
@@ -136,6 +137,19 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
                 color: scheme.error,
               ),
             ],
+            if (item.hasCoverSignal && !item.hasConsumptionSignal) ...[
+              const SizedBox(height: 8),
+              _warningRow(
+                context,
+                icon: Icons.help_outline,
+                text: l10n.basesNoConsumption,
+                color: scheme.onSurfaceVariant,
+              ),
+            ],
+            if (item.suggestedBatches > 0) ...[
+              const SizedBox(height: 10),
+              _CoverSuggestion(item: item, onUse: notifier.setBatches),
+            ],
             if (item.demand != null) ...[
               const SizedBox(height: 10),
               _DemandHint(
@@ -223,6 +237,28 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
 
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: _headerText(context, item, l10n, theme)),
+        // The same chip the jar rows use, off the same vocabulary: a base and
+        // a jar have to say "critical" the same way, or the word means two
+        // things on one board. Absent entirely on a server that does not work
+        // out cover for bases — an "ok" chip there would be an invention.
+        if (item.hasCoverSignal) ...[
+          const SizedBox(width: 8),
+          ProductionStatusChip(status: item.status!),
+        ],
+      ],
+    );
+  }
+
+  Widget _headerText(
+    BuildContext context,
+    BaseItem item,
+    dynamic l10n,
+    ThemeData theme,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -283,6 +319,33 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
             value: l10n.basesBatchesValue(trimQty(capacity.toDouble())),
             emphasis: capacity <= 0 ? scheme.error : null,
           ),
+        // How long the freezer lasts — a different question from the demand
+        // block below, which is what TODAY's plan will take out of it.
+        if (item.hasCoverSignal) ...[
+          ProductionStat(
+            label: l10n.basesUsedPerDay,
+            // A dash, never a nought. Nothing has drawn on this base, which is
+            // not the same claim as "it is consumed at zero a day" — and every
+            // cover figure derived from a zero would be infinite.
+            value: item.consumptionPerDay == null
+                ? l10n.productionCoverUnknown
+                : l10n.basesQtyPerDay(
+                    trimQty(item.consumptionPerDay!),
+                    item.stockUom,
+                  ),
+          ),
+          ProductionStat(
+            label: l10n.productionCover,
+            value: item.daysOfCover == null
+                ? l10n.productionCoverUnknown
+                : l10n.productionCoverDays(trimQty(item.daysOfCover!)),
+            emphasis: switch (item.status) {
+              ProductionStatus.critical => scheme.error,
+              ProductionStatus.low => scheme.tertiary,
+              _ => null,
+            },
+          ),
+        ],
       ],
     );
   }
@@ -407,6 +470,59 @@ class _BaseItemCardState extends ConsumerState<BaseItemCard> {
     final now = DateTime.now();
     return '${now.year}-${two(now.month)}-${two(now.day)} '
         '${two(now.hour)}:${two(now.minute)}:00';
+  }
+}
+
+/// "Make 4 batches to reach 21 days cover", plus a one-tap offer.
+///
+/// The OTHER number on this card. [_DemandHint] answers "what does today's jar
+/// plan take out of the freezer"; this answers "how long does the freezer
+/// last", which is why both are shown and why neither is allowed to overwrite
+/// the stepper on its own.
+class _CoverSuggestion extends StatelessWidget {
+  const _CoverSuggestion({required this.item, required this.onUse});
+
+  final BaseItem item;
+  final ValueChanged<double> onUse;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final offer = item.suggestedBatches.toDouble();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: item.isBelowCover
+            ? scheme.tertiaryContainer
+            : scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      // Wrap rather than Row, for the same reason as the demand hint: the
+      // Arabic line runs long and the chip beside it overflows a 360 dp screen.
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 6,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(
+            l10n.basesCoverSuggestion(item.suggestedBatches, item.targetDays),
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (offer >= kMinBatches)
+            ActionChip(
+              visualDensity: VisualDensity.compact,
+              label: Text(l10n.basesUseBatches(trimQty(offer))),
+              onPressed: () => onUse(offer),
+            ),
+        ],
+      ),
+    );
   }
 }
 

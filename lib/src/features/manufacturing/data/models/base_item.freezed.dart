@@ -29,6 +29,21 @@ mixin _$BaseItemsPage {
   List<BaseItem> get items => throw _privateConstructorUsedError;
   BaseItemsSummary get summary => throw _privateConstructorUsedError;
 
+  /// Whether this server worked out how fast the freezer empties.
+  ///
+  /// False on an older backend, and false when the roll-up was skipped: every
+  /// per-item cover field is then absent rather than zero, and the card shows
+  /// none of them instead of printing a confident nought.
+  @JsonKey(name: 'cover_included')
+  bool get coverIncluded => throw _privateConstructorUsedError;
+
+  /// The same season and thresholds the jar board applies, so a base and a
+  /// jar are ranked by one rule rather than two.
+  ProductionSeason get season => throw _privateConstructorUsedError;
+  @JsonKey(name: 'default_target_days')
+  int get defaultTargetDays => throw _privateConstructorUsedError;
+  ProductionThresholds get thresholds => throw _privateConstructorUsedError;
+
   /// Serializes this BaseItemsPage to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -52,9 +67,15 @@ abstract class $BaseItemsPageCopyWith<$Res> {
     @JsonKey(name: 'demand_source') String demandSource,
     List<BaseItem> items,
     BaseItemsSummary summary,
+    @JsonKey(name: 'cover_included') bool coverIncluded,
+    ProductionSeason season,
+    @JsonKey(name: 'default_target_days') int defaultTargetDays,
+    ProductionThresholds thresholds,
   });
 
   $BaseItemsSummaryCopyWith<$Res> get summary;
+  $ProductionSeasonCopyWith<$Res> get season;
+  $ProductionThresholdsCopyWith<$Res> get thresholds;
 }
 
 /// @nodoc
@@ -77,6 +98,10 @@ class _$BaseItemsPageCopyWithImpl<$Res, $Val extends BaseItemsPage>
     Object? demandSource = null,
     Object? items = null,
     Object? summary = null,
+    Object? coverIncluded = null,
+    Object? season = null,
+    Object? defaultTargetDays = null,
+    Object? thresholds = null,
   }) {
     return _then(
       _value.copyWith(
@@ -100,6 +125,22 @@ class _$BaseItemsPageCopyWithImpl<$Res, $Val extends BaseItemsPage>
                 ? _value.summary
                 : summary // ignore: cast_nullable_to_non_nullable
                       as BaseItemsSummary,
+            coverIncluded: null == coverIncluded
+                ? _value.coverIncluded
+                : coverIncluded // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            season: null == season
+                ? _value.season
+                : season // ignore: cast_nullable_to_non_nullable
+                      as ProductionSeason,
+            defaultTargetDays: null == defaultTargetDays
+                ? _value.defaultTargetDays
+                : defaultTargetDays // ignore: cast_nullable_to_non_nullable
+                      as int,
+            thresholds: null == thresholds
+                ? _value.thresholds
+                : thresholds // ignore: cast_nullable_to_non_nullable
+                      as ProductionThresholds,
           )
           as $Val,
     );
@@ -112,6 +153,26 @@ class _$BaseItemsPageCopyWithImpl<$Res, $Val extends BaseItemsPage>
   $BaseItemsSummaryCopyWith<$Res> get summary {
     return $BaseItemsSummaryCopyWith<$Res>(_value.summary, (value) {
       return _then(_value.copyWith(summary: value) as $Val);
+    });
+  }
+
+  /// Create a copy of BaseItemsPage
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ProductionSeasonCopyWith<$Res> get season {
+    return $ProductionSeasonCopyWith<$Res>(_value.season, (value) {
+      return _then(_value.copyWith(season: value) as $Val);
+    });
+  }
+
+  /// Create a copy of BaseItemsPage
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ProductionThresholdsCopyWith<$Res> get thresholds {
+    return $ProductionThresholdsCopyWith<$Res>(_value.thresholds, (value) {
+      return _then(_value.copyWith(thresholds: value) as $Val);
     });
   }
 }
@@ -131,10 +192,18 @@ abstract class _$$BaseItemsPageImplCopyWith<$Res>
     @JsonKey(name: 'demand_source') String demandSource,
     List<BaseItem> items,
     BaseItemsSummary summary,
+    @JsonKey(name: 'cover_included') bool coverIncluded,
+    ProductionSeason season,
+    @JsonKey(name: 'default_target_days') int defaultTargetDays,
+    ProductionThresholds thresholds,
   });
 
   @override
   $BaseItemsSummaryCopyWith<$Res> get summary;
+  @override
+  $ProductionSeasonCopyWith<$Res> get season;
+  @override
+  $ProductionThresholdsCopyWith<$Res> get thresholds;
 }
 
 /// @nodoc
@@ -156,6 +225,10 @@ class __$$BaseItemsPageImplCopyWithImpl<$Res>
     Object? demandSource = null,
     Object? items = null,
     Object? summary = null,
+    Object? coverIncluded = null,
+    Object? season = null,
+    Object? defaultTargetDays = null,
+    Object? thresholds = null,
   }) {
     return _then(
       _$BaseItemsPageImpl(
@@ -179,6 +252,22 @@ class __$$BaseItemsPageImplCopyWithImpl<$Res>
             ? _value.summary
             : summary // ignore: cast_nullable_to_non_nullable
                   as BaseItemsSummary,
+        coverIncluded: null == coverIncluded
+            ? _value.coverIncluded
+            : coverIncluded // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        season: null == season
+            ? _value.season
+            : season // ignore: cast_nullable_to_non_nullable
+                  as ProductionSeason,
+        defaultTargetDays: null == defaultTargetDays
+            ? _value.defaultTargetDays
+            : defaultTargetDays // ignore: cast_nullable_to_non_nullable
+                  as int,
+        thresholds: null == thresholds
+            ? _value.thresholds
+            : thresholds // ignore: cast_nullable_to_non_nullable
+                  as ProductionThresholds,
       ),
     );
   }
@@ -193,6 +282,10 @@ class _$BaseItemsPageImpl extends _BaseItemsPage {
     @JsonKey(name: 'demand_source') this.demandSource = BaseDemandSource.none,
     final List<BaseItem> items = const <BaseItem>[],
     this.summary = const BaseItemsSummary(),
+    @JsonKey(name: 'cover_included') this.coverIncluded = false,
+    this.season = const ProductionSeason(),
+    @JsonKey(name: 'default_target_days') this.defaultTargetDays = 7,
+    this.thresholds = const ProductionThresholds(),
   }) : _items = items,
        super._();
 
@@ -221,9 +314,30 @@ class _$BaseItemsPageImpl extends _BaseItemsPage {
   @JsonKey()
   final BaseItemsSummary summary;
 
+  /// Whether this server worked out how fast the freezer empties.
+  ///
+  /// False on an older backend, and false when the roll-up was skipped: every
+  /// per-item cover field is then absent rather than zero, and the card shows
+  /// none of them instead of printing a confident nought.
+  @override
+  @JsonKey(name: 'cover_included')
+  final bool coverIncluded;
+
+  /// The same season and thresholds the jar board applies, so a base and a
+  /// jar are ranked by one rule rather than two.
+  @override
+  @JsonKey()
+  final ProductionSeason season;
+  @override
+  @JsonKey(name: 'default_target_days')
+  final int defaultTargetDays;
+  @override
+  @JsonKey()
+  final ProductionThresholds thresholds;
+
   @override
   String toString() {
-    return 'BaseItemsPage(company: $company, generatedOn: $generatedOn, demandSource: $demandSource, items: $items, summary: $summary)';
+    return 'BaseItemsPage(company: $company, generatedOn: $generatedOn, demandSource: $demandSource, items: $items, summary: $summary, coverIncluded: $coverIncluded, season: $season, defaultTargetDays: $defaultTargetDays, thresholds: $thresholds)';
   }
 
   @override
@@ -237,7 +351,14 @@ class _$BaseItemsPageImpl extends _BaseItemsPage {
             (identical(other.demandSource, demandSource) ||
                 other.demandSource == demandSource) &&
             const DeepCollectionEquality().equals(other._items, _items) &&
-            (identical(other.summary, summary) || other.summary == summary));
+            (identical(other.summary, summary) || other.summary == summary) &&
+            (identical(other.coverIncluded, coverIncluded) ||
+                other.coverIncluded == coverIncluded) &&
+            (identical(other.season, season) || other.season == season) &&
+            (identical(other.defaultTargetDays, defaultTargetDays) ||
+                other.defaultTargetDays == defaultTargetDays) &&
+            (identical(other.thresholds, thresholds) ||
+                other.thresholds == thresholds));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -249,6 +370,10 @@ class _$BaseItemsPageImpl extends _BaseItemsPage {
     demandSource,
     const DeepCollectionEquality().hash(_items),
     summary,
+    coverIncluded,
+    season,
+    defaultTargetDays,
+    thresholds,
   );
 
   /// Create a copy of BaseItemsPage
@@ -272,6 +397,10 @@ abstract class _BaseItemsPage extends BaseItemsPage {
     @JsonKey(name: 'demand_source') final String demandSource,
     final List<BaseItem> items,
     final BaseItemsSummary summary,
+    @JsonKey(name: 'cover_included') final bool coverIncluded,
+    final ProductionSeason season,
+    @JsonKey(name: 'default_target_days') final int defaultTargetDays,
+    final ProductionThresholds thresholds,
   }) = _$BaseItemsPageImpl;
   const _BaseItemsPage._() : super._();
 
@@ -290,6 +419,25 @@ abstract class _BaseItemsPage extends BaseItemsPage {
   List<BaseItem> get items;
   @override
   BaseItemsSummary get summary;
+
+  /// Whether this server worked out how fast the freezer empties.
+  ///
+  /// False on an older backend, and false when the roll-up was skipped: every
+  /// per-item cover field is then absent rather than zero, and the card shows
+  /// none of them instead of printing a confident nought.
+  @override
+  @JsonKey(name: 'cover_included')
+  bool get coverIncluded;
+
+  /// The same season and thresholds the jar board applies, so a base and a
+  /// jar are ranked by one rule rather than two.
+  @override
+  ProductionSeason get season;
+  @override
+  @JsonKey(name: 'default_target_days')
+  int get defaultTargetDays;
+  @override
+  ProductionThresholds get thresholds;
 
   /// Create a copy of BaseItemsPage
   /// with the given fields replaced by the non-null parameter values.
@@ -562,6 +710,35 @@ mixin _$BaseItem {
   double? get sopTotalDurationMins => throw _privateConstructorUsedError;
   BaseDemand? get demand => throw _privateConstructorUsedError;
 
+  /// How much of this base the jars downstream actually eat per day, in
+  /// [stockUom].
+  ///
+  /// **Null is NO SIGNAL** — nothing consumed it in the window, or the server
+  /// did not look. Deliberately not `0.0`, which is a claim ("it never
+  /// moves") and would make every cover figure derived from it infinite.
+  @JsonKey(name: 'consumption_per_day')
+  double? get consumptionPerDay => throw _privateConstructorUsedError;
+
+  /// Days the freezer lasts at [consumptionPerDay]. Null for the same reason.
+  @JsonKey(name: 'days_of_cover')
+  double? get daysOfCover => throw _privateConstructorUsedError;
+  @JsonKey(name: 'target_days')
+  int get targetDays => throw _privateConstructorUsedError;
+  @JsonKey(name: 'target_days_source')
+  String get targetDaysSource => throw _privateConstructorUsedError;
+
+  /// `critical|low|ok|overstocked|no_velocity`, the same vocabulary the jar
+  /// board uses — so [ProductionStatusChip] can render a base and a jar
+  /// identically.
+  ///
+  /// Null means this server does not compute cover for bases at all, which is
+  /// distinct from `no_velocity` (it looked, and nothing consumes this base).
+  String? get status => throw _privateConstructorUsedError;
+  @JsonKey(name: 'suggested_qty')
+  double get suggestedQty => throw _privateConstructorUsedError;
+  @JsonKey(name: 'suggested_batches')
+  int get suggestedBatches => throw _privateConstructorUsedError;
+
   /// Serializes this BaseItem to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -594,6 +771,13 @@ abstract class $BaseItemCopyWith<$Res> {
     @JsonKey(name: 'has_sop') bool hasSop,
     @JsonKey(name: 'sop_total_duration_mins') double? sopTotalDurationMins,
     BaseDemand? demand,
+    @JsonKey(name: 'consumption_per_day') double? consumptionPerDay,
+    @JsonKey(name: 'days_of_cover') double? daysOfCover,
+    @JsonKey(name: 'target_days') int targetDays,
+    @JsonKey(name: 'target_days_source') String targetDaysSource,
+    String? status,
+    @JsonKey(name: 'suggested_qty') double suggestedQty,
+    @JsonKey(name: 'suggested_batches') int suggestedBatches,
   });
 
   $BaseLimitingComponentCopyWith<$Res>? get limitingComponent;
@@ -630,6 +814,13 @@ class _$BaseItemCopyWithImpl<$Res, $Val extends BaseItem>
     Object? hasSop = null,
     Object? sopTotalDurationMins = freezed,
     Object? demand = freezed,
+    Object? consumptionPerDay = freezed,
+    Object? daysOfCover = freezed,
+    Object? targetDays = null,
+    Object? targetDaysSource = null,
+    Object? status = freezed,
+    Object? suggestedQty = null,
+    Object? suggestedBatches = null,
   }) {
     return _then(
       _value.copyWith(
@@ -693,6 +884,34 @@ class _$BaseItemCopyWithImpl<$Res, $Val extends BaseItem>
                 ? _value.demand
                 : demand // ignore: cast_nullable_to_non_nullable
                       as BaseDemand?,
+            consumptionPerDay: freezed == consumptionPerDay
+                ? _value.consumptionPerDay
+                : consumptionPerDay // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            daysOfCover: freezed == daysOfCover
+                ? _value.daysOfCover
+                : daysOfCover // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            targetDays: null == targetDays
+                ? _value.targetDays
+                : targetDays // ignore: cast_nullable_to_non_nullable
+                      as int,
+            targetDaysSource: null == targetDaysSource
+                ? _value.targetDaysSource
+                : targetDaysSource // ignore: cast_nullable_to_non_nullable
+                      as String,
+            status: freezed == status
+                ? _value.status
+                : status // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            suggestedQty: null == suggestedQty
+                ? _value.suggestedQty
+                : suggestedQty // ignore: cast_nullable_to_non_nullable
+                      as double,
+            suggestedBatches: null == suggestedBatches
+                ? _value.suggestedBatches
+                : suggestedBatches // ignore: cast_nullable_to_non_nullable
+                      as int,
           )
           as $Val,
     );
@@ -755,6 +974,13 @@ abstract class _$$BaseItemImplCopyWith<$Res>
     @JsonKey(name: 'has_sop') bool hasSop,
     @JsonKey(name: 'sop_total_duration_mins') double? sopTotalDurationMins,
     BaseDemand? demand,
+    @JsonKey(name: 'consumption_per_day') double? consumptionPerDay,
+    @JsonKey(name: 'days_of_cover') double? daysOfCover,
+    @JsonKey(name: 'target_days') int targetDays,
+    @JsonKey(name: 'target_days_source') String targetDaysSource,
+    String? status,
+    @JsonKey(name: 'suggested_qty') double suggestedQty,
+    @JsonKey(name: 'suggested_batches') int suggestedBatches,
   });
 
   @override
@@ -792,6 +1018,13 @@ class __$$BaseItemImplCopyWithImpl<$Res>
     Object? hasSop = null,
     Object? sopTotalDurationMins = freezed,
     Object? demand = freezed,
+    Object? consumptionPerDay = freezed,
+    Object? daysOfCover = freezed,
+    Object? targetDays = null,
+    Object? targetDaysSource = null,
+    Object? status = freezed,
+    Object? suggestedQty = null,
+    Object? suggestedBatches = null,
   }) {
     return _then(
       _$BaseItemImpl(
@@ -855,6 +1088,34 @@ class __$$BaseItemImplCopyWithImpl<$Res>
             ? _value.demand
             : demand // ignore: cast_nullable_to_non_nullable
                   as BaseDemand?,
+        consumptionPerDay: freezed == consumptionPerDay
+            ? _value.consumptionPerDay
+            : consumptionPerDay // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        daysOfCover: freezed == daysOfCover
+            ? _value.daysOfCover
+            : daysOfCover // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        targetDays: null == targetDays
+            ? _value.targetDays
+            : targetDays // ignore: cast_nullable_to_non_nullable
+                  as int,
+        targetDaysSource: null == targetDaysSource
+            ? _value.targetDaysSource
+            : targetDaysSource // ignore: cast_nullable_to_non_nullable
+                  as String,
+        status: freezed == status
+            ? _value.status
+            : status // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        suggestedQty: null == suggestedQty
+            ? _value.suggestedQty
+            : suggestedQty // ignore: cast_nullable_to_non_nullable
+                  as double,
+        suggestedBatches: null == suggestedBatches
+            ? _value.suggestedBatches
+            : suggestedBatches // ignore: cast_nullable_to_non_nullable
+                  as int,
       ),
     );
   }
@@ -879,6 +1140,13 @@ class _$BaseItemImpl extends _BaseItem {
     @JsonKey(name: 'has_sop') this.hasSop = false,
     @JsonKey(name: 'sop_total_duration_mins') this.sopTotalDurationMins,
     this.demand,
+    @JsonKey(name: 'consumption_per_day') this.consumptionPerDay,
+    @JsonKey(name: 'days_of_cover') this.daysOfCover,
+    @JsonKey(name: 'target_days') this.targetDays = 7,
+    @JsonKey(name: 'target_days_source') this.targetDaysSource = 'default',
+    this.status,
+    @JsonKey(name: 'suggested_qty') this.suggestedQty = 0.0,
+    @JsonKey(name: 'suggested_batches') this.suggestedBatches = 0,
   }) : _runSizes = runSizes,
        super._();
 
@@ -951,9 +1219,45 @@ class _$BaseItemImpl extends _BaseItem {
   @override
   final BaseDemand? demand;
 
+  /// How much of this base the jars downstream actually eat per day, in
+  /// [stockUom].
+  ///
+  /// **Null is NO SIGNAL** — nothing consumed it in the window, or the server
+  /// did not look. Deliberately not `0.0`, which is a claim ("it never
+  /// moves") and would make every cover figure derived from it infinite.
+  @override
+  @JsonKey(name: 'consumption_per_day')
+  final double? consumptionPerDay;
+
+  /// Days the freezer lasts at [consumptionPerDay]. Null for the same reason.
+  @override
+  @JsonKey(name: 'days_of_cover')
+  final double? daysOfCover;
+  @override
+  @JsonKey(name: 'target_days')
+  final int targetDays;
+  @override
+  @JsonKey(name: 'target_days_source')
+  final String targetDaysSource;
+
+  /// `critical|low|ok|overstocked|no_velocity`, the same vocabulary the jar
+  /// board uses — so [ProductionStatusChip] can render a base and a jar
+  /// identically.
+  ///
+  /// Null means this server does not compute cover for bases at all, which is
+  /// distinct from `no_velocity` (it looked, and nothing consumes this base).
+  @override
+  final String? status;
+  @override
+  @JsonKey(name: 'suggested_qty')
+  final double suggestedQty;
+  @override
+  @JsonKey(name: 'suggested_batches')
+  final int suggestedBatches;
+
   @override
   String toString() {
-    return 'BaseItem(itemCode: $itemCode, itemName: $itemName, itemGroup: $itemGroup, stockUom: $stockUom, defaultBom: $defaultBom, batchYield: $batchYield, onHand: $onHand, stockIsNegative: $stockIsNegative, batchesOnHand: $batchesOnHand, canMakeNowBatches: $canMakeNowBatches, limitingComponent: $limitingComponent, runSizes: $runSizes, hasSop: $hasSop, sopTotalDurationMins: $sopTotalDurationMins, demand: $demand)';
+    return 'BaseItem(itemCode: $itemCode, itemName: $itemName, itemGroup: $itemGroup, stockUom: $stockUom, defaultBom: $defaultBom, batchYield: $batchYield, onHand: $onHand, stockIsNegative: $stockIsNegative, batchesOnHand: $batchesOnHand, canMakeNowBatches: $canMakeNowBatches, limitingComponent: $limitingComponent, runSizes: $runSizes, hasSop: $hasSop, sopTotalDurationMins: $sopTotalDurationMins, demand: $demand, consumptionPerDay: $consumptionPerDay, daysOfCover: $daysOfCover, targetDays: $targetDays, targetDaysSource: $targetDaysSource, status: $status, suggestedQty: $suggestedQty, suggestedBatches: $suggestedBatches)';
   }
 
   @override
@@ -986,12 +1290,25 @@ class _$BaseItemImpl extends _BaseItem {
             (identical(other.hasSop, hasSop) || other.hasSop == hasSop) &&
             (identical(other.sopTotalDurationMins, sopTotalDurationMins) ||
                 other.sopTotalDurationMins == sopTotalDurationMins) &&
-            (identical(other.demand, demand) || other.demand == demand));
+            (identical(other.demand, demand) || other.demand == demand) &&
+            (identical(other.consumptionPerDay, consumptionPerDay) ||
+                other.consumptionPerDay == consumptionPerDay) &&
+            (identical(other.daysOfCover, daysOfCover) ||
+                other.daysOfCover == daysOfCover) &&
+            (identical(other.targetDays, targetDays) ||
+                other.targetDays == targetDays) &&
+            (identical(other.targetDaysSource, targetDaysSource) ||
+                other.targetDaysSource == targetDaysSource) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.suggestedQty, suggestedQty) ||
+                other.suggestedQty == suggestedQty) &&
+            (identical(other.suggestedBatches, suggestedBatches) ||
+                other.suggestedBatches == suggestedBatches));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     itemCode,
     itemName,
@@ -1008,7 +1325,14 @@ class _$BaseItemImpl extends _BaseItem {
     hasSop,
     sopTotalDurationMins,
     demand,
-  );
+    consumptionPerDay,
+    daysOfCover,
+    targetDays,
+    targetDaysSource,
+    status,
+    suggestedQty,
+    suggestedBatches,
+  ]);
 
   /// Create a copy of BaseItem
   /// with the given fields replaced by the non-null parameter values.
@@ -1043,6 +1367,13 @@ abstract class _BaseItem extends BaseItem {
     @JsonKey(name: 'sop_total_duration_mins')
     final double? sopTotalDurationMins,
     final BaseDemand? demand,
+    @JsonKey(name: 'consumption_per_day') final double? consumptionPerDay,
+    @JsonKey(name: 'days_of_cover') final double? daysOfCover,
+    @JsonKey(name: 'target_days') final int targetDays,
+    @JsonKey(name: 'target_days_source') final String targetDaysSource,
+    final String? status,
+    @JsonKey(name: 'suggested_qty') final double suggestedQty,
+    @JsonKey(name: 'suggested_batches') final int suggestedBatches,
   }) = _$BaseItemImpl;
   const _BaseItem._() : super._();
 
@@ -1103,6 +1434,42 @@ abstract class _BaseItem extends BaseItem {
   double? get sopTotalDurationMins;
   @override
   BaseDemand? get demand;
+
+  /// How much of this base the jars downstream actually eat per day, in
+  /// [stockUom].
+  ///
+  /// **Null is NO SIGNAL** — nothing consumed it in the window, or the server
+  /// did not look. Deliberately not `0.0`, which is a claim ("it never
+  /// moves") and would make every cover figure derived from it infinite.
+  @override
+  @JsonKey(name: 'consumption_per_day')
+  double? get consumptionPerDay;
+
+  /// Days the freezer lasts at [consumptionPerDay]. Null for the same reason.
+  @override
+  @JsonKey(name: 'days_of_cover')
+  double? get daysOfCover;
+  @override
+  @JsonKey(name: 'target_days')
+  int get targetDays;
+  @override
+  @JsonKey(name: 'target_days_source')
+  String get targetDaysSource;
+
+  /// `critical|low|ok|overstocked|no_velocity`, the same vocabulary the jar
+  /// board uses — so [ProductionStatusChip] can render a base and a jar
+  /// identically.
+  ///
+  /// Null means this server does not compute cover for bases at all, which is
+  /// distinct from `no_velocity` (it looked, and nothing consumes this base).
+  @override
+  String? get status;
+  @override
+  @JsonKey(name: 'suggested_qty')
+  double get suggestedQty;
+  @override
+  @JsonKey(name: 'suggested_batches')
+  int get suggestedBatches;
 
   /// Create a copy of BaseItem
   /// with the given fields replaced by the non-null parameter values.
