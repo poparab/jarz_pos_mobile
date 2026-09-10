@@ -286,6 +286,15 @@ class AppDrawer extends ConsumerWidget {
       // and the line manager both.
       if (canAccessStockTransfer)
         navTile(
+          icon: Icons.local_shipping,
+          title: l10n.menuReplenishment,
+          // Same gate as Stock Transfer, and it has to be: the screen sends
+          // through `submit_transfer`, so a wider gate here would put a tile in
+          // front of somebody every call on it answers "Not permitted" to.
+          onTap: () => navigate(AppRoutes.replenishment),
+        ),
+      if (canAccessStockTransfer)
+        navTile(
           icon: Icons.swap_horiz,
           title: l10n.menuStockTransfer,
           onTap: () => navigate(AppRoutes.stockTransfer),

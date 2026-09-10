@@ -24,6 +24,7 @@ import '../features/manufacturing/presentation/manufacturing_screen.dart';
 import '../features/manufacturing/presentation/screens/production_today_screen.dart';
 import '../features/manufacturing/presentation/screens/sop_execute_screen.dart';
 import '../features/stock_transfer/presentation/stock_transfer_screen.dart';
+import '../features/replenishment/presentation/replenishment_screen.dart';
 import '../features/cash_transfer/presentation/cash_transfer_screen.dart';
 import '../features/geo/presentation/screens/address_pin_screen.dart';
 import '../features/inventory_count/presentation/inventory_count_screen.dart';
@@ -426,6 +427,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.stockTransfer,
         name: 'stock-transfer',
         builder: (context, state) => const StockTransferScreen(),
+      ),
+      // Ungated here like every other manager screen: the drawer decides who
+      // is offered the entry (`canAccessStockTransferProvider`, the same gate
+      // Stock Transfer uses), the screen re-checks it, and `submit_transfer`
+      // refuses anyone who arrives by URL anyway.
+      GoRoute(
+        path: AppRoutes.replenishment,
+        name: 'replenishment',
+        builder: (context, state) => const ReplenishmentScreen(),
       ),
       GoRoute(
         path: AppRoutes.cashTransfer,

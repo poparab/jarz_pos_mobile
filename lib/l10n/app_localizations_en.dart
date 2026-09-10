@@ -12051,4 +12051,199 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get creditPaymentResultAlreadyRecordedTitle => 'Already recorded';
+
+  @override
+  String get menuReplenishment => 'Send to Branches';
+
+  @override
+  String get replenishmentTitle => 'Send to Branches';
+
+  @override
+  String replenishmentBasis(int coverDays, int salesDays) {
+    return '$coverDays days of cover, from the last $salesDays days of sales';
+  }
+
+  @override
+  String replenishmentSourceLine(String warehouse) {
+    return 'From $warehouse';
+  }
+
+  @override
+  String replenishmentGeneratedOn(String when) {
+    return 'Worked out $when';
+  }
+
+  @override
+  String get replenishmentBranchLabel => 'Branch';
+
+  @override
+  String replenishmentBranchOption(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count short',
+      one: '1 short',
+      zero: 'covered',
+    );
+    return '$name · $_temp0';
+  }
+
+  @override
+  String replenishmentBelowCoverCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items below cover',
+      one: '1 item below cover',
+      zero: 'Nothing below cover',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String replenishmentBranchCovered(String name) {
+    return '$name has enough of everything for now';
+  }
+
+  @override
+  String replenishmentNegativeBinsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items have negative stock',
+      one: '1 item has negative stock',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String replenishmentTotalShort(String qty) {
+    return 'The factory is short $qty across all branches';
+  }
+
+  @override
+  String replenishmentOnHand(String qty) {
+    return 'Has $qty';
+  }
+
+  @override
+  String replenishmentPerDay(String rate) {
+    return 'Sells $rate/day';
+  }
+
+  @override
+  String replenishmentDaysOfCover(String days) {
+    return '$days days cover';
+  }
+
+  @override
+  String get replenishmentNoSalesYet => 'No sales yet';
+
+  @override
+  String get replenishmentNegativeStock => 'Stock is negative, count this item';
+
+  @override
+  String replenishmentFactoryHas(String qty) {
+    return 'Factory has $qty';
+  }
+
+  @override
+  String replenishmentShortBy(String qty) {
+    return 'Factory can\'t cover this — short by $qty';
+  }
+
+  @override
+  String get replenishmentQtyLabel => 'Send';
+
+  @override
+  String replenishmentTypedTotal(int lineCount, String totalQty) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lineCount,
+      locale: localeName,
+      other: '$lineCount lines',
+      one: '1 line',
+    );
+    return '$_temp0 · $totalQty units';
+  }
+
+  @override
+  String replenishmentSendAction(String name) {
+    return 'Send to $name';
+  }
+
+  @override
+  String replenishmentConfirmTitle(String name) {
+    return 'Send to $name?';
+  }
+
+  @override
+  String replenishmentConfirmBody(
+    int lineCount,
+    String totalQty,
+    String source,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lineCount,
+      locale: localeName,
+      other: '$lineCount lines',
+      one: '1 line',
+    );
+    return '$_temp0 · $totalQty units, out of $source';
+  }
+
+  @override
+  String get replenishmentConfirmAction => 'Send';
+
+  @override
+  String replenishmentSentTitle(String name) {
+    return 'Sent to $name';
+  }
+
+  @override
+  String replenishmentSentBody(
+    int lineCount,
+    String totalQty,
+    String stockEntry,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lineCount,
+      locale: localeName,
+      other: '$lineCount lines',
+      one: '1 line',
+    );
+    return '$_temp0 · $totalQty units · entry $stockEntry';
+  }
+
+  @override
+  String replenishmentSendFailed(String name, String reason) {
+    return 'Couldn\'t send to $name: $reason';
+  }
+
+  @override
+  String replenishmentFailedLine(String item) {
+    return 'The line the server refused: $item';
+  }
+
+  @override
+  String get replenishmentNumbersKept =>
+      'Your quantities are still on screen — fix it and send again.';
+
+  @override
+  String get replenishmentNothingToSend => 'Type a quantity first.';
+
+  @override
+  String get replenishmentEmptyTitle => 'Nothing to send';
+
+  @override
+  String get replenishmentEmptyNoBranches =>
+      'No selling branches yet. A branch appears here once it has a POS profile.';
+
+  @override
+  String get replenishmentLoadFailed => 'Couldn\'t load what to send';
+
+  @override
+  String get replenishmentNotAllowed => 'You do not have access to send stock.';
+
+  @override
+  String get replenishmentRefresh => 'Refresh';
 }

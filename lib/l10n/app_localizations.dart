@@ -19874,6 +19874,224 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Already recorded'**
   String get creditPaymentResultAlreadyRecordedTitle;
+
+  /// No description provided for @menuReplenishment.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to Branches'**
+  String get menuReplenishment;
+
+  /// No description provided for @replenishmentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to Branches'**
+  String get replenishmentTitle;
+
+  /// No description provided for @replenishmentBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'{coverDays} days of cover, from the last {salesDays} days of sales'**
+  String replenishmentBasis(int coverDays, int salesDays);
+
+  /// No description provided for @replenishmentSourceLine.
+  ///
+  /// In en, this message translates to:
+  /// **'From {warehouse}'**
+  String replenishmentSourceLine(String warehouse);
+
+  /// No description provided for @replenishmentGeneratedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked out {when}'**
+  String replenishmentGeneratedOn(String when);
+
+  /// No description provided for @replenishmentBranchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get replenishmentBranchLabel;
+
+  /// No description provided for @replenishmentBranchOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {count, plural, =0{covered} =1{1 short} other{{count} short}}'**
+  String replenishmentBranchOption(String name, int count);
+
+  /// No description provided for @replenishmentBelowCoverCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing below cover} =1{1 item below cover} other{{count} items below cover}}'**
+  String replenishmentBelowCoverCount(int count);
+
+  /// No description provided for @replenishmentBranchCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has enough of everything for now'**
+  String replenishmentBranchCovered(String name);
+
+  /// No description provided for @replenishmentNegativeBinsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item has negative stock} other{{count} items have negative stock}}'**
+  String replenishmentNegativeBinsCount(int count);
+
+  /// No description provided for @replenishmentTotalShort.
+  ///
+  /// In en, this message translates to:
+  /// **'The factory is short {qty} across all branches'**
+  String replenishmentTotalShort(String qty);
+
+  /// No description provided for @replenishmentOnHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Has {qty}'**
+  String replenishmentOnHand(String qty);
+
+  /// No description provided for @replenishmentPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Sells {rate}/day'**
+  String replenishmentPerDay(String rate);
+
+  /// No description provided for @replenishmentDaysOfCover.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days cover'**
+  String replenishmentDaysOfCover(String days);
+
+  /// No description provided for @replenishmentNoSalesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No sales yet'**
+  String get replenishmentNoSalesYet;
+
+  /// No description provided for @replenishmentNegativeStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock is negative, count this item'**
+  String get replenishmentNegativeStock;
+
+  /// No description provided for @replenishmentFactoryHas.
+  ///
+  /// In en, this message translates to:
+  /// **'Factory has {qty}'**
+  String replenishmentFactoryHas(String qty);
+
+  /// No description provided for @replenishmentShortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Factory can\'\'t cover this — short by {qty}'**
+  String replenishmentShortBy(String qty);
+
+  /// No description provided for @replenishmentQtyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get replenishmentQtyLabel;
+
+  /// No description provided for @replenishmentTypedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{lineCount, plural, =1{1 line} other{{lineCount} lines}} · {totalQty} units'**
+  String replenishmentTypedTotal(int lineCount, String totalQty);
+
+  /// No description provided for @replenishmentSendAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to {name}'**
+  String replenishmentSendAction(String name);
+
+  /// No description provided for @replenishmentConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to {name}?'**
+  String replenishmentConfirmTitle(String name);
+
+  /// No description provided for @replenishmentConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{lineCount, plural, =1{1 line} other{{lineCount} lines}} · {totalQty} units, out of {source}'**
+  String replenishmentConfirmBody(
+    int lineCount,
+    String totalQty,
+    String source,
+  );
+
+  /// No description provided for @replenishmentConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get replenishmentConfirmAction;
+
+  /// No description provided for @replenishmentSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {name}'**
+  String replenishmentSentTitle(String name);
+
+  /// No description provided for @replenishmentSentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{lineCount, plural, =1{1 line} other{{lineCount} lines}} · {totalQty} units · entry {stockEntry}'**
+  String replenishmentSentBody(
+    int lineCount,
+    String totalQty,
+    String stockEntry,
+  );
+
+  /// No description provided for @replenishmentSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t send to {name}: {reason}'**
+  String replenishmentSendFailed(String name, String reason);
+
+  /// No description provided for @replenishmentFailedLine.
+  ///
+  /// In en, this message translates to:
+  /// **'The line the server refused: {item}'**
+  String replenishmentFailedLine(String item);
+
+  /// No description provided for @replenishmentNumbersKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Your quantities are still on screen — fix it and send again.'**
+  String get replenishmentNumbersKept;
+
+  /// No description provided for @replenishmentNothingToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a quantity first.'**
+  String get replenishmentNothingToSend;
+
+  /// No description provided for @replenishmentEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to send'**
+  String get replenishmentEmptyTitle;
+
+  /// No description provided for @replenishmentEmptyNoBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'No selling branches yet. A branch appears here once it has a POS profile.'**
+  String get replenishmentEmptyNoBranches;
+
+  /// No description provided for @replenishmentLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t load what to send'**
+  String get replenishmentLoadFailed;
+
+  /// No description provided for @replenishmentNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have access to send stock.'**
+  String get replenishmentNotAllowed;
+
+  /// No description provided for @replenishmentRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get replenishmentRefresh;
 }
 
 class _AppLocalizationsDelegate
