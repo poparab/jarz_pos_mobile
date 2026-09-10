@@ -10,6 +10,7 @@ import 'package:jarz_pos/src/features/manufacturing/data/repositories/production
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_plan_tab.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/production_basket_notifier.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/production_providers.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/running_batches_notifier.dart';
 
 class _FakeBasketRepository implements ProductionBasketRepository {
   @override
@@ -72,6 +73,26 @@ Future<void> _pump(WidgetTester tester, ProductionSuggestionsPage page) async {
       ),
     ),
   );
+  await tester.pumpAndSettle();
+}
+
+/// The scope's own container, read the way every test in this file reads it.
+ProviderContainer _container(WidgetTester tester) => ProviderScope.containerOf(
+      tester.element(find.byType(ProductionPlanTab)),
+    );
+
+/// Closes the confirmation SnackBar without moving the clock.
+///
+/// Its auto-dismiss is a `Timer` rather than a frame, so `pumpAndSettle()`
+/// returns with the timer still pending and the binding fails the test on
+/// teardown. Waiting it out is the wrong cure — advancing the fake clock four
+/// seconds also runs the BOM prefetch these tests do not stub. Clearing the
+/// messenger cancels the timer and settles the exit in the same frame.
+Future<void> _drainSnackBar(WidgetTester tester) async {
+  await tester.pumpAndSettle();
+  ScaffoldMessenger.of(
+    tester.element(find.byType(ProductionPlanTab)),
+  ).clearSnackBars();
   await tester.pumpAndSettle();
 }
 
@@ -186,7 +207,7 @@ void main() {
     expect(addButton.onPressed, isNotNull);
 
     await tester.tap(find.text('Add'));
-    await tester.pumpAndSettle();
+    await _drainSnackBar(tester);
 
     final container = ProviderScope.containerOf(
       tester.element(find.byType(ProductionPlanTab)),
@@ -348,11 +369,76 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Fill the day'));
-    await tester.pumpAndSettle();
+    await _drainSnackBar(tester);
 
     final basket = capturedRef.read(productionBasketProvider);
     expect(basket.lines.map((l) => l.itemCode), ['CAKE-A', 'CAKE-B']);
     // CAKE-B is capped by materials at 2 rather than the suggested 6
     expect(basket.lines[1].batches, 2);
+  });
+
+  testWidgets('Add points at the tab the line just moved to', (tester) async {
+    // Before this, adding answered with a badge on a tab one along and
+    // nothing else — the line left the screen the operator was looking at and
+    // the only way to it was knowing which tab to press.
+    await _pump(
+      tester,
+      ProductionSuggestionsPage(
+        items: [_item(itemCode: 'CAKE-A')],
+        season: const ProductionSeason(name: null, multiplier: 1),
+        defaultTargetDays: 10,
+        thresholds: const ProductionThresholds(
+          criticalDays: 5,
+          watchDays: 14,
+          overstockDays: 90,
+        ),
+        summary: const ProductionSummary(critical: 1),
+        velocityUpdatedOn: '2026-08-01 00:00:00',
+      ),
+    );
+
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    final container = _container(tester);
+    expect(find.text('CAKE-A name added to the batch'), findsOneWidget);
+    expect(container.read(productionTabRequestProvider), isNull);
+
+    await tester.tap(find.text('View batch'));
+    await _drainSnackBar(tester);
+
+    expect(
+      container.read(productionTabRequestProvider),
+      kProductionBatchTabIndex,
+    );
+  });
+
+  testWidgets('Fill the day offers no route to an empty batch', (tester) async {
+    // "Nothing to add" plus a button to go and look at nothing.
+    await _pump(
+      tester,
+      ProductionSuggestionsPage(
+        items: [
+          _item(
+            itemCode: 'CAKE-OK',
+            status: ProductionStatus.ok,
+            daysOfCover: 40,
+            suggestedBatches: 0,
+          ),
+        ],
+        season: const ProductionSeason(name: null, multiplier: 1),
+        defaultTargetDays: 10,
+        thresholds: const ProductionThresholds(
+          criticalDays: 5,
+          watchDays: 14,
+          overstockDays: 90,
+        ),
+        summary: const ProductionSummary(ok: 1),
+        velocityUpdatedOn: '2026-08-01 00:00:00',
+      ),
+    );
+
+    expect(_container(tester).read(productionBasketProvider).isEmpty, isTrue);
+    expect(find.text('View batch'), findsNothing);
   });
 }

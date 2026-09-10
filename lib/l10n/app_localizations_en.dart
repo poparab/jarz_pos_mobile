@@ -3383,6 +3383,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productionFillTheDay => 'Fill the day';
 
   @override
+  String productionAddedToBatch(String item) {
+    return '$item added to the batch';
+  }
+
+  @override
+  String get productionViewBatch => 'View batch';
+
+  @override
   String productionFillTheDayResult(Object added, Object batches) {
     return 'Added $added items · $batches batches';
   }

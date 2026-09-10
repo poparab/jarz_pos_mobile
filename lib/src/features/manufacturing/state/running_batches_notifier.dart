@@ -6,6 +6,13 @@ import '../../../core/network/user_service.dart';
 import '../data/manufacturing_service.dart';
 import '../data/models/running_batch.dart';
 
+/// Tab index of the Batch tab on the Production Board.
+///
+/// Named for the same reason as the two below: the host builds the tabs and
+/// the Plan tab asks to be moved here once a suggestion has been added, so an
+/// inlined 2 would be a number two files have to keep agreeing on by hand.
+const int kProductionBatchTabIndex = 2;
+
 /// Tab index of the Bases tab on the Production Board.
 ///
 /// Bases (Fudge Cake, Sponge Cake, Savoiardi, …) are never sold, so the

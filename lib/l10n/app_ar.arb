@@ -1718,6 +1718,8 @@
   "productionSeasonApplied": "موسم {name}: ×{value}",
   "productionAddToBatch": "أضف",
   "productionFillTheDay": "املأ اليوم",
+  "productionAddedToBatch": "{item} اتضاف للتشغيلة",
+  "productionViewBatch": "افتح التشغيلة",
   "productionFillTheDayResult": "اتضاف {added} صنف · {batches} تشغيلة",
   "productionFillTheDaySkipped": "{skipped} اتخطّت — مفيش خامات",
   "productionFillTheDayNothing": "مفيش حاجة تتضاف",

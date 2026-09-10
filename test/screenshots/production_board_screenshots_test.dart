@@ -22,6 +22,7 @@ import 'package:jarz_pos/src/features/manufacturing/data/models/material_options
 import 'package:jarz_pos/src/features/manufacturing/data/models/production_policy.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/production_suggestion.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/repositories/production_basket_repository.dart';
+import 'package:jarz_pos/src/features/manufacturing/presentation/manufacturing_screen.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_batch_tab.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/running_batch.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/sop.dart';
@@ -194,6 +195,50 @@ Future<void> _shoot(
           appBar: AppBar(title: const Text('Production Board')),
           body: child,
         ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  await expectLater(find.byType(MaterialApp), matchesGoldenFile('shots/$name.png'));
+}
+
+/// Shoots a screen that brings its own Scaffold.
+///
+/// [_shoot] wraps its child in a Scaffold with a stand-in app bar, which is
+/// exactly the part under inspection here — the board's own bar carries the
+/// link back to Today, and its TabBar is what has to fit a phone.
+Future<void> _shootScreen(
+  WidgetTester tester,
+  String name,
+  Widget screen, {
+  Size size = const Size(390, 844),
+  List<Override> overrides = const [],
+}) async {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        productionBasketRepositoryProvider
+            .overrideWithValue(_FakeBasketRepository()),
+        productionPolicyOrFallbackProvider.overrideWithValue(_boardPolicy),
+        productionPolicyProvider.overrideWith((ref) async => _boardPolicy),
+        ...overrides,
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: _appTheme(Brightness.light),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: screen,
       ),
     ),
   );
@@ -444,6 +489,20 @@ void main() {
       ),
       overrides: [
         sopForWorkOrderProvider('MFG-WO-0042').overrideWith((ref) async => doc),
+      ],
+    );
+  });
+
+  testWidgets('14 board — phone app bar and tabs', (tester) async {
+    // The two links that make the board and Today one feature rather than two
+    // screens: "Today" in the bar, and five legible tabs on a phone.
+    await _shootScreen(
+      tester,
+      '14_board_phone_nav',
+      const ManufacturingScreen(initialTab: 1),
+      overrides: [
+        canAccessProductionBoardProvider.overrideWithValue(true),
+        productionSuggestionsProvider.overrideWith(() => _StubSuggestions(realPage)),
       ],
     );
   });

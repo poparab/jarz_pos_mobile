@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/widgets/app_drawer.dart';
@@ -79,6 +81,7 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
     }
 
     final basket = ref.watch(productionBasketProvider);
+    final isNarrow = MediaQuery.sizeOf(context).width < 420;
     final runningCount =
         ref.watch(runningBatchesProvider).valueOrNull?.length ?? 0;
 
@@ -96,8 +99,35 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.productionBoardTitle),
+        // A phone gives the title ~190 dp beside a menu and three actions,
+        // and "Production Board" at the default 20 sp needs more than that —
+        // it rendered as "Production Bo…". One step down the type scale fits
+        // the whole name, which is worth more here than two points of size.
+        title: Text(
+          l10n.productionBoardTitle,
+          style: isNarrow ? Theme.of(context).textTheme.titleMedium : null,
+        ),
         actions: [
+          // The return leg of Today's "Full board". Today navigates with `go`,
+          // which replaces rather than pushes, so without this the only way
+          // back to the screen the floor actually opens is the drawer — where
+          // the tile reads "Production Board" and lands somewhere else again.
+          //
+          // Labelled where there is room and icon-only where there is not: a
+          // phone cannot hold the title, a labelled button and two icons, and
+          // the half that must not be dropped is the screen's own name.
+          if (isNarrow)
+            IconButton(
+              tooltip: l10n.productionTodayTitle,
+              icon: const Icon(Icons.today_outlined),
+              onPressed: () => context.go(AppRoutes.productionToday),
+            )
+          else
+            TextButton.icon(
+              onPressed: () => context.go(AppRoutes.productionToday),
+              icon: const Icon(Icons.today_outlined, size: 18),
+              label: Text(l10n.productionTodayTitle),
+            ),
           IconButton(
             tooltip: l10n.manufacturingRecentWorkOrdersTooltip,
             icon: const Icon(Icons.history),
@@ -111,6 +141,14 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
+          // Five fixed tabs divide a 360 dp phone into 72 dp each, and
+          // "Running" plus its count badge needs 79 — so the two tabs that
+          // carry a badge were the two whose labels got clipped, on the
+          // narrowest screen the floor actually holds. Scrolling the bar
+          // below that width keeps every label whole; a tablet still gets
+          // the full five across.
+          isScrollable: isNarrow,
+          tabAlignment: isNarrow ? TabAlignment.start : null,
           tabs: [
             Tab(text: l10n.productionTabDaily),
             Tab(text: l10n.productionTabPlan),

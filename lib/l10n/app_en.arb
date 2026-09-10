@@ -1793,6 +1793,15 @@
   "productionSeasonApplied": "Season {name}: ×{value}",
   "productionAddToBatch": "Add",
   "productionFillTheDay": "Fill the day",
+  "productionAddedToBatch": "{item} added to the batch",
+  "@productionAddedToBatch": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "productionViewBatch": "View batch",
   "productionFillTheDayResult": "Added {added} items · {batches} batches",
   "productionFillTheDaySkipped": "{skipped} skipped — no materials",
   "productionFillTheDayNothing": "Nothing to add",

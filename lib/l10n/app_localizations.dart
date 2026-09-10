@@ -5662,6 +5662,18 @@ abstract class AppLocalizations {
   /// **'Fill the day'**
   String get productionFillTheDay;
 
+  /// No description provided for @productionAddedToBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'{item} added to the batch'**
+  String productionAddedToBatch(String item);
+
+  /// No description provided for @productionViewBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'View batch'**
+  String get productionViewBatch;
+
   /// No description provided for @productionFillTheDayResult.
   ///
   /// In en, this message translates to:

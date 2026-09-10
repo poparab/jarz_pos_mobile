@@ -7,6 +7,7 @@ import '../../data/models/batch_line.dart';
 import '../../data/models/production_suggestion.dart';
 import '../../state/production_basket_notifier.dart';
 import '../../state/production_providers.dart';
+import '../../state/running_batches_notifier.dart';
 import '../widgets/suggestion_row.dart';
 
 /// "What should we make today?"
@@ -84,7 +85,32 @@ class ProductionPlanTab extends ConsumerWidget {
           ),
         );
     _attachComponents(ref, suggestion.itemCode);
+
+    // Add used to answer with nothing but a badge on a tab one along. The
+    // line has moved to a screen the operator is not looking at, so the
+    // confirmation carries the way to it.
+    _confirmAdded(
+      context,
+      ref,
+      context.l10n.productionAddedToBatch(suggestion.itemName),
+    );
   }
+}
+
+/// Confirms a basket change and offers the one-tap route to the Batch tab.
+void _confirmAdded(BuildContext context, WidgetRef ref, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message),
+      action: SnackBarAction(
+        label: context.l10n.productionViewBatch,
+        // The host listens for this and animates; the Batch tab already asks
+        // to be left the same way after a start.
+        onPressed: () => ref.read(productionTabRequestProvider.notifier).state =
+            kProductionBatchTabIndex,
+      ),
+    ),
+  );
 }
 
 /// Backfills a line's component list once its BOM resolves.
@@ -240,7 +266,24 @@ class _PlanHeader extends ConsumerWidget {
         ..write(l10n.productionFillTheDaySkipped(result.skippedNoMaterials));
     }
 
-    messenger.showSnackBar(SnackBar(content: Text(message.toString())));
+    // Same reasoning as a single Add: without the action the only feedback
+    // for filling the whole day is a count in a snackbar and a badge. Offered
+    // only when something is actually queued, so the tap cannot land on an
+    // empty tab.
+    final queued = ref.read(productionBasketProvider).isNotEmpty;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(message.toString()),
+        action: queued
+            ? SnackBarAction(
+                label: l10n.productionViewBatch,
+                onPressed: () =>
+                    ref.read(productionTabRequestProvider.notifier).state =
+                        kProductionBatchTabIndex,
+              )
+            : null,
+      ),
+    );
   }
 }
 
