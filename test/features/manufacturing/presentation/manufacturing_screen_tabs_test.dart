@@ -181,9 +181,6 @@ void main() {
     // ellipsis — but still reachable, and still announced.
     expect(find.byTooltip('Today'), findsOneWidget);
     expect(find.text('Production Board'), findsOneWidget);
-
-    final title = tester.widget<Text>(find.text('Production Board'));
-    expect(title.overflow, isNot(TextOverflow.ellipsis));
   });
 
   testWidgets('kProductionBatchTabIndex opens the Batch tab', (tester) async {

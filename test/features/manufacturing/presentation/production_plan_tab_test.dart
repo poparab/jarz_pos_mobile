@@ -96,6 +96,68 @@ Future<void> _drainSnackBar(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// Pumps the tab inside a shell that can replace it while a SnackBar is up.
+///
+/// The bar is raised on the root messenger, so leaving the screen does not
+/// take it with you — this reproduces Add, then Today, then "View batch".
+Future<void> _pumpReplaceable(
+  WidgetTester tester,
+  ProductionSuggestionsPage page,
+) async {
+  // A plain ProviderScope, disposed WITH the tree: an externally owned
+  // container outlives it, and the BOM prefetch's timer is then still alive
+  // when the binding checks for pending timers.
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        productionBasketRepositoryProvider
+            .overrideWithValue(_FakeBasketRepository()),
+        productionSuggestionsProvider.overrideWith(
+          () => _StubSuggestionsNotifier(page),
+        ),
+      ],
+      child: MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const _Swappable(),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+/// Shows the Plan tab until "leave" is tapped, then shows something else —
+/// standing in for navigating away while the confirmation is still visible.
+class _Swappable extends StatefulWidget {
+  const _Swappable();
+  @override
+  State<_Swappable> createState() => _SwappableState();
+}
+
+class _SwappableState extends State<_Swappable> {
+  bool _gone = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        actions: [
+          TextButton(
+            onPressed: () => setState(() => _gone = true),
+            child: const Text('leave'),
+          ),
+        ],
+      ),
+      body: _gone ? const Text('somewhere else') : const ProductionPlanTab(),
+    );
+  }
+}
+
 class _StubSuggestionsNotifier extends ProductionSuggestionsNotifier {
   _StubSuggestionsNotifier(this._page);
   final ProductionSuggestionsPage _page;
@@ -440,5 +502,82 @@ void main() {
 
     expect(_container(tester).read(productionBasketProvider).isEmpty, isTrue);
     expect(find.text('View batch'), findsNothing);
+  });
+
+  testWidgets('View batch survives leaving the tab that raised it',
+      (tester) async {
+    // The regression: the action used to hold this tab's `ref`, and the bar
+    // is raised on the ROOT messenger, so it is still on screen after the
+    // board's "Today" action swaps the tab away. Reading a disposed ref
+    // throws a real StateError — in release too — and the button dies.
+    await _pumpReplaceable(
+      tester,
+      ProductionSuggestionsPage(
+        items: [_item(itemCode: 'CAKE-A')],
+        season: const ProductionSeason(name: null, multiplier: 1),
+        defaultTargetDays: 10,
+        thresholds: const ProductionThresholds(
+          criticalDays: 5,
+          watchDays: 14,
+          overstockDays: 90,
+        ),
+        summary: const ProductionSummary(critical: 1),
+        velocityUpdatedOn: '2026-08-01 00:00:00',
+      ),
+    );
+
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('leave'));
+    await tester.pumpAndSettle();
+
+    // Gone, but the confirmation is still up.
+    expect(find.byType(ProductionPlanTab), findsNothing);
+    expect(find.text('View batch'), findsOneWidget);
+
+    await tester.tap(find.text('View batch'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    // Read off a widget that is still mounted — the tab is gone.
+    final stillMounted = tester.element(find.text('somewhere else'));
+    expect(
+      ProviderScope.containerOf(stillMounted).read(productionTabRequestProvider),
+      kProductionBatchTabIndex,
+    );
+
+    ScaffoldMessenger.of(stillMounted).clearSnackBars();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a second Add replaces the first confirmation', (tester) async {
+    // Six queued bars is twenty-four seconds of stale item names over the
+    // bottom of the list.
+    await _pump(
+      tester,
+      ProductionSuggestionsPage(
+        items: [_item(itemCode: 'CAKE-A'), _item(itemCode: 'CAKE-B')],
+        season: const ProductionSeason(name: null, multiplier: 1),
+        defaultTargetDays: 10,
+        thresholds: const ProductionThresholds(
+          criticalDays: 5,
+          watchDays: 14,
+          overstockDays: 90,
+        ),
+        summary: const ProductionSummary(critical: 2),
+        velocityUpdatedOn: '2026-08-01 00:00:00',
+      ),
+    );
+
+    await tester.tap(find.text('Add').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('CAKE-A name added to the batch'), findsNothing);
+    expect(find.text('CAKE-B name added to the batch'), findsOneWidget);
+
+    await _drainSnackBar(tester);
   });
 }

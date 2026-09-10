@@ -98,19 +98,33 @@ class ProductionPlanTab extends ConsumerWidget {
 }
 
 /// Confirms a basket change and offers the one-tap route to the Batch tab.
+///
+/// The controller is read HERE, not inside `onPressed`. This bar is raised on
+/// the root `ScaffoldMessenger`, so it outlives the tab that raised it: Add,
+/// then "Today" in the app bar, and the bar is still on screen over a screen
+/// where `ProductionPlanTab` no longer exists. `ref.read` after that throws a
+/// real `StateError` — in release as well as debug — and leaves a dead button.
+/// Swiping Plan → Batch reaches the same place, because `TabBarView` disposes
+/// the page it leaves. `productionTabRequestProvider` is not autoDispose, so
+/// the controller belongs to the container and stays valid either way.
 void _confirmAdded(BuildContext context, WidgetRef ref, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      action: SnackBarAction(
-        label: context.l10n.productionViewBatch,
-        // The host listens for this and animates; the Batch tab already asks
-        // to be left the same way after a start.
-        onPressed: () => ref.read(productionTabRequestProvider.notifier).state =
-            kProductionBatchTabIndex,
+  final tabRequest = ref.read(productionTabRequestProvider.notifier);
+
+  ScaffoldMessenger.of(context)
+    // One bar at a time: a row-by-row fill would otherwise queue six of them,
+    // each naming an item the operator added twenty seconds ago.
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        action: SnackBarAction(
+          label: context.l10n.productionViewBatch,
+          // The host listens for this and animates; the Batch tab already asks
+          // to be left the same way after a start.
+          onPressed: () => tabRequest.state = kProductionBatchTabIndex,
+        ),
       ),
-    ),
-  );
+    );
 }
 
 /// Backfills a line's component list once its BOM resolves.
@@ -271,19 +285,22 @@ class _PlanHeader extends ConsumerWidget {
     // only when something is actually queued, so the tap cannot land on an
     // empty tab.
     final queued = ref.read(productionBasketProvider).isNotEmpty;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(message.toString()),
-        action: queued
-            ? SnackBarAction(
-                label: l10n.productionViewBatch,
-                onPressed: () =>
-                    ref.read(productionTabRequestProvider.notifier).state =
-                        kProductionBatchTabIndex,
-              )
-            : null,
-      ),
-    );
+    // Hoisted for the same reason as in `_confirmAdded` — this header is
+    // disposed by the same gestures.
+    final tabRequest = ref.read(productionTabRequestProvider.notifier);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message.toString()),
+          action: queued
+              ? SnackBarAction(
+                  label: l10n.productionViewBatch,
+                  onPressed: () => tabRequest.state = kProductionBatchTabIndex,
+                )
+              : null,
+        ),
+      );
   }
 }
 

@@ -53,7 +53,14 @@ class _ManufacturingScreenState extends ConsumerState<ManufacturingScreen>
     // Hive opens asynchronously, so the basket is hydrated after first frame
     // rather than in the notifier's build().
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) ref.read(productionBasketProvider.notifier).restore();
+      if (!mounted) return;
+      ref.read(productionBasketProvider.notifier).restore();
+      // A tab request left set while no host was listening would otherwise
+      // deaden the next one: `ref.listen` does not replay the current value on
+      // subscribe, and re-assigning the same int notifies nobody
+      // (`identical(2, 2)`), so "View batch" would be dead for the rest of the
+      // app process. Clearing on mount keeps the one-shot one-shot.
+      ref.read(productionTabRequestProvider.notifier).state = null;
     });
   }
 
