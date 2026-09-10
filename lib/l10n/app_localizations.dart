@@ -19844,6 +19844,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{first} and {last}'**
   String creditListJoin(Object first, Object last);
+
+  /// No description provided for @creditAccountBranchScopeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This balance covers the branches you can see. A payment always clears the shop\'\'s oldest invoices first across every branch, so it can settle invoices that are not listed here.'**
+  String get creditAccountBranchScopeNote;
+
+  /// No description provided for @creditAccountNoOpenInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'No open invoices for this shop.'**
+  String get creditAccountNoOpenInvoices;
+
+  /// No description provided for @creditPaymentResultAlreadyRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'This payment was already recorded. The {amount} went in earlier and nothing was posted a second time.'**
+  String creditPaymentResultAlreadyRecorded(Object amount);
+
+  /// No description provided for @creditPaymentResultAlreadyRecordedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh the account to see the balance after it.'**
+  String get creditPaymentResultAlreadyRecordedHint;
+
+  /// No description provided for @creditPaymentResultAlreadyRecordedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Already recorded'**
+  String get creditPaymentResultAlreadyRecordedTitle;
 }
 
 class _AppLocalizationsDelegate

@@ -12032,4 +12032,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String creditListJoin(Object first, Object last) {
     return '$first and $last';
   }
+
+  @override
+  String get creditAccountBranchScopeNote =>
+      'This balance covers the branches you can see. A payment always clears the shop\'s oldest invoices first across every branch, so it can settle invoices that are not listed here.';
+
+  @override
+  String get creditAccountNoOpenInvoices => 'No open invoices for this shop.';
+
+  @override
+  String creditPaymentResultAlreadyRecorded(Object amount) {
+    return 'This payment was already recorded. The $amount went in earlier and nothing was posted a second time.';
+  }
+
+  @override
+  String get creditPaymentResultAlreadyRecordedHint =>
+      'Refresh the account to see the balance after it.';
+
+  @override
+  String get creditPaymentResultAlreadyRecordedTitle => 'Already recorded';
 }

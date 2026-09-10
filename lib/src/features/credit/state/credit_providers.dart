@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../pos/data/repositories/pos_repository.dart';
+import '../data/credit_payment_token.dart';
 import '../data/credit_repository.dart';
 import '../data/models/credit_models.dart';
 
@@ -64,6 +65,21 @@ final customerCreditProfileProvider =
   final repository = ref.watch(creditRepositoryProvider);
   return repository.getCustomerCreditProfile(customer);
 });
+
+/// The in-flight payment attempt for one shop, so a retry is recognisable as
+/// a retry.
+///
+/// Lives here, not in the sheet's state, because the most dangerous retry is
+/// the one that crosses a sheet: the request times out, the operator closes
+/// the sheet, reopens it a few minutes later and enters the same figure again.
+/// A token held in widget state would be gone by then and the payment would be
+/// booked twice — the exact failure the token exists to prevent. Deliberately
+/// NOT autoDispose for the same reason; the cost is one tiny object per
+/// customer settled in a session.
+final creditPaymentIdempotencyProvider =
+    Provider.family<CreditPaymentIdempotency, String>(
+  (ref, customer) => CreditPaymentIdempotency(),
+);
 
 /// The POS profiles the record-payment sheet can post against.
 ///

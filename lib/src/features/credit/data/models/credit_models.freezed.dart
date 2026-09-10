@@ -994,10 +994,21 @@ mixin _$CreditCustomerRow {
   String get customerName => throw _privateConstructorUsedError;
 
   /// ALL-TIME, never bounded by the ledger's date window.
-  @JsonKey(name: 'total_outstanding', fromJson: creditDouble)
-  double get totalOutstanding => throw _privateConstructorUsedError;
+  ///
+  /// The wire key is **`outstanding`**, singular, and only on the row.
+  /// `total_outstanding` is the SUMMARY's key; reading it here is what shipped
+  /// to production reading 0.00 for every shop, emptying the accounts list and
+  /// making the payment sheet reject every amount as over-balance. The
+  /// tolerant reader accepts the summary spelling too, so a backend that ever
+  /// unifies them cannot break this screen a second time.
+  @JsonKey(
+    name: 'outstanding',
+    readValue: readRowOutstanding,
+    fromJson: creditDouble,
+  )
+  double get outstanding => throw _privateConstructorUsedError;
 
-  /// Open invoices behind [totalOutstanding] — this one IS the count behind
+  /// Open invoices behind [outstanding] — this one IS the count behind
   /// the balance, unlike `CreditLedgerSummary.invoiceCount`.
   @JsonKey(name: 'invoice_count', fromJson: creditInt)
   int get invoiceCount => throw _privateConstructorUsedError;
@@ -1005,6 +1016,19 @@ mixin _$CreditCustomerRow {
   /// Posting date of the oldest still-open invoice, `YYYY-MM-DD`.
   @JsonKey(name: 'oldest_invoice_date')
   String get oldestInvoiceDate => throw _privateConstructorUsedError;
+
+  /// The server's own ageing of that invoice. Preferred over recomputing
+  /// from the date, because the server ages against ITS today, not the
+  /// handset's — a device with a wrong clock cannot invent an age here.
+  @JsonKey(name: 'oldest_age_days', fromJson: creditIntOrNull)
+  int? get oldestAgeDays => throw _privateConstructorUsedError;
+
+  /// THE list of genuinely open invoices for this shop, oldest first, with
+  /// no date window applied — the same rows, in the same order, that a
+  /// payment is allocated against. Distinct from `CreditLedger.invoices`,
+  /// which is a windowed activity feed that includes fully-paid invoices.
+  @JsonKey(name: 'open_invoices')
+  List<CreditInvoice> get openInvoices => throw _privateConstructorUsedError;
   String get currency => throw _privateConstructorUsedError;
 
   /// Serializes this CreditCustomerRow to a JSON map.
@@ -1027,10 +1051,17 @@ abstract class $CreditCustomerRowCopyWith<$Res> {
   $Res call({
     String customer,
     @JsonKey(name: 'customer_name') String customerName,
-    @JsonKey(name: 'total_outstanding', fromJson: creditDouble)
-    double totalOutstanding,
+    @JsonKey(
+      name: 'outstanding',
+      readValue: readRowOutstanding,
+      fromJson: creditDouble,
+    )
+    double outstanding,
     @JsonKey(name: 'invoice_count', fromJson: creditInt) int invoiceCount,
     @JsonKey(name: 'oldest_invoice_date') String oldestInvoiceDate,
+    @JsonKey(name: 'oldest_age_days', fromJson: creditIntOrNull)
+    int? oldestAgeDays,
+    @JsonKey(name: 'open_invoices') List<CreditInvoice> openInvoices,
     String currency,
   });
 }
@@ -1052,9 +1083,11 @@ class _$CreditCustomerRowCopyWithImpl<$Res, $Val extends CreditCustomerRow>
   $Res call({
     Object? customer = null,
     Object? customerName = null,
-    Object? totalOutstanding = null,
+    Object? outstanding = null,
     Object? invoiceCount = null,
     Object? oldestInvoiceDate = null,
+    Object? oldestAgeDays = freezed,
+    Object? openInvoices = null,
     Object? currency = null,
   }) {
     return _then(
@@ -1067,9 +1100,9 @@ class _$CreditCustomerRowCopyWithImpl<$Res, $Val extends CreditCustomerRow>
                 ? _value.customerName
                 : customerName // ignore: cast_nullable_to_non_nullable
                       as String,
-            totalOutstanding: null == totalOutstanding
-                ? _value.totalOutstanding
-                : totalOutstanding // ignore: cast_nullable_to_non_nullable
+            outstanding: null == outstanding
+                ? _value.outstanding
+                : outstanding // ignore: cast_nullable_to_non_nullable
                       as double,
             invoiceCount: null == invoiceCount
                 ? _value.invoiceCount
@@ -1079,6 +1112,14 @@ class _$CreditCustomerRowCopyWithImpl<$Res, $Val extends CreditCustomerRow>
                 ? _value.oldestInvoiceDate
                 : oldestInvoiceDate // ignore: cast_nullable_to_non_nullable
                       as String,
+            oldestAgeDays: freezed == oldestAgeDays
+                ? _value.oldestAgeDays
+                : oldestAgeDays // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            openInvoices: null == openInvoices
+                ? _value.openInvoices
+                : openInvoices // ignore: cast_nullable_to_non_nullable
+                      as List<CreditInvoice>,
             currency: null == currency
                 ? _value.currency
                 : currency // ignore: cast_nullable_to_non_nullable
@@ -1101,10 +1142,17 @@ abstract class _$$CreditCustomerRowImplCopyWith<$Res>
   $Res call({
     String customer,
     @JsonKey(name: 'customer_name') String customerName,
-    @JsonKey(name: 'total_outstanding', fromJson: creditDouble)
-    double totalOutstanding,
+    @JsonKey(
+      name: 'outstanding',
+      readValue: readRowOutstanding,
+      fromJson: creditDouble,
+    )
+    double outstanding,
     @JsonKey(name: 'invoice_count', fromJson: creditInt) int invoiceCount,
     @JsonKey(name: 'oldest_invoice_date') String oldestInvoiceDate,
+    @JsonKey(name: 'oldest_age_days', fromJson: creditIntOrNull)
+    int? oldestAgeDays,
+    @JsonKey(name: 'open_invoices') List<CreditInvoice> openInvoices,
     String currency,
   });
 }
@@ -1125,9 +1173,11 @@ class __$$CreditCustomerRowImplCopyWithImpl<$Res>
   $Res call({
     Object? customer = null,
     Object? customerName = null,
-    Object? totalOutstanding = null,
+    Object? outstanding = null,
     Object? invoiceCount = null,
     Object? oldestInvoiceDate = null,
+    Object? oldestAgeDays = freezed,
+    Object? openInvoices = null,
     Object? currency = null,
   }) {
     return _then(
@@ -1140,9 +1190,9 @@ class __$$CreditCustomerRowImplCopyWithImpl<$Res>
             ? _value.customerName
             : customerName // ignore: cast_nullable_to_non_nullable
                   as String,
-        totalOutstanding: null == totalOutstanding
-            ? _value.totalOutstanding
-            : totalOutstanding // ignore: cast_nullable_to_non_nullable
+        outstanding: null == outstanding
+            ? _value.outstanding
+            : outstanding // ignore: cast_nullable_to_non_nullable
                   as double,
         invoiceCount: null == invoiceCount
             ? _value.invoiceCount
@@ -1152,6 +1202,14 @@ class __$$CreditCustomerRowImplCopyWithImpl<$Res>
             ? _value.oldestInvoiceDate
             : oldestInvoiceDate // ignore: cast_nullable_to_non_nullable
                   as String,
+        oldestAgeDays: freezed == oldestAgeDays
+            ? _value.oldestAgeDays
+            : oldestAgeDays // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        openInvoices: null == openInvoices
+            ? _value._openInvoices
+            : openInvoices // ignore: cast_nullable_to_non_nullable
+                  as List<CreditInvoice>,
         currency: null == currency
             ? _value.currency
             : currency // ignore: cast_nullable_to_non_nullable
@@ -1167,12 +1225,21 @@ class _$CreditCustomerRowImpl extends _CreditCustomerRow {
   const _$CreditCustomerRowImpl({
     this.customer = '',
     @JsonKey(name: 'customer_name') this.customerName = '',
-    @JsonKey(name: 'total_outstanding', fromJson: creditDouble)
-    this.totalOutstanding = 0.0,
+    @JsonKey(
+      name: 'outstanding',
+      readValue: readRowOutstanding,
+      fromJson: creditDouble,
+    )
+    this.outstanding = 0.0,
     @JsonKey(name: 'invoice_count', fromJson: creditInt) this.invoiceCount = 0,
     @JsonKey(name: 'oldest_invoice_date') this.oldestInvoiceDate = '',
+    @JsonKey(name: 'oldest_age_days', fromJson: creditIntOrNull)
+    this.oldestAgeDays,
+    @JsonKey(name: 'open_invoices')
+    final List<CreditInvoice> openInvoices = const <CreditInvoice>[],
     this.currency = '',
-  }) : super._();
+  }) : _openInvoices = openInvoices,
+       super._();
 
   factory _$CreditCustomerRowImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreditCustomerRowImplFromJson(json);
@@ -1185,11 +1252,22 @@ class _$CreditCustomerRowImpl extends _CreditCustomerRow {
   final String customerName;
 
   /// ALL-TIME, never bounded by the ledger's date window.
+  ///
+  /// The wire key is **`outstanding`**, singular, and only on the row.
+  /// `total_outstanding` is the SUMMARY's key; reading it here is what shipped
+  /// to production reading 0.00 for every shop, emptying the accounts list and
+  /// making the payment sheet reject every amount as over-balance. The
+  /// tolerant reader accepts the summary spelling too, so a backend that ever
+  /// unifies them cannot break this screen a second time.
   @override
-  @JsonKey(name: 'total_outstanding', fromJson: creditDouble)
-  final double totalOutstanding;
+  @JsonKey(
+    name: 'outstanding',
+    readValue: readRowOutstanding,
+    fromJson: creditDouble,
+  )
+  final double outstanding;
 
-  /// Open invoices behind [totalOutstanding] — this one IS the count behind
+  /// Open invoices behind [outstanding] — this one IS the count behind
   /// the balance, unlike `CreditLedgerSummary.invoiceCount`.
   @override
   @JsonKey(name: 'invoice_count', fromJson: creditInt)
@@ -1199,13 +1277,39 @@ class _$CreditCustomerRowImpl extends _CreditCustomerRow {
   @override
   @JsonKey(name: 'oldest_invoice_date')
   final String oldestInvoiceDate;
+
+  /// The server's own ageing of that invoice. Preferred over recomputing
+  /// from the date, because the server ages against ITS today, not the
+  /// handset's — a device with a wrong clock cannot invent an age here.
+  @override
+  @JsonKey(name: 'oldest_age_days', fromJson: creditIntOrNull)
+  final int? oldestAgeDays;
+
+  /// THE list of genuinely open invoices for this shop, oldest first, with
+  /// no date window applied — the same rows, in the same order, that a
+  /// payment is allocated against. Distinct from `CreditLedger.invoices`,
+  /// which is a windowed activity feed that includes fully-paid invoices.
+  final List<CreditInvoice> _openInvoices;
+
+  /// THE list of genuinely open invoices for this shop, oldest first, with
+  /// no date window applied — the same rows, in the same order, that a
+  /// payment is allocated against. Distinct from `CreditLedger.invoices`,
+  /// which is a windowed activity feed that includes fully-paid invoices.
+  @override
+  @JsonKey(name: 'open_invoices')
+  List<CreditInvoice> get openInvoices {
+    if (_openInvoices is EqualUnmodifiableListView) return _openInvoices;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_openInvoices);
+  }
+
   @override
   @JsonKey()
   final String currency;
 
   @override
   String toString() {
-    return 'CreditCustomerRow(customer: $customer, customerName: $customerName, totalOutstanding: $totalOutstanding, invoiceCount: $invoiceCount, oldestInvoiceDate: $oldestInvoiceDate, currency: $currency)';
+    return 'CreditCustomerRow(customer: $customer, customerName: $customerName, outstanding: $outstanding, invoiceCount: $invoiceCount, oldestInvoiceDate: $oldestInvoiceDate, oldestAgeDays: $oldestAgeDays, openInvoices: $openInvoices, currency: $currency)';
   }
 
   @override
@@ -1217,12 +1321,18 @@ class _$CreditCustomerRowImpl extends _CreditCustomerRow {
                 other.customer == customer) &&
             (identical(other.customerName, customerName) ||
                 other.customerName == customerName) &&
-            (identical(other.totalOutstanding, totalOutstanding) ||
-                other.totalOutstanding == totalOutstanding) &&
+            (identical(other.outstanding, outstanding) ||
+                other.outstanding == outstanding) &&
             (identical(other.invoiceCount, invoiceCount) ||
                 other.invoiceCount == invoiceCount) &&
             (identical(other.oldestInvoiceDate, oldestInvoiceDate) ||
                 other.oldestInvoiceDate == oldestInvoiceDate) &&
+            (identical(other.oldestAgeDays, oldestAgeDays) ||
+                other.oldestAgeDays == oldestAgeDays) &&
+            const DeepCollectionEquality().equals(
+              other._openInvoices,
+              _openInvoices,
+            ) &&
             (identical(other.currency, currency) ||
                 other.currency == currency));
   }
@@ -1233,9 +1343,11 @@ class _$CreditCustomerRowImpl extends _CreditCustomerRow {
     runtimeType,
     customer,
     customerName,
-    totalOutstanding,
+    outstanding,
     invoiceCount,
     oldestInvoiceDate,
+    oldestAgeDays,
+    const DeepCollectionEquality().hash(_openInvoices),
     currency,
   );
 
@@ -1260,10 +1372,17 @@ abstract class _CreditCustomerRow extends CreditCustomerRow {
   const factory _CreditCustomerRow({
     final String customer,
     @JsonKey(name: 'customer_name') final String customerName,
-    @JsonKey(name: 'total_outstanding', fromJson: creditDouble)
-    final double totalOutstanding,
+    @JsonKey(
+      name: 'outstanding',
+      readValue: readRowOutstanding,
+      fromJson: creditDouble,
+    )
+    final double outstanding,
     @JsonKey(name: 'invoice_count', fromJson: creditInt) final int invoiceCount,
     @JsonKey(name: 'oldest_invoice_date') final String oldestInvoiceDate,
+    @JsonKey(name: 'oldest_age_days', fromJson: creditIntOrNull)
+    final int? oldestAgeDays,
+    @JsonKey(name: 'open_invoices') final List<CreditInvoice> openInvoices,
     final String currency,
   }) = _$CreditCustomerRowImpl;
   const _CreditCustomerRow._() : super._();
@@ -1278,11 +1397,22 @@ abstract class _CreditCustomerRow extends CreditCustomerRow {
   String get customerName;
 
   /// ALL-TIME, never bounded by the ledger's date window.
+  ///
+  /// The wire key is **`outstanding`**, singular, and only on the row.
+  /// `total_outstanding` is the SUMMARY's key; reading it here is what shipped
+  /// to production reading 0.00 for every shop, emptying the accounts list and
+  /// making the payment sheet reject every amount as over-balance. The
+  /// tolerant reader accepts the summary spelling too, so a backend that ever
+  /// unifies them cannot break this screen a second time.
   @override
-  @JsonKey(name: 'total_outstanding', fromJson: creditDouble)
-  double get totalOutstanding;
+  @JsonKey(
+    name: 'outstanding',
+    readValue: readRowOutstanding,
+    fromJson: creditDouble,
+  )
+  double get outstanding;
 
-  /// Open invoices behind [totalOutstanding] — this one IS the count behind
+  /// Open invoices behind [outstanding] — this one IS the count behind
   /// the balance, unlike `CreditLedgerSummary.invoiceCount`.
   @override
   @JsonKey(name: 'invoice_count', fromJson: creditInt)
@@ -1292,6 +1422,21 @@ abstract class _CreditCustomerRow extends CreditCustomerRow {
   @override
   @JsonKey(name: 'oldest_invoice_date')
   String get oldestInvoiceDate;
+
+  /// The server's own ageing of that invoice. Preferred over recomputing
+  /// from the date, because the server ages against ITS today, not the
+  /// handset's — a device with a wrong clock cannot invent an age here.
+  @override
+  @JsonKey(name: 'oldest_age_days', fromJson: creditIntOrNull)
+  int? get oldestAgeDays;
+
+  /// THE list of genuinely open invoices for this shop, oldest first, with
+  /// no date window applied — the same rows, in the same order, that a
+  /// payment is allocated against. Distinct from `CreditLedger.invoices`,
+  /// which is a windowed activity feed that includes fully-paid invoices.
+  @override
+  @JsonKey(name: 'open_invoices')
+  List<CreditInvoice> get openInvoices;
   @override
   String get currency;
 
@@ -1322,7 +1467,15 @@ mixin _$CreditInvoice {
   String get dueDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'grand_total', fromJson: creditDouble)
   double get grandTotal => throw _privateConstructorUsedError;
-  @JsonKey(name: 'outstanding_amount', fromJson: creditDouble)
+
+  /// `outstanding_amount` in the activity feed, but the per-customer
+  /// `open_invoices` rows spell it `outstanding`, exactly as the customer row
+  /// does. Both are read so one list model serves both shapes.
+  @JsonKey(
+    name: 'outstanding_amount',
+    readValue: readInvoiceOutstanding,
+    fromJson: creditDouble,
+  )
   double get outstandingAmount => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
   @JsonKey(name: 'pos_profile')
@@ -1355,7 +1508,11 @@ abstract class $CreditInvoiceCopyWith<$Res> {
     @JsonKey(name: 'posting_date') String postingDate,
     @JsonKey(name: 'due_date') String dueDate,
     @JsonKey(name: 'grand_total', fromJson: creditDouble) double grandTotal,
-    @JsonKey(name: 'outstanding_amount', fromJson: creditDouble)
+    @JsonKey(
+      name: 'outstanding_amount',
+      readValue: readInvoiceOutstanding,
+      fromJson: creditDouble,
+    )
     double outstandingAmount,
     String status,
     @JsonKey(name: 'pos_profile') String posProfile,
@@ -1462,7 +1619,11 @@ abstract class _$$CreditInvoiceImplCopyWith<$Res>
     @JsonKey(name: 'posting_date') String postingDate,
     @JsonKey(name: 'due_date') String dueDate,
     @JsonKey(name: 'grand_total', fromJson: creditDouble) double grandTotal,
-    @JsonKey(name: 'outstanding_amount', fromJson: creditDouble)
+    @JsonKey(
+      name: 'outstanding_amount',
+      readValue: readInvoiceOutstanding,
+      fromJson: creditDouble,
+    )
     double outstandingAmount,
     String status,
     @JsonKey(name: 'pos_profile') String posProfile,
@@ -1561,7 +1722,11 @@ class _$CreditInvoiceImpl extends _CreditInvoice {
     @JsonKey(name: 'posting_date') this.postingDate = '',
     @JsonKey(name: 'due_date') this.dueDate = '',
     @JsonKey(name: 'grand_total', fromJson: creditDouble) this.grandTotal = 0.0,
-    @JsonKey(name: 'outstanding_amount', fromJson: creditDouble)
+    @JsonKey(
+      name: 'outstanding_amount',
+      readValue: readInvoiceOutstanding,
+      fromJson: creditDouble,
+    )
     this.outstandingAmount = 0.0,
     this.status = '',
     @JsonKey(name: 'pos_profile') this.posProfile = '',
@@ -1593,8 +1758,16 @@ class _$CreditInvoiceImpl extends _CreditInvoice {
   @override
   @JsonKey(name: 'grand_total', fromJson: creditDouble)
   final double grandTotal;
+
+  /// `outstanding_amount` in the activity feed, but the per-customer
+  /// `open_invoices` rows spell it `outstanding`, exactly as the customer row
+  /// does. Both are read so one list model serves both shapes.
   @override
-  @JsonKey(name: 'outstanding_amount', fromJson: creditDouble)
+  @JsonKey(
+    name: 'outstanding_amount',
+    readValue: readInvoiceOutstanding,
+    fromJson: creditDouble,
+  )
   final double outstandingAmount;
   @override
   @JsonKey()
@@ -1685,7 +1858,11 @@ abstract class _CreditInvoice extends CreditInvoice {
     @JsonKey(name: 'due_date') final String dueDate,
     @JsonKey(name: 'grand_total', fromJson: creditDouble)
     final double grandTotal,
-    @JsonKey(name: 'outstanding_amount', fromJson: creditDouble)
+    @JsonKey(
+      name: 'outstanding_amount',
+      readValue: readInvoiceOutstanding,
+      fromJson: creditDouble,
+    )
     final double outstandingAmount,
     final String status,
     @JsonKey(name: 'pos_profile') final String posProfile,
@@ -1717,8 +1894,16 @@ abstract class _CreditInvoice extends CreditInvoice {
   @override
   @JsonKey(name: 'grand_total', fromJson: creditDouble)
   double get grandTotal;
+
+  /// `outstanding_amount` in the activity feed, but the per-customer
+  /// `open_invoices` rows spell it `outstanding`, exactly as the customer row
+  /// does. Both are read so one list model serves both shapes.
   @override
-  @JsonKey(name: 'outstanding_amount', fromJson: creditDouble)
+  @JsonKey(
+    name: 'outstanding_amount',
+    readValue: readInvoiceOutstanding,
+    fromJson: creditDouble,
+  )
   double get outstandingAmount;
   @override
   String get status;
@@ -2484,6 +2669,20 @@ mixin _$CreditPaymentResult {
       throw _privateConstructorUsedError;
   String get currency => throw _privateConstructorUsedError;
 
+  /// The replay branch: this exact attempt was already posted, so the server
+  /// returned the ORIGINAL Payment Entry and did nothing.
+  ///
+  /// That response carries no `allocations`, no `unallocated_amount` and no
+  /// `remaining_balance` — every field the result dialog is built from. Not
+  /// parsing these three keys is what made a replay render a title, an id and
+  /// nothing else, which is exactly the blank screen that earns a third tap
+  /// and, before the token existed, a third payment.
+  @JsonKey(name: 'already_recorded', fromJson: creditBool)
+  bool get alreadyRecorded => throw _privateConstructorUsedError;
+  @JsonKey(name: 'notice_code')
+  String? get noticeCode => throw _privateConstructorUsedError;
+  String? get notice => throw _privateConstructorUsedError;
+
   /// Serializes this CreditPaymentResult to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -2524,6 +2723,10 @@ abstract class $CreditPaymentResultCopyWith<$Res> {
     @JsonKey(name: 'allocations', readValue: readAllocations)
     List<CreditPaymentAllocation> allocations,
     String currency,
+    @JsonKey(name: 'already_recorded', fromJson: creditBool)
+    bool alreadyRecorded,
+    @JsonKey(name: 'notice_code') String? noticeCode,
+    String? notice,
   });
 }
 
@@ -2552,6 +2755,9 @@ class _$CreditPaymentResultCopyWithImpl<$Res, $Val extends CreditPaymentResult>
     Object? remainingBalance = freezed,
     Object? allocations = null,
     Object? currency = null,
+    Object? alreadyRecorded = null,
+    Object? noticeCode = freezed,
+    Object? notice = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -2595,6 +2801,18 @@ class _$CreditPaymentResultCopyWithImpl<$Res, $Val extends CreditPaymentResult>
                 ? _value.currency
                 : currency // ignore: cast_nullable_to_non_nullable
                       as String,
+            alreadyRecorded: null == alreadyRecorded
+                ? _value.alreadyRecorded
+                : alreadyRecorded // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            noticeCode: freezed == noticeCode
+                ? _value.noticeCode
+                : noticeCode // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            notice: freezed == notice
+                ? _value.notice
+                : notice // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -2633,6 +2851,10 @@ abstract class _$$CreditPaymentResultImplCopyWith<$Res>
     @JsonKey(name: 'allocations', readValue: readAllocations)
     List<CreditPaymentAllocation> allocations,
     String currency,
+    @JsonKey(name: 'already_recorded', fromJson: creditBool)
+    bool alreadyRecorded,
+    @JsonKey(name: 'notice_code') String? noticeCode,
+    String? notice,
   });
 }
 
@@ -2660,6 +2882,9 @@ class __$$CreditPaymentResultImplCopyWithImpl<$Res>
     Object? remainingBalance = freezed,
     Object? allocations = null,
     Object? currency = null,
+    Object? alreadyRecorded = null,
+    Object? noticeCode = freezed,
+    Object? notice = freezed,
   }) {
     return _then(
       _$CreditPaymentResultImpl(
@@ -2703,6 +2928,18 @@ class __$$CreditPaymentResultImplCopyWithImpl<$Res>
             ? _value.currency
             : currency // ignore: cast_nullable_to_non_nullable
                   as String,
+        alreadyRecorded: null == alreadyRecorded
+            ? _value.alreadyRecorded
+            : alreadyRecorded // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        noticeCode: freezed == noticeCode
+            ? _value.noticeCode
+            : noticeCode // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        notice: freezed == notice
+            ? _value.notice
+            : notice // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -2735,6 +2972,10 @@ class _$CreditPaymentResultImpl extends _CreditPaymentResult {
     final List<CreditPaymentAllocation> allocations =
         const <CreditPaymentAllocation>[],
     this.currency = '',
+    @JsonKey(name: 'already_recorded', fromJson: creditBool)
+    this.alreadyRecorded = false,
+    @JsonKey(name: 'notice_code') this.noticeCode,
+    this.notice,
   }) : _allocations = allocations,
        super._();
 
@@ -2790,9 +3031,26 @@ class _$CreditPaymentResultImpl extends _CreditPaymentResult {
   @JsonKey()
   final String currency;
 
+  /// The replay branch: this exact attempt was already posted, so the server
+  /// returned the ORIGINAL Payment Entry and did nothing.
+  ///
+  /// That response carries no `allocations`, no `unallocated_amount` and no
+  /// `remaining_balance` — every field the result dialog is built from. Not
+  /// parsing these three keys is what made a replay render a title, an id and
+  /// nothing else, which is exactly the blank screen that earns a third tap
+  /// and, before the token existed, a third payment.
+  @override
+  @JsonKey(name: 'already_recorded', fromJson: creditBool)
+  final bool alreadyRecorded;
+  @override
+  @JsonKey(name: 'notice_code')
+  final String? noticeCode;
+  @override
+  final String? notice;
+
   @override
   String toString() {
-    return 'CreditPaymentResult(success: $success, paymentEntry: $paymentEntry, customer: $customer, customerName: $customerName, amount: $amount, totalAllocated: $totalAllocated, unallocatedAmount: $unallocatedAmount, remainingBalance: $remainingBalance, allocations: $allocations, currency: $currency)';
+    return 'CreditPaymentResult(success: $success, paymentEntry: $paymentEntry, customer: $customer, customerName: $customerName, amount: $amount, totalAllocated: $totalAllocated, unallocatedAmount: $unallocatedAmount, remainingBalance: $remainingBalance, allocations: $allocations, currency: $currency, alreadyRecorded: $alreadyRecorded, noticeCode: $noticeCode, notice: $notice)';
   }
 
   @override
@@ -2819,7 +3077,12 @@ class _$CreditPaymentResultImpl extends _CreditPaymentResult {
               _allocations,
             ) &&
             (identical(other.currency, currency) ||
-                other.currency == currency));
+                other.currency == currency) &&
+            (identical(other.alreadyRecorded, alreadyRecorded) ||
+                other.alreadyRecorded == alreadyRecorded) &&
+            (identical(other.noticeCode, noticeCode) ||
+                other.noticeCode == noticeCode) &&
+            (identical(other.notice, notice) || other.notice == notice));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2836,6 +3099,9 @@ class _$CreditPaymentResultImpl extends _CreditPaymentResult {
     remainingBalance,
     const DeepCollectionEquality().hash(_allocations),
     currency,
+    alreadyRecorded,
+    noticeCode,
+    notice,
   );
 
   /// Create a copy of CreditPaymentResult
@@ -2879,6 +3145,10 @@ abstract class _CreditPaymentResult extends CreditPaymentResult {
     @JsonKey(name: 'allocations', readValue: readAllocations)
     final List<CreditPaymentAllocation> allocations,
     final String currency,
+    @JsonKey(name: 'already_recorded', fromJson: creditBool)
+    final bool alreadyRecorded,
+    @JsonKey(name: 'notice_code') final String? noticeCode,
+    final String? notice,
   }) = _$CreditPaymentResultImpl;
   const _CreditPaymentResult._() : super._();
 
@@ -2924,6 +3194,23 @@ abstract class _CreditPaymentResult extends CreditPaymentResult {
   List<CreditPaymentAllocation> get allocations;
   @override
   String get currency;
+
+  /// The replay branch: this exact attempt was already posted, so the server
+  /// returned the ORIGINAL Payment Entry and did nothing.
+  ///
+  /// That response carries no `allocations`, no `unallocated_amount` and no
+  /// `remaining_balance` — every field the result dialog is built from. Not
+  /// parsing these three keys is what made a replay render a title, an id and
+  /// nothing else, which is exactly the blank screen that earns a third tap
+  /// and, before the token existed, a third payment.
+  @override
+  @JsonKey(name: 'already_recorded', fromJson: creditBool)
+  bool get alreadyRecorded;
+  @override
+  @JsonKey(name: 'notice_code')
+  String? get noticeCode;
+  @override
+  String? get notice;
 
   /// Create a copy of CreditPaymentResult
   /// with the given fields replaced by the non-null parameter values.

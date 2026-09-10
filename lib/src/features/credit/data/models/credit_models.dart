@@ -134,11 +134,22 @@ class CreditCustomerRow with _$CreditCustomerRow {
     @JsonKey(name: 'customer_name') @Default('') String customerName,
 
     /// ALL-TIME, never bounded by the ledger's date window.
-    @JsonKey(name: 'total_outstanding', fromJson: creditDouble)
+    ///
+    /// The wire key is **`outstanding`**, singular, and only on the row.
+    /// `total_outstanding` is the SUMMARY's key; reading it here is what shipped
+    /// to production reading 0.00 for every shop, emptying the accounts list and
+    /// making the payment sheet reject every amount as over-balance. The
+    /// tolerant reader accepts the summary spelling too, so a backend that ever
+    /// unifies them cannot break this screen a second time.
+    @JsonKey(
+      name: 'outstanding',
+      readValue: readRowOutstanding,
+      fromJson: creditDouble,
+    )
     @Default(0.0)
-    double totalOutstanding,
+    double outstanding,
 
-    /// Open invoices behind [totalOutstanding] — this one IS the count behind
+    /// Open invoices behind [outstanding] — this one IS the count behind
     /// the balance, unlike `CreditLedgerSummary.invoiceCount`.
     @JsonKey(name: 'invoice_count', fromJson: creditInt)
     @Default(0)
@@ -146,6 +157,20 @@ class CreditCustomerRow with _$CreditCustomerRow {
 
     /// Posting date of the oldest still-open invoice, `YYYY-MM-DD`.
     @JsonKey(name: 'oldest_invoice_date') @Default('') String oldestInvoiceDate,
+
+    /// The server's own ageing of that invoice. Preferred over recomputing
+    /// from the date, because the server ages against ITS today, not the
+    /// handset's — a device with a wrong clock cannot invent an age here.
+    @JsonKey(name: 'oldest_age_days', fromJson: creditIntOrNull)
+    int? oldestAgeDays,
+
+    /// THE list of genuinely open invoices for this shop, oldest first, with
+    /// no date window applied — the same rows, in the same order, that a
+    /// payment is allocated against. Distinct from `CreditLedger.invoices`,
+    /// which is a windowed activity feed that includes fully-paid invoices.
+    @JsonKey(name: 'open_invoices')
+    @Default(<CreditInvoice>[])
+    List<CreditInvoice> openInvoices,
     @Default('') String currency,
   }) = _CreditCustomerRow;
 
@@ -159,10 +184,13 @@ class CreditCustomerRow with _$CreditCustomerRow {
   }
 
   /// Age of the oldest open invoice in whole days, or null when the backend
-  /// sent no date. This is the ONLY ageing signal the UI shows — deliberately
-  /// a neutral "45 days" and not an "OVERDUE" alarm, because rolling informal
-  /// settlement means an old invoice is normal, not an incident.
+  /// sent neither an age nor a date. This is the ONLY ageing signal the UI
+  /// shows — deliberately a neutral "45 days" and not an "OVERDUE" alarm,
+  /// because rolling informal settlement means an old invoice is normal, not
+  /// an incident.
   int? get oldestInvoiceAgeDays {
+    final reported = oldestAgeDays;
+    if (reported != null) return reported < 0 ? 0 : reported;
     final parsed = DateTime.tryParse(oldestInvoiceDate.trim());
     if (parsed == null) return null;
     final now = DateTime.now();
@@ -194,7 +222,14 @@ class CreditInvoice with _$CreditInvoice {
     @JsonKey(name: 'grand_total', fromJson: creditDouble)
     @Default(0.0)
     double grandTotal,
-    @JsonKey(name: 'outstanding_amount', fromJson: creditDouble)
+    /// `outstanding_amount` in the activity feed, but the per-customer
+    /// `open_invoices` rows spell it `outstanding`, exactly as the customer row
+    /// does. Both are read so one list model serves both shapes.
+    @JsonKey(
+      name: 'outstanding_amount',
+      readValue: readInvoiceOutstanding,
+      fromJson: creditDouble,
+    )
     @Default(0.0)
     double outstandingAmount,
     @Default('') String status,
@@ -256,12 +291,41 @@ class CreditLedger with _$CreditLedger {
   /// list screen shows this; a zero-balance shop with window activity is not
   /// a "credit account" a manager needs to chase.
   List<CreditCustomerRow> get owing =>
-      customers.where((row) => row.totalOutstanding != 0).toList();
+      customers.where((row) => row.outstanding != 0).toList();
 
-  /// The open invoices for one shop, OLDEST FIRST — the order the backend
-  /// allocates a payment in, so the detail list and the FIFO result agree.
+  /// One shop's slice of the ACTIVITY FEED, oldest first.
+  ///
+  /// This is "what happened in the selected period", nothing more: it carries
+  /// fully-paid invoices at 0.00 and it stops at the window's edge, so a debt
+  /// older than the window is simply absent. It is NOT the allocation order —
+  /// use [openInvoicesFor] for anything a payment will touch.
   List<CreditInvoice> invoicesFor(String customer) {
     final rows = invoices.where((i) => i.customer == customer).toList();
+    _sortOldestFirst(rows);
+    return rows;
+  }
+
+  /// The genuinely open invoices for one shop, OLDEST FIRST — the order the
+  /// backend allocates a payment in, so the detail list and the FIFO result
+  /// agree.
+  ///
+  /// Served by the row's own `open_invoices`, which is unwindowed and already
+  /// filtered to `outstanding > 0`. The activity feed is only a fallback for a
+  /// customer with no row at all, and even then paid invoices are dropped:
+  /// listing a settled invoice under "open invoices" is how a manager comes to
+  /// chase money that is already in.
+  List<CreditInvoice> openInvoicesFor(String customer) {
+    final row = rowFor(customer);
+    final rows = row != null && row.openInvoices.isNotEmpty
+        ? [...row.openInvoices]
+        : invoices
+            .where((i) => i.customer == customer && i.outstandingAmount != 0)
+            .toList();
+    _sortOldestFirst(rows);
+    return rows;
+  }
+
+  static void _sortOldestFirst(List<CreditInvoice> rows) {
     rows.sort((a, b) {
       final left = DateTime.tryParse(a.postingDate.trim());
       final right = DateTime.tryParse(b.postingDate.trim());
@@ -271,7 +335,6 @@ class CreditLedger with _$CreditLedger {
       final byDate = left.compareTo(right);
       return byDate != 0 ? byDate : a.invoice.compareTo(b.invoice);
     });
-    return rows;
   }
 
   CreditCustomerRow? rowFor(String customer) {
@@ -362,6 +425,20 @@ class CreditPaymentResult with _$CreditPaymentResult {
     @Default(<CreditPaymentAllocation>[])
     List<CreditPaymentAllocation> allocations,
     @Default('') String currency,
+
+    /// The replay branch: this exact attempt was already posted, so the server
+    /// returned the ORIGINAL Payment Entry and did nothing.
+    ///
+    /// That response carries no `allocations`, no `unallocated_amount` and no
+    /// `remaining_balance` — every field the result dialog is built from. Not
+    /// parsing these three keys is what made a replay render a title, an id and
+    /// nothing else, which is exactly the blank screen that earns a third tap
+    /// and, before the token existed, a third payment.
+    @JsonKey(name: 'already_recorded', fromJson: creditBool)
+    @Default(false)
+    bool alreadyRecorded,
+    @JsonKey(name: 'notice_code') String? noticeCode,
+    String? notice,
   }) = _CreditPaymentResult;
 
   factory CreditPaymentResult.fromJson(Map<String, dynamic> json) =>
@@ -376,6 +453,21 @@ class CreditPaymentResult with _$CreditPaymentResult {
       allocations.where((a) => !a.fullyCleared && a.allocatedAmount != 0).toList();
 
   bool get hasAdvance => unallocatedAmount.abs() >= 0.005;
+
+  /// True when the server recognised this attempt as a repeat and posted
+  /// nothing. Either the explicit flag or the code — an older backend sends
+  /// only the code.
+  bool get isReplay =>
+      alreadyRecorded || (noticeCode ?? '').trim() == 'already_recorded';
+
+  /// A server-written sentence worth showing verbatim, once the codes this
+  /// client knows how to word itself are excluded.
+  String? get unknownNotice {
+    final code = (noticeCode ?? '').trim();
+    if (code == 'already_recorded') return null;
+    final text = (notice ?? '').trim();
+    return text.isEmpty ? null : text;
+  }
 
   /// True when the money went nowhere — nothing open to allocate against, so
   /// the whole amount became an advance. Worth saying out loud.
@@ -399,6 +491,19 @@ double? creditDoubleOrNull(Object? value) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return null;
     return double.tryParse(trimmed);
+  }
+  return null;
+}
+
+/// Absent means "the server did not report it", which is NOT zero: a zero age
+/// reads as "invoiced today", so the distinction has to survive parsing.
+int? creditIntOrNull(Object? value) {
+  if (value == null) return null;
+  if (value is num) return value.toInt();
+  if (value is String) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+    return int.tryParse(trimmed) ?? double.tryParse(trimmed)?.toInt();
   }
   return null;
 }
@@ -443,6 +548,20 @@ Object? _firstPresent(Map<dynamic, dynamic> json, List<String> keys) {
 
 Object? readInvoiceId(Map<dynamic, dynamic> json, String key) =>
     _firstPresent(json, const ['invoice', 'sales_invoice', 'name']);
+
+/// The customer row's balance. `outstanding` is the contract; the others are
+/// read only so a future rename cannot empty the screen again.
+Object? readRowOutstanding(Map<dynamic, dynamic> json, String key) =>
+    _firstPresent(json, const [
+      'outstanding',
+      'total_outstanding',
+      'outstanding_amount',
+    ]);
+
+/// `outstanding_amount` in the activity feed, `outstanding` inside a customer
+/// row's `open_invoices`.
+Object? readInvoiceOutstanding(Map<dynamic, dynamic> json, String key) =>
+    _firstPresent(json, const ['outstanding_amount', 'outstanding']);
 
 Object? readAllocatedAmount(Map<dynamic, dynamic> json, String key) =>
     _firstPresent(json, const ['allocated_amount', 'amount', 'allocated']);

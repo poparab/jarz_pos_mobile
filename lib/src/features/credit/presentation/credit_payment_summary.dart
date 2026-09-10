@@ -19,6 +19,24 @@ List<String> creditPaymentSummaryLines({
 }) {
   final lines = <String>[];
 
+  // The replay branch answers a DIFFERENT question, and it is the urgent one:
+  // "did my money go in?". It carries no allocations, no advance and no
+  // remaining balance, so every block below would produce nothing and the
+  // dialog would show a title and an id — the blank result that earns a third
+  // tap. Say it outright instead, and stop: there is nothing else to report.
+  if (result.isReplay) {
+    lines.add(l10n.creditPaymentResultAlreadyRecorded(money(result.amount)));
+    lines.add(l10n.creditPaymentResultAlreadyRecordedHint);
+    return lines;
+  }
+
+  // An unrecognised code still carries a sentence the server wrote for a
+  // human; dropping it would hide the only explanation that exists.
+  final serverNotice = result.unknownNotice;
+  if (serverNotice != null) {
+    lines.add(serverNotice);
+  }
+
   final cleared = result.cleared;
   if (cleared.isNotEmpty) {
     final clearedTotal = cleared.fold<double>(

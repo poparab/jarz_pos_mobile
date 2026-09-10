@@ -335,7 +335,9 @@
   "unsettleReversalEntryLabel": "تم التراجع بواسطة {entry}",
   "@unsettleReversalEntryLabel": {
     "placeholders": {
-      "entry": {"type": "String"}
+      "entry": {
+        "type": "String"
+      }
     }
   },
   "unsettleEntryPointTooltip": "التراجع عن تسوية",
@@ -3504,13 +3506,17 @@
   "leadFormDuplicateExact": "موجود بالفعل في قائمتك: {place}",
   "@leadFormDuplicateExact": {
     "placeholders": {
-      "place": {"type": "String"}
+      "place": {
+        "type": "String"
+      }
     }
   },
   "leadFormDuplicateLikely": "يبدو أن هذا مكان لديك بالفعل: {place}",
   "@leadFormDuplicateLikely": {
     "placeholders": {
-      "place": {"type": "String"}
+      "place": {
+        "type": "String"
+      }
     }
   },
   "leadFormDuplicateHint": "الحفظ سينشئ عميلًا محتملًا ثانيًا. إذا كان فرعًا آخر، أضفه إلى العميل الموجود.",
@@ -4686,7 +4692,7 @@
   "paymentMethodCredit": "آجل (على الحساب)",
   "paymentMethodCreditSubtitle": "يتسلم دلوقتي ويدفع بعدين",
   "paymentMethodCreditNotAllowed": "العميل ده مش معتمد للبيع الآجل",
-  "paymentMethodCreditChecking": "بنراجع حساب العميل الآجل\u2026",
+  "paymentMethodCreditChecking": "بنراجع حساب العميل الآجل…",
   "paymentMethodCreditUnavailable": "تعذر مراجعة الحساب الآجل للعميل دلوقتي",
   "paymentMethodCreditAvailable": "الآجل المتاح: {amount}",
   "paymentMethodCreditNoLimit": "مفيش حد ائتماني متسجل",
@@ -4744,5 +4750,10 @@
   "creditPaymentResultNoneAllocated": "مكانش فيه فواتير مفتوحة، فالمبلغ كله {amount} فضل رصيد مقدم",
   "creditPaymentResultRemaining": "لسه على الحساب: {amount}",
   "creditPaymentResultEntry": "سند القبض {name}",
-  "creditListJoin": "{first} و{last}"
+  "creditListJoin": "{first} و{last}",
+  "creditAccountBranchScopeNote": "الرصيد ده بيغطي الفروع اللي بتشوفها. الدفعة بتقفل أقدم فواتير المحل الأول في كل الفروع، فممكن تقفل فواتير مش معروضة هنا.",
+  "creditAccountNoOpenInvoices": "مفيش فواتير مفتوحة للمحل ده.",
+  "creditPaymentResultAlreadyRecorded": "الدفعة دي كانت اتسجلت قبل كده. مبلغ {amount} دخل قبل كده ومحصلش تسجيل تاني.",
+  "creditPaymentResultAlreadyRecordedHint": "حدّث الحساب عشان تشوف الرصيد بعدها.",
+  "creditPaymentResultAlreadyRecordedTitle": "الدفعة مسجلة قبل كده"
 }

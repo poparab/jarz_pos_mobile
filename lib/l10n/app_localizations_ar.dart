@@ -12001,4 +12001,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String creditListJoin(Object first, Object last) {
     return '$first و$last';
   }
+
+  @override
+  String get creditAccountBranchScopeNote =>
+      'الرصيد ده بيغطي الفروع اللي بتشوفها. الدفعة بتقفل أقدم فواتير المحل الأول في كل الفروع، فممكن تقفل فواتير مش معروضة هنا.';
+
+  @override
+  String get creditAccountNoOpenInvoices => 'مفيش فواتير مفتوحة للمحل ده.';
+
+  @override
+  String creditPaymentResultAlreadyRecorded(Object amount) {
+    return 'الدفعة دي كانت اتسجلت قبل كده. مبلغ $amount دخل قبل كده ومحصلش تسجيل تاني.';
+  }
+
+  @override
+  String get creditPaymentResultAlreadyRecordedHint =>
+      'حدّث الحساب عشان تشوف الرصيد بعدها.';
+
+  @override
+  String get creditPaymentResultAlreadyRecordedTitle => 'الدفعة مسجلة قبل كده';
 }

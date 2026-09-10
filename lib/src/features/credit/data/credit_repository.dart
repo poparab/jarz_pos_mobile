@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/network/frappe_error_message.dart';
+import 'credit_payment_token.dart';
 import 'models/credit_models.dart';
 
 final creditRepositoryProvider = Provider<CreditRepository>((ref) {
@@ -87,7 +88,7 @@ class CreditRepository {
         _payload(response, 'Failed to load credit accounts'),
       );
       final sorted = [...ledger.customers]
-        ..sort((a, b) => b.totalOutstanding.compareTo(a.totalOutstanding));
+        ..sort((a, b) => b.outstanding.compareTo(a.outstanding));
       return ledger.copyWith(customers: sorted);
     } on DioException catch (error) {
       throw mapFrappeError(error, fallback: 'Failed to load credit accounts');
@@ -100,6 +101,18 @@ class CreditRepository {
   /// partial payment part-allocates the oldest, and any excess is left as an
   /// unallocated advance. The response — not the amount that was typed — is
   /// what the caller must show back to the user.
+  ///
+  /// [idempotencyToken] is the server's strongest double-submit guard: an
+  /// exact `reference_no` match. Without it the backend falls back to a
+  /// two-minute (customer, account, amount) heuristic that double-books a
+  /// timed-out retry and swallows a second genuine handover of the same round
+  /// figure. Callers mint it through [CreditPaymentIdempotency] so it stays
+  /// stable across retries of ONE attempt. A replay comes back as
+  /// `already_recorded`, not as an error — see [CreditPaymentResult.isReplay].
+  ///
+  /// Also note the scope asymmetry the UI has to be honest about: the ledger
+  /// this amount was prefilled from is scoped to the caller's POS Profiles,
+  /// while allocation here is FIFO across EVERY branch of the company.
   Future<CreditPaymentResult> recordCreditPayment({
     required String customer,
     required double amount,
@@ -107,6 +120,7 @@ class CreditRepository {
     String paymentMethod = 'Cash',
     String? postingDate,
     String? remarks,
+    String? idempotencyToken,
   }) async {
     try {
       final response = await _dio.post(
@@ -120,6 +134,8 @@ class CreditRepository {
             'posting_date': postingDate,
           if (remarks != null && remarks.trim().isNotEmpty)
             'remarks': remarks.trim(),
+          if (idempotencyToken != null && idempotencyToken.trim().isNotEmpty)
+            'idempotency_token': idempotencyToken.trim(),
         },
       );
       final map = _payload(response, 'Failed to record payment');

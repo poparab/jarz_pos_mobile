@@ -7,6 +7,7 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/network/frappe_error_message.dart';
+import '../../data/credit_payment_token.dart';
 import '../../data/credit_repository.dart';
 import '../../data/models/credit_models.dart';
 import '../../state/credit_providers.dart';
@@ -92,6 +93,13 @@ class _RecordCreditPaymentSheetState
   bool _submitting = false;
   String? _error;
 
+  /// One token per ATTEMPT, held per customer OUTSIDE this widget: a failed
+  /// submit keeps its token — even across closing and reopening the sheet — so
+  /// tapping again on the same figures is a retry the server can recognise
+  /// rather than a second payment. Changing any figure mints a new one.
+  CreditPaymentIdempotency get _idempotency =>
+      ref.read(creditPaymentIdempotencyProvider(widget.customer));
+
   @override
   void initState() {
     super.initState();
@@ -143,14 +151,28 @@ class _RecordCreditPaymentSheetState
       _error = null;
     });
 
+    final remarks = _remarksController.text;
+    final token = _idempotency.tokenFor(
+      customer: widget.customer,
+      amount: amount,
+      posProfile: profile,
+      paymentMethod: _paymentMethod,
+      remarks: remarks,
+    );
+
     try {
       final result = await ref.read(creditRepositoryProvider).recordCreditPayment(
             customer: widget.customer,
             amount: amount,
             posProfile: profile,
             paymentMethod: _paymentMethod,
-            remarks: _remarksController.text,
+            remarks: remarks,
+            idempotencyToken: token,
           );
+      // Accepted — including the replay branch, which means the money is in.
+      // Holding on to the token would make the next real settlement look like
+      // a repeat of this one and post nothing.
+      _idempotency.reset();
       // The balance and the headroom both moved; anything still holding the
       // old profile would offer credit the shop no longer has.
       ref.invalidate(customerCreditProfileProvider(widget.customer));
@@ -312,6 +334,18 @@ class _RecordCreditPaymentSheetState
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            const SizedBox(height: 6),
+            // The balance above was read from a BRANCH-SCOPED ledger, while
+            // allocation is FIFO across the whole company: one debt, one
+            // customer. So the result can name invoices this branch cannot
+            // list. Said here rather than papered over — the backend's scoping
+            // is deliberate, the surprise is not.
+            Text(
+              l10n.creditAccountBranchScopeNote,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             if (_error != null) ...[
               const SizedBox(height: 10),
               Text(
@@ -395,7 +429,13 @@ class CreditPaymentResultDialog extends StatelessWidget {
     );
 
     return AlertDialog(
-      title: Text(l10n.creditPaymentResultTitle),
+      // A replay is not a new payment, and titling it "Payment recorded" reads
+      // as a confirmation that the SECOND tap went in.
+      title: Text(
+        result.isReplay
+            ? l10n.creditPaymentResultAlreadyRecordedTitle
+            : l10n.creditPaymentResultTitle,
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
