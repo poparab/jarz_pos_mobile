@@ -34,6 +34,11 @@ abstract final class AppRoutes {
   /// operator stays in it for the length of a batch.
   static const productionSop = '/manufacturing/sop';
   static const stockTransfer = '/stock-transfer';
+
+  /// What the factory should send each branch today. Separate from
+  /// [stockTransfer], which is the manual "move these items from A to B" form:
+  /// this one answers WHAT to move, and only then moves it.
+  static const replenishment = '/replenishment';
   static const cashTransfer = '/cash-transfer';
   static const inventoryCount = '/inventory-count';
   static const expenses = '/expenses';

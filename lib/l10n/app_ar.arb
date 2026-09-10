@@ -335,7 +335,9 @@
   "unsettleReversalEntryLabel": "تم التراجع بواسطة {entry}",
   "@unsettleReversalEntryLabel": {
     "placeholders": {
-      "entry": {"type": "String"}
+      "entry": {
+        "type": "String"
+      }
     }
   },
   "unsettleEntryPointTooltip": "التراجع عن تسوية",
@@ -3504,13 +3506,17 @@
   "leadFormDuplicateExact": "موجود بالفعل في قائمتك: {place}",
   "@leadFormDuplicateExact": {
     "placeholders": {
-      "place": {"type": "String"}
+      "place": {
+        "type": "String"
+      }
     }
   },
   "leadFormDuplicateLikely": "يبدو أن هذا مكان لديك بالفعل: {place}",
   "@leadFormDuplicateLikely": {
     "placeholders": {
-      "place": {"type": "String"}
+      "place": {
+        "type": "String"
+      }
     }
   },
   "leadFormDuplicateHint": "الحفظ سينشئ عميلًا محتملًا ثانيًا. إذا كان فرعًا آخر، أضفه إلى العميل الموجود.",
@@ -4686,7 +4692,7 @@
   "paymentMethodCredit": "آجل (على الحساب)",
   "paymentMethodCreditSubtitle": "يتسلم دلوقتي ويدفع بعدين",
   "paymentMethodCreditNotAllowed": "العميل ده مش معتمد للبيع الآجل",
-  "paymentMethodCreditChecking": "بنراجع حساب العميل الآجل\u2026",
+  "paymentMethodCreditChecking": "بنراجع حساب العميل الآجل…",
   "paymentMethodCreditUnavailable": "تعذر مراجعة الحساب الآجل للعميل دلوقتي",
   "paymentMethodCreditAvailable": "الآجل المتاح: {amount}",
   "paymentMethodCreditNoLimit": "مفيش حد ائتماني متسجل",
@@ -4744,5 +4750,45 @@
   "creditPaymentResultNoneAllocated": "مكانش فيه فواتير مفتوحة، فالمبلغ كله {amount} فضل رصيد مقدم",
   "creditPaymentResultRemaining": "لسه على الحساب: {amount}",
   "creditPaymentResultEntry": "سند القبض {name}",
-  "creditListJoin": "{first} و{last}"
+  "creditListJoin": "{first} و{last}",
+  "creditAccountBranchScopeNote": "الرصيد ده بيغطي الفروع اللي بتشوفها. الدفعة بتقفل أقدم فواتير المحل الأول في كل الفروع، فممكن تقفل فواتير مش معروضة هنا.",
+  "creditAccountNoOpenInvoices": "مفيش فواتير مفتوحة للمحل ده.",
+  "creditPaymentResultAlreadyRecorded": "الدفعة دي كانت اتسجلت قبل كده. مبلغ {amount} دخل قبل كده ومحصلش تسجيل تاني.",
+  "creditPaymentResultAlreadyRecordedHint": "حدّث الحساب عشان تشوف الرصيد بعدها.",
+  "creditPaymentResultAlreadyRecordedTitle": "الدفعة مسجلة قبل كده",
+  "menuReplenishment": "تسليم للفروع",
+  "replenishmentTitle": "تسليم للفروع",
+  "replenishmentBasis": "تغطية {coverDays} يوم، محسوبة من مبيعات آخر {salesDays} يوم",
+  "replenishmentSourceLine": "من {warehouse}",
+  "replenishmentGeneratedOn": "اتحسب {when}",
+  "replenishmentBranchLabel": "الفرع",
+  "replenishmentBranchOption": "{name} · {count, plural, =0{مغطّى} =1{صنف ناقص} =2{صنفين ناقصين} few{{count} أصناف ناقصة} other{{count} صنف ناقص}}",
+  "replenishmentBelowCoverCount": "{count, plural, =0{مفيش حاجة تحت التغطية} =1{صنف واحد تحت التغطية} =2{صنفين تحت التغطية} few{{count} أصناف تحت التغطية} other{{count} صنف تحت التغطية}}",
+  "replenishmentBranchCovered": "{name} عنده كفاية من كل حاجة دلوقتي",
+  "replenishmentNegativeBinsCount": "{count, plural, =1{صنف رصيده بالسالب} =2{صنفين رصيدهم بالسالب} few{{count} أصناف رصيدها بالسالب} other{{count} صنف رصيده بالسالب}}",
+  "replenishmentTotalShort": "المصنع ناقصه {qty} على كل الفروع",
+  "replenishmentOnHand": "عنده {qty}",
+  "replenishmentPerDay": "بيبيع {rate} في اليوم",
+  "replenishmentDaysOfCover": "تغطية {days} يوم",
+  "replenishmentNoSalesYet": "لسه مفيش مبيعات",
+  "replenishmentNegativeStock": "الرصيد بالسالب، اعمل جرد للصنف ده",
+  "replenishmentFactoryHas": "المصنع عنده {qty}",
+  "replenishmentShortBy": "المصنع مش مغطي ده — ناقص {qty}",
+  "replenishmentQtyLabel": "ابعت",
+  "replenishmentTypedTotal": "{lineCount, plural, =1{سطر واحد} =2{سطرين} few{{lineCount} سطور} other{{lineCount} سطر}} · {totalQty} قطعة",
+  "replenishmentSendAction": "ابعت لـ {name}",
+  "replenishmentConfirmTitle": "تبعت لـ {name}؟",
+  "replenishmentConfirmBody": "{lineCount, plural, =1{سطر واحد} =2{سطرين} few{{lineCount} سطور} other{{lineCount} سطر}} · {totalQty} قطعة، من {source}",
+  "replenishmentConfirmAction": "ابعت",
+  "replenishmentSentTitle": "اتبعت لـ {name}",
+  "replenishmentSentBody": "{lineCount, plural, =1{سطر واحد} =2{سطرين} few{{lineCount} سطور} other{{lineCount} سطر}} · {totalQty} قطعة · قيد {stockEntry}",
+  "replenishmentSendFailed": "مقدرناش نبعت لـ {name}: {reason}",
+  "replenishmentFailedLine": "السطر اللي السيرفر رفضه: {item}",
+  "replenishmentNumbersKept": "الكميات لسه على الشاشة — صلّح السبب وابعت تاني.",
+  "replenishmentNothingToSend": "اكتب كمية الأول.",
+  "replenishmentEmptyTitle": "مفيش حاجة تتبعت",
+  "replenishmentEmptyNoBranches": "مفيش فروع بيع لسه. الفرع بيظهر هنا أول ما يبقى ليه POS profile.",
+  "replenishmentLoadFailed": "مقدرناش نحمّل المطلوب إرساله",
+  "replenishmentNotAllowed": "معندكش صلاحية تبعت مخزون.",
+  "replenishmentRefresh": "تحديث"
 }

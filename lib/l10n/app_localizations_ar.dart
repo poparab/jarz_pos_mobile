@@ -12001,4 +12001,230 @@ class AppLocalizationsAr extends AppLocalizations {
   String creditListJoin(Object first, Object last) {
     return '$first و$last';
   }
+
+  @override
+  String get creditAccountBranchScopeNote =>
+      'الرصيد ده بيغطي الفروع اللي بتشوفها. الدفعة بتقفل أقدم فواتير المحل الأول في كل الفروع، فممكن تقفل فواتير مش معروضة هنا.';
+
+  @override
+  String get creditAccountNoOpenInvoices => 'مفيش فواتير مفتوحة للمحل ده.';
+
+  @override
+  String creditPaymentResultAlreadyRecorded(Object amount) {
+    return 'الدفعة دي كانت اتسجلت قبل كده. مبلغ $amount دخل قبل كده ومحصلش تسجيل تاني.';
+  }
+
+  @override
+  String get creditPaymentResultAlreadyRecordedHint =>
+      'حدّث الحساب عشان تشوف الرصيد بعدها.';
+
+  @override
+  String get creditPaymentResultAlreadyRecordedTitle => 'الدفعة مسجلة قبل كده';
+
+  @override
+  String get menuReplenishment => 'تسليم للفروع';
+
+  @override
+  String get replenishmentTitle => 'تسليم للفروع';
+
+  @override
+  String replenishmentBasis(int coverDays, int salesDays) {
+    return 'تغطية $coverDays يوم، محسوبة من مبيعات آخر $salesDays يوم';
+  }
+
+  @override
+  String replenishmentSourceLine(String warehouse) {
+    return 'من $warehouse';
+  }
+
+  @override
+  String replenishmentGeneratedOn(String when) {
+    return 'اتحسب $when';
+  }
+
+  @override
+  String get replenishmentBranchLabel => 'الفرع';
+
+  @override
+  String replenishmentBranchOption(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صنف ناقص',
+      few: '$count أصناف ناقصة',
+      two: 'صنفين ناقصين',
+      one: 'صنف ناقص',
+      zero: 'مغطّى',
+    );
+    return '$name · $_temp0';
+  }
+
+  @override
+  String replenishmentBelowCoverCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صنف تحت التغطية',
+      few: '$count أصناف تحت التغطية',
+      two: 'صنفين تحت التغطية',
+      one: 'صنف واحد تحت التغطية',
+      zero: 'مفيش حاجة تحت التغطية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String replenishmentBranchCovered(String name) {
+    return '$name عنده كفاية من كل حاجة دلوقتي';
+  }
+
+  @override
+  String replenishmentNegativeBinsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صنف رصيده بالسالب',
+      few: '$count أصناف رصيدها بالسالب',
+      two: 'صنفين رصيدهم بالسالب',
+      one: 'صنف رصيده بالسالب',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String replenishmentTotalShort(String qty) {
+    return 'المصنع ناقصه $qty على كل الفروع';
+  }
+
+  @override
+  String replenishmentOnHand(String qty) {
+    return 'عنده $qty';
+  }
+
+  @override
+  String replenishmentPerDay(String rate) {
+    return 'بيبيع $rate في اليوم';
+  }
+
+  @override
+  String replenishmentDaysOfCover(String days) {
+    return 'تغطية $days يوم';
+  }
+
+  @override
+  String get replenishmentNoSalesYet => 'لسه مفيش مبيعات';
+
+  @override
+  String get replenishmentNegativeStock => 'الرصيد بالسالب، اعمل جرد للصنف ده';
+
+  @override
+  String replenishmentFactoryHas(String qty) {
+    return 'المصنع عنده $qty';
+  }
+
+  @override
+  String replenishmentShortBy(String qty) {
+    return 'المصنع مش مغطي ده — ناقص $qty';
+  }
+
+  @override
+  String get replenishmentQtyLabel => 'ابعت';
+
+  @override
+  String replenishmentTypedTotal(int lineCount, String totalQty) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lineCount,
+      locale: localeName,
+      other: '$lineCount سطر',
+      few: '$lineCount سطور',
+      two: 'سطرين',
+      one: 'سطر واحد',
+    );
+    return '$_temp0 · $totalQty قطعة';
+  }
+
+  @override
+  String replenishmentSendAction(String name) {
+    return 'ابعت لـ $name';
+  }
+
+  @override
+  String replenishmentConfirmTitle(String name) {
+    return 'تبعت لـ $name؟';
+  }
+
+  @override
+  String replenishmentConfirmBody(
+    int lineCount,
+    String totalQty,
+    String source,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lineCount,
+      locale: localeName,
+      other: '$lineCount سطر',
+      few: '$lineCount سطور',
+      two: 'سطرين',
+      one: 'سطر واحد',
+    );
+    return '$_temp0 · $totalQty قطعة، من $source';
+  }
+
+  @override
+  String get replenishmentConfirmAction => 'ابعت';
+
+  @override
+  String replenishmentSentTitle(String name) {
+    return 'اتبعت لـ $name';
+  }
+
+  @override
+  String replenishmentSentBody(
+    int lineCount,
+    String totalQty,
+    String stockEntry,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lineCount,
+      locale: localeName,
+      other: '$lineCount سطر',
+      few: '$lineCount سطور',
+      two: 'سطرين',
+      one: 'سطر واحد',
+    );
+    return '$_temp0 · $totalQty قطعة · قيد $stockEntry';
+  }
+
+  @override
+  String replenishmentSendFailed(String name, String reason) {
+    return 'مقدرناش نبعت لـ $name: $reason';
+  }
+
+  @override
+  String replenishmentFailedLine(String item) {
+    return 'السطر اللي السيرفر رفضه: $item';
+  }
+
+  @override
+  String get replenishmentNumbersKept =>
+      'الكميات لسه على الشاشة — صلّح السبب وابعت تاني.';
+
+  @override
+  String get replenishmentNothingToSend => 'اكتب كمية الأول.';
+
+  @override
+  String get replenishmentEmptyTitle => 'مفيش حاجة تتبعت';
+
+  @override
+  String get replenishmentEmptyNoBranches =>
+      'مفيش فروع بيع لسه. الفرع بيظهر هنا أول ما يبقى ليه POS profile.';
+
+  @override
+  String get replenishmentLoadFailed => 'مقدرناش نحمّل المطلوب إرساله';
+
+  @override
+  String get replenishmentNotAllowed => 'معندكش صلاحية تبعت مخزون.';
+
+  @override
+  String get replenishmentRefresh => 'تحديث';
 }

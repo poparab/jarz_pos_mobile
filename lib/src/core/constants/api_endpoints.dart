@@ -277,6 +277,13 @@ abstract final class ApiEndpoints {
   static const transferListHistory =
       '/api/method/jarz_pos.api.transfer.list_transfers';
 
+  // ── Branch Replenishment ─────────────────────────────────────
+  /// What each branch is short of, against its own selling rate. Read only —
+  /// the send half of that screen posts to [submitTransfer], because moving
+  /// stock is one server method and should stay one client path.
+  static const getBranchReplenishment =
+      '/api/method/jarz_pos.api.replenishment.get_branch_replenishment';
+
   // ── Cash Transfer ─────────────────────────────────────────────────────
   static const cashTransferListAccounts =
       '/api/method/jarz_pos.api.cash_transfer.list_accounts';
