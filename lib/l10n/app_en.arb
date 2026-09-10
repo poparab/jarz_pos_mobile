@@ -335,7 +335,9 @@
   "unsettleReversalEntryLabel": "Reversed by {entry}",
   "@unsettleReversalEntryLabel": {
     "placeholders": {
-      "entry": {"type": "String"}
+      "entry": {
+        "type": "String"
+      }
     }
   },
   "unsettleEntryPointTooltip": "Reverse a settlement",
@@ -1805,6 +1807,13 @@
   "productionFillTheDayResult": "Added {added} items · {batches} batches",
   "productionFillTheDaySkipped": "{skipped} skipped — no materials",
   "productionFillTheDayNothing": "Nothing to add",
+  "productionPlanQty": "Jars",
+  "productionUseSuggestion": "Use {units}",
+  "productionStartBatches": "Start batches",
+  "productionPlanVsStart": "Save plan records the target. Start batches moves stock.",
+  "productionOtherItems": "Other items",
+  "productionFillTheDayFilled": "Filled {items} items · {jars} jars",
+  "productionPlanNothingQueued": "Nothing to start yet — type a quantity or use a suggestion",
   "productionNoSuggestions": "Nothing needs producing",
   "productionVelocityNever": "Sales velocity has never been calculated — suggestions will stay empty until it runs",
   "productionVelocityUpdated": "Velocity updated {when}",
@@ -1997,6 +2006,10 @@
   "basesShortage": "{component} is short by {quantity} {uom}",
   "basesReduceTo": "Reduce to {batches}",
   "basesNothingPossible": "Not enough materials for even half a batch",
+  "basesUsedPerDay": "Used / day",
+  "basesQtyPerDay": "{quantity} {uom}/day",
+  "basesCoverSuggestion": "Make {batches} batches to reach {days} days cover",
+  "basesNoConsumption": "Nothing has drawn on this base yet — cover cannot be worked out",
   "sopTitle": "Work instructions",
   "sopViewSop": "View SOP",
   "sopNoSopForItem": "No work instructions for this item",
@@ -4776,13 +4789,17 @@
   "leadFormDuplicateExact": "Already in your catalog: {place}",
   "@leadFormDuplicateExact": {
     "placeholders": {
-      "place": {"type": "String"}
+      "place": {
+        "type": "String"
+      }
     }
   },
   "leadFormDuplicateLikely": "This looks like a place you already have: {place}",
   "@leadFormDuplicateLikely": {
     "placeholders": {
-      "place": {"type": "String"}
+      "place": {
+        "type": "String"
+      }
     }
   },
   "leadFormDuplicateHint": "Saving creates a second lead. If this is another branch, add it to the existing lead instead.",
@@ -4826,7 +4843,9 @@
   "leadFormAddressRequired": "{title}: address line 1, city, and country are required together.",
   "@leadFormAddressRequired": {
     "placeholders": {
-      "title": {"type": "String"}
+      "title": {
+        "type": "String"
+      }
     }
   },
   "leadFormScoreRangeError": "0–100",
@@ -6922,5 +6941,188 @@
   "monthlyExpensesStatusUpdated": "Status updated",
   "monthlyExpensesReadOnlyNotice": "You can see this month but not change the registry.",
   "monthlyExpensesFormMissingOptions": "The server did not send the categories, frequencies and accounts this form needs.",
-  "monthlyExpensesSalarySlipBadge": "Salary slip"
+  "monthlyExpensesSalarySlipBadge": "Salary slip",
+  "paymentMethodCredit": "Credit (on account)",
+  "paymentMethodCreditSubtitle": "Delivered now, paid later",
+  "paymentMethodCreditNotAllowed": "This customer is not approved for credit",
+  "paymentMethodCreditChecking": "Checking the credit account…",
+  "paymentMethodCreditUnavailable": "Could not check the credit account right now",
+  "paymentMethodCreditAvailable": "Available credit: {amount}",
+  "@paymentMethodCreditAvailable": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "paymentMethodCreditNoLimit": "No credit limit set",
+  "paymentMethodCreditTerms": "Due in {days, plural, =1{1 day} other{{days} days}}",
+  "@paymentMethodCreditTerms": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "paymentMethodCreditOnAccount": "Already on account: {amount}",
+  "@paymentMethodCreditOnAccount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "paymentMethodCreditOverLimit": "This customer has used all of their credit",
+  "menuCreditAccounts": "Credit Accounts",
+  "creditAccountsTitle": "Credit Accounts",
+  "creditAccountsSubtitle": "Shops with an open balance, largest first",
+  "creditAccountsPeriodLabel": "Period",
+  "creditAccountsWindow30": "Last 30 days",
+  "creditAccountsWindow90": "Last 90 days",
+  "creditAccountsWindow180": "Last 180 days",
+  "creditAccountsWindow365": "Last 365 days",
+  "creditAccountsTotalOutstanding": "Total on account in this period",
+  "creditAccountsTotalOutstandingAllTime": "Total on account (all time)",
+  "creditAccountsAllTimeHint": "Every open invoice, whatever its age. The period below only controls which invoices are listed.",
+  "creditAccountsCustomerCount": "{count, plural, =0{No shop owes anything} =1{1 shop owes money} other{{count} shops owe money}}",
+  "@creditAccountsCustomerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "creditAccountsListedInvoiceCount": "{count, plural, =0{No invoices listed} =1{1 invoice listed} other{{count} invoices listed}}",
+  "@creditAccountsListedInvoiceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "creditAccountsActivityRange": "Listed invoices: {from} to {to}",
+  "@creditAccountsActivityRange": {
+    "placeholders": {
+      "from": {},
+      "to": {}
+    }
+  },
+  "creditAccountsEmpty": "No shop has an open credit balance",
+  "creditAccountsLoadFailed": "Failed to load credit accounts",
+  "creditAccountsNoticeResultsTruncated": "Only the first results are shown. Narrow the branch or the period to see the rest.",
+  "creditAccountsOpenInvoiceCount": "{count, plural, =0{No open invoices} =1{1 open invoice} other{{count} open invoices}}",
+  "@creditAccountsOpenInvoiceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "creditAccountsOldestAge": "Oldest {days, plural, =0{today} =1{1 day} other{{days} days}}",
+  "@creditAccountsOldestAge": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "creditAccountsOldestUnknown": "Oldest invoice not dated",
+  "creditAccountBalanceLabel": "Balance on account",
+  "creditAccountOpenInvoicesTitle": "Open invoices, oldest first",
+  "creditAccountInvoiceOutstandingLabel": "Outstanding",
+  "creditAccountInvoiceTotalLabel": "Invoice total",
+  "creditAccountInvoiceAge": "{days, plural, =0{Today} =1{1 day old} other{{days} days old}}",
+  "@creditAccountInvoiceAge": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "creditAccountNoInvoicesInWindow": "Nothing listed in this period. The balance above is older than that, so widen the period to see the invoices behind it.",
+  "creditAccountRecordPayment": "Record payment",
+  "creditAccountTerms": "Terms: {days, plural, =1{1 day} other{{days} days}}",
+  "@creditAccountTerms": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "creditAccountLimit": "Credit limit {amount}",
+  "@creditAccountLimit": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "creditAccountAvailable": "Available {amount}",
+  "@creditAccountAvailable": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "creditAccountFifoHint": "A payment clears the oldest invoices first.",
+  "creditPaymentTitle": "Record payment",
+  "creditPaymentAmountLabel": "Amount",
+  "creditPaymentFullBalanceHint": "Full balance is {amount}",
+  "@creditPaymentFullBalanceHint": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "creditPaymentMethodLabel": "Paid by",
+  "creditPaymentBranchLabel": "Branch",
+  "creditPaymentBranchMissing": "Choose the branch that received the money",
+  "creditPaymentBranchLoadFailed": "Failed to load branches",
+  "creditPaymentRemarksLabel": "Note (optional)",
+  "creditPaymentSubmit": "Record payment",
+  "creditPaymentAmountInvalid": "Enter an amount greater than zero",
+  "creditPaymentAmountExceedsBalance": "More than the balance. The extra will sit as an advance.",
+  "creditPaymentFailed": "Failed to record payment",
+  "creditPaymentFifoNotice": "The amount is applied to the oldest invoices first, so it may not clear the ones you expect.",
+  "creditPaymentResultTitle": "Payment recorded",
+  "creditPaymentResultCleared": "{count, plural, =1{{amount} cleared invoice {invoices}} other{{amount} cleared invoices {invoices}}}",
+  "@creditPaymentResultCleared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {},
+      "invoices": {}
+    }
+  },
+  "creditPaymentResultPartial": "{amount} went to invoice {invoice}, which is still partly open",
+  "@creditPaymentResultPartial": {
+    "placeholders": {
+      "amount": {},
+      "invoice": {}
+    }
+  },
+  "creditPaymentResultAdvance": "{amount} left as an advance",
+  "@creditPaymentResultAdvance": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "creditPaymentResultNoneAllocated": "Nothing was open, so all {amount} is sitting as an advance",
+  "@creditPaymentResultNoneAllocated": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "creditPaymentResultRemaining": "Still on account: {amount}",
+  "@creditPaymentResultRemaining": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "creditPaymentResultEntry": "Payment entry {name}",
+  "@creditPaymentResultEntry": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "creditListJoin": "{first} and {last}",
+  "@creditListJoin": {
+    "placeholders": {
+      "first": {},
+      "last": {}
+    }
+  }
 }

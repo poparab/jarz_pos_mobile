@@ -11,6 +11,8 @@ import '../../../../core/widgets/customer_shipping_address_dialog.dart';
 import '../../../../core/widgets/paste_or_clear_button.dart';
 import '../../../../core/widgets/customer_shipping_address_flow.dart';
 import '../../../../core/repositories/customer_address_repository.dart';
+import '../../../credit/data/models/credit_models.dart';
+import '../../../credit/state/credit_providers.dart';
 import '../../../geo/presentation/widgets/location_link_field.dart';
 import '../../data/repositories/pos_repository.dart';
 import '../../state/pos_notifier.dart';
@@ -197,6 +199,20 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
     final customerName = customer['name']?.toString().trim() ?? '';
     if (customerName.isEmpty) {
       return;
+    }
+
+    // Credit is decided per order at the payment step, but the profile behind
+    // it is fetched HERE, the moment the customer is chosen, so the payment
+    // dialog opens with the terms and the remaining headroom already resolved
+    // instead of a spinner. Only for shops the search row already flagged —
+    // a retail individual costs no request. Fire-and-forget: a failure is the
+    // dialog's problem, and it renders its own "could not check" state.
+    if (customer['credit_allowed'] == true) {
+      unawaited(
+        ref
+            .read(customerCreditProfileProvider(customerName).future)
+            .catchError((Object _) => const CustomerCreditProfile()),
+      );
     }
 
     if (widget.lockCustomer) {

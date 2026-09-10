@@ -3391,6 +3391,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productionFillTheDayNothing => 'مفيش حاجة تتضاف';
 
   @override
+  String get productionPlanQty => 'برطمانات';
+
+  @override
+  String productionUseSuggestion(Object units) {
+    return 'خُد $units';
+  }
+
+  @override
+  String get productionStartBatches => 'ابدأ التشغيلات';
+
+  @override
+  String get productionPlanVsStart =>
+      '«احفظ الخطة» بتسجّل الهدف بس. «ابدأ التشغيلات» بتحرّك المخزون.';
+
+  @override
+  String get productionOtherItems => 'أصناف تانية';
+
+  @override
+  String productionFillTheDayFilled(Object items, Object jars) {
+    return 'اتملى $items صنف · $jars برطمان';
+  }
+
+  @override
+  String get productionPlanNothingQueued =>
+      'مفيش حاجة تبدأ لسه — اكتب كمية أو استخدم الاقتراح';
+
+  @override
   String get productionNoSuggestions => 'مفيش حاجة محتاجة إنتاج';
 
   @override
@@ -3888,6 +3915,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get basesNothingPossible => 'الخامات مش كفاية ولا لنص تشغيلة';
+
+  @override
+  String get basesUsedPerDay => 'بيتصرف / يوم';
+
+  @override
+  String basesQtyPerDay(Object quantity, Object uom) {
+    return '$quantity $uom/يوم';
+  }
+
+  @override
+  String basesCoverSuggestion(Object batches, Object days) {
+    return 'اعمل $batches تشغيلة علشان توصل لتغطية $days يوم';
+  }
+
+  @override
+  String get basesNoConsumption =>
+      'لسه محدش سحب من الأساس ده — مش هينفع نحسب التغطية';
 
   @override
   String get sopTitle => 'تعليمات التشغيل';
@@ -11674,4 +11718,309 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get monthlyExpensesSalarySlipBadge => 'قسيمة راتب';
+
+  @override
+  String get paymentMethodCredit => 'آجل (على الحساب)';
+
+  @override
+  String get paymentMethodCreditSubtitle => 'يتسلم دلوقتي ويدفع بعدين';
+
+  @override
+  String get paymentMethodCreditNotAllowed => 'العميل ده مش معتمد للبيع الآجل';
+
+  @override
+  String get paymentMethodCreditChecking => 'بنراجع حساب العميل الآجل…';
+
+  @override
+  String get paymentMethodCreditUnavailable =>
+      'تعذر مراجعة الحساب الآجل للعميل دلوقتي';
+
+  @override
+  String paymentMethodCreditAvailable(Object amount) {
+    return 'الآجل المتاح: $amount';
+  }
+
+  @override
+  String get paymentMethodCreditNoLimit => 'مفيش حد ائتماني متسجل';
+
+  @override
+  String paymentMethodCreditTerms(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم واحد',
+    );
+    return 'الاستحقاق خلال $_temp0';
+  }
+
+  @override
+  String paymentMethodCreditOnAccount(Object amount) {
+    return 'المسجل على الحساب: $amount';
+  }
+
+  @override
+  String get paymentMethodCreditOverLimit =>
+      'العميل ده استهلك كل الآجل المتاح ليه';
+
+  @override
+  String get menuCreditAccounts => 'الحسابات الآجلة';
+
+  @override
+  String get creditAccountsTitle => 'الحسابات الآجلة';
+
+  @override
+  String get creditAccountsSubtitle =>
+      'المحلات اللي عليها رصيد مفتوح، الأكبر الأول';
+
+  @override
+  String get creditAccountsPeriodLabel => 'الفترة';
+
+  @override
+  String get creditAccountsWindow30 => 'آخر 30 يوم';
+
+  @override
+  String get creditAccountsWindow90 => 'آخر 90 يوم';
+
+  @override
+  String get creditAccountsWindow180 => 'آخر 180 يوم';
+
+  @override
+  String get creditAccountsWindow365 => 'آخر 365 يوم';
+
+  @override
+  String get creditAccountsTotalOutstanding =>
+      'إجمالي المستحق على الحساب في الفترة دي';
+
+  @override
+  String get creditAccountsTotalOutstandingAllTime =>
+      'إجمالي المستحق على الحساب (كل الفترات)';
+
+  @override
+  String get creditAccountsAllTimeHint =>
+      'كل الفواتير المفتوحة مهما كان تاريخها. الفترة تحت بتحدد الفواتير المعروضة بس.';
+
+  @override
+  String creditAccountsCustomerCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count محل عليهم مستحقات',
+      few: '$count محلات عليهم مستحقات',
+      two: 'محلين عليهم مستحقات',
+      one: 'محل واحد عليه مستحقات',
+      zero: 'مفيش محل عليه مستحقات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creditAccountsListedInvoiceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فاتورة معروضة',
+      few: '$count فواتير معروضة',
+      two: 'فاتورتين معروضين',
+      one: 'فاتورة واحدة معروضة',
+      zero: 'مفيش فواتير معروضة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creditAccountsActivityRange(Object from, Object to) {
+    return 'الفواتير المعروضة: من $from إلى $to';
+  }
+
+  @override
+  String get creditAccountsEmpty => 'مفيش محل عليه رصيد آجل مفتوح';
+
+  @override
+  String get creditAccountsLoadFailed => 'تعذر تحميل الحسابات الآجلة';
+
+  @override
+  String get creditAccountsNoticeResultsTruncated =>
+      'بتتعرض أول النتائج بس. ضيق الفرع أو الفترة عشان تشوف الباقي.';
+
+  @override
+  String creditAccountsOpenInvoiceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فاتورة مفتوحة',
+      few: '$count فواتير مفتوحة',
+      two: 'فاتورتين مفتوحين',
+      one: 'فاتورة واحدة مفتوحة',
+      zero: 'مفيش فواتير مفتوحة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creditAccountsOldestAge(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'من $days يوم',
+      few: 'من $days أيام',
+      two: 'من يومين',
+      one: 'من يوم',
+      zero: 'النهارده',
+    );
+    return 'أقدم فاتورة $_temp0';
+  }
+
+  @override
+  String get creditAccountsOldestUnknown => 'أقدم فاتورة من غير تاريخ';
+
+  @override
+  String get creditAccountBalanceLabel => 'الرصيد على الحساب';
+
+  @override
+  String get creditAccountOpenInvoicesTitle =>
+      'الفواتير المفتوحة، الأقدم الأول';
+
+  @override
+  String get creditAccountInvoiceOutstandingLabel => 'المستحق';
+
+  @override
+  String get creditAccountInvoiceTotalLabel => 'إجمالي الفاتورة';
+
+  @override
+  String creditAccountInvoiceAge(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'من $days يوم',
+      few: 'من $days أيام',
+      two: 'من يومين',
+      one: 'من يوم',
+      zero: 'النهارده',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creditAccountNoInvoicesInWindow =>
+      'مفيش فواتير معروضة في الفترة دي. الرصيد فوق أقدم من كده، فوسع الفترة عشان تشوف الفواتير اللي وراه.';
+
+  @override
+  String get creditAccountRecordPayment => 'تسجيل دفعة';
+
+  @override
+  String creditAccountTerms(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم واحد',
+    );
+    return 'المهلة: $_temp0';
+  }
+
+  @override
+  String creditAccountLimit(Object amount) {
+    return 'الحد الائتماني $amount';
+  }
+
+  @override
+  String creditAccountAvailable(Object amount) {
+    return 'المتاح $amount';
+  }
+
+  @override
+  String get creditAccountFifoHint => 'الدفعة بتقفل أقدم الفواتير الأول.';
+
+  @override
+  String get creditPaymentTitle => 'تسجيل دفعة';
+
+  @override
+  String get creditPaymentAmountLabel => 'المبلغ';
+
+  @override
+  String creditPaymentFullBalanceHint(Object amount) {
+    return 'الرصيد بالكامل $amount';
+  }
+
+  @override
+  String get creditPaymentMethodLabel => 'مدفوعة بـ';
+
+  @override
+  String get creditPaymentBranchLabel => 'الفرع';
+
+  @override
+  String get creditPaymentBranchMissing => 'اختار الفرع اللي استلم الفلوس';
+
+  @override
+  String get creditPaymentBranchLoadFailed => 'تعذر تحميل الفروع';
+
+  @override
+  String get creditPaymentRemarksLabel => 'ملاحظة (اختياري)';
+
+  @override
+  String get creditPaymentSubmit => 'تسجيل الدفعة';
+
+  @override
+  String get creditPaymentAmountInvalid => 'اكتب مبلغ أكبر من صفر';
+
+  @override
+  String get creditPaymentAmountExceedsBalance =>
+      'أكبر من الرصيد. الزيادة هتفضل رصيد مقدم للعميل.';
+
+  @override
+  String get creditPaymentFailed => 'تعذر تسجيل الدفعة';
+
+  @override
+  String get creditPaymentFifoNotice =>
+      'المبلغ بيتوزع على أقدم الفواتير الأول، فممكن ميقفلش الفواتير اللي متوقعها.';
+
+  @override
+  String get creditPaymentResultTitle => 'تم تسجيل الدفعة';
+
+  @override
+  String creditPaymentResultCleared(int count, Object amount, Object invoices) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount قفلت فواتير $invoices',
+      two: '$amount قفلت فاتورتين $invoices',
+      one: '$amount قفلت فاتورة $invoices',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creditPaymentResultPartial(Object amount, Object invoice) {
+    return '$amount راحت لفاتورة $invoice ولسه مفتوحة جزئياً';
+  }
+
+  @override
+  String creditPaymentResultAdvance(Object amount) {
+    return '$amount فضلت رصيد مقدم';
+  }
+
+  @override
+  String creditPaymentResultNoneAllocated(Object amount) {
+    return 'مكانش فيه فواتير مفتوحة، فالمبلغ كله $amount فضل رصيد مقدم';
+  }
+
+  @override
+  String creditPaymentResultRemaining(Object amount) {
+    return 'لسه على الحساب: $amount';
+  }
+
+  @override
+  String creditPaymentResultEntry(Object name) {
+    return 'سند القبض $name';
+  }
+
+  @override
+  String creditListJoin(Object first, Object last) {
+    return '$first و$last';
+  }
 }

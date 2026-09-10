@@ -15,6 +15,8 @@ import '../dialogs/territory_profile_mismatch_dialog.dart';
 import 'bundle_selection_widget.dart';
 import 'delivery_slot_selection.dart';
 import '../../../../core/constants/business_constants.dart';
+import '../../../../core/network/frappe_error_message.dart';
+import '../../../credit/state/credit_providers.dart';
 import '../../../../core/utils/territory_label.dart';
 
 /// Uses the delivery branch's authoritative profile for B2B checkout. The
@@ -1837,8 +1839,19 @@ class CartWidget extends ConsumerWidget {
     String? paymentMethod;
     if (state.selectedSalesPartner == null) {
       if (!context.mounted) return;
-      // Show payment method dialog
-      paymentMethod = await PaymentMethodDialog.show(context);
+      // Credit ("on account") is offered per order, and only for the customer
+      // the order is actually on: the dialog resolves that customer's credit
+      // profile itself. A B2B order also shows the row when the shop is NOT
+      // approved, carrying the reason — a rep who expected credit has to know
+      // why it is missing. B2C hides it instead of greying it on every sale.
+      final creditCustomer =
+          (state.selectedCustomer?['name'] ?? '').toString().trim();
+      paymentMethod = await PaymentMethodDialog.show(
+        context,
+        customer: creditCustomer,
+        creditAllowedHint: state.selectedCustomer?['credit_allowed'] == true,
+        showCreditWhenNotAllowed: state.isB2bOrder,
+      );
       if (paymentMethod == null) {
         return; // user cancelled the dialog
       }
@@ -1875,6 +1888,13 @@ class CartWidget extends ConsumerWidget {
     final updatedState = ref.read(posNotifierProvider);
 
     if (updatedState.error == null) {
+      // A credit order moves the shop's balance and its remaining headroom, so
+      // the cached profile is stale the instant the invoice is submitted.
+      final creditCustomerId =
+          (state.selectedCustomer?['name'] ?? '').toString().trim();
+      if (paymentMethod == PaymentModes.credit && creditCustomerId.isNotEmpty) {
+        ref.invalidate(customerCreditProfileProvider(creditCustomerId));
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.posCheckoutSuccess),
@@ -1882,7 +1902,17 @@ class CartWidget extends ConsumerWidget {
         ),
       );
     } else {
-      final failure = updatedState.error ?? l10n.commonError;
+      // `PosNotifier.checkout` stores `e.toString()`, so a server refusal
+      // arrives here as "Exception: <message>". `userErrorMessage` treats the
+      // `Exception:` prefix as a technical signature and drops the whole
+      // sentence, which turned a precise "credit limit exceeded" refusal into
+      // a generic failure. Unwrap it first so the server's own message — the
+      // only thing that names the limit and the shortfall — survives.
+      final rawFailure = updatedState.error ?? l10n.commonError;
+      final failure = extractFrappeErrorMessage(
+        rawFailure,
+        fallback: rawFailure,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.userErrorMessage(failure)),

@@ -5692,6 +5692,48 @@ abstract class AppLocalizations {
   /// **'Nothing to add'**
   String get productionFillTheDayNothing;
 
+  /// No description provided for @productionPlanQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Jars'**
+  String get productionPlanQty;
+
+  /// No description provided for @productionUseSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {units}'**
+  String productionUseSuggestion(Object units);
+
+  /// No description provided for @productionStartBatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Start batches'**
+  String get productionStartBatches;
+
+  /// No description provided for @productionPlanVsStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Save plan records the target. Start batches moves stock.'**
+  String get productionPlanVsStart;
+
+  /// No description provided for @productionOtherItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Other items'**
+  String get productionOtherItems;
+
+  /// No description provided for @productionFillTheDayFilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled {items} items · {jars} jars'**
+  String productionFillTheDayFilled(Object items, Object jars);
+
+  /// No description provided for @productionPlanNothingQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to start yet — type a quantity or use a suggestion'**
+  String get productionPlanNothingQueued;
+
   /// No description provided for @productionNoSuggestions.
   ///
   /// In en, this message translates to:
@@ -6433,6 +6475,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not enough materials for even half a batch'**
   String get basesNothingPossible;
+
+  /// No description provided for @basesUsedPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Used / day'**
+  String get basesUsedPerDay;
+
+  /// No description provided for @basesQtyPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{quantity} {uom}/day'**
+  String basesQtyPerDay(Object quantity, Object uom);
+
+  /// No description provided for @basesCoverSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Make {batches} batches to reach {days} days cover'**
+  String basesCoverSuggestion(Object batches, Object days);
+
+  /// No description provided for @basesNoConsumption.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has drawn on this base yet — cover cannot be worked out'**
+  String get basesNoConsumption;
 
   /// No description provided for @sopTitle.
   ///
@@ -19442,6 +19508,378 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Salary slip'**
   String get monthlyExpensesSalarySlipBadge;
+
+  /// No description provided for @paymentMethodCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit (on account)'**
+  String get paymentMethodCredit;
+
+  /// No description provided for @paymentMethodCreditSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered now, paid later'**
+  String get paymentMethodCreditSubtitle;
+
+  /// No description provided for @paymentMethodCreditNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'This customer is not approved for credit'**
+  String get paymentMethodCreditNotAllowed;
+
+  /// No description provided for @paymentMethodCreditChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the credit account…'**
+  String get paymentMethodCreditChecking;
+
+  /// No description provided for @paymentMethodCreditUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check the credit account right now'**
+  String get paymentMethodCreditUnavailable;
+
+  /// No description provided for @paymentMethodCreditAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available credit: {amount}'**
+  String paymentMethodCreditAvailable(Object amount);
+
+  /// No description provided for @paymentMethodCreditNoLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'No credit limit set'**
+  String get paymentMethodCreditNoLimit;
+
+  /// No description provided for @paymentMethodCreditTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Due in {days, plural, =1{1 day} other{{days} days}}'**
+  String paymentMethodCreditTerms(int days);
+
+  /// No description provided for @paymentMethodCreditOnAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already on account: {amount}'**
+  String paymentMethodCreditOnAccount(Object amount);
+
+  /// No description provided for @paymentMethodCreditOverLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'This customer has used all of their credit'**
+  String get paymentMethodCreditOverLimit;
+
+  /// No description provided for @menuCreditAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Accounts'**
+  String get menuCreditAccounts;
+
+  /// No description provided for @creditAccountsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Accounts'**
+  String get creditAccountsTitle;
+
+  /// No description provided for @creditAccountsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops with an open balance, largest first'**
+  String get creditAccountsSubtitle;
+
+  /// No description provided for @creditAccountsPeriodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get creditAccountsPeriodLabel;
+
+  /// No description provided for @creditAccountsWindow30.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get creditAccountsWindow30;
+
+  /// No description provided for @creditAccountsWindow90.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 90 days'**
+  String get creditAccountsWindow90;
+
+  /// No description provided for @creditAccountsWindow180.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 180 days'**
+  String get creditAccountsWindow180;
+
+  /// No description provided for @creditAccountsWindow365.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 365 days'**
+  String get creditAccountsWindow365;
+
+  /// No description provided for @creditAccountsTotalOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Total on account in this period'**
+  String get creditAccountsTotalOutstanding;
+
+  /// No description provided for @creditAccountsTotalOutstandingAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Total on account (all time)'**
+  String get creditAccountsTotalOutstandingAllTime;
+
+  /// No description provided for @creditAccountsAllTimeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Every open invoice, whatever its age. The period below only controls which invoices are listed.'**
+  String get creditAccountsAllTimeHint;
+
+  /// No description provided for @creditAccountsCustomerCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No shop owes anything} =1{1 shop owes money} other{{count} shops owe money}}'**
+  String creditAccountsCustomerCount(int count);
+
+  /// No description provided for @creditAccountsListedInvoiceCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No invoices listed} =1{1 invoice listed} other{{count} invoices listed}}'**
+  String creditAccountsListedInvoiceCount(int count);
+
+  /// No description provided for @creditAccountsActivityRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Listed invoices: {from} to {to}'**
+  String creditAccountsActivityRange(Object from, Object to);
+
+  /// No description provided for @creditAccountsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No shop has an open credit balance'**
+  String get creditAccountsEmpty;
+
+  /// No description provided for @creditAccountsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load credit accounts'**
+  String get creditAccountsLoadFailed;
+
+  /// No description provided for @creditAccountsNoticeResultsTruncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the first results are shown. Narrow the branch or the period to see the rest.'**
+  String get creditAccountsNoticeResultsTruncated;
+
+  /// No description provided for @creditAccountsOpenInvoiceCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No open invoices} =1{1 open invoice} other{{count} open invoices}}'**
+  String creditAccountsOpenInvoiceCount(int count);
+
+  /// No description provided for @creditAccountsOldestAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest {days, plural, =0{today} =1{1 day} other{{days} days}}'**
+  String creditAccountsOldestAge(int days);
+
+  /// No description provided for @creditAccountsOldestUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest invoice not dated'**
+  String get creditAccountsOldestUnknown;
+
+  /// No description provided for @creditAccountBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance on account'**
+  String get creditAccountBalanceLabel;
+
+  /// No description provided for @creditAccountOpenInvoicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open invoices, oldest first'**
+  String get creditAccountOpenInvoicesTitle;
+
+  /// No description provided for @creditAccountInvoiceOutstandingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get creditAccountInvoiceOutstandingLabel;
+
+  /// No description provided for @creditAccountInvoiceTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice total'**
+  String get creditAccountInvoiceTotalLabel;
+
+  /// No description provided for @creditAccountInvoiceAge.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{Today} =1{1 day old} other{{days} days old}}'**
+  String creditAccountInvoiceAge(int days);
+
+  /// No description provided for @creditAccountNoInvoicesInWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing listed in this period. The balance above is older than that, so widen the period to see the invoices behind it.'**
+  String get creditAccountNoInvoicesInWindow;
+
+  /// No description provided for @creditAccountRecordPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record payment'**
+  String get creditAccountRecordPayment;
+
+  /// No description provided for @creditAccountTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms: {days, plural, =1{1 day} other{{days} days}}'**
+  String creditAccountTerms(int days);
+
+  /// No description provided for @creditAccountLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit limit {amount}'**
+  String creditAccountLimit(Object amount);
+
+  /// No description provided for @creditAccountAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available {amount}'**
+  String creditAccountAvailable(Object amount);
+
+  /// No description provided for @creditAccountFifoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A payment clears the oldest invoices first.'**
+  String get creditAccountFifoHint;
+
+  /// No description provided for @creditPaymentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record payment'**
+  String get creditPaymentTitle;
+
+  /// No description provided for @creditPaymentAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get creditPaymentAmountLabel;
+
+  /// No description provided for @creditPaymentFullBalanceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Full balance is {amount}'**
+  String creditPaymentFullBalanceHint(Object amount);
+
+  /// No description provided for @creditPaymentMethodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid by'**
+  String get creditPaymentMethodLabel;
+
+  /// No description provided for @creditPaymentBranchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get creditPaymentBranchLabel;
+
+  /// No description provided for @creditPaymentBranchMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the branch that received the money'**
+  String get creditPaymentBranchMissing;
+
+  /// No description provided for @creditPaymentBranchLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load branches'**
+  String get creditPaymentBranchLoadFailed;
+
+  /// No description provided for @creditPaymentRemarksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get creditPaymentRemarksLabel;
+
+  /// No description provided for @creditPaymentSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Record payment'**
+  String get creditPaymentSubmit;
+
+  /// No description provided for @creditPaymentAmountInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount greater than zero'**
+  String get creditPaymentAmountInvalid;
+
+  /// No description provided for @creditPaymentAmountExceedsBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'More than the balance. The extra will sit as an advance.'**
+  String get creditPaymentAmountExceedsBalance;
+
+  /// No description provided for @creditPaymentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to record payment'**
+  String get creditPaymentFailed;
+
+  /// No description provided for @creditPaymentFifoNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'The amount is applied to the oldest invoices first, so it may not clear the ones you expect.'**
+  String get creditPaymentFifoNotice;
+
+  /// No description provided for @creditPaymentResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment recorded'**
+  String get creditPaymentResultTitle;
+
+  /// No description provided for @creditPaymentResultCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{amount} cleared invoice {invoices}} other{{amount} cleared invoices {invoices}}}'**
+  String creditPaymentResultCleared(int count, Object amount, Object invoices);
+
+  /// No description provided for @creditPaymentResultPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} went to invoice {invoice}, which is still partly open'**
+  String creditPaymentResultPartial(Object amount, Object invoice);
+
+  /// No description provided for @creditPaymentResultAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left as an advance'**
+  String creditPaymentResultAdvance(Object amount);
+
+  /// No description provided for @creditPaymentResultNoneAllocated.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was open, so all {amount} is sitting as an advance'**
+  String creditPaymentResultNoneAllocated(Object amount);
+
+  /// No description provided for @creditPaymentResultRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Still on account: {amount}'**
+  String creditPaymentResultRemaining(Object amount);
+
+  /// No description provided for @creditPaymentResultEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment entry {name}'**
+  String creditPaymentResultEntry(Object name);
+
+  /// No description provided for @creditListJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} and {last}'**
+  String creditListJoin(Object first, Object last);
 }
 
 class _AppLocalizationsDelegate

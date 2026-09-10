@@ -3404,6 +3404,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productionFillTheDayNothing => 'Nothing to add';
 
   @override
+  String get productionPlanQty => 'Jars';
+
+  @override
+  String productionUseSuggestion(Object units) {
+    return 'Use $units';
+  }
+
+  @override
+  String get productionStartBatches => 'Start batches';
+
+  @override
+  String get productionPlanVsStart =>
+      'Save plan records the target. Start batches moves stock.';
+
+  @override
+  String get productionOtherItems => 'Other items';
+
+  @override
+  String productionFillTheDayFilled(Object items, Object jars) {
+    return 'Filled $items items · $jars jars';
+  }
+
+  @override
+  String get productionPlanNothingQueued =>
+      'Nothing to start yet — type a quantity or use a suggestion';
+
+  @override
   String get productionNoSuggestions => 'Nothing needs producing';
 
   @override
@@ -3903,6 +3930,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get basesNothingPossible =>
       'Not enough materials for even half a batch';
+
+  @override
+  String get basesUsedPerDay => 'Used / day';
+
+  @override
+  String basesQtyPerDay(Object quantity, Object uom) {
+    return '$quantity $uom/day';
+  }
+
+  @override
+  String basesCoverSuggestion(Object batches, Object days) {
+    return 'Make $batches batches to reach $days days cover';
+  }
+
+  @override
+  String get basesNoConsumption =>
+      'Nothing has drawn on this base yet — cover cannot be worked out';
 
   @override
   String get sopTitle => 'Work instructions';
@@ -11718,4 +11762,296 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get monthlyExpensesSalarySlipBadge => 'Salary slip';
+
+  @override
+  String get paymentMethodCredit => 'Credit (on account)';
+
+  @override
+  String get paymentMethodCreditSubtitle => 'Delivered now, paid later';
+
+  @override
+  String get paymentMethodCreditNotAllowed =>
+      'This customer is not approved for credit';
+
+  @override
+  String get paymentMethodCreditChecking => 'Checking the credit account…';
+
+  @override
+  String get paymentMethodCreditUnavailable =>
+      'Could not check the credit account right now';
+
+  @override
+  String paymentMethodCreditAvailable(Object amount) {
+    return 'Available credit: $amount';
+  }
+
+  @override
+  String get paymentMethodCreditNoLimit => 'No credit limit set';
+
+  @override
+  String paymentMethodCreditTerms(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return 'Due in $_temp0';
+  }
+
+  @override
+  String paymentMethodCreditOnAccount(Object amount) {
+    return 'Already on account: $amount';
+  }
+
+  @override
+  String get paymentMethodCreditOverLimit =>
+      'This customer has used all of their credit';
+
+  @override
+  String get menuCreditAccounts => 'Credit Accounts';
+
+  @override
+  String get creditAccountsTitle => 'Credit Accounts';
+
+  @override
+  String get creditAccountsSubtitle =>
+      'Shops with an open balance, largest first';
+
+  @override
+  String get creditAccountsPeriodLabel => 'Period';
+
+  @override
+  String get creditAccountsWindow30 => 'Last 30 days';
+
+  @override
+  String get creditAccountsWindow90 => 'Last 90 days';
+
+  @override
+  String get creditAccountsWindow180 => 'Last 180 days';
+
+  @override
+  String get creditAccountsWindow365 => 'Last 365 days';
+
+  @override
+  String get creditAccountsTotalOutstanding =>
+      'Total on account in this period';
+
+  @override
+  String get creditAccountsTotalOutstandingAllTime =>
+      'Total on account (all time)';
+
+  @override
+  String get creditAccountsAllTimeHint =>
+      'Every open invoice, whatever its age. The period below only controls which invoices are listed.';
+
+  @override
+  String creditAccountsCustomerCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count shops owe money',
+      one: '1 shop owes money',
+      zero: 'No shop owes anything',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creditAccountsListedInvoiceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count invoices listed',
+      one: '1 invoice listed',
+      zero: 'No invoices listed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creditAccountsActivityRange(Object from, Object to) {
+    return 'Listed invoices: $from to $to';
+  }
+
+  @override
+  String get creditAccountsEmpty => 'No shop has an open credit balance';
+
+  @override
+  String get creditAccountsLoadFailed => 'Failed to load credit accounts';
+
+  @override
+  String get creditAccountsNoticeResultsTruncated =>
+      'Only the first results are shown. Narrow the branch or the period to see the rest.';
+
+  @override
+  String creditAccountsOpenInvoiceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count open invoices',
+      one: '1 open invoice',
+      zero: 'No open invoices',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creditAccountsOldestAge(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+      zero: 'today',
+    );
+    return 'Oldest $_temp0';
+  }
+
+  @override
+  String get creditAccountsOldestUnknown => 'Oldest invoice not dated';
+
+  @override
+  String get creditAccountBalanceLabel => 'Balance on account';
+
+  @override
+  String get creditAccountOpenInvoicesTitle => 'Open invoices, oldest first';
+
+  @override
+  String get creditAccountInvoiceOutstandingLabel => 'Outstanding';
+
+  @override
+  String get creditAccountInvoiceTotalLabel => 'Invoice total';
+
+  @override
+  String creditAccountInvoiceAge(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days old',
+      one: '1 day old',
+      zero: 'Today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get creditAccountNoInvoicesInWindow =>
+      'Nothing listed in this period. The balance above is older than that, so widen the period to see the invoices behind it.';
+
+  @override
+  String get creditAccountRecordPayment => 'Record payment';
+
+  @override
+  String creditAccountTerms(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return 'Terms: $_temp0';
+  }
+
+  @override
+  String creditAccountLimit(Object amount) {
+    return 'Credit limit $amount';
+  }
+
+  @override
+  String creditAccountAvailable(Object amount) {
+    return 'Available $amount';
+  }
+
+  @override
+  String get creditAccountFifoHint =>
+      'A payment clears the oldest invoices first.';
+
+  @override
+  String get creditPaymentTitle => 'Record payment';
+
+  @override
+  String get creditPaymentAmountLabel => 'Amount';
+
+  @override
+  String creditPaymentFullBalanceHint(Object amount) {
+    return 'Full balance is $amount';
+  }
+
+  @override
+  String get creditPaymentMethodLabel => 'Paid by';
+
+  @override
+  String get creditPaymentBranchLabel => 'Branch';
+
+  @override
+  String get creditPaymentBranchMissing =>
+      'Choose the branch that received the money';
+
+  @override
+  String get creditPaymentBranchLoadFailed => 'Failed to load branches';
+
+  @override
+  String get creditPaymentRemarksLabel => 'Note (optional)';
+
+  @override
+  String get creditPaymentSubmit => 'Record payment';
+
+  @override
+  String get creditPaymentAmountInvalid => 'Enter an amount greater than zero';
+
+  @override
+  String get creditPaymentAmountExceedsBalance =>
+      'More than the balance. The extra will sit as an advance.';
+
+  @override
+  String get creditPaymentFailed => 'Failed to record payment';
+
+  @override
+  String get creditPaymentFifoNotice =>
+      'The amount is applied to the oldest invoices first, so it may not clear the ones you expect.';
+
+  @override
+  String get creditPaymentResultTitle => 'Payment recorded';
+
+  @override
+  String creditPaymentResultCleared(int count, Object amount, Object invoices) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount cleared invoices $invoices',
+      one: '$amount cleared invoice $invoices',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creditPaymentResultPartial(Object amount, Object invoice) {
+    return '$amount went to invoice $invoice, which is still partly open';
+  }
+
+  @override
+  String creditPaymentResultAdvance(Object amount) {
+    return '$amount left as an advance';
+  }
+
+  @override
+  String creditPaymentResultNoneAllocated(Object amount) {
+    return 'Nothing was open, so all $amount is sitting as an advance';
+  }
+
+  @override
+  String creditPaymentResultRemaining(Object amount) {
+    return 'Still on account: $amount';
+  }
+
+  @override
+  String creditPaymentResultEntry(Object name) {
+    return 'Payment entry $name';
+  }
+
+  @override
+  String creditListJoin(Object first, Object last) {
+    return '$first and $last';
+  }
 }

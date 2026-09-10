@@ -62,6 +62,8 @@ import '../features/visits/presentation/screens/visit_builder_screen.dart';
 import '../features/visits/presentation/screens/visit_plan_screen.dart';
 import '../features/visits/presentation/screens/visit_plans_screen.dart';
 import '../features/pricing/presentation/screens/pricing_screen.dart';
+import '../features/credit/presentation/screens/credit_accounts_screen.dart';
+import '../features/credit/presentation/screens/credit_account_detail_screen.dart';
 import '../features/leads/presentation/screens/leads_list_screen.dart';
 import '../features/leads/presentation/screens/leads_map_screen.dart';
 import '../features/leads/presentation/screens/lead_detail_screen.dart';
@@ -616,6 +618,32 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.pricing,
         name: 'pricing',
         builder: (context, state) => const PricingScreen(),
+      ),
+      // ── Credit accounts ───────────────────────────────────────────────
+      // `/credit-accounts/detail` is a static segment and must stay declared
+      // beside the list route for the same reason the leads block documents:
+      // a future `/credit-accounts/:id` would otherwise swallow it.
+      //
+      // Ungated in the router, like every other manager screen here: the
+      // drawer entry carries the role gate and the API refuses anyone else.
+      GoRoute(
+        path: AppRoutes.creditAccounts,
+        name: 'credit-accounts',
+        builder: (context, state) => const CreditAccountsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.creditAccountDetail,
+        name: 'credit-account-detail',
+        builder: (context, state) {
+          final extra = state.extra;
+          final data = extra is Map
+              ? Map<String, dynamic>.from(extra)
+              : const <String, dynamic>{};
+          return CreditAccountDetailScreen(
+            customer: (data['customer'] ?? '').toString(),
+            customerName: (data['customer_name'] ?? '').toString(),
+          );
+        },
       ),
       // ── B2B customer labels ───────────────────────────────────────────
       // `/labels/detail` is declared before nothing else, but it must stay

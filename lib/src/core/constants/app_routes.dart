@@ -104,6 +104,13 @@ abstract final class AppRoutes {
   static const reportsSegments = '/reports/segments';
   static const reportsWarehouseAlignment = '/reports/warehouse-alignment';
 
+  // ── Credit accounts (B2B shops buying on account) ─────────────────────
+  // The rolling-balance view: which shops owe money, their open invoices
+  // oldest-first, and the payment that clears them FIFO. Manager-gated, like
+  // the employee ledger it mirrors.
+  static const creditAccounts = '/credit-accounts';
+  static const creditAccountDetail = '/credit-accounts/detail';
+
   // ── WooCommerce sync operations ───────────────────────────────────────
   // The retry / review / breaker workflow that lived only in Desk.
   static const wooSync = '/woo-sync';

@@ -55,6 +55,23 @@ abstract final class ApiEndpoints {
   static const changeInvoiceShippingAddress =
       '/api/method/jarz_pos.api.customer.change_invoice_shipping_address';
 
+  // ── Credit / on account ───────────────────────────────────────────────
+  // B2B shops that take an order on credit: goods delivered, nothing paid at
+  // the door. Credit is a PER-ORDER choice, so the profile below gates the
+  // checkout selector rather than the customer record gating the whole shop.
+  static const getCustomerCreditProfile =
+      '/api/method/jarz_pos.api.credit.get_customer_credit_profile';
+
+  /// The customer analogue of `manager.get_employee_ledger`: per-shop
+  /// all-time balances plus a window-scoped invoice feed.
+  static const getCreditLedger =
+      '/api/method/jarz_pos.api.credit.get_credit_ledger';
+
+  /// Allocates a payment FIFO across the shop's open credit invoices, oldest
+  /// first. Any excess is left as an unallocated advance.
+  static const recordCreditPayment =
+      '/api/method/jarz_pos.api.credit.record_credit_payment';
+
   // ── Geo ───────────────────────────────────────────────────────────────
   /// Read-only resolve of a pasted Maps link into coordinates + the distance
   /// from the branch. Writes nothing; the address save carries the result.

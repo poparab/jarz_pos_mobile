@@ -10,6 +10,16 @@ abstract final class PaymentModes {
   static const cashLower = 'cash';
   static const online = 'Online';
   static const onlineLower = 'online';
+
+  /// Goods delivered, nothing paid at the door — the invoice stays an open
+  /// receivable on the shop until a later payment clears it.
+  ///
+  /// Sent as `custom_payment_method` exactly like Cash / Instapay / Mobile
+  /// Wallet, so the spelling must match the backend's select option. Credit is
+  /// a PER-ORDER choice: a customer approved for credit still pays cash on
+  /// most orders, so this never becomes anyone's default.
+  static const credit = 'Credit';
+  static const creditLower = 'credit';
 }
 
 // ── Courier settlement modes ───────────────────────────────────────────

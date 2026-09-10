@@ -352,6 +352,16 @@ class AppDrawer extends ConsumerWidget {
           title: context.l10n.menuInstapayReconciliation,
           onTap: () => navigate(AppRoutes.instapayReconciliation),
         ),
+      // Gated on the same manager-dashboard access as the Employee Ledger it
+      // mirrors: `get_credit_ledger` is the customer analogue of
+      // `get_employee_ledger` and accepts the same role set, so a wider gate
+      // here would be a tile that 403s on tap.
+      if (hasManagerAccess)
+        navTile(
+          icon: Icons.credit_score_outlined,
+          title: l10n.menuCreditAccounts,
+          onTap: () => navigate(AppRoutes.creditAccounts),
+        ),
     ];
 
     // Auto-expand the group containing the active route; fall back to POS/Sales.
@@ -389,6 +399,8 @@ class AppDrawer extends ConsumerWidget {
       AppRoutes.reportsExecutive,
       AppRoutes.reportsB2b,
       AppRoutes.instapayReconciliation,
+      AppRoutes.creditAccounts,
+      AppRoutes.creditAccountDetail,
     ];
     final anyGroupMatches = [
       posRoutes,
