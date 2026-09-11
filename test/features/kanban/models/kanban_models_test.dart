@@ -592,6 +592,80 @@ void main() {
       expect(cleared.hasNotes, isFalse);
     });
 
+    group('sellingPriceList', () {
+      // The pricing basis an amendment must re-use. Dropping it re-priced a
+      // `B2B Selling` order at retail and overcharged the customer by 1,360.
+      test('fromJson round-trips selling_price_list through toJson', () {
+        final card = buildCard(overrides: {
+          'selling_price_list': 'B2B Selling',
+        });
+        expect(card.sellingPriceList, 'B2B Selling');
+
+        final json = card.toJson();
+        expect(json['selling_price_list'], 'B2B Selling');
+
+        final restored = InvoiceCard.fromJson(json);
+        expect(restored.sellingPriceList, 'B2B Selling');
+      });
+
+      test('is null when the key is absent, null or blank', () {
+        // Production servers that predate the backend change send no key at
+        // all; Frappe sends a cleared field as ''. Neither may throw, and
+        // neither may be substituted with a default price list.
+        expect(buildCard().sellingPriceList, isNull);
+        expect(
+          buildCard(overrides: {'selling_price_list': null}).sellingPriceList,
+          isNull,
+        );
+        expect(
+          buildCard(overrides: {'selling_price_list': ''}).sellingPriceList,
+          isNull,
+        );
+        expect(
+          buildCard(overrides: {'selling_price_list': '   '}).sellingPriceList,
+          isNull,
+        );
+      });
+
+      test('trims the value the backend sends', () {
+        final card = buildCard(overrides: {
+          'selling_price_list': '  B2B Selling  ',
+        });
+        expect(card.sellingPriceList, 'B2B Selling');
+      });
+
+      test('toJson hands startAmendmentDraft the list it reads', () {
+        // Mirrors pos_notifier.startAmendmentDraft, which reads exactly this
+        // key off the payload built by invoice_card_widget's details.toJson().
+        final payload = buildCard(overrides: {
+          'selling_price_list': 'B2B Selling',
+        }).toJson();
+
+        final requested =
+            payload['selling_price_list']?.toString().trim() ?? '';
+        expect(requested, 'B2B Selling');
+      });
+
+      test('an older backend leaves the amendment with no explicit list', () {
+        // Absent key must degrade to "no requested price list", NOT to the
+        // default Selling list.
+        final payload = buildCard().toJson();
+
+        final requested =
+            payload['selling_price_list']?.toString().trim() ?? '';
+        expect(requested, isEmpty);
+      });
+
+      test('copyWith carries the price list forward', () {
+        final card = buildCard(overrides: {
+          'selling_price_list': 'B2B Selling',
+        });
+
+        expect(card.copyWith(status: 'Preparing').sellingPriceList,
+            'B2B Selling');
+      });
+    });
+
     group('hasNoteSignal', () {
       // The live staging bug: backend swallowed a query error and returned
       // note_count 0 on every card while latest_note was present and correct.

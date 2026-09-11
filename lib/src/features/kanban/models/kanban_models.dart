@@ -200,6 +200,15 @@ class InvoiceCard {
   /// without sequences is a supported, normal run — never treat 0 as an error.
   final int? deliverySequence;
 
+  // ── Pricing basis ───────────────────────────────────────────
+  /// The Price List the invoice was actually priced from. An amendment MUST
+  /// re-price on this same basis: falling back to the default Selling list
+  /// re-prices a `B2B Selling` order at retail and overcharges the customer.
+  /// Absent on a backend that predates the field, so it stays null rather than
+  /// defaulting — only the consumer may decide what "unknown" means, and here
+  /// that means "don't send an explicit price list at all".
+  final String? sellingPriceList;
+
   InvoiceCard({
     required this.id,
     required this.invoiceIdShort,
@@ -274,6 +283,7 @@ class InvoiceCard {
     this.deliveryFailureReason,
     this.deliveryAttemptNo,
     this.deliverySequence,
+    this.sellingPriceList,
   });
 
   /// The identifier every user-facing surface shows for this order.
@@ -456,6 +466,9 @@ class InvoiceCard {
       deliverySequence: _parseNullableInt(
         json['delivery_sequence'] ?? json['custom_delivery_sequence'],
       ),
+      // Absent (older backend), null, or blank all collapse to null via
+      // _nonEmpty — never substitute a default here.
+      sellingPriceList: _nonEmpty(json['selling_price_list']),
     );
   }
 
@@ -559,6 +572,7 @@ class InvoiceCard {
       'delivery_failure_reason': deliveryFailureReason,
       'delivery_attempt_no': deliveryAttemptNo,
       'delivery_sequence': deliverySequence,
+      'selling_price_list': sellingPriceList,
     };
   }
 
@@ -642,6 +656,7 @@ class InvoiceCard {
   /// Set when a successful delivery clears the reason (§2) — a plain
   /// `deliveryFailureReason: null` cannot express that through `??`.
   bool clearDeliveryFailureReason = false,
+  String? sellingPriceList,
   }) {
     return InvoiceCard(
       id: id ?? this.id,
@@ -720,6 +735,7 @@ class InvoiceCard {
           : (deliveryFailureReason ?? this.deliveryFailureReason),
       deliveryAttemptNo: deliveryAttemptNo ?? this.deliveryAttemptNo,
       deliverySequence: deliverySequence ?? this.deliverySequence,
+      sellingPriceList: sellingPriceList ?? this.sellingPriceList,
     );
   }
 
