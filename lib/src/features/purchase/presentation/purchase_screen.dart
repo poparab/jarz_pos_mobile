@@ -1192,8 +1192,11 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
         'stock_uom': stockUom,
         'uoms': uoms,
         'prices': prices,
-        // Pre-filled from the Item master; the buyer overrides the exceptions.
-        'item_tax_template': it['item_tax_template'] as String?,
+        // Starts at "no VAT" whatever the Item master declares: most of what
+        // this team buys is untaxed, and an unnoticed default silently added
+        // tax the supplier never charged. The buyer picks the rate on the
+        // exceptions.
+        'item_tax_template': null,
       });
     });
   }
@@ -1237,7 +1240,9 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
             {'uom': demand.stockUom, 'conversion_factor': 1}
           ],
           'prices': const <Map<String, dynamic>>[],
-          'item_tax_template': demand.itemTaxTemplate,
+          // Same "no VAT by default" rule as _addToCart — the demand carries
+          // the item master's template, but the buyer opts in to it.
+          'item_tax_template': null,
           // Kept on the line so the cart can show "requested N, buying M" and
           // the submit call can split the purchase across source requests.
           'requested_qty': demand.outstandingQty,
