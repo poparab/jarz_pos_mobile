@@ -704,6 +704,34 @@ mixin _$BaseItem {
   /// them. Advisory only: an off-grid figure warns, it never blocks.
   @JsonKey(name: 'run_sizes')
   List<double>? get runSizes => throw _privateConstructorUsedError;
+
+  /// How the floor actually measures a run of this base.
+  ///
+  /// `batch` — the recipe contains something countable (30 eggs), so a run
+  /// is a whole or half batch and the quantity follows from it.
+  /// `quantity` — every ingredient is weighed, so any amount is makeable and
+  /// batches are a fiction the screen should not impose.
+  ///
+  /// Defaults to `batch` so a server that predates this field behaves exactly
+  /// as it did: every base was a batch before the distinction existed.
+  @JsonKey(name: 'entry_mode')
+  String get entryMode => throw _privateConstructorUsedError;
+
+  /// The countable ingredient one batch is measured by — eggs, for every
+  /// cake in this catalogue.
+  ///
+  /// Null for anything weighed rather than counted, which is what makes
+  /// [entryMode] `quantity`. The two always agree; [entryMode] is published
+  /// separately so the client never has to re-derive the rule.
+  @JsonKey(name: 'batch_unit')
+  BaseBatchUnit? get batchUnit => throw _privateConstructorUsedError;
+
+  /// The jars whose own recipe draws on this base, with what each one takes.
+  ///
+  /// Empty — never null — when nothing consumes it. Sorted smallest-per-jar
+  /// first by the server, which puts Medium before Large.
+  @JsonKey(name: 'jar_consumers')
+  List<BaseJarConsumer> get jarConsumers => throw _privateConstructorUsedError;
   @JsonKey(name: 'has_sop')
   bool get hasSop => throw _privateConstructorUsedError;
   @JsonKey(name: 'sop_total_duration_mins')
@@ -768,6 +796,9 @@ abstract class $BaseItemCopyWith<$Res> {
     @JsonKey(name: 'limiting_component')
     BaseLimitingComponent? limitingComponent,
     @JsonKey(name: 'run_sizes') List<double>? runSizes,
+    @JsonKey(name: 'entry_mode') String entryMode,
+    @JsonKey(name: 'batch_unit') BaseBatchUnit? batchUnit,
+    @JsonKey(name: 'jar_consumers') List<BaseJarConsumer> jarConsumers,
     @JsonKey(name: 'has_sop') bool hasSop,
     @JsonKey(name: 'sop_total_duration_mins') double? sopTotalDurationMins,
     BaseDemand? demand,
@@ -781,6 +812,7 @@ abstract class $BaseItemCopyWith<$Res> {
   });
 
   $BaseLimitingComponentCopyWith<$Res>? get limitingComponent;
+  $BaseBatchUnitCopyWith<$Res>? get batchUnit;
   $BaseDemandCopyWith<$Res>? get demand;
 }
 
@@ -811,6 +843,9 @@ class _$BaseItemCopyWithImpl<$Res, $Val extends BaseItem>
     Object? canMakeNowBatches = freezed,
     Object? limitingComponent = freezed,
     Object? runSizes = freezed,
+    Object? entryMode = null,
+    Object? batchUnit = freezed,
+    Object? jarConsumers = null,
     Object? hasSop = null,
     Object? sopTotalDurationMins = freezed,
     Object? demand = freezed,
@@ -872,6 +907,18 @@ class _$BaseItemCopyWithImpl<$Res, $Val extends BaseItem>
                 ? _value.runSizes
                 : runSizes // ignore: cast_nullable_to_non_nullable
                       as List<double>?,
+            entryMode: null == entryMode
+                ? _value.entryMode
+                : entryMode // ignore: cast_nullable_to_non_nullable
+                      as String,
+            batchUnit: freezed == batchUnit
+                ? _value.batchUnit
+                : batchUnit // ignore: cast_nullable_to_non_nullable
+                      as BaseBatchUnit?,
+            jarConsumers: null == jarConsumers
+                ? _value.jarConsumers
+                : jarConsumers // ignore: cast_nullable_to_non_nullable
+                      as List<BaseJarConsumer>,
             hasSop: null == hasSop
                 ? _value.hasSop
                 : hasSop // ignore: cast_nullable_to_non_nullable
@@ -937,6 +984,20 @@ class _$BaseItemCopyWithImpl<$Res, $Val extends BaseItem>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
+  $BaseBatchUnitCopyWith<$Res>? get batchUnit {
+    if (_value.batchUnit == null) {
+      return null;
+    }
+
+    return $BaseBatchUnitCopyWith<$Res>(_value.batchUnit!, (value) {
+      return _then(_value.copyWith(batchUnit: value) as $Val);
+    });
+  }
+
+  /// Create a copy of BaseItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
   $BaseDemandCopyWith<$Res>? get demand {
     if (_value.demand == null) {
       return null;
@@ -971,6 +1032,9 @@ abstract class _$$BaseItemImplCopyWith<$Res>
     @JsonKey(name: 'limiting_component')
     BaseLimitingComponent? limitingComponent,
     @JsonKey(name: 'run_sizes') List<double>? runSizes,
+    @JsonKey(name: 'entry_mode') String entryMode,
+    @JsonKey(name: 'batch_unit') BaseBatchUnit? batchUnit,
+    @JsonKey(name: 'jar_consumers') List<BaseJarConsumer> jarConsumers,
     @JsonKey(name: 'has_sop') bool hasSop,
     @JsonKey(name: 'sop_total_duration_mins') double? sopTotalDurationMins,
     BaseDemand? demand,
@@ -985,6 +1049,8 @@ abstract class _$$BaseItemImplCopyWith<$Res>
 
   @override
   $BaseLimitingComponentCopyWith<$Res>? get limitingComponent;
+  @override
+  $BaseBatchUnitCopyWith<$Res>? get batchUnit;
   @override
   $BaseDemandCopyWith<$Res>? get demand;
 }
@@ -1015,6 +1081,9 @@ class __$$BaseItemImplCopyWithImpl<$Res>
     Object? canMakeNowBatches = freezed,
     Object? limitingComponent = freezed,
     Object? runSizes = freezed,
+    Object? entryMode = null,
+    Object? batchUnit = freezed,
+    Object? jarConsumers = null,
     Object? hasSop = null,
     Object? sopTotalDurationMins = freezed,
     Object? demand = freezed,
@@ -1076,6 +1145,18 @@ class __$$BaseItemImplCopyWithImpl<$Res>
             ? _value._runSizes
             : runSizes // ignore: cast_nullable_to_non_nullable
                   as List<double>?,
+        entryMode: null == entryMode
+            ? _value.entryMode
+            : entryMode // ignore: cast_nullable_to_non_nullable
+                  as String,
+        batchUnit: freezed == batchUnit
+            ? _value.batchUnit
+            : batchUnit // ignore: cast_nullable_to_non_nullable
+                  as BaseBatchUnit?,
+        jarConsumers: null == jarConsumers
+            ? _value._jarConsumers
+            : jarConsumers // ignore: cast_nullable_to_non_nullable
+                  as List<BaseJarConsumer>,
         hasSop: null == hasSop
             ? _value.hasSop
             : hasSop // ignore: cast_nullable_to_non_nullable
@@ -1137,6 +1218,10 @@ class _$BaseItemImpl extends _BaseItem {
     @JsonKey(name: 'can_make_now_batches') this.canMakeNowBatches,
     @JsonKey(name: 'limiting_component') this.limitingComponent,
     @JsonKey(name: 'run_sizes') final List<double>? runSizes,
+    @JsonKey(name: 'entry_mode') this.entryMode = kBaseEntryBatch,
+    @JsonKey(name: 'batch_unit') this.batchUnit,
+    @JsonKey(name: 'jar_consumers')
+    final List<BaseJarConsumer> jarConsumers = const <BaseJarConsumer>[],
     @JsonKey(name: 'has_sop') this.hasSop = false,
     @JsonKey(name: 'sop_total_duration_mins') this.sopTotalDurationMins,
     this.demand,
@@ -1148,6 +1233,7 @@ class _$BaseItemImpl extends _BaseItem {
     @JsonKey(name: 'suggested_qty') this.suggestedQty = 0.0,
     @JsonKey(name: 'suggested_batches') this.suggestedBatches = 0,
   }) : _runSizes = runSizes,
+       _jarConsumers = jarConsumers,
        super._();
 
   factory _$BaseItemImpl.fromJson(Map<String, dynamic> json) =>
@@ -1210,6 +1296,47 @@ class _$BaseItemImpl extends _BaseItem {
     return EqualUnmodifiableListView(value);
   }
 
+  /// How the floor actually measures a run of this base.
+  ///
+  /// `batch` — the recipe contains something countable (30 eggs), so a run
+  /// is a whole or half batch and the quantity follows from it.
+  /// `quantity` — every ingredient is weighed, so any amount is makeable and
+  /// batches are a fiction the screen should not impose.
+  ///
+  /// Defaults to `batch` so a server that predates this field behaves exactly
+  /// as it did: every base was a batch before the distinction existed.
+  @override
+  @JsonKey(name: 'entry_mode')
+  final String entryMode;
+
+  /// The countable ingredient one batch is measured by — eggs, for every
+  /// cake in this catalogue.
+  ///
+  /// Null for anything weighed rather than counted, which is what makes
+  /// [entryMode] `quantity`. The two always agree; [entryMode] is published
+  /// separately so the client never has to re-derive the rule.
+  @override
+  @JsonKey(name: 'batch_unit')
+  final BaseBatchUnit? batchUnit;
+
+  /// The jars whose own recipe draws on this base, with what each one takes.
+  ///
+  /// Empty — never null — when nothing consumes it. Sorted smallest-per-jar
+  /// first by the server, which puts Medium before Large.
+  final List<BaseJarConsumer> _jarConsumers;
+
+  /// The jars whose own recipe draws on this base, with what each one takes.
+  ///
+  /// Empty — never null — when nothing consumes it. Sorted smallest-per-jar
+  /// first by the server, which puts Medium before Large.
+  @override
+  @JsonKey(name: 'jar_consumers')
+  List<BaseJarConsumer> get jarConsumers {
+    if (_jarConsumers is EqualUnmodifiableListView) return _jarConsumers;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_jarConsumers);
+  }
+
   @override
   @JsonKey(name: 'has_sop')
   final bool hasSop;
@@ -1257,7 +1384,7 @@ class _$BaseItemImpl extends _BaseItem {
 
   @override
   String toString() {
-    return 'BaseItem(itemCode: $itemCode, itemName: $itemName, itemGroup: $itemGroup, stockUom: $stockUom, defaultBom: $defaultBom, batchYield: $batchYield, onHand: $onHand, stockIsNegative: $stockIsNegative, batchesOnHand: $batchesOnHand, canMakeNowBatches: $canMakeNowBatches, limitingComponent: $limitingComponent, runSizes: $runSizes, hasSop: $hasSop, sopTotalDurationMins: $sopTotalDurationMins, demand: $demand, consumptionPerDay: $consumptionPerDay, daysOfCover: $daysOfCover, targetDays: $targetDays, targetDaysSource: $targetDaysSource, status: $status, suggestedQty: $suggestedQty, suggestedBatches: $suggestedBatches)';
+    return 'BaseItem(itemCode: $itemCode, itemName: $itemName, itemGroup: $itemGroup, stockUom: $stockUom, defaultBom: $defaultBom, batchYield: $batchYield, onHand: $onHand, stockIsNegative: $stockIsNegative, batchesOnHand: $batchesOnHand, canMakeNowBatches: $canMakeNowBatches, limitingComponent: $limitingComponent, runSizes: $runSizes, entryMode: $entryMode, batchUnit: $batchUnit, jarConsumers: $jarConsumers, hasSop: $hasSop, sopTotalDurationMins: $sopTotalDurationMins, demand: $demand, consumptionPerDay: $consumptionPerDay, daysOfCover: $daysOfCover, targetDays: $targetDays, targetDaysSource: $targetDaysSource, status: $status, suggestedQty: $suggestedQty, suggestedBatches: $suggestedBatches)';
   }
 
   @override
@@ -1287,6 +1414,14 @@ class _$BaseItemImpl extends _BaseItem {
             (identical(other.limitingComponent, limitingComponent) ||
                 other.limitingComponent == limitingComponent) &&
             const DeepCollectionEquality().equals(other._runSizes, _runSizes) &&
+            (identical(other.entryMode, entryMode) ||
+                other.entryMode == entryMode) &&
+            (identical(other.batchUnit, batchUnit) ||
+                other.batchUnit == batchUnit) &&
+            const DeepCollectionEquality().equals(
+              other._jarConsumers,
+              _jarConsumers,
+            ) &&
             (identical(other.hasSop, hasSop) || other.hasSop == hasSop) &&
             (identical(other.sopTotalDurationMins, sopTotalDurationMins) ||
                 other.sopTotalDurationMins == sopTotalDurationMins) &&
@@ -1322,6 +1457,9 @@ class _$BaseItemImpl extends _BaseItem {
     canMakeNowBatches,
     limitingComponent,
     const DeepCollectionEquality().hash(_runSizes),
+    entryMode,
+    batchUnit,
+    const DeepCollectionEquality().hash(_jarConsumers),
     hasSop,
     sopTotalDurationMins,
     demand,
@@ -1363,6 +1501,9 @@ abstract class _BaseItem extends BaseItem {
     @JsonKey(name: 'limiting_component')
     final BaseLimitingComponent? limitingComponent,
     @JsonKey(name: 'run_sizes') final List<double>? runSizes,
+    @JsonKey(name: 'entry_mode') final String entryMode,
+    @JsonKey(name: 'batch_unit') final BaseBatchUnit? batchUnit,
+    @JsonKey(name: 'jar_consumers') final List<BaseJarConsumer> jarConsumers,
     @JsonKey(name: 'has_sop') final bool hasSop,
     @JsonKey(name: 'sop_total_duration_mins')
     final double? sopTotalDurationMins,
@@ -1426,6 +1567,37 @@ abstract class _BaseItem extends BaseItem {
   @override
   @JsonKey(name: 'run_sizes')
   List<double>? get runSizes;
+
+  /// How the floor actually measures a run of this base.
+  ///
+  /// `batch` — the recipe contains something countable (30 eggs), so a run
+  /// is a whole or half batch and the quantity follows from it.
+  /// `quantity` — every ingredient is weighed, so any amount is makeable and
+  /// batches are a fiction the screen should not impose.
+  ///
+  /// Defaults to `batch` so a server that predates this field behaves exactly
+  /// as it did: every base was a batch before the distinction existed.
+  @override
+  @JsonKey(name: 'entry_mode')
+  String get entryMode;
+
+  /// The countable ingredient one batch is measured by — eggs, for every
+  /// cake in this catalogue.
+  ///
+  /// Null for anything weighed rather than counted, which is what makes
+  /// [entryMode] `quantity`. The two always agree; [entryMode] is published
+  /// separately so the client never has to re-derive the rule.
+  @override
+  @JsonKey(name: 'batch_unit')
+  BaseBatchUnit? get batchUnit;
+
+  /// The jars whose own recipe draws on this base, with what each one takes.
+  ///
+  /// Empty — never null — when nothing consumes it. Sorted smallest-per-jar
+  /// first by the server, which puts Medium before Large.
+  @override
+  @JsonKey(name: 'jar_consumers')
+  List<BaseJarConsumer> get jarConsumers;
   @override
   @JsonKey(name: 'has_sop')
   bool get hasSop;
@@ -1476,6 +1648,475 @@ abstract class _BaseItem extends BaseItem {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$BaseItemImplCopyWith<_$BaseItemImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+BaseBatchUnit _$BaseBatchUnitFromJson(Map<String, dynamic> json) {
+  return _BaseBatchUnit.fromJson(json);
+}
+
+/// @nodoc
+mixin _$BaseBatchUnit {
+  @JsonKey(name: 'item_code')
+  String get itemCode => throw _privateConstructorUsedError;
+  @JsonKey(name: 'item_name')
+  String get itemName => throw _privateConstructorUsedError;
+  String get uom => throw _privateConstructorUsedError;
+
+  /// How many of it one batch takes.
+  @JsonKey(name: 'qty_per_batch')
+  double get qtyPerBatch => throw _privateConstructorUsedError;
+
+  /// Serializes this BaseBatchUnit to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of BaseBatchUnit
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $BaseBatchUnitCopyWith<BaseBatchUnit> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $BaseBatchUnitCopyWith<$Res> {
+  factory $BaseBatchUnitCopyWith(
+    BaseBatchUnit value,
+    $Res Function(BaseBatchUnit) then,
+  ) = _$BaseBatchUnitCopyWithImpl<$Res, BaseBatchUnit>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'item_code') String itemCode,
+    @JsonKey(name: 'item_name') String itemName,
+    String uom,
+    @JsonKey(name: 'qty_per_batch') double qtyPerBatch,
+  });
+}
+
+/// @nodoc
+class _$BaseBatchUnitCopyWithImpl<$Res, $Val extends BaseBatchUnit>
+    implements $BaseBatchUnitCopyWith<$Res> {
+  _$BaseBatchUnitCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of BaseBatchUnit
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? itemCode = null,
+    Object? itemName = null,
+    Object? uom = null,
+    Object? qtyPerBatch = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            itemCode: null == itemCode
+                ? _value.itemCode
+                : itemCode // ignore: cast_nullable_to_non_nullable
+                      as String,
+            itemName: null == itemName
+                ? _value.itemName
+                : itemName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            uom: null == uom
+                ? _value.uom
+                : uom // ignore: cast_nullable_to_non_nullable
+                      as String,
+            qtyPerBatch: null == qtyPerBatch
+                ? _value.qtyPerBatch
+                : qtyPerBatch // ignore: cast_nullable_to_non_nullable
+                      as double,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$BaseBatchUnitImplCopyWith<$Res>
+    implements $BaseBatchUnitCopyWith<$Res> {
+  factory _$$BaseBatchUnitImplCopyWith(
+    _$BaseBatchUnitImpl value,
+    $Res Function(_$BaseBatchUnitImpl) then,
+  ) = __$$BaseBatchUnitImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'item_code') String itemCode,
+    @JsonKey(name: 'item_name') String itemName,
+    String uom,
+    @JsonKey(name: 'qty_per_batch') double qtyPerBatch,
+  });
+}
+
+/// @nodoc
+class __$$BaseBatchUnitImplCopyWithImpl<$Res>
+    extends _$BaseBatchUnitCopyWithImpl<$Res, _$BaseBatchUnitImpl>
+    implements _$$BaseBatchUnitImplCopyWith<$Res> {
+  __$$BaseBatchUnitImplCopyWithImpl(
+    _$BaseBatchUnitImpl _value,
+    $Res Function(_$BaseBatchUnitImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of BaseBatchUnit
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? itemCode = null,
+    Object? itemName = null,
+    Object? uom = null,
+    Object? qtyPerBatch = null,
+  }) {
+    return _then(
+      _$BaseBatchUnitImpl(
+        itemCode: null == itemCode
+            ? _value.itemCode
+            : itemCode // ignore: cast_nullable_to_non_nullable
+                  as String,
+        itemName: null == itemName
+            ? _value.itemName
+            : itemName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        uom: null == uom
+            ? _value.uom
+            : uom // ignore: cast_nullable_to_non_nullable
+                  as String,
+        qtyPerBatch: null == qtyPerBatch
+            ? _value.qtyPerBatch
+            : qtyPerBatch // ignore: cast_nullable_to_non_nullable
+                  as double,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$BaseBatchUnitImpl extends _BaseBatchUnit {
+  const _$BaseBatchUnitImpl({
+    @JsonKey(name: 'item_code') this.itemCode = '',
+    @JsonKey(name: 'item_name') this.itemName = '',
+    this.uom = '',
+    @JsonKey(name: 'qty_per_batch') this.qtyPerBatch = 0.0,
+  }) : super._();
+
+  factory _$BaseBatchUnitImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BaseBatchUnitImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'item_code')
+  final String itemCode;
+  @override
+  @JsonKey(name: 'item_name')
+  final String itemName;
+  @override
+  @JsonKey()
+  final String uom;
+
+  /// How many of it one batch takes.
+  @override
+  @JsonKey(name: 'qty_per_batch')
+  final double qtyPerBatch;
+
+  @override
+  String toString() {
+    return 'BaseBatchUnit(itemCode: $itemCode, itemName: $itemName, uom: $uom, qtyPerBatch: $qtyPerBatch)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$BaseBatchUnitImpl &&
+            (identical(other.itemCode, itemCode) ||
+                other.itemCode == itemCode) &&
+            (identical(other.itemName, itemName) ||
+                other.itemName == itemName) &&
+            (identical(other.uom, uom) || other.uom == uom) &&
+            (identical(other.qtyPerBatch, qtyPerBatch) ||
+                other.qtyPerBatch == qtyPerBatch));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, itemCode, itemName, uom, qtyPerBatch);
+
+  /// Create a copy of BaseBatchUnit
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$BaseBatchUnitImplCopyWith<_$BaseBatchUnitImpl> get copyWith =>
+      __$$BaseBatchUnitImplCopyWithImpl<_$BaseBatchUnitImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$BaseBatchUnitImplToJson(this);
+  }
+}
+
+abstract class _BaseBatchUnit extends BaseBatchUnit {
+  const factory _BaseBatchUnit({
+    @JsonKey(name: 'item_code') final String itemCode,
+    @JsonKey(name: 'item_name') final String itemName,
+    final String uom,
+    @JsonKey(name: 'qty_per_batch') final double qtyPerBatch,
+  }) = _$BaseBatchUnitImpl;
+  const _BaseBatchUnit._() : super._();
+
+  factory _BaseBatchUnit.fromJson(Map<String, dynamic> json) =
+      _$BaseBatchUnitImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'item_code')
+  String get itemCode;
+  @override
+  @JsonKey(name: 'item_name')
+  String get itemName;
+  @override
+  String get uom;
+
+  /// How many of it one batch takes.
+  @override
+  @JsonKey(name: 'qty_per_batch')
+  double get qtyPerBatch;
+
+  /// Create a copy of BaseBatchUnit
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$BaseBatchUnitImplCopyWith<_$BaseBatchUnitImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+BaseJarConsumer _$BaseJarConsumerFromJson(Map<String, dynamic> json) {
+  return _BaseJarConsumer.fromJson(json);
+}
+
+/// @nodoc
+mixin _$BaseJarConsumer {
+  @JsonKey(name: 'item_code')
+  String get itemCode => throw _privateConstructorUsedError;
+  @JsonKey(name: 'item_name')
+  String get itemName => throw _privateConstructorUsedError;
+
+  /// In the BASE's stock UOM, per one jar.
+  @JsonKey(name: 'qty_per_jar')
+  double get qtyPerJar => throw _privateConstructorUsedError;
+
+  /// Serializes this BaseJarConsumer to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of BaseJarConsumer
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $BaseJarConsumerCopyWith<BaseJarConsumer> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $BaseJarConsumerCopyWith<$Res> {
+  factory $BaseJarConsumerCopyWith(
+    BaseJarConsumer value,
+    $Res Function(BaseJarConsumer) then,
+  ) = _$BaseJarConsumerCopyWithImpl<$Res, BaseJarConsumer>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'item_code') String itemCode,
+    @JsonKey(name: 'item_name') String itemName,
+    @JsonKey(name: 'qty_per_jar') double qtyPerJar,
+  });
+}
+
+/// @nodoc
+class _$BaseJarConsumerCopyWithImpl<$Res, $Val extends BaseJarConsumer>
+    implements $BaseJarConsumerCopyWith<$Res> {
+  _$BaseJarConsumerCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of BaseJarConsumer
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? itemCode = null,
+    Object? itemName = null,
+    Object? qtyPerJar = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            itemCode: null == itemCode
+                ? _value.itemCode
+                : itemCode // ignore: cast_nullable_to_non_nullable
+                      as String,
+            itemName: null == itemName
+                ? _value.itemName
+                : itemName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            qtyPerJar: null == qtyPerJar
+                ? _value.qtyPerJar
+                : qtyPerJar // ignore: cast_nullable_to_non_nullable
+                      as double,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$BaseJarConsumerImplCopyWith<$Res>
+    implements $BaseJarConsumerCopyWith<$Res> {
+  factory _$$BaseJarConsumerImplCopyWith(
+    _$BaseJarConsumerImpl value,
+    $Res Function(_$BaseJarConsumerImpl) then,
+  ) = __$$BaseJarConsumerImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'item_code') String itemCode,
+    @JsonKey(name: 'item_name') String itemName,
+    @JsonKey(name: 'qty_per_jar') double qtyPerJar,
+  });
+}
+
+/// @nodoc
+class __$$BaseJarConsumerImplCopyWithImpl<$Res>
+    extends _$BaseJarConsumerCopyWithImpl<$Res, _$BaseJarConsumerImpl>
+    implements _$$BaseJarConsumerImplCopyWith<$Res> {
+  __$$BaseJarConsumerImplCopyWithImpl(
+    _$BaseJarConsumerImpl _value,
+    $Res Function(_$BaseJarConsumerImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of BaseJarConsumer
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? itemCode = null,
+    Object? itemName = null,
+    Object? qtyPerJar = null,
+  }) {
+    return _then(
+      _$BaseJarConsumerImpl(
+        itemCode: null == itemCode
+            ? _value.itemCode
+            : itemCode // ignore: cast_nullable_to_non_nullable
+                  as String,
+        itemName: null == itemName
+            ? _value.itemName
+            : itemName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        qtyPerJar: null == qtyPerJar
+            ? _value.qtyPerJar
+            : qtyPerJar // ignore: cast_nullable_to_non_nullable
+                  as double,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$BaseJarConsumerImpl extends _BaseJarConsumer {
+  const _$BaseJarConsumerImpl({
+    @JsonKey(name: 'item_code') this.itemCode = '',
+    @JsonKey(name: 'item_name') this.itemName = '',
+    @JsonKey(name: 'qty_per_jar') this.qtyPerJar = 0.0,
+  }) : super._();
+
+  factory _$BaseJarConsumerImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BaseJarConsumerImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'item_code')
+  final String itemCode;
+  @override
+  @JsonKey(name: 'item_name')
+  final String itemName;
+
+  /// In the BASE's stock UOM, per one jar.
+  @override
+  @JsonKey(name: 'qty_per_jar')
+  final double qtyPerJar;
+
+  @override
+  String toString() {
+    return 'BaseJarConsumer(itemCode: $itemCode, itemName: $itemName, qtyPerJar: $qtyPerJar)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$BaseJarConsumerImpl &&
+            (identical(other.itemCode, itemCode) ||
+                other.itemCode == itemCode) &&
+            (identical(other.itemName, itemName) ||
+                other.itemName == itemName) &&
+            (identical(other.qtyPerJar, qtyPerJar) ||
+                other.qtyPerJar == qtyPerJar));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, itemCode, itemName, qtyPerJar);
+
+  /// Create a copy of BaseJarConsumer
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$BaseJarConsumerImplCopyWith<_$BaseJarConsumerImpl> get copyWith =>
+      __$$BaseJarConsumerImplCopyWithImpl<_$BaseJarConsumerImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$BaseJarConsumerImplToJson(this);
+  }
+}
+
+abstract class _BaseJarConsumer extends BaseJarConsumer {
+  const factory _BaseJarConsumer({
+    @JsonKey(name: 'item_code') final String itemCode,
+    @JsonKey(name: 'item_name') final String itemName,
+    @JsonKey(name: 'qty_per_jar') final double qtyPerJar,
+  }) = _$BaseJarConsumerImpl;
+  const _BaseJarConsumer._() : super._();
+
+  factory _BaseJarConsumer.fromJson(Map<String, dynamic> json) =
+      _$BaseJarConsumerImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'item_code')
+  String get itemCode;
+  @override
+  @JsonKey(name: 'item_name')
+  String get itemName;
+
+  /// In the BASE's stock UOM, per one jar.
+  @override
+  @JsonKey(name: 'qty_per_jar')
+  double get qtyPerJar;
+
+  /// Create a copy of BaseJarConsumer
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$BaseJarConsumerImplCopyWith<_$BaseJarConsumerImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 

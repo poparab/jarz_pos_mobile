@@ -3912,6 +3912,163 @@ class AppLocalizationsAr extends AppLocalizations {
       'لسه محدش سحب من الأساس ده — مش هينفع نحسب التغطية';
 
   @override
+  String basesInStoreValue(Object quantity, Object uom) {
+    return '$quantity $uom في المخزن';
+  }
+
+  @override
+  String get basesGroupMixes => 'المخلوطات';
+
+  @override
+  String get basesGroupMixesHint =>
+      'بتتعمل بالكيلو — اكتب عدد البرطمانات أو الوزن';
+
+  @override
+  String get basesGroupBatches => 'الكيك والبسكويت';
+
+  @override
+  String get basesGroupBatchesHint => 'بتتعمل دفعات — بتتحسب بالبيض';
+
+  @override
+  String get basesJarsToFill => 'البرطمانات اللي هتتعبّى';
+
+  @override
+  String basesPerJar(Object quantity, Object uom) {
+    return '$quantity $uom للبرطمان';
+  }
+
+  @override
+  String basesJarNeedShort(String needed, String uom, String gap) {
+    return 'البرطمانات دي عايزة $needed $uom — ناقص $gap عن اللي في المخزن';
+  }
+
+  @override
+  String basesJarNeedCovered(Object needed, Object uom) {
+    return 'البرطمانات دي عايزة $needed $uom — والمخزن مغطيها';
+  }
+
+  @override
+  String get basesMakeLabel => 'اعمل';
+
+  @override
+  String basesUseQty(Object quantity, Object uom) {
+    return 'اعمل $quantity $uom';
+  }
+
+  @override
+  String basesCountedValue(Object count, Object unit) {
+    return '$count $unit';
+  }
+
+  @override
+  String basesCountedPerBatch(Object count, Object unit) {
+    return 'الدفعة الواحدة = $count $unit';
+  }
+
+  @override
+  String basesCountedAndBatches(String count, String unit, String batches) {
+    return '$count $unit · $batches دفعة';
+  }
+
+  @override
+  String basesReduceToQty(Object quantity, Object uom) {
+    return 'اعمل $quantity $uom بدالها';
+  }
+
+  @override
+  String get basesNothingToMake => 'لسه مفيش حاجة محددة تتعمل';
+
+  @override
+  String basesMakeMixes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'اعمل $count مخلوطات',
+      one: 'اعمل مخلوط',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String basesStartBatches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ابدأ $count دفعات',
+      one: 'ابدأ دفعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String basesMakeBoth(int mixes, int batches) {
+    return 'اعمل $mixes مخلوط · وابدأ $batches دفعة';
+  }
+
+  @override
+  String basesSelectedShort(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ناقصهم خام — شيل علامتهم وكمّل الباقي',
+      one: 'واحد ناقصه خام — شيل علامته وكمّل الباقي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String basesSelectedEmpty(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count لسه مفيهمش كمية',
+      one: 'واحد لسه مفيهوش كمية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get basesMixedNote =>
+      'المخلوطات بتتسجل خلاص · الدفعات بتروح لـ شغال تتقفل';
+
+  @override
+  String get basesCatalogueStale =>
+      'قائمة الأساسات اتغيرت — اسحب لتحديثها وحاول تاني';
+
+  @override
+  String basesReportMade(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'اتعملوا $count مخلوطات',
+      one: 'اتعمل مخلوط',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String basesReportStarted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بدأوا $count دفعات — اقفلهم من شغال',
+      one: 'بدأت دفعة — اقفلها من شغال',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String basesReportFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فشلوا',
+      one: 'واحد فشل',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sopTitle => 'تعليمات التشغيل';
 
   @override

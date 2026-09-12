@@ -7,50 +7,84 @@ import 'package:jarz_pos/src/core/constants/api_endpoints.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/manufacturing_service.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/base_item.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/base_production_tab.dart';
-import 'package:jarz_pos/src/features/manufacturing/presentation/widgets/stock_elsewhere_note.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/base_production_providers.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/running_batches_notifier.dart';
 
 import '../../../helpers/mock_services.dart';
 
 const _materialOptionsEndpoint =
     '/api/method/jarz_pos.api.manufacturing.get_material_options';
 
-BaseItem _base({
-  String itemCode = 'BASE-FUDGE',
-  String itemName = 'Fudge Cake',
-  double batchYield = 9.52,
-  double onHand = 17.136,
-  double batchesOnHand = 1.8,
+/// A mix: weighed, not counted, and eaten by two jar sizes at a fixed rate.
+///
+/// The numbers are production's own — `Blueberry mix` yields 2 Kg from 1 Kg of
+/// fruit and 1 Kg of jelly, and a medium jar takes 0.030 Kg where a large takes
+/// 0.040.
+BaseItem _mix({
+  String itemCode = 'Blueberry mix',
+  double batchYield = 2.0,
+  double onHand = 0.58,
   bool stockIsNegative = false,
   int? canMakeNowBatches,
-  List<double>? runSizes,
-  BaseDemand? demand,
-  bool hasSop = false,
-  double? consumptionPerDay,
-  double? daysOfCover,
   String? status,
-  int targetDays = 21,
-  int suggestedBatches = 0,
+  double? daysOfCover,
+  List<BaseJarConsumer>? jarConsumers,
 }) {
   return BaseItem(
     itemCode: itemCode,
-    itemName: itemName,
+    itemName: itemCode,
     stockUom: 'Kg',
-    defaultBom: 'BOM-$itemCode-001',
+    defaultBom: 'BOM-$itemCode-003',
     batchYield: batchYield,
     onHand: onHand,
     stockIsNegative: stockIsNegative,
-    batchesOnHand: batchesOnHand,
+    batchesOnHand: onHand / batchYield,
     canMakeNowBatches: canMakeNowBatches,
-    runSizes: runSizes,
-    demand: demand,
-    hasSop: hasSop,
-    consumptionPerDay: consumptionPerDay,
-    daysOfCover: daysOfCover,
+    entryMode: kBaseEntryQuantity,
     status: status,
-    targetDays: targetDays,
-    suggestedBatches: suggestedBatches,
-    suggestedQty: suggestedBatches * batchYield,
+    daysOfCover: daysOfCover,
+    jarConsumers:
+        jarConsumers ??
+        const [
+          BaseJarConsumer(
+            itemCode: 'Blueberry Medium',
+            itemName: 'Blueberry Medium',
+            qtyPerJar: 0.03,
+          ),
+          BaseJarConsumer(
+            itemCode: 'Blueberry Large',
+            itemName: 'Blueberry Large',
+            qtyPerJar: 0.04,
+          ),
+        ],
+  );
+}
+
+/// A cake: counted in eggs, 30 of them to a batch, like Fudge Cake on
+/// production.
+BaseItem _cake({
+  String itemCode = 'Fudge Cake',
+  double batchYield = 9.258,
+  double onHand = 18.5,
+  BaseBatchUnit? batchUnit,
+}) {
+  return BaseItem(
+    itemCode: itemCode,
+    itemName: itemCode,
+    stockUom: 'Kg',
+    defaultBom: 'BOM-$itemCode-004',
+    batchYield: batchYield,
+    onHand: onHand,
+    batchesOnHand: onHand / batchYield,
+    entryMode: kBaseEntryBatch,
+    batchUnit:
+        batchUnit ??
+        const BaseBatchUnit(
+          itemCode: 'eggs',
+          itemName: 'eggs',
+          uom: 'piece',
+          qtyPerBatch: 30,
+        ),
   );
 }
 
@@ -60,61 +94,70 @@ class _StubBaseItemsNotifier extends BaseItemsNotifier {
 
   @override
   Future<BaseItemsPage> build() async => _page;
+
+  /// The real one re-reads from the server; the stub only has to not explode
+  /// when a successful Make refreshes the list.
+  @override
+  Future<void> refresh() async {
+    state = AsyncValue.data(_page);
+  }
 }
 
-/// Pumps the tab with a canned list and (optionally) a canned preview.
-///
-/// The preview is deliberately keyed at `batches: 1`, matching the stepper's
-/// starting value — a preview taken at a different count is treated as stale by
-/// the card and must not drive the Start button.
+Map<String, dynamic> _preview({
+  required double itemQty,
+  double batchYield = 2.0,
+  bool hasShortage = false,
+  List<Map<String, dynamic>> components = const [],
+  String itemCode = 'Blueberry mix',
+}) {
+  return {
+    'item_code': itemCode,
+    'bom_name': 'BOM-$itemCode-003',
+    'batches': itemQty / batchYield,
+    'batch_yield': batchYield,
+    'item_qty': itemQty,
+    'stock_uom': 'Kg',
+    'components': components,
+    'has_shortage': hasShortage,
+    'run_size_ok': true,
+    'has_sop': false,
+  };
+}
+
 Future<MockDio> _pump(
   WidgetTester tester,
   BaseItemsPage page, {
   Map<String, dynamic>? preview,
-  Map<String, dynamic>? materialOptions,
+  Map<String, dynamic>? produceNow,
+  Map<String, dynamic>? startBatches,
   Locale? locale,
 }) async {
   final dio = MockDio();
-  final base = page.items.isEmpty ? _base() : page.items.first;
   dio.setResponse(_materialOptionsEndpoint, {
-    'message': materialOptions ?? {
-      'bom_name': base.defaultBom,
-      'qty': base.batchYield,
-      'components': [
-        {
-          'original_item_code': 'RM-COCOA',
-          'original_item_name': 'Cocoa',
-          'required_qty': 1.0,
-          'stock_uom': 'Kg',
-          'combined_available_qty': 20.0,
-          'linked_items_display': 'Cocoa',
-          'alternative_selection_blocked_reason': null,
-          'options': [
-            {
-              'item_code': 'RM-COCOA',
-              'item_name': 'Cocoa',
-              'stock_uom': 'Kg',
-              'available_qty': 20.0,
-              'valuation_rate': 50.0,
-              'is_recipe_item': 1,
-              'source_warehouse': 'Stores - J',
-              'uoms': [
-                {'uom': 'Kg', 'conversion_factor': 1.0},
-              ],
-            },
-          ],
-        },
-      ],
+    'message': {
+      'bom_name': 'BOM-x',
+      'qty': 1.0,
+      'components': <Map<String, dynamic>>[],
     },
   });
   if (preview != null) {
     dio.setResponse(ApiEndpoints.previewBaseBatch, {'message': preview});
   }
+  if (produceNow != null) {
+    dio.setResponse(ApiEndpoints.produceNow, {'message': produceNow});
+  }
+  if (startBatches != null) {
+    dio.setResponse(ApiEndpoints.startProductionBatches, {
+      'message': startBatches,
+    });
+  }
 
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        manufacturingServiceProvider.overrideWithValue(ManufacturingService(dio)),
+        manufacturingServiceProvider.overrideWithValue(
+          ManufacturingService(dio),
+        ),
         baseItemsProvider.overrideWith(() => _StubBaseItemsNotifier(page)),
       ],
       child: MaterialApp(
@@ -131,628 +174,490 @@ Future<MockDio> _pump(
     ),
   );
   await tester.pumpAndSettle();
-  // Lets the card's debounced first preview fire.
-  await tester.pump(const Duration(milliseconds: 600));
-  await tester.pumpAndSettle();
   return dio;
 }
 
-Map<String, dynamic> _preview({
-  double batches = 1,
-  bool hasShortage = false,
-  List<Map<String, dynamic>> components = const [],
-  bool runSizeOk = true,
-  List<double>? runSizes,
-}) {
-  return {
-    'item_code': 'BASE-FUDGE',
-    'bom_name': 'BOM-BASE-FUDGE-001',
-    'batches': batches,
-    'batch_yield': 9.52,
-    'item_qty': batches * 9.52,
-    'stock_uom': 'Kg',
-    'components': components,
-    'has_shortage': hasShortage,
-    'run_size_ok': runSizeOk,
-    if (runSizes != null) 'run_sizes': runSizes,
-    'has_sop': false,
-  };
+/// A window tall enough that two open rows do not push the third out of the
+/// tree. The default 800x600 surface is shorter than one expanded mix.
+void _tallWindow(WidgetTester tester) {
+  tester.view.physicalSize = const Size(1200, 3000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
 }
 
-/// The batch count currently in the stepper's field.
-String _stepperText(WidgetTester tester) =>
-    tester.widget<EditableText>(find.byType(EditableText)).controller.text;
-
-List<Map<String, dynamic>> _previewRequests(MockDio dio) => dio.requestLog
-    .where((request) => request['path'] == ApiEndpoints.previewBaseBatch)
-    .toList(growable: false);
-
-/// The label of the single selected run-size chip, or null when none is.
-String? _selectedRunSize(WidgetTester tester) {
-  for (final chip in tester.widgetList<ChoiceChip>(find.byType(ChoiceChip))) {
-    if (chip.selected) return (chip.label as Text).data;
-  }
-  return null;
+/// Opens a row by tapping its name, then lets the debounced preview land.
+Future<void> _open(WidgetTester tester, String itemCode) async {
+  await tester.tap(find.text(itemCode));
+  await tester.pumpAndSettle();
+  await tester.pump(const Duration(milliseconds: 600));
+  await tester.pumpAndSettle();
 }
+
+List<Map<String, dynamic>> _requests(MockDio dio, String path) =>
+    dio.requestLog.where((r) => r['path'] == path).toList(growable: false);
+
+Map<String, dynamic> _lastBody(MockDio dio, String path) =>
+    Map<String, dynamic>.from(_requests(dio, path).last['data'] as Map);
 
 void main() {
-  testWidgets('shows what one batch yields and the freezer position',
-      (tester) async {
-    await _pump(
+  group('the two kinds of base are kept apart', () {
+    testWidgets('each lands under its own heading', (tester) async {
+      await _pump(tester, BaseItemsPage(items: [_mix(), _cake()]));
+
+      expect(find.text('Mixes'), findsOneWidget);
+      expect(find.text('Made by the kilo — enter jars or weight'), findsOneWidget);
+      expect(find.text('Cakes & biscuits'), findsOneWidget);
+      expect(find.text('Made in batches — counted in eggs'), findsOneWidget);
+    });
+
+    testWidgets('a group with nothing in it is not announced', (tester) async {
+      await _pump(tester, BaseItemsPage(items: [_mix()]));
+
+      expect(find.text('Mixes'), findsOneWidget);
+      expect(find.text('Cakes & biscuits'), findsNothing);
+    });
+
+    testWidgets('a closed row shows the store, and no batch language on a mix', (
       tester,
-      BaseItemsPage(items: [_base()]),
-      preview: _preview(),
-    );
-
-    expect(find.text('Fudge Cake'), findsOneWidget);
-    expect(find.text('1 batch = 9.52 Kg'), findsOneWidget);
-    // Read back as batches, which is what the mixer operator counts in.
-    expect(find.text('1.8 batches'), findsOneWidget);
-    expect(find.text('17.14 Kg'), findsOneWidget);
-  });
-
-  testWidgets("the card says how long the freezer lasts, in the board's own "
-      'words', (tester) async {
-    await _pump(
-      tester,
-      BaseItemsPage(
-        coverIncluded: true,
-        items: [
-          _base(
-            consumptionPerDay: 4.5,
-            daysOfCover: 3.8,
-            status: 'critical',
-            suggestedBatches: 8,
-            demand: const BaseDemand(
-              qtyRequired: 30.464,
-              batchesRequired: 3.2,
-              shortfallBatches: 1.4,
-              driver: "today's plan",
-            ),
-          ),
-        ],
-      ),
-      preview: _preview(),
-    );
-
-    // The same chip a jar row carries, off the same vocabulary: "critical"
-    // cannot mean two things on one board.
-    expect(find.text('Critical'), findsOneWidget);
-    expect(find.text('Used / day'), findsOneWidget);
-    expect(find.text('4.5 Kg/day'), findsOneWidget);
-    expect(find.text('Cover'), findsOneWidget);
-    expect(find.text('3.8 d'), findsOneWidget);
-    expect(
-      find.text('Make 8 batches to reach 21 days cover'),
-      findsOneWidget,
-    );
-    // Both numbers, and they are different questions: the freezer's runway
-    // against what today's plan will take out of it.
-    expect(find.textContaining('The plan needs 3.2 batches'), findsOneWidget);
-    // The suggestion is an offer here too — the stepper is untouched.
-    expect(_stepperText(tester), '1');
-
-    await tester.tap(find.text('Use 8'));
-    await tester.pumpAndSettle();
-    expect(_stepperText(tester), '8');
-  });
-
-  testWidgets('a base nothing consumes reads as no signal, not as zero',
-      (tester) async {
-    await _pump(
-      tester,
-      BaseItemsPage(
-        coverIncluded: true,
-        items: [_base(status: 'no_velocity')],
-      ),
-      preview: _preview(),
-    );
-
-    expect(find.text('No sales data'), findsOneWidget);
-    expect(
-      find.text('Nothing has drawn on this base yet — cover cannot be worked out'),
-      findsOneWidget,
-    );
-    // A dash, never a nought: the dash is the honest answer and a zero would
-    // be a claim.
-    expect(find.text('—'), findsNWidgets(2));
-    expect(find.text('0 d'), findsNothing);
-  });
-
-  testWidgets('a server without cover figures shows none of them',
-      (tester) async {
-    await _pump(tester, BaseItemsPage(items: [_base()]), preview: _preview());
-
-    expect(find.text('Used / day'), findsNothing);
-    expect(find.text('Cover'), findsNothing);
-    expect(find.text('Covered'), findsNothing);
-  });
-
-  testWidgets('a base with no demand still gets an action panel',
-      (tester) async {
-    // The whole point of the tab: the sales board hides its panel behind
-    // `suggestedBatches > 0`, which is always zero for something never sold.
-    await _pump(
-      tester,
-      BaseItemsPage(items: [_base()]),
-      preview: _preview(),
-    );
-
-    expect(find.widgetWithText(FilledButton, 'Start batch'), findsOneWidget);
-    final button = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Start batch'),
-    );
-    expect(button.onPressed, isNotNull);
-  });
-
-  testWidgets('a stale material choice blocks Start until it is cleared',
-      (tester) async {
-    await _pump(
-      tester,
-      BaseItemsPage(items: [_base()]),
-      preview: _preview(),
-    );
-
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(BaseProductionTab)),
-    );
-    container
-        .read(baseBatchDraftProvider('BASE-FUDGE').notifier)
-        .setMaterialSelection('RM-OLD', 'RM-REMOVED');
-    await tester.pumpAndSettle();
-
-    var start = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Start batch'),
-    );
-    expect(start.onPressed, isNull);
-    expect(find.textContaining('RM-OLD'), findsOneWidget);
-
-    await tester.tap(find.widgetWithText(TextButton, 'Clear'));
-    await tester.pump(const Duration(milliseconds: 600));
-    await tester.pumpAndSettle();
-
-    start = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Start batch'),
-    );
-    expect(start.onPressed, isNotNull);
-  });
-
-  testWidgets('a selected material hides the original capacity until reset',
-      (tester) async {
-    await _pump(
-      tester,
-      BaseItemsPage(items: [_base(canMakeNowBatches: 9)]),
-      preview: _preview(),
-      materialOptions: {
-        'bom_name': 'BOM-BASE-FUDGE-001',
-        'qty': 9.52,
-        'components': [
-          {
-            'original_item_code': 'RM-COCOA',
-            'original_item_name': 'Cocoa',
-            'required_qty': 1.0,
-            'stock_uom': 'Kg',
-            'combined_available_qty': 13.55,
-            'linked_items_display': 'Puratos Cocoa + Aldia Cocoa',
-            'alternative_selection_blocked_reason': null,
-            'options': [
-              {
-                'item_code': 'RM-COCOA',
-                'item_name': 'Puratos Cocoa',
-                'stock_uom': 'Kg',
-                'available_qty': 10.0,
-                'valuation_rate': 50.0,
-                'is_recipe_item': 1,
-              },
-              {
-                'item_code': 'RM-ALDIA',
-                'item_name': 'Aldia Cocoa',
-                'stock_uom': 'Kg',
-                'available_qty': 3.55,
-                'valuation_rate': 40.0,
-                'is_recipe_item': 0,
-              },
-            ],
-          },
-        ],
-      },
-    );
-
-    expect(find.text('Can make now'), findsOneWidget);
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('Aldia Cocoa'), findsOneWidget);
-    await tester.tap(find.textContaining('Aldia Cocoa'));
-    await tester.pump(const Duration(milliseconds: 600));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Can make now'), findsNothing);
-
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(BaseProductionTab)),
-    );
-    final notifier =
-        container.read(baseBatchDraftProvider('BASE-FUDGE').notifier);
-    notifier.setMaterialSelection('RM-COCOA', 'RM-COCOA');
-    await tester.pump(const Duration(milliseconds: 600));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Can make now'), findsOneWidget);
-  });
-
-  testWidgets('negative freezer stock is called out', (tester) async {
-    await _pump(
-      tester,
-      BaseItemsPage(
-        items: [_base(onHand: -4.2, batchesOnHand: -0.44, stockIsNegative: true)],
-      ),
-      preview: _preview(),
-    );
-
-    expect(find.text('Stock is negative — count this item'), findsOneWidget);
-  });
-
-  testWidgets('the demand hint reads as a hint, and never fills the stepper',
-      (tester) async {
-    await _pump(
-      tester,
-      BaseItemsPage(
-        demandSource: BaseDemandSource.plan,
-        items: [
-          _base(
-            demand: const BaseDemand(
-              qtyRequired: 30.464,
-              batchesRequired: 3.2,
-              shortfallBatches: 1.4,
-              driver: 'the day plan',
-            ),
-          ),
-        ],
-      ),
-      preview: _preview(),
-    );
-
-    expect(
-      find.text('The plan needs 3.2 batches · you have 1.8'),
-      findsOneWidget,
-    );
-    expect(find.text('from the day plan'), findsOneWidget);
-
-    // The stepper still starts at 1 — demand is offered, never applied.
-    expect(_stepperText(tester), '1');
-    // 1.4 batches short rounds UP to a runnable 1.5.
-    expect(find.text('Use 1.5'), findsOneWidget);
-  });
-
-  testWidgets('tapping the demand offer moves the stepper to it',
-      (tester) async {
-    await _pump(
-      tester,
-      BaseItemsPage(
-        demandSource: BaseDemandSource.plan,
-        items: [
-          _base(
-            demand: const BaseDemand(
-              batchesRequired: 3.2,
-              shortfallBatches: 1.4,
-            ),
-          ),
-        ],
-      ),
-      preview: _preview(),
-    );
-
-    await tester.tap(find.text('Use 1.5'));
-    await tester.pump(const Duration(milliseconds: 600));
-    await tester.pumpAndSettle();
-
-    expect(_stepperText(tester), '1.5');
-  });
-
-  testWidgets('run sizes render as chips and select on tap', (tester) async {
-    await _pump(
-      tester,
-      BaseItemsPage(items: [_base(runSizes: const [1, 1.5, 2])]),
-      preview: _preview(runSizes: const [1, 1.5, 2]),
-    );
-
-    expect(find.text('Mixer runs'), findsOneWidget);
-    // Bare figures under the header — not "1 batches".
-    expect(find.widgetWithText(ChoiceChip, '1'), findsOneWidget);
-    expect(find.widgetWithText(ChoiceChip, '1.5'), findsOneWidget);
-    expect(find.widgetWithText(ChoiceChip, '2'), findsOneWidget);
-
-    expect(_selectedRunSize(tester), '1', reason: 'the stepper starts on 1');
-
-    await tester.tap(find.widgetWithText(ChoiceChip, '2'));
-    await tester.pump(const Duration(milliseconds: 600));
-    await tester.pumpAndSettle();
-
-    // The stepper follows the chip, and the selection moves with it.
-    expect(_stepperText(tester), '2');
-    expect(_selectedRunSize(tester), '2');
-  });
-
-  testWidgets('an off-grid figure warns but does not block the start',
-      (tester) async {
-    await _pump(
-      tester,
-      BaseItemsPage(items: [_base(runSizes: const [1, 1.5, 2])]),
-      preview: _preview(runSizeOk: false, runSizes: const [1, 1.5, 2]),
-    );
-
-    expect(
-      find.text("Not one of the mixer's usual runs — double-check before mixing"),
-      findsOneWidget,
-    );
-    final button = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Start batch'),
-    );
-    expect(button.onPressed, isNotNull);
-  });
-
-  testWidgets('a shortage names the component and offers a runnable number',
-      (tester) async {
-    await _pump(
-      tester,
-      BaseItemsPage(items: [_base(canMakeNowBatches: 0)]),
-      preview: _preview(
-        hasShortage: true,
-        components: const [
-          {
-            'item_code': 'RM-COCOA',
-            'item_name': 'Cocoa',
-            'uom': 'Kg',
-            'required_qty': 10.0,
-            'available_qty': 6.0,
-            'shortfall': 4.0,
-          },
-        ],
-      ),
-    );
-
-    expect(find.text('Cocoa is short by 4 Kg'), findsOneWidget);
-    // 6 of 10 kg covers 0.6 batches → half a batch is runnable.
-    expect(find.widgetWithText(FilledButton, 'Reduce to 0.5'), findsOneWidget);
-
-    final start = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Start batch'),
-    );
-    expect(start.onPressed, isNull);
-  });
-
-  testWidgets('a failed preview degrades to a retry, not a dead card',
-      (tester) async {
-    // The endpoint is new, so it can legitimately be missing on a server that
-    // has not been deployed yet. Starting a run must survive that.
-    await _pump(tester, BaseItemsPage(items: [_base()]));
-
-    expect(find.textContaining('Could not check materials'), findsOneWidget);
-    expect(find.widgetWithText(TextButton, 'Retry'), findsOneWidget);
-
-    final start = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Start batch'),
-    );
-    expect(start.onPressed, isNotNull);
-  });
-
-  testWidgets('the preview is debounced, not fired on every stepper tap',
-      (tester) async {
-    final dio = await _pump(
-      tester,
-      BaseItemsPage(items: [_base()]),
-      preview: _preview(),
-    );
-
-    expect(_previewRequests(dio), hasLength(1), reason: 'the first preview');
-
-    final plus = find.byIcon(Icons.add);
-    for (var i = 0; i < 3; i++) {
-      await tester.tap(plus);
-      await tester.pump(const Duration(milliseconds: 50));
-    }
-    await tester.pump(const Duration(milliseconds: 600));
-    await tester.pumpAndSettle();
-
-    expect(
-      _previewRequests(dio),
-      hasLength(2),
-      reason: 'three taps inside the debounce window cost one request',
-    );
-    expect(_previewRequests(dio).last['data']['batches'], 2.5);
-    expect(_previewRequests(dio).last['data']['item_code'], 'BASE-FUDGE');
-  });
-
-  testWidgets('the busiest card fits an Arabic 360 dp screen', (tester) async {
-    // Arabic labels run longer than English, and every side-by-side control on
-    // the card is a Wrap because of it. A RenderFlex overflow here fails the
-    // test through the binding's pending-exception check.
-    tester.view.physicalSize = const Size(360, 3000);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
-
-    await _pump(
-      tester,
-      BaseItemsPage(
-        demandSource: BaseDemandSource.plan,
-        items: [
-          _base(
-            stockIsNegative: true,
-            canMakeNowBatches: 0,
-            runSizes: const [0.5, 1, 1.5, 2, 3],
-            hasSop: true,
-            demand: const BaseDemand(
-              qtyRequired: 30.464,
-              batchesRequired: 3.2,
-              shortfallBatches: 1.4,
-              driver: 'خطة اليوم',
-            ),
-          ),
-        ],
-      ),
-      preview: _preview(
-        hasShortage: true,
-        runSizeOk: false,
-        runSizes: const [0.5, 1, 1.5, 2, 3],
-        components: const [
-          {
-            'item_code': 'RM-COCOA',
-            'item_name': 'كاكاو خام مستورد',
-            'uom': 'Kg',
-            'required_qty': 10.0,
-            'available_qty': 6.0,
-            'shortfall': 4.0,
-          },
-        ],
-      ),
-      locale: const Locale('ar'),
-    );
-
-    expect(tester.takeException(), isNull);
-    expect(find.byType(BaseProductionTab), findsOneWidget);
-  });
-
-  testWidgets('an empty list stays pull-to-refreshable', (tester) async {
-    await _pump(tester, const BaseItemsPage());
-
-    expect(find.text('No bases configured'), findsOneWidget);
-    expect(find.byType(ListView), findsOneWidget);
-  });
-
-  testWidgets('a failed list offers a retry', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          manufacturingServiceProvider
-              .overrideWithValue(ManufacturingService(MockDio())),
-        ],
-        child: MaterialApp(
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: BaseProductionTab()),
+    ) async {
+      await _pump(
+        tester,
+        BaseItemsPage(
+          coverIncluded: true,
+          items: [_mix(status: 'low', daysOfCover: 2.1)],
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
 
-    expect(find.widgetWithText(OutlinedButton, 'Retry'), findsOneWidget);
+      expect(find.text('0.58 Kg in store · 2.1 d'), findsOneWidget);
+      // The whole complaint this screen answers: a mix has no batch, so no
+      // figure on it may be expressed in one.
+      expect(find.textContaining('batch'), findsNothing);
+    });
   });
 
-  testWidgets(
-      'a shortage that exists in another store still blocks Start, and says so',
-      (tester) async {
-    // The whole point of the hint: it is NOT an override. Eight jar labels
-    // really were received into the wrong store on production, and the
-    // operator went looking for a purchase because the card only ever said
-    // "not enough". Start stays disabled either way.
-    await _pump(
+  group('a mix is entered in jars and kilos', () {
+    testWidgets('opening it offers the recipe amount and prices it by quantity', (
       tester,
-      BaseItemsPage(items: [_base(canMakeNowBatches: 0)]),
-      preview: _preview(
-        hasShortage: true,
-        components: const [
-          {
-            'item_code': 'RM-LABEL',
-            'item_name': 'Jar label',
-            'uom': 'Nos',
-            'required_qty': 10.0,
-            'available_qty': 0.0,
-            'shortfall': 10.0,
-            'available_elsewhere': 48.5,
-            'alternatives': [
-              {'warehouse': 'Stores - J', 'available_qty': 40.5},
-              {'warehouse': 'Nasr City - J', 'available_qty': 8.0},
-            ],
-          },
-        ],
-      ),
-    );
+    ) async {
+      final dio = await _pump(
+        tester,
+        BaseItemsPage(items: [_mix()]),
+        preview: _preview(itemQty: 2.0),
+      );
+      await _open(tester, 'Blueberry mix');
 
-    expect(find.text('Jar label is short by 10 Nos'), findsOneWidget);
-    expect(
-      find.text(
-        '40.5 Nos is in Stores - J and 1 more '
-        '— needs a stock transfer, not a purchase',
-      ),
-      findsOneWidget,
-    );
+      // One recipe: 1 Kg of fruit and 1 Kg of jelly. Not "1 batch".
+      expect(find.text('Makes 2 Kg'), findsOneWidget);
 
-    final start = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Start batch'),
-    );
-    expect(start.onPressed, isNull, reason: 'the shortage still blocks');
+      // The contract that matters: a weighed base is costed by `qty`, never by a
+      // batch count the server would have to divide back out.
+      final body = _lastBody(dio, ApiEndpoints.previewBaseBatch);
+      expect(body['qty'], 2.0);
+      expect(body.containsKey('batches'), isFalse);
+    });
+
+    testWidgets('a closed row asks the server nothing', (tester) async {
+      final dio = await _pump(
+        tester,
+        BaseItemsPage(items: [_mix(), _cake()]),
+        preview: _preview(itemQty: 2.0),
+      );
+
+      // Nine bases used to fire nine previews on load. The list is now free.
+      expect(_requests(dio, ApiEndpoints.previewBaseBatch), isEmpty);
+    });
+
+    testWidgets('typing jar counts works the kilos out', (tester) async {
+      await _pump(
+        tester,
+        BaseItemsPage(items: [_mix()]),
+        preview: _preview(itemQty: 2.0),
+      );
+      await _open(tester, 'Blueberry mix');
+
+      await tester.enterText(_jarField(tester, 'Blueberry Medium'), '40');
+      await tester.pumpAndSettle();
+      await tester.enterText(_jarField(tester, 'Blueberry Large'), '20');
+      await tester.pumpAndSettle();
+
+      // 40 x 0.030 + 20 x 0.040 = 2 Kg exactly, and rendered as "2" rather than
+      // the 2.0000000000000004 the arithmetic actually produces.
+      expect(
+        find.text('Those jars need 2 Kg — 1.42 more than the store holds'),
+        findsOneWidget,
+      );
+      expect(_qtyFieldText(tester), '2');
+    });
+
+    testWidgets('clearing a jar row takes its kilos back out', (tester) async {
+      await _pump(
+        tester,
+        BaseItemsPage(items: [_mix()]),
+        preview: _preview(itemQty: 2.0),
+      );
+      await _open(tester, 'Blueberry mix');
+
+      await tester.enterText(_jarField(tester, 'Blueberry Medium'), '40');
+      await tester.pumpAndSettle();
+      expect(_qtyFieldText(tester), '1.2');
+
+      await tester.enterText(_jarField(tester, 'Blueberry Medium'), '');
+      await tester.pumpAndSettle();
+      // An emptied field is a zero, not "leave the last number standing".
+      expect(_qtyFieldText(tester), '');
+    });
+
+    testWidgets('the shortfall is offered rounded up to something weighable', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        BaseItemsPage(items: [_mix()]),
+        preview: _preview(itemQty: 2.0),
+      );
+      await _open(tester, 'Blueberry mix');
+
+      await tester.enterText(_jarField(tester, 'Blueberry Medium'), '40');
+      await tester.pumpAndSettle();
+      await tester.enterText(_jarField(tester, 'Blueberry Large'), '20');
+      await tester.pumpAndSettle();
+
+      // Needs 2, store holds 0.58, so 1.42 is missing — and nobody weighs out
+      // 1.42, so the offer is 1.5.
+      final chip = find.widgetWithText(ActionChip, 'Make 1.5 Kg');
+      expect(chip, findsOneWidget);
+
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+      expect(_qtyFieldText(tester), '1.5');
+    });
   });
 
-  testWidgets('a lookup that found none anywhere says buying is the fix',
-      (tester) async {
-    // Zero with an empty list is a real answer, not a missing one: it is what
-    // stops the operator ringing round the other branches.
-    await _pump(
+  group('a cake is entered in eggs', () {
+    testWidgets('the chips are egg counts, not batch numbers', (tester) async {
+      await _pump(
+        tester,
+        BaseItemsPage(items: [_cake()]),
+        preview: _preview(
+          itemQty: 9.258,
+          batchYield: 9.258,
+          itemCode: 'Fudge Cake',
+        ),
+      );
+      await _open(tester, 'Fudge Cake');
+
+      expect(find.text('One batch = 30 eggs'), findsOneWidget);
+      // 0.5, 1, 1.5, 2 and 3 batches, in the kitchen's own unit.
+      for (final eggs in ['15', '30', '45', '60', '90']) {
+        expect(find.widgetWithText(ChoiceChip, eggs), findsOneWidget);
+      }
+    });
+
+    testWidgets('45 eggs is a batch and a half, and posts that much', (
       tester,
-      BaseItemsPage(items: [_base(canMakeNowBatches: 0)]),
-      preview: _preview(
-        hasShortage: true,
-        components: const [
-          {
-            'item_code': 'RM-LABEL',
-            'item_name': 'Jar label',
-            'uom': 'Nos',
-            'required_qty': 10.0,
-            'available_qty': 0.0,
-            'shortfall': 10.0,
-            'available_elsewhere': 0.0,
-            'alternatives': <Map<String, dynamic>>[],
-          },
-        ],
-      ),
-    );
+    ) async {
+      final dio = await _pump(
+        tester,
+        BaseItemsPage(items: [_cake()]),
+        preview: _preview(
+          itemQty: 9.258,
+          batchYield: 9.258,
+          itemCode: 'Fudge Cake',
+        ),
+      );
+      await _open(tester, 'Fudge Cake');
 
-    expect(
-      find.text(
-        'None of it in any other store — this one has to be bought',
-      ),
-      findsOneWidget,
-    );
+      await tester.tap(find.widgetWithText(ChoiceChip, '45'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pumpAndSettle();
 
-    final start = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Start batch'),
-    );
-    expect(start.onPressed, isNull);
+      expect(find.text('45 eggs · 1.5 batches'), findsOneWidget);
+      final body = _lastBody(dio, ApiEndpoints.previewBaseBatch);
+      expect((body['qty'] as double), closeTo(1.5 * 9.258, 0.001));
+    });
+
+    testWidgets('no jar counter on a cake', (tester) async {
+      await _pump(
+        tester,
+        BaseItemsPage(items: [_cake()]),
+        preview: _preview(
+          itemQty: 9.258,
+          batchYield: 9.258,
+          itemCode: 'Fudge Cake',
+        ),
+      );
+      await _open(tester, 'Fudge Cake');
+
+      expect(find.text('Jars to fill'), findsNothing);
+    });
+
+    testWidgets('a recipe with nothing countable in it still reads honestly', (
+      tester,
+    ) async {
+      // Defensive: `entry_mode: batch` with no usable unit should fall back to
+      // batch figures rather than rendering "0 eggs".
+      await _pump(
+        tester,
+        BaseItemsPage(
+          items: [_cake(batchUnit: const BaseBatchUnit())],
+        ),
+        preview: _preview(
+          itemQty: 9.258,
+          batchYield: 9.258,
+          itemCode: 'Fudge Cake',
+        ),
+      );
+      await _open(tester, 'Fudge Cake');
+
+      expect(find.text('1 batch = 9.26 Kg'), findsOneWidget);
+      // The heading legitimately says "counted in eggs"; the ROW must not,
+      // because this recipe has no egg line to count.
+      expect(find.widgetWithText(ChoiceChip, '30'), findsNothing);
+      expect(find.textContaining('One batch = '), findsNothing);
+    });
   });
 
-  testWidgets('a server that never looked renders nothing extra',
-      (tester) async {
-    await _pump(
+  group('making several at once', () {
+    testWidgets('the bar says what pressing it will actually do', (
       tester,
-      BaseItemsPage(items: [_base(canMakeNowBatches: 0)]),
-      preview: _preview(
-        hasShortage: true,
-        components: const [
+    ) async {
+      _tallWindow(tester);
+      await _pump(
+        tester,
+        BaseItemsPage(
+          items: [_mix(), _mix(itemCode: 'strawberry mix'), _cake()],
+        ),
+        preview: _preview(itemQty: 2.0),
+      );
+
+      await _open(tester, 'Blueberry mix');
+      expect(find.widgetWithText(FilledButton, 'Make 1 mix'), findsOneWidget);
+
+      await _open(tester, 'strawberry mix');
+      expect(find.widgetWithText(FilledButton, 'Make 2 mixes'), findsOneWidget);
+
+      await _open(tester, 'Fudge Cake');
+      // Two different things happen to stock, so the button says so rather than
+      // hiding it behind a generic Submit.
+      expect(find.widgetWithText(FilledButton, 'Make 2 · start 1'), findsOneWidget);
+      expect(
+        find.text(
+          'Mixes are booked as made · batches go to Running to be finished',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('mixes are booked outright and cakes only started', (
+      tester,
+    ) async {
+      _tallWindow(tester);
+      final dio = await _pump(
+        tester,
+        BaseItemsPage(items: [_mix(), _cake()]),
+        preview: _preview(itemQty: 2.0),
+        produceNow: {
+          'results': [
+            {'ok': true, 'work_order': 'WO-1', 'line': {'item_code': 'Blueberry mix'}},
+          ],
+        },
+        startBatches: {
+          'results': [
+            {'ok': true, 'work_order': 'WO-2', 'line': {'item_code': 'Fudge Cake'}},
+          ],
+        },
+      );
+
+      await _open(tester, 'Blueberry mix');
+      await _open(tester, 'Fudge Cake');
+      await tester.tap(find.widgetWithText(FilledButton, 'Make 1 · start 1'));
+      await tester.pumpAndSettle();
+
+      final mixBody = _lastBody(dio, ApiEndpoints.produceNow);
+      final mixLines = (mixBody['lines'] as List).cast<Map>();
+      expect(mixLines.single['item_code'], 'Blueberry mix');
+      expect(mixLines.single['item_qty'], 2.0);
+      // All-or-nothing, because a basket that passes line by line can still
+      // empty a store.
+      expect(mixBody['strict_basket'], 1);
+
+      final cakeBody = _lastBody(dio, ApiEndpoints.startProductionBatches);
+      final cakeLines = (cakeBody['lines'] as List).cast<Map>();
+      expect(cakeLines.single['item_code'], 'Fudge Cake');
+
+      // The cake is in the oven, so the day continues on Running. Three booked
+      // mixes would not have moved anybody anywhere.
+      expect(find.textContaining('1 mix made'), findsOneWidget);
+      expect(find.textContaining('1 batch started'), findsOneWidget);
+    });
+
+    testWidgets('a mix-only make never posts a start call', (tester) async {
+      final dio = await _pump(
+        tester,
+        BaseItemsPage(items: [_mix()]),
+        preview: _preview(itemQty: 2.0),
+        produceNow: {
+          'results': [
+            {'ok': true, 'work_order': 'WO-1', 'line': {'item_code': 'Blueberry mix'}},
+          ],
+        },
+      );
+
+      await _open(tester, 'Blueberry mix');
+      await tester.tap(find.widgetWithText(FilledButton, 'Make 1 mix'));
+      await tester.pumpAndSettle();
+
+      expect(_requests(dio, ApiEndpoints.startProductionBatches), isEmpty);
+      // Booked and gone: the row lets go of its numbers so a second press
+      // cannot re-post a run already in the ledger.
+      expect(find.widgetWithText(FilledButton, 'Make 1 mix'), findsNothing);
+    });
+
+    testWidgets('a known shortage on one pick holds the whole button', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        BaseItemsPage(items: [_mix()]),
+        preview: _preview(
+          itemQty: 2.0,
+          hasShortage: true,
+          components: [
+            {
+              'item_code': 'jelly',
+              'item_name': 'jelly',
+              'uom': 'Kg',
+              'required_qty': 1.0,
+              'available_qty': 0.2,
+              'shortfall': 0.8,
+            },
+          ],
+        ),
+      );
+      await _open(tester, 'Blueberry mix');
+
+      expect(
+        find.text('1 pick is short of materials — untick it to make the rest'),
+        findsOneWidget,
+      );
+      final button = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Make 1 mix'),
+      );
+      expect(button.onPressed, isNull);
+      expect(find.text('jelly is short by 0.8 Kg'), findsOneWidget);
+    });
+
+    testWidgets('a pick with no amount is named rather than silently dropped', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        BaseItemsPage(items: [_mix()]),
+        preview: _preview(itemQty: 2.0),
+      );
+      await _open(tester, 'Blueberry mix');
+
+      await tester.enterText(_qtyField(tester), '');
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 pick has no amount yet'), findsOneWidget);
+      expect(find.text('Nothing set to make yet'), findsOneWidget);
+    });
+
+    testWidgets('cancel drops the selection without posting', (tester) async {
+      final dio = await _pump(
+        tester,
+        BaseItemsPage(items: [_mix()]),
+        preview: _preview(itemQty: 2.0),
+      );
+      await _open(tester, 'Blueberry mix');
+
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FilledButton), findsNothing);
+      expect(_requests(dio, ApiEndpoints.produceNow), isEmpty);
+    });
+  });
+
+  group('an older backend', () {
+    testWidgets('reads every base as a batch rather than crashing', (
+      tester,
+    ) async {
+      // No `entry_mode`, no `batch_unit`, no `jar_consumers` — exactly what a
+      // server that predates this screen answers with.
+      final page = BaseItemsPage.fromJson({
+        'items': [
           {
-            'item_code': 'RM-LABEL',
-            'item_name': 'Jar label',
-            'uom': 'Nos',
-            'required_qty': 10.0,
-            'available_qty': 0.0,
-            'shortfall': 10.0,
+            'item_code': 'Sponge Cake',
+            'item_name': 'Sponge Cake',
+            'stock_uom': 'Kg',
+            'default_bom': 'BOM-Sponge Cake-001',
+            'batch_yield': 4.0,
+            'on_hand': 8.0,
+            'batches_on_hand': 2.0,
           },
         ],
-      ),
-    );
+      });
 
-    expect(find.text('Jar label is short by 10 Nos'), findsOneWidget);
-    expect(find.byType(StockElsewhereNote), findsOneWidget);
-    // Present in the tree but rendering nothing: no empty row, no "unknown".
-    expect(
-      tester.getSize(find.byType(StockElsewhereNote)),
-      Size.zero,
-    );
-    expect(find.textContaining('stock transfer'), findsNothing);
-    expect(find.textContaining('any other store'), findsNothing);
+      await _pump(
+        tester,
+        page,
+        preview: _preview(
+          itemQty: 4.0,
+          batchYield: 4.0,
+          itemCode: 'Sponge Cake',
+        ),
+      );
+
+      expect(find.text('Cakes & biscuits'), findsOneWidget);
+      expect(find.text('Mixes'), findsNothing);
+      await _open(tester, 'Sponge Cake');
+      expect(find.text('1 batch = 4 Kg'), findsOneWidget);
+      expect(find.text('Jars to fill'), findsNothing);
+    });
+  });
+
+  group('urgency comes first', () {
+    testWidgets('a critical mix sorts above a healthy one', (tester) async {
+      await _pump(
+        tester,
+        BaseItemsPage(
+          coverIncluded: true,
+          items: [
+            _mix(itemCode: 'Aardvark mix', status: 'ok', daysOfCover: 40),
+            _mix(itemCode: 'Zebra mix', status: 'critical', daysOfCover: 1),
+          ],
+        ),
+      );
+
+      final zebra = tester.getTopLeft(find.text('Zebra mix')).dy;
+      final aardvark = tester.getTopLeft(find.text('Aardvark mix')).dy;
+      expect(zebra, lessThan(aardvark));
+    });
+  });
+
+  test('the Running tab index the bar jumps to is still the third one', () {
+    // A guard on a constant two files apart: the merge to three tabs moved it
+    // once already, and a stale index sends the floor to the wrong screen.
+    expect(kProductionRunningTabIndex, 2);
   });
 }
+
+/// The jar count field sitting beside [jarName].
+Finder _jarField(WidgetTester tester, String jarName) {
+  return find.descendant(
+    of: find.ancestor(
+      of: find.text(jarName),
+      matching: find.byType(Row),
+    ).first,
+    matching: find.byType(TextField),
+  );
+}
+
+/// The "Make ___ Kg" field. Last, because the jar fields come above it.
+Finder _qtyField(WidgetTester tester) => find.byType(TextField).last;
+
+String _qtyFieldText(WidgetTester tester) =>
+    tester.widget<TextField>(_qtyField(tester)).controller!.text;

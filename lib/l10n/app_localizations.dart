@@ -6464,6 +6464,162 @@ abstract class AppLocalizations {
   /// **'Nothing has drawn on this base yet — cover cannot be worked out'**
   String get basesNoConsumption;
 
+  /// No description provided for @basesInStoreValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{quantity} {uom} in store'**
+  String basesInStoreValue(Object quantity, Object uom);
+
+  /// No description provided for @basesGroupMixes.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixes'**
+  String get basesGroupMixes;
+
+  /// No description provided for @basesGroupMixesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Made by the kilo — enter jars or weight'**
+  String get basesGroupMixesHint;
+
+  /// No description provided for @basesGroupBatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Cakes & biscuits'**
+  String get basesGroupBatches;
+
+  /// No description provided for @basesGroupBatchesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Made in batches — counted in eggs'**
+  String get basesGroupBatchesHint;
+
+  /// No description provided for @basesJarsToFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Jars to fill'**
+  String get basesJarsToFill;
+
+  /// No description provided for @basesPerJar.
+  ///
+  /// In en, this message translates to:
+  /// **'{quantity} {uom} each'**
+  String basesPerJar(Object quantity, Object uom);
+
+  /// No description provided for @basesJarNeedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Those jars need {needed} {uom} — {gap} more than the store holds'**
+  String basesJarNeedShort(String needed, String uom, String gap);
+
+  /// No description provided for @basesJarNeedCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Those jars need {needed} {uom} — the store already covers it'**
+  String basesJarNeedCovered(Object needed, Object uom);
+
+  /// No description provided for @basesMakeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Make'**
+  String get basesMakeLabel;
+
+  /// No description provided for @basesUseQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Make {quantity} {uom}'**
+  String basesUseQty(Object quantity, Object uom);
+
+  /// No description provided for @basesCountedValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {unit}'**
+  String basesCountedValue(Object count, Object unit);
+
+  /// No description provided for @basesCountedPerBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'One batch = {count} {unit}'**
+  String basesCountedPerBatch(Object count, Object unit);
+
+  /// No description provided for @basesCountedAndBatches.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {unit} · {batches} batches'**
+  String basesCountedAndBatches(String count, String unit, String batches);
+
+  /// No description provided for @basesReduceToQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Make {quantity} {uom} instead'**
+  String basesReduceToQty(Object quantity, Object uom);
+
+  /// No description provided for @basesNothingToMake.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing set to make yet'**
+  String get basesNothingToMake;
+
+  /// No description provided for @basesMakeMixes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Make 1 mix} other{Make {count} mixes}}'**
+  String basesMakeMixes(int count);
+
+  /// No description provided for @basesStartBatches.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Start 1 batch} other{Start {count} batches}}'**
+  String basesStartBatches(int count);
+
+  /// No description provided for @basesMakeBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Make {mixes} · start {batches}'**
+  String basesMakeBoth(int mixes, int batches);
+
+  /// No description provided for @basesSelectedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 pick is short of materials — untick it to make the rest} other{{count} picks are short of materials — untick them to make the rest}}'**
+  String basesSelectedShort(int count);
+
+  /// No description provided for @basesSelectedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 pick has no amount yet} other{{count} picks have no amount yet}}'**
+  String basesSelectedEmpty(int count);
+
+  /// No description provided for @basesMixedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixes are booked as made · batches go to Running to be finished'**
+  String get basesMixedNote;
+
+  /// No description provided for @basesCatalogueStale.
+  ///
+  /// In en, this message translates to:
+  /// **'The base list has moved on — pull to refresh and try again'**
+  String get basesCatalogueStale;
+
+  /// No description provided for @basesReportMade.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 mix made} other{{count} mixes made}}'**
+  String basesReportMade(int count);
+
+  /// No description provided for @basesReportStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 batch started — finish it on Running} other{{count} batches started — finish them on Running}}'**
+  String basesReportStarted(int count);
+
+  /// No description provided for @basesReportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 failed} other{{count} failed}}'**
+  String basesReportFailed(int count);
+
   /// No description provided for @sopTitle.
   ///
   /// In en, this message translates to:

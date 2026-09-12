@@ -1853,6 +1853,117 @@
   "basesQtyPerDay": "{quantity} {uom}/يوم",
   "basesCoverSuggestion": "اعمل {batches} تشغيلة علشان توصل لتغطية {days} يوم",
   "basesNoConsumption": "لسه محدش سحب من الأساس ده — مش هينفع نحسب التغطية",
+  "basesInStoreValue": "{quantity} {uom} في المخزن",
+  "basesGroupMixes": "المخلوطات",
+  "basesGroupMixesHint": "بتتعمل بالكيلو — اكتب عدد البرطمانات أو الوزن",
+  "basesGroupBatches": "الكيك والبسكويت",
+  "basesGroupBatchesHint": "بتتعمل دفعات — بتتحسب بالبيض",
+  "basesJarsToFill": "البرطمانات اللي هتتعبّى",
+  "basesPerJar": "{quantity} {uom} للبرطمان",
+  "basesJarNeedShort": "البرطمانات دي عايزة {needed} {uom} — ناقص {gap} عن اللي في المخزن",
+  "@basesJarNeedShort": {
+    "placeholders": {
+      "needed": {
+        "type": "String"
+      },
+      "uom": {
+        "type": "String"
+      },
+      "gap": {
+        "type": "String"
+      }
+    }
+  },
+  "basesJarNeedCovered": "البرطمانات دي عايزة {needed} {uom} — والمخزن مغطيها",
+  "basesMakeLabel": "اعمل",
+  "basesUseQty": "اعمل {quantity} {uom}",
+  "basesCountedValue": "{count} {unit}",
+  "basesCountedPerBatch": "الدفعة الواحدة = {count} {unit}",
+  "basesCountedAndBatches": "{count} {unit} · {batches} دفعة",
+  "@basesCountedAndBatches": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "batches": {
+        "type": "String"
+      }
+    }
+  },
+  "basesReduceToQty": "اعمل {quantity} {uom} بدالها",
+  "basesNothingToMake": "لسه مفيش حاجة محددة تتعمل",
+  "basesMakeMixes": "{count, plural, =1{اعمل مخلوط} other{اعمل {count} مخلوطات}}",
+  "@basesMakeMixes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basesStartBatches": "{count, plural, =1{ابدأ دفعة} other{ابدأ {count} دفعات}}",
+  "@basesStartBatches": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basesMakeBoth": "اعمل {mixes} مخلوط · وابدأ {batches} دفعة",
+  "@basesMakeBoth": {
+    "placeholders": {
+      "mixes": {
+        "type": "int"
+      },
+      "batches": {
+        "type": "int"
+      }
+    }
+  },
+  "basesSelectedShort": "{count, plural, =1{واحد ناقصه خام — شيل علامته وكمّل الباقي} other{{count} ناقصهم خام — شيل علامتهم وكمّل الباقي}}",
+  "@basesSelectedShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basesSelectedEmpty": "{count, plural, =1{واحد لسه مفيهوش كمية} other{{count} لسه مفيهمش كمية}}",
+  "@basesSelectedEmpty": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basesMixedNote": "المخلوطات بتتسجل خلاص · الدفعات بتروح لـ شغال تتقفل",
+  "basesCatalogueStale": "قائمة الأساسات اتغيرت — اسحب لتحديثها وحاول تاني",
+  "basesReportMade": "{count, plural, =1{اتعمل مخلوط} other{اتعملوا {count} مخلوطات}}",
+  "@basesReportMade": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basesReportStarted": "{count, plural, =1{بدأت دفعة — اقفلها من شغال} other{بدأوا {count} دفعات — اقفلهم من شغال}}",
+  "@basesReportStarted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basesReportFailed": "{count, plural, =1{واحد فشل} other{{count} فشلوا}}",
+  "@basesReportFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sopTitle": "تعليمات التشغيل",
   "sopViewSop": "شوف التعليمات",
   "sopNoSopForItem": "مفيش تعليمات للصنف ده",

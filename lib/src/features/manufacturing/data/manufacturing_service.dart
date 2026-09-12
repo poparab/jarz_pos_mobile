@@ -284,24 +284,37 @@ class ManufacturingService {
     }
   }
 
-  /// What a run of [batches] would consume, before anybody commits to it.
+  /// What a run would consume, before anybody commits to it.
   ///
   /// Deliberately a separate call from [startProductionBatch]: the preview is
-  /// re-taken every time the operator moves the stepper, and a start is a
+  /// re-taken every time the operator changes the number, and a start is a
   /// stock movement that must happen exactly once.
+  ///
+  /// Send [qty] for anything weighed and [batches] for anything counted — never
+  /// both. A mix has no batch to speak of, so routing it through a batch count
+  /// would invent one and then divide by it; the server treats [qty] as
+  /// authoritative when it is present and reports the batch count it implies.
   Future<BaseBatchPreview> previewBaseBatch({
     required String itemCode,
-    required double batches,
+    double? batches,
+    double? qty,
     String? bomName,
     String? company,
     Map<String, String> materialSelections = const {},
   }) async {
+    assert(
+      batches != null || qty != null,
+      'previewBaseBatch needs a quantity or a batch count',
+    );
     try {
       final resp = await _dio.post(
         ApiEndpoints.previewBaseBatch,
         data: {
           'item_code': itemCode,
-          'batches': batches,
+          // Only one goes on the wire. Sending both would leave which of them
+          // wins to the server's precedence rule rather than to the caller's
+          // intent, and the two disagree the moment a yield changes.
+          if (qty != null) 'qty': qty else 'batches': batches,
           if (bomName != null && bomName.isNotEmpty) 'bom_name': bomName,
           if (company != null) 'company': company,
           if (materialSelections.isNotEmpty)
@@ -389,6 +402,37 @@ class ManufacturingService {
       return StartBatchResult.fromJson(_unwrapMap(resp.data));
     } catch (error) {
       throw _friendlyError(error, fallback: 'Failed to start the batch');
+    }
+  }
+
+  /// Starts several batches under ONE basket-wide material check.
+  ///
+  /// Same `{"results": [...], "basket_shortages": [...]}` envelope as
+  /// [produceNow], so [parseProduceResults] reads both — but only the material
+  /// transfer is posted per line. What each batch actually yielded is recorded
+  /// later on the Running tab.
+  ///
+  /// Not a loop over [startProductionBatch]: that would run one check per line,
+  /// and a basket can clear every line on its own while collectively emptying a
+  /// store. Because each line commits as it succeeds, discovering that on the
+  /// last line leaves the earlier ones' material already in WIP.
+  Future<Map<String, dynamic>> startProductionBatches(
+    List<Map<String, dynamic>> lines, {
+    bool strictBasket = true,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        ApiEndpoints.startProductionBatches,
+        data: {'lines': lines, 'strict_basket': strictBasket ? 1 : 0},
+      );
+      final payload = resp.data;
+      if (payload is Map && payload['message'] is Map) {
+        return Map<String, dynamic>.from(payload['message'] as Map);
+      }
+      if (payload is Map) return Map<String, dynamic>.from(payload);
+      throw Exception('Unexpected start response');
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to start the batches');
     }
   }
 
