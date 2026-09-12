@@ -171,6 +171,28 @@ object OrderAlertNative {
         val invoiceId = data["invoice_id"] ?: ""
         val notificationId = if (invoiceId.isNotEmpty()) invoiceId.hashCode() else DEFAULT_NOTIFICATION_ID
 
+        // Mute silences the ALARM. It must not silence the order itself.
+        //
+        // This notification was unconditionally setSilent(true) because the
+        // looping alarm was the sound. That held only while every message
+        // still carried an FCM notification block: the SDK drew its own
+        // audible tray entry on this HIGH-importance channel whenever the app
+        // was not in the foreground, so someone who had muted the alarm still
+        // got an audible ping and a heads-up. Once the order alert went
+        // data-only -- so that a closed tablet can alarm at all -- this became
+        // the ONLY notification Android draws for a new order, and for anyone
+        // with the alarm muted it arrived completely silent, with no heads-up
+        // and pinned as ongoing. Indistinguishable from "push stopped working",
+        // which is exactly how it was reported.
+        //
+        // So the alarm and the notification split the job. If the alarm is
+        // going to ring, the notification stays silent and stays put: the
+        // alarm is what demands attention, and it must not be swiped away
+        // while it rings. If the alarm is suppressed, the notification takes
+        // over announcing the order -- channel sound, heads-up, dismissible --
+        // because there is no longer anything for it to be quiet underneath.
+        val alarmWillRing = !isAlarmSuppressed(context, invoiceId)
+
         val extras = Bundle().apply {
             data.forEach { (key, value) -> putString(key, value) }
         }
@@ -202,12 +224,18 @@ object OrderAlertNative {
             .setContentTitle(notificationContent.title)
             .setContentText(notificationContent.body)
             .setStyle(expandedStyle)
-            .setOngoing(true)
-            .setAutoCancel(false)
-            .setFullScreenIntent(pendingIntent, true)
+            .setOngoing(alarmWillRing)
+            .setAutoCancel(!alarmWillRing)
             .setContentIntent(pendingIntent)
-            .setSilent(true)
+            .setSilent(alarmWillRing)
             .setShowWhen(true)
+
+        // Taking over the screen is alarm behaviour. A muted order announces
+        // itself and stays in the tray; it does not launch the app over
+        // whatever the user is doing.
+        if (alarmWillRing) {
+            builder.setFullScreenIntent(pendingIntent, true)
+        }
 
         NotificationManagerCompat.from(context).notify(notificationId, builder.build())
     }
