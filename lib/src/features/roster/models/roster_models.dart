@@ -26,12 +26,18 @@ class RosterShift {
   final double hours;
   final String? color;
 
-  /// "12:30 → 01:00 · 12.5h" for the picker subtitle.
+  /// "12:30 – 01:00 · 12.5h" for the picker subtitle.
+  ///
+  /// Separated with an en dash rather than the arrow this used to carry: the
+  /// arrow is a hard-coded left-to-right glyph, and inside an Arabic sentence
+  /// the bidi algorithm leaves it pointing the wrong way — it said the shift
+  /// ran from its end time to its start. A dash reads the same in both
+  /// directions, which is the only property this separator needs.
   String get window {
     final start = _hhmm(startTime);
     final end = _hhmm(endTime);
     if (start.isEmpty || end.isEmpty) return '';
-    return '$start → $end';
+    return '$start – $end';
   }
 
   static String _hhmm(String raw) {
@@ -101,6 +107,7 @@ class RosterCell {
     this.hours = 0,
     this.isHoliday = false,
     this.dayOff,
+    this.isCoverFlag = false,
   });
 
   final String date;
@@ -109,6 +116,15 @@ class RosterCell {
   final double hours;
   final bool isHoliday;
   final RosterDayOff? dayOff;
+
+  /// `is_cover` if the backend sends it.
+  ///
+  /// Optional on purpose: the month payload does not carry it today, and the
+  /// grid derives cover days from the other side of the same fact — the
+  /// colleague's `covered_by` — through [RosterCoverIndex]. Parsing it anyway
+  /// means the day the backend starts sending the flag, the client already
+  /// agrees with it instead of contradicting it.
+  final bool isCoverFlag;
 
   bool get isOff => dayOff != null;
   bool get isWorking => (shiftType ?? '').isNotEmpty;
@@ -128,6 +144,7 @@ class RosterCell {
       shiftLocation: _nullIfBlank(json['shift_location']),
       hours: _toDouble(json['hours']),
       isHoliday: json['is_holiday'] == true || json['is_holiday'] == 1,
+      isCoverFlag: json['is_cover'] == true || json['is_cover'] == 1,
       dayOff: off is Map
           ? RosterDayOff.fromJson(Map<String, dynamic>.from(off))
           : null,
@@ -288,6 +305,64 @@ class RosterMonth {
       Map<String, dynamic>.from(json['scope'] as Map? ?? const {}),
     ),
   );
+}
+
+/// Who is covering whose day off, for the whole month.
+///
+/// A cover day is recorded on the *absent* person's cell (`covered_by`), so the
+/// colleague who actually stands the extra shift has nothing on their own cell
+/// saying why. The hours sheet already counts those days for payroll
+/// (`cover_days`), which meant the grid was the only place the fact was
+/// invisible — a cover day looked like any other working day.
+///
+/// Built once per month payload and passed down, rather than searched per cell,
+/// because the naive form is a scan of every employee for every one of ~930
+/// cells.
+class RosterCoverIndex {
+  const RosterCoverIndex._(this._byEmployeeDate);
+
+  final Map<String, String> _byEmployeeDate;
+
+  static const RosterCoverIndex empty = RosterCoverIndex._({});
+
+  factory RosterCoverIndex.fromMonth(RosterMonth month) {
+    final map = <String, String>{};
+    for (final employee in month.employees) {
+      for (final entry in employee.days.entries) {
+        final off = entry.value.dayOff;
+        final coveredBy = off?.coveredBy;
+        if (off == null || coveredBy == null || coveredBy.isEmpty) continue;
+        map['$coveredBy|${entry.key}'] = employee.employeeName;
+      }
+    }
+    return RosterCoverIndex._(map);
+  }
+
+  /// The name of the colleague whose day [employee] is absorbing on [date],
+  /// or null when this is an ordinary working day.
+  String? coveredColleague(String employee, String date) =>
+      _byEmployeeDate['$employee|$date'];
+
+  bool isCoverDay(String employee, String date) =>
+      _byEmployeeDate.containsKey('$employee|$date');
+}
+
+/// One column of the grid, summarised.
+///
+/// The manager's first question on any given day is "how many people am I
+/// opening with", and the grid could not answer it: the only totals anywhere
+/// were per person, per month, in a sheet behind a toolbar button.
+class RosterDayTotals {
+  const RosterDayTotals({required this.onDuty, required this.atRisk});
+
+  /// Headcount rostered onto a shift that day. When a branch filter is active
+  /// the payload is already narrowed to that branch, so this *is* the branch's
+  /// headcount — the row says which one.
+  final int onDuty;
+
+  /// Days off nobody is covering, plus people not rostered on a day that has
+  /// not happened yet. Both are states somebody has to act on.
+  final int atRisk;
 }
 
 /// One person's month, as payroll reads it.

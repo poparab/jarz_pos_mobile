@@ -6,6 +6,9 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../../data/roster_repository.dart';
 import '../../models/roster_models.dart';
 import '../../state/roster_providers.dart';
+import '../roster_cell_style.dart';
+import '../roster_formats.dart';
+import '../roster_shift_palette.dart';
 
 /// Action bar shown while a run of days is selected on one employee's row.
 ///
@@ -179,12 +182,19 @@ class _RosterBulkBarState extends ConsumerState<RosterBulkBar> {
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: Text(l10n.commonCancel),
           ),
-          FilledButton(
+          FilledButton.icon(
+            // Deliberately NOT the error colour it used to wear. Marking days
+            // off is not destructive, and red here meant the button and the
+            // result it produced were opposite colours: the confirm was red,
+            // the cells it created were tertiary. It now carries the day-off
+            // treatment, so the button predicts the grid.
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+              backgroundColor: RosterColors.settledFill,
+              foregroundColor: RosterColors.settledInk,
             ),
+            icon: const Icon(Icons.beach_access, size: 18),
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.rosterBulkMarkOff),
+            label: Text(l10n.rosterBulkMarkOff),
           ),
         ],
       ),
@@ -292,6 +302,7 @@ class _BulkShiftPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final palette = RosterShiftPalette.from(catalog: catalog);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -319,10 +330,36 @@ class _BulkShiftPicker extends StatelessWidget {
                   itemCount: catalog.length,
                   itemBuilder: (context, index) {
                     final shift = catalog[index];
+                    final style = palette.styleFor(shift.shiftType);
                     return ListTile(
                       dense: true,
+                      // Same swatch and code as the grid cell this will
+                      // become, so a bulk assignment is picked in the
+                      // vocabulary it will be read in.
+                      leading: Container(
+                        width: 30,
+                        height: 30,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: style.color,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          style.code,
+                          style: TextStyle(
+                            color: style.onColor,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
                       title: Text(shift.shiftType),
-                      subtitle: Text(shift.window),
+                      subtitle: Text(
+                        context.l10n.rosterShiftWindow(
+                          shift.window,
+                          rosterNumber(context, shift.hours),
+                        ),
+                      ),
                       onTap: () => Navigator.of(context).pop(shift),
                     );
                   },

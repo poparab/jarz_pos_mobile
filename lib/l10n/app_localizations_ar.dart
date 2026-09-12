@@ -12581,4 +12581,68 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settingsBackgroundDeliveryNoScreen =>
       'تعذّر فتح الشاشة. افتح الإعدادات > التطبيقات > Jarz POS > البطارية واسمح بالعمل في الخلفية.';
+
+  @override
+  String get rosterLegendStatesTitle => 'حالات اليوم';
+
+  @override
+  String get rosterLegendMarkersTitle => 'علامات';
+
+  @override
+  String get rosterLegendShiftsTitle => 'الورديات';
+
+  @override
+  String get rosterLegendWorkingHours => 'عمل (الرقم = الساعات)';
+
+  @override
+  String get rosterLegendOffCovered => 'إجازة — مُغطّاة';
+
+  @override
+  String get rosterLegendOffUncovered => 'إجازة — بدون تغطية';
+
+  @override
+  String get rosterLegendNotRosteredFuture =>
+      'غير مُدرج — لا يمكنه تسجيل الحضور';
+
+  @override
+  String get rosterLegendNotRosteredPast => 'لا يوجد سجل (يوم مضى)';
+
+  @override
+  String get rosterLegendMarkerOvertime => 'أطول من اليوم العادي';
+
+  @override
+  String get rosterLegendMarkerCover => 'يُغطّي زميلاً';
+
+  @override
+  String get rosterLegendMarkerHolidayWorked => 'عمل في عطلة رسمية';
+
+  @override
+  String get rosterLegendMarkerWeekend => 'نهاية الأسبوع (الجمعة والسبت)';
+
+  @override
+  String get rosterLegendMarkerSelected => 'مُحدد لتعديل جماعي';
+
+  @override
+  String get rosterOnDutyRow => 'في الخدمة';
+
+  @override
+  String rosterOnDutyRowBranch(String branch) {
+    return 'في الخدمة · $branch';
+  }
+
+  @override
+  String get rosterBranchUnknown => 'بدون فرع';
+
+  @override
+  String get rosterUnrosteredPast => 'لم تُسند أي وردية في هذا اليوم.';
+
+  @override
+  String rosterCoveringFor(String name) {
+    return 'يُغطّي عن $name';
+  }
+
+  @override
+  String rosterAboveNormalDay(String hours, String standard) {
+    return '$hours ساعة — أطول من اليوم العادي $standard ساعة';
+  }
 }

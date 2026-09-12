@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../models/roster_models.dart';
 import '../../state/roster_providers.dart';
+import '../roster_cell_style.dart';
+import '../roster_formats.dart';
 
 /// The month's hours, as payroll reads them.
 Future<void> showRosterHoursSheet(BuildContext context) {
@@ -95,15 +97,15 @@ class _Totals extends StatelessWidget {
         children: [
           _Metric(
             label: l10n.rosterWorkedHours,
-            value: _trimZero(hours.totalWorkedHours),
+            value: rosterNumber(context, hours.totalWorkedHours),
           ),
           _Metric(
             label: l10n.rosterOvertimeHours,
-            value: _trimZero(hours.totalOvertimeHours),
+            value: rosterNumber(context, hours.totalOvertimeHours),
           ),
           _Metric(
             label: l10n.rosterCreditedHours,
-            value: _trimZero(hours.totalCreditedHours),
+            value: rosterNumber(context, hours.totalCreditedHours),
             emphasise: true,
           ),
         ],
@@ -170,11 +172,39 @@ class _HoursRowTile extends StatelessWidget {
                   ),
                 ),
                 if (row.isCourier)
-                  Chip(
-                    visualDensity: VisualDensity.compact,
-                    label: Text(
-                      l10n.rosterCourierTag(_trimZero(row.overtimeMultiplier)),
-                      style: theme.textTheme.labelSmall,
+                  // The 2x multiplier is the single biggest number on this
+                  // sheet and it used to arrive as an unstyled default Chip,
+                  // indistinguishable from decoration.
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: RosterColors.markerChip,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: RosterColors.markerInk),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.two_wheeler,
+                          size: 13,
+                          color: RosterColors.markerInk,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          l10n.rosterCourierTag(
+                            rosterNumber(context, row.overtimeMultiplier),
+                          ),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: RosterColors.markerInk,
+                            fontWeight: FontWeight.w700,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
               ],
@@ -193,22 +223,22 @@ class _HoursRowTile extends StatelessWidget {
               children: [
                 _Pill(
                   label: l10n.rosterWorkedHours,
-                  value: _trimZero(row.workedHours),
+                  value: rosterNumber(context, row.workedHours),
                 ),
                 if (hasOvertime)
                   _Pill(
                     label: l10n.rosterOvertimeHours,
-                    value: _trimZero(row.overtimeHours),
+                    value: rosterNumber(context, row.overtimeHours),
                   ),
                 if (hasOvertime)
                   _Pill(
                     label: l10n.rosterCreditedOvertime,
-                    value: _trimZero(row.creditedOvertimeHours),
+                    value: rosterNumber(context, row.creditedOvertimeHours),
                     highlight: true,
                   ),
                 _Pill(
                   label: l10n.rosterCreditedHours,
-                  value: _trimZero(row.creditedHours),
+                  value: rosterNumber(context, row.creditedHours),
                   highlight: true,
                 ),
               ],
@@ -247,13 +277,9 @@ class _Pill extends StatelessWidget {
         style: theme.textTheme.labelSmall?.copyWith(
           color: highlight ? theme.colorScheme.onPrimaryContainer : null,
           fontWeight: highlight ? FontWeight.w700 : null,
+          fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),
     );
   }
-}
-
-String _trimZero(double value) {
-  if (value == value.roundToDouble()) return value.toStringAsFixed(0);
-  return value.toStringAsFixed(1);
 }

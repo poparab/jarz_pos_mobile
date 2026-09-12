@@ -20584,6 +20584,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not open that screen. Open Settings > Apps > Jarz POS > Battery and allow background running.'**
   String get settingsBackgroundDeliveryNoScreen;
+
+  /// No description provided for @rosterLegendStatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Day states'**
+  String get rosterLegendStatesTitle;
+
+  /// No description provided for @rosterLegendMarkersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Markers'**
+  String get rosterLegendMarkersTitle;
+
+  /// No description provided for @rosterLegendShiftsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shifts'**
+  String get rosterLegendShiftsTitle;
+
+  /// No description provided for @rosterLegendWorkingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Working (number = hours)'**
+  String get rosterLegendWorkingHours;
+
+  /// No description provided for @rosterLegendOffCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Off — covered'**
+  String get rosterLegendOffCovered;
+
+  /// No description provided for @rosterLegendOffUncovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Off — nobody covering'**
+  String get rosterLegendOffUncovered;
+
+  /// No description provided for @rosterLegendNotRosteredFuture.
+  ///
+  /// In en, this message translates to:
+  /// **'Not rostered — cannot check in'**
+  String get rosterLegendNotRosteredFuture;
+
+  /// No description provided for @rosterLegendNotRosteredPast.
+  ///
+  /// In en, this message translates to:
+  /// **'No record (day has passed)'**
+  String get rosterLegendNotRosteredPast;
+
+  /// No description provided for @rosterLegendMarkerOvertime.
+  ///
+  /// In en, this message translates to:
+  /// **'Longer than the normal day'**
+  String get rosterLegendMarkerOvertime;
+
+  /// No description provided for @rosterLegendMarkerCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Covering a colleague'**
+  String get rosterLegendMarkerCover;
+
+  /// No description provided for @rosterLegendMarkerHolidayWorked.
+  ///
+  /// In en, this message translates to:
+  /// **'Working on a public holiday'**
+  String get rosterLegendMarkerHolidayWorked;
+
+  /// No description provided for @rosterLegendMarkerWeekend.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekend (Fri & Sat)'**
+  String get rosterLegendMarkerWeekend;
+
+  /// No description provided for @rosterLegendMarkerSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected for a bulk change'**
+  String get rosterLegendMarkerSelected;
+
+  /// No description provided for @rosterOnDutyRow.
+  ///
+  /// In en, this message translates to:
+  /// **'On duty'**
+  String get rosterOnDutyRow;
+
+  /// No description provided for @rosterOnDutyRowBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'On duty · {branch}'**
+  String rosterOnDutyRowBranch(String branch);
+
+  /// No description provided for @rosterBranchUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'No branch'**
+  String get rosterBranchUnknown;
+
+  /// No description provided for @rosterUnrosteredPast.
+  ///
+  /// In en, this message translates to:
+  /// **'No shift was assigned on this day.'**
+  String get rosterUnrosteredPast;
+
+  /// No description provided for @rosterCoveringFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Covering for {name}'**
+  String rosterCoveringFor(String name);
+
+  /// No description provided for @rosterAboveNormalDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h — longer than the normal {standard}h day'**
+  String rosterAboveNormalDay(String hours, String standard);
 }
 
 class _AppLocalizationsDelegate

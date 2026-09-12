@@ -7,14 +7,24 @@ import '../../../../core/localization/localized_formatters.dart';
 import '../../data/roster_repository.dart';
 import '../../models/roster_models.dart';
 import '../../state/roster_providers.dart';
+import '../roster_cell_style.dart';
+import '../roster_formats.dart';
+import '../roster_shift_palette.dart';
 
 /// Edit one person's one day: change the shift, grant a day off, or undo one.
+///
+/// Takes the grid's [RosterShiftPalette] rather than building its own, so the
+/// sheet is the same colour as the cell that opened it. It used to carry a
+/// fifth, unrelated mapping — working was `primary`, holiday `secondary` — so
+/// tapping a pale-yellow cell opened a purple panel.
 Future<void> showRosterDaySheet(
   BuildContext context, {
   required RosterEmployee employee,
   required String date,
   required RosterCell? cell,
   required List<RosterShift> catalog,
+  required RosterShiftPalette palette,
+  String? coveringFor,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -25,6 +35,8 @@ Future<void> showRosterDaySheet(
       date: date,
       cell: cell,
       catalog: catalog,
+      palette: palette,
+      coveringFor: coveringFor,
     ),
   );
 }
@@ -36,12 +48,18 @@ class RosterDaySheet extends ConsumerStatefulWidget {
     required this.date,
     required this.cell,
     required this.catalog,
+    required this.palette,
+    this.coveringFor,
   });
 
   final RosterEmployee employee;
   final String date;
   final RosterCell? cell;
   final List<RosterShift> catalog;
+  final RosterShiftPalette palette;
+
+  /// The colleague whose day this person is absorbing, when there is one.
+  final String? coveringFor;
 
   @override
   ConsumerState<RosterDaySheet> createState() => _RosterDaySheetState();
@@ -84,7 +102,13 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
               ),
             ),
             const SizedBox(height: 12),
-            _CurrentState(cell: cell),
+            _CurrentState(
+              employee: widget.employee,
+              date: widget.date,
+              cell: cell,
+              palette: widget.palette,
+              coveringFor: widget.coveringFor,
+            ),
             const SizedBox(height: 16),
             if (_busy)
               const Padding(
@@ -106,6 +130,7 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
                 const SizedBox(height: 8),
                 _ShiftPicker(
                   catalog: widget.catalog,
+                  palette: widget.palette,
                   selected: cell?.shiftType,
                   onPick: _assignShift,
                 ),
@@ -202,10 +227,24 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
   }
 }
 
+/// What this day currently is, drawn exactly as the grid draws it.
+///
+/// Same resolver, same hue, same glyph — so the panel confirms the cell the
+/// manager tapped instead of describing it in a different visual language.
 class _CurrentState extends StatelessWidget {
-  const _CurrentState({required this.cell});
+  const _CurrentState({
+    required this.employee,
+    required this.date,
+    required this.cell,
+    required this.palette,
+    required this.coveringFor,
+  });
 
+  final RosterEmployee employee;
+  final String date;
   final RosterCell? cell;
+  final RosterShiftPalette palette;
+  final String? coveringFor;
 
   @override
   Widget build(BuildContext context) {
@@ -213,53 +252,158 @@ class _CurrentState extends StatelessWidget {
     final theme = Theme.of(context);
     final data = cell;
 
-    String text;
-    IconData icon;
-    Color color;
+    final resolver = RosterStyleResolver.of(context, palette: palette);
+    final state = resolver.stateFor(cell: data, date: date);
+    final style = resolver.styleFor(state, shiftType: data?.shiftType);
+    final markers = resolver.markersFor(
+      cell: data,
+      employee: employee,
+      isCover: coveringFor != null || (data?.isCoverFlag ?? false),
+    );
 
-    if (data != null && data.isOff) {
-      final off = data.dayOff!;
-      icon = Icons.beach_access;
-      color = theme.colorScheme.tertiary;
-      text = off.isCovered
-          ? l10n.rosterOffCoveredBy(off.offType, off.coveredByName ?? '')
-          : l10n.rosterOffUncovered(off.offType);
-    } else if (data != null && data.isWorking) {
-      icon = Icons.work_outline;
-      color = theme.colorScheme.primary;
-      text = l10n.rosterWorkingShift(
-        data.shiftType!,
-        _trimZero(data.hours),
-        data.shiftLocation ?? '—',
-      );
-    } else if (data != null && data.isHoliday) {
-      icon = Icons.celebration_outlined;
-      color = theme.colorScheme.secondary;
-      text = l10n.rosterHoliday;
-    } else {
-      // The state that stops somebody working, so it is stated outright rather
-      // than shown as an empty slot.
-      icon = Icons.block;
-      color = theme.colorScheme.error;
-      text = l10n.rosterUnrosteredWarning;
+    final String detail;
+    switch (state) {
+      case RosterCellState.working:
+        final branch = (data!.shiftLocation ?? '').trim();
+        detail = l10n.rosterWorkingShift(
+          data.shiftType!,
+          rosterNumber(context, data.hours),
+          branch.isEmpty ? l10n.rosterBranchUnknown : branch,
+        );
+      case RosterCellState.offCovered:
+        detail = l10n.rosterOffCoveredBy(
+          data!.dayOff!.offType,
+          data.dayOff!.coveredByName ?? '',
+        );
+      case RosterCellState.offUncovered:
+        detail = l10n.rosterOffUncovered(data!.dayOff!.offType);
+      case RosterCellState.holiday:
+        detail = l10n.rosterHoliday;
+      case RosterCellState.unrosteredFuture:
+        // The state that stops somebody working, so it is stated outright
+        // rather than shown as an empty slot.
+        detail = l10n.rosterUnrosteredWarning;
+      case RosterCellState.unrosteredPast:
+        detail = l10n.rosterUnrosteredPast;
     }
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
+        color: style.background,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
+        border: Border.all(
+          color: style.hasBorder ? style.borderColor : theme.dividerColor,
+          width: style.hasBorder ? style.borderWidth : 1,
+        ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(text, style: theme.textTheme.bodySmall),
+          Row(
+            children: [
+              if (style.icon != null)
+                Icon(style.icon, size: 18, color: style.foreground)
+              else if (style.shiftCode != null)
+                _CodeBadge(code: style.shiftCode!, foreground: style.foreground)
+              else
+                Text(
+                  style.token,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: style.foreground,
+                  ),
+                ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  detail,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: style.foreground,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
+          for (final marker in markers)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Row(
+                children: [
+                  Icon(
+                    resolver.markerStyle(marker).icon,
+                    size: 14,
+                    color: style.foreground,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _markerDetail(context, marker, resolver),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: style.foreground,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
+      ),
+    );
+  }
+
+  /// The marker's legend wording, made specific where the sheet has room for
+  /// the numbers and names the grid cannot fit.
+  String _markerDetail(
+    BuildContext context,
+    RosterCellMarker marker,
+    RosterStyleResolver resolver,
+  ) {
+    final l10n = context.l10n;
+    switch (marker) {
+      case RosterCellMarker.cover:
+        final name = coveringFor;
+        return name == null || name.isEmpty
+            ? resolver.markerStyle(marker).label
+            : l10n.rosterCoveringFor(name);
+      case RosterCellMarker.overtime:
+        return l10n.rosterAboveNormalDay(
+          rosterNumber(context, cell?.hours ?? 0),
+          rosterNumber(context, employee.standardHours),
+        );
+      case RosterCellMarker.holidayWorked:
+      case RosterCellMarker.weekend:
+      case RosterCellMarker.selected:
+        return resolver.markerStyle(marker).label;
+    }
+  }
+}
+
+/// The shift type's code, in the same shape the grid cell uses.
+class _CodeBadge extends StatelessWidget {
+  const _CodeBadge({required this.code, required this.foreground});
+
+  final String code;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 20,
+      height: 20,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: foreground.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        code,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: foreground,
+        ),
       ),
     );
   }
@@ -268,11 +412,13 @@ class _CurrentState extends StatelessWidget {
 class _ShiftPicker extends StatelessWidget {
   const _ShiftPicker({
     required this.catalog,
+    required this.palette,
     required this.selected,
     required this.onPick,
   });
 
   final List<RosterShift> catalog;
+  final RosterShiftPalette palette;
   final String? selected;
   final ValueChanged<RosterShift> onPick;
 
@@ -289,22 +435,45 @@ class _ShiftPicker extends StatelessWidget {
         itemBuilder: (context, index) {
           final shift = catalog[index];
           final isSelected = shift.shiftType == selected;
+          final style = palette.styleFor(shift.shiftType);
           return ListTile(
             dense: true,
             selected: isSelected,
-            leading: Icon(
-              isSelected
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_unchecked,
-              size: 20,
+            // The colour and code the grid will draw once this is picked, so
+            // the choice is made in the same vocabulary it is read in.
+            leading: Container(
+              width: 30,
+              height: 30,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: style.color,
+                borderRadius: BorderRadius.circular(6),
+                border: isSelected
+                    ? Border.all(
+                        color: RosterStyleResolver.selectionColor,
+                        width: 2,
+                      )
+                    : null,
+              ),
+              child: Text(
+                style.code,
+                style: TextStyle(
+                  color: style.onColor,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                ),
+              ),
             ),
             title: Text(shift.shiftType),
             subtitle: Text(
               context.l10n.rosterShiftWindow(
                 shift.window,
-                _trimZero(shift.hours),
+                rosterNumber(context, shift.hours),
               ),
             ),
+            trailing: isSelected
+                ? const Icon(Icons.check_circle, size: 20)
+                : null,
             onTap: isSelected ? null : () => onPick(shift),
           );
         },
@@ -446,7 +615,10 @@ class _DayOffFormState extends State<_DayOffForm> {
                         (shift) => DropdownMenuItem(
                           value: shift.shiftType,
                           child: Text(
-                            '${shift.shiftType} · ${_trimZero(shift.hours)}h',
+                            context.l10n.rosterShiftWindow(
+                              shift.shiftType,
+                              rosterNumber(context, shift.hours),
+                            ),
                           ),
                         ),
                       )
@@ -526,9 +698,4 @@ String _localisedOffType(BuildContext context, String raw) {
     default:
       return raw;
   }
-}
-
-String _trimZero(double value) {
-  if (value == value.roundToDouble()) return value.toStringAsFixed(0);
-  return value.toStringAsFixed(1);
 }

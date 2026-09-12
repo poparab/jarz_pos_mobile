@@ -8,6 +8,9 @@ import '../../../core/network/user_service.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../models/roster_models.dart';
 import '../state/roster_providers.dart';
+import 'roster_cell_style.dart';
+import 'roster_formats.dart';
+import 'roster_shift_palette.dart';
 import 'widgets/roster_bulk_bar.dart';
 import 'widgets/roster_day_sheet.dart';
 import 'widgets/roster_hours_sheet.dart';
@@ -19,6 +22,9 @@ import 'widgets/roster_legend.dart';
 /// read in. The employee column is pinned while the days scroll horizontally,
 /// because the one thing a manager must never lose track of while scanning
 /// across a month is whose row they are on.
+///
+/// Every colour on this screen comes from [RosterStyleResolver]; nothing here
+/// picks its own. See `roster_cell_style.dart` for what each hue means.
 ///
 /// Note this is unrelated to the Shift Monitor screen. "Shift" means a POS cash
 /// drawer there and a working pattern here; the two features share a word and
@@ -115,7 +121,10 @@ class _RosterControlBar extends ConsumerWidget {
         const <String>[];
 
     return Material(
-      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      // Chrome, not a state: the control bar, the headers and the name column
+      // all sit on one neutral, and no cell state uses that neutral. Solid
+      // rather than a 0.4 alpha wash so the text on it keeps its contrast.
+      color: theme.colorScheme.surfaceContainerHigh,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
         child: Row(
@@ -169,7 +178,7 @@ class _RosterControlBar extends ConsumerWidget {
     );
   }
 
-  /// "September 2026" / "سبتمبر 2026".
+  /// "September 2026" / "سبتمبر ٢٠٢٦".
   ///
   /// Formatted through the app's locale-aware helper rather than an ICU
   /// placeholder so the month name is translated, not just the digits.
@@ -211,10 +220,16 @@ class _RosterBody extends ConsumerWidget {
       );
     }
 
+    // Built once per payload and handed down: the palette so every cell, the
+    // legend and the day sheet agree on what a shift type looks like, and the
+    // cover index because a cover day is recorded on the *other* person's cell.
+    final palette = RosterShiftPalette.fromMonth(month);
+    final coverIndex = RosterCoverIndex.fromMonth(month);
+
     return Column(
       children: [
         if (month.gaps.isNotEmpty) _UncoveredBanner(gaps: month.gaps),
-        const RosterLegend(),
+        RosterLegend(palette: palette),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           child: Text(
@@ -224,7 +239,13 @@ class _RosterBody extends ConsumerWidget {
             ).textTheme.labelSmall?.copyWith(fontStyle: FontStyle.italic),
           ),
         ),
-        Expanded(child: _RosterGrid(month: month)),
+        Expanded(
+          child: _RosterGrid(
+            month: month,
+            palette: palette,
+            coverIndex: coverIndex,
+          ),
+        ),
       ],
     );
   }
@@ -236,6 +257,10 @@ class _RosterBody extends ConsumerWidget {
 /// is the mistake the screen exists to prevent: a branch whose second shift was
 /// removed and never handed to anyone reads as a perfectly normal calendar
 /// right up until the morning it opens short-staffed.
+///
+/// Drawn in the same amber as the cells it is counting. It used to be
+/// `errorContainer`, i.e. the same red as an unrostered day and a destructive
+/// button — so the banner's colour pointed at nothing in particular.
 class _UncoveredBanner extends StatelessWidget {
   const _UncoveredBanner({required this.gaps});
 
@@ -246,21 +271,27 @@ class _UncoveredBanner extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       width: double.infinity,
-      color: theme.colorScheme.errorContainer,
+      decoration: const BoxDecoration(
+        color: RosterColors.riskFill,
+        border: Border(
+          bottom: BorderSide(color: RosterColors.riskLine, width: 2),
+        ),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.warning_amber_rounded,
             size: 18,
-            color: theme.colorScheme.onErrorContainer,
+            color: RosterColors.riskInk,
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               context.l10n.rosterUncoveredWarning(gaps.length),
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onErrorContainer,
+                color: RosterColors.riskInk,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -276,19 +307,29 @@ class _UncoveredBanner extends StatelessWidget {
 /// alignment — synchronising two separate vertical controllers is the usual way
 /// this kind of table ends up one row out.
 class _RosterGrid extends ConsumerWidget {
-  const _RosterGrid({required this.month});
+  const _RosterGrid({
+    required this.month,
+    required this.palette,
+    required this.coverIndex,
+  });
 
   final RosterMonth month;
+  final RosterShiftPalette palette;
+  final RosterCoverIndex coverIndex;
 
-  static const double _rowHeight = 52;
-  static const double _headerHeight = 44;
-  static const double _cellWidth = 46;
-  static const double _nameWidth = 132;
+  static const double _rowHeight = 62;
+  static const double _headerHeight = 42;
+  static const double _totalsHeight = 30;
+  static const double _cellWidth = 56;
+  static const double _nameWidth = 120;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dates = month.dates;
     final theme = Theme.of(context);
+    final branch = ref.watch(rosterLocationFilterProvider);
+    final resolver = RosterStyleResolver.of(context, palette: palette);
+    final totals = _dayTotals(month, resolver);
 
     return SingleChildScrollView(
       child: Row(
@@ -297,20 +338,26 @@ class _RosterGrid extends ConsumerWidget {
           // Pinned: who.
           Column(
             children: [
-              Container(
+              _ChromeCell(
                 width: _nameWidth,
                 height: _headerHeight,
-                alignment: AlignmentDirectional.centerStart,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  border: Border(
-                    bottom: BorderSide(color: theme.dividerColor),
-                  ),
-                ),
                 child: Text(
                   context.l10n.rosterEmployeeColumn,
                   style: theme.textTheme.labelSmall,
+                ),
+              ),
+              _ChromeCell(
+                width: _nameWidth,
+                height: _totalsHeight,
+                child: Text(
+                  branch == null
+                      ? context.l10n.rosterOnDutyRow
+                      : context.l10n.rosterOnDutyRowBranch(branch),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               ...month.employees.map(
@@ -339,15 +386,34 @@ class _RosterGrid extends ConsumerWidget {
                         )
                         .toList(),
                   ),
+                  Row(
+                    children: dates
+                        .map(
+                          (date) => _DayTotalsCell(
+                            date: date,
+                            totals:
+                                totals[date] ??
+                                const RosterDayTotals(onDuty: 0, atRisk: 0),
+                            width: _cellWidth,
+                            height: _totalsHeight,
+                          ),
+                        )
+                        .toList(),
+                  ),
                   ...month.employees.map(
                     (employee) => Row(
                       children: dates
                           .map(
-                            (date) => _ShiftCell(
+                            (date) => _DayCell(
                               employee: employee,
                               date: date,
                               cell: employee.cellFor(date),
                               catalog: month.shiftCatalog,
+                              palette: palette,
+                              coveringFor: coverIndex.coveredColleague(
+                                employee.employee,
+                                date,
+                              ),
                               width: _cellWidth,
                               height: _rowHeight,
                             ),
@@ -361,6 +427,65 @@ class _RosterGrid extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// Headcount and at-risk count per day.
+  ///
+  /// Resolved through the same [RosterStyleResolver] the cells use, so the
+  /// number in the totals row can never count a day differently from the way
+  /// the column below it is drawn.
+  static Map<String, RosterDayTotals> _dayTotals(
+    RosterMonth month,
+    RosterStyleResolver resolver,
+  ) {
+    final totals = <String, RosterDayTotals>{};
+    for (final date in month.dates) {
+      var duty = 0;
+      var risk = 0;
+      for (final employee in month.employees) {
+        final state = resolver.stateFor(
+          cell: employee.cellFor(date),
+          date: date,
+        );
+        if (state == RosterCellState.working) {
+          duty++;
+        } else if (state == RosterCellState.offUncovered ||
+            state == RosterCellState.unrosteredFuture) {
+          risk++;
+        }
+      }
+      totals[date] = RosterDayTotals(onDuty: duty, atRisk: risk);
+    }
+    return totals;
+  }
+}
+
+/// A header / totals / name cell: the screen's neutral chrome.
+class _ChromeCell extends StatelessWidget {
+  const _ChromeCell({
+    required this.width,
+    required this.height,
+    required this.child,
+  });
+
+  final double width;
+  final double height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: width,
+      height: height,
+      alignment: AlignmentDirectional.centerStart,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        border: Border(bottom: BorderSide(color: theme.dividerColor)),
+      ),
+      child: child,
     );
   }
 }
@@ -392,23 +517,39 @@ class _EmployeeNameCell extends StatelessWidget {
         children: [
           Text(
             employee.employeeName,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w600,
+              height: 1.15,
             ),
           ),
-          Text(
-            // The overtime baseline, shown because it is what every cell in
-            // this row is compared against to decide what counts as overtime.
-            context.l10n.rosterStandardDay(
-              _trimZero(employee.standardHours),
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          const SizedBox(height: 2),
+          Row(
+            children: [
+              // The overtime baseline, shown because it is what every cell in
+              // this row is compared against — and now the cells say so, with
+              // the overtime marker on any day that goes past it.
+              Expanded(
+                child: Text(
+                  context.l10n.rosterStandardDay(
+                    rosterNumber(context, employee.standardHours),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+              if (employee.isCourier)
+                Icon(
+                  Icons.two_wheeler,
+                  size: 12,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+            ],
           ),
         ],
       ),
@@ -431,32 +572,54 @@ class _DayHeaderCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final parsed = DateTime.tryParse(date);
-    final isWeekendish =
-        parsed != null && parsed.weekday == DateTime.friday;
+    // Egypt's weekend is Friday AND Saturday; this used to tint Friday alone.
+    final isWeekend = parsed != null && isRosterWeekend(parsed);
 
     return Container(
       width: width,
       height: height,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: isWeekendish
-            ? theme.colorScheme.secondaryContainer.withValues(alpha: 0.5)
-            : theme.colorScheme.surfaceContainerHighest,
+        color: isWeekend
+            ? RosterColors.weekendHeader
+            : theme.colorScheme.surfaceContainerHigh,
         border: Border(bottom: BorderSide(color: theme.dividerColor)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            parsed == null ? date : parsed.day.toString(),
+            // Locale digits, like every other number on the screen. The month
+            // title was already Arabic-Indic in Arabic while the day numbers
+            // and the hours stayed Western — three numeral systems at once.
+            parsed == null ? date : rosterNumber(context, parsed.day),
             style: theme.textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.w700,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
           if (parsed != null)
-            Text(
-              formatDate(context, parsed, pattern: 'E'),
-              style: theme.textTheme.labelSmall?.copyWith(fontSize: 9),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (isWeekend)
+                  const Padding(
+                    padding: EdgeInsetsDirectional.only(end: 2),
+                    child: Icon(
+                      Icons.weekend_outlined,
+                      size: 9,
+                      color: RosterColors.markerInk,
+                    ),
+                  ),
+                Flexible(
+                  child: Text(
+                    formatDate(context, parsed, pattern: 'E'),
+                    maxLines: 1,
+                    overflow: TextOverflow.clip,
+                    style: theme.textTheme.labelSmall?.copyWith(fontSize: 9),
+                  ),
+                ),
+              ],
             ),
         ],
       ),
@@ -464,12 +627,83 @@ class _DayHeaderCell extends StatelessWidget {
   }
 }
 
-class _ShiftCell extends ConsumerWidget {
-  const _ShiftCell({
+/// Headcount for one day, with the count of days nobody has dealt with.
+class _DayTotalsCell extends StatelessWidget {
+  const _DayTotalsCell({
+    required this.date,
+    required this.totals,
+    required this.width,
+    required this.height,
+  });
+
+  final String date;
+  final RosterDayTotals totals;
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final parsed = DateTime.tryParse(date);
+    final isWeekend = parsed != null && isRosterWeekend(parsed);
+
+    return Container(
+      width: width,
+      height: height,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: isWeekend
+            ? RosterColors.weekendHeader
+            : theme.colorScheme.surfaceContainerHigh,
+        border: Border(bottom: BorderSide(color: theme.dividerColor)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            rosterNumber(context, totals.onDuty),
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          if (totals.atRisk > 0) ...[
+            const SizedBox(width: 3),
+            const Icon(
+              Icons.warning_amber_rounded,
+              size: 11,
+              color: RosterColors.riskLine,
+            ),
+            Text(
+              rosterNumber(context, totals.atRisk),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: RosterColors.riskInk,
+                fontWeight: FontWeight.w700,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// One person on one day.
+///
+/// Reads its colours, glyph and token from [RosterStyleResolver] — the same
+/// object the legend is generated from — and adds the three things a manager
+/// previously had to open the day sheet to learn: which shift it is (the code
+/// in the corner), where they are (the branch token underneath), and whether
+/// the day is out of the ordinary (the markers).
+class _DayCell extends ConsumerWidget {
+  const _DayCell({
     required this.employee,
     required this.date,
     required this.cell,
     required this.catalog,
+    required this.palette,
+    required this.coveringFor,
     required this.width,
     required this.height,
   });
@@ -478,6 +712,8 @@ class _ShiftCell extends ConsumerWidget {
   final String date;
   final RosterCell? cell;
   final List<RosterShift> catalog;
+  final RosterShiftPalette palette;
+  final String? coveringFor;
   final double width;
   final double height;
 
@@ -489,146 +725,275 @@ class _ShiftCell extends ConsumerWidget {
     final selectionIsThisRow = selection?.employee == employee.employee;
     final isSelected = selectionIsThisRow && selection!.dates.contains(date);
 
-    Color background;
-    Color foreground;
-    String label;
-    IconData? badge;
+    final resolver = RosterStyleResolver.of(context, palette: palette);
+    final state = resolver.stateFor(cell: data, date: date);
+    final style = resolver.styleFor(state, shiftType: data?.shiftType);
+    final markers = resolver.markersFor(
+      cell: data,
+      employee: employee,
+      isCover: coveringFor != null || (data?.isCoverFlag ?? false),
+      isSelected: isSelected,
+    );
+    final cornerMarkers = markers
+        .where((m) => m != RosterCellMarker.selected)
+        .toList();
 
-    if (data == null || data.isUnrostered) {
-      if (_isPast(date)) {
-        // History, not a gap. HRMS retires an assignment once its end date has
-        // passed, so old days legitimately read as unrostered — flagging them
-        // red would paint every past month as a wall of alarms and train
-        // people to ignore the colour that matters.
-        background = theme.colorScheme.surfaceContainerHighest.withValues(
-          alpha: 0.4,
-        );
-        foreground = theme.colorScheme.outline;
-        label = '·';
-        badge = null;
-      } else {
-        // Deliberately not a blank: an unrostered day refuses check-ins, so
-        // drawing nothing would hide a state that stops somebody working.
-        background = theme.colorScheme.errorContainer.withValues(alpha: 0.35);
-        foreground = theme.colorScheme.error;
-        label = '—';
-        badge = Icons.block;
-      }
-    } else if (data.isOff) {
-      background = theme.colorScheme.tertiaryContainer;
-      foreground = theme.colorScheme.onTertiaryContainer;
-      label = context.l10n.rosterOffShort;
-      badge = data.dayOff!.isCovered ? Icons.check_circle : Icons.warning;
-    } else if (data.isHoliday && !data.isWorking) {
-      background = theme.colorScheme.surfaceContainerHighest;
-      foreground = theme.colorScheme.onSurfaceVariant;
-      label = context.l10n.rosterHolidayShort;
-      badge = null;
-    } else {
-      background = _shiftColor(context, data.shiftType!);
-      foreground = theme.colorScheme.onSurface;
-      // The hours, not the shift name: a manager scanning a month cares whether
-      // a day is a 9 or a 12, and no abbreviation of "Branch Cover Full Day"
-      // fits in a phone-width cell without becoming a riddle.
-      label = _trimZero(data.hours);
-      badge = null;
-    }
+    final branch = (data?.shiftLocation ?? '').trim();
 
-    return InkWell(
-      onTap: () {
-        // Tapping inside an active selection on THIS row extends or shrinks
-        // the run instead of opening the single-cell sheet — that sheet's
-        // per-day flow is still the entry point (via long-press) and the
-        // right tool for a lone edit, so nothing here removes it.
-        if (selectionIsThisRow) {
-          ref.read(rosterSelectionProvider.notifier).state = selection!
-              .toggle(date);
-          return;
-        }
-        showRosterDaySheet(
-          context,
-          employee: employee,
-          date: date,
-          cell: data,
-          catalog: catalog,
-        );
-      },
-      onLongPress: () {
-        final current = ref.read(rosterSelectionProvider);
-        if (current != null && current.employee == employee.employee) {
-          ref.read(rosterSelectionProvider.notifier).state = current.toggle(
-            date,
+    return Semantics(
+      button: true,
+      label: _semanticsLabel(context, style, markers, resolver),
+      child: InkWell(
+        onTap: () {
+          // Tapping inside an active selection on THIS row extends or shrinks
+          // the run instead of opening the single-cell sheet — that sheet's
+          // per-day flow is still the entry point (via long-press) and the
+          // right tool for a lone edit, so nothing here removes it.
+          if (selectionIsThisRow) {
+            ref.read(rosterSelectionProvider.notifier).state = selection!
+                .toggle(date);
+            return;
+          }
+          showRosterDaySheet(
+            context,
+            employee: employee,
+            date: date,
+            cell: data,
+            catalog: catalog,
+            palette: palette,
+            coveringFor: coveringFor,
           );
-        } else {
-          ref.read(rosterSelectionProvider.notifier).state = RosterSelection(
-            employee: employee.employee,
-            employeeName: employee.employeeName,
-            dates: {date},
-          );
-        }
-      },
-      child: Container(
-        width: width,
-        height: height,
-        margin: const EdgeInsets.all(1),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(6),
-          border: isSelected
-              ? Border.all(color: theme.colorScheme.primary, width: 2)
-              : null,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: foreground,
-                fontWeight: FontWeight.w700,
+        },
+        onLongPress: () {
+          final current = ref.read(rosterSelectionProvider);
+          if (current != null && current.employee == employee.employee) {
+            ref.read(rosterSelectionProvider.notifier).state = current.toggle(
+              date,
+            );
+          } else {
+            ref.read(rosterSelectionProvider.notifier).state = RosterSelection(
+              employee: employee.employee,
+              employeeName: employee.employeeName,
+              dates: {date},
+            );
+          }
+        },
+        child: Container(
+          width: width,
+          height: height,
+          margin: const EdgeInsets.all(1),
+          decoration: BoxDecoration(
+            color: style.background,
+            borderRadius: BorderRadius.circular(6),
+            border: isSelected
+                ? Border.all(
+                    color: RosterStyleResolver.selectionColor,
+                    width: 2,
+                  )
+                : style.hasBorder
+                ? Border.all(
+                    color: style.borderColor,
+                    width: style.borderWidth,
+                  )
+                : null,
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Center(
+                  child: state == RosterCellState.working
+                      ? Padding(
+                          // Leaves the corners to the code, the branch and the
+                          // markers.
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: Text(
+                            // The hours, not the shift name: a manager scanning
+                            // a month cares whether a day is a 9 or a 12, and no
+                            // abbreviation of "Branch Cover Full Day" fits in a
+                            // phone-width cell without becoming a riddle. Which
+                            // shift it is now rides in the corner code instead.
+                            rosterNumber(context, data!.hours),
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: style.foreground,
+                              fontWeight: FontWeight.w800,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (style.icon != null)
+                              Icon(
+                                style.icon,
+                                size: 16,
+                                color: style.foreground,
+                              ),
+                            if (style.token.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 3,
+                                ),
+                                child: FittedBox(
+                                  // Arabic writes إجازة where English writes
+                                  // OFF; scaling down beats clipping, and beats
+                                  // inventing an abbreviation Arabic does not
+                                  // have.
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    style.token,
+                                    maxLines: 1,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: style.foreground,
+                                      fontWeight: FontWeight.w700,
+                                      height: 1.1,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                ),
               ),
-            ),
-            if (badge != null) Icon(badge, size: 10, color: foreground),
-          ],
+              if (style.shiftCode != null)
+                PositionedDirectional(
+                  top: 2,
+                  start: 3,
+                  child: _CodeChip(
+                    code: style.shiftCode!,
+                    foreground: style.foreground,
+                  ),
+                ),
+              if (branch.isNotEmpty && state == RosterCellState.working)
+                PositionedDirectional(
+                  bottom: 2,
+                  start: 3,
+                  child: Text(
+                    branchToken(branch),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 9,
+                      height: 1,
+                      letterSpacing: 0.2,
+                      color: style.foreground,
+                    ),
+                  ),
+                ),
+              if (cornerMarkers.isNotEmpty)
+                PositionedDirectional(
+                  bottom: 2,
+                  end: 2,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final marker in cornerMarkers)
+                        _MarkerGlyph(style: resolver.markerStyle(marker)),
+                    ],
+                  ),
+                ),
+              if (isSelected)
+                const PositionedDirectional(
+                  top: 2,
+                  end: 2,
+                  child: _SelectionTick(),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  /// Whether this cell's day has already gone.
-  ///
-  /// Compared date-only: a cell for today must never count as past, because
-  /// today is the one day where an empty cell has an immediate consequence.
-  static bool _isPast(String date) {
+  String _semanticsLabel(
+    BuildContext context,
+    RosterCellStyle style,
+    Set<RosterCellMarker> markers,
+    RosterStyleResolver resolver,
+  ) {
     final parsed = DateTime.tryParse(date);
-    if (parsed == null) return false;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return DateTime(parsed.year, parsed.month, parsed.day).isBefore(today);
-  }
-
-  /// Stable colour per shift type.
-  ///
-  /// Derived from the name so the same shift is the same colour in every month
-  /// and on every device, without needing a colour column to be filled in on
-  /// each Shift Type in Desk.
-  static Color _shiftColor(BuildContext context, String shiftType) {
-    const palette = <Color>[
-      Color(0xFFB3E5FC),
-      Color(0xFFC8E6C9),
-      Color(0xFFFFE0B2),
-      Color(0xFFD1C4E9),
-      Color(0xFFF8BBD0),
-      Color(0xFFDCEDC8),
-      Color(0xFFFFF9C4),
-      Color(0xFFB2DFDB),
+    final parts = <String>[
+      employee.employeeName,
+      parsed == null ? date : formatDate(context, parsed, pattern: 'EEEE, MMM d'),
+      style.label,
+      if (style.state == RosterCellState.working) ...[
+        cell?.shiftType ?? '',
+        rosterNumber(context, cell?.hours ?? 0),
+        (cell?.shiftLocation ?? '').trim().isEmpty
+            ? context.l10n.rosterBranchUnknown
+            : cell!.shiftLocation!,
+      ],
+      for (final marker in markers) resolver.markerStyle(marker).label,
     ];
-    final hash = shiftType.codeUnits.fold<int>(0, (a, b) => (a * 31 + b) & 0x7fffffff);
-    final base = palette[hash % palette.length];
-    return Theme.of(context).brightness == Brightness.dark
-        ? Color.alphaBlend(base.withValues(alpha: 0.35), Colors.black26)
-        : base;
+    return parts.where((p) => p.trim().isNotEmpty).join(' · ');
+  }
+}
+
+/// The shift type's short code, in the cell's leading corner.
+class _CodeChip extends StatelessWidget {
+  const _CodeChip({required this.code, required this.foreground});
+
+  final String code;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0.5),
+      decoration: BoxDecoration(
+        color: foreground.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Text(
+        code,
+        style: TextStyle(
+          fontSize: 9,
+          height: 1.2,
+          fontWeight: FontWeight.w800,
+          color: foreground,
+        ),
+      ),
+    );
+  }
+}
+
+/// A marker: one ink, told apart by its glyph, on a chip light enough to read
+/// over whatever colour Desk gave the shift type.
+class _MarkerGlyph extends StatelessWidget {
+  const _MarkerGlyph({required this.style});
+
+  final RosterMarkerStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 13,
+      height: 13,
+      margin: const EdgeInsetsDirectional.only(start: 1),
+      decoration: BoxDecoration(
+        color: RosterColors.markerChip,
+        shape: BoxShape.circle,
+        border: Border.all(color: RosterColors.markerInk, width: 0.5),
+      ),
+      child: Icon(style.icon, size: 9, color: RosterColors.markerInk),
+    );
+  }
+}
+
+class _SelectionTick extends StatelessWidget {
+  const _SelectionTick();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 13,
+      height: 13,
+      decoration: const BoxDecoration(
+        color: RosterStyleResolver.selectionColor,
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(Icons.check, size: 9, color: Colors.white),
+    );
   }
 }
 
@@ -708,9 +1073,4 @@ class _ErrorState extends ConsumerWidget {
       ),
     );
   }
-}
-
-String _trimZero(double value) {
-  if (value == value.roundToDouble()) return value.toStringAsFixed(0);
-  return value.toStringAsFixed(1);
 }

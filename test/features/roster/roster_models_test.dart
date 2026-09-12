@@ -87,7 +87,12 @@ void main() {
       });
 
       expect(shift.hours, 12.5);
-      expect(shift.window, '12:30 → 01:00');
+      // An en dash, not the arrow this used to carry: the arrow is a hard-coded
+      // left-to-right glyph, and inside an Arabic sentence bidi leaves it
+      // pointing the wrong way — saying the shift ran from its end to its
+      // start.
+      expect(shift.window, '12:30 – 01:00');
+      expect(shift.window.contains('→'), isFalse);
     });
 
     test('a shift with no times renders an empty window rather than junk', () {

@@ -12601,4 +12601,67 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsBackgroundDeliveryNoScreen =>
       'Could not open that screen. Open Settings > Apps > Jarz POS > Battery and allow background running.';
+
+  @override
+  String get rosterLegendStatesTitle => 'Day states';
+
+  @override
+  String get rosterLegendMarkersTitle => 'Markers';
+
+  @override
+  String get rosterLegendShiftsTitle => 'Shifts';
+
+  @override
+  String get rosterLegendWorkingHours => 'Working (number = hours)';
+
+  @override
+  String get rosterLegendOffCovered => 'Off — covered';
+
+  @override
+  String get rosterLegendOffUncovered => 'Off — nobody covering';
+
+  @override
+  String get rosterLegendNotRosteredFuture => 'Not rostered — cannot check in';
+
+  @override
+  String get rosterLegendNotRosteredPast => 'No record (day has passed)';
+
+  @override
+  String get rosterLegendMarkerOvertime => 'Longer than the normal day';
+
+  @override
+  String get rosterLegendMarkerCover => 'Covering a colleague';
+
+  @override
+  String get rosterLegendMarkerHolidayWorked => 'Working on a public holiday';
+
+  @override
+  String get rosterLegendMarkerWeekend => 'Weekend (Fri & Sat)';
+
+  @override
+  String get rosterLegendMarkerSelected => 'Selected for a bulk change';
+
+  @override
+  String get rosterOnDutyRow => 'On duty';
+
+  @override
+  String rosterOnDutyRowBranch(String branch) {
+    return 'On duty · $branch';
+  }
+
+  @override
+  String get rosterBranchUnknown => 'No branch';
+
+  @override
+  String get rosterUnrosteredPast => 'No shift was assigned on this day.';
+
+  @override
+  String rosterCoveringFor(String name) {
+    return 'Covering for $name';
+  }
+
+  @override
+  String rosterAboveNormalDay(String hours, String standard) {
+    return '${hours}h — longer than the normal ${standard}h day';
+  }
 }
