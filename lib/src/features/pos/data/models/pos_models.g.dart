@@ -94,6 +94,9 @@ _$CommercialPolicyImpl _$$CommercialPolicyImplFromJson(
   discountPercentage: (json['discount_percentage'] as num?)?.toDouble(),
   waivesShippingIncome: json['waives_shipping_income'] as bool? ?? false,
   noCourier: json['no_courier'] as bool? ?? false,
+  deliverAtBranch: json['deliver_at_branch'] == null
+      ? false
+      : _lenientBool(json['deliver_at_branch']),
 );
 
 Map<String, dynamic> _$$CommercialPolicyImplToJson(
@@ -106,4 +109,5 @@ Map<String, dynamic> _$$CommercialPolicyImplToJson(
   'discount_percentage': instance.discountPercentage,
   'waives_shipping_income': instance.waivesShippingIncome,
   'no_courier': instance.noCourier,
+  'deliver_at_branch': instance.deliverAtBranch,
 };

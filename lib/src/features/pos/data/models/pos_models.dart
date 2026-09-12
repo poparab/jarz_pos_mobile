@@ -63,6 +63,13 @@ class Customer with _$Customer {
       _$CustomerFromJson(json);
 }
 
+bool _lenientBool(Object? value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  final normalized = value?.toString().trim().toLowerCase() ?? '';
+  return normalized == '1' || normalized == 'true' || normalized == 'yes';
+}
+
 @freezed
 class CommercialPolicy with _$CommercialPolicy {
   const factory CommercialPolicy({
@@ -75,6 +82,13 @@ class CommercialPolicy with _$CommercialPolicy {
     @Default(false)
     bool waivesShippingIncome,
     @JsonKey(name: 'no_courier') @Default(false) bool noCourier,
+    // The order is handed over at the branch counter (staff purchases), so the
+    // client does not demand a delivery slot for it. Absent on older backends.
+    // Parsed leniently: a Frappe Check reaches us as 0/1, and one bad cast here
+    // would empty the whole policy list (the repository swallows the error).
+    @JsonKey(name: 'deliver_at_branch', fromJson: _lenientBool)
+    @Default(false)
+    bool deliverAtBranch,
   }) = _CommercialPolicy;
 
   factory CommercialPolicy.fromJson(Map<String, dynamic> json) =>

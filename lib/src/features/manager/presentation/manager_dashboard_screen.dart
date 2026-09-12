@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/manager_providers.dart';
 import '../data/manager_api.dart';
+import 'sync_staff_customers_action.dart';
 import '../../../core/network/frappe_error_message.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/localized_formatters.dart';
@@ -137,6 +138,11 @@ class ManagerDashboardScreen extends ConsumerWidget {
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 4),
+            SyncStaffCustomersAction(
+              // Newly linked customers turn "No employee record" rows into
+              // named people, so the ledger is refetched after a run.
+              onSynced: () => ref.invalidate(employeeLedgerProvider),
+            ),
             const _EmployeeLedgerWindowFilter(),
             const SizedBox(height: 8),
             employeeLedgerAsync.when(

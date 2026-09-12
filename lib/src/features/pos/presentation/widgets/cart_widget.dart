@@ -14,6 +14,7 @@ import '../dialogs/payment_method_dialog.dart';
 import '../dialogs/territory_profile_mismatch_dialog.dart';
 import 'bundle_selection_widget.dart';
 import 'delivery_slot_selection.dart';
+import 'staff_member_picker.dart';
 import '../../../../core/constants/business_constants.dart';
 import '../../../../core/network/frappe_error_message.dart';
 import '../../../credit/state/credit_providers.dart';
@@ -487,7 +488,9 @@ class CartWidget extends ConsumerWidget {
                                 .read(posNotifierProvider.notifier)
                                 .setDeliverySlot(slot);
                           },
-                          isRequired: true,
+                          // A counter-collected policy order has no slot to
+                          // demand; see [PosState.collectsAtBranch].
+                          isRequired: !state.collectsAtBranch,
                         ),
                       ),
 
@@ -1390,7 +1393,9 @@ class CartWidget extends ConsumerWidget {
                 },
         ),
         if (selected != null &&
-            (selected.waivesShippingIncome || selected.noCourier)) ...[
+            (selected.waivesShippingIncome ||
+                selected.noCourier ||
+                selected.deliverAtBranch)) ...[
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -1403,8 +1408,19 @@ class CartWidget extends ConsumerWidget {
                 ),
               if (selected.noCourier)
                 _buildPricingChip(context, l10n.posCartOrderPurposeNoCourier),
+              if (selected.deliverAtBranch)
+                _buildPricingChip(
+                  context,
+                  l10n.posCartOrderPurposeDeliverAtBranch,
+                ),
             ],
           ),
+        ],
+        // An Employee order is deducted from payroll only through the staff
+        // customer, so the person is chosen here instead of a customer.
+        if (state.isEmployeeOrder) ...[
+          const SizedBox(height: 12),
+          const StaffMemberControl(),
         ],
         if (selected != null) ...[
           const SizedBox(height: 12),
@@ -1813,8 +1829,22 @@ class CartWidget extends ConsumerWidget {
     // exact same element that backs `ref`.
     final posNotifier = ref.read(posNotifierProvider.notifier);
 
-    // Validate delivery slot is selected
-    if (!state.isPickup && state.selectedDeliverySlot == null) {
+    // Refused before the payment dialogs: an Employee order with nobody to
+    // deduct it from is an unattributable debt. The notifier refuses it too.
+    if (state.isMissingStaffEmployee) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.posStaffMemberRequired),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
+    // Validate delivery slot is selected. A counter-collected policy order
+    // (staff purchase) is exempt like a pickup: the staff customer the backend
+    // creates has no address, and nothing is delivered.
+    if (!state.collectsAtBranch && state.selectedDeliverySlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.posDeliverySelectSlot),
@@ -2260,6 +2290,17 @@ class CartWidget extends ConsumerWidget {
     final territoryProfile = await posNotifier.getTerritoryPosProfile(
       customerName,
     );
+
+    // A counter-collected policy order belongs to the branch it is rung up
+    // at: a freshly created staff customer has no territory, so the mismatch
+    // question has only one answer. Take it ("keep selected") without asking.
+    if (state.selectedCommercialPolicy?.deliverAtBranch ?? false) {
+      final matches =
+          territoryProfile != null &&
+          territoryProfile.isNotEmpty &&
+          territoryProfile == selectedProfileName;
+      return (profileName: selectedProfileName, override: !matches);
+    }
 
     // Profiles match → proceed silently, no override needed
     if (territoryProfile != null &&

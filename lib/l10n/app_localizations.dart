@@ -21364,6 +21364,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'?'**
   String get attendanceTokenUnknown;
+
+  /// No description provided for @posCartOrderPurposeDeliverAtBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Collected at the branch'**
+  String get posCartOrderPurposeDeliverAtBranch;
+
+  /// No description provided for @posStaffMemberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff member'**
+  String get posStaffMemberLabel;
+
+  /// No description provided for @posStaffMemberChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose staff member'**
+  String get posStaffMemberChoose;
+
+  /// No description provided for @posStaffMemberChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get posStaffMemberChange;
+
+  /// No description provided for @posStaffMemberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This order is deducted from the salary of the chosen staff member.'**
+  String get posStaffMemberHint;
+
+  /// No description provided for @posStaffMemberRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the staff member for this order'**
+  String get posStaffMemberRequired;
+
+  /// No description provided for @posStaffMemberPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose staff member'**
+  String get posStaffMemberPickerTitle;
+
+  /// No description provided for @posStaffMemberSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, branch or job title'**
+  String get posStaffMemberSearchHint;
+
+  /// No description provided for @posStaffMemberNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No staff member matches this search'**
+  String get posStaffMemberNoMatches;
+
+  /// No description provided for @posStaffMemberEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No active staff members were found'**
+  String get posStaffMemberEmpty;
+
+  /// No description provided for @posStaffMemberHrmsUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'HR is not set up'**
+  String get posStaffMemberHrmsUnavailableTitle;
+
+  /// No description provided for @posStaffMemberHrmsUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff orders are charged to an employee record, and the HR module is not installed on this system. Ask an administrator to set it up.'**
+  String get posStaffMemberHrmsUnavailableBody;
+
+  /// No description provided for @posStaffMemberNewCustomerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A customer account will be created for them'**
+  String get posStaffMemberNewCustomerHint;
+
+  /// No description provided for @posStaffMemberCustomerCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff customer created for {name}'**
+  String posStaffMemberCustomerCreated(String name);
+
+  /// No description provided for @posStaffMemberAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Order assigned to {name}'**
+  String posStaffMemberAssigned(String name);
+
+  /// No description provided for @posStaffMemberEnsureFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not prepare the customer for this staff member'**
+  String get posStaffMemberEnsureFailed;
+
+  /// No description provided for @posStaffMemberLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load staff members'**
+  String get posStaffMemberLoadFailed;
+
+  /// No description provided for @managerStaffCustomersSyncAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create missing staff customers'**
+  String get managerStaffCustomersSyncAction;
+
+  /// No description provided for @managerStaffCustomersSyncConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create missing staff customers?'**
+  String get managerStaffCustomersSyncConfirmTitle;
+
+  /// No description provided for @managerStaffCustomersSyncConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every active employee without a linked customer gets one, so their staff orders can be deducted from payroll. A customer that already matches an employee is linked instead of duplicated.'**
+  String get managerStaffCustomersSyncConfirmBody;
+
+  /// No description provided for @managerStaffCustomersSyncConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get managerStaffCustomersSyncConfirm;
+
+  /// No description provided for @managerStaffCustomersSyncRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating staff customers…'**
+  String get managerStaffCustomersSyncRunning;
+
+  /// No description provided for @managerStaffCustomersSyncResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff customers'**
+  String get managerStaffCustomersSyncResultTitle;
+
+  /// No description provided for @managerStaffCustomersSyncCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created: {count}'**
+  String managerStaffCustomersSyncCreated(int count);
+
+  /// No description provided for @managerStaffCustomersSyncAdopted.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to an existing customer: {count}'**
+  String managerStaffCustomersSyncAdopted(int count);
+
+  /// No description provided for @managerStaffCustomersSyncExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Already linked: {count}'**
+  String managerStaffCustomersSyncExisting(int count);
+
+  /// No description provided for @managerStaffCustomersSyncSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped ({count})'**
+  String managerStaffCustomersSyncSkipped(int count);
+
+  /// No description provided for @managerStaffCustomersSyncConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs review ({count})'**
+  String managerStaffCustomersSyncConflicts(int count);
+
+  /// No description provided for @managerStaffCustomersSyncConflictsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'More than one customer matches these employees, so none was linked. Link the right one in Desk.'**
+  String get managerStaffCustomersSyncConflictsHint;
+
+  /// No description provided for @managerStaffCustomersSyncMatchingCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching customers: {customers}'**
+  String managerStaffCustomersSyncMatchingCustomers(String customers);
+
+  /// No description provided for @managerStaffCustomersSyncNothingToDo.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to create: every employee already has a linked customer.'**
+  String get managerStaffCustomersSyncNothingToDo;
+
+  /// No description provided for @managerStaffCustomersSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create staff customers'**
+  String get managerStaffCustomersSyncFailed;
 }
 
 class _AppLocalizationsDelegate

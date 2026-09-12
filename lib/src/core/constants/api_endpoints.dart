@@ -265,6 +265,17 @@ abstract final class ApiEndpoints {
   static const getEmployeeLedger =
       '/api/method/jarz_pos.api.manager.get_employee_ledger';
 
+  // ── Staff customers (Employee-purpose orders) ─────────────────────────
+  // A staff order is only deducted from payroll when its Customer is linked
+  // to an Employee, so the POS picks a person and the backend guarantees the
+  // linked customer. All three are gated to the manager tier server-side.
+  static const listStaffForOrders =
+      '/api/method/jarz_pos.api.employee_customers.list_staff_for_orders';
+  static const ensureStaffCustomer =
+      '/api/method/jarz_pos.api.employee_customers.ensure_staff_customer';
+  static const syncStaffCustomers =
+      '/api/method/jarz_pos.api.employee_customers.sync_staff_customers';
+
   // ── Stock Transfer ────────────────────────────────────────────────────
   static const transferListPosProfiles =
       '/api/method/jarz_pos.api.transfer.list_pos_profiles';

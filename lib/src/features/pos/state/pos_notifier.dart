@@ -30,6 +30,13 @@ class PosState {
   final String? boundB2bOrderPurpose;
   // Optional free-text reason captured when a non-Standard purpose is selected.
   final String? policyReason;
+
+  /// The HRMS Employee an Employee-purpose order is put on. Only ever set by
+  /// [PosNotifier.selectStaffCustomer], after the backend has returned the
+  /// Customer linked to that person, so payroll can attribute the debt. Cleared
+  /// whenever the customer or the purpose changes by any other path.
+  final String? selectedStaffEmployee;
+  final String? selectedStaffEmployeeName;
   // True when a customer-group-driven policy (e.g. B2B Supply) is active and the
   // selected customer has NO tier price list configured on the backend. Lets the
   // UI hint "this customer has no B2B price tier set". Always false otherwise.
@@ -98,6 +105,8 @@ class PosState {
     this.b2bSetupComplete = false,
     this.boundB2bOrderPurpose,
     this.policyReason,
+    this.selectedStaffEmployee,
+    this.selectedStaffEmployeeName,
     this.customerHasNoTierPriceList = false,
     this.cartItems = const [],
     this.selectedCustomer,
@@ -140,6 +149,9 @@ class PosState {
     bool clearBoundB2bOrderPurpose = false,
     String? policyReason,
     bool clearPolicyReason = false,
+    String? selectedStaffEmployee,
+    String? selectedStaffEmployeeName,
+    bool clearSelectedStaffEmployee = false,
     bool? customerHasNoTierPriceList,
     List<Map<String, dynamic>>? cartItems,
     Map<String, dynamic>? selectedCustomer,
@@ -175,6 +187,13 @@ class PosState {
     bool? promoLoading,
     bool clearPromos = false,
   }) {
+    // A staff selection only means something for the customer and purpose it
+    // was made with, so every path that drops either one drops it too. This
+    // lives here rather than at each reset site so a new reset cannot forget.
+    final dropStaffEmployee =
+        clearSelectedStaffEmployee ||
+        clearSelectedCustomer ||
+        clearSelectedCommercialPolicy;
     return PosState(
       profiles: profiles ?? this.profiles,
       selectedProfile: selectedProfile ?? this.selectedProfile,
@@ -197,6 +216,12 @@ class PosState {
       policyReason: clearPolicyReason
           ? null
           : (policyReason ?? this.policyReason),
+      selectedStaffEmployee: dropStaffEmployee
+          ? null
+          : (selectedStaffEmployee ?? this.selectedStaffEmployee),
+      selectedStaffEmployeeName: dropStaffEmployee
+          ? null
+          : (selectedStaffEmployeeName ?? this.selectedStaffEmployeeName),
       customerHasNoTierPriceList:
           customerHasNoTierPriceList ?? this.customerHasNoTierPriceList,
       cartItems: cartItems ?? this.cartItems,
@@ -247,6 +272,27 @@ class PosState {
       promoLoading: clearPromos ? false : (promoLoading ?? this.promoLoading),
     );
   }
+
+  static const employeeOrderPurpose = 'Employee';
+
+  /// True when the selected commercial policy is the Employee (staff) purpose.
+  bool get isEmployeeOrder =>
+      !isB2bOrder &&
+      (selectedCommercialPolicy?.orderPurpose.trim().toLowerCase() ?? '') ==
+          employeeOrderPurpose.toLowerCase();
+
+  bool get hasStaffEmployee =>
+      selectedStaffEmployee?.trim().isNotEmpty ?? false;
+
+  /// An Employee order without a chosen staff member would be an unpaid debt
+  /// that payroll cannot attribute, so checkout refuses it.
+  bool get isMissingStaffEmployee => isEmployeeOrder && !hasStaffEmployee;
+
+  /// The order is handed over at the branch counter: either a pickup, or a
+  /// policy (staff purchases) that is always collected at the branch. Such an
+  /// order has no delivery slot to demand client-side.
+  bool get collectsAtBranch =>
+      isPickup || (selectedCommercialPolicy?.deliverAtBranch ?? false);
 
   String? get selectedPriceListName {
     final name = selectedPriceList?['name']?.toString().trim() ?? '';
@@ -349,6 +395,10 @@ class PosNotifier extends StateNotifier<PosState> {
   int _catalogRequestToken = 0;
   static const _supportedB2bOrderPurposes = {'B2B Supply', 'Sample - Courier'};
   static const _policyDiscountMarker = '_policy_discount_percentage';
+
+  /// Error sentinel for an Employee order with no staff member; the presenter
+  /// in `user_error_message.dart` localizes it.
+  static const staffEmployeeRequiredError = 'staff_employee_required';
 
   // ── Draft auto-save debounce ──────────────────────────────────────────
   static const _kAutoSaveDebounce = Duration(milliseconds: 400);
@@ -453,6 +503,8 @@ class PosNotifier extends StateNotifier<PosState> {
       isB2bOrder: state.isB2bOrder,
       boundB2bOrderPurpose: state.boundB2bOrderPurpose,
       policyReason: state.policyReason,
+      staffEmployee: state.selectedStaffEmployee,
+      staffEmployeeName: state.selectedStaffEmployeeName,
       zeroShippingOverride: state.zeroShippingOverride,
       isPickup: state.isPickup,
       createdAt: now,
@@ -587,6 +639,19 @@ class PosNotifier extends StateNotifier<PosState> {
                 ? target.boundB2bOrderPurpose
                 : target.selectedCommercialPolicy?.orderPurpose)
           : null;
+      // Only a retail Employee draft that still carries its customer can carry
+      // a staff member; anything else saved with one is ignored, not trusted.
+      final savedStaffEmployee = target.staffEmployee?.trim() ?? '';
+      final restoredStaffEmployee =
+          !target.isB2bOrder &&
+              target.customer != null &&
+              savedStaffEmployee.isNotEmpty &&
+              _sameOrderPurpose(
+                target.selectedCommercialPolicy?.orderPurpose,
+                PosState.employeeOrderPurpose,
+              )
+          ? savedStaffEmployee
+          : null;
       state = state.copyWith(
         cartItems: List<Map<String, dynamic>>.from(target.cartItems),
         selectedCustomer: target.customer,
@@ -605,6 +670,11 @@ class PosNotifier extends StateNotifier<PosState> {
         clearBoundB2bOrderPurpose: restoredBoundPurpose == null,
         policyReason: target.policyReason,
         clearPolicyReason: target.policyReason == null,
+        selectedStaffEmployee: restoredStaffEmployee,
+        selectedStaffEmployeeName: restoredStaffEmployee == null
+            ? null
+            : (target.staffEmployeeName ?? restoredStaffEmployee),
+        clearSelectedStaffEmployee: restoredStaffEmployee == null,
         customerHasNoTierPriceList: false,
         zeroShippingOverride: target.zeroShippingOverride,
         isPickup: target.isPickup,
@@ -1496,6 +1566,9 @@ class PosNotifier extends StateNotifier<PosState> {
       selectedCustomer: customer,
       // The previous customer's tier-missing hint no longer applies.
       customerHasNoTierPriceList: false,
+      // A customer picked by hand is not a staff selection, even when it is
+      // the same person; only [selectStaffCustomer] sets one.
+      clearSelectedStaffEmployee: true,
       draftDirty: true,
     );
     _autoSaveDebounced();
@@ -1511,6 +1584,36 @@ class PosNotifier extends StateNotifier<PosState> {
     if (state.selectedProfile != null && state.deliverySlots.isEmpty) {
       _prefetchDeliverySlots();
     }
+  }
+
+  /// Puts an Employee-purpose order on a staff member.
+  ///
+  /// [customer] is the `ensure_staff_customer` result, which has the same keys
+  /// as a customer search row. Returns false (and changes nothing) when the
+  /// order is no longer an Employee order or the customer is unusable: the
+  /// purpose may have changed while the backend call was in flight.
+  bool selectStaffCustomer({
+    required Map<String, dynamic> customer,
+    required String employee,
+    required String employeeName,
+  }) {
+    final employeeId = employee.trim();
+    final customerId = customer['name']?.toString().trim() ?? '';
+    if (!state.isEmployeeOrder || employeeId.isEmpty || customerId.isEmpty) {
+      return false;
+    }
+    selectCustomer(customer);
+    if (state.selectedCustomer?['name']?.toString().trim() != customerId) {
+      return false;
+    }
+    final name = employeeName.trim();
+    state = state.copyWith(
+      selectedStaffEmployee: employeeId,
+      selectedStaffEmployeeName: name.isEmpty ? employeeId : name,
+      draftDirty: true,
+    );
+    _autoSaveDebounced();
+    return true;
   }
 
   /// Starts a B2B order without losing the operator's current cart. Any dirty
@@ -1645,6 +1748,11 @@ class PosNotifier extends StateNotifier<PosState> {
         state.selectedPriceList,
       ),
       cartItems: repricedCart,
+      // Moving away from the Employee purpose leaves nobody to deduct from.
+      clearSelectedStaffEmployee: !_sameOrderPurpose(
+        policy.orderPurpose,
+        PosState.employeeOrderPurpose,
+      ),
       draftDirty: true,
     );
     _autoSaveDebounced();
@@ -3381,6 +3489,17 @@ class PosNotifier extends StateNotifier<PosState> {
   }) async {
     if (state.cartItems.isEmpty) {
       state = state.copyWith(error: 'Cart is empty', clearError: false);
+      return;
+    }
+
+    // An Employee order is left unpaid on the customer and only deducted from
+    // payroll through that customer's Employee link. Without a chosen staff
+    // member it would become a debt nobody can be charged for.
+    if (state.isMissingStaffEmployee) {
+      state = state.copyWith(
+        error: staffEmployeeRequiredError,
+        clearError: false,
+      );
       return;
     }
 

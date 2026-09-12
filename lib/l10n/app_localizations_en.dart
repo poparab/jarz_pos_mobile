@@ -13018,4 +13018,126 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attendanceTokenUnknown => '?';
+
+  @override
+  String get posCartOrderPurposeDeliverAtBranch => 'Collected at the branch';
+
+  @override
+  String get posStaffMemberLabel => 'Staff member';
+
+  @override
+  String get posStaffMemberChoose => 'Choose staff member';
+
+  @override
+  String get posStaffMemberChange => 'Change';
+
+  @override
+  String get posStaffMemberHint =>
+      'This order is deducted from the salary of the chosen staff member.';
+
+  @override
+  String get posStaffMemberRequired => 'Choose the staff member for this order';
+
+  @override
+  String get posStaffMemberPickerTitle => 'Choose staff member';
+
+  @override
+  String get posStaffMemberSearchHint => 'Search by name, branch or job title';
+
+  @override
+  String get posStaffMemberNoMatches => 'No staff member matches this search';
+
+  @override
+  String get posStaffMemberEmpty => 'No active staff members were found';
+
+  @override
+  String get posStaffMemberHrmsUnavailableTitle => 'HR is not set up';
+
+  @override
+  String get posStaffMemberHrmsUnavailableBody =>
+      'Staff orders are charged to an employee record, and the HR module is not installed on this system. Ask an administrator to set it up.';
+
+  @override
+  String get posStaffMemberNewCustomerHint =>
+      'A customer account will be created for them';
+
+  @override
+  String posStaffMemberCustomerCreated(String name) {
+    return 'Staff customer created for $name';
+  }
+
+  @override
+  String posStaffMemberAssigned(String name) {
+    return 'Order assigned to $name';
+  }
+
+  @override
+  String get posStaffMemberEnsureFailed =>
+      'Could not prepare the customer for this staff member';
+
+  @override
+  String get posStaffMemberLoadFailed => 'Could not load staff members';
+
+  @override
+  String get managerStaffCustomersSyncAction =>
+      'Create missing staff customers';
+
+  @override
+  String get managerStaffCustomersSyncConfirmTitle =>
+      'Create missing staff customers?';
+
+  @override
+  String get managerStaffCustomersSyncConfirmBody =>
+      'Every active employee without a linked customer gets one, so their staff orders can be deducted from payroll. A customer that already matches an employee is linked instead of duplicated.';
+
+  @override
+  String get managerStaffCustomersSyncConfirm => 'Create';
+
+  @override
+  String get managerStaffCustomersSyncRunning => 'Creating staff customers…';
+
+  @override
+  String get managerStaffCustomersSyncResultTitle => 'Staff customers';
+
+  @override
+  String managerStaffCustomersSyncCreated(int count) {
+    return 'Created: $count';
+  }
+
+  @override
+  String managerStaffCustomersSyncAdopted(int count) {
+    return 'Linked to an existing customer: $count';
+  }
+
+  @override
+  String managerStaffCustomersSyncExisting(int count) {
+    return 'Already linked: $count';
+  }
+
+  @override
+  String managerStaffCustomersSyncSkipped(int count) {
+    return 'Skipped ($count)';
+  }
+
+  @override
+  String managerStaffCustomersSyncConflicts(int count) {
+    return 'Needs review ($count)';
+  }
+
+  @override
+  String get managerStaffCustomersSyncConflictsHint =>
+      'More than one customer matches these employees, so none was linked. Link the right one in Desk.';
+
+  @override
+  String managerStaffCustomersSyncMatchingCustomers(String customers) {
+    return 'Matching customers: $customers';
+  }
+
+  @override
+  String get managerStaffCustomersSyncNothingToDo =>
+      'Nothing to create: every employee already has a linked customer.';
+
+  @override
+  String get managerStaffCustomersSyncFailed =>
+      'Could not create staff customers';
 }

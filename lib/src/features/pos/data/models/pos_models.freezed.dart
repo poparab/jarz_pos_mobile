@@ -1170,7 +1170,12 @@ mixin _$CommercialPolicy {
   @JsonKey(name: 'waives_shipping_income')
   bool get waivesShippingIncome => throw _privateConstructorUsedError;
   @JsonKey(name: 'no_courier')
-  bool get noCourier => throw _privateConstructorUsedError;
+  bool get noCourier => throw _privateConstructorUsedError; // The order is handed over at the branch counter (staff purchases), so the
+  // client does not demand a delivery slot for it. Absent on older backends.
+  // Parsed leniently: a Frappe Check reaches us as 0/1, and one bad cast here
+  // would empty the whole policy list (the repository swallows the error).
+  @JsonKey(name: 'deliver_at_branch', fromJson: _lenientBool)
+  bool get deliverAtBranch => throw _privateConstructorUsedError;
 
   /// Serializes this CommercialPolicy to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1197,6 +1202,8 @@ abstract class $CommercialPolicyCopyWith<$Res> {
     @JsonKey(name: 'discount_percentage') double? discountPercentage,
     @JsonKey(name: 'waives_shipping_income') bool waivesShippingIncome,
     @JsonKey(name: 'no_courier') bool noCourier,
+    @JsonKey(name: 'deliver_at_branch', fromJson: _lenientBool)
+    bool deliverAtBranch,
   });
 }
 
@@ -1222,6 +1229,7 @@ class _$CommercialPolicyCopyWithImpl<$Res, $Val extends CommercialPolicy>
     Object? discountPercentage = freezed,
     Object? waivesShippingIncome = null,
     Object? noCourier = null,
+    Object? deliverAtBranch = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1253,6 +1261,10 @@ class _$CommercialPolicyCopyWithImpl<$Res, $Val extends CommercialPolicy>
                 ? _value.noCourier
                 : noCourier // ignore: cast_nullable_to_non_nullable
                       as bool,
+            deliverAtBranch: null == deliverAtBranch
+                ? _value.deliverAtBranch
+                : deliverAtBranch // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -1276,6 +1288,8 @@ abstract class _$$CommercialPolicyImplCopyWith<$Res>
     @JsonKey(name: 'discount_percentage') double? discountPercentage,
     @JsonKey(name: 'waives_shipping_income') bool waivesShippingIncome,
     @JsonKey(name: 'no_courier') bool noCourier,
+    @JsonKey(name: 'deliver_at_branch', fromJson: _lenientBool)
+    bool deliverAtBranch,
   });
 }
 
@@ -1300,6 +1314,7 @@ class __$$CommercialPolicyImplCopyWithImpl<$Res>
     Object? discountPercentage = freezed,
     Object? waivesShippingIncome = null,
     Object? noCourier = null,
+    Object? deliverAtBranch = null,
   }) {
     return _then(
       _$CommercialPolicyImpl(
@@ -1331,6 +1346,10 @@ class __$$CommercialPolicyImplCopyWithImpl<$Res>
             ? _value.noCourier
             : noCourier // ignore: cast_nullable_to_non_nullable
                   as bool,
+        deliverAtBranch: null == deliverAtBranch
+            ? _value.deliverAtBranch
+            : deliverAtBranch // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -1347,6 +1366,8 @@ class _$CommercialPolicyImpl implements _CommercialPolicy {
     @JsonKey(name: 'discount_percentage') this.discountPercentage,
     @JsonKey(name: 'waives_shipping_income') this.waivesShippingIncome = false,
     @JsonKey(name: 'no_courier') this.noCourier = false,
+    @JsonKey(name: 'deliver_at_branch', fromJson: _lenientBool)
+    this.deliverAtBranch = false,
   });
 
   factory _$CommercialPolicyImpl.fromJson(Map<String, dynamic> json) =>
@@ -1372,10 +1393,17 @@ class _$CommercialPolicyImpl implements _CommercialPolicy {
   @override
   @JsonKey(name: 'no_courier')
   final bool noCourier;
+  // The order is handed over at the branch counter (staff purchases), so the
+  // client does not demand a delivery slot for it. Absent on older backends.
+  // Parsed leniently: a Frappe Check reaches us as 0/1, and one bad cast here
+  // would empty the whole policy list (the repository swallows the error).
+  @override
+  @JsonKey(name: 'deliver_at_branch', fromJson: _lenientBool)
+  final bool deliverAtBranch;
 
   @override
   String toString() {
-    return 'CommercialPolicy(name: $name, policyName: $policyName, orderPurpose: $orderPurpose, priceList: $priceList, discountPercentage: $discountPercentage, waivesShippingIncome: $waivesShippingIncome, noCourier: $noCourier)';
+    return 'CommercialPolicy(name: $name, policyName: $policyName, orderPurpose: $orderPurpose, priceList: $priceList, discountPercentage: $discountPercentage, waivesShippingIncome: $waivesShippingIncome, noCourier: $noCourier, deliverAtBranch: $deliverAtBranch)';
   }
 
   @override
@@ -1395,7 +1423,9 @@ class _$CommercialPolicyImpl implements _CommercialPolicy {
             (identical(other.waivesShippingIncome, waivesShippingIncome) ||
                 other.waivesShippingIncome == waivesShippingIncome) &&
             (identical(other.noCourier, noCourier) ||
-                other.noCourier == noCourier));
+                other.noCourier == noCourier) &&
+            (identical(other.deliverAtBranch, deliverAtBranch) ||
+                other.deliverAtBranch == deliverAtBranch));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1409,6 +1439,7 @@ class _$CommercialPolicyImpl implements _CommercialPolicy {
     discountPercentage,
     waivesShippingIncome,
     noCourier,
+    deliverAtBranch,
   );
 
   /// Create a copy of CommercialPolicy
@@ -1437,6 +1468,8 @@ abstract class _CommercialPolicy implements CommercialPolicy {
     @JsonKey(name: 'discount_percentage') final double? discountPercentage,
     @JsonKey(name: 'waives_shipping_income') final bool waivesShippingIncome,
     @JsonKey(name: 'no_courier') final bool noCourier,
+    @JsonKey(name: 'deliver_at_branch', fromJson: _lenientBool)
+    final bool deliverAtBranch,
   }) = _$CommercialPolicyImpl;
 
   factory _CommercialPolicy.fromJson(Map<String, dynamic> json) =
@@ -1461,7 +1494,13 @@ abstract class _CommercialPolicy implements CommercialPolicy {
   bool get waivesShippingIncome;
   @override
   @JsonKey(name: 'no_courier')
-  bool get noCourier;
+  bool get noCourier; // The order is handed over at the branch counter (staff purchases), so the
+  // client does not demand a delivery slot for it. Absent on older backends.
+  // Parsed leniently: a Frappe Check reaches us as 0/1, and one bad cast here
+  // would empty the whole policy list (the repository swallows the error).
+  @override
+  @JsonKey(name: 'deliver_at_branch', fromJson: _lenientBool)
+  bool get deliverAtBranch;
 
   /// Create a copy of CommercialPolicy
   /// with the given fields replaced by the non-null parameter values.

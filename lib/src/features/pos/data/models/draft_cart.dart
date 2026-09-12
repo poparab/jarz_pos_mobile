@@ -16,6 +16,11 @@ class DraftCart {
   final bool isB2bOrder;
   final String? boundB2bOrderPurpose;
   final String? policyReason;
+
+  /// The HRMS Employee an Employee-purpose order is put on, chosen through the
+  /// staff picker. Absent on drafts saved before the picker existed.
+  final String? staffEmployee;
+  final String? staffEmployeeName;
   final bool zeroShippingOverride;
   final bool isPickup;
   final DateTime createdAt;
@@ -41,6 +46,8 @@ class DraftCart {
     this.isB2bOrder = false,
     this.boundB2bOrderPurpose,
     this.policyReason,
+    this.staffEmployee,
+    this.staffEmployeeName,
     this.zeroShippingOverride = false,
     required this.isPickup,
     required this.createdAt,
@@ -67,6 +74,9 @@ class DraftCart {
     bool clearBoundB2bOrderPurpose = false,
     String? policyReason,
     bool clearPolicyReason = false,
+    String? staffEmployee,
+    String? staffEmployeeName,
+    bool clearStaffEmployee = false,
     bool? zeroShippingOverride,
     bool? isPickup,
     DateTime? updatedAt,
@@ -98,6 +108,12 @@ class DraftCart {
       policyReason: clearPolicyReason
           ? null
           : (policyReason ?? this.policyReason),
+      staffEmployee: clearStaffEmployee
+          ? null
+          : (staffEmployee ?? this.staffEmployee),
+      staffEmployeeName: clearStaffEmployee
+          ? null
+          : (staffEmployeeName ?? this.staffEmployeeName),
       zeroShippingOverride: zeroShippingOverride ?? this.zeroShippingOverride,
       isPickup: isPickup ?? this.isPickup,
       createdAt: createdAt,
@@ -134,6 +150,8 @@ class DraftCart {
       'is_b2b_order': isB2bOrder,
       'bound_b2b_order_purpose': boundB2bOrderPurpose,
       'policy_reason': policyReason,
+      'staff_employee': staffEmployee,
+      'staff_employee_name': staffEmployeeName,
       'zero_shipping_override': zeroShippingOverride,
       'is_pickup': isPickup,
       'created_at': createdAt.toIso8601String(),
@@ -173,6 +191,11 @@ class DraftCart {
       return DateTime.tryParse(raw.toString()) ?? fallback;
     }
 
+    String? optionalString(dynamic raw) {
+      final text = raw?.toString().trim() ?? '';
+      return text.isEmpty ? null : text;
+    }
+
     final now = DateTime.now();
     return DraftCart(
       id: map['id']?.toString() ?? '',
@@ -190,6 +213,8 @@ class DraftCart {
       isB2bOrder: (map['is_b2b_order'] as bool?) ?? false,
       boundB2bOrderPurpose: map['bound_b2b_order_purpose']?.toString(),
       policyReason: map['policy_reason']?.toString(),
+      staffEmployee: optionalString(map['staff_employee']),
+      staffEmployeeName: optionalString(map['staff_employee_name']),
       zeroShippingOverride: (map['zero_shipping_override'] as bool?) ?? false,
       isPickup: (map['is_pickup'] as bool?) ?? false,
       createdAt: parseDate(map['created_at'], now),

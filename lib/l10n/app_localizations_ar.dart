@@ -12999,4 +12999,126 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attendanceTokenUnknown => '؟';
+
+  @override
+  String get posCartOrderPurposeDeliverAtBranch => 'الاستلام من الفرع';
+
+  @override
+  String get posStaffMemberLabel => 'الموظف';
+
+  @override
+  String get posStaffMemberChoose => 'اختار الموظف';
+
+  @override
+  String get posStaffMemberChange => 'تغيير';
+
+  @override
+  String get posStaffMemberHint =>
+      'الطلب ده هيتخصم من مرتب الموظف اللي هتختاره.';
+
+  @override
+  String get posStaffMemberRequired => 'اختار الموظف صاحب الطلب ده';
+
+  @override
+  String get posStaffMemberPickerTitle => 'اختار الموظف';
+
+  @override
+  String get posStaffMemberSearchHint => 'دوّر بالاسم أو الفرع أو الوظيفة';
+
+  @override
+  String get posStaffMemberNoMatches => 'مفيش موظف مطابق للبحث ده';
+
+  @override
+  String get posStaffMemberEmpty => 'مفيش موظفين نشطين';
+
+  @override
+  String get posStaffMemberHrmsUnavailableTitle =>
+      'نظام الموارد البشرية مش متفعّل';
+
+  @override
+  String get posStaffMemberHrmsUnavailableBody =>
+      'طلبات الموظفين بتتسجل على ملف الموظف، وموديول الموارد البشرية مش متسطّب على النظام. اطلب من مسؤول النظام يفعّله.';
+
+  @override
+  String get posStaffMemberNewCustomerHint => 'هيتعمل له حساب عميل جديد';
+
+  @override
+  String posStaffMemberCustomerCreated(String name) {
+    return 'تم إنشاء حساب عميل للموظف $name';
+  }
+
+  @override
+  String posStaffMemberAssigned(String name) {
+    return 'الطلب اتسجل على $name';
+  }
+
+  @override
+  String get posStaffMemberEnsureFailed => 'تعذّر تجهيز حساب العميل للموظف ده';
+
+  @override
+  String get posStaffMemberLoadFailed => 'تعذّر تحميل قائمة الموظفين';
+
+  @override
+  String get managerStaffCustomersSyncAction =>
+      'إنشاء حسابات العملاء الناقصة للموظفين';
+
+  @override
+  String get managerStaffCustomersSyncConfirmTitle =>
+      'إنشاء حسابات العملاء الناقصة للموظفين؟';
+
+  @override
+  String get managerStaffCustomersSyncConfirmBody =>
+      'كل موظف نشط ملوش حساب عميل مربوط هيتعمل له حساب، علشان طلباته تتخصم من المرتب. ولو فيه عميل مطابق للموظف بالفعل هيتربط بيه بدل ما يتكرر.';
+
+  @override
+  String get managerStaffCustomersSyncConfirm => 'إنشاء';
+
+  @override
+  String get managerStaffCustomersSyncRunning =>
+      'جاري إنشاء حسابات العملاء للموظفين…';
+
+  @override
+  String get managerStaffCustomersSyncResultTitle => 'حسابات عملاء الموظفين';
+
+  @override
+  String managerStaffCustomersSyncCreated(int count) {
+    return 'تم الإنشاء: $count';
+  }
+
+  @override
+  String managerStaffCustomersSyncAdopted(int count) {
+    return 'اتربط بعميل موجود: $count';
+  }
+
+  @override
+  String managerStaffCustomersSyncExisting(int count) {
+    return 'مربوط من قبل: $count';
+  }
+
+  @override
+  String managerStaffCustomersSyncSkipped(int count) {
+    return 'تم تخطيه ($count)';
+  }
+
+  @override
+  String managerStaffCustomersSyncConflicts(int count) {
+    return 'محتاج مراجعة ($count)';
+  }
+
+  @override
+  String get managerStaffCustomersSyncConflictsHint =>
+      'أكتر من عميل مطابق للموظفين دول، فمفيش ربط اتعمل. اربط العميل الصح من الـ Desk.';
+
+  @override
+  String managerStaffCustomersSyncMatchingCustomers(String customers) {
+    return 'العملاء المطابقين: $customers';
+  }
+
+  @override
+  String get managerStaffCustomersSyncNothingToDo =>
+      'مفيش حاجة تتعمل: كل الموظفين ليهم حسابات عملاء مربوطة.';
+
+  @override
+  String get managerStaffCustomersSyncFailed =>
+      'تعذّر إنشاء حسابات العملاء للموظفين';
 }

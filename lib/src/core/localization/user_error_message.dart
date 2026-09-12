@@ -42,6 +42,7 @@ String userErrorMessageFor(
     l10n.authInvalidCredentials,
     l10n.appUpdateRequiredBody,
     l10n.userErrorDraftLimit,
+    l10n.posStaffMemberRequired,
     l10n.userErrorReopenOrder,
     l10n.userErrorShippingAddress,
     l10n.userErrorInsufficientStock,
@@ -316,6 +317,9 @@ String? _businessMessage(AppLocalizations l10n, String? candidate) {
   if (text == 'no profile selected' || text.contains('select a pos profile'))
     return l10n.checkoutSelectProfileFirst;
   if (text == 'draft_limit_reached') return l10n.userErrorDraftLimit;
+  // `PosNotifier.staffEmployeeRequiredError`: an Employee order with nobody
+  // chosen to deduct it from.
+  if (text == 'staff_employee_required') return l10n.posStaffMemberRequired;
   if (text.contains('amendment draft') ||
       text.startsWith('cannot submit amendment:'))
     return l10n.userErrorReopenOrder;
