@@ -302,13 +302,9 @@ class _UncoveredBanner extends StatelessWidget {
   }
 }
 
-/// The grid itself: a pinned employee column beside horizontally scrolling days.
-///
-/// One outer vertical scroll wraps both halves so they cannot drift out of
-/// alignment — synchronising two separate vertical controllers is the usual way
-/// this kind of table ends up one row out.
-/// Stable keys for the grid's three strips, so a test can measure where each
-/// cell actually landed. See `test/features/roster/roster_grid_alignment_test.dart`.
+/// Stable keys for the grid's name, header, totals and day cells, so a test
+/// can measure where each one actually landed. See
+/// `test/features/roster/roster_grid_alignment_test.dart`.
 Key rosterGridNameKey(String employee) =>
     ValueKey<String>('roster-grid-name-$employee');
 
@@ -321,9 +317,13 @@ Key rosterGridTotalsKey(String date) =>
 Key rosterGridCellKey(String employee, String date) =>
     ValueKey<String>('roster-grid-cell-$employee-$date');
 
-/// The month grid: pinned names down the side, scrolling days across the top.
+/// The grid itself: a pinned employee column beside horizontally scrolling days.
 ///
-/// Public only so the alignment test can pump it on its own; the screen is the
+/// One outer vertical scroll wraps both halves so they cannot drift out of
+/// alignment — synchronising two separate vertical controllers is the usual way
+/// this kind of table ends up one row out.
+///
+/// Public only so the grid tests can pump it on their own; the screen is the
 /// sole production caller. Every size comes from [RosterGridMetrics].
 class RosterGrid extends ConsumerWidget {
   const RosterGrid({
@@ -761,6 +761,7 @@ class _DayCell extends ConsumerWidget {
         .toList();
 
     final branch = (data?.shiftLocation ?? '').trim();
+    final showBranch = branch.isNotEmpty && state == RosterCellState.working;
 
     return Semantics(
       button: true,
@@ -902,29 +903,55 @@ class _DayCell extends ConsumerWidget {
                         foreground: style.foreground,
                       ),
                     ),
-                  if (branch.isNotEmpty && state == RosterCellState.working)
+                  if (showBranch || cornerMarkers.isNotEmpty)
                     PositionedDirectional(
                       bottom: 2,
                       start: 3,
-                      child: Text(
-                        branchToken(branch),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontSize: 9,
-                          height: 1,
-                          letterSpacing: 0.2,
-                          color: style.foreground,
-                        ),
-                      ),
-                    ),
-                  if (cornerMarkers.isNotEmpty)
-                    PositionedDirectional(
-                      bottom: 2,
                       end: 2,
+                      // ONE row, not two corners positioned independently. They
+                      // used to be placed from opposite edges with nothing
+                      // between them, so a cover day on a holiday with overtime
+                      // drew three markers straight over the branch token. In
+                      // a row they cannot overlap by construction: the markers
+                      // keep their size (they are the out-of-the-ordinary
+                      // signal), and the token yields — it scales down rather
+                      // than colliding.
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          for (final marker in cornerMarkers)
-                            _MarkerGlyph(style: resolver.markerStyle(marker)),
+                          if (showBranch)
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: AlignmentDirectional.centerStart,
+                                child: Text(
+                                  branchToken(branch),
+                                  maxLines: 1,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontSize: 9,
+                                    height: 1,
+                                    letterSpacing: 0.2,
+                                    color: style.foreground,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            const SizedBox.shrink(),
+                          if (cornerMarkers.isNotEmpty)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                for (final marker in cornerMarkers)
+                                  _MarkerGlyph(
+                                    style: resolver.markerStyle(marker),
+                                    // Three full-size glyphs leave the token
+                                    // too little room to read; shrink them a
+                                    // notch so both stay legible.
+                                    compact: cornerMarkers.length >= 3,
+                                  ),
+                              ],
+                            ),
                         ],
                       ),
                     ),
@@ -1000,22 +1027,30 @@ class _CodeChip extends StatelessWidget {
 /// A marker: one ink, told apart by its glyph, on a chip light enough to read
 /// over whatever colour Desk gave the shift type.
 class _MarkerGlyph extends StatelessWidget {
-  const _MarkerGlyph({required this.style});
+  const _MarkerGlyph({required this.style, this.compact = false});
 
   final RosterMarkerStyle style;
 
+  /// A notch smaller, for a cell carrying all three markers — the maximum.
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
+    final diameter = compact ? 11.0 : 13.0;
     return Container(
-      width: 13,
-      height: 13,
+      width: diameter,
+      height: diameter,
       margin: const EdgeInsetsDirectional.only(start: 1),
       decoration: BoxDecoration(
         color: RosterColors.markerChip,
         shape: BoxShape.circle,
         border: Border.all(color: RosterColors.markerInk, width: 0.5),
       ),
-      child: Icon(style.icon, size: 9, color: RosterColors.markerInk),
+      child: Icon(
+        style.icon,
+        size: compact ? 8 : 9,
+        color: RosterColors.markerInk,
+      ),
     );
   }
 }
