@@ -295,7 +295,7 @@ class _CreditAccountTile extends StatelessWidget {
           style: theme.textTheme.bodySmall,
         ),
         trailing: Text(
-          formatCurrency(context, row.totalOutstanding, currencyCode: currency),
+          formatCurrency(context, row.outstanding, currencyCode: currency),
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w700,
           ),

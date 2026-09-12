@@ -7236,202 +7236,52 @@
   "menuReplenishment": "Send to Branches",
   "replenishmentTitle": "Send to Branches",
   "replenishmentBasis": "{coverDays} days of cover, from the last {salesDays} days of sales",
-  "@replenishmentBasis": {
-    "placeholders": {
-      "coverDays": {
-        "type": "int"
-      },
-      "salesDays": {
-        "type": "int"
-      }
-    }
-  },
+  "@replenishmentBasis": {"placeholders": {"coverDays": {"type": "int"}, "salesDays": {"type": "int"}}},
   "replenishmentSourceLine": "From {warehouse}",
-  "@replenishmentSourceLine": {
-    "placeholders": {
-      "warehouse": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentSourceLine": {"placeholders": {"warehouse": {"type": "String"}}},
   "replenishmentGeneratedOn": "Worked out {when}",
-  "@replenishmentGeneratedOn": {
-    "placeholders": {
-      "when": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentGeneratedOn": {"placeholders": {"when": {"type": "String"}}},
   "replenishmentBranchLabel": "Branch",
   "replenishmentBranchOption": "{name} · {count, plural, =0{covered} =1{1 short} other{{count} short}}",
-  "@replenishmentBranchOption": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "@replenishmentBranchOption": {"placeholders": {"name": {"type": "String"}, "count": {"type": "int"}}},
   "replenishmentBelowCoverCount": "{count, plural, =0{Nothing below cover} =1{1 item below cover} other{{count} items below cover}}",
-  "@replenishmentBelowCoverCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "@replenishmentBelowCoverCount": {"placeholders": {"count": {"type": "int"}}},
   "replenishmentBranchCovered": "{name} has enough of everything for now",
-  "@replenishmentBranchCovered": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentBranchCovered": {"placeholders": {"name": {"type": "String"}}},
   "replenishmentNegativeBinsCount": "{count, plural, =1{1 item has negative stock} other{{count} items have negative stock}}",
-  "@replenishmentNegativeBinsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "@replenishmentNegativeBinsCount": {"placeholders": {"count": {"type": "int"}}},
   "replenishmentTotalShort": "The factory is short {qty} across all branches",
-  "@replenishmentTotalShort": {
-    "placeholders": {
-      "qty": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentTotalShort": {"placeholders": {"qty": {"type": "String"}}},
   "replenishmentOnHand": "Has {qty}",
-  "@replenishmentOnHand": {
-    "placeholders": {
-      "qty": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentOnHand": {"placeholders": {"qty": {"type": "String"}}},
   "replenishmentPerDay": "Sells {rate}/day",
-  "@replenishmentPerDay": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentPerDay": {"placeholders": {"rate": {"type": "String"}}},
   "replenishmentDaysOfCover": "{days} days cover",
-  "@replenishmentDaysOfCover": {
-    "placeholders": {
-      "days": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentDaysOfCover": {"placeholders": {"days": {"type": "String"}}},
   "replenishmentNoSalesYet": "No sales yet",
   "replenishmentNegativeStock": "Stock is negative, count this item",
   "replenishmentFactoryHas": "Factory has {qty}",
-  "@replenishmentFactoryHas": {
-    "placeholders": {
-      "qty": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentFactoryHas": {"placeholders": {"qty": {"type": "String"}}},
   "replenishmentShortBy": "Factory can''t cover this — short by {qty}",
-  "@replenishmentShortBy": {
-    "placeholders": {
-      "qty": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentShortBy": {"placeholders": {"qty": {"type": "String"}}},
   "replenishmentQtyLabel": "Send",
   "replenishmentTypedTotal": "{lineCount, plural, =1{1 line} other{{lineCount} lines}} · {totalQty} units",
-  "@replenishmentTypedTotal": {
-    "placeholders": {
-      "lineCount": {
-        "type": "int"
-      },
-      "totalQty": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentTypedTotal": {"placeholders": {"lineCount": {"type": "int"}, "totalQty": {"type": "String"}}},
   "replenishmentSendAction": "Send to {name}",
-  "@replenishmentSendAction": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentSendAction": {"placeholders": {"name": {"type": "String"}}},
   "replenishmentConfirmTitle": "Send to {name}?",
-  "@replenishmentConfirmTitle": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentConfirmTitle": {"placeholders": {"name": {"type": "String"}}},
   "replenishmentConfirmBody": "{lineCount, plural, =1{1 line} other{{lineCount} lines}} · {totalQty} units, out of {source}",
-  "@replenishmentConfirmBody": {
-    "placeholders": {
-      "lineCount": {
-        "type": "int"
-      },
-      "totalQty": {
-        "type": "String"
-      },
-      "source": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentConfirmBody": {"placeholders": {"lineCount": {"type": "int"}, "totalQty": {"type": "String"}, "source": {"type": "String"}}},
   "replenishmentConfirmAction": "Send",
   "replenishmentSentTitle": "Sent to {name}",
-  "@replenishmentSentTitle": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentSentTitle": {"placeholders": {"name": {"type": "String"}}},
   "replenishmentSentBody": "{lineCount, plural, =1{1 line} other{{lineCount} lines}} · {totalQty} units · entry {stockEntry}",
-  "@replenishmentSentBody": {
-    "placeholders": {
-      "lineCount": {
-        "type": "int"
-      },
-      "totalQty": {
-        "type": "String"
-      },
-      "stockEntry": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentSentBody": {"placeholders": {"lineCount": {"type": "int"}, "totalQty": {"type": "String"}, "stockEntry": {"type": "String"}}},
   "replenishmentSendFailed": "Couldn''t send to {name}: {reason}",
-  "@replenishmentSendFailed": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "reason": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentSendFailed": {"placeholders": {"name": {"type": "String"}, "reason": {"type": "String"}}},
   "replenishmentFailedLine": "The line the server refused: {item}",
-  "@replenishmentFailedLine": {
-    "placeholders": {
-      "item": {
-        "type": "String"
-      }
-    }
-  },
+  "@replenishmentFailedLine": {"placeholders": {"item": {"type": "String"}}},
   "replenishmentNumbersKept": "Your quantities are still on screen — fix it and send again.",
   "replenishmentNothingToSend": "Type a quantity first.",
   "replenishmentEmptyTitle": "Nothing to send",

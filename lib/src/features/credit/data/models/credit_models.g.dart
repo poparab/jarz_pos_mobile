@@ -93,13 +93,19 @@ _$CreditCustomerRowImpl _$$CreditCustomerRowImplFromJson(
 ) => _$CreditCustomerRowImpl(
   customer: json['customer'] as String? ?? '',
   customerName: json['customer_name'] as String? ?? '',
-  totalOutstanding: json['total_outstanding'] == null
+  outstanding: readRowOutstanding(json, 'outstanding') == null
       ? 0.0
-      : creditDouble(json['total_outstanding']),
+      : creditDouble(readRowOutstanding(json, 'outstanding')),
   invoiceCount: json['invoice_count'] == null
       ? 0
       : creditInt(json['invoice_count']),
   oldestInvoiceDate: json['oldest_invoice_date'] as String? ?? '',
+  oldestAgeDays: creditIntOrNull(json['oldest_age_days']),
+  openInvoices:
+      (json['open_invoices'] as List<dynamic>?)
+          ?.map((e) => CreditInvoice.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <CreditInvoice>[],
   currency: json['currency'] as String? ?? '',
 );
 
@@ -108,9 +114,11 @@ Map<String, dynamic> _$$CreditCustomerRowImplToJson(
 ) => <String, dynamic>{
   'customer': instance.customer,
   'customer_name': instance.customerName,
-  'total_outstanding': instance.totalOutstanding,
+  'outstanding': instance.outstanding,
   'invoice_count': instance.invoiceCount,
   'oldest_invoice_date': instance.oldestInvoiceDate,
+  'oldest_age_days': instance.oldestAgeDays,
+  'open_invoices': instance.openInvoices,
   'currency': instance.currency,
 };
 
@@ -125,9 +133,10 @@ _$CreditInvoiceImpl _$$CreditInvoiceImplFromJson(Map<String, dynamic> json) =>
       grandTotal: json['grand_total'] == null
           ? 0.0
           : creditDouble(json['grand_total']),
-      outstandingAmount: json['outstanding_amount'] == null
+      outstandingAmount:
+          readInvoiceOutstanding(json, 'outstanding_amount') == null
           ? 0.0
-          : creditDouble(json['outstanding_amount']),
+          : creditDouble(readInvoiceOutstanding(json, 'outstanding_amount')),
       status: json['status'] as String? ?? '',
       posProfile: json['pos_profile'] as String? ?? '',
       branch: json['branch'] as String? ?? '',
@@ -234,6 +243,11 @@ _$CreditPaymentResultImpl _$$CreditPaymentResultImplFromJson(
           .toList() ??
       const <CreditPaymentAllocation>[],
   currency: json['currency'] as String? ?? '',
+  alreadyRecorded: json['already_recorded'] == null
+      ? false
+      : creditBool(json['already_recorded']),
+  noticeCode: json['notice_code'] as String?,
+  notice: json['notice'] as String?,
 );
 
 Map<String, dynamic> _$$CreditPaymentResultImplToJson(
@@ -249,4 +263,7 @@ Map<String, dynamic> _$$CreditPaymentResultImplToJson(
   'remaining_balance': instance.remainingBalance,
   'allocations': instance.allocations,
   'currency': instance.currency,
+  'already_recorded': instance.alreadyRecorded,
+  'notice_code': instance.noticeCode,
+  'notice': instance.notice,
 };

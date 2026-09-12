@@ -60,8 +60,12 @@ class CreditAccountDetailScreen extends ConsumerWidget {
           ),
           data: (ledger) {
             final row = ledger.rowFor(customer);
-            final invoices = ledger.invoicesFor(customer);
-            final balance = row?.totalOutstanding ?? 0;
+            // The row's own `open_invoices`, NOT the windowed activity feed:
+            // the feed carries fully-paid invoices at 0.00 and drops open ones
+            // older than the period — i.e. it hid exactly the debts worth
+            // chasing under a heading that promised them.
+            final invoices = ledger.openInvoicesFor(customer);
+            final balance = row?.outstanding ?? 0;
             final currency = row?.currency.isNotEmpty == true
                 ? row!.currency
                 : ledger.summary.currency;
@@ -103,10 +107,11 @@ class CreditAccountDetailScreen extends ConsumerWidget {
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(14),
-                      // A balance with nothing listed is normal, not an
-                      // inconsistency: the invoices are simply older than the
-                      // selected window. It must never read as "nothing owed".
-                      child: Text(l10n.creditAccountNoInvoicesInWindow),
+                      // This list is no longer window-bounded, so "nothing
+                      // listed" now means what it says. A balance still showing
+                      // above it points at invoices outside this manager's
+                      // branches, which the scope note explains.
+                      child: Text(l10n.creditAccountNoOpenInvoices),
                     ),
                   )
                 else
@@ -209,6 +214,17 @@ class _BalanceCard extends StatelessWidget {
               l10n.creditAccountsOpenInvoiceCount(invoiceCount),
               style: theme.textTheme.bodySmall,
             ),
+            const SizedBox(height: 6),
+            // The two numbers on this card do not have the same scope: the
+            // balance comes from a ledger scoped to this user's POS Profiles,
+            // while a payment allocates FIFO across every branch (one debt per
+            // customer per company) and `availableCredit` below is all-time.
+            // Saying so is cheaper than a manager discovering it when a
+            // payment clears an invoice they cannot see.
+            Text(
+              l10n.creditAccountBranchScopeNote,
+              style: theme.textTheme.bodySmall?.copyWith(color: muted),
+            ),
             if (terms.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
@@ -285,9 +301,13 @@ class _CreditInvoiceTile extends StatelessWidget {
                   ),
                 ),
                 // Only worth showing when a partial payment has already been
-                // applied — otherwise it repeats the outstanding amount.
-                if ((invoice.grandTotal - invoice.outstandingAmount).abs() >=
-                    0.005)
+                // applied — otherwise it repeats the outstanding amount. The
+                // `> 0` guard matters now that these rows come from
+                // `open_invoices`: a payload without a total would otherwise
+                // print "Invoice total 0.00" next to real money owed.
+                if (invoice.grandTotal > 0 &&
+                    (invoice.grandTotal - invoice.outstandingAmount).abs() >=
+                        0.005)
                   Text(
                     '${l10n.creditAccountInvoiceTotalLabel} '
                     '${formatCurrency(context, invoice.grandTotal, currencyCode: effectiveCurrency)}',
